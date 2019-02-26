@@ -1317,11 +1317,20 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
-	if err != nil || typ != chat1.MessageType_TEXT {
+	if err != nil {
 		return nil
 	}
-	body := msgBody.Text().Body
-	payments := msgBody.Text().Payments
+	var body string
+	var payments []chat1.TextPayment
+	switch typ {
+	case chat1.MessageType_TEXT:
+		body = msgBody.Text().Body
+		payments = msgBody.Text().Payments
+	case chat1.MessageType_FLIP:
+		body = msgBody.Flip().Text
+	default:
+		return nil
+	}
 
 	// escape before applying xforms
 	body = EscapeForDecorate(ctx, body)
@@ -1436,6 +1445,10 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
+			decoratedBody = new(string)
+			*decoratedBody = EscapeShrugs(ctx, body)
+		case chat1.MessageType_FLIP:
+			body = rawMsg.Outbox().Msg.MessageBody.Flip().Text
 			decoratedBody = new(string)
 			*decoratedBody = EscapeShrugs(ctx, body)
 		case chat1.MessageType_EDIT:
@@ -1690,16 +1703,36 @@ func AddUserToTLFName(g *globals.Context, tlfName string, vis keybase1.TLFVisibi
 	switch membersType {
 	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
 		chat1.ConversationMembersType_KBFS:
-		username := g.Env.GetUsername().String()
-		if vis != keybase1.TLFVisibility_PUBLIC {
-			if len(tlfName) == 0 {
-				tlfName = username
-			} else {
-				tlfName += "," + username
-			}
+		if vis == keybase1.TLFVisibility_PUBLIC {
+			return tlfName
 		}
+
+		username := g.Env.GetUsername().String()
+		if len(tlfName) == 0 {
+			return username
+		}
+
+		// KBFS creates TLFs with suffixes (e.g., folder names that
+		// conflict after an assertion has been resolved) and readers,
+		// so we need to handle those types of TLF names here so that
+		// edit history works correctly.
+		split1 := strings.SplitN(tlfName, " ", 2) // split off suffix
+		split2 := strings.Split(split1[0], "#")   // split off readers
+		// Add the name to the writers list (assume the current user
+		// is a writer).
+		tlfName = split2[0] + "," + username
+		if len(split2) > 1 {
+			// Re-append any readers.
+			tlfName += "#" + split2[1]
+		}
+		if len(split1) > 1 {
+			// Re-append any suffix.
+			tlfName += " " + split1[1]
+		}
+		return tlfName
+	default:
+		return tlfName
 	}
-	return tlfName
 }
 
 func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []keybase1.UID) error {

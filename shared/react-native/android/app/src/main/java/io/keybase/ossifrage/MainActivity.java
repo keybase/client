@@ -13,8 +13,13 @@ import android.view.Window;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
+
+import com.facebook.react.ReactActivityDelegate;
+import com.facebook.react.ReactRootView;
+import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,7 +36,7 @@ import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
 
-public class MainActivity extends ReactActivity {
+public class MainActivity extends ReactFragmentActivity {
     private static final String TAG = MainActivity.class.getName();
     private PermissionListener listener;
 
@@ -96,6 +101,16 @@ public class MainActivity extends ReactActivity {
                 mainWindow.setBackgroundDrawableResource(R.color.white);
             }
         }, 300);
+    }
+
+    @Override
+    protected ReactActivityDelegate createReactActivityDelegate() {
+        return new ReactActivityDelegate(this, getMainComponentName()) {
+            @Override
+            protected ReactRootView createRootView() {
+                return new RNGestureHandlerEnabledRootView(MainActivity.this);
+            }
+        };
     }
 
     @Override

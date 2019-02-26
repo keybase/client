@@ -19,15 +19,22 @@ export type _AssertionMeta = {|
 |}
 type AssertionMeta = I.RecordOf<_AssertionMeta>
 
+export type SiteIcon = {
+  +path: string, // https://keybase.io/_/icons/twitter.png
+  +width: number,
+}
 export type _Assertion = {
   assertionKey: string, // twitter:bob
   color: AssertionColor,
   metas: $ReadOnlyArray<AssertionMeta>,
+  priority: number, // sort order
   proofURL: string, // http://twitter.com/bob/post/1234
   sigID: string,
-  siteIcon: string, // https://keybase.io/_/icons/twitter.png
+  siteIcon: $ReadOnlyArray<SiteIcon>,
+  siteIconFull: $ReadOnlyArray<SiteIcon>, // full color icon
   siteURL: string, // https://twitter.com/bob
   state: AssertionState,
+  timestamp: number, // can be 0
   type: string, // twitter
   value: string, // bob
 }
@@ -46,6 +53,7 @@ export type _Details = {
   guiID: string,
   location: ?string,
   reason: string,
+  registeredForAirdrop: ?boolean,
   showTracker: boolean,
   state: DetailsState,
   teamShowcase: ?I.List<TeamShowcase>,

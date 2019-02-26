@@ -458,7 +458,7 @@ func ConvertIdentifyError(assertion string, err error) error {
 // Resolve implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	res, err := k.identifyClient.Resolve3(ctx, assertion)
+	res, err := k.identifyClient.Resolve3(ctx, keybase1.Resolve3Arg{Assertion: assertion})
 	if err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
@@ -901,7 +901,7 @@ func (k *KeybaseServiceBase) GetTeamSettings(
 	ctx context.Context, teamID keybase1.TeamID) (
 	keybase1.KBFSTeamSettings, error) {
 	// TODO: get invalidations from the server and cache the settings?
-	return k.kbfsClient.GetKBFSTeamSettings(ctx, teamID)
+	return k.kbfsClient.GetKBFSTeamSettings(ctx, keybase1.GetKBFSTeamSettingsArg{TeamID: teamID})
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (

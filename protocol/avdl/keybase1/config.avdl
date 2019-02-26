@@ -90,6 +90,7 @@ protocol config {
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);
+  array<ClientStatus> getClientStatus(int sessionID);
 
 
   record AllProvisionedUsernames {

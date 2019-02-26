@@ -9,14 +9,14 @@ const defaultProps = {
   logoutInProgress: false,
   onLogout: action('onlogout'),
   onTabChange: action('ontabchange'),
-  selectedTab: 'settingsTabs:landingTab',
+  selectedTab: 'settingsTabs.landingTab',
 }
 
 const load = () => {
   storiesOf('Settings/Nav', module)
     .add('Normal', () => <SettingsNav {...defaultProps} />)
     .add('With a badge (Mobile Only)', () => (
-      <SettingsNav {...defaultProps} badgeNumbers={{'tabs:gitTab': 1}} />
+      <SettingsNav {...defaultProps} badgeNumbers={{'tabs.gitTab': 1}} />
     ))
     .add('With a badge on Notifications (Mobile Only)', () => (
       <SettingsNav {...defaultProps} badgeNotifications={true} />

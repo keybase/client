@@ -45,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
         path: [
           {
             props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-            selected: 'chooseEmoji',
+            selected: 'chatChooseEmoji',
           },
         ],
       })
@@ -67,7 +67,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'deleteHistoryWarning'}],
+        path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
       })
     )
   },

@@ -20,6 +20,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   guiID: null,
   location: null,
   reason: '',
+  registeredForAirdrop: false,
   showTracker: false,
   state: 'error',
   teamShowcase: I.List(),
@@ -32,11 +33,14 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   assertionKey: '',
   color: 'gray',
   metas: [],
+  priority: -1,
   proofURL: '',
   sigID: '',
-  siteIcon: '',
+  siteIcon: [],
+  siteIconFull: [],
   siteURL: '',
   state: 'error',
+  timestamp: 0,
   type: '',
   value: '',
 })
@@ -108,6 +112,36 @@ export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): 
       throw new Error('Invalid identifyv3 row state ' + state)
   }
 }
+
+export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion =>
+  makeAssertion({
+    assertionKey: `${row.key}:${row.value}`,
+    color: rpcRowColorToColor(row.color),
+    metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
+    priority: row.priority,
+    proofURL: row.proofURL,
+    sigID: row.sigID,
+    siteIcon: row.siteIcon || [],
+    siteIconFull: row.siteIconFull || [],
+    siteURL: row.siteURL,
+    state: rpcRowStateToAssertionState(row.state),
+    timestamp: row.ctime,
+    type: row.key,
+    value: row.value,
+  })
+
+export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion =>
+  makeAssertion({
+    assertionKey: s.key,
+    color: 'gray',
+    metas: [],
+    proofURL: '',
+    siteIcon: s.profileIcon || [],
+    siteURL: '',
+    state: 'suggestion',
+    type: s.key,
+    value: s.profileText,
+  })
 
 const _scoreAssertionKey = a => {
   switch (a) {

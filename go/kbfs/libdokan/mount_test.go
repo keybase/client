@@ -2454,6 +2454,15 @@ func TestStatusFile(t *testing.T) {
 	var bufStatus libkbfs.FolderBranchStatus
 	json.Unmarshal(buf, &bufStatus)
 
+	// Use a fuzzy check on the timestamps, since it could include
+	// monotonic clock stuff.
+	if !timeEqualFuzzy(
+		status.LocalTimestamp, bufStatus.LocalTimestamp, time.Millisecond) {
+		t.Fatalf("Local timestamp (%s) didn't match expected timestamp %v",
+			bufStatus.LocalTimestamp, status.LocalTimestamp)
+	}
+	status.LocalTimestamp = bufStatus.LocalTimestamp
+
 	// It's safe to compare the path slices with DeepEqual since they
 	// will all be null for this test (nothing is dirtied).
 	if !reflect.DeepEqual(status, bufStatus) {

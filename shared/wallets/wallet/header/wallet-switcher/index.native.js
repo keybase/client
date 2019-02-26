@@ -39,9 +39,31 @@ type MenuItem =
       accountID: Types.AccountID,
       type: 'wallet',
     |}
+  | {|
+      key: string,
+      onPress: () => void,
+      title: string,
+      type: 'airdrop',
+    |}
 
 const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
   switch (item.type) {
+    case 'airdrop': {
+      const onPress = () => {
+        hideMenu()
+        item.onPress()
+      }
+      return (
+        <Row isLast={isLast} key={item.key} onPress={onPress}>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
+            <Kb.Icon type="icon-airdrop-star-32" />
+            <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blue}}>
+              {item.title}
+            </Kb.Text>
+          </Kb.Box2>
+        </Row>
+      )
+    }
     case 'item': {
       const onPress = () => {
         hideMenu()
@@ -79,6 +101,12 @@ export const WalletSwitcher = (props: Props) => {
   }
 
   const menuItems = [
+    {
+      key: 'airdrop',
+      onPress: props.onJoinAirdrop,
+      title: 'Join the airdrop',
+      type: 'airdrop',
+    },
     {
       key: 'newAccount',
       onPress: props.onAddNew,

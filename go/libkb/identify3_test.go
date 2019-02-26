@@ -52,7 +52,7 @@ func (i *id3FakeUI) assertAndCleanState(t *testing.T, expected []keybase1.Identi
 func (i *id3FakeUI) Identify3ShowTracker(context.Context, keybase1.Identify3ShowTrackerArg) error {
 	return nil
 }
-func (i *id3FakeUI) Identify3UpdateRow(context.Context, keybase1.Identify3UpdateRowArg) error {
+func (i *id3FakeUI) Identify3UpdateRow(context.Context, keybase1.Identify3Row) error {
 	return nil
 }
 func (i *id3FakeUI) Identify3UpdateUserCard(context.Context, keybase1.Identify3UpdateUserCardArg) error {

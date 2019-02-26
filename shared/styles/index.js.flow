@@ -80,6 +80,10 @@ declare export var isIOS: boolean
 declare export var isMobile: boolean
 declare export var isIPhoneX: boolean
 
+// Only mobile
+declare export var dimensionWidth: number
+declare export var dimensionHeight: number
+
 export {platformStyles, globalMargins, backgroundModeToColor} from './shared'
 export type {
   StylesDesktop,

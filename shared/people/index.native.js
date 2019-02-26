@@ -5,25 +5,31 @@ import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
+import flags from '../util/feature-flags'
+
+export const Header = (props: Props) => (
+  <Kb.HeaderHocHeader
+    borderless={true}
+    underNotch={flags.useNewRouter}
+    rightActions={[
+      {
+        custom: (
+          <Kb.Avatar
+            username={props.myUsername}
+            onClick={() => props.onClickUser(props.myUsername)}
+            size={32}
+          />
+        ),
+        label: 'Avatar',
+      },
+    ]}
+    titleComponent={<PeoplePageSearchBar {...props} />}
+  />
+)
 
 const People = (props: Props) => (
   <>
-    <Kb.HeaderHocHeader
-      borderless={true}
-      rightActions={[
-        {
-          custom: (
-            <Kb.Avatar
-              username={props.myUsername}
-              onClick={() => props.onClickUser(props.myUsername)}
-              size={32}
-            />
-          ),
-          label: 'Avatar',
-        },
-      ]}
-      titleComponent={<PeoplePageSearchBar {...props} />}
-    />
+    {!flags.useNewRouter && <Header {...props} />}
     <Kb.ScrollView
       style={styles.scrollView}
       refreshControl={

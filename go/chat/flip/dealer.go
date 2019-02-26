@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
+	"math"
 	"math/big"
 	"strings"
 	"time"
@@ -197,11 +198,7 @@ func (g *Game) getNextTimer() <-chan time.Time {
 func (g *Game) CommitmentEndTime() time.Time {
 	// If we're the leader, then let's cut off when we say we're going to cut off
 	// If we're not, then let's give extra time (a multiple of 2) to the leader.
-	mul := time.Duration(1)
-	if !g.isLeader {
-		mul = time.Duration(2)
-	}
-	return g.start.Add(mul * g.params.CommitmentWindowWithSlack())
+	return g.start.Add(g.params.CommitmentWindowWithSlack(g.isLeader))
 }
 
 func (g *Game) RevealEndTime() time.Time {
@@ -295,7 +292,7 @@ func (g *Game) doFlip(ctx context.Context, prng *PRNG) error {
 
 func (g *Game) playerCommitedInTime(ps *GamePlayerState, now time.Time) bool {
 	diff := ps.commitmentTime.Sub(g.start)
-	return diff < g.params.CommitmentWindowWithSlack()
+	return diff < g.params.CommitmentWindowWithSlack(true)
 }
 
 func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) error {
@@ -641,6 +638,8 @@ func (d *Dealer) handleMessageOthers(c context.Context, msg *GameMessageWrapped)
 
 func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) error {
 
+	d.dh.CLogf(ctx, "flip.Dealer: Incoming: %+v", *msg)
+
 	t, err := msg.Msg.Body.T()
 	if err != nil {
 		return err
@@ -778,13 +777,24 @@ func (d *Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata,
 
 var DefaultCommitmentWindowMsec int64 = 3 * 1000
 var DefaultRevealWindowMsec int64 = 30 * 1000
+var DefaultCommitmentCompleteWindowMsec int64 = 15 * 1000
 var DefaultSlackMsec int64 = 1 * 1000
 
-func newStart(now time.Time) Start {
+// For bigger groups, everything is slower, like the time to digest all required messages. So we're
+// going to inflate our timeouts.
+func inflateTimeout(timeout int64, nPlayers int) int64 {
+	if nPlayers <= 5 {
+		return timeout
+	}
+	return int64(math.Ceil(math.Log(float64(nPlayers)) * float64(timeout) / math.Log(5.0)))
+}
+
+func newStart(now time.Time, nPlayers int) Start {
 	return Start{
-		StartTime:            ToTime(now),
-		CommitmentWindowMsec: DefaultCommitmentWindowMsec,
-		RevealWindowMsec:     DefaultRevealWindowMsec,
-		SlackMsec:            DefaultSlackMsec,
+		StartTime:                    ToTime(now),
+		CommitmentWindowMsec:         inflateTimeout(DefaultCommitmentWindowMsec, nPlayers),
+		RevealWindowMsec:             inflateTimeout(DefaultRevealWindowMsec, nPlayers),
+		CommitmentCompleteWindowMsec: inflateTimeout(DefaultCommitmentCompleteWindowMsec, nPlayers),
+		SlackMsec:                    inflateTimeout(DefaultSlackMsec, nPlayers),
 	}
 }

@@ -15,12 +15,8 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
       <Box style={styleYellowBanner}>
-        <Text backgroundMode="Information" type="BodySmallSemibold">
-          &bull; You must have karma &ge; 2
-        </Text>
-        <Text backgroundMode="Information" type="BodySmallSemibold">
-          &bull; You must enter your uSeRName with exact case
-        </Text>
+        <Text type="BodySmallSemibold">&bull; You must have karma &ge; 2</Text>
+        <Text type="BodySmallSemibold">&bull; You must enter your uSeRName with exact case</Text>
       </Box>
     )
   }

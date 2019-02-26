@@ -23,3 +23,12 @@ const routeTree = () =>
   })
 
 export default routeTree
+
+export const newRoutes = {
+  deleteRepo: {getScreen: () => require('./delete-repo/container').default},
+  newRepo: {getScreen: () => require('./new-repo/container').default},
+  selectChannel: {getScreen: () => require('./select-channel/container').default},
+  'settingsTabs.gitTab': {getScreen: () => require('./container').default},
+  'tabs.gitTab': {getScreen: () => require('./container').default},
+}
+export const newModalRoutes = {}

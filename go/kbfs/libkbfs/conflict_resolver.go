@@ -3687,7 +3687,9 @@ func openCRDBInternal(config Config) (*LevelDb, error) {
 func openCRDB(config Config) (db *LevelDb) {
 	db, err := openCRDBInternal(config)
 	if err != nil {
-		panic(fmt.Sprintf("Could not open conflict resolver DB: %v", err))
+		panic(fmt.Sprintf("Could not open conflict resolver DB. "+
+			"Perhaps multiple KBFS instances are being run concurrently"+
+			"? Error: %+v", err))
 	}
 	return db
 }

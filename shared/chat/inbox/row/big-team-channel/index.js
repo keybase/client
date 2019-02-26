@@ -139,7 +139,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.red,
   },
   textPlain: Styles.platformStyles({
-    isElectron: {color: Styles.globalColors.black_63},
+    common: {color: Styles.globalColors.black_63},
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   textPlainBold: Styles.platformStyles({

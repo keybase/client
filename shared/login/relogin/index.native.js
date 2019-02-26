@@ -38,7 +38,7 @@ class LoginRender extends Component<Props> {
         <Kb.Box style={styles.container}>
           {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
             <Kb.Box style={deviceNotSecureStyle}>
-              <Kb.Text center={true} type="Body" backgroundMode="Information" style={{flex: 1}}>
+              <Kb.Text center={true} type="Body" negative={true} style={{flex: 1}}>
                 Since you don't have a lock screen, you'll have to type your passphrase everytime.
               </Kb.Text>
             </Kb.Box>
@@ -66,7 +66,6 @@ class LoginRender extends Component<Props> {
               onClick={this.props.onSubmit}
             />
             <Kb.Text
-              link={true}
               type="BodySmallSecondaryLink"
               center={true}
               onClick={this.props.onForgotPassphrase}

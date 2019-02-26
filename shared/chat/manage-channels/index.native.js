@@ -17,7 +17,7 @@ import type {Props, RowProps} from './index.types'
 
 const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
   <ClickableBox style={style} onClick={onClick}>
-    <Icon style={{height: 16, marginRight: globalMargins.xtiny}} type="iconfont-edit" />
+    <Icon style={{marginRight: globalMargins.xtiny}} type="iconfont-edit" sizeType="Small" />
     <Text type="BodySmallPrimaryLink">Edit</Text>
   </ClickableBox>
 )
@@ -104,19 +104,22 @@ const ManageChannels = (props: Props) => (
     </ScrollView>
     <Box
       style={{
+        borderStyle: 'solid',
+        borderTopColor: globalColors.black_10,
+        borderTopWidth: 1,
         ...globalStyles.flexBoxColumn,
         justifyContent: 'flex-end',
-        paddingBottom: globalMargins.small,
+        padding: globalMargins.small,
       }}
     >
       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
         <WaitingButton
+          fullWidth={true}
           type="Primary"
           label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
           waitingKey={props.waitingKey}
           disabled={!props.unsavedSubscriptions}
           onClick={props.onSaveSubscriptions}
-          style={{marginLeft: globalMargins.tiny}}
         />
       </Box>
     </Box>

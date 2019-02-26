@@ -45,7 +45,7 @@ func (d *delegateID3UI) Identify3ShowTracker(_ context.Context, arg keybase1.Ide
 	return nil
 }
 
-func (d *delegateID3UI) Identify3UpdateRow(_ context.Context, arg keybase1.Identify3UpdateRowArg) error {
+func (d *delegateID3UI) Identify3UpdateRow(_ context.Context, arg keybase1.Identify3Row) error {
 	d.Lock()
 	defer d.Unlock()
 	require.Equal(d.T, d.guiid, arg.GuiID)

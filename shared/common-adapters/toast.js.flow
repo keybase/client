@@ -5,6 +5,7 @@ import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   children: React.Node,
+  className?: ?string,
   containerStyle?: StylesCrossPlatform,
   visible: boolean,
   attachTo?: ?() => ?React.ElementRef<any>,

@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import I from 'immutable'
 import moment from 'moment'
-import {Box2, Text} from '../../../../common-adapters'
+import {Button, ButtonBar, Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
@@ -15,26 +15,34 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-// set this to true to play with messages coming in on a timer
-const injectMessages = false && !__STORYSHOT__
-// set this to true to play with loading more working
-const enableLoadMore = false && !__STORYSHOT__
-const ordinalAscending = true
-
-let index = 1
-const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100) => {
-  const end = index + num
-  const ordinals = []
-  for (; index < end; ++index) {
-    ordinals.push(Types.numberToOrdinal(ordinalAscending ? index : 9000 - index))
+const firstOrdinal = 10000
+const makeMoreOrdinals = (
+  ordinals: I.List<Types.Ordinal>,
+  direction: 'append' | 'prepend',
+  num = __STORYSHOT__ ? 10 : 100
+): I.List<Types.Ordinal> => {
+  if (direction === 'prepend') {
+    const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first()) : firstOrdinal
+    const start = Math.max(0, oldStart - num)
+    const end = oldStart
+    const newOrdinals = []
+    for (let i = start; i < end; ++i) {
+      newOrdinals.push(Types.numberToOrdinal(i))
+    }
+    return ordinals.unshift(...newOrdinals)
+  } else {
+    const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last()) + 1 : firstOrdinal
+    const start = oldEnd
+    const end = oldEnd + num
+    const newOrdinals = []
+    for (let i = start; i < end; ++i) {
+      newOrdinals.push(Types.numberToOrdinal(i))
+    }
+    return ordinals.push(...newOrdinals)
   }
-  return ordinals
 }
-const messageOrdinals = I.List(makeMoreOrdinals())
-const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
-  conversationIDKey,
   copyToClipboard: Sb.action('copyToClipboard'),
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
@@ -141,7 +149,7 @@ const provider = Sb.createPropProviderWithCommon({
     measure: null,
   }),
   TopMessage: p => ({
-    conversationIDKey,
+    conversationIDKey: p.conversationIDKey,
     hasOlderResetConversation: false,
     showRetentionNotice: false,
     loadMoreType: 'moreToLoad',
@@ -182,7 +190,7 @@ const provider = Sb.createPropProviderWithCommon({
     const message = ordinalToMessage(p.ordinal)
     const previous = ordinalToMessage(p.previous)
     return {
-      conversationIDKey: message.conversationIDKey,
+      conversationIDKey: p.conversationIDKey,
       exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
       failureDescription: '',
       hasUnfurlPrompts: false,
@@ -202,46 +210,114 @@ const provider = Sb.createPropProviderWithCommon({
   },
 })
 
+const loadMore = Sb.action('onLoadMoreMessages')
+
 type Props = {}
 type State = {|
+  conversationIDKey: Types.ConversationIDKey,
+  loadMoreEnabled: boolean,
+  messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
-  intervalID: IntervalID
-  timeoutID: TimeoutID
+  _injectMessagesIntervalID: ?IntervalID
+  _loadMoreTimeoutID: ?TimeoutID
+  _loadConvoTimeoutID: ?TimeoutID
   constructor(props) {
     super(props)
     this.state = {
-      messageOrdinals: messageOrdinals,
+      conversationIDKey: Types.stringToConversationIDKey('a'),
+      loadMoreEnabled: false,
+      messageInjectionEnabled: false,
+      messageOrdinals: makeMoreOrdinals(I.List(), 'append'),
+      scrollListDownCounter: 0,
+      scrollListUpCounter: 0,
     }
+  }
 
-    if (injectMessages) {
-      this.intervalID = setInterval(() => {
+  _changeIDKey = () => {
+    this.setState(p => {
+      const s = Types.conversationIDKeyToString(p.conversationIDKey)
+      const conversationIDKey = Types.stringToConversationIDKey(s + 'a')
+      const messageOrdinals = p.messageOrdinals
+      this._loadConvoTimeoutID = setTimeout(() => {
+        console.log('++++ Reloading messages')
+        this.setState({messageOrdinals})
+      }, 2000)
+      return {conversationIDKey, messageOrdinals: I.List()}
+    })
+  }
+
+  _toggleInjectMessages = () => {
+    if (this._injectMessagesIntervalID) {
+      clearInterval(this._injectMessagesIntervalID)
+      this._injectMessagesIntervalID = null
+    } else {
+      this._injectMessagesIntervalID = setInterval(() => {
         console.log('Appending more mock items +++++')
         this.setState(p => ({
-          messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(Math.ceil(Math.random() * 5))),
+          messageOrdinals: makeMoreOrdinals(p.messageOrdinals, 'append', Math.ceil(Math.random() * 5)),
         }))
       }, 5000)
     }
+    this.setState({messageInjectionEnabled: this._injectMessagesIntervalID !== null})
+  }
+
+  _toggleLoadMore = () => {
+    this.setState(state => ({loadMoreEnabled: !state.loadMoreEnabled}))
+  }
+
+  _scrollDown = () => {
+    this.setState(state => ({scrollListDownCounter: state.scrollListDownCounter + 1}))
+  }
+
+  _scrollUp = () => {
+    this.setState(state => ({scrollListUpCounter: state.scrollListUpCounter + 1}))
   }
 
   componentWillUnmount() {
-    clearInterval(this.intervalID)
-    clearTimeout(this.timeoutID)
+    this._injectMessagesIntervalID && clearInterval(this._injectMessagesIntervalID)
+    this._loadMoreTimeoutID && clearTimeout(this._loadMoreTimeoutID)
   }
 
-  onLoadMoreMessages = enableLoadMore
-    ? () => {
-        console.log('got onLoadMore, using mock delay')
-        this.timeoutID = setTimeout(() => {
-          console.log('++++ Prepending more mock items')
-          this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
-        }, 2000)
-      }
-    : Sb.action('onLoadMoreMessages')
+  onLoadMoreMessages = () => {
+    if (this.state.loadMoreEnabled) {
+      console.log('got onLoadMore, using mock delay')
+      this._loadMoreTimeoutID = setTimeout(() => {
+        console.log('++++ Prepending more mock items')
+        this.setState(p => ({messageOrdinals: makeMoreOrdinals(p.messageOrdinals, 'prepend')}))
+      }, 2000)
+    } else {
+      loadMore()
+    }
+  }
 
   render() {
-    return <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
+    const injectLabel = this.state.messageInjectionEnabled
+      ? 'Disable message injection'
+      : 'Enable message injection'
+    const loadMoreLabel = this.state.loadMoreEnabled ? 'Disable load more' : 'Enable load more'
+    return (
+      <React.Fragment>
+        <ButtonBar direction="row" align="flex-start">
+          <Button label={injectLabel} type="Primary" onClick={this._toggleInjectMessages} />
+          <Button label={loadMoreLabel} type="Primary" onClick={this._toggleLoadMore} />
+          <Button label="Change conversation ID" type="Primary" onClick={this._changeIDKey} />
+          <Button label="Scroll up" type="Primary" onClick={this._scrollUp} />
+          <Button label="Scroll down" type="Primary" onClick={this._scrollDown} />
+        </ButtonBar>
+        <Thread
+          {...props}
+          conversationIDKey={this.state.conversationIDKey}
+          messageOrdinals={this.state.messageOrdinals}
+          loadMoreMessages={this.onLoadMoreMessages}
+          scrollListUpCounter={this.state.scrollListUpCounter}
+          scrollListDownCounter={this.state.scrollListDownCounter}
+        />
+      </React.Fragment>
+    )
   }
 }
 

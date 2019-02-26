@@ -85,6 +85,10 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	return r
 }
 
+func (r *AttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {
+	r.fetcher.OnCacheCleared(mctx)
+}
+
 func (r *AttachmentHTTPSrv) monitorAppState() {
 	ctx := context.Background()
 	r.Debug(ctx, "monitorAppState: starting up")
@@ -524,6 +528,8 @@ func (r *RemoteAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.
 	return false, nil
 }
 
+func (r *RemoteAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {}
+
 type CachingAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -731,4 +737,12 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 
 	c.Debug(ctx, "deleted %d assets", len(assets))
 	return nil
+}
+
+func (c *CachingAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {
+	if c.diskLRU != nil {
+		if err := c.diskLRU.Clean(mctx.Ctx(), mctx.G(), c.getCacheDir()); err != nil {
+			c.Debug(mctx.Ctx(), "unable to run clean: %v", err)
+		}
+	}
 }

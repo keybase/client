@@ -34,6 +34,11 @@ class Icon extends Component<Props, void> {
       return null
     }
 
+    if (!iconMeta[iconType]) {
+      logger.warn('Unknown icontype passed', iconType)
+      throw new Error('Unknown icontype passed ' + iconType)
+    }
+
     if (this.props.inheritColor) {
       color = 'inherit'
       hoverColor = 'inherit'

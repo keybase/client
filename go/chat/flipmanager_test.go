@@ -13,13 +13,14 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
 func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatListener, numUsers int) string {
 	timeout := 20 * time.Second
+	consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP) // host msg
 	for {
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		select {
 		case updates := <-ui.CoinFlipUpdates:
 			require.Equal(t, 1, len(updates))
@@ -32,11 +33,18 @@ func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatLi
 		}
 	}
 }
+func assertNoFlip(t *testing.T, ui *kbtest.ChatUI) {
+	select {
+	case <-ui.CoinFlipUpdates:
+		require.Fail(t, "unexpected coinflip update")
+	default:
+	}
+}
 
 func TestFlipManagerStartFlip(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-			ctc := makeChatTestContext(t, "FlipManager", 3)
+			ctc := makeChatTestContext(t, "FlipManagerStartFlip", 3)
 			defer ctc.cleanup()
 
 			users := ctc.users()
@@ -75,7 +83,9 @@ func TestFlipManagerStartFlip(t *testing.T) {
 				consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 			}
 
+			expectedDevConvs := 0
 			// bool
+			expectedDevConvs++
 			mustPostLocalForTest(t, ctc, users[0], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "/flip",
@@ -92,6 +102,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			require.Equal(t, res0, res2)
 
 			// limit
+			expectedDevConvs++
 			mustPostLocalForTest(t, ctc, users[0], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "/flip 10",
@@ -115,6 +126,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			require.Equal(t, res0, res2)
 
 			// range
+			expectedDevConvs++
 			mustPostLocalForTest(t, ctc, users[0], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "/flip 10..15",
@@ -142,6 +154,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			for _, r := range ref {
 				refMap[r] = true
 			}
+			expectedDevConvs++
 			mustPostLocalForTest(t, ctc, users[0], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: fmt.Sprintf("/flip %s", strings.Join(ref, ",")),
@@ -175,11 +188,83 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			for _, conv := range ibox.Convs {
 				if strings.HasPrefix(conv.Info.TopicName, gameIDTopicNamePrefix) {
 					numConvs++
-					require.Equal(t, conv.ConvRetention, policy)
+					require.Equal(t, policy, conv.ConvRetention)
 				}
 			}
-			require.Equal(t, 4, numConvs)
+			require.Equal(t, expectedDevConvs, numConvs)
 		})
+	})
+}
+
+func TestFlipManagerChannelFlip(t *testing.T) {
+	// ensure only members of a channel are included in the flip
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctc := makeChatTestContext(t, "FlipManagerChannelFlip", 3)
+		defer ctc.cleanup()
+
+		users := ctc.users()
+		flip.DefaultCommitmentWindowMsec = 500
+
+		var ui0, ui1, ui2 *kbtest.ChatUI
+		ui0 = kbtest.NewChatUI()
+		ui1 = kbtest.NewChatUI()
+		ui2 = kbtest.NewChatUI()
+		ctc.as(t, users[0]).h.mockChatUI = ui0
+		ctc.as(t, users[1]).h.mockChatUI = ui1
+		ctc.as(t, users[2]).h.mockChatUI = ui2
+		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
+		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
+		ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
+		listener0 := newServerChatListener()
+		listener1 := newServerChatListener()
+		listener2 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.as(t, users[2]).h.G().NotifyRouter.AddListener(listener2)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewConversation(t, listener1, conv.Id)
+		consumeNewConversation(t, listener2, conv.Id)
+
+		topicName := "channel-1"
+		channel := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			&topicName, mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
+
+		mustJoinConversationByID(t, ctc, users[1], channel.Id)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		mustJoinConversationByID(t, ctc, users[2], channel.Id)
+		_, err := ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(
+			ctc.as(t, users[0]).startCtx, channel.Id)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_LEAVE)
+
+		mustPostLocalForTest(t, ctc, users[0], channel,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "/flip",
+			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		res0 := consumeFlipToResult(t, ui0, listener0, 2)
+		require.True(t, res0 == "HEADS" || res0 == "TAILS")
+		res1 := consumeFlipToResult(t, ui1, listener1, 2)
+		require.Equal(t, res0, res1)
+		assertNoFlip(t, ui2)
 	})
 }
 
@@ -187,30 +272,48 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	tc := externalstest.SetupTest(t, "flip", 0)
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	fm := NewFlipManager(g, nil)
-	testCase := func(text string, ftyp flip.FlipType, lowerBound string, shuffleItems []string) {
-		start, lb, si := fm.startFromText(text)
+	testCase := func(text string, ftyp flip.FlipType, refMetadata flipTextMetadata) {
+		start, metadata := fm.startFromText(text, 3)
 		ft, err := start.Params.T()
 		require.NoError(t, err)
 		require.Equal(t, ftyp, ft)
-		require.Equal(t, lowerBound, lb)
-		require.Equal(t, shuffleItems, si)
+		require.Equal(t, refMetadata, metadata)
 	}
 	deck := "2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️"
 	cards := strings.Split(deck, ",")
-	testCase("/flip 10", flip.FlipType_BIG, "1", nil)
-	testCase("/flip 0", flip.FlipType_SHUFFLE, "", []string{"0"})
-	testCase("/flip -1", flip.FlipType_SHUFFLE, "", []string{"-1"})
-	testCase("/flip 1..5", flip.FlipType_BIG, "1", nil)
-	testCase("/flip -20..20", flip.FlipType_BIG, "-20", nil)
-	testCase("/flip -20..20,mike", flip.FlipType_SHUFFLE, "", []string{"-20..20", "mike"})
-	testCase("/flip 1..1", flip.FlipType_BIG, "1", nil)
-	testCase("/flip 1..0", flip.FlipType_SHUFFLE, "", []string{"1..0"})
-	testCase("/flip mike, karen,     jim", flip.FlipType_SHUFFLE, "", []string{"mike", "karen", "jim"})
-	testCase("/flip mike,    jim bob    j  ,     jim", flip.FlipType_SHUFFLE, "",
-		[]string{"mike", "jim bob    j", "jim"})
-	testCase("/flip 10...20", flip.FlipType_SHUFFLE, "", []string{"10...20"})
-	testCase("/flip 1,0", flip.FlipType_SHUFFLE, "", []string{"1", "0"})
-	testCase("/flip cards", flip.FlipType_SHUFFLE, "", cards)
+	testCase("/flip 10", flip.FlipType_BIG, flipTextMetadata{LowerBound: "1"})
+	testCase("/flip 0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"0"}})
+	testCase("/flip -1", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"-1"}})
+	testCase("/flip 1..5", flip.FlipType_BIG, flipTextMetadata{LowerBound: "1"})
+	testCase("/flip -20..20", flip.FlipType_BIG, flipTextMetadata{LowerBound: "-20"})
+	testCase("/flip -20..20,mike", flip.FlipType_SHUFFLE,
+		flipTextMetadata{ShuffleItems: []string{"-20..20", "mike"}})
+	testCase("/flip 1..1", flip.FlipType_BIG, flipTextMetadata{LowerBound: "1"})
+	testCase("/flip 1..0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"1..0"}})
+	testCase("/flip mike, karen,     jim", flip.FlipType_SHUFFLE,
+		flipTextMetadata{ShuffleItems: []string{"mike", "karen", "jim"}})
+	testCase("/flip mike,    jim bob    j  ,     jim", flip.FlipType_SHUFFLE,
+		flipTextMetadata{ShuffleItems: []string{"mike", "jim bob    j", "jim"}})
+	testCase("/flip 10...20", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"10...20"}})
+	testCase("/flip 1,0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"1", "0"}})
+	testCase("/flip cards", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems: cards,
+		DeckShuffle:  true,
+	})
+	testCase("/flip cards 5 mikem joshblum chris", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems:  cards,
+		DeckShuffle:   false,
+		HandCardCount: 5,
+		HandTargets:   []string{"mikem", "joshblum", "chris"},
+	})
+	testCase("/flip cards 5", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems: cards,
+		DeckShuffle:  true,
+	})
+	testCase("/flip cards -5 chris mike", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems: cards,
+		DeckShuffle:  true,
+	})
 }
 
 func TestFlipManagerLoadFlip(t *testing.T) {
@@ -240,7 +343,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			ctc.as(t, users[1]).user())
 		mustPostLocalForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip ",
+				Body: "/flip",
 			}))
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
@@ -272,4 +375,94 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		tc.Context().CoinFlipManager.(*FlipManager).clearGameCache()
 		testLoadFlip()
 	})
+}
+
+func TestFlipManagerRateLimit(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestFlipManagerRateLimit", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+
+	ui0 := kbtest.NewChatUI()
+	ui1 := kbtest.NewChatUI()
+	ctc.as(t, users[0]).h.mockChatUI = ui0
+	ctc.as(t, users[1]).h.mockChatUI = ui1
+	ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
+	ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
+	listener0 := newServerChatListener()
+	listener1 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+	flip.DefaultCommitmentWindowMsec = 500
+	tc := ctc.world.Tcs[users[0].Username]
+	tc1 := ctc.world.Tcs[users[1].Username]
+	clock := clockwork.NewFakeClock()
+	flipmgr := tc.Context().CoinFlipManager.(*FlipManager)
+	flipmgr1 := tc1.Context().CoinFlipManager.(*FlipManager)
+	flipmgr.clock = clock
+	flipmgr1.clock = clock
+	flipmgr.testingServerClock = clock
+	flipmgr1.testingServerClock = clock
+	flipmgr.maxConvParticipations = 1
+	simRealClock := func(stopCh chan struct{}) {
+		t := time.NewTicker(100 * time.Millisecond)
+		for {
+			select {
+			case <-t.C:
+				clock.Advance(100 * time.Millisecond)
+			case <-stopCh:
+				return
+			}
+		}
+	}
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
+	mustPostLocalForTest(t, ctc, users[0], conv,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "/flip",
+		}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+	stopCh := make(chan struct{})
+	go simRealClock(stopCh)
+	res := consumeFlipToResult(t, ui0, listener0, 2)
+	require.True(t, res == "HEADS" || res == "TAILS")
+	res1 := consumeFlipToResult(t, ui1, listener1, 2)
+	require.Equal(t, res, res1)
+	close(stopCh)
+
+	clock.Advance(time.Minute)
+	mustPostLocalForTest(t, ctc, users[1], conv,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "/flip",
+		}))
+	select {
+	case <-ui0.CoinFlipUpdates:
+		require.Fail(t, "no update for 0")
+	default:
+	}
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP) // host message
+	stopCh = make(chan struct{})
+	go simRealClock(stopCh)
+	res = consumeFlipToResult(t, ui1, listener1, 1)
+	require.True(t, res == "HEADS" || res == "TAILS")
+	close(stopCh)
+
+	clock.Advance(10 * time.Minute)
+	mustPostLocalForTest(t, ctc, users[0], conv,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "/flip",
+		}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+	stopCh = make(chan struct{})
+	go simRealClock(stopCh)
+	res = consumeFlipToResult(t, ui0, listener0, 2)
+	require.True(t, res == "HEADS" || res == "TAILS")
+	res1 = consumeFlipToResult(t, ui1, listener1, 2)
+	require.Equal(t, res, res1)
+	close(stopCh)
+
 }

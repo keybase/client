@@ -984,15 +984,15 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 }
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
+	defer s.Trace(ctx, func() error { return err }, "GetMessages")()
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
-	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
-
+	// Grab local messages
 	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
@@ -1007,10 +1007,10 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	}
 
 	// Grab message from remote
+	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
-
 		// Insta fail if we are offline
 		if s.IsOffline(ctx) {
 			return nil, OfflineError{}
@@ -1043,7 +1043,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	}
 
 	// Form final result
-	var res []chat1.MessageUnboxed
 	for index, msg := range msgs {
 		if msg != nil {
 			res = append(res, *msg)
@@ -1129,11 +1128,9 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
-	if err != nil {
-		if _, ok := err.(storage.MissError); ok {
-			return s.getUnreadlineRemote(ctx, convID, readMsgID)
-		}
-		return nil, err
+	if err != nil { // short circuit to the server
+		s.Debug(ctx, "unable to GetUnverifiedConv: %v", err)
+		return s.getUnreadlineRemote(ctx, convID, readMsgID)
 	}
 	// Don't bother checking anything if we don't have any unread messages.
 	if !conv.Conv.IsUnreadFromMsgID(readMsgID) {

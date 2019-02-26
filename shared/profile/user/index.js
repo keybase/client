@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/tracker2'
-import * as Constants from '../../constants/tracker2'
 import * as Styles from '../../styles'
 import {chunk} from 'lodash-es'
 import Bio from '../../tracker2/bio/container'
@@ -12,23 +11,28 @@ import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
 import Folders from '../folders/container'
+import flags from '../../util/feature-flags'
 import shallowEqual from 'shallowequal'
 import * as Flow from '../../util/flow'
 
 type BackgroundColorType = 'red' | 'green' | 'blue'
 
 export type Props = {|
-  assertionKeys: ?Array<string>,
+  assertionKeys: ?Array<string>, // in sorted order
   backgroundColorType: BackgroundColorType,
   followThem: boolean,
   followers: Array<string>,
+  followersCount: ?number,
   following: Array<string>,
+  followingCount: ?number,
   onBack: () => void,
   onReload: () => void,
   onSearch: () => void,
   onEditAvatar: ?() => void,
+  reason: string,
   state: Types.DetailsState,
   suggestionKeys: ?Array<string>,
+  userIsYou: boolean,
   username: string,
 |}
 
@@ -52,27 +56,35 @@ const Header = p => (
     fullWidth={true}
     style={Styles.collapseStyles([styles.header, colorTypeToStyle(p.backgroundColorType)])}
   >
-    <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
-    <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
-      <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        className="hover-opacity"
-        gap="tiny"
-        style={styles.search}
-      >
-        <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
-        <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
-          Search people
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
-    <Kb.BackButton
-      iconColor={Styles.globalColors.white}
-      textStyle={styles.backButton}
-      onClick={() => {}}
-      style={styles.invisible}
-    />
+    {!flags.useNewRouter && (
+      <>
+        <Kb.BackButton
+          iconColor={Styles.globalColors.white}
+          textStyle={styles.backButton}
+          onClick={p.onBack}
+        />
+        <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
+          <Kb.Box2
+            direction="horizontal"
+            centerChildren={true}
+            className="hover-opacity"
+            gap="tiny"
+            style={styles.search}
+          >
+            <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
+            <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
+              Search people
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        <Kb.BackButton
+          iconColor={Styles.globalColors.white}
+          textStyle={styles.backButton}
+          onClick={() => {}}
+          style={styles.invisible}
+        />
+      </>
+    )}
   </Kb.Box2>
 )
 
@@ -96,11 +108,8 @@ const BioLayout = p => (
 const Proofs = p => {
   let assertions
   if (p.assertionKeys) {
-    const unsorted = [...p.assertionKeys]
     assertions = [
-      ...unsorted
-        .sort(Constants.sortAssertionKeys)
-        .map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
+      ...p.assertionKeys.map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
       ...(p.suggestionKeys || []).map(s => (
         <Assertion isSuggestion={true} key={s} username={p.username} assertionKey={s} />
       )),
@@ -117,6 +126,7 @@ const Proofs = p => {
 }
 
 type FriendshipTabsProps = {|
+  loading: boolean,
   onChangeFollowing: boolean => void,
   selectedFollowing: boolean,
   numFollowers: number,
@@ -127,19 +137,22 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
   _onClickFollowers = () => this.props.onChangeFollowing(false)
   _tab = following => (
     <Kb.ClickableBox
+      onClick={following ? this._onClickFollowing : this._onClickFollowers}
       style={Styles.collapseStyles([
         styles.followTab,
         following === this.props.selectedFollowing && styles.followTabSelected,
+        flags.useNewRouter && styles.followTabNewRouter,
       ])}
     >
       <Kb.Text
         type="BodySmallSemibold"
-        onClick={following ? this._onClickFollowing : this._onClickFollowers}
         style={
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
-        {following ? `Following (${this.props.numFollowing})` : `Followers (${this.props.numFollowers})`}
+        {following
+          ? `Following${!this.props.loading ? ` (${this.props.numFollowing})` : ''}`
+          : `Followers${!this.props.loading ? ` (${this.props.numFollowers})` : ''}`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -189,19 +202,30 @@ type BioTeamProofsProps = {|
   onEditAvatar: ?() => void,
   suggestionKeys: ?Array<string>,
   username: string,
+  reason: string,
 |}
 class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            colorTypeToStyle(this.props.backgroundColorType),
-          ])}
-        />
+        <Kb.Text
+          type="BodySmallSemibold"
+          negative={true}
+          center={true}
+          style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
+        >
+          {this.props.reason}
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={Styles.collapseStyles([
+              styles.backgroundColor,
+              colorTypeToStyle(this.props.backgroundColorType),
+            ])}
+          />
+        </Kb.Box2>
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <Teams username={this.props.username} />
@@ -221,6 +245,9 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         />
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
+          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
+            {this.props.reason}
+          </Kb.Text>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
           <Folders profileUsername={this.props.username} />
@@ -232,12 +259,16 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
 
 type State = {|
   selectedFollowing: boolean,
+  // only used on desktop to know how wide the screen is
   width: number,
 |}
 class User extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username], width: 0}
+    this.state = {
+      selectedFollowing: !!usernameSelectedFollowing[props.username],
+      width: Styles.dimensionWidth,
+    }
   }
 
   _changeFollowing = following => {
@@ -263,9 +294,11 @@ class User extends React.Component<Props, State> {
         />
       )
     }
+    const loading = this.props.followersCount == null || this.props.followingCount == null
     return (
       <FriendshipTabs
         key="tabs"
+        loading={loading}
         numFollowers={this.props.followers.length}
         numFollowing={this.props.following.length}
         onChangeFollowing={this._changeFollowing}
@@ -274,9 +307,14 @@ class User extends React.Component<Props, State> {
     )
   }
 
-  _renderOtherUsers = ({item, section, index}) => (
-    <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
-  )
+  _renderOtherUsers = ({item, section, index}) =>
+    item.type === 'noFriends' ? (
+      <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
+        <Kb.Text type="BodySmall">{item.text}</Kb.Text>
+      </Kb.Box2>
+    ) : (
+      <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
+    )
 
   _bioTeamProofsSection = {
     data: ['bioTeamProofs'],
@@ -285,6 +323,7 @@ class User extends React.Component<Props, State> {
         assertionKeys={this.props.assertionKeys}
         backgroundColorType={this.props.backgroundColorType}
         username={this.props.username}
+        reason={this.props.reason}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
       />
@@ -307,12 +346,20 @@ class User extends React.Component<Props, State> {
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // TODO memoize?
-    const chunks = this.state.width ? chunk(friends, itemsInARow) : []
+    let chunks = this.state.width ? chunk(friends, itemsInARow) : []
+    if (chunks.length === 0 && this.props.followingCount !== null && this.props.followingCount !== null) {
+      chunks.push({
+        text: this.state.selectedFollowing
+          ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
+          : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
+        type: 'noFriends',
+      })
+    }
 
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-          <Measure onMeasured={this._onMeasured} />
+          {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
           <Kb.SafeAreaViewTop
             style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
           />
@@ -349,7 +396,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = 48
+const headerHeight = Styles.isMobile ? 48 : 72
 
 const styles = Styles.styleSheetCreate({
   backButton: {color: Styles.globalColors.white},
@@ -382,13 +429,12 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderBottomStyle: 'solid',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.medium,
+      height: 40,
+      minWidth: 120,
     },
     isMobile: {
-      height: Styles.globalMargins.medium,
+      borderRadius: 0,
+      height: 48,
       width: '50%',
     },
   }),
@@ -398,6 +444,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
+      marginTop: Styles.globalMargins.small,
     },
     isElectron: {
       alignSelf: 'stretch',
@@ -407,6 +454,9 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
+  followTabNewRouter: {
+    marginTop: headerHeight,
+  },
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
   },
@@ -425,9 +475,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       flexShrink: 0,
+      height: headerHeight,
     },
     isElectron: {
-      height: headerHeight,
       padding: Styles.globalMargins.small,
     },
     isMobile: {},
@@ -439,8 +489,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       alignSelf: 'flex-start',
       flexShrink: 0,
-      marginTop: avatarSize / 2,
-      paddingTop: Styles.globalMargins.small,
       width: 350,
     },
     isMobile: {width: '100%'},
@@ -449,6 +497,15 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
+    },
+  }),
+  reason: Styles.platformStyles({
+    isElectron: {
+      height: avatarSize / 2 + Styles.globalMargins.small,
+      zIndex: 1, // unclear why this layer is created
+    },
+    isMobile: {
+      padding: Styles.globalMargins.tiny,
     },
   }),
   search: Styles.platformStyles({
@@ -486,6 +543,10 @@ const styles = Styles.styleSheetCreate({
   teamShowcases: {
     flexShrink: 0,
     paddingBottom: Styles.globalMargins.small,
+  },
+  textEmpty: {
+    paddingBottom: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.large,
   },
   typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},

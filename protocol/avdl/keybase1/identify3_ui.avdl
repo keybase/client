@@ -44,21 +44,27 @@ protocol identify3Ui {
     string label;
   }
 
+  record Identify3Row {
+    Identify3GUIID guiID;          // id used to tie these things together
+    string key;                    // e.g., "twitter", "web", "github", "btc", "pgp"
+    string value;                  // e.g., "bob", "foo.com", "1BYzrCvfbn81dfiksmD1Bdgt8pgLi1SD7Z", "8EFBE2E4DD56B35273634E8F6052B2AD31A6631C"
+    int priority;                  // Display priority. Lesser means higher.
+    @lint("ignore")
+    string siteURL;                // https://twitter.com/bob
+    array<SizedImage> siteIcon;
+    array<SizedImage> siteIconFull;
+    @lint("ignore")
+    string proofURL;               // http://twitter.com/bob/post/1234
+    SigID sigID;                   // so we can later revoke the sig....
+    Time ctime;                    // sometimes it's zero.
+    Identify3RowState state;       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
+    array<Identify3RowMeta> metas; // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
+    Identify3RowColor color;        // 'blue' | 'red' | 'black' | 'green' | 'gray'
+  }
+
   @lint("ignore")
   void identify3UpdateRow(
-    Identify3GUIID guiID,          // id used to tie these things together
-    string key,                    // e.g., "twitter", "web", "github", "btc", "pgp"
-    string value,                  // e.g., "bob", "foo.com", "1BYzrCvfbn81dfiksmD1Bdgt8pgLi1SD7Z", "8EFBE2E4DD56B35273634E8F6052B2AD31A6631C"
-    int priority,                  // Display priority. Lesser means higher.
-    string siteURL,                // https://twitter.com/bob
-    array<SizedImage> siteIcon,    // black and white icon
-    array<SizedImage> siteIconFull,
-    string proofURL,               // http://twitter.com/bob/post/1234
-    SigID sigID,                   // so we can later revoke the sig....
-    Time ctime,                    // sometimes it's zero.
-    Identify3RowState state,       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
-    array<Identify3RowMeta> metas, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
-    Identify3RowColor color        // 'blue' | 'red' | 'black' | 'green' | 'gray'
+    Identify3Row row
   ) oneway;
 
   @lint("ignore")

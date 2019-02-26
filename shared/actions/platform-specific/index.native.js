@@ -9,6 +9,7 @@ import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
+import flags from '../../util/feature-flags'
 // this CANNOT be an import *, totally screws up the packager
 import {
   Alert,
@@ -180,7 +181,45 @@ function* clearRouteState() {
   )
 }
 
+let _lastPersist = ''
+function* persistRoute(state, action) {
+  if (!flags.useNewRouter) {
+    return
+  }
+
+  const path = action.payload.path
+  const top = path[path.length - 1]
+  if (!top) return
+  let param = {}
+  let routeName = ''
+  // top level tab?
+  if (Tabs.isValidInitialTabString(top.routeName)) {
+    routeName = top.routeName
+    if (routeName === _lastPersist) {
+      // skip rewriting this
+      return
+    }
+  } else if (top.routeName === 'chatConversation') {
+    routeName = top.routeName
+    param = {selectedConversationIDKey: state.chat2.selectedConversation}
+  } else {
+    return // don't write, keep the last
+  }
+
+  const s = JSON.stringify({param, routeName})
+  _lastPersist = routeName
+  yield Saga.spawn(() =>
+    RPCTypes.configSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s},
+    }).catch(() => {})
+  )
+}
+
 function* persistRouteState(state) {
+  if (flags.useNewRouter) {
+    return
+  }
   // Put a delay in case we go to a route and crash immediately
   yield Saga.callUntyped(Saga.delay, 3000)
   const routePath = getPath(state.routeTree.routeState)
@@ -223,7 +262,7 @@ function* loadStartupDetails() {
   let startupTab = null
 
   const routeStateTask = yield Saga._fork(() =>
-    RPCTypes.configGetValueRpcPromise({path: 'ui.routeState'})
+    RPCTypes.configGetValueRpcPromise({path: flags.useNewRouter ? 'ui.routeState2' : 'ui.routeState'})
       .then(v => v.s || '')
       .catch(e => {})
   )
@@ -246,10 +285,18 @@ function* loadStartupDetails() {
   // Third priority, saved from last session
   if (!startupWasFromPush && !startupLink && routeState) {
     try {
-      const item = JSON.parse(routeState)
-      if (item) {
-        startupConversation = item.selectedConversationIDKey
-        startupTab = item.tab
+      if (flags.useNewRouter) {
+        const item = JSON.parse(routeState)
+        if (item) {
+          startupConversation = item.param?.selectedConversationIDKey
+          startupTab = item.routeName
+        }
+      } else {
+        const state = JSON.parse(routeState)
+        if (state) {
+          startupTab = state.routeName
+          startupConversation = state.selectedConversationIDKey
+        }
       }
 
       // immediately clear route state in case this is a bad route
@@ -318,12 +365,16 @@ const editAvatar = () =>
   })
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  if (flags.useNewRouter) {
+    yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
+  } else {
+    yield* Saga.chainGenerator<RouteTreeGen.SwitchToPayload | Chat2Gen.SelectConversationPayload>(
+      [RouteTreeGen.switchTo, Chat2Gen.selectConversation],
+      persistRouteState
+    )
+  }
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
-  yield* Saga.chainGenerator<RouteTreeGen.SwitchToPayload | Chat2Gen.SelectConversationPayload>(
-    [RouteTreeGen.switchTo, Chat2Gen.selectConversation],
-    persistRouteState
-  )
   yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
   yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
     ConfigGen.setupEngineListeners,

@@ -173,14 +173,6 @@ func (c *FullCachingSource) getFullFilename(fileName string) string {
 
 func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.ReadCloser, previousPath string) (path string, err error) {
 	c.prepareDirs.Do(func() {
-		// Avatars used to be in main cache directory before we
-		// started saving them to `avatars/` subdir. If user has just
-		// updated to client with new path, it's fine to have them
-		// start clean.
-		if len(c.tempDir) == 0 {
-			c.unlinkAllAvatars(m, m.G().GetCacheDir())
-		}
-
 		err := os.MkdirAll(c.getCacheDir(m), os.ModePerm)
 		c.debug(m, "creating directory for avatars %q: %v", c.getCacheDir(m), err)
 	})
@@ -386,21 +378,10 @@ func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, 
 	return c.clearName(m, name, formats)
 }
 
-func (c *FullCachingSource) unlinkAllAvatars(m libkb.MetaContext, dirpath string) {
-	files, err := filepath.Glob(filepath.Join(dirpath, "avatar*.avatar"))
-	if err != nil {
-		c.debug(m, "unlinkAllAvatars: failed to clear files from %q: %s", dirpath, err)
-		return
-	}
-
-	c.debug(m, "unlinkAllAvatars: found %d avatars files to delete in %s", len(files), dirpath)
-	for _, v := range files {
-		if err := os.Remove(v); err != nil {
-			c.debug(m, "unlinkAllAvatars: failed to delete file %q: %s", v, err)
+func (c *FullCachingSource) OnCacheCleared(m libkb.MetaContext) {
+	if c.diskLRU != nil {
+		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
+			c.debug(m, "unable to run clean: %v", err)
 		}
 	}
-}
-
-func (c *FullCachingSource) OnCacheCleared(m libkb.MetaContext) {
-	c.unlinkAllAvatars(m, c.getCacheDir(m))
 }

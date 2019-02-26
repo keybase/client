@@ -863,10 +863,11 @@ type NewConversationRemoteArg struct {
 }
 
 type NewConversationRemote2Arg struct {
-	IdTriple       ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
-	TLFMessage     MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
-	MembersType    ConversationMembersType `codec:"membersType" json:"membersType"`
-	TopicNameState *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	IdTriple         ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
+	TLFMessage       MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
+	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
+	TopicNameState   *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	MemberSourceConv *ConversationID         `codec:"memberSourceConv,omitempty" json:"memberSourceConv,omitempty"`
 }
 
 type GetMessagesRemoteArg struct {

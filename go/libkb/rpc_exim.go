@@ -264,6 +264,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return NoSessionError{}
 	case SCKeyCorrupted:
 		return KeyCorruptedError{s.Desc}
+	case SCOffline:
+		return OfflineError{}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -1002,6 +1004,14 @@ func (c KeyCorruptedError) ToStatus() (s keybase1.Status) {
 		s.Desc = c.Msg
 	}
 	return
+}
+
+//=============================================================================
+
+func (e OfflineError) ToStatus() (s keybase1.Status) {
+	s.Code = SCOffline
+	s.Name = "OFFLINE"
+	return s
 }
 
 //=============================================================================

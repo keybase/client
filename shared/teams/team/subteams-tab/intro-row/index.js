@@ -17,25 +17,25 @@ const Banner = ({onReadMore, onHideSubteamsBanner, teamname}: Props) => (
     </Box>
 
     <Box style={styles.containerText}>
-      <Text backgroundMode="Terminal" type="BodySmallSemibold" style={styles.text}>
+      <Text negative={true} type="BodySmallSemibold" style={styles.text}>
         Subteams are cryptographically distinct, and can welcome people who aren't elsewhere in your team
         hierarchy. Some random ideas:
       </Text>
-      <Text backgroundMode="Terminal" type="BodySmallSemibold">
+      <Text negative={true} type="BodySmallSemibold">
         • {teamname}
         .devops
       </Text>
-      <Text backgroundMode="Terminal" type="BodySmallSemibold">
+      <Text negative={true} type="BodySmallSemibold">
         • {teamname}
         .legal
       </Text>
-      <Text backgroundMode="Terminal" type="BodySmallSemibold">
+      <Text negative={true} type="BodySmallSemibold">
         • {teamname}
         .customers.vip
       </Text>
 
       <Text
-        backgroundMode="Terminal"
+        negative={true}
         type="BodySmallSemiboldPrimaryLink"
         className="underline"
         onClick={onReadMore}
@@ -76,16 +76,16 @@ const styles = styleSheetCreate({
     margin: globalMargins.small,
   },
   containerText: platformStyles({
-    common: { ...globalStyles.flexBoxColumn },
+    common: {...globalStyles.flexBoxColumn},
     isElectron: {
       marginLeft: globalMargins.medium,
       maxWidth: 330,
     },
-    isMobile: { alignItems: 'center' },
+    isMobile: {alignItems: 'center'},
   }),
-  iconClose: { padding: globalMargins.tiny },
+  iconClose: {padding: globalMargins.tiny},
   iconCloseContainer: platformStyles({
-    common: { position: 'absolute' },
+    common: {position: 'absolute'},
     isElectron: {
       right: globalMargins.tiny,
       top: globalMargins.tiny,

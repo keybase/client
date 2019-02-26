@@ -77,7 +77,7 @@ func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID c
 	return res, nil
 }
 
-func (s *Sender) getUsername(ctx context.Context, uid gregor1.UID, parts []string,
+func (s *Sender) getRecipientUsername(ctx context.Context, uid gregor1.UID, parts []string,
 	membersType chat1.ConversationMembersType) (res string, err error) {
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
@@ -114,12 +114,13 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 	if len(parsed) == 0 {
 		return nil
 	}
+
 	// FIXME error is ignored.
 	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
 	for _, p := range parsed {
 		var username string
 		if p.Username == nil {
-			if username, err = s.getUsername(ctx, uid, parts, membersType); err != nil {
+			if username, err = s.getRecipientUsername(ctx, uid, parts, membersType); err != nil {
 				s.Debug(ctx, "ParsePayments: failed to get username, skipping: %s", err)
 				continue
 			}

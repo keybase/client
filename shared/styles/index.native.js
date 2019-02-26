@@ -1,5 +1,5 @@
 // @flow
-import {StatusBar, StyleSheet} from 'react-native'
+import {StatusBar, StyleSheet, Dimensions} from 'react-native'
 import {isAndroid, isIOS} from '../constants/platform'
 import globalColors from './colors'
 import type {CollapsibleStyle} from './index.types'
@@ -67,3 +67,5 @@ export {default as styled, css as styledCss} from '@emotion/native'
 export {default as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export const borderRadius = 6
+export const dimensionWidth = Dimensions.get('window').width
+export const dimensionHeight = Dimensions.get('window').height

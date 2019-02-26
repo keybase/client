@@ -27,14 +27,7 @@ export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     dispatchToProps,
-    (stateProps, dispatchProps, _) => ({
-      badUsernameError: stateProps.badUsernameError,
-      error: stateProps.error,
-      onBack: dispatchProps.onBack,
-      onGoToSignup: dispatchProps.onGoToSignup,
-      onSubmit: dispatchProps.onSubmit,
-      submittedUsernameOrEmail: stateProps.submittedUsernameOrEmail,
-    })
+    (s, d, _) => ({...s, ...d})
   ),
   safeSubmit(['onBack', 'onSubmit'], ['error', 'badUsernameError'])
 )(UsernameOrEmail)

@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
+import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
 type Props = {|
   color: Types.AssertionColor,
@@ -21,9 +22,11 @@ type Props = {|
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
-  siteIcon: string, // TODO handle actual urls, for now just use iconfont
+  siteIcon: $ReadOnlyArray<Types.SiteIcon>,
+  siteIconFull: $ReadOnlyArray<Types.SiteIcon>,
   siteURL: string,
   state: Types.AssertionState,
+  timestamp: number,
   type: string,
   value: string,
 |}
@@ -34,10 +37,8 @@ const stateToIcon = state => {
       return 'iconfont-proof-pending'
     case 'valid':
       return 'iconfont-proof-good'
-    case 'error':
-      return 'iconfont-proof-broken'
+    case 'error': // fallthrough
     case 'warning':
-      return 'iconfont-proof-good'
     case 'revoked':
       return 'iconfont-proof-broken'
     case 'suggestion':
@@ -48,23 +49,22 @@ const stateToIcon = state => {
   }
 }
 
-const stateToColor = state => {
+// alternate versions of the ones from `stateToIcon` for the popup menu header
+const stateToDecorationIcon = state => {
   switch (state) {
     case 'checking':
-      return Styles.globalColors.black_50
+      return 'icon-proof-pending'
     case 'valid':
-      return Styles.globalColors.blue2
+      return 'icon-proof-success'
     case 'error':
-      return Styles.globalColors.red
     case 'warning':
-      return Styles.globalColors.blue2
     case 'revoked':
-      return Styles.globalColors.red
+      return 'icon-proof-broken'
     case 'suggestion':
-      return Styles.globalColors.grey
+      return 'icon-proof-unfinished'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
-      throw new Error('Impossible')
+      throw new Error('impossible')
   }
 }
 
@@ -96,42 +96,10 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
       return Styles.globalColors.green
     case 'gray':
       return Styles.globalColors.black_50
-    case 'yellow':
-      return Styles.globalColors.yellow2
+    case 'yellow': // fallthrough
     case 'orange':
-      return Styles.globalColors.orange
     default:
       return Styles.globalColors.red
-  }
-}
-
-// TODO get real icon from core
-const siteIcon = icon => {
-  switch (icon) {
-    case 'btc':
-      return 'iconfont-identity-bitcoin'
-    case 'facebook':
-      return 'iconfont-identity-facebook'
-    case 'github':
-      return 'iconfont-identity-github'
-    case 'hackernews':
-      return 'iconfont-identity-hn'
-    case 'pgp':
-      return 'iconfont-identity-pgp'
-    case 'reddit':
-      return 'iconfont-identity-reddit'
-    case 'stellar':
-      return 'iconfont-identity-stellar'
-    case 'twitter':
-      return 'iconfont-identity-twitter'
-    case 'http':
-      return 'iconfont-identity-website'
-    case 'https':
-      return 'iconfont-identity-website'
-    case 'zcash':
-      return 'iconfont-identity-zcash'
-    default:
-      return 'iconfont-identity-website'
   }
 }
 
@@ -226,76 +194,21 @@ const Value = p => {
   return content
 }
 
-const getMenu = p => {
-  if (!p.isYours || p.isSuggestion || p.type === 'stellar') {
-    return {}
-  }
+const siteIconToSrcSet = siteIcon =>
+  `-webkit-image-set(${siteIcon
+    .slice()
+    .sort((a, b) => a.width - b.width)
+    .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
+    .join(', ')})`
+const siteIconToNativeSrcSet = siteIcon =>
+  siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
 
-  const onRevoke = {
-    danger: true,
-    onClick: p.onRevoke,
-    title: p.type === 'pgp' ? 'Drop' : 'Revoke',
-  }
-
-  if (p.metas.find(m => m.label === 'unreachable')) {
-    return {
-      header: {
-        title: 'header',
-        view: (
-          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
-            Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
-          </Kb.PopupHeaderText>
-        ),
-      },
-      items: [
-        {onClick: p.onShowProof, title: 'View proof'},
-        {onClick: p.onRecheck, title: 'I fixed it - recheck'},
-        onRevoke,
-      ],
-    }
-  }
-
-  if (p.metas.find(m => m.label === 'pending')) {
-    let pendingMessage
-    switch (p.type) {
-      case 'hackernews':
-        pendingMessage =
-          'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
-        break
-      case 'dns':
-        pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
-        break
-    }
-    return {
-      header: {
-        title: 'header',
-        view: pendingMessage ? (
-          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
-            {pendingMessage}
-          </Kb.PopupHeaderText>
-        ) : null,
-      },
-      items: [onRevoke],
-    }
-  }
-
-  return {
-    header: {
-      title: 'header',
-      view: (
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader} fullWidth={true}>
-          <Kb.Icon
-            fontSize={Styles.isMobile ? 64 : 48}
-            type={siteIcon(p.type)}
-            onClick={p.onShowSite}
-            color={Styles.globalColors.black}
-          />
-        </Kb.Box2>
-      ),
-    },
-    items: [{onClick: p.onShowProof, title: `View ${Constants.proofTypeToDesc(p.type)}`}, onRevoke],
-  }
-}
+const HoverOpacity = Styles.styled(Kb.Box)({
+  '&:hover': {
+    opacity: 1,
+  },
+  opacity: 0.5,
+})
 
 type State = {|showingMenu: boolean|}
 class Assertion extends React.PureComponent<Props, State> {
@@ -304,9 +217,123 @@ class Assertion extends React.PureComponent<Props, State> {
   _hideMenu = () => this.setState({showingMenu: false})
   _ref = React.createRef()
   _getRef = () => this._ref.current
+  _getMenu = () => {
+    const p = this.props
+    if (!p.isYours || p.isSuggestion || p.type === 'stellar') {
+      return {}
+    }
+
+    const onRevoke = {
+      danger: true,
+      onClick: p.onRevoke,
+      title: p.type === 'pgp' ? 'Drop' : 'Revoke',
+    }
+
+    if (p.metas.find(m => m.label === 'unreachable')) {
+      return {
+        header: {
+          title: 'header',
+          view: (
+            <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
+              Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
+            </Kb.PopupHeaderText>
+          ),
+        },
+        items: [
+          {onClick: p.onShowProof, title: 'View proof'},
+          {onClick: p.onRecheck, title: 'I fixed it - recheck'},
+          onRevoke,
+        ],
+      }
+    }
+
+    if (p.metas.find(m => m.label === 'pending')) {
+      let pendingMessage
+      switch (p.type) {
+        case 'hackernews':
+          pendingMessage =
+            'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
+          break
+        case 'dns':
+          pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
+          break
+      }
+      return {
+        header: {
+          title: 'header',
+          view: pendingMessage ? (
+            <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+              {pendingMessage}
+            </Kb.PopupHeaderText>
+          ) : null,
+        },
+        items: [onRevoke],
+      }
+    }
+
+    return {
+      header: {
+        title: 'header',
+        view: (
+          <Kb.Box2
+            direction="vertical"
+            gap="tiny"
+            centerChildren={true}
+            style={styles.menuHeader}
+            fullWidth={true}
+          >
+            <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+              {this._siteIcon(true)}
+              <Kb.Icon type={stateToDecorationIcon(p.state)} style={styles.siteIconFullDecoration} />
+            </Kb.Box2>
+            {!!this.props.timestamp && (
+              <>
+                <Kb.Text type="BodySmall">Posted on</Kb.Text>
+                <Kb.Text center={true} type="BodySmall">
+                  {formatTimeForAssertionPopup(this.props.timestamp)}
+                </Kb.Text>
+              </>
+            )}
+          </Kb.Box2>
+        ),
+      },
+      items: [{onClick: p.onShowProof, title: `View ${Constants.proofTypeToDesc(p.type)}`}, onRevoke],
+    }
+  }
+  _siteIcon = (full: boolean) => {
+    const set = full ? this.props.siteIconFull : this.props.siteIcon
+    const style = full ? styles.siteIconFull : styles.siteIcon
+    // on mobile use `Kb.RequireImage`, desktop a box with background-image
+    let child
+    if (Styles.isMobile) {
+      child = <Kb.RequireImage src={siteIconToNativeSrcSet(set)} style={style} />
+    } else {
+      const Container = this.props.isSuggestion ? HoverOpacity : Kb.Box
+      child = (
+        <Container
+          style={Styles.collapseStyles([
+            style,
+            {
+              backgroundImage: siteIconToSrcSet(set),
+            },
+          ])}
+        />
+      )
+    }
+    return full ? (
+      child
+    ) : (
+      <Kb.ClickableBox
+        onClick={this.props.onCreateProof || this.props.onShowProof}
+        style={this.props.isSuggestion ? styles.halfOpacity : null}
+      >
+        {child}
+      </Kb.ClickableBox>
+    )
+  }
   render() {
     const p = this.props
-    const {header, items} = getMenu(p)
+    const {header, items} = this._getMenu()
 
     return (
       <Kb.Box2
@@ -324,11 +351,7 @@ class Assertion extends React.PureComponent<Props, State> {
           gapStart={true}
           gapEnd={true}
         >
-          <Kb.Icon
-            type={siteIcon(p.type)}
-            onClick={p.onCreateProof || p.onShowSite}
-            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black}
-          />
+          {this._siteIcon(false)}
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />
             {!p.isSuggestion && (
@@ -337,36 +360,33 @@ class Assertion extends React.PureComponent<Props, State> {
               </Kb.Text>
             )}
           </Kb.Text>
-          <Kb.Icon
-            boxStyle={styles.stateIcon}
-            type={stateToIcon(p.state)}
-            fontSize={20}
-            onClick={p.onShowProof}
-            hoverColor={stateToColor(p.state)}
-            color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
-          />
-          {items ? (
-            <>
+          <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof}>
+            <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
               <Kb.Icon
-                className="hover-visible"
-                type="iconfont-caret-down"
-                onClick={this._toggleMenu}
-                sizeType="Tiny"
+                type={stateToIcon(p.state)}
+                fontSize={20}
+                hoverColor={assertionColorToColor(p.color)}
+                color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
               />
-              <Kb.FloatingMenu
-                closeOnSelect={true}
-                visible={this.state.showingMenu}
-                onHidden={this._hideMenu}
-                attachTo={this._getRef}
-                position="bottom right"
-                containerStyle={styles.floatingMenu}
-                header={header}
-                items={items}
-              />
-            </>
-          ) : (
-            <Kb.Box2 direction="vertical" />
-          )}
+              {items ? (
+                <>
+                  <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+                  <Kb.FloatingMenu
+                    closeOnSelect={true}
+                    visible={this.state.showingMenu}
+                    onHidden={this._hideMenu}
+                    attachTo={this._getRef}
+                    position="bottom right"
+                    containerStyle={styles.floatingMenu}
+                    header={header}
+                    items={items}
+                  />
+                </>
+              ) : (
+                <Kb.Box2 direction="vertical" />
+              )}
+            </Kb.Box2>
+          </Kb.ClickableBox>
         </Kb.Box2>
         {!!p.metas.length && (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
@@ -389,6 +409,9 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 240,
     minWidth: 196,
   },
+  halfOpacity: Styles.platformStyles({
+    isMobile: {opacity: 0.5}, // desktop is handled by emotion
+  }),
   menuHeader: {
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
@@ -396,8 +419,24 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.small,
   },
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+  positionRelative: {position: 'relative'},
   site: {color: Styles.globalColors.black_20},
-  stateIcon: {height: 17},
+  siteIcon: {flexShrink: 0, height: 16, width: 16},
+  siteIconFull: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+    },
+    isElectron: {
+      backgroundSize: 'contain',
+      height: 48,
+      width: 48,
+    },
+    isMobile: {
+      height: 64,
+      width: 64,
+    },
+  }),
+  siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
   strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),

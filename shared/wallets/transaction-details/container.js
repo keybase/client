@@ -1,6 +1,6 @@
 // @flow
 import {connect, compose, type RouteProps} from '../../util/container'
-import {HeaderHoc} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -101,5 +101,5 @@ export default compose(
     mapDispatchToProps,
     mergeProps
   ),
-  HeaderHoc
+  Kb.HeaderHoc
 )(TransactionDetails)

@@ -16,6 +16,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   fullname: stateProps.fullname,
   inTracker: true,
   location: stateProps.location,
+  registeredForAirdrop: stateProps.registeredForAirdrop,
 })
 
 export default Container.remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps)(
