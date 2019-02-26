@@ -100,10 +100,10 @@ const clearBadgesAfterNav = (state, action) => {
   }
 }
 
-const clearNavBadges = () => console.log('AAA clerar badgessSSS')
-// RPCTypes.gregorDismissCategoryRpcPromise({
-// category: 'new_git_repo',
-// }).catch(logError)
+const clearNavBadges = () =>
+  RPCTypes.gregorDismissCategoryRpcPromise({
+    category: 'new_git_repo',
+  }).catch(logError)
 
 const handleIncomingGregor = (_, action) => {
   const gitMessages = action.payload.messages.filter(i => i.system === 'git')
