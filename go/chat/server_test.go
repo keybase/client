@@ -6381,7 +6381,7 @@ func TestChatBulkAddToConv(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		assertSysMsg := func(listener *serverChatListener) {
+		assertSysMsg := func(expectedMentions, expectedBody []string, listener *serverChatListener) {
 			msg := consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 			body := msg.Valid().MessageBody
 			typ, err := body.MessageType()
@@ -6392,17 +6392,36 @@ func TestChatBulkAddToConv(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
 			retMsg := sysMsg.Bulkaddtoconv()
-			require.Equal(t, usernames, retMsg.Usernames)
+			require.Equal(t, expectedBody, retMsg.Usernames)
 			require.True(t, msg.IsValid())
-			require.Equal(t, 1, len(msg.Valid().AtMentions))
-			require.Equal(t, users[1].Username, msg.Valid().AtMentions[0])
+			require.Equal(t, expectedMentions, msg.Valid().AtMentions)
 		}
-		assertSysMsg(listener0)
-		assertSysMsg(listener1)
+		assertSysMsg(usernames, usernames, listener0)
+		assertSysMsg(usernames, usernames, listener1)
 		// u1 can now send
 		mustPostLocalForTest(t, ctc, users[1], channel.Conv.Info,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "hi",
 			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+
+		// some users required
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: nil,
+				ConvID:    channel.Conv.GetConvID(),
+			})
+		require.Error(t, err)
+
+		usernames = []string{"foo"}
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: usernames,
+				ConvID:    channel.Conv.GetConvID(),
+			})
+		require.NoError(t, err)
+		assertSysMsg(nil, usernames, listener0)
+		assertSysMsg(nil, usernames, listener1)
 	})
 }
