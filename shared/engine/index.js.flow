@@ -17,8 +17,6 @@ declare export class Engine {
   cancelSession(sessionID: any): void;
   rpc(): void;
   sagasAreReady(): void;
-  actionOnConnect(key: string, f: () => ?TypedActions): void;
-  actionOnDisconnect(key: string, f: () => ?TypedActions): void;
   hasEverConnected(): void;
   setCustomResponseIncomingCallMap(customResponseIncomingCallMap: CustomResponseIncomingCallMapType): void;
   createSession({

@@ -2,7 +2,6 @@
 // Entry point to the chrome part of the app
 import '../../util/user-timings'
 import Main from '../../app/main.desktop'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
@@ -12,7 +11,7 @@ import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import configureStore from '../../store/configure-store'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {makeEngine, getEngine} from '../../engine'
+import {makeEngine} from '../../engine'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {throttle, merge} from 'lodash-es'
@@ -110,19 +109,6 @@ function setupApp(store, runSagas) {
 
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
-
-  // Introduce ourselves to the service
-  getEngine().actionOnConnect('hello', () => {
-    RPCTypes.configHelloIAmRpcPromise({
-      details: {
-        argv: process.argv,
-        clientType: RPCTypes.commonClientType.guiMain,
-        desc: 'Main Renderer',
-        pid: process.pid,
-        version: __VERSION__, // eslint-disable-line no-undef
-      },
-    }).catch(_ => {})
-  })
 }
 
 const FontLoader = () => (

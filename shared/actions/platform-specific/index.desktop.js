@@ -238,6 +238,19 @@ const onShutdown = (_, action) => {
   }
 }
 
+const onConnected = () => {
+  // Introduce ourselves to the service
+  RPCTypes.configHelloIAmRpcPromise({
+    details: {
+      argv: process.argv,
+      clientType: RPCTypes.commonClientType.guiMain,
+      desc: 'Main Renderer',
+      pid: process.pid,
+      version: __VERSION__, // eslint-disable-line no-undef
+    },
+  }).catch(_ => {})
+}
+
 const onOutOfDate = (_, action) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
@@ -348,6 +361,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifySessionClientOutOfDate,
     onOutOfDate
   )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)
