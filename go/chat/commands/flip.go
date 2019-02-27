@@ -66,7 +66,7 @@ const flipDesktopUsage = `Example commands: %s
 /flip 10..20   pick a number 10 to 20 (inclusive)
 /flip a,b,c,d  shuffle some options and pick where to eat or whom to wrestle
 /flip cards    shuffle and deal a deck %s
-And for a quick game of face-up poker: %s/flip cards 5 @user1 @user2 @user3
+And for a quick game of face-up poker: %s/flip cards 5 @user1, @user2, @user3
 	(shuffle a deck and deal 5 cards to 3 different people)%s
 The blog post announcing this feature and how it works:
 https://keybase.io/coin-flipping
@@ -81,7 +81,7 @@ Example commands: %s
 /flip a,b,c,d  shuffle a,b,c,d
 /flip cards    deal cards %s
 And for a quick game of face-up poker: %s
-/flip cards 5 @user1 @user2 @user3
+/flip cards 5 @user1, @user2, @user3
 (shuffle a deck and deal 5 cards to 3 different people)%s
 The blog post announcing this feature and how it works:
 https://keybase.io/coin-flipping`
