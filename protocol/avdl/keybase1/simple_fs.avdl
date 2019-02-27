@@ -424,10 +424,16 @@ protocol SimpleFS {
 
   /**
    simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
-   user.  It results in an RPC to the server, and any usage includes
-   local journal usage as well.
+   user.  Any usage includes local journal usage as well.
    */
   SimpleFSQuotaUsage simpleFSGetUserQuotaUsage();
+
+  /**
+   simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if
+   the logged-in user has access to that team.  Any usage includes
+   local journal usage as well.
+   */
+  SimpleFSQuotaUsage simpleFSGetTeamQuotaUsage(TeamName teamName);
 
   /**
    simpleFSReset completely resets the KBFS folder referenced in `path`.

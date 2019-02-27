@@ -1343,6 +1343,10 @@ type SimpleFSFolderEditHistoryArg struct {
 type SimpleFSGetUserQuotaUsageArg struct {
 }
 
+type SimpleFSGetTeamQuotaUsageArg struct {
+	TeamName TeamName `codec:"teamName" json:"teamName"`
+}
+
 type SimpleFSResetArg struct {
 	Path Path `codec:"path" json:"path"`
 }
@@ -1448,9 +1452,12 @@ type SimpleFSInterface interface {
 	// recorded by the server) of their most recent edit.
 	SimpleFSFolderEditHistory(context.Context, Path) (FSFolderEditHistory, error)
 	// simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
-	// user.  It results in an RPC to the server, and any usage includes
-	// local journal usage as well.
+	// user.  Any usage includes local journal usage as well.
 	SimpleFSGetUserQuotaUsage(context.Context) (SimpleFSQuotaUsage, error)
+	// simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if
+	// the logged-in user has access to that team.  Any usage includes
+	// local journal usage as well.
+	SimpleFSGetTeamQuotaUsage(context.Context, TeamName) (SimpleFSQuotaUsage, error)
 	// simpleFSReset completely resets the KBFS folder referenced in `path`.
 	// It should only be called after explicit user confirmation.
 	SimpleFSReset(context.Context, Path) error
@@ -1867,6 +1874,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetTeamQuotaUsage": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetTeamQuotaUsageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSGetTeamQuotaUsageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetTeamQuotaUsageArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetTeamQuotaUsage(ctx, typedArgs[0].TeamName)
+					return
+				},
+			},
 			"simpleFSReset": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSResetArg
@@ -2131,10 +2153,18 @@ func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path
 }
 
 // simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
-// user.  It results in an RPC to the server, and any usage includes
-// local journal usage as well.
+// user.  Any usage includes local journal usage as well.
 func (c SimpleFSClient) SimpleFSGetUserQuotaUsage(ctx context.Context) (res SimpleFSQuotaUsage, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetUserQuotaUsage", []interface{}{SimpleFSGetUserQuotaUsageArg{}}, &res)
+	return
+}
+
+// simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if
+// the logged-in user has access to that team.  Any usage includes
+// local journal usage as well.
+func (c SimpleFSClient) SimpleFSGetTeamQuotaUsage(ctx context.Context, teamName TeamName) (res SimpleFSQuotaUsage, err error) {
+	__arg := SimpleFSGetTeamQuotaUsageArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage", []interface{}{__arg}, &res)
 	return
 }
 
