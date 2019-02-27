@@ -68,17 +68,12 @@ class AddToTeam extends React.Component<Props> {
       <Kb.Box2 direction="vertical" style={styles.container}>
         {this.props.addUserToTeamsState === 'failed' && (
           <Kb.Box2
-            centerChildren={true}
             direction="horizontal"
             fullWidth={true}
             noShrink={true}
-            style={styles.addUserToTeamsResults}
+            style={styles.addUserToTeamsResultsBox}
           >
-            <Kb.Text
-              style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
-              type="BodySemibold"
-              backgroundMode="HighRisk"
-            >
+            <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" backgroundMode="HighRisk">
               {this.props.addUserToTeamsResults}
             </Kb.Text>
           </Kb.Box2>
@@ -185,9 +180,14 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.tiny,
     },
   }),
-  addUserToTeamsResults: {
+  addUserToTeamsResultsBox: {
     backgroundColor: Styles.globalColors.red,
     marginBottom: Styles.globalMargins.small,
+  },
+  addUserToTeamsResultsText: {
+    margin: Styles.globalMargins.tiny,
+    textAlign: 'center',
+    width: '100%',
   },
   buttonBar: Styles.platformStyles({
     isMobile: {
