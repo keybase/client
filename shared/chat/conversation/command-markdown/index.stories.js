@@ -6,7 +6,7 @@ import * as Sb from '../../../stories/storybook'
 import CommandMarkdown from './index'
 
 const props = {
-  text: `Current Flip: *HEADS* or *TAILS*
+  body: `Current Flip: *HEADS* or *TAILS*
 
 Example commands:
     /flip          coin flip

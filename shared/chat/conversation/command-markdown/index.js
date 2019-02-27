@@ -4,8 +4,8 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {|
-  text: string,
-  title?: string,
+  body: string,
+  title: ?string,
 |}
 
 const CommandMarkdown = (props: Props) => {
@@ -17,8 +17,8 @@ const CommandMarkdown = (props: Props) => {
         </Kb.Box2>
       )}
       <Kb.ScrollView style={styles.scrollContainer}>
-        <Kb.Box2 direction="vertical" style={styles.textContainer}>
-          <Kb.Markdown>{props.text}</Kb.Markdown>
+        <Kb.Box2 direction="vertical" style={styles.bodyContainer}>
+          <Kb.Markdown>{props.body}</Kb.Markdown>
         </Kb.Box2>
       </Kb.ScrollView>
     </Kb.Box>
@@ -26,6 +26,12 @@ const CommandMarkdown = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  bodyContainer: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.tiny,
+  },
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
@@ -36,15 +42,14 @@ const styles = Styles.styleSheetCreate({
       marginRight: Styles.globalMargins.small,
     },
   }),
-  scrollContainer: {
-    maxHeight: 200,
-  },
-  textContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  scrollContainer: Styles.platformStyles({
+    isElectron: {
+      maxHeight: 300,
+    },
+    isMobile: {
+      maxHeight: 200,
+    },
+  }),
   title: {
     backgroundColor: Styles.globalColors.black_05,
     borderBottomWidth: 1,

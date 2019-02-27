@@ -311,5 +311,9 @@ protocol chatUi {
   }
   void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
 
-  void chatCommandMarkdown(int sessionID, string convID, string text);
+  record UICommandMarkdown {
+    string body;
+    union { null, string} title;
+  }
+  void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
 }
