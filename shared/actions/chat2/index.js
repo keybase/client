@@ -2697,8 +2697,14 @@ const prepareFulfillRequestForm = (state, action) => {
 }
 
 const addUsersToChannel = (_, action) => {
-  const {usernames} = action.payload
-  logger.info('TODO addUsersToChannel', usernames)
+  const {conversationIDKey, usernames} = action.payload
+  return RPCChatTypes.localBulkAddToConvRpcPromise(
+    {convID: Types.keyToConversationID(conversationIDKey), usernames},
+    Constants.waitingKeyAddUsersToChannel
+  ).then(() => [
+    Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+    Chat2Gen.createNavigateToThread(),
+  ])
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {

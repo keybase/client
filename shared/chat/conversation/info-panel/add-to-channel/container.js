@@ -50,6 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSubmit: usernames => dispatchProps._onSubmit(stateProps._conversationIDKey, usernames),
     title: stateProps.title,
     users,
+    waitingKey: Constants.waitingKeyAddUsersToChannel,
   }
 }
 

@@ -23,6 +23,7 @@ const props = {
     {alreadyAdded: true, fullname: 'Steve Sanders', username: 'zanderz'},
     {alreadyAdded: true, fullname: '', username: 'reallyreallylongusername'},
   ],
+  waitingKey: 'dummyWaitingKey',
 }
 
 const load = () => {

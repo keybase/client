@@ -10,6 +10,7 @@ type Props = {|
   onSubmit: (usernames: Array<string>) => void,
   title: string,
   users: Array<{alreadyAdded: boolean, fullname: string, username: string}>,
+  waitingKey: string,
 |}
 
 type State = {|
@@ -37,7 +38,12 @@ class AddToChannel extends React.Component<Props, State> {
       body={
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} alignItems="center">
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[user.username]} />
+            <Kb.ConnectedUsernames
+              colorFollowing={true}
+              type="BodySemibold"
+              usernames={[user.username]}
+              underline={false}
+            />
             {!user.alreadyAdded && !!user.fullname && (
               <Kb.Text lineClamp={1} type="BodySmall" style={styles.userSubtext}>
                 {user.fullname}
@@ -70,10 +76,10 @@ class AddToChannel extends React.Component<Props, State> {
         fullWidth={true}
         fullHeight={true}
         style={styles.container}
-        gap="medium"
+        gap="small"
       >
         {!Styles.isMobile && <Kb.Text type="Header">{this.props.title}</Kb.Text>}
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.flexOne}>
           <Kb.BoxGrow style={styles.listContainer}>
             <Kb.List2
               style={styles.list}
@@ -84,9 +90,18 @@ class AddToChannel extends React.Component<Props, State> {
             />
           </Kb.BoxGrow>
           <Kb.ButtonBar direction="row">
-            {!Styles.isMobile && <Kb.Button type="Secondary" label="Cancel" onClick={this.props.onCancel} />}
-            <Kb.Button
+            {!Styles.isMobile && (
+              <Kb.WaitingButton
+                onlyDisable={true}
+                waitingKey={this.props.waitingKey || null}
+                type="Secondary"
+                label="Cancel"
+                onClick={this.props.onCancel}
+              />
+            )}
+            <Kb.WaitingButton
               disabled={!this.state.selected.size}
+              waitingKey={this.props.waitingKey || null}
               type="Primary"
               label={
                 this.state.selected.size
@@ -104,15 +119,22 @@ class AddToChannel extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    isElectron: {height: 400, padding: Styles.globalMargins.small, width: 400},
+    isElectron: {...Styles.padding(Styles.globalMargins.small, 0), height: 400, width: 400},
     isMobile: {
       ...Styles.padding(0, 0, Styles.globalMargins.small, 0),
     },
   }),
+  flexOne: {flex: 1},
   list: Styles.platformStyles({
-    isMobile: {paddingTop: Styles.globalMargins.tiny},
+    isMobile: {...Styles.padding(Styles.globalMargins.tiny, 0)},
   }),
-  listContainer: {width: '100%'},
+  listContainer: {
+    borderBottomWidth: 1,
+    borderColor: Styles.globalColors.black_10,
+    borderStyle: 'solid',
+    borderTopWidth: Styles.isMobile ? 0 : 1, // header adds this on mobile
+    width: '100%',
+  },
   userSubtext: Styles.platformStyles({
     common: {
       paddingRight: Styles.globalMargins.tiny,
