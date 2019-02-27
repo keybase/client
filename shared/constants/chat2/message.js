@@ -587,6 +587,9 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         user: body.changeretention.user,
       })
     }
+    case RPCChatTypes.localMessageSystemType.bulkaddtoconv: {
+      return null
+    }
 
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
