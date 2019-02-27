@@ -190,16 +190,21 @@ const Tracker = (props: Props) => {
 
 const avatarSize = 96
 const barHeight = 62
-const reason = {
-  alignSelf: 'center',
-  color: Styles.globalColors.white,
-  flexShrink: 0,
-  paddingBottom: Styles.globalMargins.small,
-  paddingLeft: Styles.globalMargins.medium,
-  paddingRight: Styles.globalMargins.medium,
-  paddingTop: Styles.globalMargins.small,
-  textAlign: 'center',
-}
+const reason = Styles.platformStyles({
+  common: {
+    alignSelf: 'center',
+    color: Styles.globalColors.white,
+    flexShrink: 0,
+    paddingBottom: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.small,
+    textAlign: 'center',
+  },
+  isElectron: {
+    ...Styles.desktopStyles.windowDragging,
+  },
+})
 
 const styles = Styles.styleSheetCreate({
   assertions: {
@@ -231,13 +236,10 @@ const styles = Styles.styleSheetCreate({
   }),
   chatIcon: {marginRight: Styles.globalMargins.tiny},
   close: {padding: Styles.globalMargins.tiny},
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDragging,
-      backgroundColor: Styles.globalColors.white,
-      position: 'relative',
-    },
-  }),
+  container: {
+    backgroundColor: Styles.globalColors.white,
+    position: 'relative',
+  },
   header: {
     justifyContent: 'flex-end',
     paddingBottom: Styles.globalMargins.tiny,
