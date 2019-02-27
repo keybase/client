@@ -28,6 +28,8 @@ type RemoteIdentifyUI struct {
 	skipPrompt bool
 }
 
+var _ libkb.IdentifyUI = (*RemoteIdentifyUI)(nil)
+
 type IdentifyHandler struct {
 	*BaseHandler
 	libkb.Contextified
@@ -356,115 +358,115 @@ func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertio
 	return socialAssertion, nil
 }
 
-func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {
-	return context.WithTimeout(context.Background(), libkb.RemoteIdentifyUITimeout)
+func (u *RemoteIdentifyUI) newMetaContext(mctx libkb.MetaContext) (libkb.MetaContext, func()) {
+	return mctx.WithTimeout(libkb.RemoteIdentifyUITimeout)
 }
 
-func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) FinishWebProofCheck(mctx libkb.MetaContext, p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.FinishWebProofCheck(ctx, keybase1.FinishWebProofCheckArg{
+	return u.uicli.FinishWebProofCheck(mctx.Ctx(), keybase1.FinishWebProofCheckArg{
 		SessionID: u.sessionID,
 		Rp:        p,
 		Lcr:       lcr,
 	})
 }
 
-func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) FinishSocialProofCheck(mctx libkb.MetaContext, p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.FinishSocialProofCheck(ctx, keybase1.FinishSocialProofCheckArg{
+	return u.uicli.FinishSocialProofCheck(mctx.Ctx(), keybase1.FinishSocialProofCheckArg{
 		SessionID: u.sessionID,
 		Rp:        p,
 		Lcr:       lcr,
 	})
 }
 
-func (u *RemoteIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (u *RemoteIdentifyUI) Confirm(mctx libkb.MetaContext, io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	if u.skipPrompt {
-		u.G().Log.Debug("skipping Confirm for %q", io.Username)
+		mctx.CDebugf("skipping Confirm for %q", io.Username)
 		return keybase1.ConfirmResult{IdentityConfirmed: true}, nil
 	}
-	return u.uicli.Confirm(context.TODO(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
+	return u.uicli.Confirm(mctx.Ctx(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
 }
 
-func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayCryptocurrency(mctx libkb.MetaContext, c keybase1.Cryptocurrency) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayCryptocurrency(ctx, keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
+	return u.uicli.DisplayCryptocurrency(mctx.Ctx(), keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
 }
 
-func (u *RemoteIdentifyUI) DisplayStellarAccount(a keybase1.StellarAccount) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayStellarAccount(mctx libkb.MetaContext, a keybase1.StellarAccount) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayStellarAccount(ctx, keybase1.DisplayStellarAccountArg{SessionID: u.sessionID, A: a})
+	return u.uicli.DisplayStellarAccount(mctx.Ctx(), keybase1.DisplayStellarAccountArg{SessionID: u.sessionID, A: a})
 }
 
-func (u *RemoteIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayKey(ctx, keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
+	return u.uicli.DisplayKey(mctx.Ctx(), keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
 }
 
-func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase1.TrackSummary) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) ReportLastTrack(mctx libkb.MetaContext, t *keybase1.TrackSummary) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.ReportLastTrack(ctx, keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
+	return u.uicli.ReportLastTrack(mctx.Ctx(), keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
 }
 
-func (u *RemoteIdentifyUI) DisplayTrackStatement(s string) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayTrackStatement(mctx libkb.MetaContext, s string) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayTrackStatement(ctx, keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
+	return u.uicli.DisplayTrackStatement(mctx.Ctx(), keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
 }
 
-func (u *RemoteIdentifyUI) ReportTrackToken(token keybase1.TrackToken) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) ReportTrackToken(mctx libkb.MetaContext, token keybase1.TrackToken) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.ReportTrackToken(ctx, keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
+	return u.uicli.ReportTrackToken(mctx.Ctx(), keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
 }
 
-func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) LaunchNetworkChecks(mctx libkb.MetaContext, id *keybase1.Identity, user *keybase1.User) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.LaunchNetworkChecks(ctx, keybase1.LaunchNetworkChecksArg{
+	return u.uicli.LaunchNetworkChecks(mctx.Ctx(), keybase1.LaunchNetworkChecksArg{
 		SessionID: u.sessionID,
 		Identity:  *id,
 		User:      *user,
 	})
 }
 
-func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayUserCard(mctx libkb.MetaContext, card keybase1.UserCard) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.DisplayUserCard(ctx, keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
+	return u.uicli.DisplayUserCard(mctx.Ctx(), keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
 }
 
-func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason, force bool) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) Start(mctx libkb.MetaContext, username string, reason keybase1.IdentifyReason, force bool) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Start(ctx, keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason, ForceDisplay: force})
+	return u.uicli.Start(mctx.Ctx(), keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason, ForceDisplay: force})
 }
 
-func (u *RemoteIdentifyUI) Cancel() error {
+func (u *RemoteIdentifyUI) Cancel(mctx libkb.MetaContext) error {
 	if u.uicli.Cli == nil {
 		return nil
 	}
-	ctx, cancel := u.newContext()
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Cancel(ctx, u.sessionID)
+	return u.uicli.Cancel(mctx.Ctx(), u.sessionID)
 }
 
-func (u *RemoteIdentifyUI) Finish() error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) Finish(mctx libkb.MetaContext) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Finish(ctx, u.sessionID)
+	return u.uicli.Finish(mctx.Ctx(), u.sessionID)
 }
 
-func (u *RemoteIdentifyUI) Dismiss(username string, reason keybase1.DismissReason) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) Dismiss(mctx libkb.MetaContext, username string, reason keybase1.DismissReason) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
-	return u.uicli.Dismiss(ctx, keybase1.DismissArg{
+	return u.uicli.Dismiss(mctx.Ctx(), keybase1.DismissArg{
 		SessionID: u.sessionID,
 		Username:  username,
 		Reason:    reason,
@@ -475,9 +477,9 @@ func (u *RemoteIdentifyUI) SetStrict(b bool) {
 	u.strict = b
 }
 
-func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
-	ctx, cancel := u.newContext()
+func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(mctx libkb.MetaContext, arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	mctx, cancel := u.newMetaContext(mctx)
 	defer cancel()
 	arg.SessionID = u.sessionID
-	return u.uicli.DisplayTLFCreateWithInvite(ctx, arg)
+	return u.uicli.DisplayTLFCreateWithInvite(mctx.Ctx(), arg)
 }

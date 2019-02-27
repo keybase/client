@@ -121,28 +121,28 @@ type idCmdIdentifyUIProofPair struct {
 	Result keybase1.LinkCheckResult `json:"result"`
 }
 
-func (ui *idCmdIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+func (ui *idCmdIdentifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) Start(username string, _ keybase1.IdentifyReason, _ bool) error {
+func (ui *idCmdIdentifyUI) Start(_ libkb.MetaContext, username string, _ keybase1.IdentifyReason, _ bool) error {
 	ui.Username = username
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) DisplayTrackStatement(stmt string) error {
+func (ui *idCmdIdentifyUI) DisplayTrackStatement(_ libkb.MetaContext, stmt string) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
+func (ui *idCmdIdentifyUI) ReportTrackToken(_ libkb.MetaContext, _ keybase1.TrackToken) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) Cancel() error {
+func (ui *idCmdIdentifyUI) Cancel(_ libkb.MetaContext) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) Finish() error {
+func (ui *idCmdIdentifyUI) Finish(_ libkb.MetaContext, ) error {
 	b, err := json.MarshalIndent(ui, "", "    ")
 	if err != nil {
 		return err
@@ -152,23 +152,23 @@ func (ui *idCmdIdentifyUI) Finish() error {
 	return err
 }
 
-func (ui *idCmdIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+func (ui *idCmdIdentifyUI) Dismiss(_ libkb.MetaContext, _ string, _ keybase1.DismissReason) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (ui *idCmdIdentifyUI) Confirm(_ libkb.MetaContext, o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{IdentityConfirmed: false, RemoteConfirmed: false}, nil
 }
 
-func (ui *idCmdIdentifyUI) LaunchNetworkChecks(_ *keybase1.Identity, _ *keybase1.User) error {
+func (ui *idCmdIdentifyUI) LaunchNetworkChecks(_ libkb.MetaContext, _ *keybase1.Identity, _ *keybase1.User) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) DisplayTLFCreateWithInvite(_ keybase1.DisplayTLFCreateWithInviteArg) error {
+func (ui *idCmdIdentifyUI) DisplayTLFCreateWithInvite(_ libkb.MetaContext, _ keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (ui *idCmdIdentifyUI) FinishSocialProofCheck(_ libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	ui.Proofs = append(ui.Proofs, idCmdIdentifyUIProofPair{
 		Proof:  p,
 		Result: l,
@@ -176,7 +176,7 @@ func (ui *idCmdIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keyb
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (ui *idCmdIdentifyUI) FinishWebProofCheck(_ libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	ui.Proofs = append(ui.Proofs, idCmdIdentifyUIProofPair{
 		Proof:  p,
 		Result: l,
@@ -184,22 +184,22 @@ func (ui *idCmdIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
+func (ui *idCmdIdentifyUI) DisplayCryptocurrency(_ libkb.MetaContext, l keybase1.Cryptocurrency) error {
 	ui.Cryptocurrencies = append(ui.Cryptocurrencies, l)
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
+func (ui *idCmdIdentifyUI) DisplayStellarAccount(_ libkb.MetaContext, l keybase1.StellarAccount) error {
 	ui.Stellar = &l
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
+func (ui *idCmdIdentifyUI) DisplayKey(_ libkb.MetaContext, key keybase1.IdentifyKey) error {
 	ui.IdentifyKey = &key
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
+func (ui *idCmdIdentifyUI) ReportLastTrack(_ libkb.MetaContext, tl *keybase1.TrackSummary) error {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		ui.LastTrack = &idCmdIdentifyUILastTrack{
 			Remote: t.IsRemote(),
