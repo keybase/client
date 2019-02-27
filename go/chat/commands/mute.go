@@ -16,7 +16,7 @@ type Mute struct {
 
 func NewMute(g *globals.Context) *Mute {
 	return &Mute{
-		baseCommand: newBaseCommand(g, "mute", "", "Mute the current conversation", "shh"),
+		baseCommand: newBaseCommand(g, "mute", "", "Mute the current conversation", false, "shh"),
 	}
 }
 

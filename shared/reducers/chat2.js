@@ -447,10 +447,12 @@ const rootReducer = (
       return state.set('flipStatusMap', fm)
     }
     case Chat2Gen.messageSend:
-      return state.setIn(['commandMarkdownMap', action.payload.conversationIDKey], '')
+      return state.deleteIn(['commandMarkdownMap', action.payload.conversationIDKey])
     case Chat2Gen.setCommandMarkdown: {
-      const {conversationIDKey, text} = action.payload
-      return state.setIn(['commandMarkdownMap', conversationIDKey], text)
+      const {conversationIDKey, md} = action.payload
+      return md
+        ? state.setIn(['commandMarkdownMap', conversationIDKey], md)
+        : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)

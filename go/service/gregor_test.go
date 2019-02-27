@@ -142,13 +142,13 @@ func newShowTrackerPopupIdentifyUI() *showTrackerPopupIdentifyUI {
 
 var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
 
-func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason, force bool) error {
+func (ui *showTrackerPopupIdentifyUI) Start(_ libkb.MetaContext, name string, reason keybase1.IdentifyReason, force bool) error {
 	ui.startCh <- name
 	return nil
 }
 
 // Overriding the Dismiss method lets us test that it gets called.
-func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.DismissReason) error {
+func (ui *showTrackerPopupIdentifyUI) Dismiss(_ libkb.MetaContext, username string, _ keybase1.DismissReason) error {
 	ui.dismissCh <- username
 	return nil
 }

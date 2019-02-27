@@ -400,6 +400,7 @@ const updateServerConfig = (state: TypedState) =>
 
       const serverConfig = {
         chatIndexProfilingEnabled: !!features.admin,
+        dbCleanEnabled: !!features.admin,
         printRPCStats: !!features.admin,
       }
 

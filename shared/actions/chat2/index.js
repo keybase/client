@@ -2608,10 +2608,10 @@ const onChatCoinFlipStatus = (status, action) => {
 }
 
 const onChatCommandMarkdown = (status, action) => {
-  const {convID, text} = action.payload.params
+  const {convID, md} = action.payload.params
   return Chat2Gen.createSetCommandMarkdown({
     conversationIDKey: Types.stringToConversationIDKey(convID),
-    text,
+    md,
   })
 }
 

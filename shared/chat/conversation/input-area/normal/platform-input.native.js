@@ -16,7 +16,6 @@ import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
-import {metaData} from '../../../../common-adapters/text.meta.native'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -188,6 +187,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
             style={styles.input}
+            textType="BodyBig"
             rowsMax={3}
             rowsMin={1}
           />
@@ -324,7 +324,8 @@ const styles = Styles.styleSheetCreate({
   },
   input: {
     flex: 1,
-    fontSize: metaData['BodyBig'].fontSize,
+    // Override BodyBig's default weight.
+    fontWeight: Styles.globalStyles.fontRegular.fontWeight,
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
     ...(isIOS

@@ -159,7 +159,7 @@ const addPeopleToTeam = (state, action) => {
           : RPCTypes.teamsTeamRole[role],
       sendChatNotification,
     },
-    Constants.teamWaitingKey(teamname)
+    [Constants.teamWaitingKey(teamname), Constants.addPeopleToTeamWaitingKey(teamname)]
   )
     .then(() => {
       // Success, dismiss the create team dialog and clear out search results
@@ -300,6 +300,11 @@ function* inviteByEmail(_, action) {
   }
 }
 
+const addToTeamWaitingKeys = (teamname, username) => [
+  Constants.teamWaitingKey(teamname),
+  Constants.addMemberWaitingKey(teamname, username),
+]
+
 const addToTeam = (_, action) => {
   const {teamname, username, role, sendChatNotification} = action.payload
   return RPCTypes.teamsTeamAddMemberRpcPromise(
@@ -310,7 +315,7 @@ const addToTeam = (_, action) => {
       sendChatNotification,
       username,
     },
-    [Constants.teamWaitingKey(teamname), Constants.addMemberWaitingKey(teamname, username)]
+    addToTeamWaitingKeys(teamname, username)
   )
     .then(() => {})
     .catch(e => {
@@ -335,7 +340,7 @@ const reAddToTeam = (state, action) => {
       id,
       username,
     },
-    [Constants.teamWaitingKey(teamname), Constants.addMemberWaitingKey(teamname, username)]
+    addToTeamWaitingKeys(teamname, username)
   )
     .then(() => {})
     .catch(e => {
@@ -523,13 +528,15 @@ function* getDetails(_, action) {
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
 
+  const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
+
   try {
     const unsafeDetails: RPCTypes.TeamDetails = yield* Saga.callPromise(
       RPCTypes.teamsTeamGetRpcPromise,
       {
         name: teamname,
       },
-      Constants.teamWaitingKey(teamname)
+      waitingKeys
     )
 
     // Don't allow the none default
@@ -554,7 +561,7 @@ function* getDetails(_, action) {
         {
           teamName: teamname,
         },
-        Constants.teamWaitingKey(teamname)
+        waitingKeys
       )
     }
 
@@ -626,7 +633,7 @@ function* getDetails(_, action) {
     const {entries} = yield* Saga.callPromise(
       RPCTypes.teamsTeamGetSubteamsRpcPromise,
       {name: {parts: teamname.split('.')}},
-      Constants.teamWaitingKey(teamname)
+      waitingKeys
     )
     const subteams = (entries || []).reduce((arr, {name}) => {
       name.parts && arr.push(name.parts.join('.'))
@@ -661,7 +668,7 @@ function* addUserToTeams(state, action) {
         {
           email: '',
           name: team,
-          role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+          role: RPCTypes.teamsTeamRole[role],
           sendChatNotification: true,
           username: user,
         },

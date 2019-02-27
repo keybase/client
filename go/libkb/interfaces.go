@@ -124,13 +124,6 @@ type CommandLine interface {
 type Server interface {
 }
 
-type ObjType byte
-
-type DbKey struct {
-	Typ ObjType
-	Key string
-}
-
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error
@@ -151,6 +144,7 @@ type LocalDb interface {
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)
+	Clean(force bool) error
 	OpenTransaction() (LocalDbTransaction, error)
 }
 
@@ -308,22 +302,22 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason, bool) error
-	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
-	DisplayCryptocurrency(keybase1.Cryptocurrency) error
-	DisplayStellarAccount(keybase1.StellarAccount) error
-	DisplayKey(keybase1.IdentifyKey) error
-	ReportLastTrack(*keybase1.TrackSummary) error
-	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error
-	DisplayTrackStatement(string) error
-	DisplayUserCard(keybase1.UserCard) error
-	ReportTrackToken(keybase1.TrackToken) error
-	Cancel() error
-	Finish() error
-	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
-	Dismiss(string, keybase1.DismissReason) error
+	Start(MetaContext, string, keybase1.IdentifyReason, bool) error
+	FinishWebProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	FinishSocialProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	Confirm(MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
+	DisplayCryptocurrency(MetaContext, keybase1.Cryptocurrency) error
+	DisplayStellarAccount(MetaContext, keybase1.StellarAccount) error
+	DisplayKey(MetaContext, keybase1.IdentifyKey) error
+	ReportLastTrack(MetaContext, *keybase1.TrackSummary) error
+	LaunchNetworkChecks(MetaContext, *keybase1.Identity, *keybase1.User) error
+	DisplayTrackStatement(MetaContext, string) error
+	DisplayUserCard(MetaContext, keybase1.UserCard) error
+	ReportTrackToken(MetaContext, keybase1.TrackToken) error
+	Cancel(MetaContext) error
+	Finish(MetaContext) error
+	DisplayTLFCreateWithInvite(MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error
+	Dismiss(MetaContext, string, keybase1.DismissReason) error
 }
 
 type Checker struct {
@@ -415,7 +409,7 @@ type ChatUI interface {
 		results []chat1.GiphySearchResult) error
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
-	ChatCommandMarkdown(context.Context, chat1.ConversationID, string) error
+	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 }
 
 type PromptDefault int

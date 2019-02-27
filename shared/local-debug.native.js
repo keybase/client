@@ -107,6 +107,9 @@ if (nativeBridge.serverConfig) {
       if (userConfig.chatIndexProfilingEnabled) {
         config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',chatIndexProfilingEnabled'
       }
+      if (userConfig.dbCleanEnabled) {
+        config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',dbCleanEnabled'
+      }
     }
   } catch (e) {}
 }

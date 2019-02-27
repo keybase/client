@@ -1094,6 +1094,23 @@
           "name": "participants"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UICommandMarkdown",
+      "fields": [
+        {
+          "type": "string",
+          "name": "body"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "title"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1393,8 +1410,11 @@
           "type": "string"
         },
         {
-          "name": "text",
-          "type": "string"
+          "name": "md",
+          "type": [
+            null,
+            "UICommandMarkdown"
+          ]
         }
       ],
       "response": null

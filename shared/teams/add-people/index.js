@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
+import * as Constants from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 
 const MaybePopup = Styles.isMobile
@@ -23,7 +24,6 @@ type Props = {
   addButtonLabel: string,
   errorText: string,
   numberOfUsersSelected: number,
-  loading: boolean,
   onAddPeople: () => void,
   onClearSearch: () => void,
   onClose: () => void,
@@ -100,7 +100,7 @@ const AddPeople = (props: Props) => (
               disabled={!props.numberOfUsersSelected}
               onClick={props.onOpenRolePicker}
               label={props.addButtonLabel}
-              waitingKey={null}
+              waitingKey={Constants.addPeopleToTeamWaitingKey(props.name)}
               type="Primary"
             />
           </Kb.Box>

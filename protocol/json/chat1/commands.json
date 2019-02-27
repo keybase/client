@@ -24,6 +24,10 @@
           "name": "usage"
         },
         {
+          "type": "boolean",
+          "name": "hasHelpText"
+        },
+        {
           "type": [
             null,
             "string"

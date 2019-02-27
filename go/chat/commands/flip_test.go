@@ -24,12 +24,12 @@ func TestFlipPreview(t *testing.T) {
 	ctx := context.TODO()
 	uid := gregor1.UID{1, 2, 3, 4}
 	convID := chat1.ConversationID{1, 2, 3, 4}
-	timeout := 2 * time.Second
+	timeout := 20 * time.Second
 
 	flip.Preview(ctx, uid, convID, "/flip")
 	select {
 	case s := <-ui.CommandMarkdown:
-		require.NotZero(t, len(s))
+		require.NotNil(t, s)
 	case <-time.After(timeout):
 		require.Fail(t, "no text")
 	}
@@ -37,7 +37,7 @@ func TestFlipPreview(t *testing.T) {
 	flip.Preview(ctx, uid, convID, "/flip 6")
 	select {
 	case s := <-ui.CommandMarkdown:
-		require.NotZero(t, len(s))
+		require.NotNil(t, s)
 	case <-time.After(timeout):
 		require.Fail(t, "no text")
 	}
@@ -45,7 +45,7 @@ func TestFlipPreview(t *testing.T) {
 	flip.Preview(ctx, uid, convID, "/flip ")
 	select {
 	case s := <-ui.CommandMarkdown:
-		require.NotZero(t, len(s))
+		require.NotNil(t, s)
 	case <-time.After(timeout):
 		require.Fail(t, "no text")
 	}
@@ -53,7 +53,7 @@ func TestFlipPreview(t *testing.T) {
 	flip.Preview(ctx, uid, convID, "/fli")
 	select {
 	case s := <-ui.CommandMarkdown:
-		require.Zero(t, len(s))
+		require.Nil(t, s)
 	case <-time.After(timeout):
 		require.Fail(t, "no text")
 	}

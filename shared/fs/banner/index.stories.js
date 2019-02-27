@@ -7,8 +7,8 @@ import FileUIBanner from './fileui-banner'
 
 const resetBannerCommon = {
   onOpenWithoutResetUsers: Sb.action('onOpenWithoutResetUsers'),
-  onReAddToTeam: Sb.action('onReAddToTeam'),
-  onViewProfile: Sb.action('onViewProfile'),
+  onReAddToTeam: (username: string) => Sb.action(`onReAddToTeam(${username})`),
+  onViewProfile: (username: string) => Sb.action(`onViewProfile(${username})`),
 }
 
 const fileUIBannerCommon = {

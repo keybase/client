@@ -15,7 +15,7 @@ type Hide struct {
 func NewHide(g *globals.Context) *Hide {
 	return &Hide{
 		baseCommand: newBaseCommand(g, "hide", "[conversation]",
-			"Hides [conversation] or the current one"),
+			"Hides [conversation] or the current one", false),
 	}
 }
 

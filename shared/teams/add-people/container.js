@@ -2,11 +2,10 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
-import {getRole, isOwner, teamWaitingKey} from '../../constants/teams'
+import {getRole, isOwner} from '../../constants/teams'
 import {upperFirst} from 'lodash-es'
 import AddPeople from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {anyWaiting} from '../../constants/waiting'
 import {
   connect,
   compose,
@@ -24,7 +23,6 @@ const mapStateToProps = (state, {routeProps}) => {
   return {
     _yourRole: getRole(state, teamname),
     errorText: upperFirst(state.teams.teamInviteError),
-    loading: anyWaiting(state, teamWaitingKey(teamname)),
     name: teamname,
     numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').size,
   }
@@ -73,20 +71,22 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     onComplete: (string, boolean) => void
   ) => {
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [
-        {
-          props: {
-            addButtonLabel: 'Add',
-            allowOwner,
-            headerTitle: 'Add them as:',
-            onComplete,
-            selectedRole: role,
-            sendNotificationChecked: true,
-            showNotificationCheckbox: false,
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              addButtonLabel: 'Add',
+              allowOwner,
+              headerTitle: 'Add them as:',
+              onComplete,
+              selectedRole: role,
+              sendNotificationChecked: true,
+              showNotificationCheckbox: false,
+            },
+            selected: 'controlledRolePicker',
           },
-          selected: 'controlledRolePicker',
-        },
-      ]})
+        ],
+      })
     )
   },
 })

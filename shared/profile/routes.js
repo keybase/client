@@ -48,11 +48,11 @@ const profileRoute = () => {
           controlledRolePicker: {
             children: {},
             component: ControlledRolePicker,
-            tags: makeLeafTags({layerOnTop: !isMobile}),
+            tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
           },
         },
         component: AddToTeam,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
       },
       editAvatar: {
         component: EditAvatar,

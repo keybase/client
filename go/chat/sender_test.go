@@ -141,7 +141,7 @@ func (n *chatListener) consumeEphemeralPurge(t *testing.T) chat1.EphemeralPurgeN
 }
 
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
-	return newConvTripleWithMembersType(ctx, t, tc, username, chat1.ConversationMembersType_KBFS)
+	return newConvTripleWithMembersType(ctx, t, tc, username, chat1.ConversationMembersType_IMPTEAMNATIVE)
 }
 
 func newConvTripleWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,

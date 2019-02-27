@@ -125,7 +125,7 @@ func (e *FavoriteAdd) checkInviteNeeded(m libkb.MetaContext) error {
 			Throttled:       inv.Throttled,
 			InviteLink:      inv.Link(),
 		}
-		if err := m.UIs().IdentifyUI.DisplayTLFCreateWithInvite(arg); err != nil {
+		if err := m.UIs().IdentifyUI.DisplayTLFCreateWithInvite(m, arg); err != nil {
 			return err
 		}
 	}
