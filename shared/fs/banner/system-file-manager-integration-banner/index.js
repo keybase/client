@@ -22,8 +22,9 @@ type Props = {|
   onDisable: () => void,
 |}
 
+type Background = 'blue' | 'green' | 'yellow' | 'black'
 type BannerProps = {
-  backgroundColor: string,
+  background: Background,
   okIcon: boolean,
   onDismiss?: ?() => void,
   title: string,
@@ -35,12 +36,47 @@ type BannerProps = {
   },
 }
 
+const backgroundToTextStyle = background => {
+  switch (background) {
+    case 'blue':
+      return styles.textWhite
+    case 'green':
+      return styles.textWhite
+    case 'yellow':
+      return styles.textBrown
+    case 'black':
+      return styles.textWhite
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(background)
+      return styles.textWhite
+  }
+}
+
+const backgroundToBackgroundColor = background => {
+  switch (background) {
+    case 'blue':
+      return Styles.globalColors.blue
+    case 'green':
+      return Styles.globalColors.green
+    case 'yellow':
+      return Styles.globalColors.yellow
+    case 'black':
+      return Styles.globalColors.black
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(background)
+      return Styles.globalColors.black
+  }
+}
+
 const Banner = (props: BannerProps) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
     centerChildren={true}
-    style={Styles.collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])}
+    style={Styles.collapseStyles([
+      styles.container,
+      {backgroundColor: backgroundToBackgroundColor(props.background)},
+    ])}
   >
     <Kb.Icon
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
@@ -54,12 +90,12 @@ const Banner = (props: BannerProps) => (
       centerChildren={true}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-        <Kb.Text type="Header" style={styles.text}>
+        <Kb.Text type="Header" style={backgroundToTextStyle(props.background)}>
           {props.title}
         </Kb.Text>
         {props.body && (
           <Kb.Box style={Styles.globalStyles.flexGrow}>
-            <Kb.Text type="Body" style={styles.text}>
+            <Kb.Text type="Body" style={backgroundToTextStyle(props.background)}>
               {props.body}
             </Kb.Text>
           </Kb.Box>
@@ -91,9 +127,7 @@ const Banner = (props: BannerProps) => (
   </Kb.Box2>
 )
 
-const ThisShouldNotHappen = () => (
-  <Banner backgroundColor={Styles.globalColors.black} okIcon={false} title="This should not happen." />
-)
+const ThisShouldNotHappen = () => <Banner background="black" okIcon={false} title="This should not happen." />
 
 const Enabled = (props: Props) => {
   if (props.driverStatus.type !== 'enabled') {
@@ -102,7 +136,7 @@ const Enabled = (props: Props) => {
   if (props.driverStatus.dokanOutdated) {
     return (
       <Banner
-        backgroundColor={Styles.globalColors.blue}
+        background="yellow"
         okIcon={false}
         title="Dokan is outdated."
         body={
@@ -126,17 +160,11 @@ const Enabled = (props: Props) => {
     // We already covered the dokan-uninstall disable case above, so this'd be
     // the rare case where user disables finder integration, and goes to Files
     // tab before it's done. Just show a simple banner in this case.
-    return (
-      <Banner
-        backgroundColor={Styles.globalColors.blue}
-        okIcon={false}
-        title={`Disabling Keybase in ${fileUIName} ...`}
-      />
-    )
+    return <Banner background="blue" okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
   }
   return (
     <Banner
-      backgroundColor={Styles.globalColors.green}
+      background="green"
       okIcon={true}
       title={`Keybase is enabled in your ${fileUIName}.`}
       onDismiss={props.alwaysShow ? null : props.onDismiss}
@@ -149,7 +177,7 @@ export default (props: Props) => {
     case 'disabled':
       return (
         <Banner
-          backgroundColor={Styles.globalColors.blue}
+          background="blue"
           okIcon={false}
           title={`Enable Keybase in ${fileUIName}?`}
           body="Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
@@ -166,7 +194,7 @@ export default (props: Props) => {
     case 'unknown':
       return props.alwaysShow ? (
         <Banner
-          backgroundColor={Styles.globalColors.blue}
+          background="blue"
           okIcon={false}
           title={'Loading'}
           body={`Trying to find out if Keybase is enabled in ${fileUIName} ...`}
@@ -200,7 +228,10 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.small,
   },
-  text: {
+  textBrown: {
+    color: Styles.globalColors.brown_75,
+  },
+  textWhite: {
     color: Styles.globalColors.white,
   },
 })
