@@ -112,7 +112,9 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
       maxHeight: 300,
       overflow: 'auto',
-      padding: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
 })
