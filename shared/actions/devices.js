@@ -130,7 +130,7 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
     receivedBadgeState
   )
 
-  // TODO don't have the saga do this, use the router lifecycle events
+  // TODO fix this. see git for an example
   if (!flags.useNewRouter) {
     yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
   }
