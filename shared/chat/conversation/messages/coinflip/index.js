@@ -4,12 +4,13 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import CoinFlipParticipants from './participants'
+import CoinFlipError from './errors'
 
 export type Props = {|
   commitmentVis: string,
   revealVis: string,
   resultText: string,
-  isError: boolean,
+  errorInfo?: ?RPCChatTypes.UICoinFlipError,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
   progressText: string,
   showParticipants: boolean,
@@ -51,10 +52,8 @@ class CoinFlip extends React.Component<Props, State> {
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-        {this.props.isError ? (
-          <Kb.Text style={styles.error} type="BodyItalic">
-            {this.props.progressText}
-          </Kb.Text>
+        {this.props.errorInfo ? (
+          <CoinFlipError error={this.props.errorInfo} />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Box2 direction="vertical">
