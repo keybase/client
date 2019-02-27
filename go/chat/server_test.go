@@ -4404,6 +4404,22 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 
 }
 
+func randSweepChannel() uint64 {
+	for {
+		buf := make([]byte, 8)
+		_, err := rand.Read(buf)
+		if err != nil {
+			panic(err)
+		}
+		x := binary.LittleEndian.Uint64(buf)
+		// sql driver doesn't support all the bits
+		// https://golang.org/src/database/sql/driver/types.go#L265
+		if x < 1<<63 {
+			return x
+		}
+	}
+}
+
 func TestChatSrvRetentionSweepConv(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
@@ -4457,6 +4473,12 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 			}
 		})
 	})
+}
+
+func tlfIDToTeamIDForce(t *testing.T, tlfID chat1.TLFID) keybase1.TeamID {
+	res, err := keybase1.TeamIDFromString(tlfID.String())
+	require.NoError(t, err)
+	return res
 }
 
 func TestChatSrvRetentionSweepTeam(t *testing.T) {
@@ -6308,24 +6330,68 @@ func TestChatSrvStellarMessages(t *testing.T) {
 	})
 }
 
-func randSweepChannel() uint64 {
-	for {
-		buf := make([]byte, 8)
-		_, err := rand.Read(buf)
-		if err != nil {
-			panic(err)
+func TestChatBulkAddToConv(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
 		}
-		x := binary.LittleEndian.Uint64(buf)
-		// sql driver doesn't support all the bits
-		// https://golang.org/src/database/sql/driver/types.go#L265
-		if x < 1<<63 {
-			return x
-		}
-	}
-}
 
-func tlfIDToTeamIDForce(t *testing.T, tlfID chat1.TLFID) keybase1.TeamID {
-	res, err := keybase1.TeamIDFromString(tlfID.String())
-	require.NoError(t, err)
-	return res
+		ctc := makeChatTestContext(t, "BulkAddToConv", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		tc := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		tc.ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		tc.ChatG.Syncer.(*Syncer).isConnected = true
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		// create a channel and bulk add user1 to it
+		topicName := "bulk"
+		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel.Conv.GetConvID(), err)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+
+		usernames := []string{users[1].Username}
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: usernames,
+				ConvID:    channel.Conv.GetConvID(),
+			})
+		require.NoError(t, err)
+
+		msg := consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		require.True(t, msg.IsValid())
+		require.Equal(t, 1, len(msg.Valid().AtMentions))
+		require.Equal(t, users[1].Username, msg.Valid().AtMentions[0])
+		body := msg.Valid().MessageBody
+		typ, err := body.MessageType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.MessageType_SYSTEM, typ)
+		sysMsg := body.System()
+		sysTyp, err := sysMsg.SystemType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
+		retMsg := sysMsg.Bulkaddtoconv()
+		require.Equal(t, usernames, retMsg.Usernames)
+	})
 }

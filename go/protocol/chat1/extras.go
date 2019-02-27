@@ -2212,6 +2212,44 @@ func (g GlobalAppNotificationSetting) FlagName() string {
 	}
 }
 
+func (m MessageSystemChangeRetention) String() string {
+	var appliesTo string
+	switch m.MembersType {
+	case ConversationMembersType_TEAM:
+		if m.IsTeam {
+			appliesTo = "team"
+		} else {
+			appliesTo = "channel"
+		}
+	default:
+		appliesTo = "conversation"
+	}
+	var inheritDescription string
+	if m.IsInherit {
+		inheritDescription = " to inherit from the team policy"
+	}
+
+	format := "[%s changed the %s retention policy%s. %s]"
+	summary := m.Policy.HumanSummary()
+	return fmt.Sprintf(format, m.User, appliesTo, inheritDescription, summary)
+}
+
+func (m MessageSystemBulkAddToConv) String() string {
+	prefix := "[Added %s to the conversation]"
+	var suffix string
+	switch len(m.Usernames) {
+	case 0:
+		return ""
+	case 1:
+		suffix = m.Usernames[0]
+	case 2:
+		suffix = fmt.Sprintf("%s and %s", m.Usernames[0], m.Usernames[1])
+	default:
+		suffix = fmt.Sprintf("%s and %d others", m.Usernames[0], len(m.Usernames)-1)
+	}
+	return fmt.Sprintf(prefix, suffix)
+}
+
 func (m MessageSystem) String() string {
 	typ, err := m.SystemType()
 	if err != nil {
@@ -2244,31 +2282,11 @@ func (m MessageSystem) String() string {
 		return fmt.Sprintf("[%s changed team avatar]", m.Changeavatar().User)
 	case MessageSystemType_CHANGERETENTION:
 		return m.Changeretention().String()
+	case MessageSystemType_BULKADDTOCONV:
+		return m.Bulkaddtoconv().String()
 	default:
 		return "<unknown system message>"
 	}
-}
-
-func (m MessageSystemChangeRetention) String() string {
-	var appliesTo string
-	switch m.MembersType {
-	case ConversationMembersType_TEAM:
-		if m.IsTeam {
-			appliesTo = "team"
-		} else {
-			appliesTo = "channel"
-		}
-	default:
-		appliesTo = "conversation"
-	}
-	var inheritDescription string
-	if m.IsInherit {
-		inheritDescription = " to inherit from the team policy"
-	}
-
-	format := "[%s changed the %s retention policy%s. %s]"
-	summary := m.Policy.HumanSummary()
-	return fmt.Sprintf(format, m.User, appliesTo, inheritDescription, summary)
 }
 
 func isZero(v []byte) bool {

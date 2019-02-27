@@ -681,7 +681,7 @@ type SystemMessageUIDSource interface {
 func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
 	typ, err := body.SystemType()
 	if err != nil {
-		return atMentions, chanMention
+		return nil, 0
 	}
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
@@ -700,6 +700,13 @@ func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak S
 		}
 	case chat1.MessageSystemType_COMPLEXTEAM:
 		chanMention = chat1.ChannelMention_ALL
+	case chat1.MessageSystemType_BULKADDTOCONV:
+		for _, username := range body.Bulkaddtoconv().Usernames {
+			uid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(username))
+			if err == nil {
+				atMentions = append(atMentions, uid.ToBytes())
+			}
+		}
 	}
 	sort.Sort(chat1.ByUID(atMentions))
 	return atMentions, chanMention
