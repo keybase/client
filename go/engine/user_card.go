@@ -92,7 +92,7 @@ func displayUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) err
 		return nil
 	}
 
-	return m.UIs().IdentifyUI.DisplayUserCard(*card)
+	return m.UIs().IdentifyUI.DisplayUserCard(m, *card)
 }
 
 func displayUserCardAsync(m libkb.MetaContext, uid keybase1.UID, useSession bool) <-chan error {
