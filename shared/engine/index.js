@@ -193,8 +193,8 @@ class Engine {
         if (!response) {
           throw new Error("Expected response but there isn't any" + method)
         }
-        let creator = this._customResponseIncomingActionCreators[method]
-        let rawEffects = creator(param, response, Engine._getState())
+        const creator = this._customResponseIncomingActionCreators[method]
+        const rawEffects = creator(param, response, Engine._getState())
 
         const effects = (isArray(rawEffects) ? rawEffects : [rawEffects]).filter(Boolean)
         effects.forEach(effect => {
