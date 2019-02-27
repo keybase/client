@@ -202,20 +202,14 @@ const pickRow = (totalWidth, longIndex, longRow, shortRow) => {
   if (expandDistance < 0) {
     expandDistance = 0
   }
-  if (compDistance < expandDistance) {
+  if (compDistance <= expandDistance) {
     return {
       index: longIndex,
       row: compressed,
     }
-  } else if (compDistance > expandDistance) {
-    return {
-      index: longIndex - 1,
-      row: expanded,
-    }
-  } else {
-    return {
-      index: longIndex,
-      row: compressed,
-    }
+  }
+  return {
+    index: longIndex - 1,
+    row: expanded,
   }
 }
