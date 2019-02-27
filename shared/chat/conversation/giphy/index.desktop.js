@@ -109,6 +109,7 @@ const styles = Styles.styleSheetCreate({
   scrollContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
+      border: `1px solid ${Styles.globalColors.black_20}`,
       borderRadius: Styles.borderRadius,
       maxHeight: 300,
       overflow: 'auto',
