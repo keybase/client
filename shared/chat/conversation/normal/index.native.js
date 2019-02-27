@@ -42,16 +42,13 @@ class Conversation extends React.PureComponent<Props> {
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
           isPending={this.props.isPending}
-          infoPanelOpen={false}
           onToggleInfoPanel={this.props.onToggleInfoPanel}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
           isPending={this.props.isPending}
-          scrollListBottomCounter={this.props.scrollListBottomCounter}
           scrollListDownCounter={this.props.scrollListDownCounter}
-          scrollListTopCounter={this.props.scrollListTopCounter}
           scrollListUpCounter={this.props.scrollListUpCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
@@ -61,9 +58,7 @@ class Conversation extends React.PureComponent<Props> {
         <InputArea
           isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
-          onRequestScrollBottom={this.props.onRequestScrollBottom}
           onRequestScrollDown={this.props.onRequestScrollDown}
-          onRequestScrollTop={this.props.onRequestScrollTop}
           onRequestScrollUp={this.props.onRequestScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />

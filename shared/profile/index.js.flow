@@ -7,6 +7,7 @@ import type {MissingProof} from './user-proofs'
 import type {Folder} from '../constants/types/folders'
 
 export type Props = {
+  showAirdrop?: boolean,
   isYou: boolean,
   loading: boolean,
   bioEditFns: ?BioEditFns,

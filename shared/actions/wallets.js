@@ -5,11 +5,14 @@ import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import * as EngineGen from './engine-gen-gen'
+import * as GregorGen from './gregor-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Flow from '../util/flow'
+import * as Router2Constants from '../constants/router2'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 import {getPath} from '../route-tree'
@@ -17,7 +20,6 @@ import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
 import flags from '../util/feature-flags'
-import {getEngine} from '../engine'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
@@ -205,7 +207,7 @@ function* requestPayment(state) {
   )
   const navAction = maybeNavigateAwayFromSendForm(state)
   yield Saga.sequentially([
-    ...(navAction ? [Saga.put(navAction)] : []),
+    ...(navAction ? navAction.map(n => Saga.put(n)) : []),
     Saga.put(
       WalletsGen.createRequestedPayment({
         kbRqID: new HiddenString(kbRqID),
@@ -703,20 +705,37 @@ const cancelRequest = (state, action) =>
   )
 
 const maybeNavigateAwayFromSendForm = state => {
-  const routeState = state.routeTree.routeState
-  const path = getPath(routeState)
-  const lastNode = path.last()
-  if (Constants.sendRequestFormRoutes.includes(lastNode)) {
-    if (path.first() === Tabs.walletsTab) {
-      // User is on send form in wallets tab, navigate back to root of tab
-      return RouteTreeGen.createNavigateTo({
-        path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
-      })
+  if (flags.useNewRouter) {
+    const path = Router2Constants.getVisiblePath()
+    const actions = []
+    // pop off any routes that are part of the popup
+    path.reverse().some(p => {
+      if (Constants.sendRequestFormRoutes.includes(p.routeName)) {
+        actions.push(RouteTreeGen.createNavigateUp())
+        return false
+      }
+      // we're done
+      return true
+    })
+    return actions
+  } else {
+    const routeState = state.routeTree.routeState
+    const path = getPath(routeState)
+    const lastNode = path.last()
+    if (Constants.sendRequestFormRoutes.includes(lastNode)) {
+      if (path.first() === Tabs.walletsTab) {
+        // User is on send form in wallets tab, navigate back to root of tab
+        return [
+          RouteTreeGen.createNavigateTo({
+            path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
+          }),
+        ]
+      }
+      // User is somewhere else, send them to most recent parent that isn't a form route
+      const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
+      const pathAboveForm = path.slice(0, firstFormIndex)
+      return [RouteTreeGen.createNavigateTo({path: pathAboveForm})]
     }
-    // User is somewhere else, send them to most recent parent that isn't a form route
-    const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
-    const pathAboveForm = path.slice(0, firstFormIndex)
-    return RouteTreeGen.createNavigateTo({path: pathAboveForm})
   }
 }
 
@@ -735,59 +754,68 @@ const maybeNavigateToConversation = (state, action) => {
   })
 }
 
-const setupEngineListeners = () => {
-  getEngine().setIncomingCallMap({
-    'stellar.1.notify.accountDetailsUpdate': ({accountID, account}) =>
-      Saga.put(
-        WalletsGen.createAccountUpdateReceived({
-          account: Constants.accountResultToAccount(account),
-        })
-      ),
-    'stellar.1.notify.accountsUpdate': ({accounts}) =>
-      Saga.put(
-        WalletsGen.createAccountsReceived({
-          accounts: (accounts || []).map(account => {
-            if (!account.accountID) {
-              logger.error(
-                `Found empty accountID in accountsUpdate, name: ${account.name} isDefault: ${String(
-                  account.isDefault
-                )}`
-              )
-            }
-            return Constants.accountResultToAccount(account)
-          }),
-        })
-      ),
-    'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
-      if (!_pending) {
-        logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
-        return
+const accountDetailsUpdate = (_, action) =>
+  WalletsGen.createAccountUpdateReceived({
+    account: Constants.accountResultToAccount(action.payload.params.account),
+  })
+
+const accountsUpdate = (_, action) =>
+  WalletsGen.createAccountsReceived({
+    accounts: (action.payload.params.accounts || []).map(account => {
+      if (!account.accountID) {
+        logger.error(
+          `Found empty accountID in accountsUpdate, name: ${account.name} isDefault: ${String(
+            account.isDefault
+          )}`
+        )
       }
-      const accountID = Types.stringToAccountID(_accountID)
-      const pending = _pending.map(p => Constants.rpcPaymentResultToPaymentResult(p, 'pending'))
-      return Saga.put(WalletsGen.createPendingPaymentsReceived({accountID, pending}))
-    },
-    'stellar.1.notify.recentPaymentsUpdate': ({accountID, firstPage: {payments, cursor, oldestUnread}}) =>
-      Saga.put(
-        WalletsGen.createRecentPaymentsReceived({
-          accountID: Types.stringToAccountID(accountID),
-          oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
-          paymentCursor: cursor,
-          payments: (payments || [])
-            .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
-            .filter(Boolean),
-        })
-      ),
-    'stellar.1.ui.paymentReviewed': ({msg: {bid, reviewID, seqno, banners, nextButton}}) =>
-      Saga.put(WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})),
+      return Constants.accountResultToAccount(account)
+    }),
+  })
+
+const pendingPaymentsUpdate = (_, action) => {
+  const {accountID: _accountID, pending: _pending} = action.payload.params
+  if (!_pending) {
+    logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
+    return
+  }
+  const accountID = Types.stringToAccountID(_accountID)
+  const pending = _pending.map(p => Constants.rpcPaymentResultToPaymentResult(p, 'pending'))
+  return WalletsGen.createPendingPaymentsReceived({accountID, pending})
+}
+
+const recentPaymentsUpdate = (_, action) => {
+  const {
+    accountID,
+    firstPage: {payments, cursor, oldestUnread},
+  } = action.payload.params
+  return WalletsGen.createRecentPaymentsReceived({
+    accountID: Types.stringToAccountID(accountID),
+    oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
+    paymentCursor: cursor,
+    payments: (payments || [])
+      .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
+      .filter(Boolean),
   })
 }
 
+const paymentReviewed = (_, action) => {
+  const {
+    msg: {bid, reviewID, seqno, banners, nextButton},
+  } = action.payload.params
+  return WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})
+}
+
 const maybeClearErrors = state => {
-  const routePath = getPath(state.routeTree.routeState)
-  const selectedTab = routePath.first()
-  if (selectedTab === Tabs.walletsTab) {
+  if (flags.useNewRouter) {
+    // maybe just clear always?
     return WalletsGen.createClearErrors()
+  } else {
+    const routePath = getPath(state.routeTree.routeState)
+    const selectedTab = routePath.first()
+    if (selectedTab === Tabs.walletsTab) {
+      return WalletsGen.createClearErrors()
+    }
   }
 }
 
@@ -899,6 +927,91 @@ const exitFailedPayment = (state, action) => {
     WalletsGen.createLoadPayments({accountID}),
   ]
 }
+
+const changeAirdrop = (_, action) =>
+  RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
+    {register: action.payload.accept},
+    Constants.airdropWaitingKey
+  ).then(() => WalletsGen.createUpdateAirdropState()) // reload
+
+type AirdropDetailsJSONType = ?{
+  header?: ?{
+    body?: ?string,
+    title?: ?string,
+  },
+  sections?: ?Array<?{
+    icon?: ?string,
+    section?: ?string,
+    lines?: ?Array<?{
+      bullet?: ?boolean,
+      text?: ?string,
+    }>,
+  }>,
+}
+const updateAirdropDetails = () =>
+  RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
+    .then(s => {
+      const json: AirdropDetailsJSONType = JSON.parse(s)
+      return WalletsGen.createUpdatedAirdropDetails({
+        details: Constants.makeAirdropDetails({
+          header: Constants.makeAirdropDetailsHeader({
+            body: json?.header?.body || '',
+            title: json?.header?.title || '',
+          }),
+          sections: I.List(
+            (json?.sections || []).map(section =>
+              Constants.makeAirdropDetailsSection({
+                icon: section?.icon || '',
+                lines: I.List(
+                  (section?.lines || []).map(l =>
+                    Constants.makeAirdropDetailsLine({bullet: l?.bullet || false, text: l?.text || ''})
+                  )
+                ),
+                section: section?.section || '',
+              })
+            )
+          ),
+        }),
+      })
+    })
+    .catch(e => {
+      logger.info(e)
+    })
+
+const updateAirdropState = () =>
+  RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey)
+    .then(({state, rows}) => {
+      let airdropState = 'loading'
+      switch (state) {
+        case 'accepted':
+        case 'qualified':
+        case 'unqualified':
+          airdropState = state
+          break
+        default:
+          logger.error('Invalid airdropstate', state)
+      }
+
+      let airdropQualifications = (rows || []).map(r =>
+        Constants.makeAirdropQualification({
+          subTitle: r.subtitle || '',
+          title: r.title || '',
+          valid: r.valid || false,
+        })
+      )
+
+      return WalletsGen.createUpdatedAirdropState({airdropQualifications, airdropState})
+    })
+    .catch(e => {
+      logger.info(e)
+    })
+
+const hideAirdropBanner = () =>
+  GregorGen.createUpdateCategory({body: 'true', category: Constants.airdropBannerKey})
+const gregorPushState = (_, action) =>
+  WalletsGen.createUpdateAirdropBannerState({
+    show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
+  })
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
@@ -1088,11 +1201,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CancelRequestPayload>(WalletsGen.cancelRequest, cancelRequest)
   yield* Saga.chainAction<WalletsGen.CancelPaymentPayload>(WalletsGen.cancelPayment, cancelPayment)
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
-  )
-
   // Clear some errors on navigateUp, clear new txs on switchTab
   yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeClearErrors)
   yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, maybeClearNewTxs)
@@ -1126,6 +1234,43 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM
   )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyAccountDetailsUpdatePayload>(
+    EngineGen.stellar1NotifyAccountDetailsUpdate,
+    accountDetailsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyAccountsUpdatePayload>(
+    EngineGen.stellar1NotifyAccountsUpdate,
+    accountsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyPendingPaymentsUpdatePayload>(
+    EngineGen.stellar1NotifyPendingPaymentsUpdate,
+    pendingPaymentsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload>(
+    EngineGen.stellar1NotifyRecentPaymentsUpdate,
+    recentPaymentsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1UiPaymentReviewedPayload>(
+    EngineGen.stellar1UiPaymentReviewed,
+    paymentReviewed
+  )
+
+  if (flags.airdrop) {
+    yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
+    yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
+    yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
+      [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone],
+      updateAirdropDetails
+    )
+    yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
+      [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone],
+      updateAirdropState
+    )
+    yield* Saga.chainAction<WalletsGen.HideAirdropBannerPayload | WalletsGen.ChangeAirdropPayload>(
+      [WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop],
+      hideAirdropBanner
+    )
+  }
 }
 
 export default walletsSaga

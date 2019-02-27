@@ -12,6 +12,7 @@ import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
 import {AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
 import Folders from './folders/container'
+import flags from '../util/feature-flags'
 import UserProofs from './user-proofs'
 import UserBio from './user-bio'
 
@@ -143,12 +144,7 @@ class _StellarFederatedAddress extends React.PureComponent<
               ref={this.props.setAttachmentRef}
             >
               <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federation Address'}>
-                <Kb.Text
-                  inline={true}
-                  type="Body"
-                  className="hover-underline"
-                  style={stellarAddressNameStyle}
-                >
+                <Kb.Text type="Body" className="hover-underline" style={stellarAddressNameStyle}>
                   {this.props.stellarAddress}
                 </Kb.Text>
               </Kb.WithTooltip>
@@ -339,40 +335,51 @@ class ProfileRender extends React.PureComponent<Props, State> {
       <Kb.Box style={styleOuterContainer}>
         <Kb.Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Kb.Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
-          {this.props.onBack && (
-            <Kb.BackButton
-              onClick={this.props.onBack}
-              style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
-              textStyle={{color: Styles.globalColors.white}}
-              iconColor={Styles.globalColors.white}
-            />
-          )}
-          <Kb.Box
-            onClick={this.props.onSearch}
-            onMouseEnter={() =>
-              this.setState({
-                searchHovered: true,
-              })
-            }
-            onMouseLeave={() =>
-              this.setState({
-                searchHovered: false,
-              })
-            }
-            style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
-          >
-            <Kb.Icon
-              fontSize={Styles.isMobile ? 20 : 16}
-              style={styles.searchIcon}
-              type="iconfont-search"
-              color={Styles.globalColors.white_75}
-            />
-            <Kb.Text style={styles.searchText} type="BodySemibold">
-              Search people
-            </Kb.Text>
+        {flags.useNewRouter ? (
+          <Kb.Box2
+            direction="vertical"
+            style={{
+              backgroundColor: trackerStateColors.header.background,
+              height: 70,
+              width: '100%',
+            }}
+          />
+        ) : (
+          <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+            {this.props.onBack && (
+              <Kb.BackButton
+                onClick={this.props.onBack}
+                style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
+                textStyle={{color: Styles.globalColors.white}}
+                iconColor={Styles.globalColors.white}
+              />
+            )}
+            <Kb.Box
+              onClick={this.props.onSearch}
+              onMouseEnter={() =>
+                this.setState({
+                  searchHovered: true,
+                })
+              }
+              onMouseLeave={() =>
+                this.setState({
+                  searchHovered: false,
+                })
+              }
+              style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
+            >
+              <Kb.Icon
+                fontSize={Styles.isMobile ? 20 : 16}
+                style={styles.searchIcon}
+                type="iconfont-search"
+                color={Styles.globalColors.white_75}
+              />
+              <Kb.Text style={styles.searchText} type="BodySemibold">
+                Search people
+              </Kb.Text>
+            </Kb.Box>
           </Kb.Box>
-        </Kb.Box>
+        )}
         <Kb.Box
           ref={c => {
             this._scrollContainer = c
@@ -389,6 +396,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 loading={loading}
                 avatarSize={AVATAR_SIZE}
                 style={{marginTop: HEADER_TOP_SPACE}}
+                showAirdrop={this.props.showAirdrop}
                 username={this.props.username}
                 userInfo={this.props.userInfo}
                 currentlyFollowing={this.props.currentlyFollowing}

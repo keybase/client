@@ -7,9 +7,11 @@ import {globalColors, styleSheetCreate} from '../../styles'
 
 type Props = {|
   children: React.Node,
+  navigateAppend: any => void,
+  navigateUp: () => void,
 |}
 
-const Wallets = (props: Props) => (
+const WalletsAndDetails = (props: Props) => (
   <AccountReloader>
     <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
       <Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
@@ -30,4 +32,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default Wallets
+export default WalletsAndDetails

@@ -30,7 +30,7 @@ type _ProofSuggestionsUpdatedPayload = $ReadOnly<{|suggestions: $ReadOnlyArray<T
 type _UpdateAssertionPayload = $ReadOnly<{|assertion: Types.Assertion, guiID: string|}>
 type _UpdateFollowersPayload = $ReadOnly<{|username: string, following: Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>, followers: Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>|}>
 type _UpdateResultPayload = $ReadOnly<{|guiID: string, result: Types.DetailsState, reason: ?string|}>
-type _UpdatedDetailsPayload = $ReadOnly<{|guiID: string, bio: string, followThem: boolean, followersCount: number, followingCount: number, followsYou: boolean, fullname: string, location: string, username: string, teamShowcase: Array<Types._TeamShowcase>|}>
+type _UpdatedDetailsPayload = $ReadOnly<{|guiID: string, bio: string, followThem: boolean, followersCount: number, followingCount: number, followsYou: boolean, fullname: string, location: string, registeredForAirdrop: boolean, username: string, teamShowcase: Array<Types._TeamShowcase>|}>
 
 // Action Creators
 export const createChangeFollow = (payload: _ChangeFollowPayload) => ({payload, type: changeFollow})

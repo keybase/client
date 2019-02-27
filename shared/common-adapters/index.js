@@ -1,4 +1,11 @@
 // @flow
+import flags from '../util/feature-flags'
+import {NavigationEvents as _NavigationEvents} from '@react-navigation/core'
+
+// Just to brige old / new nav, deprecate this when routetree is gone
+export const NavigationEvents = flags.useNewRouter ? _NavigationEvents : (p: any) => p.children || null
+
+export {default as Animated} from './animated'
 export {default as Animation} from './animation'
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as BackButton} from './back-button'
@@ -66,6 +73,7 @@ export {default as RadioButton} from './radio-button'
 export {default as Reloadable} from './reload'
 export {default as SafeAreaView, SafeAreaViewTop} from './safe-area-view'
 export {default as SaveIndicator} from './save-indicator'
+export {default as SectionDivider} from './section-divider'
 export {default as ScrollView} from './scroll-view'
 export {default as SectionList} from './section-list'
 export {default as StandardScreen} from './standard-screen'

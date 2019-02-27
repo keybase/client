@@ -29,7 +29,7 @@ const TurnOnNotifications = (props: Props) => (
     <Text
       type="BodySemibold"
       center={true}
-      backgroundMode="HighRisk"
+      negative={true}
       style={{
         bottom: globalMargins.medium,
         left: globalMargins.small,
@@ -38,12 +38,12 @@ const TurnOnNotifications = (props: Props) => (
       }}
     >
       You turned off native notifications for Keybase. It’s{' '}
-      <Text type="BodySemiboldItalic" backgroundMode="HighRisk">
+      <Text type="BodySemiboldItalic" negative={true}>
         very
       </Text>{' '}
       important you turn them back on.
       {'\n'}
-      <Text onClick={props.onEnable} type="BodySemiboldLink" backgroundMode="HighRisk">
+      <Text onClick={props.onEnable} type="BodySemiboldLink" negative={true}>
         Enable notifications
       </Text>
     </Text>

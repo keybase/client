@@ -27,7 +27,11 @@ const routeTree = makeRouteDefNode({
   component: NoPGP,
 })
 
-const styleContainer = { justifyContent: 'flex-start' }
-const styleTitle = { marginBottom: Styles.globalMargins.xlarge }
+const styleContainer = {justifyContent: 'flex-start'}
+const styleTitle = {marginBottom: Styles.globalMargins.xlarge}
 
 export default routeTree
+
+export const newRoutes = {
+  pgp: {getScreen: () => NoPGP},
+}

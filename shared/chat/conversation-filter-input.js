@@ -3,11 +3,13 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
+import flags from '../util/feature-flags'
 
 export type Props = {|
   filter: string,
   filterFocusCount: number,
   isLoading: boolean,
+  onBack: () => void,
   onBlur: () => void,
   onEnsureSelection: () => void,
   onFocus: () => void,
@@ -130,6 +132,8 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
       <>
         <Kb.HeaderHocHeader
           borderless={true}
+          leftAction={flags.useNewRouter ? 'back' : undefined}
+          onLeftAction={flags.useNewRouter ? this.props.onBack : undefined}
           rightActions={[
             {
               icon: 'iconfont-compose',

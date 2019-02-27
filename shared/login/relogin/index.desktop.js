@@ -91,14 +91,14 @@ class Login extends React.Component<Props, State> {
           />
           <Kb.WaitingButton
             disabled={!this.props.passphrase}
+            fullWidth={true}
             waitingKey={Constants.waitingKey}
-            style={{marginTop: 0}}
+            style={{marginTop: 0, width: '100%'}}
             type="Primary"
             label="Log in"
             onClick={() => this.props.onSubmit()}
           />
           <Kb.Text
-            link={true}
             type="BodySmallSecondaryLink"
             onClick={this.props.onForgotPassphrase}
             style={{marginTop: 24}}

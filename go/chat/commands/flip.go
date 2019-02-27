@@ -19,7 +19,7 @@ type Flip struct {
 
 func NewFlip(g *globals.Context) *Flip {
 	return &Flip{
-		baseCommand: newBaseCommand(g, "flip", "", "Flip a cryptographic coin"),
+		baseCommand: newBaseCommand(g, "flip", "", "Flip a cryptographic coin", true),
 	}
 }
 

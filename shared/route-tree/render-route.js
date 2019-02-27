@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as I from 'immutable'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -36,6 +37,9 @@ export type RouteRenderStack = I.Stack<RenderRouteResult>
 
 // Components rendered by routes receive the following props:
 export type RouteProps<P, S> = {
+  // props just to bridge to the new router
+  navigation: any,
+
   // Whether the route is the primary onscreen route.
   shouldRender: boolean,
 

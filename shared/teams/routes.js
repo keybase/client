@@ -1,10 +1,10 @@
 // @flow
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {MaybePopupHoc} from '../common-adapters'
 
 const routeTree = () => {
   const TeamsContainer = require('./container').default
-  const {MaybePopupHoc} = require('../common-adapters')
   const AddPeopleDialog = require('./add-people/container').default
   const InviteByEmailDialog = require('./invite-by-email/container').default
   const NewTeamDialog = require('./new-team/container').default
@@ -22,14 +22,14 @@ const routeTree = () => {
   const Team = require('./team/container').default
   const RetentionWarning = require('./team/settings-tab/retention/warning/container').default
   const makeManageChannels = {
-    createChannel: {
+    chatCreateChannel: {
       children: {},
       component: CreateChannel,
       tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
     },
-    manageChannels: {
+    chatManageChannels: {
       children: {
-        editChannel: {
+        chatEditChannel: {
           children: {},
           component: MaybePopupHoc(false)(EditChannel),
           tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
@@ -134,3 +134,24 @@ const routeTree = () => {
 }
 
 export default routeTree
+
+export const newRoutes = {
+  controlledRolePicker: {getScreen: () => require('./role-picker/controlled-container').default},
+  editTeamDescription: {
+    getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
+  },
+  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default},
+  member: {getScreen: () => require('./team/member/container').default},
+  showJoinTeamDialog: {getScreen: () => require('./join-team/container').default},
+  showNewTeamDialog: {getScreen: () => require('./new-team/container').default},
+  'tabs.teamsTab': {getScreen: () => require('./container').default},
+  team: {getScreen: () => require('./team/container').default},
+}
+
+export const newModalRoutes = {
+  addPeople: {getScreen: () => require('./add-people/container').default},
+  reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default},
+  reallyRemoveMember: {getScreen: () => require('./team/really-remove-member/container').default},
+  retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
+  rolePicker: {getScreen: () => require('./role-picker/container').default},
+}

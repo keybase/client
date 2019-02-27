@@ -162,17 +162,6 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
           </Text>
         </Wrapper>
       )
-    case constantsStatusCode.scnotfound:
-      return (
-        <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
-            The username or email you provided doesn't exist on Keybase.
-          </Text>
-          <Text center={true} type="Body">
-            Please try logging in again with a different one.
-          </Text>
-        </Wrapper>
-      )
     case constantsStatusCode.scbadloginpassword:
       return (
         <Wrapper onBack={onBack}>

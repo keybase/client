@@ -76,7 +76,7 @@ class AddToTeam extends React.Component<Props> {
             noShrink={true}
             style={styles.addUserToTeamsResultsBox}
           >
-            <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" backgroundMode="HighRisk">
+            <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" negative={true}>
               {this.props.addUserToTeamsResults}
             </Kb.Text>
           </Kb.Box2>
@@ -133,8 +133,10 @@ class AddToTeam extends React.Component<Props> {
           </Kb.Text>
           <Kb.DropdownButton
             toggleOpen={() =>
-              this.props.onOpenRolePicker(this.props.role, selectedRole =>
-                this.props.onRoleChange(selectedRole)
+              this.props.onOpenRolePicker(
+                this.props.role,
+                selectedRole => this.props.onRoleChange(selectedRole),
+                this.props.selectedTeams
               )
             }
             selected={DropdownItem(this.props.role)}

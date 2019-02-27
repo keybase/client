@@ -55,7 +55,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         />
         {!Styles.isMobile && header}
         <Box2 direction="horizontal" style={styles.warningContainer}>
-          <Text center={true} backgroundMode="Information" type="BodySmallSemibold">
+          <Text center={true} type="BodySmallSemibold">
             Only paste your secret key in 100% safe places. Anyone with this key could steal your
             Stellar&nbsp;account.
           </Text>

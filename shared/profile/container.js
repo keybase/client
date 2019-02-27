@@ -15,6 +15,7 @@ import {noAccountID, type CounterpartyType} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
 import Profile from './index'
+import {PeoplePageSearchBar} from '../people/index.shared'
 import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
@@ -52,25 +53,31 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
   }
 }
 
-const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) => {
+// just handle locally
+let _currentFriendshipsTab = 'Followers'
+
+const mapStateToProps = (state, {routeProps, routePath, navigation}: OwnProps) => {
   const myUsername = state.config.username
-  const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
+  let username = (routeProps && routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
+  if (navigation && navigation.getParam('username')) {
+    username = navigation.getParam('username') || ''
+  }
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
   }
   const youAreInTeams = isInSomeTeam(state)
 
   return {
-    currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
+    currentFriendshipsTab: _currentFriendshipsTab,
     myUsername,
-    profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
+    profileIsRoot: routePath && routePath.size === 1 && routePath.first() === peopleTab,
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
     username,
     youAreInTeams,
   }
 }
 
-const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _copyStellarAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   _onAddToTeam: (username: string) => {
     dispatch(TeamsGen.createClearAddUserToTeamsResults())
@@ -101,7 +108,9 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
+  onChangeFriendshipsTab: currentFriendshipsTab => {
+    _currentFriendshipsTab = currentFriendshipsTab
+  },
   onClickShowcaseOffer: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
   onEditAvatar: (image?: Response) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {image}, selected: 'editAvatar'}]})),
@@ -201,8 +210,35 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {okProps, type: 'ok'}
 }
 
-export default connect<OwnProps, _, _, _, _>(
+const connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
 )(ProfileContainer)
+
+const ConnectedHeader = connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps) => {
+    const props = mergeProps(stateProps, dispatchProps)
+    return {
+      onBack: props.okProps ? props.okProps.onBack : null,
+      onSearch: props.okProps ? props.okProps.onSearch : null,
+    }
+  }
+)(PeoplePageSearchBar)
+
+// $FlowIssue lets fix this
+connected.navigationOptions = {
+  header: undefined,
+  // $FlowIssue lets fix this
+  headerTitle: hp => <ConnectedHeader />,
+  headerTitleContainerStyle: {
+    left: 60,
+    right: 20,
+  },
+  headerTransparent: true,
+  underNotch: true,
+}
+
+export default connected

@@ -12,7 +12,9 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
+  airdrop: false,
   chatIndexProfilingEnabled: false,
+  dbCleanEnabled: false,
   foldersInProfileTab: false,
   identify3: true,
   moveOrCopy: false,
@@ -26,7 +28,9 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
+  dbCleanEnabled: true,
   moveOrCopy: true,
+  outOfDateBanner: true,
 }
 
 // load overrides

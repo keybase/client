@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
+import flags from '../util/feature-flags'
 
 // I put a lot of FlowIssues here so I could get this checked in. The typing of this isn't perfect, but it's getting closer
 
@@ -314,6 +315,9 @@ export function checkRouteState(
 }
 
 export function getPath(routeState: ?RouteStateNode, parentPath?: Path): I.List<string> {
+  if (flags.useNewRouter) {
+    console.warn('OLD NAV something using getPath')
+  }
   const path = []
   let curState = routeState
 
@@ -339,6 +343,9 @@ export function getPath(routeState: ?RouteStateNode, parentPath?: Path): I.List<
 }
 
 export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I.Map<string, any> {
+  if (flags.useNewRouter) {
+    console.warn('OLD NAV something using getPathState')
+  }
   const path = []
   let curState = routeState
 
@@ -366,6 +373,9 @@ export function getPathProps(
   routeState: ?RouteStateNode,
   parentPath?: Path
 ): I.List<{node: ?string, props: I.Map<string, any>}> {
+  if (flags.useNewRouter) {
+    console.warn('OLD NAV something using getPathProps')
+  }
   const path = []
   let curState = routeState
 

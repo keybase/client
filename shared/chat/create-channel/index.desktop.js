@@ -16,7 +16,7 @@ const errorHeader = (errorText: string) => {
         center={true}
         style={{margin: globalMargins.tiny, width: '100%'}}
         type="BodySemibold"
-        backgroundMode={'HighRisk'}
+        negative={true}
       >
         {errorText}
       </Kb.Text>

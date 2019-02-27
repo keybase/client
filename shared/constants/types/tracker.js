@@ -49,6 +49,7 @@ export type UserInfo = {
   uid: string,
   avatar: ?string,
   location: string,
+  registeredForAirdrop: boolean,
   showcasedTeams: Array<RPCTypes.UserTeamShowcase>,
 }
 

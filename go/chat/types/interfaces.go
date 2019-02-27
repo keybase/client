@@ -417,6 +417,7 @@ type ConversationCommand interface {
 	Name() string
 	Usage() string
 	Description() string
+	HasHelpText() bool
 	Export() chat1.ConversationCommand
 }
 
@@ -442,6 +443,7 @@ type CoinFlipManager interface {
 		uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool
 	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
 	DescribeFlipText(ctx context.Context, text string) string
+	HasActiveGames(ctx context.Context) bool
 }
 
 type InternalError interface {

@@ -11,7 +11,7 @@ const headerKey = '_header'
 const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
   const items = [
     <Kb.Box2 centerChildren={true} direction="vertical" key={headerKey}>
-      <Kb.Text center={true} Text={true} type="BodySmall" style={styles.dropdownHeader}>
+      <Kb.Text center={true} type="BodySmall" style={styles.dropdownHeader}>
         Past transactions won't be affected by this change.
       </Kb.Text>
     </Kb.Box2>,

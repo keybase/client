@@ -62,7 +62,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
               padding: 10,
             }}
           >
-            <Text type="Terminal" backgroundMode="Terminal" selectable={true}>
+            <Text type="Terminal" negative={true} selectable={true}>
               keybase log send
             </Text>
           </Box>

@@ -11,6 +11,7 @@ import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
 import Folders from '../folders/container'
+import flags from '../../util/feature-flags'
 import shallowEqual from 'shallowequal'
 import * as Flow from '../../util/flow'
 
@@ -31,6 +32,7 @@ export type Props = {|
   reason: string,
   state: Types.DetailsState,
   suggestionKeys: ?Array<string>,
+  userIsYou: boolean,
   username: string,
 |}
 
@@ -54,27 +56,35 @@ const Header = p => (
     fullWidth={true}
     style={Styles.collapseStyles([styles.header, colorTypeToStyle(p.backgroundColorType)])}
   >
-    <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
-    <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
-      <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        className="hover-opacity"
-        gap="tiny"
-        style={styles.search}
-      >
-        <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
-        <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
-          Search people
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
-    <Kb.BackButton
-      iconColor={Styles.globalColors.white}
-      textStyle={styles.backButton}
-      onClick={() => {}}
-      style={styles.invisible}
-    />
+    {!flags.useNewRouter && (
+      <>
+        <Kb.BackButton
+          iconColor={Styles.globalColors.white}
+          textStyle={styles.backButton}
+          onClick={p.onBack}
+        />
+        <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
+          <Kb.Box2
+            direction="horizontal"
+            centerChildren={true}
+            className="hover-opacity"
+            gap="tiny"
+            style={styles.search}
+          >
+            <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
+            <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
+              Search people
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        <Kb.BackButton
+          iconColor={Styles.globalColors.white}
+          textStyle={styles.backButton}
+          onClick={() => {}}
+          style={styles.invisible}
+        />
+      </>
+    )}
   </Kb.Box2>
 )
 
@@ -131,6 +141,7 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
       style={Styles.collapseStyles([
         styles.followTab,
         following === this.props.selectedFollowing && styles.followTabSelected,
+        flags.useNewRouter && styles.followTabNewRouter,
       ])}
     >
       <Kb.Text
@@ -199,7 +210,7 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
         <Kb.Text
           type="BodySmallSemibold"
-          backgroundMode="Terminal"
+          negative={true}
           center={true}
           style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
         >
@@ -234,7 +245,7 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         />
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" center={true} style={styles.reason}>
+          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {this.props.reason}
           </Kb.Text>
           <Teams username={this.props.username} />
@@ -248,12 +259,16 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
 
 type State = {|
   selectedFollowing: boolean,
+  // only used on desktop to know how wide the screen is
   width: number,
 |}
 class User extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username], width: 0}
+    this.state = {
+      selectedFollowing: !!usernameSelectedFollowing[props.username],
+      width: Styles.dimensionWidth,
+    }
   }
 
   _changeFollowing = following => {
@@ -334,7 +349,9 @@ class User extends React.Component<Props, State> {
     let chunks = this.state.width ? chunk(friends, itemsInARow) : []
     if (chunks.length === 0 && this.props.followingCount !== null && this.props.followingCount !== null) {
       chunks.push({
-        text: this.state.selectedFollowing ? 'You are not following anyone.' : 'You have no followers.',
+        text: this.state.selectedFollowing
+          ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
+          : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
         type: 'noFriends',
       })
     }
@@ -342,7 +359,7 @@ class User extends React.Component<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-          <Measure onMeasured={this._onMeasured} />
+          {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
           <Kb.SafeAreaViewTop
             style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
           />
@@ -379,7 +396,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = 48
+const headerHeight = Styles.isMobile ? 48 : 72
 
 const styles = Styles.styleSheetCreate({
   backButton: {color: Styles.globalColors.white},
@@ -437,6 +454,9 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
+  followTabNewRouter: {
+    marginTop: headerHeight,
+  },
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
   },
@@ -455,9 +475,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       flexShrink: 0,
+      height: headerHeight,
     },
     isElectron: {
-      height: headerHeight,
       padding: Styles.globalMargins.small,
     },
     isMobile: {},
@@ -525,8 +545,8 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.small,
   },
   textEmpty: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+    paddingBottom: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.large,
   },
   typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},

@@ -102,6 +102,7 @@ const filter = {
   filter: '',
   filterFocusCount: 0,
   isLoading: false,
+  onBack: Sb.action('onBack'),
   onBlur: Sb.action('onBlur'),
   onEnsureSelection: Sb.action('onEnsureSelection'),
   onFocus: Sb.action('onFocus'),

@@ -23,9 +23,10 @@ type baseCommand struct {
 	aliases     []string
 	usage       string
 	description string
+	hasHelpText bool
 }
 
-func newBaseCommand(g *globals.Context, name, usage, desc string, aliases ...string) *baseCommand {
+func newBaseCommand(g *globals.Context, name, usage, desc string, hasHelpText bool, aliases ...string) *baseCommand {
 	return &baseCommand{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), fmt.Sprintf("Commands.%s", name), false),
@@ -33,6 +34,7 @@ func newBaseCommand(g *globals.Context, name, usage, desc string, aliases ...str
 		usage:        usage,
 		aliases:      aliases,
 		description:  desc,
+		hasHelpText:  hasHelpText,
 	}
 }
 
@@ -88,6 +90,10 @@ func (b *baseCommand) Description() string {
 	return b.description
 }
 
+func (b *baseCommand) HasHelpText() bool {
+	return b.hasHelpText
+}
+
 func (b *baseCommand) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text string) {
 }
@@ -97,5 +103,6 @@ func (b *baseCommand) Export() chat1.ConversationCommand {
 		Name:        b.Name(),
 		Usage:       b.Usage(),
 		Description: b.Description(),
+		HasHelpText: b.HasHelpText(),
 	}
 }

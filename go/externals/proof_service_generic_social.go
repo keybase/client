@@ -134,7 +134,7 @@ func (c *GenericSocialProofConfig) validateRemoteUsername(remoteUsername string)
 	} else if len(remoteUsername) > uc.Max {
 		return fmt.Errorf("username can be at most %d characters, was %d", c.UsernameConfig.Max, len(remoteUsername))
 	} else if !c.usernameRe.MatchString(remoteUsername) {
-		return fmt.Errorf("username did not match expected format: %s", c.UsernameConfig.Re)
+		return libkb.NewBadUsernameError(remoteUsername)
 	}
 	return nil
 }

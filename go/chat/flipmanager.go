@@ -1,10 +1,17 @@
 package chat
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
+	"math"
 	"math/big"
 	"sort"
 	"strconv"
@@ -101,34 +108,54 @@ type loadGameJob struct {
 	convID chat1.ConversationID
 }
 
+type convParticipationsRateLimit struct {
+	count int
+	reset time.Time
+}
+
 type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer     *flip.Dealer
-	clock      clockwork.Clock
-	ri         func() chat1.RemoteInterface
-	shutdownMu sync.Mutex
-	shutdownCh chan struct{}
-	forceCh    chan struct{}
-	loadGameCh chan loadGameJob
+	dealer            *flip.Dealer
+	desktopVisualizer *FlipVisualizer
+	mobileVisualizer  *FlipVisualizer
+	clock             clockwork.Clock
+	ri                func() chat1.RemoteInterface
+	shutdownMu        sync.Mutex
+	shutdownCh        chan struct{}
+	forceCh           chan struct{}
+	loadGameCh        chan loadGameJob
 
 	gamesMu    sync.Mutex
 	games      *lru.Cache
 	dirtyGames map[string]chat1.FlipGameID
+
+	partMu                     sync.Mutex
+	maxConvParticipations      int
+	maxConvParticipationsReset time.Duration
+	convParticipations         map[string]convParticipationsRateLimit
+
+	// testing only
+	testingServerClock clockwork.Clock
 }
 
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
 	games, _ := lru.New(100)
 	m := &FlipManager{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
-		ri:           ri,
-		clock:        clockwork.NewRealClock(),
-		games:        games,
-		dirtyGames:   make(map[string]chat1.FlipGameID),
-		forceCh:      make(chan struct{}, 10),
-		loadGameCh:   make(chan loadGameJob, 100),
+		Contextified:               globals.NewContextified(g),
+		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
+		ri:                         ri,
+		clock:                      clockwork.NewRealClock(),
+		games:                      games,
+		dirtyGames:                 make(map[string]chat1.FlipGameID),
+		forceCh:                    make(chan struct{}, 10),
+		loadGameCh:                 make(chan loadGameJob, 100),
+		convParticipations:         make(map[string]convParticipationsRateLimit),
+		maxConvParticipations:      1000,
+		maxConvParticipationsReset: 5 * time.Minute,
+		desktopVisualizer:          NewFlipVisualizer(256, 100),
+		mobileVisualizer:           NewFlipVisualizer(220, 100),
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -179,6 +206,13 @@ func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
 	return chat1.MessageID(3) == msgID
 }
 
+func (m *FlipManager) getVisualizer() *FlipVisualizer {
+	if m.G().GetAppType() == libkb.MobileAppType {
+		return m.mobileVisualizer
+	}
+	return m.desktopVisualizer
+}
+
 func (m *FlipManager) notifyDirtyGames() {
 	m.gamesMu.Lock()
 	defer m.gamesMu.Unlock()
@@ -197,7 +231,10 @@ func (m *FlipManager) notifyDirtyGames() {
 	var updates []chat1.UICoinFlipStatus
 	for _, dg := range m.dirtyGames {
 		if game, ok := m.games.Get(dg.String()); ok {
-			updates = append(updates, game.(chat1.UICoinFlipStatus))
+			status := game.(chat1.UICoinFlipStatus)
+			m.getVisualizer().Visualize(&status)
+			m.sortParticipants(&status) // do this after Visualize to not mess up time order
+			updates = append(updates, status)
 		}
 	}
 	if err := ui.ChatCoinFlipStatus(ctx, updates); err != nil {
@@ -206,7 +243,7 @@ func (m *FlipManager) notifyDirtyGames() {
 }
 
 func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
-	duration := 200 * time.Millisecond
+	duration := 50 * time.Millisecond
 	next := m.clock.Now().Add(duration)
 	for {
 		select {
@@ -220,6 +257,12 @@ func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 			return
 		}
 	}
+}
+
+func (m *FlipManager) sortParticipants(status *chat1.UICoinFlipStatus) {
+	sort.Slice(status.Participants, func(i, j int) bool {
+		return status.Participants[i].Username < status.Participants[j].Username
+	})
 }
 
 func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFlipStatus,
@@ -237,9 +280,6 @@ func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFl
 		Username:   username.String(),
 		DeviceName: deviceName,
 		Commitment: update.Commitment.String(),
-	})
-	sort.Slice(status.Participants, func(i, j int) bool {
-		return status.Participants[i].Username < status.Participants[j].Username
 	})
 	endingS := ""
 	if len(status.Participants) > 1 {
@@ -364,8 +404,15 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	m.addResult(ctx, &status, update.Result, convID)
 	for _, p := range update.Players {
 		m.addParticipant(ctx, &status, flip.CommitmentUpdate{
-			User: p,
+			User:       p.Device,
+			Commitment: p.Commitment,
 		})
+		if p.Reveal != nil {
+			m.addReveal(ctx, &status, flip.RevealUpdate{
+				User:   p.Device,
+				Reveal: *p.Reveal,
+			})
+		}
 	}
 	status.ProgressText = "Complete"
 	m.games.Add(gameID.String(), status)
@@ -679,6 +726,58 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	return m.dealer.StartFlipWithGameID(ctx, start, conv.GetConvID(), gameID)
 }
 
+func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipConvID chat1.ConversationID,
+	gameID chat1.FlipGameID) bool {
+	if m.dealer.IsGameActive(ctx, flipConvID, gameID) {
+		return false
+	}
+	// Ignore any flip messages for non-active games when not in the foreground
+	appBkg := m.G().GetAppType() == libkb.MobileAppType &&
+		m.G().AppState.State() != keybase1.AppState_FOREGROUND
+	partViolation := m.isConvParticipationViolation(ctx, hostConvID)
+	return appBkg || partViolation
+}
+
+func (m *FlipManager) isConvParticipationViolation(ctx context.Context, convID chat1.ConversationID) bool {
+	m.partMu.Lock()
+	defer m.partMu.Unlock()
+	if rec, ok := m.convParticipations[convID.String()]; ok {
+		m.Debug(ctx, "isConvParticipationViolation: rec: count: %d remain: %v", rec.count,
+			m.clock.Now().Sub(rec.reset))
+		if rec.reset.Before(m.clock.Now()) {
+			return false
+		}
+		if rec.count >= m.maxConvParticipations {
+			m.Debug(ctx, "isConvParticipationViolation: violation: convID: %s remaining: %v",
+				convID, m.clock.Now().Sub(rec.reset))
+			return true
+		}
+		return false
+	}
+	return false
+}
+
+func (m *FlipManager) recordConvParticipation(ctx context.Context, convID chat1.ConversationID) {
+	m.partMu.Lock()
+	defer m.partMu.Unlock()
+	addNew := func() {
+		m.convParticipations[convID.String()] = convParticipationsRateLimit{
+			count: 1,
+			reset: m.clock.Now().Add(m.maxConvParticipationsReset),
+		}
+	}
+	if rec, ok := m.convParticipations[convID.String()]; ok {
+		if rec.reset.Before(m.clock.Now()) {
+			addNew()
+		} else {
+			rec.count++
+			m.convParticipations[convID.String()] = rec
+		}
+	} else {
+		addNew()
+	}
+}
+
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
 func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
 	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
@@ -702,6 +801,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 	msg, err := NewBoxer(m.G()).UnboxMessage(ctx, boxedMsg, conv.Conv, nil)
 	if err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox: %s", err)
+		return true
 	}
 	if err := storage.New(m.G(), nil).SetMaxMsgID(ctx, convID, uid, msg.GetMessageID()); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to write max msgid: %s", err)
@@ -720,11 +820,26 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")
 		return true
 	}
+	// Check to see if we are going to participate from this inject
+	hmi, err := m.getHostMessageInfo(ctx, convID)
+	if err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
+		return true
+	}
+	if m.shouldIgnoreInject(ctx, hmi.ConvID, convID, body.Flip().GameID) {
+		m.Debug(ctx, "MaybeInjectFlipMessage: ignored flip message")
+		return true
+	}
+	m.recordConvParticipation(ctx, hmi.ConvID) // record the inject for rate limiting purposes
 	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, body.Flip().GameID,
 		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 	return true
+}
+
+func (m *FlipManager) HasActiveGames(ctx context.Context) bool {
+	return m.dealer.HasActiveGames(ctx)
 }
 
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
@@ -845,6 +960,9 @@ func (m *FlipManager) Clock() clockwork.Clock {
 func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
 	ctx = Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
+	if m.testingServerClock != nil {
+		return m.testingServerClock.Now(), nil
+	}
 	sres, err := m.ri().ServerNow(ctx)
 	if err != nil {
 		return res, err
@@ -889,4 +1007,91 @@ func (m *FlipManager) Me() flip.UserDevice {
 // clearGameCache should only be used by tests
 func (m *FlipManager) clearGameCache() {
 	m.games.Purge()
+}
+
+type FlipVisualizer struct {
+	width, height         int
+	commitmentColors      [256]color.RGBA
+	secretColors          [256]color.RGBA
+	commitmentMatchColors [256]color.RGBA
+}
+
+func NewFlipVisualizer(width, height int) *FlipVisualizer {
+	v := &FlipVisualizer{
+		height: height, // 50
+		width:  width,  // 128
+	}
+	for i := 0; i < 256; i++ {
+		v.commitmentColors[i] = color.RGBA{
+			R: uint8(i),
+			G: uint8((128 + i*5) % 128),
+			B: 255,
+			A: 128,
+		}
+		v.secretColors[i] = color.RGBA{
+			R: 255,
+			G: uint8(64 + i/2),
+			B: 0,
+			A: 255,
+		}
+		v.commitmentMatchColors[i] = color.RGBA{
+			R: uint8(i * 3 / 4),
+			G: uint8((192 + i*4) % 64),
+			B: 255,
+			A: 255,
+		}
+	}
+	return v
+}
+
+func (v *FlipVisualizer) fillCell(img *image.NRGBA, x, y, cellHeight, cellWidth int, b byte,
+	palette [256]color.RGBA) {
+	for i := x; i < x+cellWidth; i++ {
+		for j := y; j < y+cellHeight; j++ {
+			img.Set(i, j, palette[b])
+		}
+	}
+}
+
+func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth int,
+	source string, palette [256]color.RGBA) {
+	b, _ := hex.DecodeString(source)
+	x := 0
+	for i := 0; i < len(b); i++ {
+		v.fillCell(img, x, startY, cellHeight, cellWidth, b[i], palette)
+		x += cellWidth
+	}
+}
+
+func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
+	cellWidth := int(math.Round(float64(v.width) / 32.0))
+	v.width = 32 * cellWidth
+	commitmentImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
+	secretImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
+	numParts := len(status.Participants)
+	if numParts > 0 {
+		startY := 0
+		// just add these next 2 things
+		heightAccum := float64(0) // how far into the image we should be
+		rawRowHeight := float64(v.height) / float64(numParts)
+		for _, p := range status.Participants {
+			heightAccum += rawRowHeight
+			rowHeight := int(math.Round(heightAccum - float64(startY)))
+			if rowHeight > 0 {
+				if p.Reveal != nil {
+					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment,
+						v.commitmentMatchColors)
+					v.fillRow(secretImg, startY, rowHeight, cellWidth, *p.Reveal, v.secretColors)
+				} else {
+					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment, v.commitmentColors)
+				}
+				startY += rowHeight
+			}
+		}
+	}
+	var commitmentBuf, secretBuf bytes.Buffer
+	png.Encode(&commitmentBuf, commitmentImg)
+	png.Encode(&secretBuf, secretImg)
+	status.CommitmentVisualization = base64.StdEncoding.EncodeToString(commitmentBuf.Bytes())
+	status.RevealVisualization = base64.StdEncoding.EncodeToString(secretBuf.Bytes())
 }

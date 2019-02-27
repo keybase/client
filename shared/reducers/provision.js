@@ -26,6 +26,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         return state
       }
       return state.merge({finalError: action.payload.finalError})
+    case ProvisionGen.showInlineError:
+      return state.merge({
+        inlineError: action.payload.inlineError,
+      })
     case ProvisionGen.showNewDeviceNamePage:
       return state.merge({
         error: action.payload.error || initialState.error,
@@ -77,6 +81,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       return state.merge({
         error: initialState.error,
         finalError: null,
+        inlineError: null,
         usernameOrEmail: action.payload.usernameOrEmail,
       })
     case ProvisionGen.switchToGPGSignOnly:
