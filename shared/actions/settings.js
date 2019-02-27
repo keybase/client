@@ -4,6 +4,7 @@ import logger from '../logger'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -13,7 +14,6 @@ import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
-import engine from '../engine'
 
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
@@ -458,15 +458,8 @@ const loadHasRandomPW = state =>
         .catch(e => logger.warn('Error loading hasRandomPW:', e.message))
     : null
 
-const setupEngineListeners = () => {
-  engine().setIncomingCallMap({
-    'keybase.1.NotifyUsers.passwordChanged': () =>
-      Saga.callUntyped(function*() {
-        // Mark that we are not randomPW anymore if we got a passphrase change.
-        yield Saga.put(SettingsGen.createLoadedHasRandomPw({randomPW: false}))
-      }),
-  })
-}
+// Mark that we are not randomPW anymore if we got a passphrase change.
+const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
@@ -525,9 +518,9 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     unfurlSettingsSaved
   )
   yield* Saga.chainAction<SettingsGen.LoadHasRandomPwPayload>(SettingsGen.loadHasRandomPw, loadHasRandomPW)
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersPasswordChangedPayload>(
+    EngineGen.keybase1NotifyUsersPasswordChanged,
+    passwordChanged
   )
 }
 
