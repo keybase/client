@@ -1311,6 +1311,7 @@ const (
 	UICoinFlipResultTyp_SHUFFLE UICoinFlipResultTyp = 1
 	UICoinFlipResultTyp_DECK    UICoinFlipResultTyp = 2
 	UICoinFlipResultTyp_HANDS   UICoinFlipResultTyp = 3
+	UICoinFlipResultTyp_COIN    UICoinFlipResultTyp = 4
 )
 
 func (o UICoinFlipResultTyp) DeepCopy() UICoinFlipResultTyp { return o }
@@ -1320,6 +1321,7 @@ var UICoinFlipResultTypMap = map[string]UICoinFlipResultTyp{
 	"SHUFFLE": 1,
 	"DECK":    2,
 	"HANDS":   3,
+	"COIN":    4,
 }
 
 var UICoinFlipResultTypRevMap = map[UICoinFlipResultTyp]string{
@@ -1327,6 +1329,7 @@ var UICoinFlipResultTypRevMap = map[UICoinFlipResultTyp]string{
 	1: "SHUFFLE",
 	2: "DECK",
 	3: "HANDS",
+	4: "COIN",
 }
 
 func (e UICoinFlipResultTyp) String() string {
@@ -1338,38 +1341,93 @@ func (e UICoinFlipResultTyp) String() string {
 
 type UICoinFlipHand struct {
 	Target string `codec:"target" json:"target"`
-	Hand   *[]int `codec:"hand,omitempty" json:"hand,omitempty"`
+	Hand   []int  `codec:"hand" json:"hand"`
 }
 
 func (o UICoinFlipHand) DeepCopy() UICoinFlipHand {
 	return UICoinFlipHand{
 		Target: o.Target,
-		Hand: (func(x *[]int) *[]int {
+		Hand: (func(x []int) []int {
 			if x == nil {
 				return nil
 			}
-			tmp := (func(x []int) []int {
-				if x == nil {
-					return nil
-				}
-				ret := make([]int, len(x))
-				for i, v := range x {
-					vCopy := v
-					ret[i] = vCopy
-				}
-				return ret
-			})((*x))
-			return &tmp
+			ret := make([]int, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
 		})(o.Hand),
 	}
 }
 
+type UICoinFlipShuffleResult struct {
+	Items []string `codec:"items" json:"items"`
+}
+
+func (o UICoinFlipShuffleResult) DeepCopy() UICoinFlipShuffleResult {
+	return UICoinFlipShuffleResult{
+		Items: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Items),
+	}
+}
+
+type UICoinFlipDeckResult struct {
+	Deck []int `codec:"deck" json:"deck"`
+}
+
+func (o UICoinFlipDeckResult) DeepCopy() UICoinFlipDeckResult {
+	return UICoinFlipDeckResult{
+		Deck: (func(x []int) []int {
+			if x == nil {
+				return nil
+			}
+			ret := make([]int, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Deck),
+	}
+}
+
+type UICoinFlipHandsResult struct {
+	Hands []UICoinFlipHand `codec:"hands" json:"hands"`
+}
+
+func (o UICoinFlipHandsResult) DeepCopy() UICoinFlipHandsResult {
+	return UICoinFlipHandsResult{
+		Hands: (func(x []UICoinFlipHand) []UICoinFlipHand {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UICoinFlipHand, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hands),
+	}
+}
+
 type UICoinFlipResult struct {
-	Typ__     UICoinFlipResultTyp `codec:"typ" json:"typ"`
-	Number__  *string             `codec:"number,omitempty" json:"number,omitempty"`
-	Shuffle__ *[]string           `codec:"shuffle,omitempty" json:"shuffle,omitempty"`
-	Deck__    *[]int              `codec:"deck,omitempty" json:"deck,omitempty"`
-	Hands__   *[]UICoinFlipHand   `codec:"hands,omitempty" json:"hands,omitempty"`
+	Typ__     UICoinFlipResultTyp      `codec:"typ" json:"typ"`
+	Number__  *string                  `codec:"number,omitempty" json:"number,omitempty"`
+	Shuffle__ *UICoinFlipShuffleResult `codec:"shuffle,omitempty" json:"shuffle,omitempty"`
+	Deck__    *UICoinFlipDeckResult    `codec:"deck,omitempty" json:"deck,omitempty"`
+	Hands__   *UICoinFlipHandsResult   `codec:"hands,omitempty" json:"hands,omitempty"`
+	Coin__    *bool                    `codec:"coin,omitempty" json:"coin,omitempty"`
 }
 
 func (o *UICoinFlipResult) Typ() (ret UICoinFlipResultTyp, err error) {
@@ -1394,6 +1452,11 @@ func (o *UICoinFlipResult) Typ() (ret UICoinFlipResultTyp, err error) {
 			err = errors.New("unexpected nil value for Hands__")
 			return ret, err
 		}
+	case UICoinFlipResultTyp_COIN:
+		if o.Coin__ == nil {
+			err = errors.New("unexpected nil value for Coin__")
+			return ret, err
+		}
 	}
 	return o.Typ__, nil
 }
@@ -1408,7 +1471,7 @@ func (o UICoinFlipResult) Number() (res string) {
 	return *o.Number__
 }
 
-func (o UICoinFlipResult) Shuffle() (res []string) {
+func (o UICoinFlipResult) Shuffle() (res UICoinFlipShuffleResult) {
 	if o.Typ__ != UICoinFlipResultTyp_SHUFFLE {
 		panic("wrong case accessed")
 	}
@@ -1418,7 +1481,7 @@ func (o UICoinFlipResult) Shuffle() (res []string) {
 	return *o.Shuffle__
 }
 
-func (o UICoinFlipResult) Deck() (res []int) {
+func (o UICoinFlipResult) Deck() (res UICoinFlipDeckResult) {
 	if o.Typ__ != UICoinFlipResultTyp_DECK {
 		panic("wrong case accessed")
 	}
@@ -1428,7 +1491,7 @@ func (o UICoinFlipResult) Deck() (res []int) {
 	return *o.Deck__
 }
 
-func (o UICoinFlipResult) Hands() (res []UICoinFlipHand) {
+func (o UICoinFlipResult) Hands() (res UICoinFlipHandsResult) {
 	if o.Typ__ != UICoinFlipResultTyp_HANDS {
 		panic("wrong case accessed")
 	}
@@ -1438,6 +1501,16 @@ func (o UICoinFlipResult) Hands() (res []UICoinFlipHand) {
 	return *o.Hands__
 }
 
+func (o UICoinFlipResult) Coin() (res bool) {
+	if o.Typ__ != UICoinFlipResultTyp_COIN {
+		panic("wrong case accessed")
+	}
+	if o.Coin__ == nil {
+		return
+	}
+	return *o.Coin__
+}
+
 func NewUICoinFlipResultWithNumber(v string) UICoinFlipResult {
 	return UICoinFlipResult{
 		Typ__:    UICoinFlipResultTyp_NUMBER,
@@ -1445,24 +1518,31 @@ func NewUICoinFlipResultWithNumber(v string) UICoinFlipResult {
 	}
 }
 
-func NewUICoinFlipResultWithShuffle(v []string) UICoinFlipResult {
+func NewUICoinFlipResultWithShuffle(v UICoinFlipShuffleResult) UICoinFlipResult {
 	return UICoinFlipResult{
 		Typ__:     UICoinFlipResultTyp_SHUFFLE,
 		Shuffle__: &v,
 	}
 }
 
-func NewUICoinFlipResultWithDeck(v []int) UICoinFlipResult {
+func NewUICoinFlipResultWithDeck(v UICoinFlipDeckResult) UICoinFlipResult {
 	return UICoinFlipResult{
 		Typ__:  UICoinFlipResultTyp_DECK,
 		Deck__: &v,
 	}
 }
 
-func NewUICoinFlipResultWithHands(v []UICoinFlipHand) UICoinFlipResult {
+func NewUICoinFlipResultWithHands(v UICoinFlipHandsResult) UICoinFlipResult {
 	return UICoinFlipResult{
 		Typ__:   UICoinFlipResultTyp_HANDS,
 		Hands__: &v,
+	}
+}
+
+func NewUICoinFlipResultWithCoin(v bool) UICoinFlipResult {
+	return UICoinFlipResult{
+		Typ__:  UICoinFlipResultTyp_COIN,
+		Coin__: &v,
 	}
 }
 
@@ -1476,57 +1556,34 @@ func (o UICoinFlipResult) DeepCopy() UICoinFlipResult {
 			tmp := (*x)
 			return &tmp
 		})(o.Number__),
-		Shuffle__: (func(x *[]string) *[]string {
+		Shuffle__: (func(x *UICoinFlipShuffleResult) *UICoinFlipShuffleResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (func(x []string) []string {
-				if x == nil {
-					return nil
-				}
-				ret := make([]string, len(x))
-				for i, v := range x {
-					vCopy := v
-					ret[i] = vCopy
-				}
-				return ret
-			})((*x))
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Shuffle__),
-		Deck__: (func(x *[]int) *[]int {
+		Deck__: (func(x *UICoinFlipDeckResult) *UICoinFlipDeckResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (func(x []int) []int {
-				if x == nil {
-					return nil
-				}
-				ret := make([]int, len(x))
-				for i, v := range x {
-					vCopy := v
-					ret[i] = vCopy
-				}
-				return ret
-			})((*x))
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Deck__),
-		Hands__: (func(x *[]UICoinFlipHand) *[]UICoinFlipHand {
+		Hands__: (func(x *UICoinFlipHandsResult) *UICoinFlipHandsResult {
 			if x == nil {
 				return nil
 			}
-			tmp := (func(x []UICoinFlipHand) []UICoinFlipHand {
-				if x == nil {
-					return nil
-				}
-				ret := make([]UICoinFlipHand, len(x))
-				for i, v := range x {
-					vCopy := v.DeepCopy()
-					ret[i] = vCopy
-				}
-				return ret
-			})((*x))
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Hands__),
+		Coin__: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Coin__),
 	}
 }
 
@@ -1565,6 +1622,7 @@ type UICoinFlipStatus struct {
 	RevealVisualization     string                  `codec:"revealVisualization" json:"revealVisualization"`
 	Participants            []UICoinFlipParticipant `codec:"participants" json:"participants"`
 	ErrorInfo               *UICoinFlipError        `codec:"errorInfo,omitempty" json:"errorInfo,omitempty"`
+	ResultInfo              *UICoinFlipResult       `codec:"resultInfo,omitempty" json:"resultInfo,omitempty"`
 }
 
 func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
@@ -1593,6 +1651,13 @@ func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ErrorInfo),
+		ResultInfo: (func(x *UICoinFlipResult) *UICoinFlipResult {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ResultInfo),
 	}
 }
 

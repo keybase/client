@@ -126,6 +126,7 @@ type FlipManager struct {
 	shutdownCh        chan struct{}
 	forceCh           chan struct{}
 	loadGameCh        chan loadGameJob
+	deck              string
 
 	gamesMu    sync.Mutex
 	games      *lru.Cache
@@ -142,6 +143,10 @@ type FlipManager struct {
 
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
 	games, _ := lru.New(100)
+	deck := make([]string, 52)
+	for i := 0; i < 52; i++ {
+		deck[i] = fmt.Sprintf("%d", i)
+	}
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
 		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
@@ -156,6 +161,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		maxConvParticipationsReset: 5 * time.Minute,
 		desktopVisualizer:          NewFlipVisualizer(256, 100),
 		mobileVisualizer:           NewFlipVisualizer(220, 100),
+		deck:                       strings.Join(deck, ","),
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -339,20 +345,30 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 		m.Debug(ctx, "addResult: failed to describe result: %s", err)
 		status.Phase = chat1.UICoinFlipPhase_ERROR
 		status.ProgressText = "Failed to describe result"
+		errorInfo := chat1.NewUICoinFlipErrorWithGeneric(status.ProgressText)
+		status.ErrorInfo = &errorInfo
 	case result.Big != nil:
 		lb := new(big.Int)
 		res := new(big.Int)
 		lb.SetString(hmi.LowerBound, 0)
 		res.Add(lb, result.Big)
 		status.ResultText = res.String()
+		resultInfo := chat1.NewUICoinFlipResultWithNumber(res.String())
+		status.ResultInfo = &resultInfo
 	case result.Bool != nil:
+		var resultInfo chat1.UICoinFlipResult
 		if *result.Bool {
 			status.ResultText = "HEADS"
+			resultInfo = chat1.NewUICoinFlipResultWithCoin(true)
 		} else {
 			status.ResultText = "TAILS"
+			resultInfo = chat1.NewUICoinFlipResultWithCoin(false)
 		}
+		status.ResultInfo = &resultInfo
 	case result.Int != nil:
 		status.ResultText = fmt.Sprintf("%d", *result.Int)
+		resultInfo := chat1.NewUICoinFlipResultWithNumber(status.ResultText)
+		status.ResultInfo = &resultInfo
 	case len(result.Shuffle) > 0:
 		if hmi.HandCardCount > 0 {
 			m.addCardHandResult(ctx, status, result, hmi)
@@ -361,6 +377,8 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 		if len(hmi.ShuffleItems) != len(result.Shuffle) {
 			status.Phase = chat1.UICoinFlipPhase_ERROR
 			status.ProgressText = "Failed to describe shuffle result"
+			errorInfo := chat1.NewUICoinFlipErrorWithGeneric(status.ProgressText)
+			status.ErrorInfo = &errorInfo
 			return
 		}
 		items := make([]string, len(hmi.ShuffleItems))
@@ -368,6 +386,10 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 			items[index] = hmi.ShuffleItems[r]
 		}
 		status.ResultText = strings.TrimRight(strings.Join(items, ", "), " ")
+		resultInfo := chat1.NewUICoinFlipResultWithShuffle(chat1.UICoinFlipShuffleResult{
+			Items: items,
+		})
+		status.ResultInfo = &resultInfo
 	}
 }
 
@@ -565,7 +587,7 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
-		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️", nPlayersApprox)
+		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle(m.deck, nPlayersApprox)
 		deckShuffleMetadata.DeckShuffle = true
 		if arg == "cards" {
 			return deckShuffle, deckShuffleMetadata, nil

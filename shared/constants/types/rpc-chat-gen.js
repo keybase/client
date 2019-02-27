@@ -25,6 +25,14 @@ export const chatUiUICoinFlipPhase = {
   error: 3,
 }
 
+export const chatUiUICoinFlipResultTyp = {
+  number: 0,
+  shuffle: 1,
+  deck: 2,
+  hands: 3,
+  coin: 4,
+}
+
 export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,
@@ -220,6 +228,7 @@ export const localMessageSystemType = {
   gitpush: 4,
   changeavatar: 5,
   changeretention: 6,
+  bulkaddtoconv: 7,
 }
 
 export const localMessageUnboxedErrorType = {

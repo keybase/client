@@ -6,6 +6,8 @@
         "import * as stellar1Types from '../constants/types/rpc-stellar-gen'"
     ],
     "actions": {
+        "disconnected": {},
+        "connected": {},
         "chat1ChatUiChatAttachmentDownloadStart": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'>>"
         },

@@ -1091,7 +1091,8 @@
         "NUMBER_0",
         "SHUFFLE_1",
         "DECK_2",
-        "HANDS_3"
+        "HANDS_3",
+        "COIN_4"
       ]
     },
     {
@@ -1103,14 +1104,50 @@
           "name": "target"
         },
         {
-          "type": [
-            null,
-            {
-              "type": "array",
-              "items": "int"
-            }
-          ],
+          "type": {
+            "type": "array",
+            "items": "int"
+          },
           "name": "hand"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipShuffleResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "items"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipDeckResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "int"
+          },
+          "name": "deck"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipHandsResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UICoinFlipHand"
+          },
+          "name": "hands"
         }
       ]
     },
@@ -1134,30 +1171,28 @@
             "name": "SHUFFLE",
             "def": false
           },
-          "body": {
-            "type": "array",
-            "items": "string"
-          }
+          "body": "UICoinFlipShuffleResult"
         },
         {
           "label": {
             "name": "DECK",
             "def": false
           },
-          "body": {
-            "type": "array",
-            "items": "int"
-          }
+          "body": "UICoinFlipDeckResult"
         },
         {
           "label": {
             "name": "HANDS",
             "def": false
           },
-          "body": {
-            "type": "array",
-            "items": "UICoinFlipHand"
-          }
+          "body": "UICoinFlipHandsResult"
+        },
+        {
+          "label": {
+            "name": "COIN",
+            "def": false
+          },
+          "body": "bool"
         }
       ]
     },
@@ -1235,6 +1270,13 @@
             "UICoinFlipError"
           ],
           "name": "errorInfo"
+        },
+        {
+          "type": [
+            null,
+            "UICoinFlipResult"
+          ],
+          "name": "resultInfo"
         }
       ]
     },
