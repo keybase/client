@@ -93,14 +93,14 @@ const compressRow = (totalWidth, row) => {
   for (let pass = 0; pass < maxCompressPasses; pass++) {
     const totalCompression = groupWidth(compressed) - totalWidth
     let imageComp = Math.ceil(totalCompression / numCompressables(compressed))
-    console.log(`compressRow: totalWidth: ${totalWidth} width: ${groupWidth(compressed)} comp: ${imageComp}`)
     for (let i = 0; i < compressed.length; i++) {
-      if (groupWidth(compressed) - imageComp < totalWidth) {
-        imageComp = groupWidth(compressed) - totalWidth
-      }
       compressed[i].compress(imageComp)
-      if (groupWidth(compressed) <= totalWidth) {
+      const newWidth = groupWidth(compressed)
+      if (newWidth <= totalWidth) {
         return compressed
+      }
+      if (newWidth - imageComp < totalWidth) {
+        imageComp = newWidth - totalWidth
       }
     }
   }
@@ -122,7 +122,6 @@ const expandRow = (totalWidth, row) => {
     if (imageExp === 0) {
       imageExp = totalWidth - groupWidth(expanded)
     }
-    console.log(`expandRow: width: ${groupWidth(expanded)} exp: ${imageExp}`)
     for (let i = 0; i < expanded.length; i++) {
       expanded[i].expand(imageExp)
       if (groupWidth(expanded) >= totalWidth) {
