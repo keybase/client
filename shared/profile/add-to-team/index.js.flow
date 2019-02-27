@@ -19,6 +19,7 @@ export type Props = {
   customComponent?: ?React.Node,
   headerStyle?: StylesCrossPlatform,
   loaded: {[string]: boolean},
+  loadTeamList: () => void,
   onBack: () => void,
   onCancel?: () => void,
   onOpenRolePicker: (role: string, selectedRole: (Types.TeamRoleType) => void, styleCover?: Object) => void,

@@ -55,9 +55,10 @@ const DropdownItem = (item: string) => (
 
 class AddToTeam extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
-    console.warn('in cdu', prevProps, this.props)
     if (prevProps.addUserToTeamsState !== 'succeeded' && this.props.addUserToTeamsState === 'succeeded') {
-      // close the dialog somehow
+      this.props.onBack()
+    } else if (prevProps.addUserToTeamsState !== 'failed' && this.props.addUserToTeamsState === 'failed') {
+      this.props.loadTeamList()
     }
   }
 
