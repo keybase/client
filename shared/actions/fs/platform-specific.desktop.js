@@ -312,8 +312,8 @@ const uninstallDokanPromise = state => {
         {
           buttons: ['Got it'],
           detail:
-            'It appears that Dokan was not installed as part of Keybase. Please use Dokan uninstaller to remove it.',
-          message: 'Please use Dokan uninstaller.',
+            'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
+          message: 'Please uninstall Dokan from the Control Panel.',
           type: 'info',
         },
         resp => resolve(FsGen.createRefreshDriverStatus())
