@@ -56,8 +56,11 @@ const DropdownItem = (item: string) => (
 class AddToTeam extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
     if (prevProps.addUserToTeamsState !== 'succeeded' && this.props.addUserToTeamsState === 'succeeded') {
+      // If we succeeded, close the modal
       this.props.onBack()
     } else if (prevProps.addUserToTeamsState !== 'failed' && this.props.addUserToTeamsState === 'failed') {
+      // If we failed, reload the team list -- some teams might have succeeded
+      // and should be updated.
       this.props.loadTeamList()
     }
   }
