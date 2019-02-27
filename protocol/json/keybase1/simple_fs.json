@@ -1086,7 +1086,17 @@
     "simpleFSGetUserQuotaUsage": {
       "request": [],
       "response": "SimpleFSQuotaUsage",
-      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
+      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  Any usage includes local journal usage as well."
+    },
+    "simpleFSGetTeamQuotaUsage": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "SimpleFSQuotaUsage",
+      "doc": "simpleFSGetTeamQuotaUsage returns the quota usage for the given team, if\n   the logged-in user has access to that team.  Any usage includes\n   local journal usage as well."
     },
     "simpleFSReset": {
       "request": [

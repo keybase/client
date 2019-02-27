@@ -21,6 +21,7 @@ type CmdSimpleFSQuota struct {
 	bytes    bool
 	archived bool
 	json     bool
+	teamName keybase1.TeamName
 }
 
 // NewCmdSimpleFSQuota creates a new cli.Command.
@@ -28,7 +29,7 @@ func NewCmdSimpleFSQuota(
 	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "quota",
-		Usage: "show quota usage for logged-in user",
+		Usage: "show quota usage for logged-in user or a team",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(
 				&CmdSimpleFSQuota{Contextified: libkb.NewContextified(g)},
@@ -52,6 +53,10 @@ func NewCmdSimpleFSQuota(
 				Name:  "json",
 				Usage: "show output in json format",
 			},
+			cli.StringFlag{
+				Name:  "team",
+				Usage: "print quota usage for a team, instead of the logged-in user",
+			},
 		},
 	}
 }
@@ -63,7 +68,12 @@ func (c *CmdSimpleFSQuota) Run() error {
 		return err
 	}
 
-	usage, err := cli.SimpleFSGetUserQuotaUsage(context.TODO())
+	var usage keybase1.SimpleFSQuotaUsage
+	if c.teamName.Depth() == 0 {
+		usage, err = cli.SimpleFSGetUserQuotaUsage(context.TODO())
+	} else {
+		usage, err = cli.SimpleFSGetTeamQuotaUsage(context.TODO(), c.teamName)
+	}
 	if err != nil {
 		return err
 	}
@@ -138,6 +148,15 @@ func (c *CmdSimpleFSQuota) ParseArgv(ctx *cli.Context) error {
 	c.bytes = ctx.Bool("bytes")
 	c.archived = ctx.Bool("archived")
 	c.json = ctx.Bool("json")
+
+	if len(ctx.String("team")) > 0 {
+		teamName, err := keybase1.TeamNameFromString(ctx.String("team"))
+		if err != nil {
+			return err
+		}
+		c.teamName = teamName
+	}
+
 	return nil
 }
 
