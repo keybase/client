@@ -418,12 +418,13 @@ func (h *TlfHandle) FavoriteData() favoriteData {
 	fd := favoriteData{
 		Name:         string(h.GetCanonicalName()),
 		FolderType:   h.Type().FolderType(),
-		ID:           keybase1.TLFID(h.tlfID.String()),
 		Private:      h.Type() != tlf.Public,
 		ResetMembers: []keybase1.User{},
 	}
 	if h.IsBackedByTeam() {
-		fd.TeamID = h.FirstResolvedWriter().AsTeamOrBust()
+		var teamID keybase1.TeamID
+		teamID = h.FirstResolvedWriter().AsTeamOrBust()
+		fd.TeamID = &teamID
 	}
 	return fd
 }

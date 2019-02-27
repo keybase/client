@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -260,7 +261,7 @@ func TestFavoritesGetAll(t *testing.T) {
 	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	// Mock out the API server.
+	// Prep
 	teamID := keybase1.TeamID(0xdeadbeef)
 	fol := keybase1.Folder{
 		Name:       "fake folder",
@@ -290,6 +291,7 @@ func TestFavoritesGetAll(t *testing.T) {
 		FavoriteFolders: []keybase1.Folder{fol2},
 		NewFolders:      []keybase1.Folder{fol3},
 	}
+	// Mock out the API server.
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(res, nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(1)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
@@ -302,7 +304,18 @@ func TestFavoritesGetAll(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, res.IgnoredFolders, res2.IgnoredFolders)
 	require.Equal(t, res.NewFolders, res2.NewFolders)
-	require.Equal(t, res.FavoriteFolders, res2.FavoriteFolders)
+
+	// Favorites will have 2 extra: the home TLFs
+	require.Len(t, res2.FavoriteFolders, len(res.FavoriteFolders)+2)
+	for _, folder := range res.FavoriteFolders {
+		found := false
+		for _, fav := range res2.FavoriteFolders {
+			if reflect.DeepEqual(fav, folder) {
+				found = true
+			}
+		}
+		require.True(t, found, "Folder: %v", folder)
+	}
 }
 
 func TestFavoritesDiskCache(t *testing.T) {

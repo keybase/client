@@ -45,6 +45,15 @@
           "name": "teamID",
           "jsonkey": "team_id",
           "mpackkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "User"
+          },
+          "name": "resetMembers",
+          "jsonkey": "reset_members",
+          "mpackkey": "reset_members"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."

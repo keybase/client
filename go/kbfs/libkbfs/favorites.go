@@ -86,7 +86,7 @@ type favoriteData struct {
 	Name         string
 	FolderType   keybase1.FolderType
 	Private      bool
-	TeamID       keybase1.TeamID
+	TeamID       *keybase1.TeamID
 	ResetMembers []keybase1.User
 }
 
@@ -95,7 +95,7 @@ func favoriteDataFrom(folder keybase1.Folder) favoriteData {
 		Name:       folder.Name,
 		FolderType: folder.FolderType,
 		Private:    folder.Private,
-		TeamID:     *folder.TeamID,
+		TeamID:     folder.TeamID,
 	}
 }
 
@@ -337,7 +337,7 @@ func toFolder(fav Favorite, data favoriteData) keybase1.Folder {
 		Private:    data.Private,
 		Created:    false,
 		FolderType: data.FolderType,
-		TeamID:     &data.TeamID,
+		TeamID:     data.TeamID,
 	}
 }
 
@@ -401,13 +401,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				f.favCache[Favorite{string(session.Name), tlf.Private}] = favoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
-					TeamID:     f.homeTLFInfo.PrivateTeamID,
+					TeamID:     &f.homeTLFInfo.PrivateTeamID,
 					Private:    true,
 				}
 				f.favCache[Favorite{string(session.Name), tlf.Public}] = favoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
-					TeamID:     f.homeTLFInfo.PublicTeamID,
+					TeamID:     &f.homeTLFInfo.PublicTeamID,
 					Private:    false,
 				}
 				err = f.writeCacheToDisk(req.ctx)

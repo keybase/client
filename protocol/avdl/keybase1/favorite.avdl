@@ -27,6 +27,11 @@ protocol favorite {
     @jsonkey("team_id") @mpackkey("team_id")
     union { null, TeamID } teamID;
 
+    // TODO: decide if we need to include an ID here
+
+    @jsonkey("reset_members") @mpackkey("reset_members")
+    array<User> resetMembers;
+
   }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either

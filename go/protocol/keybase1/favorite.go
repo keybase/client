@@ -44,11 +44,12 @@ func (e FolderType) String() string {
 // This type is likely to change significantly as all the various parts are
 // connected and tested.
 type Folder struct {
-	Name       string     `codec:"name" json:"name"`
-	Private    bool       `codec:"private" json:"private"`
-	Created    bool       `codec:"created" json:"created"`
-	FolderType FolderType `codec:"folderType" json:"folderType"`
-	TeamID     *TeamID    `codec:"team_id,omitempty" json:"team_id,omitempty"`
+	Name         string     `codec:"name" json:"name"`
+	Private      bool       `codec:"private" json:"private"`
+	Created      bool       `codec:"created" json:"created"`
+	FolderType   FolderType `codec:"folderType" json:"folderType"`
+	TeamID       *TeamID    `codec:"team_id,omitempty" json:"team_id,omitempty"`
+	ResetMembers []User     `codec:"reset_members" json:"reset_members"`
 }
 
 func (o Folder) DeepCopy() Folder {
@@ -64,6 +65,17 @@ func (o Folder) DeepCopy() Folder {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamID),
+		ResetMembers: (func(x []User) []User {
+			if x == nil {
+				return nil
+			}
+			ret := make([]User, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ResetMembers),
 	}
 }
 
