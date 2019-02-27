@@ -1,42 +1,48 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button, FloatingMenu, OverlayParentHOC, type OverlayParentProps} from '../../../common-adapters'
-import {connect} from '../../../util/container'
+import {compose, connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {teamsTab} from '../../../constants/tabs'
 
-type Props = {
-  attachTo: () => ?React.Component<any>,
-  showChannelOption: boolean,
-  visible: boolean,
+type Props = {|
+  ...$Exact<OverlayParentProps>,
+  isGeneralChannel: boolean,
   onAddPeople: () => void,
-  onHidden: () => void,
-}
+|}
 
-const AddPeopleHow = (props: Props) => {
-  const items = [{onClick: props.onAddPeople, title: 'To team'}]
-  if (props.showChannelOption) {
-    items.push({disabled: true, title: 'To channel'})
+const _AddPeople = (props: Props) => {
+  let menu
+  if (!props.isGeneralChannel) {
+    // general channel & small teams don't need a menu
+    const items = [{onClick: props.onAddPeople, title: 'To team'}, {disabled: true, title: 'To channel'}]
+    menu = (
+      <FloatingMenu
+        attachTo={props.getAttachmentRef}
+        visible={props.showingMenu}
+        items={items}
+        onHidden={props.toggleShowingMenu}
+        position="bottom left"
+        closeOnSelect={true}
+      />
+    )
   }
-
   return (
-    <FloatingMenu
-      attachTo={props.attachTo}
-      visible={props.visible}
-      items={items}
-      onHidden={props.onHidden}
-      position="bottom left"
-      closeOnSelect={true}
-    />
+    <Box2 direction="horizontal" centerChildren={true}>
+      {menu}
+      <Button
+        type="Primary"
+        onClick={props.isGeneralChannel ? props.onAddPeople : props.toggleShowingMenu}
+        label={props.isGeneralChannel ? 'Add to team' : 'Add someone...'}
+        ref={props.setAttachmentRef}
+      />
+    </Box2>
   )
 }
 
 type OwnProps = {
-  attachTo: () => ?React.Component<any>,
-  showChannelOption: boolean,
-  onHidden: () => void,
+  isGeneralChannel: boolean,
   teamname: string,
-  visible: boolean,
 }
 
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
@@ -53,31 +59,13 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   }
 }
 
-const ConnectedAddPeopleHow = connect<OwnProps, _, _, _, _>(
-  () => ({}),
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
-)(AddPeopleHow)
-
-const _AddPeople = (props: {smallTeam: boolean, teamname: string} & OverlayParentProps) => {
-  return (
-    <Box2 direction="horizontal" centerChildren={true}>
-      <ConnectedAddPeopleHow
-        attachTo={props.getAttachmentRef}
-        visible={props.showingMenu}
-        teamname={props.teamname}
-        showChannelOption={!props.smallTeam}
-        onHidden={props.toggleShowingMenu}
-      />
-      <Button
-        type="Primary"
-        onClick={props.toggleShowingMenu}
-        label="Add someone..."
-        ref={props.setAttachmentRef}
-      />
-    </Box2>
-  )
-}
-const AddPeople = OverlayParentHOC(_AddPeople)
+const AddPeople = compose(
+  connect<OwnProps, _, _, _, _>(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o) => ({isGeneralChannel: o.isGeneralChannel, onAddPeople: d.onAddPeople})
+  ),
+  OverlayParentHOC
+)(_AddPeople)
 
 export default AddPeople

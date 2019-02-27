@@ -77,7 +77,7 @@ type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
   teamname: string,
-  isSmallTeam: boolean,
+  isGeneralChannel: boolean,
 }
 
 type ParticipantRow = {|
@@ -280,7 +280,6 @@ const typeSizeEstimator = (row: Row): number => {
       return row.canSetRetention ? 84 : 49
 
     case 'min writer role':
-      // TODO (DA)
       return row.canSetMinWriterRole ? 84 : 35
 
     default:
@@ -293,7 +292,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'add people':
-        return <AddPeople key="add people" smallTeam={row.isSmallTeam} teamname={row.teamname} />
+        return <AddPeople key="add people" isGeneralChannel={row.isGeneralChannel} teamname={row.teamname} />
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
@@ -463,7 +462,12 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             marginTop: 8,
             type: 'divider',
           },
-          {isSmallTeam: props.smallTeam, key: 'add people', teamname: props.teamname, type: 'add people'}
+          {
+            isGeneralChannel: channelname === 'general',
+            key: 'add people',
+            teamname: props.teamname,
+            type: 'add people',
+          }
         )
         addPeopleRow = true
       }
