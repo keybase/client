@@ -290,16 +290,16 @@ func (m *FlipManager) addCardHandResult(ctx context.Context, status *chat1.UICoi
 	numCards := len(result.Shuffle)
 	var rows []string
 	handSize := int(hmi.HandCardCount)
-	for targetIndex, target := range hmi.HandTargets {
+	for _, target := range hmi.HandTargets {
 		if numCards-handSize < deckIndex {
-			rows = append(rows, fmt.Sprintf("%d. %s: 🤨", targetIndex+1, target))
+			rows = append(rows, fmt.Sprintf("%s: 🤨", target))
 			continue
 		}
 		var hand []string
 		for di := deckIndex; di < deckIndex+handSize; di++ {
 			hand = append(hand, hmi.ShuffleItems[result.Shuffle[di]])
 		}
-		rows = append(rows, fmt.Sprintf("%d. %s: %s", targetIndex+1, target,
+		rows = append(rows, fmt.Sprintf("%s: %s", target,
 			strings.TrimRight(strings.Join(hand, ", "), " ")))
 		deckIndex += handSize
 	}
