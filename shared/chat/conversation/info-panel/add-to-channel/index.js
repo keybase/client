@@ -90,7 +90,7 @@ class AddToChannel extends React.Component<Props, State> {
               itemHeight={this._itemHeight}
             />
           </Kb.BoxGrow>
-          <Kb.Box2 direction="vertical" alignItems="center">
+          <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true}>
             <Kb.ButtonBar direction="row">
               {!Styles.isMobile && (
                 <Kb.WaitingButton
