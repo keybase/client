@@ -3,45 +3,71 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import UnfurlImage from '../messages/wrapper/unfurl/image'
-import {getMargin, scaledWidth} from './width'
+import {getMargins, scaledWidth} from './width'
 import type {Props} from './index.types'
 
 const gridHeight = 100
-const gridWidthMax = 150
 
-const GiphySearch = (props: Props) => {
-  return (
-    <Kb.Box style={styles.outerContainer}>
-      <Kb.ScrollView style={styles.scrollContainer}>
-        <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="tiny">
-          <Kb.Text style={styles.instructions} type="BodySmall">
-            Hit enter for a random GIF, or click a preview to send
-          </Kb.Text>
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-          {(props.previews || []).map(p => {
-            const margin = getMargin(p.previewWidth, gridWidthMax)
-            return (
-              <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
-                <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
-                  <UnfurlImage
-                    autoplayVideo={true}
-                    height={gridHeight}
-                    isVideo={p.previewIsVideo}
-                    onClick={() => props.onClick(p.targetUrl)}
-                    style={styles.image}
-                    url={p.previewUrl}
-                    width={scaledWidth(p.previewWidth)}
-                  />
-                </Kb.Box>
-              </Kb.Box2>
-            )
-          })}
-        </Kb.Box2>
-      </Kb.ScrollView>
-      <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
-    </Kb.Box>
-  )
+type State = {
+  width: ?number,
+}
+
+class GiphySearch extends React.Component<Props, State> {
+  _boxRef = React.createRef()
+  container = null
+  state = {width: null}
+
+  componentDidMount() {
+    if (this.container) {
+      this.setState({width: this.container.clientWidth})
+    }
+  }
+
+  render() {
+    let margins = []
+    if (this.state.width) {
+      margins = getMargins(
+        this.state.width,
+        this.props.previews.reduce((arr, p) => {
+          return arr.concat(p.previewWidth)
+        }, [])
+      )
+    }
+    return (
+      <Kb.Box style={styles.outerContainer}>
+        <div ref={el => (this.container = el)} style={styles.scrollContainer}>
+          <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="tiny">
+            <Kb.Text style={styles.instructions} type="BodySmall">
+              Hit enter for a random GIF, or click a preview to send
+            </Kb.Text>
+          </Kb.Box2>
+          {this.state.width && (
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+              {(this.props.previews || []).map((p, index) => {
+                const margin = -margins[index] / 2 - 1
+                return (
+                  <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
+                    <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                      <UnfurlImage
+                        autoplayVideo={true}
+                        height={gridHeight}
+                        isVideo={p.previewIsVideo}
+                        onClick={() => this.props.onClick(p.targetUrl)}
+                        style={styles.image}
+                        url={p.previewUrl}
+                        width={scaledWidth(p.previewWidth)}
+                      />
+                    </Kb.Box>
+                  </Kb.Box2>
+                )
+              })}
+            </Kb.Box2>
+          )}
+        </div>
+        <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
+      </Kb.Box>
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({
@@ -84,6 +110,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.boxShadow,
       borderRadius: Styles.borderRadius,
       maxHeight: 300,
+      overflow: 'auto',
     },
   }),
 })
