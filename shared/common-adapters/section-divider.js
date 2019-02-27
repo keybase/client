@@ -30,7 +30,7 @@ const SectionDivider = (props: Props) => {
       {collapsible && (
         <Kb.Icon sizeType="Tiny" type={props.collapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'} />
       )}
-      {props.showSpinner && <Kb.ProgressIndicator styles={styles.progress} />}
+      {props.showSpinner && <Kb.ProgressIndicator style={styles.progress} />}
     </Kb.Box2>
   )
   return collapsible ? (
@@ -60,6 +60,7 @@ const styles = Styles.styleSheetCreate({
   },
   progress: {
     height: 20,
+    width: 20,
   },
 })
 
