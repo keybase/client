@@ -29,6 +29,7 @@
       "sourceSubPath": "I.List<string>",
       "destSubPath": "I.List<string>"
     },
+    "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
       "error": "boolean",
       "results": "string"

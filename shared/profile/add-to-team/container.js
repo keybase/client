@@ -21,6 +21,7 @@ const mapStateToProps = (state, {routeProps}) => {
   return {
     _them: routeProps.get('username'),
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
+    addUserToTeamsState: state.teams.addUserToTeamsState,
     teamProfileAddList: state.teams.get('teamProfileAddList'),
     teamnames: Constants.getSortedTeamnames(state),
     waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
@@ -36,6 +37,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) 
     dispatch(navigateUp())
     dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
   },
+  onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
   onOpenRolePicker: (role: TeamRoleType, onComplete: (string, boolean) => void, styleCover?: Object) => {
     dispatch(
       navigateAppend([
@@ -91,11 +93,18 @@ export default compose(
     }
   ),
   withHandlers({
-    onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
-    onToggle: props => (teamname: string) =>
+    // Return rows set to true.
+    onSave: props => () =>
+      props.onAddToTeams(
+        props.role,
+        Object.keys(props.selectedTeams).filter(team => props.selectedTeams[team])
+      ),
+    onToggle: props => (teamname: string) => {
+      props.onClearAddUserToTeamsResults()
       props.setSelectedTeams({
         ...props.selectedTeams,
         [teamname]: !props.selectedTeams[teamname],
-      }),
+      })
+    },
   })
 )(HeaderOnMobile(Render))

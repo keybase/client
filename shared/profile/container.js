@@ -6,6 +6,7 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as ProfileGen from '../actions/profile-gen'
+import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
@@ -71,8 +72,10 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
 
 const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _copyStellarAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-  _onAddToTeam: (username: string) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'addToTeam'}]})),
+  _onAddToTeam: (username: string) => {
+    dispatch(TeamsGen.createClearAddUserToTeamsResults())
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'addToTeam'}]}))
+  },
   _onBrowsePublicFolder: (username: string) =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/public/${username}`)})),
   _onChat: (username: string) =>

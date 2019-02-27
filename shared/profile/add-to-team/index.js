@@ -65,10 +65,16 @@ class AddToTeam extends React.Component<Props> {
     const selectedTeamCount = Object.values(this.props.selectedTeams).filter(b => b).length
     return (
       <Kb.Box2 direction="vertical" style={styles.container}>
-        {!!this.props.addUserToTeamsResults && (
-          <Kb.Box2 direction="horizontal" noShrink={true} style={styles.addUserToTeamsResults}>
+        {this.props.addUserToTeamsState === 'failed' && (
+          <Kb.Box2
+            centerChildren={true}
+            direction="horizontal"
+            fullWidth={true}
+            noShrink={true}
+            style={styles.addUserToTeamsResults}
+          >
             <Kb.Text
-              style={{margin: Styles.globalMargins.tiny, width: '100%'}}
+              style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
               type="BodySemibold"
               backgroundMode="HighRisk"
             >
@@ -179,7 +185,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   addUserToTeamsResults: {
-    backgroundColor: Styles.globalColors.green,
+    backgroundColor: Styles.globalColors.red,
     marginBottom: Styles.globalMargins.small,
   },
   buttonBar: Styles.platformStyles({
