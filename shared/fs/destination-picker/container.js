@@ -29,7 +29,15 @@ const getDestinationParentPath = memoize((stateProps, ownProps: OwnProps) =>
 )
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  _onBackUp: (currentPath: Types.Path) =>
+  _onBackUpIncomingShare: (currentPath: Types.Path) =>
+    dispatch(
+      FsGen.createIncomingShareOpen({
+        currentIndex: getIndex(ownProps),
+        path: Types.getPathParent(currentPath),
+        routePath: ownProps.routePath,
+      })
+    ),
+  _onBackUpMoveOrCopy: (currentPath: Types.Path) =>
     dispatch(
       FsGen.createMoveOrCopyOpen({
         currentIndex: getIndex(ownProps),
@@ -39,7 +47,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     ),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    dispatch(FsGen.createCloseMoveOrCopy())
+    dispatch(FsGen.createCloseDestinationPicker())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
@@ -47,7 +55,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
-  onCancel: () => dispatch(FsGen.createCloseMoveOrCopy()),
+  onCancel: () => dispatch(FsGen.createCloseDestinationPicker()),
 })
 
 const canWrite = memoize(
@@ -87,7 +95,9 @@ const canBackUp = isMobile
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   index: getIndex(ownProps),
   onBackUp: canBackUp(stateProps, ownProps)
-    ? () => dispatchProps._onBackUp(getDestinationParentPath(stateProps, ownProps))
+    ? stateProps._destinationPicker.type === 'move-or-copy'
+      ? () => dispatchProps._onBackUpMoveOrCopy(getDestinationParentPath(stateProps, ownProps))
+      : () => dispatchProps._onBackUpIncomingShare(getDestinationParentPath(stateProps, ownProps))
     : null,
   onCancel: dispatchProps.onCancel,
   onCopyHere: canCopy(stateProps, ownProps)

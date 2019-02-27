@@ -386,7 +386,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.move:
     case FsGen.copy:
     case FsGen.moveOrCopyOpen:
-    case FsGen.closeMoveOrCopy:
+    case FsGen.incomingShareOpen:
+    case FsGen.closeDestinationPicker:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
     case FsGen.refreshDriverStatus:
