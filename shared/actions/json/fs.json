@@ -201,6 +201,14 @@
       "path": "Types.Path"
     },
     "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
+    "setIncomingShareLocalPath": {
+      "localPath": "Types.LocalPath"
+    },
+    "setIncomingShareDestinationPath": {
+      "index": "number",
+      "path": "Types.Path"
+    },
+    "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "closeMoveOrCopy": {},
     "moveOrCopyOpen": {
       "routePath": "I.List<string>",
