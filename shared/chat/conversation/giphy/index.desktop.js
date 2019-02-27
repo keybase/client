@@ -14,7 +14,6 @@ type State = {
 }
 
 class GiphySearch extends React.Component<Props, State> {
-  _boxRef = React.createRef()
   container = null
   state = {width: null}
 
@@ -36,7 +35,7 @@ class GiphySearch extends React.Component<Props, State> {
     }
     return (
       <Kb.Box style={styles.outerContainer}>
-        <div ref={el => (this.container = el)} style={styles.scrollContainer}>
+        <Kb.Box forwardedRef={el => (this.container = el)} style={styles.scrollContainer}>
           <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="tiny">
             <Kb.Text style={styles.instructions} type="BodySmall">
               Hit enter for a random GIF, or click a preview to send
@@ -64,7 +63,7 @@ class GiphySearch extends React.Component<Props, State> {
               })}
             </Kb.Box2>
           )}
-        </div>
+        </Kb.Box>
         <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
       </Kb.Box>
     )
