@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../constants/fs'
-import * as ConfigGen from '../config-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -9,7 +9,6 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
-import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import logger from '../../logger'
@@ -427,15 +426,10 @@ const onTlfUpdate = (state, action) => {
   return actions
 }
 
-const setupEngineListeners = () => {
-  engine().setIncomingCallMap({
-    'keybase.1.NotifyFS.FSPathUpdated': ({path}) =>
-      // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
-      // now.
-      Saga.put(FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})),
-    'keybase.1.NotifyFS.FSSyncActivity': () => Saga.put(FsGen.createNotifySyncActivity()),
-  })
-}
+// FSPathUpdate just subscribes on TLF level and sends over TLF path as of now.
+const onFSPathUpdated = (_, action) =>
+  FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(action.payload.params.path)})
+const onFSSyncActivity = () => FsGen.createNotifySyncActivity()
 
 function* ignoreFavoriteSaga(_, action) {
   const folder = Constants.folderRPCFromPath(action.payload.path)
@@ -896,9 +890,13 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     openPathItem
   )
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSPathUpdatedPayload>(
+    EngineGen.keybase1NotifyFSFSPathUpdated,
+    onFSPathUpdated
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSSyncActivityPayload>(
+    EngineGen.keybase1NotifyFSFSSyncActivity,
+    onFSSyncActivity
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
   yield* Saga.chainAction<FsGen.MoveOrCopyOpenPayload>(FsGen.moveOrCopyOpen, moveOrCopyOpen)

@@ -56,6 +56,8 @@ export const chat1NotifyChatChatTLFResolve = 'engine-gen:chat1NotifyChatChatTLFR
 export const chat1NotifyChatChatThreadsStale = 'engine-gen:chat1NotifyChatChatThreadsStale'
 export const chat1NotifyChatChatTypingUpdate = 'engine-gen:chat1NotifyChatChatTypingUpdate'
 export const chat1NotifyChatNewChatActivity = 'engine-gen:chat1NotifyChatNewChatActivity'
+export const connected = 'engine-gen:connected'
+export const disconnected = 'engine-gen:disconnected'
 export const keybase1GpgUiConfirmDuplicateKeyChosen = 'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen'
 export const keybase1GpgUiConfirmImportSecretToExistingKey = 'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey'
 export const keybase1GpgUiGetTTY = 'engine-gen:keybase1GpgUiGetTTY'
@@ -220,6 +222,8 @@ type _Chat1NotifyChatChatTLFResolvePayload = $ReadOnly<{|params: $Exact<$Propert
 type _Chat1NotifyChatChatThreadsStalePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatThreadsStale'>, 'inParam'>>|}>
 type _Chat1NotifyChatChatTypingUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTypingUpdate'>, 'inParam'>>|}>
 type _Chat1NotifyChatNewChatActivityPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>>|}>
+type _ConnectedPayload = void
+type _DisconnectedPayload = void
 type _Keybase1GpgUiConfirmDuplicateKeyChosenPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'inParam'>>|}>
 type _Keybase1GpgUiConfirmImportSecretToExistingKeyPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'inParam'>>|}>
 type _Keybase1GpgUiGetTTYPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'>>|}>
@@ -384,6 +388,8 @@ export const createChat1NotifyChatChatTLFResolve = (payload: _Chat1NotifyChatCha
 export const createChat1NotifyChatChatThreadsStale = (payload: _Chat1NotifyChatChatThreadsStalePayload) => ({payload, type: chat1NotifyChatChatThreadsStale})
 export const createChat1NotifyChatChatTypingUpdate = (payload: _Chat1NotifyChatChatTypingUpdatePayload) => ({payload, type: chat1NotifyChatChatTypingUpdate})
 export const createChat1NotifyChatNewChatActivity = (payload: _Chat1NotifyChatNewChatActivityPayload) => ({payload, type: chat1NotifyChatNewChatActivity})
+export const createConnected = (payload: _ConnectedPayload) => ({payload, type: connected})
+export const createDisconnected = (payload: _DisconnectedPayload) => ({payload, type: disconnected})
 export const createKeybase1GpgUiConfirmDuplicateKeyChosen = (payload: _Keybase1GpgUiConfirmDuplicateKeyChosenPayload) => ({payload, type: keybase1GpgUiConfirmDuplicateKeyChosen})
 export const createKeybase1GpgUiConfirmImportSecretToExistingKey = (payload: _Keybase1GpgUiConfirmImportSecretToExistingKeyPayload) => ({payload, type: keybase1GpgUiConfirmImportSecretToExistingKey})
 export const createKeybase1GpgUiGetTTY = (payload: _Keybase1GpgUiGetTTYPayload) => ({payload, type: keybase1GpgUiGetTTY})
@@ -548,6 +554,8 @@ export type Chat1NotifyChatChatTLFResolvePayload = {|+payload: _Chat1NotifyChatC
 export type Chat1NotifyChatChatThreadsStalePayload = {|+payload: _Chat1NotifyChatChatThreadsStalePayload, +type: 'engine-gen:chat1NotifyChatChatThreadsStale'|}
 export type Chat1NotifyChatChatTypingUpdatePayload = {|+payload: _Chat1NotifyChatChatTypingUpdatePayload, +type: 'engine-gen:chat1NotifyChatChatTypingUpdate'|}
 export type Chat1NotifyChatNewChatActivityPayload = {|+payload: _Chat1NotifyChatNewChatActivityPayload, +type: 'engine-gen:chat1NotifyChatNewChatActivity'|}
+export type ConnectedPayload = {|+payload: _ConnectedPayload, +type: 'engine-gen:connected'|}
+export type DisconnectedPayload = {|+payload: _DisconnectedPayload, +type: 'engine-gen:disconnected'|}
 export type Keybase1GpgUiConfirmDuplicateKeyChosenPayload = {|+payload: _Keybase1GpgUiConfirmDuplicateKeyChosenPayload, +type: 'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen'|}
 export type Keybase1GpgUiConfirmImportSecretToExistingKeyPayload = {|+payload: _Keybase1GpgUiConfirmImportSecretToExistingKeyPayload, +type: 'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey'|}
 export type Keybase1GpgUiGetTTYPayload = {|+payload: _Keybase1GpgUiGetTTYPayload, +type: 'engine-gen:keybase1GpgUiGetTTY'|}
@@ -714,6 +722,8 @@ export type Actions =
   | Chat1NotifyChatChatThreadsStalePayload
   | Chat1NotifyChatChatTypingUpdatePayload
   | Chat1NotifyChatNewChatActivityPayload
+  | ConnectedPayload
+  | DisconnectedPayload
   | Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   | Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
   | Keybase1GpgUiGetTTYPayload

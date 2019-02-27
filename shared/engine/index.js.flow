@@ -16,10 +16,8 @@ declare export class Engine {
   // TODO maybe get rid of this, only used by tracker
   cancelSession(sessionID: any): void;
   rpc(): void;
-  actionOnConnect(key: string, f: () => ?TypedActions): void;
-  actionOnDisconnect(key: string, f: () => ?TypedActions): void;
+  sagasAreReady(): void;
   hasEverConnected(): void;
-  setIncomingCallMap(incomingCallMap: IncomingCallMapType): void;
   setCustomResponseIncomingCallMap(customResponseIncomingCallMap: CustomResponseIncomingCallMapType): void;
   createSession({
     incomingCallMap?: IncomingCallMapType,
