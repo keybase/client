@@ -61,7 +61,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) 
     dispatch(navigateUp())
     dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
   },
-  onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -138,7 +137,7 @@ export default compose(
       props.setSelectedTeams({})
     },
     onToggle: props => (teamname: string) => {
-      props.onClearAddUserToTeamsResults()
+      props.clearAddUserToTeamsResults()
       props.setSelectedTeams({
         ...props.selectedTeams,
         [teamname]: !props.selectedTeams[teamname],
