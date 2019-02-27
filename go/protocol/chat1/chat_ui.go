@@ -1228,6 +1228,24 @@ func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
 	}
 }
 
+type UICommandMarkdown struct {
+	Body  string  `codec:"body" json:"body"`
+	Title *string `codec:"title,omitempty" json:"title,omitempty"`
+}
+
+func (o UICommandMarkdown) DeepCopy() UICommandMarkdown {
+	return UICommandMarkdown{
+		Body: o.Body,
+		Title: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Title),
+	}
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1334,9 +1352,9 @@ type ChatCoinFlipStatusArg struct {
 }
 
 type ChatCommandMarkdownArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	ConvID    string `codec:"convID" json:"convID"`
-	Text      string `codec:"text" json:"text"`
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	ConvID    string             `codec:"convID" json:"convID"`
+	Md        *UICommandMarkdown `codec:"md,omitempty" json:"md,omitempty"`
 }
 
 type ChatUiInterface interface {
