@@ -250,7 +250,8 @@ const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
-    WalletsGen.createWalletDisclaimerReceived({accepted})
+    WalletsGen.createWalletDisclaimerReceived({accepted}),
+    Constants.checkOnlineWaitingKey
   )
 
 const loadAccounts = (state, action) => {
