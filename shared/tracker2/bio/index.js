@@ -55,7 +55,7 @@ const Bio = (p: Props) => (
         style={styles.text}
         selectable={true}
       >
-        >{p.bio}
+        {p.bio}
       </Kb.Text>
     )}
     {!!p.location && (
