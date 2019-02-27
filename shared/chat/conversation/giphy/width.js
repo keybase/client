@@ -92,12 +92,16 @@ const compressRow = (totalWidth, row) => {
   })
   for (let pass = 0; pass < maxCompressPasses; pass++) {
     const totalCompression = groupWidth(compressed) - totalWidth
-    const imageComp = Math.ceil(totalCompression / numCompressables(compressed))
-    compressed.forEach(im => {
-      im.compress(imageComp)
-    })
-    if (groupWidth(compressed) <= totalWidth) {
-      return compressed
+    let imageComp = Math.ceil(totalCompression / numCompressables(compressed))
+    console.log(`compressRow: totalWidth: ${totalWidth} width: ${groupWidth(compressed)} comp: ${imageComp}`)
+    for (let i = 0; i < compressed.length; i++) {
+      if (groupWidth(compressed) - imageComp < totalWidth) {
+        imageComp = groupWidth(compressed) - totalWidth
+      }
+      compressed[i].compress(imageComp)
+      if (groupWidth(compressed) <= totalWidth) {
+        return compressed
+      }
     }
   }
   throw new Error('unable to compress')
@@ -114,12 +118,16 @@ const expandRow = (totalWidth, row) => {
     if (expandables === 0) {
       return expanded
     }
-    const imageExp = Math.floor(totalExpansion / expandables)
-    expanded.forEach(im => {
-      im.expand(imageExp)
-    })
-    if (groupWidth(expanded) >= totalWidth) {
-      return expanded
+    let imageExp = Math.floor(totalExpansion / expandables)
+    if (imageExp === 0) {
+      imageExp = totalWidth - groupWidth(expanded)
+    }
+    console.log(`expandRow: width: ${groupWidth(expanded)} exp: ${imageExp}`)
+    for (let i = 0; i < expanded.length; i++) {
+      expanded[i].expand(imageExp)
+      if (groupWidth(expanded) >= totalWidth) {
+        return expanded
+      }
     }
   }
   return expanded

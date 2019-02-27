@@ -73,7 +73,7 @@ class GiphySearch extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate({
   container: {
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     minHeight: 200,
   },
   image: {
