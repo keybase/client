@@ -307,6 +307,22 @@ protocol chatUi {
   case GENERIC: string;
   case ABSENTEE: UICoinFlipAbsenteeError;
   }
+  enum UICoinFlipResultTyp {
+    NUMBER_0,
+    SHUFFLE_1,
+    DECK_2,
+    HANDS_3
+  }
+  record UICoinFlipHand {
+    string target;
+    union { null, array<int> } hand;
+  }
+  variant UICoinFlipResult switch (UICoinFlipResultTyp typ) {
+    case NUMBER: string;
+    case SHUFFLE: array<string>;
+    case DECK: array<int>;
+    case HANDS: array<UICoinFlipHand>;
+  }
   record UICoinFlipParticipant {
     string uid;
     string deviceID;

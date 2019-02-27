@@ -220,7 +220,6 @@ export const localMessageSystemType = {
   gitpush: 4,
   changeavatar: 5,
   changeretention: 6,
-  bulkaddtoconv: 7,
 }
 
 export const localMessageUnboxedErrorType = {

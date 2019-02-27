@@ -1085,6 +1085,83 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UICoinFlipResultTyp",
+      "symbols": [
+        "NUMBER_0",
+        "SHUFFLE_1",
+        "DECK_2",
+        "HANDS_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipHand",
+      "fields": [
+        {
+          "type": "string",
+          "name": "target"
+        },
+        {
+          "type": [
+            null,
+            {
+              "type": "array",
+              "items": "int"
+            }
+          ],
+          "name": "hand"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UICoinFlipResult",
+      "switch": {
+        "type": "UICoinFlipResultTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "NUMBER",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "SHUFFLE",
+            "def": false
+          },
+          "body": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "label": {
+            "name": "DECK",
+            "def": false
+          },
+          "body": {
+            "type": "array",
+            "items": "int"
+          }
+        },
+        {
+          "label": {
+            "name": "HANDS",
+            "def": false
+          },
+          "body": {
+            "type": "array",
+            "items": "UICoinFlipHand"
+          }
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "UICoinFlipParticipant",
       "fields": [
