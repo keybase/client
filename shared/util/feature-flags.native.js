@@ -13,7 +13,7 @@ const ff: FeatureFlags = {
   dbCleanEnabled: false,
   foldersInProfileTab: false,
   identify3: true,
-  moveOrCopy: false,
+  moveOrCopy: true,
   newTeamBuildingForChat: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
