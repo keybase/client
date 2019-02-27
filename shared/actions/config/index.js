@@ -5,6 +5,7 @@ import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
 import * as ChatGen from '../chat2-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -20,42 +21,35 @@ import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
-import {getEngine} from '../../engine'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import flags from '../../util/feature-flags'
 
-const setupEngineListeners = () => {
-  getEngine().actionOnDisconnect('daemonError', () => {
-    logger.flush()
-    return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
-  })
-  getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
+const onLoggedIn = (state, action) => {
+  logger.info('keybase.1.NotifySession.loggedIn')
+  // only send this if we think we're not logged in
+  if (!state.config.loggedIn) {
+    return ConfigGen.createLoggedIn({causedByStartup: false})
+  }
+}
 
-  getEngine().setIncomingCallMap({
-    'keybase.1.NotifySession.loggedIn': ({username}) =>
-      Saga.callUntyped(function*() {
-        logger.info('keybase.1.NotifySession.loggedIn')
-        const state = yield* Saga.selectState()
-        // only send this if we think we're not logged in
-        if (!state.config.loggedIn) {
-          yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
-        }
-      }),
-    'keybase.1.NotifySession.loggedOut': () =>
-      Saga.callUntyped(function*() {
-        logger.info('keybase.1.NotifySession.loggedOut')
-        const state = yield* Saga.selectState()
-        // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-        if (state.config.loggedIn) {
-          yield Saga.put(ConfigGen.createLoggedOut())
-        }
-      }),
-    'keybase.1.logUi.log': param => {
-      log(param)
-    },
-  })
+const onLoggedOut = (state, action) => {
+  logger.info('keybase.1.NotifySession.loggedOut')
+  // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+  if (state.config.loggedIn) {
+    return ConfigGen.createLoggedOut()
+  }
+}
+
+const onLog = (_, action) => {
+  log(action.payload.params)
+}
+
+const onConnected = () => ConfigGen.createStartHandshake()
+const onDisconnected = () => {
+  logger.flush()
+  return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
 function* loadDaemonBootstrapStatus(state, action) {
@@ -523,11 +517,17 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<ConfigGen.SetDeletedSelfPayload>(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionLoggedInPayload>(
+    EngineGen.keybase1NotifySessionLoggedIn,
+    onLoggedIn
   )
-
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionLoggedOutPayload>(
+    EngineGen.keybase1NotifySessionLoggedOut,
+    onLoggedOut
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1LogUiLogPayload>(EngineGen.keybase1LogUiLog, onLog)
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
+  yield* Saga.chainAction<EngineGen.DisconnectedPayload>(EngineGen.disconnected, onDisconnected)
   yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
 
   // Kick off platform specific stuff
