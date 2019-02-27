@@ -27,7 +27,7 @@ class GiphySearch extends React.Component<Props, State> {
     let margins = []
     if (this.state.width) {
       margins = getMargins(
-        this.state.width,
+        this.state.width - 2 * Styles.globalMargins.tiny,
         this.props.previews.reduce((arr, p) => {
           return arr.concat(p.previewWidth)
         }, [])
@@ -96,8 +96,9 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   outerContainer: {
-    marginLeft: 15,
-    marginRight: 15,
+    marginBottom: Styles.globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
     position: 'relative',
   },
   poweredBy: {
@@ -111,6 +112,7 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
       maxHeight: 300,
       overflow: 'auto',
+      padding: Styles.globalMargins.tiny,
     },
   }),
 })
