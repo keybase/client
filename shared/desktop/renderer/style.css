@@ -286,6 +286,7 @@ body {
   transition: opacity 250ms ease-in-out;
 }
 
+/* These overrides are so the 'invisible' native emoji (so we can copy and paste) doesn't affect the sizing */
 .emoji-mart-emoji .emoji-mart-emoji-native {
   line-height: 0;
   width: 0;
