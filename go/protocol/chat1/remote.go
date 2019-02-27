@@ -851,11 +851,12 @@ type GetPublicConversationsArg struct {
 }
 
 type PostRemoteArg struct {
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	MessageBoxed   MessageBoxed    `codec:"messageBoxed" json:"messageBoxed"`
-	AtMentions     []gregor1.UID   `codec:"atMentions" json:"atMentions"`
-	ChannelMention ChannelMention  `codec:"channelMention" json:"channelMention"`
-	TopicNameState *TopicNameState `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
+	MessageBoxed   MessageBoxed              `codec:"messageBoxed" json:"messageBoxed"`
+	AtMentions     []gregor1.UID             `codec:"atMentions" json:"atMentions"`
+	ChannelMention ChannelMention            `codec:"channelMention" json:"channelMention"`
+	TopicNameState *TopicNameState           `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	JoinMentionsAs *ConversationMemberStatus `codec:"joinMentionsAs,omitempty" json:"joinMentionsAs,omitempty"`
 }
 
 type NewConversationRemoteArg struct {

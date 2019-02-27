@@ -132,7 +132,8 @@ type Indexer interface {
 
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error)
+		clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
+		joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
 		conv *chat1.Conversation) (SenderPrepareResult, error)
 }

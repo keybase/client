@@ -49,7 +49,7 @@ func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid 
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	convID := conv.GetConvID()
 	ires, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -466,7 +466,7 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "hi",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	s := storage.New(tc.Context(), tc.ChatG.ConvSource)
 	storedMsgs, err := s.FetchMessages(ctx, convID, uid, []chat1.MessageID{msg.GetMessageID()})
@@ -589,7 +589,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "hi",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	tv, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, cerr)
@@ -783,7 +783,7 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "MIKE!!!!",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -796,7 +796,7 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{txtMsg.GetMessageID()},
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, delMsg)
 	require.NoError(t, hcs.storage.ClearAll(context.TODO(), conv.GetConvID(), uid))

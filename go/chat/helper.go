@@ -68,7 +68,7 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, t
 		},
 		MessageBody: body,
 	}
-	_, _, err := sender.Send(ctx, convID, msg, 0, nil)
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil)
 	return err
 }
 
@@ -91,7 +91,7 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 		},
 		MessageBody: body,
 	}
-	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID)
+	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil)
 	return outboxID, err
 }
 
@@ -352,7 +352,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	return s.sender.Send(ctx, s.convID, msg, 0, outboxID)
+	return s.sender.Send(ctx, s.convID, msg, 0, outboxID, nil)
 }
 
 func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
@@ -722,7 +722,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 
 	// Send with a blocking sender
 	sender := NewBlockingSender(g, NewBoxer(g), ri)
-	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil)
+	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil, nil)
 	return err
 }
 
