@@ -105,6 +105,12 @@ type DbNukeArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DbCleanArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Force     bool   `codec:"force" json:"force"`
+	DbType    DbType `codec:"dbType" json:"dbType"`
+}
+
 type AppExitArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -130,6 +136,7 @@ type CtlInterface interface {
 	LogRotate(context.Context, int) error
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
+	DbClean(context.Context, DbCleanArg) error
 	AppExit(context.Context, int) error
 	DbDelete(context.Context, DbDeleteArg) error
 	DbPut(context.Context, DbPutArg) error
@@ -197,6 +204,21 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						return
 					}
 					err = i.DbNuke(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"dbClean": {
+				MakeArg: func() interface{} {
+					var ret [1]DbCleanArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DbCleanArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DbCleanArg)(nil), args)
+						return
+					}
+					err = i.DbClean(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -288,6 +310,11 @@ func (c CtlClient) Reload(ctx context.Context, sessionID int) (err error) {
 func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 	__arg := DbNukeArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) DbClean(ctx context.Context, __arg DbCleanArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []interface{}{__arg}, nil)
 	return
 }
 

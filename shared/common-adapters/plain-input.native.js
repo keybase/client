@@ -175,7 +175,7 @@ class PlainInput extends Component<InternalProps, State> {
 
   _getCommonStyle = () => {
     const textStyle = getTextStyle(this.props.textType)
-    return collapseStyles([{lineHeight: this._lineHeight()}, styles.common, textStyle])
+    return collapseStyles([styles.common, textStyle])
   }
 
   _getMultilineStyle = () => {

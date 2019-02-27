@@ -32,6 +32,9 @@ func (m *MemDb) Nuke() (string, error) {
 	m.lru.Purge()
 	return "", nil
 }
+func (m *MemDb) Clean(force bool) error {
+	return nil
+}
 func (m *MemDb) OpenTransaction() (res LocalDbTransaction, err error) {
 	return res, errors.New("not implemented")
 }

@@ -6,13 +6,69 @@ package client
 import (
 	"encoding/base64"
 	"errors"
+	"strconv"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"strconv"
 )
+
+type CmdDbClean struct {
+	libkb.Contextified
+	dbType keybase1.DbType
+	force  bool
+}
+
+func (c *CmdDbClean) ParseArgv(ctx *cli.Context) error {
+	c.dbType = keybase1.DbType_MAIN
+	if ctx.Bool("chat") {
+		c.dbType = keybase1.DbType_CHAT
+	}
+	c.force = ctx.Bool("force")
+	return nil
+}
+
+func (c *CmdDbClean) Run() error {
+	cli, err := GetCtlClient(c.G())
+	if err != nil {
+		return err
+	}
+	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
+		return err
+	}
+	return cli.DbClean(context.TODO(), keybase1.DbCleanArg{
+		Force:  c.force,
+		DbType: c.dbType,
+	})
+}
+
+func NewCmdDbClean(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:  "clean",
+		Usage: "Clean the local database of stale entries",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdDbCleanRunner(g), "clean", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "chat, c",
+				Usage: "Refer to the chat database.",
+			},
+			cli.BoolFlag{
+				Name:  "force, f",
+				Usage: "Force clean, skip over configuration checks for db size",
+			},
+		},
+	}
+}
+
+func NewCmdDbCleanRunner(g *libkb.GlobalContext) *CmdDbClean {
+	return &CmdDbClean{
+		Contextified: libkb.NewContextified(g),
+	}
+}
 
 type CmdDbNuke struct {
 	libkb.Contextified
@@ -260,10 +316,18 @@ func NewCmdDb(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Name: "db",
 		Subcommands: []cli.Command{
 			NewCmdDbNuke(cl, g),
+			NewCmdDbClean(cl, g),
 			NewCmdDbDelete(cl, g),
 			NewCmdDbGet(cl, g),
 			NewCmdDbPut(cl, g),
 		},
+	}
+}
+
+func (c *CmdDbClean) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
 	}
 }
 
