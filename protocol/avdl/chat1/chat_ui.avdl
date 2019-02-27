@@ -292,6 +292,21 @@ protocol chatUi {
     COMPLETE_2,
     ERROR_3
   }
+  record UICoinFlipAbsentee {
+    string user;
+    string device;
+  }
+  record UICoinFlipAbsenteeError {
+    array<UICoinFlipAbsentee> absentees;
+  }
+  enum UICoinFlipErrorTyp {
+    GENERIC_0,
+    ABSENTEE_1
+  }
+  variant UICoinFlipError switch (UICoinFlipErrorTyp typ) {
+  case GENERIC: string;
+  case ABSENTEE: UICoinFlipAbsenteeError;
+  }
   record UICoinFlipParticipant {
     string uid;
     string deviceID;
@@ -308,6 +323,7 @@ protocol chatUi {
     string commitmentVisualization;
     string revealVisualization;
     array<UICoinFlipParticipant> participants;
+    union { null, UICoinFlipError } errorInfo;
   }
   void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
 

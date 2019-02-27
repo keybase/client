@@ -1027,6 +1027,65 @@
     },
     {
       "type": "record",
+      "name": "UICoinFlipAbsentee",
+      "fields": [
+        {
+          "type": "string",
+          "name": "user"
+        },
+        {
+          "type": "string",
+          "name": "device"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipAbsenteeError",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UICoinFlipAbsentee"
+          },
+          "name": "absentees"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UICoinFlipErrorTyp",
+      "symbols": [
+        "GENERIC_0",
+        "ABSENTEE_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UICoinFlipError",
+      "switch": {
+        "type": "UICoinFlipErrorTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "ABSENTEE",
+            "def": false
+          },
+          "body": "UICoinFlipAbsenteeError"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UICoinFlipParticipant",
       "fields": [
         {
@@ -1092,6 +1151,13 @@
             "items": "UICoinFlipParticipant"
           },
           "name": "participants"
+        },
+        {
+          "type": [
+            null,
+            "UICoinFlipError"
+          ],
+          "name": "errorInfo"
         }
       ]
     },

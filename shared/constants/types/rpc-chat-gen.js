@@ -13,6 +13,11 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const chatUiUICoinFlipErrorTyp = {
+  generic: 0,
+  absentee: 1,
+}
+
 export const chatUiUICoinFlipPhase = {
   commitment: 0,
   reveals: 1,

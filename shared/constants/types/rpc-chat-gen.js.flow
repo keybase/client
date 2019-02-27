@@ -397,6 +397,11 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const chatUiUICoinFlipErrorTyp = {
+  generic: 0,
+  absentee: 1,
+}
+
 export const chatUiUICoinFlipPhase = {
   commitment: 0,
   reveals: 1,
@@ -1195,6 +1200,13 @@ export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, ful
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIChatPayment = $ReadOnly<{username: String, fullName: String, xlmAmount: String, error?: ?String, displayAmount?: ?String}>
 export type UIChatPaymentSummary = $ReadOnly<{xlmTotal: String, displayTotal: String, payments?: ?Array<UIChatPayment>}>
+export type UICoinFlipAbsentee = $ReadOnly<{user: String, device: String}>
+export type UICoinFlipAbsenteeError = $ReadOnly<{absentees?: ?Array<UICoinFlipAbsentee>}>
+export type UICoinFlipError = {typ: 0, generic: ?String} | {typ: 1, absentee: ?UICoinFlipAbsenteeError}
+export type UICoinFlipErrorTyp =
+  | 0 // GENERIC_0
+  | 1 // ABSENTEE_1
+
 export type UICoinFlipParticipant = $ReadOnly<{uid: String, deviceID: String, username: String, deviceName: String, commitment: String, reveal?: ?String}>
 export type UICoinFlipPhase =
   | 0 // COMMITMENT_0
@@ -1202,7 +1214,7 @@ export type UICoinFlipPhase =
   | 2 // COMPLETE_2
   | 3 // ERROR_3
 
-export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, commitmentVisualization: String, revealVisualization: String, participants?: ?Array<UICoinFlipParticipant>}>
+export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, commitmentVisualization: String, revealVisualization: String, participants?: ?Array<UICoinFlipParticipant>, errorInfo?: ?UICoinFlipError}>
 export type UICommandMarkdown = $ReadOnly<{body: String, title?: ?String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, flipGameID?: ?String, filename: String, title: String, preview?: ?MakePreviewRes}>
