@@ -380,6 +380,34 @@ func (m *FlipManager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 	}
 }
 
+func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoinFlipError {
+	switch terr := rawErr.(type) {
+	case flip.AbsenteesError:
+		// lookup all the absentees
+		var absentees []chat1.UICoinFlipAbsentee
+		for _, a := range terr.Absentees {
+			username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
+				keybase1.UID(a.U.String()), keybase1.DeviceID(a.D.String()))
+			if err != nil {
+				m.Debug(ctx, "formatError: failed to get names: %s", err)
+				absentees = append(absentees, chat1.UICoinFlipAbsentee{
+					User:   a.U.String(),
+					Device: a.D.String(),
+				})
+			} else {
+				absentees = append(absentees, chat1.UICoinFlipAbsentee{
+					User:   username.String(),
+					Device: deviceName,
+				})
+			}
+		}
+		return chat1.NewUICoinFlipErrorWithAbsentee(chat1.UICoinFlipAbsenteeError{
+			Absentees: absentees,
+		})
+	}
+	return chat1.NewUICoinFlipErrorWithGeneric(rawErr.Error())
+}
+
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
 	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
 	defer m.queueDirtyGameID(gameID, force)
@@ -389,11 +417,13 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 		if ok {
 			parts = oldGame.(chat1.UICoinFlipStatus).Participants
 		}
+		formatted := m.formatError(ctx, update.Err)
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
-			ProgressText: fmt.Sprintf("Complete: %s", update.Err),
+			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
 			Participants: parts,
+			ErrorInfo:    &formatted,
 		})
 		return
 	}
@@ -438,6 +468,8 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	case update.Err != nil:
 		status.Phase = chat1.UICoinFlipPhase_ERROR
 		status.ProgressText = fmt.Sprintf("Something went wrong: %s", update.Err)
+		formatted := m.formatError(ctx, update.Err)
+		status.ErrorInfo = &formatted
 	case update.Commitment != nil:
 		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
 		m.addParticipant(ctx, &status, *update.Commitment)

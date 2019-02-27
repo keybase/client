@@ -1170,6 +1170,140 @@ func (e UICoinFlipPhase) String() string {
 	return ""
 }
 
+type UICoinFlipAbsentee struct {
+	User   string `codec:"user" json:"user"`
+	Device string `codec:"device" json:"device"`
+}
+
+func (o UICoinFlipAbsentee) DeepCopy() UICoinFlipAbsentee {
+	return UICoinFlipAbsentee{
+		User:   o.User,
+		Device: o.Device,
+	}
+}
+
+type UICoinFlipAbsenteeError struct {
+	Absentees []UICoinFlipAbsentee `codec:"absentees" json:"absentees"`
+}
+
+func (o UICoinFlipAbsenteeError) DeepCopy() UICoinFlipAbsenteeError {
+	return UICoinFlipAbsenteeError{
+		Absentees: (func(x []UICoinFlipAbsentee) []UICoinFlipAbsentee {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UICoinFlipAbsentee, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Absentees),
+	}
+}
+
+type UICoinFlipErrorTyp int
+
+const (
+	UICoinFlipErrorTyp_GENERIC  UICoinFlipErrorTyp = 0
+	UICoinFlipErrorTyp_ABSENTEE UICoinFlipErrorTyp = 1
+)
+
+func (o UICoinFlipErrorTyp) DeepCopy() UICoinFlipErrorTyp { return o }
+
+var UICoinFlipErrorTypMap = map[string]UICoinFlipErrorTyp{
+	"GENERIC":  0,
+	"ABSENTEE": 1,
+}
+
+var UICoinFlipErrorTypRevMap = map[UICoinFlipErrorTyp]string{
+	0: "GENERIC",
+	1: "ABSENTEE",
+}
+
+func (e UICoinFlipErrorTyp) String() string {
+	if v, ok := UICoinFlipErrorTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UICoinFlipError struct {
+	Typ__      UICoinFlipErrorTyp       `codec:"typ" json:"typ"`
+	Generic__  *string                  `codec:"generic,omitempty" json:"generic,omitempty"`
+	Absentee__ *UICoinFlipAbsenteeError `codec:"absentee,omitempty" json:"absentee,omitempty"`
+}
+
+func (o *UICoinFlipError) Typ() (ret UICoinFlipErrorTyp, err error) {
+	switch o.Typ__ {
+	case UICoinFlipErrorTyp_GENERIC:
+		if o.Generic__ == nil {
+			err = errors.New("unexpected nil value for Generic__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_ABSENTEE:
+		if o.Absentee__ == nil {
+			err = errors.New("unexpected nil value for Absentee__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o UICoinFlipError) Generic() (res string) {
+	if o.Typ__ != UICoinFlipErrorTyp_GENERIC {
+		panic("wrong case accessed")
+	}
+	if o.Generic__ == nil {
+		return
+	}
+	return *o.Generic__
+}
+
+func (o UICoinFlipError) Absentee() (res UICoinFlipAbsenteeError) {
+	if o.Typ__ != UICoinFlipErrorTyp_ABSENTEE {
+		panic("wrong case accessed")
+	}
+	if o.Absentee__ == nil {
+		return
+	}
+	return *o.Absentee__
+}
+
+func NewUICoinFlipErrorWithGeneric(v string) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:     UICoinFlipErrorTyp_GENERIC,
+		Generic__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithAbsentee(v UICoinFlipAbsenteeError) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:      UICoinFlipErrorTyp_ABSENTEE,
+		Absentee__: &v,
+	}
+}
+
+func (o UICoinFlipError) DeepCopy() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: o.Typ__.DeepCopy(),
+		Generic__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Generic__),
+		Absentee__: (func(x *UICoinFlipAbsenteeError) *UICoinFlipAbsenteeError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Absentee__),
+	}
+}
+
 type UICoinFlipParticipant struct {
 	Uid        string  `codec:"uid" json:"uid"`
 	DeviceID   string  `codec:"deviceID" json:"deviceID"`
@@ -1204,6 +1338,7 @@ type UICoinFlipStatus struct {
 	CommitmentVisualization string                  `codec:"commitmentVisualization" json:"commitmentVisualization"`
 	RevealVisualization     string                  `codec:"revealVisualization" json:"revealVisualization"`
 	Participants            []UICoinFlipParticipant `codec:"participants" json:"participants"`
+	ErrorInfo               *UICoinFlipError        `codec:"errorInfo,omitempty" json:"errorInfo,omitempty"`
 }
 
 func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
@@ -1225,6 +1360,13 @@ func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
 			}
 			return ret
 		})(o.Participants),
+		ErrorInfo: (func(x *UICoinFlipError) *UICoinFlipError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ErrorInfo),
 	}
 }
 
