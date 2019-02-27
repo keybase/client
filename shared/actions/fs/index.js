@@ -710,15 +710,23 @@ const moveOrCopy = (state, action) => {
       kbfs: Constants.fsPathToRpcPathString(
         Types.pathConcat(
           action.payload.destinationParentPath,
-          Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
+          state.fs.destinationPicker.type === 'move-or-copy'
+            ? Types.getPathName(state.fs.destinationPicker.sourceItemPath)
+            : Types.getLocalPathName(state.fs.destinationPicker.sourceItemLocalPath),
+            // We use the local path name here since we only care about file name.
         )
       ),
     },
     opID: Constants.makeUUID(),
-    src: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
-    },
+    src: state.fs.destinationPicker.type === 'move-or-copy'
+      ? {
+        PathType: RPCTypes.simpleFSPathType.kbfs,
+        kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.sourceItemPath),
+      }
+      : {
+        PathType: RPCTypes.simpleFSPathType.local,
+        local: Types.localPathToString(state.fs.destinationPicker.sourceItemLocalPath),
+      },
   }
   return (
     (action.type === FsGen.move

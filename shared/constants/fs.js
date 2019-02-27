@@ -169,6 +169,13 @@ export const makeError = (record?: {
 export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
   destinationParentPath: I.List(),
   sourceItemPath: Types.stringToPath(''),
+  type: 'move-or-copy',
+})
+
+export const makeIncomingShare: I.RecordFactory<Types._IncomingShare> = I.Record({
+  destinationParentPath: I.List(),
+  sourceItemLocalPath: Types.stringToLocalPath(''),
+  type: 'incoming-share',
 })
 
 export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
@@ -212,13 +219,13 @@ export const makeSystemFileManagerIntegration: I.RecordFactory<Types._SystemFile
 )
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  destinationPicker: makeMoveOrCopy(),
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
   kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
-  moveOrCopy: makeMoveOrCopy(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
@@ -850,6 +857,8 @@ const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
       return ''
   }
 }
+
+export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string => picker.type === 'move-or-copy' ? Types.getPathName(picker.sourceItemPath) : Types.getLocalPathName(picker.sourceItemLocalPath)
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')
