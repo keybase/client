@@ -144,6 +144,9 @@ const Tracker = (props: Props) => {
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
+      {/* The header box must go after the reason text, so that the
+       * close button's draggingClickable style goes on top of the
+       * reason's draggable style, which matters on Linux. */}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
