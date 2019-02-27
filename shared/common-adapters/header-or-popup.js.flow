@@ -1,5 +1,4 @@
 // @flow
-// import * as React from 'react'
 import * as Styles from '../styles'
 export type Props = {onCancel?: ?() => void, onBack?: ?() => void, style?: ?Styles.StylesCrossPlatform}
 
