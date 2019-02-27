@@ -7,7 +7,8 @@ import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
-import Participant, {AddPeople} from './participant'
+import AddPeople from './add-people'
+import Participant from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
@@ -76,6 +77,7 @@ type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
   teamname: string,
+  isGeneralChannel: boolean,
 }
 
 type ParticipantRow = {|
@@ -216,9 +218,9 @@ type TeamHeaderRow =
   | JoinChannelRow
   | LeaveChannelRow
   | MinWriterRoleRow
+  | AddPeopleRow
 
 type Row =
-  | AddPeopleRow
   | ParticipantRow
   | SpacerRow
   | DividerRow
@@ -278,7 +280,6 @@ const typeSizeEstimator = (row: Row): number => {
       return row.canSetRetention ? 84 : 49
 
     case 'min writer role':
-      // TODO (DA)
       return row.canSetMinWriterRole ? 84 : 35
 
     default:
@@ -291,7 +292,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'add people':
-        return <AddPeople key="add people" teamname={row.teamname} />
+        return <AddPeople key="add people" isGeneralChannel={row.isGeneralChannel} teamname={row.teamname} />
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
@@ -443,22 +444,42 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const {teamname, channelname} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
-      const smallTeamHeaderRow = {
-        isSmallTeam: props.smallTeam,
-        key: 'small team header',
-        participantCount,
-        teamname,
-        type: 'small team header',
+      const subHeaderRows = [
+        {
+          isSmallTeam: props.smallTeam,
+          key: 'small team header',
+          participantCount,
+          teamname,
+          type: 'small team header',
+        },
+      ]
+      let addPeopleRow = false
+      if (props.admin && props.teamname && !props.isPreview) {
+        subHeaderRows.push(
+          {
+            key: nextKey(),
+            marginBottom: 8,
+            marginTop: 8,
+            type: 'divider',
+          },
+          {
+            isGeneralChannel: channelname === 'general',
+            key: 'add people',
+            teamname: props.teamname,
+            type: 'add people',
+          }
+        )
+        addPeopleRow = true
       }
       if (props.smallTeam) {
         // Small team.
         headerRows = [
           {height: globalMargins.small, key: nextKey(), type: 'spacer'},
-          smallTeamHeaderRow,
+          ...subHeaderRows,
           {
             key: nextKey(),
             marginBottom: 20,
-            marginTop: 20,
+            marginTop: addPeopleRow ? 8 : 20,
             type: 'divider',
           },
           {
@@ -555,7 +576,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               marginBottom: globalMargins.tiny,
               type: 'divider',
             },
-            smallTeamHeaderRow,
+            ...subHeaderRows,
             {
               key: nextKey(),
               marginTop: globalMargins.tiny,
@@ -586,7 +607,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               marginBottom: globalMargins.tiny,
               type: 'divider',
             },
-            smallTeamHeaderRow,
+            ...subHeaderRows,
             {
               key: nextKey(),
               marginTop: globalMargins.tiny,
@@ -646,9 +667,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         }
       }
       rows = headerRows.concat(participants)
-      if (props.admin && props.teamname && !props.isPreview) {
-        rows = rows.concat({key: 'add people', teamname: props.teamname, type: 'add people'})
-      }
     } else {
       // Conversation.
       rows = participants.concat([
