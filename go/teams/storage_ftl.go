@@ -58,7 +58,7 @@ func (s *FTLStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public 
 	}
 	ret, ok := vp.(*keybase1.FastTeamData)
 	if !ok {
-		mctx.CDebugf("teams.FTLStorage#Get cast error: %T is wrong type", vp)
+		mctx.Debug("teams.FTLStorage#Get cast error: %T is wrong type", vp)
 	}
 	return ret
 }

@@ -52,7 +52,7 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
-		m.CDebugf("DeprovisionEngine error loading current user: %s", err)
+		m.Debug("DeprovisionEngine error loading current user: %s", err)
 		return err
 	}
 	nun := me.GetNormalizedName()
@@ -76,14 +76,14 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
 		}
 		revokeEng := NewRevokeDeviceEngine(m.G(), revokeArg)
 		if err = revokeEng.Run(m); err != nil {
-			m.CDebugf("DeprovisionEngine error during revoke: %s", err)
+			m.Debug("DeprovisionEngine error during revoke: %s", err)
 			return err
 		}
 	}
 
 	m.UIs().LogUI.Info("Logging out...")
 	if err = m.G().Logout(m.Ctx()); err != nil {
-		m.CDebugf("DeprovisionEngine error during logout: %s", err)
+		m.Debug("DeprovisionEngine error during logout: %s", err)
 		return err
 	}
 
@@ -108,7 +108,7 @@ func (e *DeprovisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if err = libkb.ClearSecretsOnDeprovision(m, e.username); err != nil {
-		m.CDebugf("DeprovisionEngine error during clear secrets: %s", err)
+		m.Debug("DeprovisionEngine error during clear secrets: %s", err)
 	}
 	return nil
 }

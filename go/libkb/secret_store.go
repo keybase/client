@@ -150,11 +150,11 @@ func NewSecretStoreLocked(m MetaContext) *SecretStoreLocked {
 
 	if m.G().Env.RememberPassphrase() {
 		// use os-specific secret store
-		m.CDebugf("NewSecretStoreLocked: using os-specific SecretStore")
+		m.Debug("NewSecretStoreLocked: using os-specific SecretStore")
 		disk = NewSecretStoreAll(m)
 	} else {
 		// config or command line flag said to use in-memory secret store
-		m.CDebugf("NewSecretStoreLocked: using memory-only SecretStore")
+		m.Debug("NewSecretStoreLocked: using memory-only SecretStore")
 	}
 
 	return &SecretStoreLocked{
@@ -179,7 +179,7 @@ func (s *SecretStoreLocked) RetrieveSecret(m MetaContext, username NormalizedUse
 		return res, nil
 	}
 	if err != nil {
-		m.CDebugf("SecretStoreLocked#RetrieveSecret: memory fetch error: %s", err.Error())
+		m.Debug("SecretStoreLocked#RetrieveSecret: memory fetch error: %s", err.Error())
 	}
 	if s.disk == nil {
 		return res, err
@@ -191,7 +191,7 @@ func (s *SecretStoreLocked) RetrieveSecret(m MetaContext, username NormalizedUse
 	}
 	tmp := s.mem.StoreSecret(m, username, res)
 	if tmp != nil {
-		m.CDebugf("SecretStoreLocked#RetrieveSecret: failed to store secret in memory: %s", err.Error())
+		m.Debug("SecretStoreLocked#RetrieveSecret: failed to store secret in memory: %s", err.Error())
 	}
 	return res, err
 }
@@ -204,7 +204,7 @@ func (s *SecretStoreLocked) StoreSecret(m MetaContext, username NormalizedUserna
 	defer s.Unlock()
 	err := s.mem.StoreSecret(m, username, secret)
 	if err != nil {
-		m.CDebugf("SecretStoreLocked#StoreSecret: failed to store secret in memory: %s", err.Error())
+		m.Debug("SecretStoreLocked#StoreSecret: failed to store secret in memory: %s", err.Error())
 	}
 	if s.disk == nil {
 		return err
@@ -215,7 +215,7 @@ func (s *SecretStoreLocked) StoreSecret(m MetaContext, username NormalizedUserna
 func (s *SecretStoreLocked) ClearSecret(m MetaContext, username NormalizedUsername) error {
 
 	if username.IsNil() {
-		m.CDebugf("NOOPing SecretStoreLocked#ClearSecret for empty username")
+		m.Debug("NOOPing SecretStoreLocked#ClearSecret for empty username")
 		return nil
 	}
 
@@ -227,7 +227,7 @@ func (s *SecretStoreLocked) ClearSecret(m MetaContext, username NormalizedUserna
 
 	err := s.mem.ClearSecret(m, username)
 	if err != nil {
-		m.CDebugf("SecretStoreLocked#ClearSecret: failed to clear memory: %s", err.Error())
+		m.Debug("SecretStoreLocked#ClearSecret: failed to clear memory: %s", err.Error())
 	}
 	if s.disk == nil {
 		return err

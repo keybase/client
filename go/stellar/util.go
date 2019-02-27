@@ -121,5 +121,5 @@ func isAmountLessThanMin(amount, min string) bool {
 }
 
 func EmptyAmountStack(mctx libkb.MetaContext) {
-	mctx.CDebugf("unexpected empty amount\n%v", string(debug.Stack()))
+	mctx.Debug("unexpected empty amount\n%v", string(debug.Stack()))
 }

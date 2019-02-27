@@ -80,10 +80,10 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAcc
 	}
 
 	m := libkb.NewMetaContext(ctx, h.G())
-	defer m.CTrace("AccountHandler#ResetAccount", func() error { return err })()
+	defer m.Trace("AccountHandler#ResetAccount", func() error { return err })()
 
 	username := h.G().GetEnv().GetUsername()
-	m.CDebugf("resetting account for %s", username.String())
+	m.Debug("resetting account for %s", username.String())
 
 	passphrase := arg.Passphrase
 	if passphrase == "" {
@@ -101,7 +101,7 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAcc
 		return err
 	}
 
-	m.CDebugf("reset account succeeded, logging out.")
+	m.Debug("reset account succeeded, logging out.")
 
 	return h.G().Logout(m.Ctx())
 }
@@ -136,7 +136,7 @@ func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (re
 	for i, v := range response.History {
 		dev := upak.FindDevice(v.DeviceID)
 		if dev == nil {
-			mctx.CDebugf("GetLockdownMode: Could not find device in UserPlusAllKeys: %s", v.DeviceID)
+			mctx.Debug("GetLockdownMode: Could not find device in UserPlusAllKeys: %s", v.DeviceID)
 			continue
 		}
 

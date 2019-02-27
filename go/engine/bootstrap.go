@@ -56,35 +56,35 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 	// (and provisioned)
 	e.status.LoggedIn = validActiveDevice
 	if !e.status.LoggedIn {
-		m.CDebugf("Bootstrap: not logged in")
+		m.Debug("Bootstrap: not logged in")
 		return nil
 	}
-	m.CDebugf("Bootstrap: logged in (valid active device)")
+	m.Debug("Bootstrap: logged in (valid active device)")
 
 	var uv keybase1.UserVersion
 	uv, e.status.DeviceID, e.status.DeviceName, _, _ = e.G().ActiveDevice.AllFields()
 	e.status.Uid = uv.Uid
 	e.status.Username = e.G().ActiveDevice.Username(m).String()
-	m.CDebugf("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
+	m.Debug("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
 
 	// get user summaries
 	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
 	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
-		m.CDebugf("connected, loading self user upak for cache")
+		m.Debug("connected, loading self user upak for cache")
 		arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(e.status.Uid)
 		if _, _, err := e.G().GetUPAKLoader().Load(arg); err != nil {
-			m.CDebugf("Bootstrap: error loading upak user for cache priming: %s", err)
+			m.Debug("Bootstrap: error loading upak user for cache priming: %s", err)
 		}
 
-		m.CDebugf("connected, running full tracker2 syncer")
+		m.Debug("connected, running full tracker2 syncer")
 		if err := libkb.RunSyncer(m, ts, e.status.Uid, false /* loggedIn */, false /* forceReload */); err != nil {
-			m.CWarningf("error running Tracker2Syncer: %s", err)
+			m.Warning("error running Tracker2Syncer: %s", err)
 			return nil
 		}
 	} else {
-		m.CDebugf("not connected, running cached tracker2 syncer")
+		m.Debug("not connected, running cached tracker2 syncer")
 		if err := libkb.RunSyncerCached(m, ts, e.status.Uid); err != nil {
-			m.CWarningf("error running Tracker2Syncer (cached): %s", err)
+			m.Warning("error running Tracker2Syncer (cached): %s", err)
 			return nil
 		}
 	}

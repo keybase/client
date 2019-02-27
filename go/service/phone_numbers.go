@@ -32,13 +32,13 @@ var _ keybase1.PhoneNumbersInterface = (*PhoneNumbersHandler)(nil)
 
 func (h *PhoneNumbersHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
 	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.EditPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
 	err = phonenumbers.DeletePhoneNumber(mctx, arg.OldPhoneNumber)
 	if err != nil {
 		return err
@@ -48,38 +48,38 @@ func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.
 
 func (h *PhoneNumbersHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#VerifyPhoneNumber", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#VerifyPhoneNumber", func() error { return err })()
 	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
 }
 
 func (h *PhoneNumbersHandler) GetPhoneNumbers(ctx context.Context, sessionID int) (ret []keybase1.UserPhoneNumber, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#GetPhoneNumbers", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#GetPhoneNumbers", func() error { return err })()
 	return phonenumbers.GetPhoneNumbers(mctx)
 }
 
 func (h *PhoneNumbersHandler) DeletePhoneNumber(ctx context.Context, arg keybase1.DeletePhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#DeletePhoneNumber", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#DeletePhoneNumber", func() error { return err })()
 	return phonenumbers.DeletePhoneNumber(mctx, arg.PhoneNumber)
 }
 
 func (h *PhoneNumbersHandler) SetVisibilityPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityPhoneNumber", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#SetVisibilityPhoneNumber", func() error { return err })()
 	return phonenumbers.SetVisibilityPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) SetVisibilityAllPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityAllPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityAllPhoneNumber", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#SetVisibilityAllPhoneNumber", func() error { return err })()
 	return phonenumbers.SetVisibilityAllPhoneNumber(mctx, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) BulkLookupPhoneNumbers(ctx context.Context, arg keybase1.BulkLookupPhoneNumbersArg) ([]keybase1.PhoneNumberLookupResult, error) {
 	var err error
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("PhoneNumbersHandler#BulkLookupPhoneNumbers", func() error { return err })()
+	defer mctx.TraceTimed("PhoneNumbersHandler#BulkLookupPhoneNumbers", func() error { return err })()
 	return phonenumbers.BulkLookupPhoneNumbers(mctx, arg.PhoneNumberContacts, arg.RegionCodes, arg.UserRegionCode)
 }
 
@@ -127,13 +127,13 @@ func (r *phoneNumbersGregorHandler) Name() string {
 
 func (r *phoneNumbersGregorHandler) handleAddedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("phoneNumbersGregorHandler: phone.added received")
+	m.Debug("phoneNumbersGregorHandler: phone.added received")
 	var msg keybase1.PhoneNumberAddedMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.CDebugf("error unmarshaling phone.added item: %s", err)
+		m.Debug("error unmarshaling phone.added item: %s", err)
 		return err
 	}
-	m.CDebugf("phone.added unmarshaled: %+v", msg)
+	m.Debug("phone.added unmarshaled: %+v", msg)
 
 	r.G().NotifyRouter.HandlePhoneNumberAdded(ctx, msg.PhoneNumber)
 
@@ -142,13 +142,13 @@ func (r *phoneNumbersGregorHandler) handleAddedMsg(ctx context.Context, cli greg
 
 func (r *phoneNumbersGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("phoneNumbersGregorHandler: phone.verified received")
+	m.Debug("phoneNumbersGregorHandler: phone.verified received")
 	var msg keybase1.PhoneNumberVerifiedMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.CDebugf("error unmarshaling phone.verified item: %s", err)
+		m.Debug("error unmarshaling phone.verified item: %s", err)
 		return err
 	}
-	m.CDebugf("phone.verified unmarshaled: %+v", msg)
+	m.Debug("phone.verified unmarshaled: %+v", msg)
 
 	r.G().NotifyRouter.HandlePhoneNumberVerified(ctx, msg.PhoneNumber)
 
@@ -157,13 +157,13 @@ func (r *phoneNumbersGregorHandler) handleVerifiedMsg(ctx context.Context, cli g
 
 func (r *phoneNumbersGregorHandler) handleSupersededMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	m := libkb.NewMetaContext(ctx, r.G())
-	m.CDebugf("phoneNumbersGregorHandler: phone.superseded received")
+	m.Debug("phoneNumbersGregorHandler: phone.superseded received")
 	var msg keybase1.PhoneNumberSupersededMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		m.CDebugf("error unmarshaling phone.superseded item: %s", err)
+		m.Debug("error unmarshaling phone.superseded item: %s", err)
 		return err
 	}
-	m.CDebugf("phone.superseded unmarshaled: %+v", msg)
+	m.Debug("phone.superseded unmarshaled: %+v", msg)
 
 	r.G().NotifyRouter.HandlePhoneNumberSuperseded(ctx, msg.PhoneNumber)
 

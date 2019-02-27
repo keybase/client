@@ -83,11 +83,11 @@ func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 		if entry, ok := val.(lookupRecipientCacheEntry); ok {
 			if mctx.G().GetClock().Now().Sub(entry.Time) <= time.Minute {
 				// Cache hit
-				mctx.CDebugf("bpc.LookupRecipient cache hit")
+				mctx.Debug("bpc.LookupRecipient cache hit")
 				return entry.Recipient, nil
 			}
 		} else {
-			mctx.CDebugf("bpc.LookupRecipient bad cached type: %T", val)
+			mctx.Debug("bpc.LookupRecipient bad cached type: %T", val)
 		}
 		c.lookupRecipientCache.Remove(to)
 	}

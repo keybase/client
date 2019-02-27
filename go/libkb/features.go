@@ -121,7 +121,7 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 	slot.Lock()
 	defer slot.Unlock()
 	if m.G().Clock().Now().Before(slot.cacheUntil) {
-		m.CDebugf("Feature (cached) %q -> %v", f, slot.on)
+		m.Debug("Feature (cached) %q -> %v", f, slot.on)
 		return slot.on, nil
 	}
 	var raw rawFeatures
@@ -136,11 +136,11 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 	}
 	rawFeature, ok := raw.Features[string(f)]
 	if !ok {
-		m.CInfof("Feature %q wasn't returned from server", f)
+		m.Info("Feature %q wasn't returned from server", f)
 		return false, nil
 	}
 	slot.readFrom(m, rawFeature)
-	m.CDebugf("Feature (fetched) %q -> %v (will cache for %ds)", f, slot.on, rawFeature.CacheSec)
+	m.Debug("Feature (fetched) %q -> %v (will cache for %ds)", f, slot.on, rawFeature.CacheSec)
 	return slot.on, nil
 }
 
@@ -149,7 +149,7 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 func (s *FeatureFlagSet) Enabled(m MetaContext, f Feature) (on bool) {
 	on, err := s.EnabledWithError(m, f)
 	if err != nil {
-		m.CInfof("Error checking feature %q: %v", f, err)
+		m.Info("Error checking feature %q: %v", f, err)
 		return false
 	}
 	return on
@@ -196,11 +196,11 @@ func (f *FeatureFlagGate) DigestError(m MetaContext, err error) {
 		return
 	}
 	if ffe.Feature() != f.feature {
-		m.CDebugf("Got feature flag error for wrong feature: %v", err)
+		m.Debug("Got feature flag error for wrong feature: %v", err)
 		return
 	}
 
-	m.CDebugf("Server reports feature %q is flagged off", f.feature)
+	m.Debug("Server reports feature %q is flagged off", f.feature)
 
 	f.Lock()
 	defer f.Unlock()
@@ -219,7 +219,7 @@ func (f *FeatureFlagGate) ErrorIfFlagged(m MetaContext) (err error) {
 	}
 	diff := m.G().Clock().Now().Sub(f.lastCheck)
 	if diff > f.cacheFor {
-		m.CDebugf("Feature flag %q expired %d ago, let's give it another try", f.feature, diff)
+		m.Debug("Feature flag %q expired %d ago, let's give it another try", f.feature, diff)
 		f.lastError = nil
 		f.lastCheck = time.Time{}
 	}

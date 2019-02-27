@@ -92,7 +92,7 @@ func (i *UIAdapter) Start(mctx libkb.MetaContext, user string, reason keybase1.I
 
 	err := i.ui.Identify3ShowTracker(mctx.Ctx(), arg)
 	if err != nil {
-		mctx.CDebugf("Failed to call Identify3ShowTracker: %s", err)
+		mctx.Debug("Failed to call Identify3ShowTracker: %s", err)
 	}
 	return err
 }
@@ -134,7 +134,7 @@ func (i *UIAdapter) priority(key string) int {
 func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
 
 	needUpgrade := false
-	mctx.CDebugf("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
+	mctx.Debug("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
 		lcr, lcr.Cached, lcr.Diff, lcr.RemoteDiff, lcr.Hint)
 
 	switch {
@@ -193,7 +193,7 @@ func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3
 		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "unreachable"})
 
 	default:
-		mctx.CWarningf("unhandled ID3 setRowStatus")
+		mctx.Warning("unhandled ID3 setRowStatus")
 
 	}
 	return needUpgrade
@@ -351,7 +351,7 @@ func (i *UIAdapter) checkEldest(mctx libkb.MetaContext, key keybase1.IdentifyKey
 	}
 	err := i.ui.Identify3UserReset(mctx.Ctx(), i.session.ID())
 	if err != nil {
-		mctx.CDebugf("Error sending user reset message: %s", err)
+		mctx.Debug("Error sending user reset message: %s", err)
 	}
 }
 
@@ -380,9 +380,9 @@ func (i *UIAdapter) plumbUncheckedProof(mctx libkb.MetaContext, row keybase1.Ide
 func (i *UIAdapter) updateRow(mctx libkb.MetaContext, arg keybase1.Identify3Row) error {
 	arg.GuiID = i.session.ID()
 	err := i.ui.Identify3UpdateRow(mctx.Ctx(), arg)
-	mctx.CDebugf("update row %+v", arg)
+	mctx.Debug("update row %+v", arg)
 	if err != nil {
-		mctx.CDebugf("Failed to send update row (%+v): %s", arg, err)
+		mctx.Debug("Failed to send update row (%+v): %s", arg, err)
 	}
 	return err
 }
@@ -399,7 +399,7 @@ func (i *UIAdapter) shouldSkipSendResult() bool {
 
 func (i *UIAdapter) sendResult(mctx libkb.MetaContext, typ keybase1.Identify3ResultType) error {
 	if i.shouldSkipSendResult() {
-		mctx.CDebugf("Skipping send result, already done")
+		mctx.Debug("Skipping send result, already done")
 		return nil
 	}
 	arg := keybase1.Identify3ResultArg{
@@ -409,7 +409,7 @@ func (i *UIAdapter) sendResult(mctx libkb.MetaContext, typ keybase1.Identify3Res
 
 	err := i.ui.Identify3Result(mctx.Ctx(), arg)
 	if err != nil {
-		mctx.CDebugf("Failed to send result (%+v): %s", arg, err)
+		mctx.Debug("Failed to send result (%+v): %s", arg, err)
 	}
 	return err
 }
@@ -447,7 +447,7 @@ func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.
 	case string(libkb.CryptocurrencyFamilyZCash):
 		key = "zcash"
 	default:
-		mctx.CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
+		mctx.Debug("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
 	}
 	i.updateRow(mctx, keybase1.Identify3Row{
 		Key:          key,
@@ -526,7 +526,7 @@ func (i *UIAdapter) DisplayUserCard(mctx libkb.MetaContext, card keybase1.UserCa
 	}
 	err := i.ui.Identify3UpdateUserCard(mctx.Ctx(), arg)
 	if err != nil {
-		mctx.CDebugf("Failed to send update card: %s", err)
+		mctx.Debug("Failed to send update card: %s", err)
 	}
 	return nil
 }

@@ -59,12 +59,12 @@ func (e *PerUserKeyUpkeep) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PerUserKeyUpkeep) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PerUserKeyUpkeep", func() error { return err })()
+	defer m.Trace("PerUserKeyUpkeep", func() error { return err })()
 	return e.inner(m)
 }
 
 func (e *PerUserKeyUpkeep) inner(m libkb.MetaContext) error {
-	m.CDebugf("PerUserKeyUpkeep load self")
+	m.Debug("PerUserKeyUpkeep load self")
 
 	uid := e.G().GetMyUID()
 	if uid.IsNil() {
@@ -87,12 +87,12 @@ func (e *PerUserKeyUpkeep) inner(m libkb.MetaContext) error {
 		return err
 	}
 	if !shouldRollKey {
-		m.CDebugf("PerUserKeyUpkeep skipping")
+		m.Debug("PerUserKeyUpkeep skipping")
 		return nil
 	}
 
 	// Roll the key
-	m.CDebugf("PerUserKeyUpkeep rolling key")
+	m.Debug("PerUserKeyUpkeep rolling key")
 	arg := &PerUserKeyRollArgs{
 		Me: me,
 	}
@@ -106,16 +106,16 @@ func (e *PerUserKeyUpkeep) inner(m libkb.MetaContext) error {
 func (e *PerUserKeyUpkeep) shouldRollKey(m libkb.MetaContext, uid keybase1.UID, upak *keybase1.UserPlusKeysV2) (bool, error) {
 
 	if len(upak.PerUserKeys) == 0 {
-		m.CDebugf("PerUserKeyUpkeep has no per-user-key")
+		m.Debug("PerUserKeyUpkeep has no per-user-key")
 		return false, nil
 	}
-	m.CDebugf("PerUserKeyUpkeep has %v per-user-keys", len(upak.PerUserKeys))
+	m.Debug("PerUserKeyUpkeep has %v per-user-keys", len(upak.PerUserKeys))
 
 	lastPuk := upak.PerUserKeys[len(upak.PerUserKeys)-1]
 	if !lastPuk.SignedByKID.IsValid() {
 		return false, errors.New("latest per-user-key had invalid signed-by KID")
 	}
-	m.CDebugf("PerUserKeyUpkeep last key signed by KID: %v", lastPuk.SignedByKID.String())
+	m.Debug("PerUserKeyUpkeep last key signed by KID: %v", lastPuk.SignedByKID.String())
 	return !e.keyIsActiveSibkey(m, lastPuk.SignedByKID, upak), nil
 }
 

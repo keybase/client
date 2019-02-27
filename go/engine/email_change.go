@@ -48,7 +48,7 @@ func (c *EmailChange) SubConsumers() []libkb.UIConsumer {
 
 // Run the engine
 func (c *EmailChange) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("EmailChange#Run", func() error { return err })()
+	defer m.Trace("EmailChange#Run", func() error { return err })()
 
 	if !libkb.CheckEmail.F(c.arg.NewEmail) {
 		return libkb.BadEmailError{}

@@ -17,7 +17,7 @@ func newBug3964Repairman(g *GlobalContext) *bug3964Repairman {
 }
 
 func (b *bug3964Repairman) attemptRepair(m MetaContext, lksec *LKSec, dkm DeviceKeyMap) (ran bool, serverHalfSet *LKSecServerHalfSet, err error) {
-	defer m.CTrace("bug3964Repairman#attemptRepair", func() error { return err })()
+	defer m.Trace("bug3964Repairman#attemptRepair", func() error { return err })()
 	var oldKeyring, newKeyring *SKBKeyringFile
 	lctx := m.LoginContext()
 	oldKeyring, err = lctx.Keyring(m)
@@ -32,7 +32,7 @@ func (b *bug3964Repairman) attemptRepair(m MetaContext, lksec *LKSec, dkm Device
 		return false, nil, nil
 	}
 	if err = newKeyring.Save(); err != nil {
-		m.CDebugf("Error saving new keyring: %s", err)
+		m.Debug("Error saving new keyring: %s", err)
 		return false, nil, err
 	}
 	lctx.ClearKeyring()
@@ -40,7 +40,7 @@ func (b *bug3964Repairman) attemptRepair(m MetaContext, lksec *LKSec, dkm Device
 }
 
 func (b *bug3964Repairman) loadLKSecServerDetails(m MetaContext, lksec *LKSec) (ret DeviceKeyMap, err error) {
-	defer m.CTrace("bug3964Repairman#loadLKSecServerDetails", func() error { return err })()
+	defer m.Trace("bug3964Repairman#loadLKSecServerDetails", func() error { return err })()
 	ret, err = lksec.LoadServerDetails(m)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (b *bug3964Repairman) updateSecretStore(m MetaContext, nun NormalizedUserna
 	fs := lksec.FullSecret()
 	ss := b.G().SecretStore()
 	if fs.IsNil() {
-		m.CWarningf("Got unexpected nil full secret")
+		m.Warning("Got unexpected nil full secret")
 		return ss.ClearSecret(m, nun)
 	}
 	return ss.StoreSecret(m, nun, fs)
@@ -106,7 +106,7 @@ func (b *bug3964Repairman) computeShortCircuit(nun NormalizedUsername) (ss bool,
 }
 
 func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen PassphraseGeneration) (err error) {
-	defer m.CTrace("bug3964Repairman#fixLKSClientHalf", func() error { return err })()
+	defer m.Trace("bug3964Repairman#fixLKSClientHalf", func() error { return err })()
 	var me *User
 	var encKey GenericKey
 	var ctext string

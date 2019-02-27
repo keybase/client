@@ -73,16 +73,16 @@ func (b *bufferedIdentifyUI) flush(m libkb.MetaContext, trackingBroke bool) (err
 	f := runtime.FuncForPC(pc[0])
 	caller := path.Base(f.Name())
 
-	m.CDebugf("+ bufferedIdentifyUI#flush(%v) [caller=%s, buffered=%v, suppressed=%v]", trackingBroke, caller, b.bufferedMode, b.suppressed)
+	m.Debug("+ bufferedIdentifyUI#flush(%v) [caller=%s, buffered=%v, suppressed=%v]", trackingBroke, caller, b.bufferedMode, b.suppressed)
 
 	if !trackingBroke && b.bufferedMode {
-		m.CDebugf("- bufferedIdentifyUI#flush: short-circuit")
+		m.Debug("- bufferedIdentifyUI#flush: short-circuit")
 		return nil
 	}
 
 	defer func() {
 		b.flushCleanup()
-		m.CDebugf("- bufferedIdentifyUI#flush -> %v", err)
+		m.Debug("- bufferedIdentifyUI#flush -> %v", err)
 	}()
 
 	if b.start != nil {
@@ -179,11 +179,11 @@ func (b *bufferedIdentifyUI) Confirm(m libkb.MetaContext, o *keybase1.IdentifyOu
 	b.Lock()
 	defer b.Unlock()
 	if b.bufferedMode {
-		m.CDebugf("| bufferedIdentifyUI#Confirm: suppressing output")
+		m.Debug("| bufferedIdentifyUI#Confirm: suppressing output")
 		b.suppressed = true
 		return b.confirmIfSuppressed, nil
 	}
-	m.CDebugf("| bufferedIdentifyUI#Confirm: enabling output")
+	m.Debug("| bufferedIdentifyUI#Confirm: enabling output")
 	b.flush(m, true)
 	return b.raw.Confirm(m, o)
 }
@@ -255,10 +255,10 @@ func (b *bufferedIdentifyUI) Finish(m libkb.MetaContext) error {
 	b.Lock()
 	defer b.Unlock()
 	if b.suppressed {
-		m.CDebugf("| bufferedIdentifyUI#Finish: suppressed")
+		m.Debug("| bufferedIdentifyUI#Finish: suppressed")
 		return nil
 	}
-	m.CDebugf("| bufferedIdentifyUI#Finish: went through to UI")
+	m.Debug("| bufferedIdentifyUI#Finish: went through to UI")
 
 	// This is likely a noop since we already covered this case in the `Confirm` step
 	// above. However, if due a bug we forgot to call `Confirm` from the UI, this

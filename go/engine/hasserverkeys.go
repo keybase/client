@@ -56,11 +56,11 @@ func (e *HasServerKeys) Run(m libkb.MetaContext) error {
 	}
 	var spk libkb.ServerPrivateKeys
 	if err = apiRes.Body.UnmarshalAgain(&spk); err != nil {
-		m.CDebugf("error unmarshaling ServerPrivateKeys")
+		m.Debug("error unmarshaling ServerPrivateKeys")
 		return err
 	}
 	e.res.HasServerKeys = len(spk.PrivateKeys) > 0
-	m.CDebugf("HasServerKeys: %v", e.res.HasServerKeys)
+	m.Debug("HasServerKeys: %v", e.res.HasServerKeys)
 
 	return nil
 }

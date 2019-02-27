@@ -91,7 +91,7 @@ func (e *BackgroundTask) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
 func (e *BackgroundTask) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace(e.Name(), func() error { return err })()
+	defer m.Trace(e.Name(), func() error { return err })()
 
 	// use a new background context with a saved cancel function
 	var cancel func()
@@ -191,5 +191,5 @@ func (e *BackgroundTask) meta(s string) {
 
 func (e *BackgroundTask) log(m libkb.MetaContext, format string, args ...interface{}) {
 	content := fmt.Sprintf(format, args...)
-	m.CDebugf("%s %s", e.Name(), content)
+	m.Debug("%s %s", e.Name(), content)
 }

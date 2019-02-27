@@ -71,7 +71,7 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (mctx libkb.M
 		}
 		return *opts.Err
 	}
-	fin = mctx.CTraceTimed("LRPC "+opts.RPCName, getFinalErr)
+	fin = mctx.TraceTimed("LRPC "+opts.RPCName, getFinalErr)
 	if !opts.AllowLoggedOut {
 		if err = s.assertLoggedIn(mctx); err != nil {
 			return mctx, fin, err

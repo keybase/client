@@ -54,7 +54,7 @@ func (e *ephemeralKeyReboxer) getDeviceEKKID() (kid keybase1.KID, err error) {
 
 func (e *ephemeralKeyReboxer) getReboxArg(m libkb.MetaContext, userEKBox *keybase1.UserEkBoxed,
 	deviceID keybase1.DeviceID, signingKey libkb.GenericKey) (userEKReboxArg *keybase1.UserEkReboxArg, err error) {
-	defer m.CTrace("ephemeralKeyReboxer#getReboxArg", func() error { return err })()
+	defer m.Trace("ephemeralKeyReboxer#getReboxArg", func() error { return err })()
 
 	ekLib := m.G().GetEKLib()
 	if ekLib == nil {
@@ -62,7 +62,7 @@ func (e *ephemeralKeyReboxer) getReboxArg(m libkb.MetaContext, userEKBox *keybas
 	}
 
 	if userEKBox == nil { // We will create EKs after provisioning in the normal way
-		m.CDebugf("userEKBox nil, no ephemeral keys created during provisioning")
+		m.Debug("userEKBox nil, no ephemeral keys created during provisioning")
 		return nil, nil
 	}
 
@@ -89,13 +89,13 @@ func (e *ephemeralKeyReboxer) getReboxArg(m libkb.MetaContext, userEKBox *keybas
 }
 
 func (e *ephemeralKeyReboxer) storeEKs(m libkb.MetaContext) (err error) {
-	defer m.CTrace("ephemeralKeyReboxer#storeEKs", func() error { return err })()
+	defer m.Trace("ephemeralKeyReboxer#storeEKs", func() error { return err })()
 	ekLib := m.G().GetEKLib()
 	if ekLib == nil {
 		return nil
 	}
 	if e.userEKBox == nil {
-		m.CDebugf("userEKBox nil, no ephemeral keys to store")
+		m.Debug("userEKBox nil, no ephemeral keys to store")
 		return nil
 	}
 
@@ -135,18 +135,18 @@ func makeUserEKBoxForProvisionee(m libkb.MetaContext, KID keybase1.KID) (*keybas
 }
 
 func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) {
-	m.CDebugf("verifying local storage")
-	defer m.CDebugf("done verifying local storage")
+	m.Debug("verifying local storage")
+	defer m.Debug("done verifying local storage")
 	normUsername := libkb.NewNormalizedUsername(username)
 
 	// check config.json looks ok
 	verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
 	cr := m.G().Env.GetConfig()
 	if cr.GetUsername() != normUsername {
-		m.CDebugf("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
+		m.Debug("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
 	}
 	if cr.GetUID().NotEqual(uid) {
-		m.CDebugf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
+		m.Debug("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
 	}
 
 	// check keys in secretkeys.mpack
@@ -155,22 +155,22 @@ func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) 
 	// check secret stored
 	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
 	if err != nil {
-		m.CDebugf("failed to retrieve secret for %s: %s", username, err)
+		m.Debug("failed to retrieve secret for %s: %s", username, err)
 	}
 	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		m.CDebugf("retrieved nil/empty secret for %s", username)
+		m.Debug("retrieved nil/empty secret for %s", username)
 	}
 }
 
 func verifyRegularFile(m libkb.MetaContext, name, filename string) {
 	info, err := os.Stat(filename)
 	if err != nil {
-		m.CDebugf("stat %s file %q error: %s", name, filename, err)
+		m.Debug("stat %s file %q error: %s", name, filename, err)
 		return
 	}
 
-	m.CDebugf("%s file %q size: %d", name, filename, info.Size())
+	m.Debug("%s file %q size: %d", name, filename, info.Size())
 	if !info.Mode().IsRegular() {
-		m.CDebugf("%s file %q not regular: %s", name, filename, info.Mode())
+		m.Debug("%s file %q not regular: %s", name, filename, info.Mode())
 	}
 }

@@ -44,11 +44,11 @@ func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
 		if result.Err != nil || result.Info.Application != keybase1.TeamApplication_SALTPACK {
-			r.m.CDebugf("skipping unresolved pseudonym: %s", result.Err)
+			r.m.Debug("skipping unresolved pseudonym: %s", result.Err)
 			symmetricKeys = append(symmetricKeys, nil)
 			continue
 		}
-		r.m.CDebugf("resolved pseudonym for %s, fetching key", result.Info.ID)
+		r.m.Debug("resolved pseudonym for %s, fetching key", result.Info.ID)
 		symmetricKey, err := r.getSymmetricKey(result.Info.ID, result.Info.KeyGen)
 		if err != nil {
 			return nil, err
@@ -60,7 +60,7 @@ func (r *KeyPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 	if success {
 		return symmetricKeys, nil
 	}
-	r.m.CDebugf("No pseudonyms resolved, fallback to old kbfs pseudonyms")
+	r.m.Debug("No pseudonyms resolved, fallback to old kbfs pseudonyms")
 	// Fallback to old kbfs pseudonyms
 	return r.kbfsResolveKeys(identifiers)
 }
@@ -105,11 +105,11 @@ func (r *KeyPseudonymResolver) kbfsResolveKeys(identifiers [][]byte) ([]*saltpac
 	symmetricKeys := []*saltpack.SymmetricKey{}
 	for _, result := range results {
 		if result.Err != nil {
-			r.m.CDebugf("skipping unresolved pseudonym: %s", result.Err)
+			r.m.Debug("skipping unresolved pseudonym: %s", result.Err)
 			symmetricKeys = append(symmetricKeys, nil)
 			continue
 		}
-		r.m.CDebugf("resolved pseudonym for %s, fetching key", result.Info.Name)
+		r.m.Debug("resolved pseudonym for %s, fetching key", result.Info.Name)
 		symmetricKey, err := r.kbfsGetSymmetricKey(r.m, *result.Info)
 		if err != nil {
 			return nil, err

@@ -97,7 +97,7 @@ func (e *DeviceKeygen) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeygen) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("DeviceKeygen#Run", func() error { return err })()
+	defer m.Trace("DeviceKeygen#Run", func() error { return err })()
 
 	e.setup(m)
 	e.generate(m)
@@ -130,7 +130,7 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) (e
 
 	ds := []libkb.Delegator{}
 
-	m.CDebugf("DeviceKeygen#Push PUK(upgrade:%v)", m.G().Env.GetUpgradePerUserKey())
+	m.Debug("DeviceKeygen#Push PUK(upgrade:%v)", m.G().Env.GetUpgradePerUserKey())
 
 	var pukBoxes = []keybase1.PerUserKeyBox{}
 	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
@@ -201,7 +201,7 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) (e
 }
 
 func (e *DeviceKeygen) setup(m libkb.MetaContext) {
-	defer m.CTrace("DeviceKeygen#setup", func() error { return e.runErr })()
+	defer m.Trace("DeviceKeygen#setup", func() error { return e.runErr })()
 	if e.runErr != nil {
 		return
 	}
@@ -225,7 +225,7 @@ func (e *DeviceKeygen) setup(m libkb.MetaContext) {
 }
 
 func (e *DeviceKeygen) generate(m libkb.MetaContext) {
-	defer m.CTrace("DeviceKeygen#generate", func() error { return e.runErr })()
+	defer m.Trace("DeviceKeygen#generate", func() error { return e.runErr })()
 	if e.runErr != nil {
 		return
 	}
@@ -250,7 +250,7 @@ func (e *DeviceKeygen) generate(m libkb.MetaContext) {
 }
 
 func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
-	defer m.CTrace("DeviceKeygen#localSave", func() error { return e.runErr })()
+	defer m.Trace("DeviceKeygen#localSave", func() error { return e.runErr })()
 	if e.runErr != nil {
 		return
 	}
@@ -263,7 +263,7 @@ func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 }
 
 func (e *DeviceKeygen) reboxUserEK(m libkb.MetaContext, signingKey libkb.GenericKey) (reboxArg *keybase1.UserEkReboxArg, err error) {
-	defer m.CTrace("DeviceKeygen#reboxUserEK", func() error { return err })()
+	defer m.Trace("DeviceKeygen#reboxUserEK", func() error { return err })()
 	ekKID, err := e.args.EkReboxer.getDeviceEKKID()
 	if err != nil {
 		return nil, err
@@ -276,7 +276,7 @@ func (e *DeviceKeygen) reboxUserEK(m libkb.MetaContext, signingKey libkb.Generic
 }
 
 func (e *DeviceKeygen) appendEldest(m libkb.MetaContext, ds []libkb.Delegator, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
-	defer m.CTrace("DeviceKeygen#appendEldest", func() error { return e.pushErr })()
+	defer m.Trace("DeviceKeygen#appendEldest", func() error { return e.pushErr })()
 	if e.pushErr != nil {
 		return ds
 	}
@@ -291,7 +291,7 @@ func (e *DeviceKeygen) appendEldest(m libkb.MetaContext, ds []libkb.Delegator, p
 }
 
 func (e *DeviceKeygen) appendSibkey(m libkb.MetaContext, ds []libkb.Delegator, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
-	defer m.CTrace("DeviceKeygen#appendSibkey", func() error { return e.pushErr })()
+	defer m.Trace("DeviceKeygen#appendSibkey", func() error { return e.pushErr })()
 	if e.pushErr != nil {
 		return ds
 	}
@@ -308,7 +308,7 @@ func (e *DeviceKeygen) appendSibkey(m libkb.MetaContext, ds []libkb.Delegator, p
 }
 
 func (e *DeviceKeygen) appendEncKey(m libkb.MetaContext, ds []libkb.Delegator, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User) []libkb.Delegator {
-	defer m.CTrace("DeviceKeygen#appendEncKey", func() error { return e.pushErr })()
+	defer m.Trace("DeviceKeygen#appendEncKey", func() error { return e.pushErr })()
 	if e.pushErr != nil {
 		return ds
 	}
@@ -325,7 +325,7 @@ func (e *DeviceKeygen) appendEncKey(m libkb.MetaContext, ds []libkb.Delegator, s
 }
 
 func (e *DeviceKeygen) generateClientHalfRecovery(m libkb.MetaContext) (ctext string, kid keybase1.KID, err error) {
-	defer m.CTrace("DeviceKeygen#generateClientHalfRecovery", func() error { return err })()
+	defer m.Trace("DeviceKeygen#generateClientHalfRecovery", func() error { return err })()
 	key := e.naclEncGen.GetKeyPair()
 	kid = key.GetKID()
 	ctext, err = e.args.Lks.EncryptClientHalfRecovery(key)
@@ -333,7 +333,7 @@ func (e *DeviceKeygen) generateClientHalfRecovery(m libkb.MetaContext) (ctext st
 }
 
 func (e *DeviceKeygen) pushLKS(m libkb.MetaContext) {
-	defer m.CTrace("DeviceKeygen#pushLKS", func() error { return e.pushErr })()
+	defer m.Trace("DeviceKeygen#pushLKS", func() error { return e.pushErr })()
 
 	if e.pushErr != nil {
 		return
@@ -387,7 +387,7 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromProvisioningKey(m libkb.MetaConte
 
 	upak := e.args.Me.ExportToUserPlusAllKeys()
 	if len(upak.Base.PerUserKeys) == 0 {
-		m.CDebugf("DeviceKeygen skipping per-user-keys, none exist")
+		m.Debug("DeviceKeygen skipping per-user-keys, none exist")
 		return nil, nil
 	}
 

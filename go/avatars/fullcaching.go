@@ -96,7 +96,7 @@ func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 }
 
 func (c *FullCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
-	m.CDebugf("Avatars.FullCachingSource: %s", fmt.Sprintf(msg, args...))
+	m.Debug("Avatars.FullCachingSource: %s", fmt.Sprintf(msg, args...))
 }
 
 func (c *FullCachingSource) avatarKey(name string, format keybase1.AvatarFormat) string {
@@ -364,17 +364,17 @@ func (c *FullCachingSource) clearName(m libkb.MetaContext, name string, formats 
 }
 
 func (c *FullCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.CTrace("FullCachingSource.LoadUsers", func() error { return err })()
+	defer m.Trace("FullCachingSource.LoadUsers", func() error { return err })()
 	return c.loadNames(m, usernames, formats, c.simpleSource.LoadUsers)
 }
 
 func (c *FullCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.CTrace("FullCachingSource.LoadTeams", func() error { return err })()
+	defer m.Trace("FullCachingSource.LoadTeams", func() error { return err })()
 	return c.loadNames(m, teams, formats, c.simpleSource.LoadTeams)
 }
 
 func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
-	defer m.CTrace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
 	return c.clearName(m, name, formats)
 }
 

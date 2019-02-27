@@ -18,7 +18,7 @@ func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*libkb.DeviceWithKeys,
 
 	// Get unlocked device for decryption and signing
 	// passing in nil SecretUI since we don't know the passphrase.
-	m.CDebugf("findDeviceKeys: getting device encryption key")
+	m.Debug("findDeviceKeys: getting device encryption key")
 	parg := libkb.SecretKeyPromptArg{
 		Ska: libkb.SecretKeyArg{
 			Me:      me,
@@ -30,14 +30,14 @@ func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*libkb.DeviceWithKeys,
 	if err != nil {
 		return nil, err
 	}
-	m.CDebugf("findDeviceKeys: got device encryption key")
-	m.CDebugf("findDeviceKeys: getting device signing key")
+	m.Debug("findDeviceKeys: got device encryption key")
+	m.Debug("findDeviceKeys: getting device signing key")
 	parg.Ska.KeyType = libkb.DeviceSigningKeyType
 	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		return nil, err
 	}
-	m.CDebugf("findDeviceKeys: got device signing key")
+	m.Debug("findDeviceKeys: got device signing key")
 
 	return libkb.NewDeviceWithKeysOnly(sigKey, encKey), nil
 }
@@ -99,35 +99,35 @@ func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*libkb.De
 	encKey := bkeng.EncKey()
 	var device *libkb.Device
 
-	m.CDebugf("generated paper key signing kid: %s", sigKey.GetKID())
-	m.CDebugf("generated paper key encryption kid: %s", encKey.GetKID())
+	m.Debug("generated paper key signing kid: %s", sigKey.GetKID())
+	m.Debug("generated paper key encryption kid: %s", encKey.GetKID())
 
 	ckf := me.GetComputedKeyFamily()
 	for _, bdev := range bdevs {
 		sk, err := ckf.GetSibkeyForDevice(bdev.ID)
 		if err != nil {
-			m.CDebugf("ckf.GetSibkeyForDevice(%s) error: %s", bdev.ID, err)
+			m.Debug("ckf.GetSibkeyForDevice(%s) error: %s", bdev.ID, err)
 			continue
 		}
-		m.CDebugf("paper key device %s signing kid: %s", bdev.ID, sk.GetKID())
+		m.Debug("paper key device %s signing kid: %s", bdev.ID, sk.GetKID())
 		ek, err := ckf.GetEncryptionSubkeyForDevice(bdev.ID)
 		if err != nil {
-			m.CDebugf("ckf.GetEncryptionSubkeyForDevice(%s) error: %s", bdev.ID, err)
+			m.Debug("ckf.GetEncryptionSubkeyForDevice(%s) error: %s", bdev.ID, err)
 			continue
 		}
-		m.CDebugf("paper key device %s encryption kid: %s", bdev.ID, ek.GetKID())
+		m.Debug("paper key device %s encryption kid: %s", bdev.ID, ek.GetKID())
 
 		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
-			m.CDebugf("paper key device %s matches generated paper key", bdev.ID)
+			m.Debug("paper key device %s matches generated paper key", bdev.ID)
 			device = bdev
 			break
 		}
 
-		m.CDebugf("paper key device %s does not match generated paper key", bdev.ID)
+		m.Debug("paper key device %s does not match generated paper key", bdev.ID)
 	}
 
 	if device == nil {
-		m.CDebugf("no matching paper keys found")
+		m.Debug("no matching paper keys found")
 		return nil, libkb.PassphraseError{Msg: "no matching paper backup keys found"}
 	}
 

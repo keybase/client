@@ -53,7 +53,7 @@ func pplGetLoginSession(m MetaContext, usernameOrEmail string) (*LoginSession, e
 }
 
 func pplPromptOnce(m MetaContext, usernameOrEmail string, ls *LoginSession, retryMsg string) (err error) {
-	defer m.CTrace("pplPromptOnce", func() error { return err })()
+	defer m.Trace("pplPromptOnce", func() error { return err })()
 	ppres, err := GetKeybasePassphrase(m, m.UIs().SecretUI, usernameOrEmail, retryMsg)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func pplPromptOnce(m MetaContext, usernameOrEmail string, ls *LoginSession, retr
 }
 
 func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, ls *LoginSession) (err error) {
-	defer m.CTrace("pplGotPassphrase", func() error { return err })()
+	defer m.Trace("pplGotPassphrase", func() error { return err })()
 
 	tsec, pps, err := StretchPassphrase(m.G(), passphrase, ls.salt)
 	if err != nil {
@@ -100,7 +100,7 @@ func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, 
 }
 
 func pplPromptLoop(m MetaContext, usernameOrEmail string, maxAttempts int, ls *LoginSession) (err error) {
-	defer m.CTrace("pplPromptLoop", func() error { return err })()
+	defer m.Trace("pplPromptLoop", func() error { return err })()
 	retryMsg := ""
 	for i := 0; i < maxAttempts; i++ {
 		if err = pplPromptOnce(m, usernameOrEmail, ls, retryMsg); err == nil {
@@ -165,7 +165,7 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 }
 
 func PassphraseLoginNoPrompt(m MetaContext, usernameOrEmail string, passphrase string) (err error) {
-	defer m.CTrace("PassphraseLoginNoPrompt", func() error { return err })()
+	defer m.Trace("PassphraseLoginNoPrompt", func() error { return err })()
 
 	var loginSession *LoginSession
 	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
@@ -175,7 +175,7 @@ func PassphraseLoginNoPrompt(m MetaContext, usernameOrEmail string, passphrase s
 }
 
 func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail string, passphrase string, failOnStoreError bool) (err error) {
-	defer m.CTrace("PassphraseLoginNoPromptThenSecretStore", func() error { return err })()
+	defer m.Trace("PassphraseLoginNoPromptThenSecretStore", func() error { return err })()
 
 	err = PassphraseLoginNoPrompt(m, usernameOrEmail, passphrase)
 	if err != nil {
@@ -188,13 +188,13 @@ func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail strin
 	if failOnStoreError {
 		return storeErr
 	}
-	m.CWarningf("Secret store failure: %s", storeErr)
+	m.Warning("Secret store failure: %s", storeErr)
 	return nil
 }
 
 func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {
 
-	defer m.CTrace("PassphraseLoginPrompt", func() error { return err })()
+	defer m.Trace("PassphraseLoginPrompt", func() error { return err })()
 
 	var loginSession *LoginSession
 
@@ -211,7 +211,7 @@ func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts in
 }
 
 func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
-	defer m.CTrace("StoreSecretAfterLogin", func() error { return err })()
+	defer m.Trace("StoreSecretAfterLogin", func() error { return err })()
 	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID)
 	return StoreSecretAfterLoginWithLKS(m, n, lksec)
 }
@@ -230,7 +230,7 @@ func pplSecretStore(m MetaContext) (err error) {
 }
 
 func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string, maxAttempts int, failOnStoreError bool) (err error) {
-	defer m.CTrace("PassphraseLoginPromptThenSecretStore", func() error { return err })()
+	defer m.Trace("PassphraseLoginPromptThenSecretStore", func() error { return err })()
 
 	err = PassphraseLoginPrompt(m, usernameOrEmail, maxAttempts)
 	if err != nil {
@@ -244,17 +244,17 @@ func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string,
 	if failOnStoreError {
 		return storeErr
 	}
-	m.CDebugf("Secret store failure: %s", storeErr)
+	m.Debug("Secret store failure: %s", storeErr)
 	return nil
 }
 
 func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSec) (err error) {
 
-	defer m.CTrace("StoreSecretAfterLoginWithLKS", func() error { return err })()
+	defer m.Trace("StoreSecretAfterLoginWithLKS", func() error { return err })()
 
 	secretStore := NewSecretStore(m.G(), n)
 	if secretStore == nil {
-		m.CDebugf("not storing secret; no secret store available")
+		m.Debug("not storing secret; no secret store available")
 		return nil
 	}
 
@@ -288,31 +288,31 @@ func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
 // reads from the secret store. It won't have the material used to decrypt
 // server-synced keys or to generate PDPKA material in that case.
 func GetPassphraseStreamStored(m MetaContext) (pps *PassphraseStream, err error) {
-	defer m.CTrace("GetPassphraseStreamStored", func() error { return err })()
+	defer m.Trace("GetPassphraseStreamStored", func() error { return err })()
 
 	// 1. try cached
-	m.CDebugf("| trying cached passphrase stream")
+	m.Debug("| trying cached passphrase stream")
 	if pps = m.PassphraseStream(); pps != nil {
-		m.CDebugf("| cached passphrase stream ok, using it")
+		m.Debug("| cached passphrase stream ok, using it")
 		return pps, nil
 	}
 
 	// 2. try from secret store
 	if m.G().SecretStore() != nil {
-		m.CDebugf("| trying to get passphrase stream from secret store")
+		m.Debug("| trying to get passphrase stream from secret store")
 		pps, err = getStoredPassphraseStream(m)
 		if err == nil {
-			m.CDebugf("| got passphrase stream from secret store")
+			m.Debug("| got passphrase stream from secret store")
 			return pps, nil
 		}
-		m.CInfof("| failed to get passphrase stream from secret store: %s", err)
+		m.Info("| failed to get passphrase stream from secret store: %s", err)
 	}
 
 	// 3. login and get it
-	m.CDebugf("| using full GetPassphraseStream")
+	m.Debug("| using full GetPassphraseStream")
 	pps, _, err = GetPassphraseStreamViaPrompt(m)
 	if pps != nil {
-		m.CDebugf("| success using full GetPassphraseStream")
+		m.Debug("| success using full GetPassphraseStream")
 	}
 	return pps, err
 }
@@ -323,36 +323,36 @@ func GetPassphraseStreamStored(m MetaContext) (pps *PassphraseStream, err error)
 // so skip it. Recall that the full passphrase stream isn't stored to
 // the secret store, only the bits that encrypt local keys.
 func GetTriplesecMaybePrompt(m MetaContext) (tsec Triplesec, ppgen PassphraseGeneration, err error) {
-	defer m.CTrace("GetTriplesecMaybePrompt", func() error { return err })()
+	defer m.Trace("GetTriplesecMaybePrompt", func() error { return err })()
 
 	// 1. try cached
-	m.CDebugf("| trying cached triplesec")
+	m.Debug("| trying cached triplesec")
 	if tsec, ppgen = m.TriplesecAndGeneration(); tsec != nil && !ppgen.IsNil() {
-		m.CDebugf("| cached trieplsec stream ok, using it")
+		m.Debug("| cached trieplsec stream ok, using it")
 		return tsec, ppgen, nil
 	}
 
 	// 2. login and get it
-	m.CDebugf("| using full GetPassphraseStreamViaPrompt")
+	m.Debug("| using full GetPassphraseStreamViaPrompt")
 	var pps *PassphraseStream
 	pps, tsec, err = GetPassphraseStreamViaPrompt(m)
 	if err != nil {
 		return nil, ppgen, err
 	}
 	if pps == nil {
-		m.CDebugf("| Got back empty passphrase stream; returning nil")
+		m.Debug("| Got back empty passphrase stream; returning nil")
 		return nil, ppgen, NewNoTriplesecError()
 	}
 	if tsec == nil {
-		m.CDebugf("| Got back empty triplesec")
+		m.Debug("| Got back empty triplesec")
 		return nil, ppgen, NewNoTriplesecError()
 	}
 	ppgen = pps.Generation()
 	if ppgen.IsNil() {
-		m.CDebugf("| Got back a non-nill Triplesec but an invalid ppgen; returning nil")
+		m.Debug("| Got back a non-nill Triplesec but an invalid ppgen; returning nil")
 		return nil, ppgen, NewNoTriplesecError()
 	}
-	m.CDebugf("| got non-nil Triplesec back from prompt")
+	m.Debug("| got non-nil Triplesec back from prompt")
 	return tsec, ppgen, err
 }
 
@@ -364,7 +364,7 @@ func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Tr
 	// We have to get the current username before we install the new provisional login context,
 	// which will shadow the logged in username.
 	nun := m.CurrentUsername()
-	defer m.CTrace(fmt.Sprintf("GetPassphraseStreamViaPrompt(%s)", nun), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("GetPassphraseStreamViaPrompt(%s)", nun), func() error { return err })()
 
 	m = m.WithNewProvisionalLoginContext()
 	err = PassphraseLoginPromptThenSecretStore(m, nun.String(), 5, false /* failOnStoreError */)
@@ -384,7 +384,7 @@ func GetPassphraseStreamViaPrompt(m MetaContext) (pps *PassphraseStream, tsec Tr
 // changes to a new passphrase, so what's the point. It's assumed that the login context is
 // set to non-nil by the caller.
 func GetPassphraseStreamViaPromptInLoginContext(m MetaContext) (pps *PassphraseStream, err error) {
-	defer m.CTrace("GetPassphraseStreamViaPromptInLoginContext", func() error { return err })()
+	defer m.Trace("GetPassphraseStreamViaPromptInLoginContext", func() error { return err })()
 	if pps = m.PassphraseStream(); pps != nil {
 		return pps, nil
 	}
@@ -402,7 +402,7 @@ func GetPassphraseStreamViaPromptInLoginContext(m MetaContext) (pps *PassphraseS
 // and if so, will return a full passphrase stream derived from it. Assumes the caller
 // made a non-nil LoginContext for us to operate in.
 func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (pps *PassphraseStream, err error) {
-	defer m.CTrace("VerifyPassphraseGetStreamInLoginContext", func() error { return err })()
+	defer m.Trace("VerifyPassphraseGetStreamInLoginContext", func() error { return err })()
 	nun := m.CurrentUsername()
 	if nun.IsNil() {
 		return nil, NewNoUsernameError()
@@ -417,7 +417,7 @@ func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (
 // in user, returning nil if correct, and an error if not. Only used in tests right now, but
 // it's fine to use in production code if it seems appropriate.
 func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (pps *PassphraseStream, err error) {
-	defer m.CTrace("VerifyPassphraseForLoggedInUser", func() error { return err })()
+	defer m.Trace("VerifyPassphraseForLoggedInUser", func() error { return err })()
 	uv, un := m.ActiveDevice().GetUsernameAndUserVersionIfValid(m)
 	if uv.IsNil() {
 		return nil, NewLoginRequiredError("for VerifyPassphraseForLoggedInUser")
@@ -433,7 +433,7 @@ func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (pps *PassphraseS
 // and rename this to that.
 func ComputeLoginPackage2(m MetaContext, pps *PassphraseStream) (ret PDPKALoginPackage, err error) {
 
-	defer m.CTrace("ComputeLoginPackage2", func() error { return err })()
+	defer m.Trace("ComputeLoginPackage2", func() error { return err })()
 	var ls *LoginSession
 	if m.LoginContext() != nil {
 		ls = m.LoginContext().LoginSession()
