@@ -2,6 +2,8 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
+import * as FsGen from '../../actions/fs-gen'
+import * as FsTypes from '../../constants/types/fs'
 import * as FsShared from '../../actions/fs/shared'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as ProfileGen from '../profile-gen'
@@ -77,6 +79,8 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   RNEmitter.addListener('onShareData', (evt) => {
     logger.info('[ShareDataIntent]', evt)
     emitter(RouteTreeGen.createNavigateTo({path: FsShared.fsRootRoute}))
+    emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.path)}))
+    emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   })
   RNEmitter.addListener('onShareText', (evt) => {
     logger.info('[ShareTextIntent]', evt)

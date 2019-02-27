@@ -12,7 +12,7 @@ export const resetStore = 'common:resetStore' // not a part of fs but is handled
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
 export const clearRefreshTag = 'fs:clearRefreshTag'
-export const closeMoveOrCopy = 'fs:closeMoveOrCopy'
+export const closeDestinationPicker = 'fs:closeDestinationPicker'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
@@ -35,6 +35,7 @@ export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
+export const incomingShareOpen = 'fs:incomingShareOpen'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonConnected = 'fs:kbfsDaemonConnected'
 export const kbfsDaemonDisconnected = 'fs:kbfsDaemonDisconnected'
@@ -89,7 +90,7 @@ export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
 type _ClearRefreshTagPayload = $ReadOnly<{|refreshTag: Types.RefreshTag|}>
-type _CloseMoveOrCopyPayload = void
+type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _CopyPayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
@@ -112,6 +113,7 @@ type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.R
 type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
 type _HideSystemFileManagerIntegrationBannerPayload = void
+type _IncomingShareOpenPayload = $ReadOnly<{|routePath: I.List<string>, path: Types.Path, currentIndex: number|}>
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
 type _KbfsDaemonConnectedPayload = void
 type _KbfsDaemonDisconnectedPayload = void
@@ -166,7 +168,7 @@ type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
 export const createClearRefreshTag = (payload: _ClearRefreshTagPayload) => ({payload, type: clearRefreshTag})
-export const createCloseMoveOrCopy = (payload: _CloseMoveOrCopyPayload) => ({payload, type: closeMoveOrCopy})
+export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPayload) => ({payload, type: closeDestinationPicker})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
@@ -189,6 +191,7 @@ export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({paylo
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({payload, type: folderListLoaded})
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
 export const createHideSystemFileManagerIntegrationBanner = (payload: _HideSystemFileManagerIntegrationBannerPayload) => ({payload, type: hideSystemFileManagerIntegrationBanner})
+export const createIncomingShareOpen = (payload: _IncomingShareOpenPayload) => ({payload, type: incomingShareOpen})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
 export const createKbfsDaemonConnected = (payload: _KbfsDaemonConnectedPayload) => ({payload, type: kbfsDaemonConnected})
 export const createKbfsDaemonDisconnected = (payload: _KbfsDaemonDisconnectedPayload) => ({payload, type: kbfsDaemonDisconnected})
@@ -243,7 +246,7 @@ export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) 
 // Action Payloads
 export type CancelDownloadPayload = {|+payload: _CancelDownloadPayload, +type: 'fs:cancelDownload'|}
 export type ClearRefreshTagPayload = {|+payload: _ClearRefreshTagPayload, +type: 'fs:clearRefreshTag'|}
-export type CloseMoveOrCopyPayload = {|+payload: _CloseMoveOrCopyPayload, +type: 'fs:closeMoveOrCopy'|}
+export type CloseDestinationPickerPayload = {|+payload: _CloseDestinationPickerPayload, +type: 'fs:closeDestinationPicker'|}
 export type CommitEditPayload = {|+payload: _CommitEditPayload, +type: 'fs:commitEdit'|}
 export type CopyPayload = {|+payload: _CopyPayload, +type: 'fs:copy'|}
 export type DeleteFilePayload = {|+payload: _DeleteFilePayload, +type: 'fs:deleteFile'|}
@@ -266,6 +269,7 @@ export type FolderListLoadPayload = {|+payload: _FolderListLoadPayload, +type: '
 export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +type: 'fs:folderListLoaded'|}
 export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
 export type HideSystemFileManagerIntegrationBannerPayload = {|+payload: _HideSystemFileManagerIntegrationBannerPayload, +type: 'fs:hideSystemFileManagerIntegrationBanner'|}
+export type IncomingShareOpenPayload = {|+payload: _IncomingShareOpenPayload, +type: 'fs:incomingShareOpen'|}
 export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
 export type KbfsDaemonConnectedPayload = {|+payload: _KbfsDaemonConnectedPayload, +type: 'fs:kbfsDaemonConnected'|}
 export type KbfsDaemonDisconnectedPayload = {|+payload: _KbfsDaemonDisconnectedPayload, +type: 'fs:kbfsDaemonDisconnected'|}
@@ -322,7 +326,7 @@ export type UserFileEditsLoadedPayload = {|+payload: _UserFileEditsLoadedPayload
 export type Actions =
   | CancelDownloadPayload
   | ClearRefreshTagPayload
-  | CloseMoveOrCopyPayload
+  | CloseDestinationPickerPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
@@ -345,6 +349,7 @@ export type Actions =
   | FolderListLoadedPayload
   | FsErrorPayload
   | HideSystemFileManagerIntegrationBannerPayload
+  | IncomingShareOpenPayload
   | JournalUpdatePayload
   | KbfsDaemonConnectedPayload
   | KbfsDaemonDisconnectedPayload
