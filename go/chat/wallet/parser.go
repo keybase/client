@@ -10,6 +10,7 @@ import (
 
 var txPattern = regexp.MustCompile(
 	// Start at the beginng of the line, space, or some hand picked artisanal characters
+	// The initial set must not include "x" which is used as a non-beginning sentinel.
 	`(?:^|[\s([{:;.,])` +
 		// Have a + in front
 		`(\+` +
@@ -39,7 +40,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// false positives from concatenations.
 	replaced := utils.ReplaceQuotedSubstrings(xs, false)
 
-	buf := replaced // buf is a suffix of replaced
+	buf := replaced // buf is either `replaced` or ("x" + a suffix of replaced)
 	bufOffset := 0  // buf[0] is replaced[bufOffset]
 
 	// Munch matches off the front of buf.
@@ -93,8 +94,13 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 			// should never happen
 			return nil
 		}
-		buf = buf[nextIndex:]
+		// Advance `buf` and put an "x" in front so that /^/ doesn't match the new beginning of `buf`.
+		// The new buf[0] isn't really the beginning of the input.
+		buf = "x" + buf[nextIndex:]
 		bufOffset += nextIndex
+		if i == 0 {
+			bufOffset-- // For the introduction of that pesky "x"
+		}
 	}
 	return matches
 }
