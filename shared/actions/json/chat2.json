@@ -560,6 +560,11 @@
       "_description": "Set command markdown for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "md": "?RPCChatTypes.UICommandMarkdown"
+    },
+    "addUsersToChannel": {
+      "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "usernames": "Array<string>"
     }
   }
 }

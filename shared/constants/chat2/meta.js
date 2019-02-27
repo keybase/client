@@ -354,6 +354,13 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
     .toList()
 }
 
+export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
+  state.chat2.metaMap.find(
+    m => m.teamname === teamname && m.channelname === channelname,
+    undefined,
+    emptyMeta
+  )
+
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
   if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin && commands.builtin) {
