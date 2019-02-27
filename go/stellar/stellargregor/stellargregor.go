@@ -29,18 +29,23 @@ func New(g *libkb.GlobalContext, walletState *stellar.WalletState) *Handler {
 }
 
 func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
-	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("WGR")
+	mctx := libkb.NewMetaContextBackground(h.G()).WithLogTag("WAIBM")
 	switch category {
 	case stellar1.PushAutoClaim:
-		return true, h.autoClaim(mctx, cli, category, item)
+		go h.autoClaim(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushPaymentStatus:
-		return true, h.paymentStatus(mctx, cli, category, item)
+		go h.paymentStatus(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushPaymentNotification:
-		return true, h.paymentNotification(mctx, cli, category, item)
+		go h.paymentNotification(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushRequestStatus:
-		return true, h.requestStatus(mctx, cli, category, item)
+		go h.requestStatus(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushAccountChange:
-		return true, h.accountChange(mctx, cli, category, item)
+		go h.accountChange(mctx, cli, category, item)
+		return true, nil
 	default:
 		if strings.HasPrefix(category, "stellar.") {
 			return false, fmt.Errorf("unknown handler category: %q", category)
