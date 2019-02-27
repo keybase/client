@@ -38,20 +38,16 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
     onToggleExpand: this.props.onToggleExpand,
   })
 
-  _renderItem = ({item, section}) => {
-    ;<Row key={p} {...this._rowPropsToProps(item)} />
-  }
+  _renderItem = ({item, section}) => <Row key={item} {...this._rowPropsToProps(item)} />
 
-  _renderSectionHeader = ({section}) => {
-    return <Kb.SectionHeader title={section.title} />
-  }
+  _renderSectionHeader = ({section}) => <Kb.SectionDivider label={section.title} />
 
   render() {
     return (
-      <Kb.Box style={_gitStyle}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.ClickableBox
           ref={this.props.setAttachmentRef}
-          style={_headerStyle}
+          style={styles.header}
           onClick={this.props.toggleShowingMenu}
         >
           <Kb.Icon
@@ -66,8 +62,8 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
           sections={[
-            {title: 'Personal', data: this.props.personals},
-            {title: 'Team', data: this.props.teams},
+            {data: this.props.personals, title: 'Personal'},
+            {data: this.props.teams, title: 'Team'},
           ]}
         />
         <Kb.FloatingMenu
@@ -78,33 +74,19 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
           visible={this.props.showingMenu}
           position="bottom center"
         />
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 }
-const Git = Kb.OverlayParentHOC(_Git)
 
-const _sectionHeaderStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: Styles.isMobile ? 32 : 24,
-  marginTop: Styles.globalMargins.small,
-  paddingLeft: Styles.globalMargins.tiny,
-  width: '100%',
-}
+const styles = Styles.styleSheetCreate({
+  container: {position: 'relative'},
+  header: {
+    ...Styles.globalStyles.flexBoxCenter,
+    ...Styles.globalStyles.flexBoxRow,
+    flexShrink: 0,
+    height: 48,
+  },
+})
 
-const _headerStyle = {
-  ...Styles.globalStyles.flexBoxCenter,
-  ...Styles.globalStyles.flexBoxRow,
-  flexShrink: 0,
-  height: 48,
-}
-
-const _gitStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  height: '100%',
-  position: 'relative',
-  width: '100%',
-}
-
-export default Kb.HeaderOnMobile(Git)
+export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(_Git))
