@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Box} from '../../../../common-adapters/index'
 import * as Sb from '../../../../stories/storybook'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 import CoinFlip from '.'
 import CoinFlipParticipants from './participants'
@@ -45,7 +46,6 @@ const parts = [
 
 const gathering = {
   commitmentVis: '',
-  isError: false,
   participants: [],
   progressText: 'Gathering commitments...',
   resultText: '',
@@ -55,7 +55,6 @@ const gathering = {
 
 const partialGather = {
   commitmentVis,
-  isError: false,
   participants: parts.slice(0, 2),
   progressText: 'Gathered 2 commitments...',
   resultText: '',
@@ -65,7 +64,6 @@ const partialGather = {
 
 const result = {
   commitmentVis,
-  isError: false,
   participants: parts,
   progressText: '2 participants have revealed secrets...',
   resultText: 'HEADS',
@@ -75,7 +73,38 @@ const result = {
 
 const error = {
   commitmentVis: '',
-  isError: true,
+  errorInfo: {
+    generic: 'Something went wrong: Somebody pulled the plug',
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.generic,
+  },
+  participants: [],
+  progressText: 'Something went wrong: Somebody pulled the plug',
+  resultText: '',
+  revealVis: '',
+  showParticipants: false,
+}
+
+const absenteeError = {
+  commitmentVis: '',
+  errorInfo: {
+    absentee: {
+      absentees: [
+        {
+          device: 'boombox',
+          user: 'mikem',
+        },
+        {
+          device: 'walkietalkie',
+          user: 'karenm',
+        },
+        {
+          device: 'longer device name',
+          user: 'dan',
+        },
+      ],
+    },
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee,
+  },
   participants: [],
   progressText: 'Something went wrong: Somebody pulled the plug',
   resultText: '',
@@ -97,6 +126,7 @@ const load = () => {
     .add('Partial Gather', () => <CoinFlip {...partialGather} />)
     .add('Result', () => <CoinFlip {...result} />)
     .add('Error', () => <CoinFlip {...error} />)
+    .add('Absentee Error', () => <CoinFlip {...absenteeError} />)
     .add('Participants', () => <CoinFlipParticipants {...participantProps} />)
 }
 
