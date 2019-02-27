@@ -182,7 +182,6 @@ export const getMargins = (totalWidth: number, widths: Array<number>) => {
       const pickRes = pickRow(totalWidth, index, longRow, shortRow)
       longRow = []
       index = pickRes.index
-      console.log('getMargins: ' + groupWidth(pickRes.row))
       pickRes.row.forEach(im => {
         res.push(im.margin)
       })

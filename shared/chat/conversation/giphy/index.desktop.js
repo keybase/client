@@ -1,4 +1,5 @@
 // @flow
+/* eslint-disable react/no-did-mount-set-state */
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -73,7 +74,7 @@ class GiphySearch extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate({
   container: {
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     minHeight: 200,
   },
   image: {
