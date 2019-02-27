@@ -3,7 +3,9 @@ import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as WaitingGen from '../../../../actions/waiting-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import {anyErrors} from '../../../../constants/waiting'
 import type {RouteProps} from '../../../../route-tree/render-route'
 import AddToChannel from '.'
 
@@ -21,6 +23,7 @@ const mapStateToProps = (state, {routeProps}) => {
     _alreadyAdded: meta.participants,
     _conversationIDKey: conversationIDKey,
     _fullnames,
+    error: anyErrors(state, Constants.waitingKeyAddUsersToChannel),
     title,
   }
 }
@@ -28,7 +31,10 @@ const mapStateToProps = (state, {routeProps}) => {
 const mapDispatchToProps = dispatch => ({
   _onSubmit: (conversationIDKey, usernames) =>
     dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames})),
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => {
+    dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKeyAddUsersToChannel}))
+    dispatch(RouteTreeGen.createNavigateUp())
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -45,7 +51,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       return a.username.localeCompare(b.username)
     })
     .toArray()
+  let error
+  if (stateProps.error) {
+    const e = stateProps.error
+    error = Container.networkErrorCodes.includes(e.code)
+      ? 'There was a problem connecting to the internet, please try again.'
+      : e.message
+  }
   return {
+    error,
     onCancel: dispatchProps.onCancel,
     onSubmit: usernames => dispatchProps._onSubmit(stateProps._conversationIDKey, usernames),
     title: stateProps.title,

@@ -6,6 +6,7 @@ import * as Styles from '../../../../styles'
 import {smartPluralize} from '../../../../util/string'
 
 type Props = {|
+  error: ?string,
   onCancel: () => void,
   onSubmit: (usernames: Array<string>) => void,
   title: string,
@@ -89,28 +90,35 @@ class AddToChannel extends React.Component<Props, State> {
               itemHeight={this._itemHeight}
             />
           </Kb.BoxGrow>
-          <Kb.ButtonBar direction="row">
-            {!Styles.isMobile && (
+          <Kb.Box2 direction="vertical" alignItems="center">
+            <Kb.ButtonBar direction="row">
+              {!Styles.isMobile && (
+                <Kb.WaitingButton
+                  onlyDisable={true}
+                  waitingKey={this.props.waitingKey || null}
+                  type="Secondary"
+                  label="Cancel"
+                  onClick={this.props.onCancel}
+                />
+              )}
               <Kb.WaitingButton
-                onlyDisable={true}
+                disabled={!this.state.selected.size}
                 waitingKey={this.props.waitingKey || null}
-                type="Secondary"
-                label="Cancel"
-                onClick={this.props.onCancel}
+                type="Primary"
+                label={
+                  this.state.selected.size
+                    ? `Add ${this.state.selected.size} ${smartPluralize('user', this.state.selected.size)}`
+                    : 'Add'
+                }
+                onClick={() => this.props.onSubmit(this.state.selected.toArray())}
               />
+            </Kb.ButtonBar>
+            {!!this.props.error && (
+              <Kb.Text type="BodySmallError" center={true}>
+                {this.props.error}
+              </Kb.Text>
             )}
-            <Kb.WaitingButton
-              disabled={!this.state.selected.size}
-              waitingKey={this.props.waitingKey || null}
-              type="Primary"
-              label={
-                this.state.selected.size
-                  ? `Add ${this.state.selected.size} ${smartPluralize('user', this.state.selected.size)}`
-                  : 'Add'
-              }
-              onClick={() => this.props.onSubmit(this.state.selected.toArray())}
-            />
-          </Kb.ButtonBar>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )

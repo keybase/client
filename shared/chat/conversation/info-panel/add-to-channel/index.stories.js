@@ -4,6 +4,7 @@ import * as Sb from '../../../../stories/storybook'
 import AddToChannel from '.'
 
 const props = {
+  error: null,
   onCancel: Sb.action('onCancel'),
   onSubmit: Sb.action('onSubmit'),
   title: 'Add to #random',
@@ -30,6 +31,9 @@ const load = () => {
   Sb.storiesOf('Chat/Conversation/InfoPanel', module)
     .addDecorator(Sb.createPropProviderWithCommon())
     .add('Add to channel', () => <AddToChannel {...props} />)
+    .add('Add to channel error', () => (
+      <AddToChannel {...props} error="We had a problem connecting to the internet. Try again." />
+    ))
 }
 
 export default load

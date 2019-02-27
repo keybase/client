@@ -2701,10 +2701,12 @@ const addUsersToChannel = (_, action) => {
   return RPCChatTypes.localBulkAddToConvRpcPromise(
     {convID: Types.keyToConversationID(conversationIDKey), usernames},
     Constants.waitingKeyAddUsersToChannel
-  ).then(() => [
-    Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
-    Chat2Gen.createNavigateToThread(),
-  ])
+  )
+    .then(() => [
+      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      Chat2Gen.createNavigateToThread(),
+    ])
+    .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
