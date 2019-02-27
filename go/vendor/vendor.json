@@ -71,12 +71,6 @@
 			"revisionTime": "2017-06-26T11:06:00Z"
 		},
 		{
-			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
-			"path": "github.com/Keybase/go-winio",
-			"revision": "b1d96ab97b58dcaf6fd4e4c21cdf73a5bc3a388e",
-			"revisionTime": "2018-09-13T22:10:37Z"
-		},
-		{
 			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
 			"path": "github.com/PuerkitoBio/goquery",
 			"revision": "7f4291566cf7cac3be222a933e01a2bed97532b1",
@@ -699,6 +693,12 @@
 			"path": "github.com/keybase/go-updater/watchdog",
 			"revision": "2acca6d00b278821df4a39569955d8b42c77b6cc",
 			"revisionTime": "2018-01-18T23:10:18Z"
+		},
+		{
+			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
+			"path": "github.com/keybase/go-winio",
+			"revision": "b1d96ab97b58dcaf6fd4e4c21cdf73a5bc3a388e",
+			"revisionTime": "2018-09-13T22:10:37Z"
 		},
 		{
 			"checksumSHA1": "6siKrD8lFPCe0S3OF9E4wuRgUAo=",
