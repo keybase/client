@@ -12,7 +12,7 @@ type Props = {|
 |}
 
 const _AddPeople = (props: Props) => {
-  let menu
+  let menu = null
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
     const items = [{onClick: props.onAddPeople, title: 'To team'}, {disabled: true, title: 'To channel'}]
