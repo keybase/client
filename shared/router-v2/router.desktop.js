@@ -39,11 +39,16 @@ class AppView extends React.PureComponent<any> {
     const activeKey = navigation.state.routes[index].key
     const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
+    const selectedTab = nameToTab[descriptor.state.routeName]
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.contentArea}>
+        <TabBar selectedTab={selectedTab} />
+        <Kb.Box2
+          direction="vertical"
+          fullHeight={true}
+          style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
+        >
           <Header options={descriptor.options} onPop={childNav.pop} allowBack={index !== 0} />
           <SceneView
             navigation={childNav}
@@ -258,6 +263,17 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     position: 'relative',
   },
+  contentAreaLogin: Styles.platformStyles({
+    isElectron: {
+      flexGrow: 1,
+      paddingTop: 20, // don't cover system buttons
+      position: 'relative',
+    },
+    isMobile: {
+      flexGrow: 1,
+      position: 'relative',
+    },
+  }),
   modalContainer: {
     ...Styles.globalStyles.fillAbsolute,
   },

@@ -8,23 +8,23 @@ import DeviceName from './device-name/container'
 import SignupError from './error/container'
 
 const children = {
-  deviceName: {component: DeviceName},
-  inviteCode: {component: InviteCode},
-  passphraseSignup: {component: PassphraseSignup},
-  requestInvite: {component: RequestInvite},
-  requestInviteSuccess: {component: RequestInviteSuccess},
+  signupDeviceName: {component: DeviceName},
   signupError: {component: SignupError},
-  usernameAndEmail: {component: UsernameEmail},
+  signupInviteCode: {component: InviteCode},
+  signupPassphrase: {component: PassphraseSignup},
+  signupRequestInvite: {component: RequestInvite},
+  signupRequestInviteSuccess: {component: RequestInviteSuccess},
+  signupUsernameAndEmail: {component: UsernameEmail},
 }
 
 export default children
 
 export const newRoutes = {
-  deviceName: {getScreen: () => DeviceName},
-  inviteCode: {getScreen: () => InviteCode},
-  passphraseSignup: {getScreen: () => PassphraseSignup},
-  requestInvite: {getScreen: () => RequestInvite},
-  requestInviteSuccess: {getScreen: () => RequestInviteSuccess},
+  signupDeviceName: {getScreen: () => DeviceName},
   signupError: {getScreen: () => SignupError},
-  usernameAndEmail: {getScreen: () => UsernameEmail},
+  signupInviteCode: {getScreen: () => InviteCode},
+  signupPassphrase: {getScreen: () => PassphraseSignup},
+  signupRequestInvite: {getScreen: () => RequestInvite},
+  signupRequestInviteSuccess: {getScreen: () => RequestInviteSuccess},
+  signupUsernameAndEmail: {getScreen: () => UsernameEmail},
 }

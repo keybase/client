@@ -300,12 +300,25 @@ func TestFlipManagerParseEdges(t *testing.T) {
 		ShuffleItems: cards,
 		DeckShuffle:  true,
 	})
-	testCase("/flip cards 5 mikem joshblum chris", flip.FlipType_SHUFFLE, flipTextMetadata{
+	testCase("/flip cards 5 mikem, joshblum, chris", flip.FlipType_SHUFFLE, flipTextMetadata{
 		ShuffleItems:  cards,
 		DeckShuffle:   false,
 		HandCardCount: 5,
 		HandTargets:   []string{"mikem", "joshblum", "chris"},
 	})
+	testCase("/flip cards 5 mike maxim, lisa maxim, anna ", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems:  cards,
+		DeckShuffle:   false,
+		HandCardCount: 5,
+		HandTargets:   []string{"mike maxim", "lisa maxim", "anna"},
+	})
+	testCase("/flip cards 5     mikem,  ,  ,       joshblum,        chris", flip.FlipType_SHUFFLE,
+		flipTextMetadata{
+			ShuffleItems:  cards,
+			DeckShuffle:   false,
+			HandCardCount: 5,
+			HandTargets:   []string{"mikem", "joshblum", "chris"},
+		})
 	testCase("/flip cards 5", flip.FlipType_SHUFFLE, flipTextMetadata{
 		ShuffleItems: cards,
 		DeckShuffle:  true,

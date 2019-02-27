@@ -144,7 +144,7 @@ class Input extends React.Component<InputProps, InputState> {
     // skip debouncing unsentText if so
     let skipDebounce = false
     if (text.length <= this._maxCmdLength) {
-      skipDebounce = !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === text)
+      skipDebounce = !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === text.trim())
     }
     if (skipDebounce) {
       debounced.cancel()

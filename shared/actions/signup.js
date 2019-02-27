@@ -10,6 +10,7 @@ import {loginTab} from '../constants/tabs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
+import flags from '../util/feature-flags'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -26,23 +27,36 @@ const noErrors = (state: TypedState) =>
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 
-const showUserEmailOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']})
+const showUserEmailOnNoErrors = (state: TypedState) => {
+  if (flags.useNewRouter) {
+    return (
+      noErrors(state) && [
+        RouteTreeGen.createNavigateUp(),
+        RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']}),
+      ]
+    )
+  } else {
+    return (
+      noErrors(state) &&
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']})
+    )
+  }
+}
 
 const showInviteScreen = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
   noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
 
 const goToLoginRoot = () => RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
 
 const showPassphraseOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['passphraseSignup']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupPassphrase']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['deviceName']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)

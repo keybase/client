@@ -100,7 +100,6 @@ type AboutTab = 'settingsTabs.aboutTab'
 type AdvancedTab = 'settingsTabs.advancedTab'
 type ChatTab = 'settingsTabs.chatTab'
 type DeleteMeTab = 'settingsTabs.deleteMeTab'
-type DevMenuTab = 'settingsTabs.devMenuTab'
 type DevicesTab = 'settingsTabs.devicesTab'
 type FeedbackTab = 'settingsTabs.feedbackTab'
 type FoldersTab = 'settingsTabs.foldersTab'
@@ -121,7 +120,6 @@ export type Tab =
   | NotificationsTab
   | AdvancedTab
   | DeleteMeTab
-  | DevMenuTab
   | FeedbackTab
   | AboutTab
   | DevicesTab

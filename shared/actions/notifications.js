@@ -6,51 +6,45 @@ import * as NotificationsGen from './notifications-gen'
 import * as FsGen from './fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import {getEngine} from '../engine'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 
-const setupEngineListeners = () => {
-  const channels = {
-    app: true,
-    audit: true,
-    badges: true,
-    chat: true,
-    chatattachments: true,
-    chatdev: false,
-    chatkbfsedits: false,
-    deviceclone: false,
-    ephemeral: false,
-    favorites: false,
-    kbfs: true,
-    kbfsdesktop: !isMobile,
-    kbfslegacy: false,
-    kbfsrequest: false,
-    keyfamily: false,
-    paperkeys: false,
-    pgp: true,
-    reachability: true,
-    service: true,
-    session: true,
-    team: true,
-    tracking: true,
-    users: true,
-    wallet: true,
-  }
-
-  getEngine().actionOnConnect('setNotifications', () => {
-    RPCTypes.notifyCtlSetNotificationsRpcPromise({channels}).catch(error => {
-      if (error != null) {
-        logger.warn('error in toggling notifications: ', error)
-      }
-    })
+const setupNotifications = () =>
+  RPCTypes.notifyCtlSetNotificationsRpcPromise({
+    channels: {
+      app: true,
+      audit: true,
+      badges: true,
+      chat: true,
+      chatattachments: true,
+      chatdev: false,
+      chatkbfsedits: false,
+      deviceclone: false,
+      ephemeral: false,
+      favorites: false,
+      kbfs: true,
+      kbfsdesktop: !isMobile,
+      kbfslegacy: false,
+      kbfsrequest: false,
+      keyfamily: false,
+      paperkeys: false,
+      pgp: true,
+      reachability: true,
+      service: true,
+      session: true,
+      team: true,
+      tracking: true,
+      users: true,
+      wallet: true,
+    },
+  }).catch(error => {
+    if (error != null) {
+      logger.warn('error in toggling notifications: ', error)
+    }
   })
 
-  getEngine().setIncomingCallMap({
-    'keybase.1.NotifyBadges.badgeState': ({badgeState}) =>
-      Saga.put(NotificationsGen.createReceivedBadgeState({badgeState})),
-  })
-}
+const createBadgeState = (_, action) =>
+  NotificationsGen.createReceivedBadgeState({badgeState: action.payload.params.badgeState})
 
 const receivedBadgeState = (state, action) => {
   const payload = Constants.badgeStateToBadgeCounts(action.payload.badgeState, state)
@@ -74,9 +68,10 @@ function* notificationsSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyAuditRootAuditError,
     receivedRootAuditError
   )
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, setupNotifications)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyBadgesBadgeStatePayload>(
+    EngineGen.keybase1NotifyBadgesBadgeState,
+    createBadgeState
   )
 }
 

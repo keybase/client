@@ -6,7 +6,7 @@ import * as EngineGen from './engine-gen-gen'
 import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import engine from '../engine'
+import {getEngine} from '../engine/require'
 
 function* checkPaperKey(_, action) {
   const {paperKey} = action.payload
@@ -42,25 +42,24 @@ const refresh = (_, action) => {
   })
 }
 
-const setupEngineListeners = () => {
-  engine().actionOnConnect('registerRekeyUI', () => {
-    RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
-      .then(response => {
-        logger.info('Registered rekey ui')
-      })
-      .catch(error => {
-        logger.warn('error in registering rekey ui: ')
-        logger.debug('error in registering rekey ui: ', error)
-      })
-  })
+const registerRekeyUI = () =>
+  RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
+    .then(response => {
+      logger.info('Registered rekey ui')
+    })
+    .catch(error => {
+      logger.warn('error in registering rekey ui: ')
+      logger.debug('error in registering rekey ui: ', error)
+    })
 
-  const dispatch = engine().deprecatedGetDispatch()
+const setupEngineListeners = () => {
+  const dispatch = getEngine().deprecatedGetDispatch()
 
   // we get this with sessionID == 0 if we call openDialog
-  engine().setCustomResponseIncomingCallMap({
+  getEngine().setCustomResponseIncomingCallMap({
     'keybase.1.rekeyUI.delegateRekeyUI': (_, response) => {
       // Dangling, never gets closed
-      const session = engine().createSession({
+      const session = getEngine().createSession({
         dangling: true,
         incomingCallMap: {
           'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
@@ -92,6 +91,7 @@ function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
     setupEngineListeners
   )
   yield* Saga.chainAction<EngineGen.Keybase1RekeyUIRefreshPayload>(EngineGen.keybase1RekeyUIRefresh, refresh)
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, registerRekeyUI)
 }
 
 export default unlockFoldersSaga
