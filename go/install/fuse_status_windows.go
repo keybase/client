@@ -109,15 +109,17 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	current, err := isDokanCurrent(log, dokanPath)
 	if err != nil {
 		log.Errorf(err.Error())
-	} else if !current {
+		return status
+	}
+	if !current {
 		status.InstallAction = keybase1.InstallAction_UPGRADE
-		uninstallString := findDokanUninstall(true)
-		if uninstallString == "" {
-			uninstallString = findDokanUninstall(false)
-		}
-		if uninstallString != "" {
-			status.Status.Fields = append(status.Status.Fields, keybase1.StringKVPair{Key: "uninstallString", Value: uninstallString})
-		}
+	}
+	uninstallString := findDokanUninstall(true)
+	if uninstallString == "" {
+		uninstallString = findDokanUninstall(false)
+	}
+	if uninstallString != "" {
+		status.Status.Fields = append(status.Status.Fields, keybase1.StringKVPair{Key: "uninstallString", Value: uninstallString})
 	}
 	return status
 }
