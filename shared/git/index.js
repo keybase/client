@@ -38,6 +38,14 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
     onToggleExpand: this.props.onToggleExpand,
   })
 
+  _renderItem = ({item, section}) => {
+    ;<Row key={p} {...this._rowPropsToProps(item)} />
+  }
+
+  _renderSectionHeader = ({section}) => {
+    return <Kb.SectionHeader title={section.title} />
+  }
+
   render() {
     return (
       <Kb.Box style={_gitStyle}>
@@ -54,38 +62,14 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
           />
           <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
         </Kb.ClickableBox>
-        <Kb.ScrollView>
-          <Kb.Box style={_sectionHeaderStyle}>
-            <Kb.Text type="BodySmallSemibold">Personal</Kb.Text>
-            {this.props.loading && (
-              <Kb.ProgressIndicator
-                style={{
-                  alignSelf: 'center',
-                  marginLeft: Styles.globalMargins.small,
-                  width: Styles.globalMargins.small,
-                }}
-              />
-            )}
-          </Kb.Box>
-          {this.props.personals.map(p => (
-            <Row key={p} {...this._rowPropsToProps(p)} />
-          ))}
-          <Kb.Box style={_sectionHeaderStyle}>
-            <Kb.Text type="BodySmallSemibold">Team</Kb.Text>
-            {this.props.loading && (
-              <Kb.ProgressIndicator
-                style={{
-                  alignSelf: 'center',
-                  marginLeft: Styles.globalMargins.small,
-                  width: Styles.globalMargins.small,
-                }}
-              />
-            )}
-          </Kb.Box>
-          {this.props.teams.map(p => (
-            <Row key={p} {...this._rowPropsToProps(p)} />
-          ))}
-        </Kb.ScrollView>
+        <Kb.SectionList
+          renderItem={this._renderItem}
+          renderSectionHeader={this._renderSectionHeader}
+          sections={[
+            {title: 'Personal', data: this.props.personals},
+            {title: 'Team', data: this.props.teams},
+          ]}
+        />
         <Kb.FloatingMenu
           attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
