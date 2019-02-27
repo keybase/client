@@ -2699,6 +2699,11 @@ const prepareFulfillRequestForm = (state, action) => {
   })
 }
 
+const addUsersToChannel = (_, action) => {
+  const {usernames} = action.payload
+  logger.info('TODO addUsersToChannel', usernames)
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2974,6 +2979,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.selectConversation,
     loadChannelInfos
   )
+
+  yield* Saga.chainAction<Chat2Gen.AddUsersToChannelPayload>(Chat2Gen.addUsersToChannel, addUsersToChannel)
 
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPromptUnfurlPayload>(
     EngineGen.chat1NotifyChatChatPromptUnfurl,

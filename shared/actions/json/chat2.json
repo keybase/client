@@ -551,7 +551,7 @@
       "messageID": "Types.MessageID",
       "collapse": "boolean"
     },
-    "toggleInfoPanel": { },
+    "toggleInfoPanel": {},
     "updateCoinFlipStatus": {
       "_description": "Update status of a coin flip game",
       "statuses": "Array<RPCChatTypes.UICoinFlipStatus>"
@@ -560,6 +560,11 @@
       "_description": "Set command markdown for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "string"
+    },
+    "addUsersToChannel": {
+      "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "usernames": "Array<string>"
     }
   }
 }

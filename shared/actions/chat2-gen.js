@@ -13,6 +13,7 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
+export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentFullscreenNext = 'chat2:attachmentFullscreenNext'
@@ -115,6 +116,7 @@ export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Payload Types
+type _AddUsersToChannelPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, usernames: Array<string>|}>
 type _AttachmentDownloadPayload = $ReadOnly<{|message: Types.Message|}>
 type _AttachmentDownloadedPayload = $ReadOnly<{|message: Types.Message, path?: string|}>
 type _AttachmentFullscreenNextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, backInTime: boolean|}>
@@ -225,6 +227,10 @@ type _UpdateUnreadlinePayload = $ReadOnly<{|conversationIDKey: Types.Conversatio
  * Actually start a conversation
  */
 export const createCreateConversation = (payload: _CreateConversationPayload) => ({payload, type: createConversation})
+/**
+ * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
+ */
+export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload) => ({payload, type: addUsersToChannel})
 /**
  * Add an unfurl prompt to a message
  */
@@ -432,6 +438,7 @@ export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({p
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
 
 // Action Payloads
+export type AddUsersToChannelPayload = {|+payload: _AddUsersToChannelPayload, +type: 'chat2:addUsersToChannel'|}
 export type AttachmentDownloadPayload = {|+payload: _AttachmentDownloadPayload, +type: 'chat2:attachmentDownload'|}
 export type AttachmentDownloadedPayload = {|+payload: _AttachmentDownloadedPayload, +type: 'chat2:attachmentDownloaded'|}
 export type AttachmentFullscreenNextPayload = {|+payload: _AttachmentFullscreenNextPayload, +type: 'chat2:attachmentFullscreenNext'|}
@@ -537,6 +544,7 @@ export type UpdateUnreadlinePayload = {|+payload: _UpdateUnreadlinePayload, +typ
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentFullscreenNextPayload
