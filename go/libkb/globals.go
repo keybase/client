@@ -1334,5 +1334,6 @@ func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
 	return g.Env.GetRunMode() == DevelRunMode ||
 		g.Env.RunningInCI() ||
 		g.Env.GetFeatureFlags().Admin() ||
-		g.Env.GetProveBypass()
+		g.Env.GetProveBypass() ||
+		g.Env.GetFeatureFlags().HasFeature(ExperimentalGenericProofs)
 }
