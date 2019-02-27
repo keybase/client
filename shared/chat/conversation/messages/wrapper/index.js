@@ -354,6 +354,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'systemChangeRetention':
         child = <SystemChangeRetention key="systemChangeRetention" message={message} />
         break
+      case 'systemUsersAddedToConversation':
+        child = null
+        break
       case 'systemJoined':
         child = <SystemJoined key="systemJoined" message={message} />
         break
