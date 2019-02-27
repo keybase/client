@@ -285,14 +285,18 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
-      return state.update('moveOrCopy', mc =>
-        mc.set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
+      return state.update('destinationPicker', mc =>
+        (mc.type === 'move-or-copy' ? mc : Constants.makeMoveOrCopy())
+          .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
-      return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
+      return state.update('destinationPicker', mc =>
+        (mc.type === 'move-or-copy' ? mc : Constants.makeMoveOrCopy())
+          .set('sourceItemPath', action.payload.path))
     case FsGen.setMoveOrCopyDestinationParentPath:
-      return state.update('moveOrCopy', mc =>
-        mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+      return state.update('destinationPicker', mc =>
+        (mc.type === 'move-or-copy' ? mc : Constants.makeMoveOrCopy())
+          .update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
       )
     case FsGen.showSendLinkToChat:
       return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))

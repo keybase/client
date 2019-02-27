@@ -15,14 +15,16 @@ type OwnProps = RouteProps<
 >
 
 const mapStateToProps = state => ({
-  _moveOrCopy: state.fs.moveOrCopy,
+  _destinationPicker: state.fs.destinationPicker,
   _pathItems: state.fs.pathItems,
 })
 
 const getDestinationParentPath = memoize((stateProps, ownProps: OwnProps) =>
-  stateProps._moveOrCopy.destinationParentPath.get(
+  stateProps._destinationPicker.destinationParentPath.get(
     ownProps.routeProps.get('index', 0),
-    Types.getPathParent(stateProps._moveOrCopy.sourceItemPath)
+    stateProps._destinationPicker.type === 'move-or-copy'
+      ? Types.getPathParent(stateProps._destinationPicker.sourceItemPath)
+      : Types.stringToPath('/keybase')
   )
 )
 
@@ -58,15 +60,18 @@ const canWrite = memoize(
 const canCopy = memoize(
   (stateProps, ownProps: OwnProps) =>
     canWrite(stateProps, ownProps) &&
-    getDestinationParentPath(stateProps, ownProps) !==
-      Types.getPathParent(stateProps._moveOrCopy.sourceItemPath)
+    (stateProps._destinationPicker.type === 'incoming-share' ||
+      getDestinationParentPath(stateProps, ownProps) !==
+        // $FlowIssue ¯\_(ツ)_/¯
+        Types.getPathParent(stateProps._destinationPicker.sourceItemPath))
 )
 
 const canMove = memoize(
   (stateProps, ownProps: OwnProps) =>
     canCopy(stateProps, ownProps) &&
+    stateProps._destinationPicker.type === 'move-or-copy' &&
     Constants.pathsInSameTlf(
-      stateProps._moveOrCopy.sourceItemPath,
+      stateProps._destinationPicker.sourceItemPath,
       getDestinationParentPath(stateProps, ownProps)
     )
 )
@@ -96,7 +101,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     : null,
   parentPath: getDestinationParentPath(stateProps, ownProps),
   routePath: ownProps.routePath,
-  targetName: Types.getPathName(stateProps._moveOrCopy.sourceItemPath),
+  targetName: Constants.getDestinationPickerPathName(stateProps._destinationPicker),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
