@@ -87,6 +87,7 @@
   "keybase.1.config.waitForClient": {"promise": true},
   "keybase.1.cryptocurrency.registerAddress": {"promise": true},
   "keybase.1.ctl.dbNuke": {"promise": true},
+  "keybase.1.ctl.dbClean": {"promise": true},
   "keybase.1.delegateUiCtl.registerChatUI": {"promise": true},
   "keybase.1.delegateUiCtl.registerGregorFirehoseFiltered": {"promise": true},
   "keybase.1.delegateUiCtl.registerHomeUI": {"promise": true},

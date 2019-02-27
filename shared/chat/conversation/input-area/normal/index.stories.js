@@ -116,9 +116,9 @@ const InputContainer = (props: Props) => {
     showWalletsIcon: !props.isEditing,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [
-      {description: 'Hide current or given conv', name: 'hide', usage: '[conversation]'},
-      {description: 'Message a user', name: 'msg', usage: '<conversation> <msg>'},
-      {description: 'Send a shrug', name: 'shrug', usage: ''},
+      {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},
+      {description: 'Message a user', hasHelpText: false, name: 'msg', usage: '<conversation> <msg>'},
+      {description: 'Send a shrug', hasHelpText: false, name: 'shrug', usage: ''},
     ],
     suggestUsers: List([
       {fullName: 'Danny Ayoub', username: 'ayoubd'},

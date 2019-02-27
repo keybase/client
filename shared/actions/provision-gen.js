@@ -17,6 +17,7 @@ export const showCodePage = 'provision:showCodePage'
 export const showDeviceListPage = 'provision:showDeviceListPage'
 export const showFinalErrorPage = 'provision:showFinalErrorPage'
 export const showGPGPage = 'provision:showGPGPage'
+export const showInlineError = 'provision:showInlineError'
 export const showNewDeviceNamePage = 'provision:showNewDeviceNamePage'
 export const showPaperkeyPage = 'provision:showPaperkeyPage'
 export const showPassphrasePage = 'provision:showPassphrasePage'
@@ -38,6 +39,7 @@ type _ShowCodePagePayload = $ReadOnly<{|code: HiddenString, error: ?HiddenString
 type _ShowDeviceListPagePayload = $ReadOnly<{|devices: Array<Types.Device>|}>
 type _ShowFinalErrorPagePayload = $ReadOnly<{|finalError: RPCError, fromDeviceAdd: boolean|}>
 type _ShowGPGPagePayload = void
+type _ShowInlineErrorPayload = $ReadOnly<{|inlineError: RPCError|}>
 type _ShowNewDeviceNamePagePayload = $ReadOnly<{|existingDevices: Array<string>, error: ?HiddenString|}>
 type _ShowPaperkeyPagePayload = $ReadOnly<{|error: ?HiddenString|}>
 type _ShowPassphrasePagePayload = $ReadOnly<{|error: ?HiddenString|}>
@@ -66,6 +68,7 @@ export const createProvisionError = (payload: _ProvisionErrorPayload) => ({paylo
 export const createShowCodePage = (payload: _ShowCodePagePayload) => ({payload, type: showCodePage})
 export const createShowFinalErrorPage = (payload: _ShowFinalErrorPagePayload) => ({payload, type: showFinalErrorPage})
 export const createShowGPGPage = (payload: _ShowGPGPagePayload) => ({payload, type: showGPGPage})
+export const createShowInlineError = (payload: _ShowInlineErrorPayload) => ({payload, type: showInlineError})
 export const createShowPaperkeyPage = (payload: _ShowPaperkeyPagePayload) => ({payload, type: showPaperkeyPage})
 export const createShowPassphrasePage = (payload: _ShowPassphrasePagePayload) => ({payload, type: showPassphrasePage})
 export const createStartProvision = (payload: _StartProvisionPayload) => ({payload, type: startProvision})
@@ -86,6 +89,7 @@ export type ShowCodePagePayload = {|+payload: _ShowCodePagePayload, +type: 'prov
 export type ShowDeviceListPagePayload = {|+payload: _ShowDeviceListPagePayload, +type: 'provision:showDeviceListPage'|}
 export type ShowFinalErrorPagePayload = {|+payload: _ShowFinalErrorPagePayload, +type: 'provision:showFinalErrorPage'|}
 export type ShowGPGPagePayload = {|+payload: _ShowGPGPagePayload, +type: 'provision:showGPGPage'|}
+export type ShowInlineErrorPayload = {|+payload: _ShowInlineErrorPayload, +type: 'provision:showInlineError'|}
 export type ShowNewDeviceNamePagePayload = {|+payload: _ShowNewDeviceNamePagePayload, +type: 'provision:showNewDeviceNamePage'|}
 export type ShowPaperkeyPagePayload = {|+payload: _ShowPaperkeyPagePayload, +type: 'provision:showPaperkeyPage'|}
 export type ShowPassphrasePagePayload = {|+payload: _ShowPassphrasePagePayload, +type: 'provision:showPassphrasePage'|}
@@ -109,6 +113,7 @@ export type Actions =
   | ShowDeviceListPagePayload
   | ShowFinalErrorPagePayload
   | ShowGPGPagePayload
+  | ShowInlineErrorPayload
   | ShowNewDeviceNamePagePayload
   | ShowPaperkeyPagePayload
   | ShowPassphrasePagePayload

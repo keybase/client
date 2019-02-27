@@ -134,7 +134,7 @@ type RemoteProofChainLink interface {
 	GetRemoteUsername() string
 	GetHostname() string
 	GetProtocol() string
-	DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error
+	DisplayCheck(m MetaContext, ui IdentifyUI, lcr LinkCheckResult) error
 	ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrapper, error)
 	CheckDataJSON() *jsonw.Wrapper
 	ToIDString() string
@@ -184,8 +184,8 @@ func (w *WebProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jso
 	return ret, nil
 }
 
-func (w *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error {
-	return ui.FinishWebProofCheck(ExportRemoteProof(w), lcr.Export())
+func (w *WebProofChainLink) DisplayCheck(m MetaContext, ui IdentifyUI, lcr LinkCheckResult) error {
+	return ui.FinishWebProofCheck(m, ExportRemoteProof(w), lcr.Export())
 }
 
 func (w *WebProofChainLink) Type() string { return "proof" }
@@ -277,8 +277,8 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	}
 }
 
-func (s *SocialProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error {
-	return ui.FinishSocialProofCheck(ExportRemoteProof(s), lcr.Export())
+func (s *SocialProofChainLink) DisplayCheck(m MetaContext, ui IdentifyUI, lcr LinkCheckResult) error {
+	return ui.FinishSocialProofCheck(m, ExportRemoteProof(s), lcr.Export())
 }
 
 func (s *SocialProofChainLink) CheckDataJSON() *jsonw.Wrapper {
@@ -977,8 +977,8 @@ func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err erro
 	return VerifyReverseSig(s.G(), key, "body.wallet_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
-func (s *WalletStellarChainLink) Display(ui IdentifyUI) error {
-	return ui.DisplayStellarAccount(keybase1.StellarAccount{
+func (s *WalletStellarChainLink) Display(m MetaContext, ui IdentifyUI) error {
+	return ui.DisplayStellarAccount(m, keybase1.StellarAccount{
 		AccountID:         s.address,
 		FederationAddress: fmt.Sprintf("%s*keybase.io", s.GetUsername()),
 		SigID:             s.GetSigID(),
@@ -1095,8 +1095,8 @@ func (c *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.cryptocurrency = append(tab.cryptocurrency, c)
 }
 
-func (c CryptocurrencyChainLink) Display(ui IdentifyUI) error {
-	return ui.DisplayCryptocurrency(c.Export())
+func (c CryptocurrencyChainLink) Display(m MetaContext, ui IdentifyUI) error {
+	return ui.DisplayCryptocurrency(m, c.Export())
 }
 
 //
@@ -1168,7 +1168,7 @@ func (s *SelfSigChainLink) ProofText() string          { return "" }
 
 func (s *SelfSigChainLink) GetPGPFullHash() string { return s.extractPGPFullHash("key") }
 
-func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error {
+func (s *SelfSigChainLink) DisplayCheck(m MetaContext, ui IdentifyUI, lcr LinkCheckResult) error {
 	return nil
 }
 
@@ -1517,13 +1517,13 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 
 	allAcc := idt.AllActiveCryptocurrency()
 	for _, acc := range allAcc {
-		if err := acc.Display(ui); err != nil {
+		if err := acc.Display(m, ui); err != nil {
 			return err
 		}
 	}
 
 	if stellar := idt.stellar; stellar != nil {
-		if err := stellar.Display(ui); err != nil {
+		if err := stellar.Display(m, ui); err != nil {
 			return err
 		}
 	}
@@ -1545,7 +1545,7 @@ func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResul
 	if ccl != nil {
 		ccl.CCLCheckCompleted(lcr)
 	}
-	return lcr.link.DisplayCheck(ui, *lcr)
+	return lcr.link.DisplayCheck(m, ui, *lcr)
 }
 
 type LinkCheckResult struct {

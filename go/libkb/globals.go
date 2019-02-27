@@ -644,6 +644,14 @@ func (g *GlobalContext) GetAppType() AppType {
 	return g.Env.GetAppType()
 }
 
+func (g *GlobalContext) IsMobileAppType() bool {
+	return g.Env.GetAppType() == MobileAppType
+}
+
+func (g *GlobalContext) IsDesktopAppType() bool {
+	return g.Env.GetAppType() == DesktopAppType
+}
+
 func (g *GlobalContext) ConfigureExportedStreams() error {
 	g.XStreams = NewExportedStreams()
 	return nil

@@ -132,9 +132,6 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case NeedOtherRekeyError:
 		code = keybase1.FSErrorType_REKEY_NEEDED
 		params[errorParamRekeySelf] = "false"
-	case FileTooBigForCRError:
-		code = keybase1.FSErrorType_NOT_IMPLEMENTED
-		params[errorParamFeature] = errorFeatureFileLimit
 	case kbfsmd.NewMetadataVersionError:
 		code = keybase1.FSErrorType_OLD_VERSION
 		err = OutdatedVersionError{}

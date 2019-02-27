@@ -90,6 +90,23 @@
       ],
       "response": null
     },
+    "dbClean": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        },
+        {
+          "name": "dbType",
+          "type": "DbType"
+        }
+      ],
+      "response": null
+    },
     "appExit": {
       "request": [
         {

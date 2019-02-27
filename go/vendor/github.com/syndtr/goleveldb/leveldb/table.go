@@ -150,6 +150,14 @@ func (tf tFiles) searchMax(icmp *iComparer, ikey internalKey) int {
 	})
 }
 
+// Searches smallest index of tables whose its file number
+// is smaller than the given number.
+func (tf tFiles) searchNumLess(num int64) int {
+	return sort.Search(len(tf), func(i int) bool {
+		return tf[i].fd.Num < num
+	})
+}
+
 // Returns true if given key range overlaps with one or more
 // tables key range. If unsorted is true then binary search will not be used.
 func (tf tFiles) overlaps(icmp *iComparer, umin, umax []byte, unsorted bool) bool {
@@ -290,11 +298,12 @@ func (x *tFilesSortByNum) Less(i, j int) bool {
 
 // Table operations.
 type tOps struct {
-	s      *session
-	noSync bool
-	cache  *cache.Cache
-	bcache *cache.Cache
-	bpool  *util.BufferPool
+	s            *session
+	noSync       bool
+	evictRemoved bool
+	cache        *cache.Cache
+	bcache       *cache.Cache
+	bpool        *util.BufferPool
 }
 
 // Creates an empty table and returns table writer.
@@ -422,7 +431,7 @@ func (t *tOps) remove(f *tFile) {
 		} else {
 			t.s.logf("table@remove removed @%d", f.fd.Num)
 		}
-		if t.bcache != nil {
+		if t.evictRemoved && t.bcache != nil {
 			t.bcache.EvictNS(uint64(f.fd.Num))
 		}
 	})
@@ -459,11 +468,12 @@ func newTableOps(s *session) *tOps {
 		bpool = util.NewBufferPool(s.o.GetBlockSize() + 5)
 	}
 	return &tOps{
-		s:      s,
-		noSync: s.o.GetNoSync(),
-		cache:  cache.NewCache(cacher),
-		bcache: bcache,
-		bpool:  bpool,
+		s:            s,
+		noSync:       s.o.GetNoSync(),
+		evictRemoved: s.o.GetBlockCacheEvictRemoved(),
+		cache:        cache.NewCache(cacher),
+		bcache:       bcache,
+		bpool:        bpool,
 	}
 }
 

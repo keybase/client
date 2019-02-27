@@ -1041,17 +1041,6 @@ func (e cachePutCacheFullError) Error() string {
 		e.blockID)
 }
 
-// FileTooBigForCRError indicates that a file is too big to fit in
-// memory, and CR can't handle it.
-type FileTooBigForCRError struct {
-	p path
-}
-
-// Error implements the error interface for FileTooBigForCRError.
-func (e FileTooBigForCRError) Error() string {
-	return fmt.Sprintf("Cannot complete CR because the file %s is too big", e.p)
-}
-
 // NoMergedMDError indicates that no MDs for this folder have been
 // created yet.
 type NoMergedMDError struct {

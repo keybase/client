@@ -10,12 +10,6 @@ protocol ctl {
     RESTART_4
   }
 
-  void stop(int sessionID, ExitCode exitCode);
-  void logRotate(int sessionID);
-  void reload(int sessionID);
-  void dbNuke(int sessionID);
-  void appExit(int sessionID);
-
   enum DbType {
     MAIN_0,
     CHAT_1
@@ -28,6 +22,14 @@ protocol ctl {
   }
 
   @typedef("bytes") record DbValue {}
+
+
+  void stop(int sessionID, ExitCode exitCode);
+  void logRotate(int sessionID);
+  void reload(int sessionID);
+  void dbNuke(int sessionID);
+  void dbClean(int sessionID, boolean force, DbType dbType);
+  void appExit(int sessionID);
 
   void dbDelete(int sessionID, DbKey key);
   void dbPut(int sessionID, DbKey key, DbValue value);

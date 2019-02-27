@@ -11,7 +11,7 @@ const EmojiWrapper = (props: Props) => {
   return (
     <Text
       type="Body"
-      style={{fontSize: size, lineHeight: undefined}}
+      style={{fontSize: size ? size - 2 : undefined, lineHeight: undefined}} // Mobile emoji need to be smaller with Proxima Nova
       allowFontScaling={props.allowFontScaling}
     >
       {!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix}

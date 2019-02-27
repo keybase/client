@@ -79,6 +79,7 @@ const StartButton = (props: StartButtonProps) => (
 )
 
 type State = {
+  cleanTook: number,
   clickCount: number,
   indexTook: number,
 }
@@ -92,6 +93,7 @@ class Developer extends React.Component<Props, State> {
     super(props)
 
     this.state = {
+      cleanTook: -1,
       clickCount: 0,
       indexTook: -1,
     }
@@ -154,6 +156,20 @@ class Developer extends React.Component<Props, State> {
               RPCChatTypes.localProfileChatSearchRpcPromise({
                 identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
               }).then(() => this.setState({indexTook: Date.now() - start}))
+            }}
+          />
+        )}
+        {flags.dbCleanEnabled && (
+          <Kb.Button
+            type="Primary"
+            label={`DB clean: ${this.state.cleanTook}ms`}
+            onClick={() => {
+              this.setState({cleanTook: -1})
+              const start = Date.now()
+              RPCTypes.ctlDbCleanRpcPromise({
+                dbType: RPCTypes.ctlDbType.main, // core db
+                force: true,
+              }).then(() => this.setState({cleanTook: Date.now() - start}))
             }}
           />
         )}
