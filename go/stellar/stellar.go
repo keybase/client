@@ -1,7 +1,6 @@
 package stellar
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
 	"errors"
@@ -742,7 +741,7 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		if err != nil {
 			return nil, err
 		}
-		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, senderRate.Currency, FmtRound)
+		summary.DisplayTotal, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, senderRate.Currency, stellarnet.Round)
 		if err != nil {
 			return nil, err
 		}
@@ -765,7 +764,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 			spec.Error = err
 			return spec, 0
 		}
-		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx, payment.Amount, exchangeRate.Currency, FmtRound)
+		spec.DisplayAmount, err = FormatCurrencyWithCodeSuffix(mctx, payment.Amount, exchangeRate.Currency, stellarnet.Round)
 		if err != nil {
 			spec.Error = err
 			return spec, 0
@@ -1474,12 +1473,7 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 	return username, nil
 }
 
-type FmtRounding bool
-
-const FmtRound = false
-const FmtTruncate = true
-
-func FormatCurrency(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
+func FormatCurrency(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding stellarnet.FmtRoundingBehavior) (string, error) {
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err != nil {
 		return "", err
@@ -1489,52 +1483,21 @@ func FormatCurrency(mctx libkb.MetaContext, amount string, code stellar1.Outside
 		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
 	}
 
-	amountFmt, err := FormatAmount(mctx, amount, true, rounding)
-	if err != nil {
-		return "", err
-	}
-
-	if currency.Symbol.Postfix {
-		return fmt.Sprintf("%s %s", amountFmt, currency.Symbol.Symbol), nil
-	}
-
-	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
+	return stellarnet.FmtCurrency(amount, rounding, currency.Symbol.Symbol, currency.Symbol.Postfix)
 }
 
 // FormatCurrencyWithCodeSuffix will return a fiat currency amount formatted with
 // its currency code suffix at the end, like "$123.12 CLP"
-func FormatCurrencyWithCodeSuffix(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
-	pre, err := FormatCurrency(mctx, amount, code, rounding)
-	if err != nil {
-		return "", err
-	}
-
-	// some currencies have the same symbol as code (CHF)
+func FormatCurrencyWithCodeSuffix(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding stellarnet.FmtRoundingBehavior) (string, error) {
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err != nil {
 		return "", err
 	}
 	currency, ok := conf.Currencies[code]
 	if !ok {
-		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
+		return "", fmt.Errorf("FormatCurrencyWithCodeSuffix error: cannot find curency code %q", code)
 	}
-	if currency.Symbol.Postfix && currency.Symbol.Symbol == code.String() {
-		return pre, nil
-	}
-
-	return fmt.Sprintf("%s %s", pre, code), nil
-}
-
-func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stellar1.OutsideCurrencyCode) (string, error) {
-	conf, err := g.GetStellar().GetServerDefinitions(ctx)
-	if err != nil {
-		return "", err
-	}
-	currency, ok := conf.Currencies[code]
-	if !ok {
-		return "", fmt.Errorf("FormatCurrencyLabel error: cannot find curency code %q", code)
-	}
-	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
+	return stellarnet.FmtCurrencyWithCodeSuffix(amount, rounding, string(code), currency.Symbol.Symbol, currency.Symbol.Postfix)
 }
 
 // Return an error if asset is completely outside of what we understand, like
@@ -1592,7 +1555,7 @@ func FormatAmountDescriptionAssetEx(mctx libkb.MetaContext, amount string, asset
 	if err != nil {
 		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-	amountFormatted, err := FormatAmount(mctx, amount, false /* precisionTwo */, FmtRound)
+	amountFormatted, err := FormatAmount(mctx, amount, false /* precisionTwo */, stellarnet.Round)
 	if err != nil {
 		return "", err
 	}
@@ -1624,7 +1587,7 @@ func FormatAmountDescriptionXLM(mctx libkb.MetaContext, amount string) (string, 
 }
 
 func FormatAmountWithSuffix(mctx libkb.MetaContext, amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
-	formatted, err := FormatAmount(mctx, amount, precisionTwo, FmtRound)
+	formatted, err := FormatAmount(mctx, amount, precisionTwo, stellarnet.Round)
 	if err != nil {
 		return "", err
 	}
@@ -1634,68 +1597,12 @@ func FormatAmountWithSuffix(mctx libkb.MetaContext, amount string, precisionTwo 
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
 
-func FormatAmount(mctx libkb.MetaContext, amount string, precisionTwo bool, rounding FmtRounding) (string, error) {
+func FormatAmount(mctx libkb.MetaContext, amount string, precisionTwo bool, rounding stellarnet.FmtRoundingBehavior) (string, error) {
 	if amount == "" {
 		EmptyAmountStack(mctx)
 		return "", fmt.Errorf("empty amount")
 	}
-	x, err := stellarnet.ParseAmount(amount)
-	if err != nil {
-		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
-	}
-	precision := 7
-	if precisionTwo {
-		precision = 2
-	}
-	var s string
-	if rounding == FmtRound {
-		s = x.FloatString(precision)
-	} else {
-		s = x.FloatString(precision + 1)
-		s = s[:len(s)-1]
-	}
-	parts := strings.Split(s, ".")
-	if len(parts) != 2 {
-		return "", fmt.Errorf("unable to parse amount %s", amount)
-	}
-	var hasComma bool
-	head := parts[0]
-	if len(head) > 0 {
-		sinceComma := 0
-		var b bytes.Buffer
-		for i := len(head) - 1; i >= 0; i-- {
-			if sinceComma == 3 && head[i] != '-' {
-				b.WriteByte(',')
-				sinceComma = 0
-				hasComma = true
-			}
-			b.WriteByte(head[i])
-			sinceComma++
-		}
-		parts[0] = reverse(b.String())
-	}
-	if parts[1] == "0000000" {
-		// Remove decimal part if it's all zeroes in 7-digit precision.
-		if hasComma {
-			// With the exception of big numbers where we inserted
-			// thousands separator - leave fractional part with two
-			// digits so we can have decimal point, but not all the
-			// distracting 7 zeroes.
-			parts[1] = "00"
-		} else {
-			parts = parts[:1]
-		}
-	}
-
-	return strings.Join(parts, "."), nil
-}
-
-func reverse(s string) string {
-	r := []rune(s)
-	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
-		r[i], r[j] = r[j], r[i]
-	}
-	return string(r)
+	return stellarnet.FmtAmount(amount, precisionTwo, rounding)
 }
 
 // ChangeAccountName changes the name of an account.

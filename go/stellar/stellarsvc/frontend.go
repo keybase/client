@@ -106,7 +106,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	}
 
 	for _, d := range details.Balances {
-		fmtAmount, err := stellar.FormatAmount(mctx, d.Amount, false, stellar.FmtRound)
+		fmtAmount, err := stellar.FormatAmount(mctx, d.Amount, false, stellarnet.Round)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
 			return nil, err
@@ -120,7 +120,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				stellar.EmptyAmountStack(mctx)
 				availableAmount = "0"
 			}
-			fmtAvailable, err := stellar.FormatAmount(mctx, availableAmount, false, stellar.FmtRound)
+			fmtAvailable, err := stellar.FormatAmount(mctx, availableAmount, false, stellarnet.Round)
 			if err != nil {
 				return nil, err
 			}
@@ -141,7 +141,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting amount: %v", err)
 				}
-				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellar.FmtRound)
+				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellarnet.Round)
 				if err != nil {
 					return fmt.Errorf("formatting converted amount: %v", err)
 				}
@@ -150,7 +150,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting available amount: %v", err)
 				}
-				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAvailableAmount, rate.Currency, stellar.FmtRound)
+				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAvailableAmount, rate.Currency, stellarnet.Round)
 				if err != nil {
 					return fmt.Errorf("formatting converted available amount: %v", err)
 				}
