@@ -34,6 +34,7 @@ type StartOptions struct {
 
 func startMounting(options StartOptions,
 	log logger.Logger, mi *libfs.MountInterrupter) error {
+	log.Info("Starting mount with options: %#v", options)
 	var mounter = &mounter{options: options, log: log}
 	err := mi.MountAndSetUnmount(mounter)
 	if err != nil {
