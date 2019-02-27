@@ -55,6 +55,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) 
       ])
     )
   },
+  clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
   loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
   onBack: () => {
     dispatch(navigateUp())
@@ -111,6 +112,7 @@ export default compose(
   ),
   lifecycle({
     componentDidMount() {
+      this.props.clearAddUserToTeamsResults()
       this.props.loadTeamList()
     },
   }),
@@ -128,11 +130,13 @@ export default compose(
   ),
   withHandlers({
     // Return rows set to true.
-    onSave: props => () =>
+    onSave: props => () => {
       props.onAddToTeams(
         props.role,
         Object.keys(props.selectedTeams).filter(team => props.selectedTeams[team])
-      ),
+      )
+      props.setSelectedTeams({})
+    },
     onToggle: props => (teamname: string) => {
       props.onClearAddUserToTeamsResults()
       props.setSelectedTeams({
