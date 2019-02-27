@@ -546,10 +546,17 @@ func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.
 		if err != nil {
 			return deckShuffle, deckShuffleMetadata, nil
 		}
+		var targets []string
+		for _, pt := range strings.Split(strings.Join(toks[2:], " "), ",") {
+			t := strings.Trim(pt, " ")
+			if len(t) > 0 {
+				targets = append(targets, t)
+			}
+		}
 		return deckShuffle, flipTextMetadata{
 			ShuffleItems:  deckShuffleMetadata.ShuffleItems,
 			HandCardCount: uint(handCount),
-			HandTargets:   toks[2:],
+			HandTargets:   targets,
 		}, nil
 	}
 	return start, metadata, errFailedToParse
