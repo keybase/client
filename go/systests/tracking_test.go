@@ -26,57 +26,57 @@ func (n *trackingUI) GetIdentifyTrackUI() libkb.IdentifyUI {
 type identifyUI struct {
 }
 
-func (*identifyUI) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (*identifyUI) Confirm(libkb.MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{
 		IdentityConfirmed: true,
 		RemoteConfirmed:   true,
 	}, nil
 }
-func (*identifyUI) Start(string, keybase1.IdentifyReason, bool) error {
+func (*identifyUI) Start(libkb.MetaContext, string, keybase1.IdentifyReason, bool) error {
 	return nil
 }
-func (*identifyUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+func (*identifyUI) FinishWebProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return nil
 }
-func (*identifyUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+func (*identifyUI) FinishSocialProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return nil
 }
-func (*identifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+func (*identifyUI) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryptocurrency) error {
 	return nil
 }
-func (*identifyUI) DisplayStellarAccount(keybase1.StellarAccount) error {
+func (*identifyUI) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
 	return nil
 }
-func (*identifyUI) DisplayKey(keybase1.IdentifyKey) error {
+func (*identifyUI) DisplayKey(libkb.MetaContext, keybase1.IdentifyKey) error {
 	return nil
 }
-func (*identifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
+func (*identifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
 	return nil
 }
-func (*identifyUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error {
+func (*identifyUI) LaunchNetworkChecks(libkb.MetaContext, *keybase1.Identity, *keybase1.User) error {
 	return nil
 }
-func (*identifyUI) DisplayTrackStatement(string) error {
+func (*identifyUI) DisplayTrackStatement(libkb.MetaContext, string) error {
 	return nil
 }
-func (*identifyUI) DisplayUserCard(keybase1.UserCard) error {
+func (*identifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error {
 	return nil
 }
-func (*identifyUI) ReportTrackToken(keybase1.TrackToken) error {
+func (*identifyUI) ReportTrackToken(libkb.MetaContext, keybase1.TrackToken) error {
 	return nil
 }
 func (*identifyUI) SetStrict(b bool) {}
-func (*identifyUI) Cancel() error {
+func (*identifyUI) Cancel(libkb.MetaContext) error {
 	return nil
 }
-func (*identifyUI) Finish() error {
+func (*identifyUI) Finish(libkb.MetaContext) error {
 	return nil
 }
-func (*identifyUI) Dismiss(string, keybase1.DismissReason) error {
+func (*identifyUI) Dismiss(libkb.MetaContext, string, keybase1.DismissReason) error {
 	return nil
 }
 
-func (*identifyUI) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
+func (*identifyUI) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
 

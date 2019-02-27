@@ -302,22 +302,22 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason, bool) error
-	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
-	DisplayCryptocurrency(keybase1.Cryptocurrency) error
-	DisplayStellarAccount(keybase1.StellarAccount) error
-	DisplayKey(keybase1.IdentifyKey) error
-	ReportLastTrack(*keybase1.TrackSummary) error
-	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error
-	DisplayTrackStatement(string) error
-	DisplayUserCard(keybase1.UserCard) error
-	ReportTrackToken(keybase1.TrackToken) error
-	Cancel() error
-	Finish() error
-	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
-	Dismiss(string, keybase1.DismissReason) error
+	Start(MetaContext, string, keybase1.IdentifyReason, bool) error
+	FinishWebProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	FinishSocialProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	Confirm(MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
+	DisplayCryptocurrency(MetaContext, keybase1.Cryptocurrency) error
+	DisplayStellarAccount(MetaContext, keybase1.StellarAccount) error
+	DisplayKey(MetaContext, keybase1.IdentifyKey) error
+	ReportLastTrack(MetaContext, *keybase1.TrackSummary) error
+	LaunchNetworkChecks(MetaContext, *keybase1.Identity, *keybase1.User) error
+	DisplayTrackStatement(MetaContext, string) error
+	DisplayUserCard(MetaContext, keybase1.UserCard) error
+	ReportTrackToken(MetaContext, keybase1.TrackToken) error
+	Cancel(MetaContext) error
+	Finish(MetaContext) error
+	DisplayTLFCreateWithInvite(MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error
+	Dismiss(MetaContext, string, keybase1.DismissReason) error
 }
 
 type Checker struct {

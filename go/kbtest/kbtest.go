@@ -347,7 +347,7 @@ type fakeIdentifyUI struct {
 	*engine.LoopbackIdentifyUI
 }
 
-func (l *fakeIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (l *fakeIdentifyUI) Confirm(_ libkb.MetaContext, o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true}, nil
 }
 
