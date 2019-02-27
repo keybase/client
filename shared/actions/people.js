@@ -11,6 +11,7 @@ import logger from '../logger'
 import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {getPath} from '../route-tree'
+import flags from '../util/feature-flags'
 
 const getPeopleData = (state, action) => {
   // more logging to understand why this fails so much
@@ -116,6 +117,9 @@ const setupEngineListeners = () => {
 }
 
 const onNavigateTo = (state, action) => {
+  if (flags.useNewRouter) {
+    return // TODO fix this, see git for an example
+  }
   const list = I.List(action.payload.path)
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
@@ -126,6 +130,9 @@ const onNavigateTo = (state, action) => {
 }
 
 const onTabChange = (state, action) => {
+  if (flags.useNewRouter) {
+    return // TODO fix this, see git for an example
+  }
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
   const root = list.first()

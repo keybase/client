@@ -140,4 +140,4 @@ const _containerStyle = {
   padding: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.xlarge,
 }
 
-export default (flags.useNewRouter ? Kb.MaybePopupHoc(Styles.isMobile)(DeleteRepo) : DeleteRepo)
+export default (flags.useNewRouter ? Kb.HeaderOrPopup(DeleteRepo) : DeleteRepo)

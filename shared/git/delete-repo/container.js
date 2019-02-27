@@ -38,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...dispatchProps,
   onDelete: (notifyTeam: boolean) =>
     dispatchProps._onDelete(stateProps.teamname, stateProps.name, notifyTeam),
+  title: 'Delete repo?',
 })
 
 const NullWrapper = props => (props.name ? <DeleteRepo {...props} /> : null)

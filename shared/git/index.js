@@ -40,7 +40,9 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
 
   _renderItem = ({item, section}) => <Row key={item} {...this._rowPropsToProps(item)} />
 
-  _renderSectionHeader = ({section}) => <Kb.SectionDivider label={section.title} />
+  _renderSectionHeader = ({section}) => (
+    <Kb.SectionDivider label={section.title} showSpinner={section.loading} />
+  )
 
   render() {
     return (
@@ -59,11 +61,12 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
           <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
         </Kb.ClickableBox>
         <Kb.SectionList
+          keyExtractor={item => item}
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
           sections={[
-            {data: this.props.personals, title: 'Personal'},
-            {data: this.props.teams, title: 'Team'},
+            {data: this.props.personals, loading: this.props.loading, title: 'Personal'},
+            {data: this.props.teams, loading: this.props.loading, title: 'Team'},
           ]}
         />
         <Kb.FloatingMenu
