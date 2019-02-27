@@ -61,7 +61,8 @@ protocol local {
     CREATETEAM_3,
     GITPUSH_4,
     CHANGEAVATAR_5,
-    CHANGERETENTION_6
+    CHANGERETENTION_6,
+    BULKADDTOCONV_7
   }
 
   record MessageSystemAddedToTeam {
@@ -114,6 +115,10 @@ protocol local {
     string user;
   }
 
+  record MessageSystemBulkAddToConv {
+    array<string> usernames;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -122,6 +127,7 @@ protocol local {
     case GITPUSH: MessageSystemGitPush;
     case CHANGEAVATAR: MessageSystemChangeAvatar;
     case CHANGERETENTION: MessageSystemChangeRetention;
+    case BULKADDTOCONV: MessageSystemBulkAddToConv;
   }
 
   record MessageDeleteHistory {
@@ -988,4 +994,6 @@ protocol local {
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
 
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
+
+  void bulkAddToConv(ConversationID convID, array<string> usernames);
 }

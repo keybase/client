@@ -2542,3 +2542,39 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 	}
 	return nil
 }
+
+func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "BulkAddToConv: convID: %v, numUsers: %v", arg.ConvID, len(arg.Usernames))()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	if len(arg.Usernames) == 0 {
+		return fmt.Errorf("Unable to BulkAddToConv, no users specified")
+	}
+
+	rc, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	conv := rc.Conv
+	mt := conv.Metadata.MembersType
+	switch mt {
+	case chat1.ConversationMembersType_TEAM:
+	default:
+		return fmt.Errorf("BulkAddToConv only available to TEAM conversations. Found %v conv", mt)
+	}
+
+	info, err := CreateNameInfoSource(ctx, h.G(), mt).LookupName(
+		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		return err
+	}
+	subBody := chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
+		Usernames: arg.Usernames,
+	})
+	body := chat1.NewMessageBodyWithSystem(subBody)
+	// TODO pass member status to server
+	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, info.CanonicalName, body, chat1.MessageType_SYSTEM)
+}
