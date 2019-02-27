@@ -12,7 +12,7 @@ import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isWindows} from '../../constants/platform'
 import logger from '../../logger'
-import {spawn, execFileSync, exec} from 'child_process'
+import {spawn, execFile, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -273,33 +273,35 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = () =>
+const installCachedDokan = (state, action) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
-    try {
-      execFileSync(dokanPath, [])
-    } catch (err) {
-      logger.error('installCachedDokan caught', err)
-      reject(err)
-      return
-    }
-    // restart the service, particularly kbfsdokan
-    // based on desktop/app/start-win-service.js
-    const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
-    if (!binPath) {
-      return
-    }
-    const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-    const args = [binPath, 'ctl', 'restart']
+    execFile(dokanPath, [], err => {
+      if (err) {
+        reject(err)
+        return
+      }
+      // restart the service, particularly kbfsdokan
+      // based on desktop/app/start-win-service.js
+      const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+      if (!binPath) {
+        reject(new Error('resolve failed'))
+        return
+      }
+      const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
+      const args = [binPath, 'ctl', 'restart']
 
-    spawn(rqPath, args, {
-      detached: true,
-      stdio: 'ignore',
+      spawn(rqPath, args, {
+        detached: true,
+        stdio: 'ignore',
+      })
+
+      resolve()
     })
-
-    resolve()
-  }).then(() => FsGen.createRefreshDriverStatus())
+  })
+    .then(() => FsGen.createRefreshDriverStatus())
+    .catch(makeUnretriableErrorHandler(action))
 
 const uninstallDokanPromise = state => {
   if (state.fs.sfmi.driverStatus.type !== 'enabled') {

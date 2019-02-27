@@ -901,6 +901,8 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       )
     case FsGen.pickAndUpload:
       return 'Failed to upload. ' + (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
+    case FsGen.driverEnable:
+      return 'Failed to enable driver.'
     default:
       return errorIsTimeout ? timeoutExplain : 'An unexplainable error has occurred.'
   }
