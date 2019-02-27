@@ -23,7 +23,7 @@ func (b *configResult) GetAppStatus() *libkb.AppStatus {
 func FetchServerConfig(ctx context.Context, g *libkb.GlobalContext) (ret stellar1.StellarServerDefinitions, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/config",
-		SessionType: libkb.APISessionTypeREQUIRED,
+		SessionType: libkb.APISessionTypeNONE,
 		NetContext:  ctx,
 	}
 

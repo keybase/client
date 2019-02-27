@@ -1,5 +1,5 @@
 // @flow
-import * as ConfigGen from './config-gen'
+import * as EngineGen from './engine-gen-gen'
 import * as PeopleGen from './people-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
@@ -8,7 +8,6 @@ import * as Types from '../constants/types/people'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {getPath} from '../route-tree'
 
@@ -96,23 +95,17 @@ const skipTodo = (_, action) =>
   )
 
 let _wasOnPeopleTab = false
-const setupEngineListeners = () => {
-  engine().actionOnConnect('registerHomeUI', () => {
-    RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
-      .then(() => console.log('Registered home UI'))
-      .catch(error => console.warn('Error in registering home UI:', error))
+const homeUIRefresh = (_, action) =>
+  _wasOnPeopleTab &&
+  PeopleGen.createGetPeopleData({
+    markViewed: false,
+    numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
   })
 
-  engine().setIncomingCallMap({
-    'keybase.1.homeUI.homeUIRefresh': () =>
-      _wasOnPeopleTab &&
-      Saga.put(
-        PeopleGen.createGetPeopleData({
-          markViewed: false,
-          numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-        })
-      ),
-  })
+const connected = () => {
+  RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
+    .then(() => console.log('Registered home UI'))
+    .catch(error => console.warn('Error in registering home UI:', error))
 }
 
 const onNavigateTo = (state, action) => {
@@ -155,10 +148,11 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     PeopleGen.dismissAnnouncement,
     dismissAnnouncement
   )
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Keybase1HomeUIHomeUIRefreshPayload>(
+    EngineGen.keybase1HomeUIHomeUIRefresh,
+    homeUIRefresh
   )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
 }
 
 export default peopleSaga

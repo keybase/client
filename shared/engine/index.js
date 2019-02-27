@@ -22,13 +22,8 @@ import type {TypedState, Dispatch} from '../util/container'
 import type {RPCError} from '../util/errors'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
-type TypedActions = {type: any, error: boolean, payload: any}
 type WaitingKey = string | Array<string>
 
-type IncomingActionCreator = (
-  param: Object,
-  state: TypedState
-) => Effect | null | void | false | Array<Effect | null | void | false>
 type CustomResponseIncomingActionCreator = (
   param: Object,
   response: Object,
@@ -47,20 +42,15 @@ class Engine {
   // Helper we delegate actual calls to
   _rpcClient: createClientType
   // All incoming call handlers
-  _incomingActionCreators: {
-    [key: MethodKey]: IncomingActionCreator,
-  } = {}
   _customResponseIncomingActionCreators: {
     [key: MethodKey]: CustomResponseIncomingActionCreator,
   } = {}
-  // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
-  _onDisconnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
-  // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
-  _onConnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
-  _hasConnected: boolean = false
+  _hasConnected: boolean = isMobile // mobile is always connected
+  // App tells us when the sagas are done loading so we can start emitting events
+  _sagasAreReady: boolean = false
   // So we can dispatch actions
   static _dispatch: Dispatch
   // Temporary helper for incoming call maps
@@ -129,39 +119,27 @@ class Engine {
   }
 
   _onDisconnect() {
-    if (!this._onDisconnectHandlers) {
-      return
-    }
+    Engine._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
+  }
 
-    const handlers = this._onDisconnectHandlers
-    // Don't allow mutation while we're handling the handlers
-    this._onDisconnectHandlers = null
-    Object.keys(handlers).forEach(k => {
-      const action = handlers[k]()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    })
-    this._onDisconnectHandlers = handlers
+  // We want to dispatch the connect action but only after sagas boot up
+  sagasAreReady = () => {
+    this._sagasAreReady = true
+    if (this._hasConnected) {
+      // dispatch the action version
+      Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+    }
   }
 
   // Called when we reconnect to the server
   _onConnected() {
     this._hasConnected = true
-    if (!this._onConnectHandlers) {
-      return
-    }
 
-    const handlers = this._onConnectHandlers
-    // Don't allow mutation while we're handling the handlers
-    this._onConnectHandlers = null
-    Object.keys(handlers).forEach(k => {
-      const action = handlers[k]()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    })
-    this._onConnectHandlers = handlers
+    // Sagas already booted so they can get this
+    if (this._sagasAreReady) {
+      // dispatch the action version
+      Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+    }
   }
 
   // Create and return the next unique session id
@@ -207,25 +185,16 @@ class Engine {
       const session = this._sessionsMap[String(sessionID)]
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
-        // // TODO deprecate _incomingActionCreators and replace with engine dispatched actions below
         // _customResponseIncomingActionCreators will just be a set of method strings which engine will rely on listeners to handle themselves
-      } else if (this._incomingActionCreators[method] || this._customResponseIncomingActionCreators[method]) {
+      } else if (this._customResponseIncomingActionCreators[method]) {
         // General incoming :: TODO deprecate
         rpcLog({method, reason: '[incoming]', type: 'engineInternal'})
 
-        let creator = this._incomingActionCreators[method]
-        let rawEffects
-        if (creator) {
-          // Handle it by default
-          response && response.result()
-          rawEffects = creator(param, Engine._getState())
-        } else {
-          if (!response) {
-            throw new Error("Expected response but there isn't any" + method)
-          }
-          creator = this._customResponseIncomingActionCreators[method]
-          rawEffects = creator(param, response, Engine._getState())
+        if (!response) {
+          throw new Error("Expected response but there isn't any" + method)
         }
+        const creator = this._customResponseIncomingActionCreators[method]
+        const rawEffects = creator(param, response, Engine._getState())
 
         const effects = (isArray(rawEffects) ? rawEffects : [rawEffects]).filter(Boolean)
         effects.forEach(effect => {
@@ -345,28 +314,9 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0). We don't allow overlapping keys
-  setIncomingCallMap(incomingCallMap: any): void {
-    Object.keys(incomingCallMap).forEach(method => {
-      if (this._customResponseIncomingActionCreators[method] || this._incomingActionCreators[method]) {
-        rpcLog({
-          method,
-          reason: "duplicate incoming action creator!!! this isn't allowed",
-          type: 'engineInternal',
-        })
-        return
-      }
-      rpcLog({
-        method,
-        reason: '[register]',
-        type: 'engineInternal',
-      })
-      this._incomingActionCreators[method] = incomingCallMap[method]
-    })
-  }
-
   setCustomResponseIncomingCallMap(customResponseIncomingCallMap: any): void {
     Object.keys(customResponseIncomingCallMap).forEach(method => {
-      if (this._customResponseIncomingActionCreators[method] || this._incomingActionCreators[method]) {
+      if (this._customResponseIncomingActionCreators[method]) {
         rpcLog({
           method,
           reason: "duplicate incoming action creator!!! this isn't allowed",
@@ -383,56 +333,10 @@ class Engine {
     })
   }
 
-  // Register a named callback when we disconnect from the server. Call if we're already disconnected. Callback should produce an action
-  actionOnDisconnect(key: string, f: () => void) {
-    if (!this._onDisconnectHandlers) {
-      throw new Error('Calling listenOnDisconnect while in the middle of _onDisconnect')
-    }
-
-    if (!f) {
-      throw new Error('Null callback sent to listenOnDisconnect')
-    }
-
-    // If we've actually connected and are now disconnected let's call this immediately
-    if (this._hasConnected && this._rpcClient.transport.needsConnect) {
-      const action = f()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    }
-
-    // Regardless if we were connected or not, we'll add this to the callback fns
-    // that should be called when we disconnect.
-    this._onDisconnectHandlers[key] = f
-  }
-
   // Register a named callback when we fail to connect. Call if we're already disconnected
   hasEverConnected() {
     // If we've actually failed to connect already let's call this immediately
     return this._hasConnected
-  }
-
-  // Register a named callback when we reconnect to the server. Call if we're already connected
-  actionOnConnect(key: string, f: () => void) {
-    if (!this._onConnectHandlers) {
-      throw new Error('Calling listenOnConnect while in the middle of _onConnected')
-    }
-
-    if (!f) {
-      throw new Error('Null callback sent to listenOnConnect')
-    }
-
-    // The transport is already connected, so let's call this function right away
-    if (!this._rpcClient.transport.needsConnect) {
-      const action = f()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    }
-
-    // Regardless if we were connected or not, we'll add this to the callback fns
-    // that should be called when we connect.
-    this._onConnectHandlers[key] = f
   }
 }
 
@@ -448,8 +352,6 @@ class FakeEngine {
   cancelSession(sessionID: SessionID) {}
   rpc() {}
   setFailOnError() {}
-  actionOnConnect(key: string, f: () => void) {}
-  actionOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,

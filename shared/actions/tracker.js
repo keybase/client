@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -569,30 +570,30 @@ function* _openProofUrl(_, action: TrackerGen.OpenProofUrlPayload) {
   openUrl(proof.humanUrl)
 }
 
-function* _userChanged(state, action: {payload: {uid: string}}) {
-  const {uid} = action.payload
-  const actions = [Saga.put(TrackerGen.createCacheIdentify({goodTill: 0, uid}))]
+const onUserChanged = (state, action) => {
+  const {uid} = action.payload.params
+  const actions = [TrackerGen.createCacheIdentify({goodTill: 0, uid})]
   const username = _getUsername(state, uid)
   if (username) {
-    actions.push(Saga.put(TrackerGen.createGetProfile({username})))
+    actions.push(TrackerGen.createGetProfile({username}))
   }
-  yield Saga.all(actions)
+  return actions
+}
+
+const onConnect = () => {
+  RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
+    .then(response => {
+      logger.info('Registered identify ui')
+    })
+    .catch(error => {
+      logger.warn('error in registering identify ui: ', error)
+    })
 }
 
 const setupEngineListeners = () => {
   // TODO remove this
   const dispatch = engine().deprecatedGetDispatch()
   const getState = engine().deprecatedGetGetState()
-
-  engine().actionOnConnect('registerIdentifyUi', () => {
-    RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
-      .then(response => {
-        logger.info('Registered identify ui')
-      })
-      .catch(error => {
-        logger.warn('error in registering identify ui: ', error)
-      })
-  })
 
   engine().setCustomResponseIncomingCallMap({
     'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
@@ -636,11 +637,6 @@ const setupEngineListeners = () => {
       response && response.result(session.getId())
     },
   })
-  engine().setIncomingCallMap({
-    'keybase.1.NotifyUsers.userChanged': ({uid}) =>
-      // $FlowIssue remove this soon
-      Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'}),
-  })
 }
 
 function* trackerSaga(): Saga.SagaGenerator<any, any> {
@@ -657,7 +653,6 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<TrackerGen.GetProfilePayload>(TrackerGen.getProfile, _getProfile)
   yield* Saga.chainGenerator<TrackerGen.GetMyProfilePayload>(TrackerGen.getMyProfile, _getMyProfile)
   yield* Saga.chainGenerator<TrackerGen.OpenProofUrlPayload>(TrackerGen.openProofUrl, _openProofUrl)
-  yield* Saga.chainGenerator<any>('tracker:_userChanged', _userChanged)
 
   // We don't have open trackers in mobile
   if (!isMobile) {
@@ -668,6 +663,11 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.setupEngineListeners,
     setupEngineListeners
   )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersUserChangedPayload>(
+    EngineGen.keybase1NotifyUsersUserChanged,
+    onUserChanged
+  )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 }
 
 export default trackerSaga

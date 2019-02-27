@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as PinentryGen from '../actions/pinentry-gen'
 import * as Saga from '../util/saga'
@@ -16,17 +17,17 @@ const sessionIDToResponse: {
   },
 } = {}
 
-const setupEngineListeners = () => {
-  engine().actionOnConnect('registerSecretUI', () => {
-    RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
-      .then(response => {
-        logger.info('Registered secret ui')
-      })
-      .catch(error => {
-        logger.warn('error in registering secret ui: ', error)
-      })
-  })
+const onConnect = () => {
+  RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
+    .then(response => {
+      logger.info('Registered secret ui')
+    })
+    .catch(error => {
+      logger.warn('error in registering secret ui: ', error)
+    })
+}
 
+const setupEngineListeners = () => {
   engine().setCustomResponseIncomingCallMap({
     'keybase.1.secretUi.getPassphrase': (param, response) => {
       logger.info('Asked for passphrase')
@@ -104,6 +105,7 @@ function* pinentrySaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.setupEngineListeners,
     setupEngineListeners
   )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 }
 
 export default pinentrySaga

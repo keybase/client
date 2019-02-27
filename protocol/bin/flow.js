@@ -376,6 +376,10 @@ function parseVariant(t, project) {
 }
 
 function writeActions() {
+  const staticActions = {
+    disconnected: {},
+    connected: {},
+  }
   const toWrite = JSON.stringify(
     {
       prelude: Object.keys(projects).map(
@@ -396,7 +400,7 @@ function writeActions() {
             return map
           }, map)
         return map
-      }, {}),
+      }, staticActions),
     },
     null,
     4

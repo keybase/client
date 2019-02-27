@@ -120,13 +120,17 @@ class Rows extends React.PureComponent<Props> {
     }
   }
   // List2 caches offsets. So have the key derive from layouts so that we
-  // trigger a re-render when layout changes.
+  // trigger a re-render when layout changes. Also encode items length into
+  // this, otherwise we'd get taller-than content rows when going into a
+  // smaller folder from a larger one.
   _getListKey = memoize(items => {
     const index = items.findIndex(row => row.rowType !== 'header')
-    return items
-      .slice(0, index === -1 ? items.length : index)
-      .map(row => getRowHeight(row).toString())
-      .join('-')
+    return (
+      items
+        .slice(0, index === -1 ? items.length : index)
+        .map(row => getRowHeight(row).toString())
+        .join('-') + `:${items.length}`
+    )
   })
 
   render() {
