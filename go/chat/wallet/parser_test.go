@@ -56,6 +56,7 @@ func TestFindCandidates(t *testing.T) {
 		candidateTestCase{" [+124.005XLM@alfa,+.005USD@bravo]", []ChatTxCandidate{alfaTx, bravoTx}},
 		candidateTestCase{"+124.005XLM@alfa +124.005XLM@alfa", []ChatTxCandidate{alfaTx, alfaTx}},
 		candidateTestCase{"+124.005XLM@alfa +124.005XLM@alfa +124.005XLM@alfa", []ChatTxCandidate{alfaTx, alfaTx, alfaTx}},
+		candidateTestCase{"+1xlm@patrick+1xlm@mikem", []ChatTxCandidate{}},
 
 		// direct message txs
 		candidateTestCase{"thanks friend, +25eur!", []ChatTxCandidate{anonTx}},
@@ -72,6 +73,7 @@ func TestFindCandidates(t *testing.T) {
 		candidateTestCase{"+25eur +25eur +25eur", []ChatTxCandidate{anonTx, anonTx, anonTx}},
 		candidateTestCase{"+25eur +25eur +25eur +25eur", []ChatTxCandidate{anonTx, anonTx, anonTx, anonTx}},
 		candidateTestCase{"+25eur +25eur +25eur +25eur +25eur", []ChatTxCandidate{anonTx, anonTx, anonTx, anonTx, anonTx}},
+		candidateTestCase{"+1xlm+1xlm", []ChatTxCandidate{}},
 
 		// some extra checks
 		candidateTestCase{"+0.05XLM", []ChatTxCandidate{{Amount: "0.05", CurrencyCode: "XLM", Username: nil, Full: "+0.05XLM"}}},
