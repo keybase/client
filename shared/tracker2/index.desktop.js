@@ -141,12 +141,12 @@ const Tracker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-        <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
-      </Kb.Box2>
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+        <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
+      </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} hideVerticalScroll={true}>
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
@@ -190,21 +190,16 @@ const Tracker = (props: Props) => {
 
 const avatarSize = 96
 const barHeight = 62
-const reason = Styles.platformStyles({
-  common: {
-    alignSelf: 'center',
-    color: Styles.globalColors.white,
-    flexShrink: 0,
-    paddingBottom: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.small,
-    textAlign: 'center',
-  },
-  isElectron: {
-    ...Styles.desktopStyles.windowDragging,
-  },
-})
+const reason = {
+  alignSelf: 'center',
+  color: Styles.globalColors.white,
+  flexShrink: 0,
+  paddingBottom: Styles.globalMargins.small,
+  paddingLeft: Styles.globalMargins.medium,
+  paddingRight: Styles.globalMargins.medium,
+  paddingTop: Styles.globalMargins.small,
+  textAlign: 'center',
+}
 
 const styles = Styles.styleSheetCreate({
   assertions: {
@@ -235,7 +230,12 @@ const styles = Styles.styleSheetCreate({
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  close: {padding: Styles.globalMargins.tiny},
+  close: Styles.platformStyles({
+    common: {padding: Styles.globalMargins.tiny},
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+    },
+  }),
   container: {
     backgroundColor: Styles.globalColors.white,
     position: 'relative',
@@ -248,12 +248,17 @@ const styles = Styles.styleSheetCreate({
     zIndex: 9,
   },
   nameWithIconContainer: {alignSelf: 'center'},
-  reason: {
-    ...reason,
-    ...Styles.globalStyles.fillAbsolute,
-    bottom: undefined,
-    paddingBottom: reason.paddingBottom + avatarSize / 2,
-  },
+  reason: Styles.platformStyles({
+    common: {
+      ...reason,
+      ...Styles.globalStyles.fillAbsolute,
+      bottom: undefined,
+      paddingBottom: reason.paddingBottom + avatarSize / 2,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.windowDragging,
+    },
+  }),
   reasonInvisible: {
     ...reason,
     opacity: 0,
