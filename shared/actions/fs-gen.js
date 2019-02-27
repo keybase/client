@@ -65,6 +65,8 @@ export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
 export const setDriverStatus = 'fs:setDriverStatus'
+export const setIncomingShareDestinationPath = 'fs:setIncomingShareDestinationPath'
+export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
 export const setMoveOrCopyDestinationParentPath = 'fs:setMoveOrCopyDestinationParentPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
@@ -72,6 +74,7 @@ export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
 export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const shareNative = 'fs:shareNative'
+export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSendLinkToChat = 'fs:showSendLinkToChat'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
@@ -139,6 +142,8 @@ type _RefreshDriverStatusPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _SetDriverStatusPayload = $ReadOnly<{|driverStatus: Types.DriverStatus|}>
+type _SetIncomingShareDestinationPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
+type _SetIncomingShareLocalPathPayload = $ReadOnly<{|localPath: Types.LocalPath|}>
 type _SetMoveOrCopyDestinationParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _SetPathItemActionMenuDownloadKeyPayload = $ReadOnly<{|key: ?string|}>
@@ -146,6 +151,7 @@ type _SetPathItemActionMenuViewPayload = $ReadOnly<{|view: Types.PathItemActionM
 type _SetSendLinkToChatChannelsPayload = $ReadOnly<{|channels: I.Map<ChatTypes.ConversationIDKey, string>|}>
 type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
+type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowSendLinkToChatPayload = $ReadOnly<{|path: Types.Path, routePath?: ?I.List<string>|}>
 type _ShowSystemFileManagerIntegrationBannerPayload = void
@@ -213,6 +219,8 @@ export const createRefreshDriverStatus = (payload: _RefreshDriverStatusPayload) 
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({payload, type: refreshLocalHTTPServerInfo})
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: saveMedia})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload) => ({payload, type: setDriverStatus})
+export const createSetIncomingShareDestinationPath = (payload: _SetIncomingShareDestinationPathPayload) => ({payload, type: setIncomingShareDestinationPath})
+export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({payload, type: setIncomingShareLocalPath})
 export const createSetMoveOrCopyDestinationParentPath = (payload: _SetMoveOrCopyDestinationParentPathPayload) => ({payload, type: setMoveOrCopyDestinationParentPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
@@ -220,6 +228,7 @@ export const createSetPathItemActionMenuView = (payload: _SetPathItemActionMenuV
 export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({payload, type: setSendLinkToChatChannels})
 export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({payload, type: setSendLinkToChatConvID})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
+export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({payload, type: showIncomingShare})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
 export const createShowSendLinkToChat = (payload: _ShowSendLinkToChatPayload) => ({payload, type: showSendLinkToChat})
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
@@ -287,6 +296,8 @@ export type RefreshDriverStatusPayload = {|+payload: _RefreshDriverStatusPayload
 export type RefreshLocalHTTPServerInfoPayload = {|+payload: _RefreshLocalHTTPServerInfoPayload, +type: 'fs:refreshLocalHTTPServerInfo'|}
 export type SaveMediaPayload = {|+payload: _SaveMediaPayload, +type: 'fs:saveMedia'|}
 export type SetDriverStatusPayload = {|+payload: _SetDriverStatusPayload, +type: 'fs:setDriverStatus'|}
+export type SetIncomingShareDestinationPathPayload = {|+payload: _SetIncomingShareDestinationPathPayload, +type: 'fs:setIncomingShareDestinationPath'|}
+export type SetIncomingShareLocalPathPayload = {|+payload: _SetIncomingShareLocalPathPayload, +type: 'fs:setIncomingShareLocalPath'|}
 export type SetMoveOrCopyDestinationParentPathPayload = {|+payload: _SetMoveOrCopyDestinationParentPathPayload, +type: 'fs:setMoveOrCopyDestinationParentPath'|}
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
 export type SetPathItemActionMenuDownloadKeyPayload = {|+payload: _SetPathItemActionMenuDownloadKeyPayload, +type: 'fs:setPathItemActionMenuDownloadKey'|}
@@ -294,6 +305,7 @@ export type SetPathItemActionMenuViewPayload = {|+payload: _SetPathItemActionMen
 export type SetSendLinkToChatChannelsPayload = {|+payload: _SetSendLinkToChatChannelsPayload, +type: 'fs:setSendLinkToChatChannels'|}
 export type SetSendLinkToChatConvIDPayload = {|+payload: _SetSendLinkToChatConvIDPayload, +type: 'fs:setSendLinkToChatConvID'|}
 export type ShareNativePayload = {|+payload: _ShareNativePayload, +type: 'fs:shareNative'|}
+export type ShowIncomingSharePayload = {|+payload: _ShowIncomingSharePayload, +type: 'fs:showIncomingShare'|}
 export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: 'fs:showMoveOrCopy'|}
 export type ShowSendLinkToChatPayload = {|+payload: _ShowSendLinkToChatPayload, +type: 'fs:showSendLinkToChat'|}
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
@@ -363,6 +375,8 @@ export type Actions =
   | RefreshLocalHTTPServerInfoPayload
   | SaveMediaPayload
   | SetDriverStatusPayload
+  | SetIncomingShareDestinationPathPayload
+  | SetIncomingShareLocalPathPayload
   | SetMoveOrCopyDestinationParentPathPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
@@ -370,6 +384,7 @@ export type Actions =
   | SetSendLinkToChatChannelsPayload
   | SetSendLinkToChatConvIDPayload
   | ShareNativePayload
+  | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload
   | ShowSendLinkToChatPayload
   | ShowSystemFileManagerIntegrationBannerPayload

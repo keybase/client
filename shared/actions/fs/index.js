@@ -925,6 +925,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
   yield* Saga.chainAction<FsGen.MoveOrCopyOpenPayload>(FsGen.moveOrCopyOpen, moveOrCopyOpen)
   yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload>(FsGen.showMoveOrCopy, showMoveOrCopy)
+  yield* Saga.chainAction<FsGen.ShowIncomingSharePayload>(FsGen.showIncomingShare, showMoveOrCopy)
   yield* Saga.chainAction<FsGen.CloseMoveOrCopyPayload>(FsGen.closeMoveOrCopy, closeMoveOrCopy)
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
