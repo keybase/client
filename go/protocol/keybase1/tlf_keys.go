@@ -25,6 +25,7 @@ const (
 	TLFIdentifyBehavior_KBFS_CHAT          TLFIdentifyBehavior = 11
 	TLFIdentifyBehavior_RESOLVE_AND_CHECK  TLFIdentifyBehavior = 12
 	TLFIdentifyBehavior_GUI_PROFILE        TLFIdentifyBehavior = 13
+	TLFIdentifyBehavior_KBFS_INIT          TLFIdentifyBehavior = 14
 )
 
 func (o TLFIdentifyBehavior) DeepCopy() TLFIdentifyBehavior { return o }
@@ -44,6 +45,7 @@ var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
 	"KBFS_CHAT":          11,
 	"RESOLVE_AND_CHECK":  12,
 	"GUI_PROFILE":        13,
+	"KBFS_INIT":          14,
 }
 
 var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
@@ -61,6 +63,7 @@ var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
 	11: "KBFS_CHAT",
 	12: "RESOLVE_AND_CHECK",
 	13: "GUI_PROFILE",
+	14: "KBFS_INIT",
 }
 
 func (e TLFIdentifyBehavior) String() string {
