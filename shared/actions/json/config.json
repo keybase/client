@@ -109,5 +109,10 @@
     "openAppStore": {
       "_description": "Open a link to the app store"
     },
+    "updateCriticalCheckStatus": {
+      "_description": "Save critical check status",
+      "status": "'critical' | 'suggested' | 'ok'",
+      "message": "string",
+    }
   }
 }
