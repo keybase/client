@@ -130,7 +130,7 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 		Contextified: NewContextified(g),
 		filename:     path,
 		dbOpenerOnce: new(sync.Once),
-		cleaner:      newLevelDbCleaner(NewMetaContext(context.TODO(), g), filepath.Base(path)),
+		cleaner:      newLevelDbCleaner(NewMetaContextTODO(g), filepath.Base(path)),
 	}
 }
 
