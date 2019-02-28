@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as ConfigTypes from '../constants/types/config'
-import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import ChatContainer from './chat-container.desktop'
@@ -40,10 +39,7 @@ const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
 const UploadWithCountdown = UploadCountdownHOC(Upload)
 
 class MenubarRender extends React.Component<Props, State> {
-  state: State = {
-    showingMenu: false,
-  }
-
+  state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
   _refreshIfLoggedIn = () => this.props.loggedIn && this.props.refresh()
@@ -94,7 +90,7 @@ class MenubarRender extends React.Component<Props, State> {
             closeOnSelect={true}
             visible={this.state.showingMenu}
             attachTo={this._getAttachmentRef}
-            items={this._menuItems(this.props.badgeInfo || {})}
+            items={this._menuItems()}
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Kb.Box>
@@ -152,7 +148,7 @@ class MenubarRender extends React.Component<Props, State> {
             closeOnSelect={true}
             visible={this.state.showingMenu}
             attachTo={this._getAttachmentRef}
-            items={this._menuItems(this.props.badgeInfo || {}, true)}
+            items={this._menuItems()}
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Kb.Box>
@@ -186,12 +182,14 @@ class MenubarRender extends React.Component<Props, State> {
     )
   }
 
-  _menuView(title: string, iconType: Kb.IconType, count: number) {
+  _menuView(title, iconType, count) {
     return (
-      <Kb.Box2 direction="horizontal" style={{width: '100%'}}>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
           <Kb.Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
-          {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{left: 14, position: 'absolute', top: -2}} />}
+          {!!count && (
+            <Kb.Badge badgeNumber={count || 0} badgeStyle={{left: 14, position: 'absolute', top: -2}} />
+          )}
         </Kb.Box>
         <Kb.Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
           {title}
@@ -200,66 +198,69 @@ class MenubarRender extends React.Component<Props, State> {
     )
   }
 
-  _menuItems(countMap: Object, startingUp?: boolean = false) {
-    const wallet = Flags.walletsEnabled
-      ? [
-          {
-            onClick: () => this.props.openApp(Tabs.walletsTab),
-            title: 'Wallet',
-            view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab] || 0),
-          },
-        ]
-      : []
+  _menuItems() {
+    const countMap = this.props.badgeInfo || {}
+    const startingUp = this.props.daemonHandshakeState !== 'done'
+    const loggedOut = !this.props.username
 
-    const tabs = [
-      ...wallet,
-      {
-        onClick: () => this.props.openApp(Tabs.gitTab),
-        title: 'Git',
-        view: this._menuView('Git', 'iconfont-nav-git', countMap[Tabs.gitTab] || 0),
-      },
-      {
-        onClick: () => this.props.openApp(Tabs.devicesTab),
-        title: 'Devices',
-        view: this._menuView('Devices', 'iconfont-nav-devices', countMap[Tabs.devicesTab] || 0),
-      },
-      {
-        onClick: () => this.props.openApp(Tabs.settingsTab),
-        title: 'Settings',
-        view: this._menuView('Settings', 'iconfont-nav-settings', countMap[Tabs.settingsTab] || 0),
-      },
-    ]
+    const sectionTabs =
+      startingUp || loggedOut
+        ? []
+        : [
+            {
+              onClick: () => this.props.openApp(Tabs.walletsTab),
+              title: 'Wallet',
+              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab]),
+            },
+            {
+              onClick: () => this.props.openApp(Tabs.gitTab),
+              title: 'Git',
+              view: this._menuView('Git', 'iconfont-nav-git', countMap[Tabs.gitTab]),
+            },
+            {
+              onClick: () => this.props.openApp(Tabs.devicesTab),
+              title: 'Devices',
+              view: this._menuView('Devices', 'iconfont-nav-devices', countMap[Tabs.devicesTab]),
+            },
+            {
+              onClick: () => this.props.openApp(Tabs.settingsTab),
+              title: 'Settings',
+              view: this._menuView('Settings', 'iconfont-nav-settings', countMap[Tabs.settingsTab]),
+            },
+            'Divider',
+          ]
 
-    const openMainApp = [{onClick: () => this.props.openApp(), title: 'Open main app'}]
+    const openApp = startingUp
+      ? []
+      : [{onClick: () => this.props.openApp(), title: 'Open main app'}, 'Divider']
+
+    const showFinder =
+      startingUp || loggedOut
+        ? []
+        : [
+            {onClick: () => this.props.showInFinder('/'), title: `Open folders in ${Styles.fileUIName}`},
+            'Divider',
+          ]
+
+    const webLink = startingUp ? [] : [{onClick: () => this.props.showUser(), title: 'Keybase.io'}]
 
     return [
-      ...(startingUp ? [] : tabs),
-      !startingUp ? 'Divider' : null,
-      ...(this.props.loggedIn && !startingUp ? openMainApp : []),
-      !startingUp
-        ? {
-            onClick: () => this.props.showInFinder('/'),
-            title: `Open folders in ${Styles.fileUIName}`,
-          }
-        : null,
-      !startingUp ? 'Divider' : null,
-      !startingUp ? {onClick: () => this.props.showUser(), title: 'Keybase.io'} : null,
+      ...sectionTabs,
+      ...openApp,
+      ...showFinder,
+      ...webLink,
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
       {onClick: this.props.quit, title: 'Quit app'},
-    ].filter(i => !!i)
+    ]
   }
 
   _getAttachmentRef = () => this.attachmentRef.current
 
   _renderLoggedIn() {
-    const badgeTypesInHeader: Array<Tabs.Tab> = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
-    const badgesInMenu = [
-      ...(Flags.walletsEnabled ? [Tabs.walletsTab] : []),
-      Tabs.gitTab,
-      Tabs.devicesTab,
-      Tabs.settingsTab,
-    ]
+    const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
+    const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+    // TODO move this into container
     const badgeCountInMenu = badgesInMenu.reduce(
       (acc, val) => (this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc),
       0
@@ -300,7 +301,7 @@ class MenubarRender extends React.Component<Props, State> {
           </Kb.Box>
           <Kb.FloatingMenu
             closeOnSelect={true}
-            items={this._menuItems(this.props.badgeInfo || {})}
+            items={this._menuItems()}
             visible={this.state.showingMenu}
             onHidden={() =>
               this.setState({
@@ -335,31 +336,18 @@ body {
 }
 `
 
-const BadgeIcon = ({
-  tab,
-  countMap,
-  openApp,
-}: {
-  tab: Tabs.Tab,
-  countMap: Object,
-  openApp: (tab: ?string) => void,
-}) => {
+const iconMap = {
+  [Tabs.peopleTab]: 'iconfont-nav-people',
+  [Tabs.chatTab]: 'iconfont-nav-chat',
+  [Tabs.devicesTab]: 'iconfont-nav-devices',
+  [Tabs.fsTab]: 'iconfont-nav-files',
+  [Tabs.teamsTab]: 'iconfont-nav-teams',
+}
+const BadgeIcon = ({tab, countMap, openApp}) => {
   const count = countMap[tab]
+  const iconType = iconMap[tab]
 
-  if (tab === Tabs.devicesTab && !count) {
-    return null
-  }
-
-  const iconMap: {[key: Tabs.Tab]: Kb.IconType} = {
-    [Tabs.peopleTab]: 'iconfont-nav-people',
-    [Tabs.chatTab]: 'iconfont-nav-chat',
-    [Tabs.devicesTab]: 'iconfont-nav-devices',
-    [Tabs.fsTab]: 'iconfont-nav-files',
-    [Tabs.teamsTab]: 'iconfont-nav-teams',
-  }
-  const iconType: ?Kb.IconType = iconMap[tab]
-
-  if (!iconType) {
+  if ((tab === Tabs.devicesTab && !count) || !iconType) {
     return null
   }
 
