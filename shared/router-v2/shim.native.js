@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
+import {GatewayDest} from 'react-gateway'
 
 export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
 
@@ -37,6 +38,12 @@ const shimNewRoute = (Original: any) => {
           behavior={Styles.isIOS ? 'padding' : undefined}
         >
           {body}
+          <GatewayDest
+            name="keyboard-avoiding-root"
+            component={ViewForGatewayDest}
+            pointerEvents="box-none"
+            style={styles.gatewayDest}
+          />
         </Kb.NativeKeyboardAvoidingView>
       )
 
@@ -54,6 +61,9 @@ const shimNewRoute = (Original: any) => {
   }
   return ShimmedNew
 }
+const ViewForGatewayDest = <T>(props: T) => (
+  <Kb.NativeView {...props} style={{height: '100%', width: '100%'}} />
+)
 const styles = Styles.styleSheetCreate({
   keyboard: {
     flexGrow: 1,
