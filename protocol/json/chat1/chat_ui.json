@@ -1113,45 +1113,6 @@
       ]
     },
     {
-      "type": "record",
-      "name": "UICoinFlipShuffleResult",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "items"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UICoinFlipDeckResult",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "int"
-          },
-          "name": "deck"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UICoinFlipHandsResult",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "UICoinFlipHand"
-          },
-          "name": "hands"
-        }
-      ]
-    },
-    {
       "type": "variant",
       "name": "UICoinFlipResult",
       "switch": {
@@ -1171,21 +1132,30 @@
             "name": "SHUFFLE",
             "def": false
           },
-          "body": "UICoinFlipShuffleResult"
+          "body": {
+            "type": "array",
+            "items": "string"
+          }
         },
         {
           "label": {
             "name": "DECK",
             "def": false
           },
-          "body": "UICoinFlipDeckResult"
+          "body": {
+            "type": "array",
+            "items": "int"
+          }
         },
         {
           "label": {
             "name": "HANDS",
             "def": false
           },
-          "body": "UICoinFlipHandsResult"
+          "body": {
+            "type": "array",
+            "items": "UICoinFlipHand"
+          }
         },
         {
           "label": {

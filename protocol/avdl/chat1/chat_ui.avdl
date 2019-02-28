@@ -318,20 +318,11 @@ protocol chatUi {
     string target;
     array<int> hand;
   }
-  record UICoinFlipShuffleResult {
-    array<string> items;
-  }
-  record UICoinFlipDeckResult {
-    array<int> deck;
-  }
-  record UICoinFlipHandsResult {
-    array<UICoinFlipHand> hands;
-  }
   variant UICoinFlipResult switch (UICoinFlipResultTyp typ) {
     case NUMBER: string;
-    case SHUFFLE: UICoinFlipShuffleResult;
-    case DECK: UICoinFlipDeckResult;
-    case HANDS: UICoinFlipHandsResult;
+    case SHUFFLE: array<string>;
+    case DECK: array<int>;
+    case HANDS: array<UICoinFlipHand>;
     case COIN: bool; // heads?
   }
   record UICoinFlipParticipant {
