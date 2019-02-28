@@ -10,17 +10,19 @@ import (
 
 var txPattern = regexp.MustCompile(
 	// Start at the beginng of the line, space, or some hand picked artisanal characters
-	// The initial set must not include "x" which is used as a non-beginning sentinel.
-	`(?:^|[\s([{:;.,])` +
+	`(?:^|[\s([{:;.,!?"'])` +
 		// Have a + in front
-		`(\+` +
+		`\+` +
 		// Stellar decimal amount
 		`(\d+\.?\d*|\d*\.?\d+)` +
 		// Currency code
 		`([A-Za-z]{2,6})` +
 		// At sign and username, optional for direct messages
-		// If not used, must be followed by a non-tx-character or end of string
-		`(?:(?:@((?:[a-zA-Z0-9]+_?)+))|(?:[^A-Za-z@]|\z)))`,
+		`(?:@((?:[a-zA-Z0-9]+_?)+))?` +
+		// Sentinel group for advancing the scan
+		`()` +
+		// Must be followed by a nice character or the end of the string.
+		`(?:[\s)\]}:;.,!?"']|\z)`,
 )
 
 var maxAmountLength = 100
@@ -40,7 +42,7 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// false positives from concatenations.
 	replaced := utils.ReplaceQuotedSubstrings(xs, false)
 
-	buf := replaced // buf is either `replaced` or ("x" + a suffix of replaced)
+	buf := replaced // buf is a suffix of replaced
 	bufOffset := 0  // buf[0] is replaced[bufOffset]
 
 	// Munch matches off the front of buf.
@@ -60,15 +62,14 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 			}
 			return "", startIndex, endIndex
 		}
-		_, _, nextIndex := group(0)
-		_, plusStart, _ := group(1)
-		amount, _, _ := group(2)
+		amount, amountStart, _ := group(1)
+		_, _, nextIndex := group(4)
 		if amount != "0" {
-			currencyCode, _, ccEnd := group(3)
+			currencyCode, _, ccEnd := group(2)
 			currencyCode = strings.ToUpper(currencyCode)
-			username, _, usernameEndIndex := group(4)
 			var atSign string
 			endIndex := ccEnd
+			username, _, usernameEndIndex := group(3)
 			if len(username) > 0 {
 				atSign = "@"
 				endIndex = usernameEndIndex
@@ -86,21 +87,16 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 					Amount:       amount,
 					CurrencyCode: currencyCode,
 					Username:     txUsername,
-					Position:     []int{plusStart + bufOffset, endIndex + bufOffset},
+					Position:     []int{amountStart - 1 + bufOffset, endIndex + bufOffset},
 				})
 			}
 		}
-		if nextIndex > len(buf) {
+		if nextIndex == -1 || nextIndex > len(buf) {
 			// should never happen
 			return nil
 		}
-		// Advance `buf` and put an "x" in front so that /^/ doesn't match the new beginning of `buf`.
-		// The new buf[0] isn't really the beginning of the input.
-		buf = "x" + buf[nextIndex:]
+		buf = buf[nextIndex:]
 		bufOffset += nextIndex
-		if i == 0 {
-			bufOffset-- // For the introduction of that pesky "x"
-		}
 	}
 	return matches
 }
