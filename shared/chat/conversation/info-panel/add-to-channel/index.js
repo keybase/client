@@ -62,7 +62,13 @@ class AddToChannel extends React.Component<Props, State> {
         <Kb.Checkbox
           disabled={user.alreadyAdded}
           checked={user.alreadyAdded || user.selected}
-          onCheck={() => this._toggleSelected(user.username)}
+          onCheck={
+            Styles.isMobile
+              ? () => this._toggleSelected(user.username)
+              : () => {
+                  /* `ListItem2` click handler does this on desktop */
+                }
+          }
         />
       }
     />

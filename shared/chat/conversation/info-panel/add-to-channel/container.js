@@ -45,10 +45,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       username,
     }))
     .sort((a, b) => {
-      if (a.alreadyAdded && b.alreadyAdded) return a.username.localeCompare(b.username)
-      if (a.alreadyAdded) return 1
-      if (b.alreadyAdded) return -1
-      return a.username.localeCompare(b.username)
+      if (a.alreadyAdded === b.alreadyAdded) return a.username.localeCompare(b.username)
+      return a.alreadyAdded ? 1 : -1
     })
     .toArray()
   let error
