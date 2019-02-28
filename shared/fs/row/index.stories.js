@@ -14,6 +14,7 @@ import EditingRow from './editing'
 import PlaceholderRow from './placeholder'
 import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
+import {asRows as sortBarAsRows} from '../sortbar/container'
 
 export const rowsProvider = {
   ConnectedOpenHOC: (ownProps: any) => ({
@@ -23,7 +24,8 @@ export const rowsProvider = {
   ConnectedRows: (o: any) => ({
     destinationPickerIndex: o.destinationPickerIndex,
     items: [
-      ...o.headerRows,
+      ...(o.headerRows || []),
+      ...sortBarAsRows(o.path),
       {key: 'me', name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
       {
         key: 'me,abc',
