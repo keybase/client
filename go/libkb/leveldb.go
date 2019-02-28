@@ -130,7 +130,7 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 		Contextified: NewContextified(g),
 		filename:     path,
 		dbOpenerOnce: new(sync.Once),
-		cleaner:      newLevelDbCleaner(g, filepath.Base(path)),
+		cleaner:      newLevelDbCleaner(NewMetaContextTODO(g), filepath.Base(path)),
 	}
 }
 
@@ -226,6 +226,7 @@ func (l *LevelDb) ForceOpen() error {
 func (l *LevelDb) Stats() (stats string) {
 	if err := l.doWhileOpenAndNukeIfCorrupted(func() (err error) {
 		stats, err = l.db.GetProperty("leveldb.stats")
+		stats = fmt.Sprintf("%s\n%s", stats, l.cleaner.Status())
 		return err
 	}); err != nil {
 		return ""
@@ -288,7 +289,7 @@ func (l *LevelDb) Clean(force bool) (err error) {
 	l.Lock()
 	defer l.Unlock()
 	defer l.G().Trace("LevelDb::Clean", func() error { return err })()
-	return l.cleaner.clean(context.Background(), force)
+	return l.cleaner.clean(force)
 }
 
 func (l *LevelDb) Nuke() (fn string, err error) {
