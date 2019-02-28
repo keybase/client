@@ -8,19 +8,21 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/dgraph-io/badger"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
-	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/net/context"
 )
 
 const (
-	workingSetCacheFolderName = "kbfs_block_cache"
-	syncCacheFolderName       = "kbfs_sync_cache"
+	workingSetCacheFolderName   = "kbfs_block_cache"
+	syncCacheFolderName         = "kbfs_sync_cache"
+	crDirtyBlockCacheFolderName = "kbfs_cr_cache"
+	testCacheDbDir              = "kbfs_cache_test"
 )
 
 // diskBlockCacheConfig specifies the interfaces that a DiskBlockCacheStandard
@@ -67,7 +69,7 @@ func (cache *diskBlockCacheWrapped) enableCache(
 	}
 	if cache.config.IsTestMode() {
 		*cachePtr, err = newDiskBlockCacheLocalForTest(
-			cache.config, typ)
+			cache.config, typ, filepath.Join(testCacheDbDir, cacheFolder))
 	} else {
 		cacheStorageRoot := filepath.Join(cache.storageRoot, cacheFolder)
 		*cachePtr, err = newDiskBlockCacheLocal(cache.config, typ,
@@ -213,7 +215,7 @@ func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
 		switch errors.Cause(err) {
 		case nil:
 			return md, nil
-		case ldberrors.ErrNotFound:
+		case badger.ErrKeyNotFound:
 		default:
 			return md, err
 		}
@@ -250,7 +252,7 @@ func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
 		switch errors.Cause(err) {
 		case nil:
 			return md.PrefetchStatus(), nil
-		case ldberrors.ErrNotFound:
+		case badger.ErrKeyNotFound:
 			if cacheType == DiskBlockSyncCache {
 				// Try moving the block and getting it again.
 				moved := cache.moveBetweenCachesLocked(

@@ -86,7 +86,7 @@ const (
 	// Maximum number of blocks that can be flushed in a single batch
 	// by the journal.  TODO: make this configurable, so that users
 	// can choose how much bandwidth is used by the journal.
-	maxJournalBlockFlushBatchSize = 25
+	maxJournalBlockFlushBatchSize = 100
 	// This will be the final entry for unflushed paths if there are
 	// too many revisions to process at once.
 	incompleteUnflushedPathsMarker = "..."

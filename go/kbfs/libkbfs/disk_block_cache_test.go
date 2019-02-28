@@ -8,10 +8,12 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/dgraph-io/badger"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -19,7 +21,6 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 )
@@ -62,12 +63,14 @@ func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
 	maxBytes int64) (*diskBlockCacheWrapped, error) {
 	maxFiles := int64(10000)
 	workingSetCache, err := newDiskBlockCacheLocalForTest(config,
-		workingSetCacheLimitTrackerType)
+		workingSetCacheLimitTrackerType,
+		filepath.Join(testCacheDbDir, workingSetCacheFolderName))
 	if err != nil {
 		return nil, err
 	}
 	syncCache, err := newDiskBlockCacheLocalForTest(
-		config, syncCacheLimitTrackerType)
+		config, syncCacheLimitTrackerType,
+		filepath.Join(testCacheDbDir, syncCacheFolderName))
 	if err != nil {
 		return nil, err
 	}

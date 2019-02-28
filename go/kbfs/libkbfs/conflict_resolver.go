@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	sysPath "path"
+	"path/filepath"
 	"runtime/debug"
 	"sort"
 	"strings"
@@ -3339,7 +3340,8 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 		_ = cr.config.(*ConfigLocal).EnableDiskLimiter(os.TempDir())
 
 		dbc, err = newDiskBlockCacheLocalForTest(
-			cr.config, syncCacheLimitTrackerType)
+			cr.config, syncCacheLimitTrackerType,
+			filepath.Join(testCacheDbDir, crDirtyBlockCacheFolderName))
 		if err != nil {
 			return nil, nil, err
 		}
