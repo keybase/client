@@ -28,9 +28,10 @@ const YouAdded = (props: YouAddedProps) => (
       />{' '}
       added you
       {!!props.otherUsers.length && [
-        props.otherUsers.length === 1 ? 'and ' : ', ',
+        props.otherUsers.length === 1 ? ' and ' : ', ',
         ...getAddedUsernames(props.otherUsers),
-      ]}{' '}
+      ]}
+      {!props.otherUsers.length && ' '}
       to #{props.channelname}.
     </Kb.Text>
   </UserNotice>
@@ -39,7 +40,7 @@ const YouAdded = (props: YouAddedProps) => (
 const maxUsernamesToShow = 3
 const getAddedUsernames = (usernames: Array<string>) => {
   const diff = Math.max(0, usernames.length - maxUsernamesToShow)
-  const othersStr = diff ? ` and ${diff} other${diff > 1 ? 's' : ''}` : ''
+  const othersStr = diff ? `and ${diff} other${diff > 1 ? 's' : ''} ` : ''
   return usernames.reduce((res, username, idx) => {
     if (idx === usernames.length - 1 && usernames.length > 1 && !othersStr) {
       // last user and no others
@@ -55,7 +56,7 @@ const getAddedUsernames = (usernames: Array<string>) => {
         usernames={[username]}
         key={username}
       />,
-      idx < usernames.length - 1 ? ', ' : ' '
+      idx < usernames.length - (othersStr ? 1 : 2) ? ', ' : ' '
     )
     if (idx === usernames.length - 1 && othersStr) {
       res.push(othersStr)
@@ -73,7 +74,7 @@ type OthersAddedProps = {|
 
 const OthersAdded = (props: OthersAddedProps) => (
   <Kb.Text type="BodySmall" style={styles.text}>
-    added {getAddedUsernames(props.added)} to #{props.channelname}
+    added {getAddedUsernames(props.added)}to #{props.channelname}.
   </Kb.Text>
 )
 
