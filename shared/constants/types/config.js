@@ -12,10 +12,13 @@ export type _OutOfDate = {
 }
 export type OutOfDate = I.RecordOf<_OutOfDate>
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
+export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
 
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
+  appOutOfDateStatus: AppOutOfDateStatus,
+  appOutOfDateReason: string,
   avatars: I.Map<string, I.Map<number, string>>,
   configuredAccounts: I.List<string>,
   daemonError: ?Error,

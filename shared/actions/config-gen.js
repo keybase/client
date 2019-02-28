@@ -49,6 +49,7 @@ export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const swapRouter = 'config:swapRouter'
+export const updateApp = 'config:updateApp'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
@@ -91,11 +92,16 @@ type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>
+type _UpdateAppPayload = void
 type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
 type _UpdateNowPayload = void
 
 // Action Creators
+/**
+ * On a critical red bar an action to update cross platform
+ */
+export const createUpdateApp = (payload: _UpdateAppPayload) => ({payload, type: updateApp})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
@@ -211,6 +217,7 @@ export type SetupEngineListenersPayload = {|+payload: _SetupEngineListenersPaylo
 export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
 export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
 export type SwapRouterPayload = {|+payload: _SwapRouterPayload, +type: 'config:swapRouter'|}
+export type UpdateAppPayload = {|+payload: _UpdateAppPayload, +type: 'config:updateApp'|}
 export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
 export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
 export type UpdateNowPayload = {|+payload: _UpdateNowPayload, +type: 'config:updateNow'|}
@@ -255,6 +262,7 @@ export type Actions =
   | ShowMainPayload
   | StartHandshakePayload
   | SwapRouterPayload
+  | UpdateAppPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload

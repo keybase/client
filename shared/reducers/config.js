@@ -257,6 +257,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.checkForUpdate:
     case ConfigGen.filePickerError:
     case ConfigGen.persistRoute:
+    case ConfigGen.updateApp:
     case ConfigGen.setNavigator:
       return state
     default:
