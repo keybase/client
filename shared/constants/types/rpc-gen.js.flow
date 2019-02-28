@@ -184,6 +184,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|opID: OpID, dest: Path, flags: OpenFlags|}>,
     outParam: void,
   |},
+  'keybase.1.SimpleFS.simpleFSPing': {|
+    inParam: void,
+    outParam: void,
+  |},
   'keybase.1.SimpleFS.simpleFSReadList': {|
     inParam: $ReadOnly<{|opID: OpID|}>,
     outParam: SimpleFSListResult,
@@ -3350,6 +3354,7 @@ declare export function SimpleFSSimpleFSListRecursiveToDepthRpcPromise(params: $
 declare export function SimpleFSSimpleFSListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSMoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSMove'>, 'outParam'>>
 declare export function SimpleFSSimpleFSOpenRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSOpen'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSOpen'>, 'outParam'>>
+declare export function SimpleFSSimpleFSPingRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSPing'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSPing'>, 'outParam'>>
 declare export function SimpleFSSimpleFSReadListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSRemoveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSRemove'>, 'outParam'>>
 declare export function SimpleFSSimpleFSStatRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'outParam'>>

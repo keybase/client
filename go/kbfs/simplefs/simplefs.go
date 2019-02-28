@@ -2236,3 +2236,8 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	_, err = k.config.KBFSOps().SetSyncConfig(ctx, tlfID, arg.Config)
 	return err
 }
+
+// SimpleFSPing implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSPing(ctx context.Context) error {
+	return nil
+}

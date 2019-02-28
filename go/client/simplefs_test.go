@@ -238,6 +238,11 @@ func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
 	return nil
 }
 
+// SimpleFSPing implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSPing(_ context.Context) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file
