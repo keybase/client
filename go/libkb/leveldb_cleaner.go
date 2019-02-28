@@ -59,7 +59,7 @@ var DefaultDesktopDbCleanerConfig = DbCleanerConfig{
 }
 
 type levelDbCleaner struct {
-	Contextified
+	MetaContextified
 	sync.Mutex
 
 	running  bool
@@ -74,24 +74,25 @@ type levelDbCleaner struct {
 	cancelCh chan struct{}
 }
 
-func newLevelDbCleaner(g *GlobalContext, dbName string) *levelDbCleaner {
+func newLevelDbCleaner(mctx MetaContext, dbName string) *levelDbCleaner {
 	config := DefaultDesktopDbCleanerConfig
-	isMobile := g.IsMobileAppType()
+	isMobile := mctx.G().IsMobileAppType()
 	if isMobile {
 		config = DefaultMobileDbCleanerConfig
 	}
-	return newLevelDbCleanerWithConfig(g, dbName, config, isMobile)
+	return newLevelDbCleanerWithConfig(mctx, dbName, config, isMobile)
 }
 
-func newLevelDbCleanerWithConfig(g *GlobalContext, dbName string, config DbCleanerConfig, isMobile bool) *levelDbCleaner {
+func newLevelDbCleanerWithConfig(mctx MetaContext, dbName string, config DbCleanerConfig, isMobile bool) *levelDbCleaner {
 	cache, err := lru.New(config.CacheCapacity)
 	if err != nil {
 		panic(err)
 	}
+	mctx = mctx.WithLogTag("DBCLN")
 	c := &levelDbCleaner{
-		Contextified: NewContextified(g),
+		MetaContextified: NewMetaContextified(mctx),
 		// Start the run shortly after starting but not immediately
-		lastRun:  g.GetClock().Now().Add(-(config.CleanInterval - config.CleanInterval/10)),
+		lastRun:  mctx.G().GetClock().Now().Add(-(config.CleanInterval - config.CleanInterval/10)),
 		dbName:   dbName,
 		config:   config,
 		cache:    cache,
@@ -111,7 +112,7 @@ func (c *levelDbCleaner) Status() string {
 }
 
 func (c *levelDbCleaner) Stop() {
-	c.log(context.TODO(), "Stop")
+	c.log("Stop")
 	c.Lock()
 	defer c.Unlock()
 	if c.stopCh != nil {
@@ -121,18 +122,17 @@ func (c *levelDbCleaner) Stop() {
 }
 
 func (c *levelDbCleaner) monitorAppState() {
-	ctx := context.Background()
-	c.log(ctx, "monitorAppState")
+	c.log("monitorAppState")
 	state := keybase1.AppState_FOREGROUND
 	for {
 		select {
 		case state = <-c.G().AppState.NextUpdate(&state):
 			switch state {
 			case keybase1.AppState_BACKGROUNDACTIVE:
-				c.log(ctx, "monitorAppState: attempting clean")
-				c.clean(ctx, false)
+				c.log("monitorAppState: attempting clean")
+				c.clean(false)
 			default:
-				c.log(ctx, "monitorAppState: attempting cancel, state: %v", state)
+				c.log("monitorAppState: attempting cancel, state: %v", state)
 				c.Lock()
 				if c.cancelCh != nil {
 					close(c.cancelCh)
@@ -141,14 +141,14 @@ func (c *levelDbCleaner) monitorAppState() {
 				c.Unlock()
 			}
 		case <-c.stopCh:
-			c.log(context.TODO(), "monitorAppState: stop")
+			c.log("monitorAppState: stop")
 			return
 		}
 	}
 }
 
-func (c *levelDbCleaner) log(ctx context.Context, format string, args ...interface{}) {
-	c.G().Log.CDebugf(ctx, fmt.Sprintf("levelDbCleaner(%s): %s", c.dbName, format), args...)
+func (c *levelDbCleaner) log(format string, args ...interface{}) {
+	c.M().Debug(fmt.Sprintf("levelDbCleaner(%s): %s", c.dbName, format), args...)
 }
 
 func (c *levelDbCleaner) setDb(db *leveldb.DB) {
@@ -180,7 +180,7 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval
 }
 
-func (c *levelDbCleaner) getDbSize(ctx context.Context) (size uint64, err error) {
+func (c *levelDbCleaner) getDbSize() (size uint64, err error) {
 	if c.db == nil {
 		return 0, nil
 	}
@@ -194,7 +194,7 @@ func (c *levelDbCleaner) getDbSize(ctx context.Context) (size uint64, err error)
 	return uint64(sizes.Sum()), nil
 }
 
-func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
+func (c *levelDbCleaner) clean(force bool) (err error) {
 	c.Lock()
 	// get out without spamming the logs
 	if !c.shouldCleanLocked(force) {
@@ -205,7 +205,7 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 	key := c.lastKey
 	c.Unlock()
 
-	defer c.G().CTraceTimed(ctx, fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), func() error { return err })()
+	defer c.M().TraceTimed(fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), func() error { return err })()
 	defer func() {
 		c.Lock()
 		defer c.Unlock()
@@ -214,12 +214,12 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 		c.running = false
 	}()
 
-	dbSize, err := c.getDbSize(ctx)
+	dbSize, err := c.getDbSize()
 	if err != nil {
 		return err
 	}
 
-	c.log(ctx, "dbSize: %v, cacheSize: %v",
+	c.log("dbSize: %v, cacheSize: %v",
 		humanize.Bytes(dbSize), c.cache.Len())
 	// check db size, abort if small enough
 	if !force && dbSize < c.config.MaxSize {
@@ -230,27 +230,27 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 	for i := 0; i < 100; i++ {
 		select {
 		case <-c.cancelCh:
-			c.log(ctx, "aborting clean, %d runs, canceled", i)
+			c.log("aborting clean, %d runs, canceled", i)
 			return nil
 		case <-c.stopCh:
-			c.log(ctx, "aborting clean %d runs, stopped", i)
+			c.log("aborting clean %d runs, stopped", i)
 			return nil
 		default:
 		}
 
 		start := c.G().GetClock().Now()
-		numPurged, key, err = c.cleanBatch(ctx, key)
+		numPurged, key, err = c.cleanBatch(key)
 		if err != nil {
 			return err
 		}
 		totalNumPurged += numPurged
 
 		if i%10 == 0 {
-			c.log(ctx, "purged %d items, dbSize: %v, lastKey:%s, ran in: %v",
+			c.log("purged %d items, dbSize: %v, lastKey:%s, ran in: %v",
 				numPurged, humanize.Bytes(dbSize), key, c.G().GetClock().Now().Sub(start))
 		}
 		// check if we are within limits
-		dbSize, err = c.getDbSize(ctx)
+		dbSize, err = c.getDbSize()
 		if err != nil {
 			return err
 		}
@@ -260,11 +260,11 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 		}
 		time.Sleep(c.config.SleepInterval)
 	}
-	c.log(ctx, "clean complete. purged %d items total, dbSize: %v", totalNumPurged, humanize.Bytes(dbSize))
+	c.log("clean complete. purged %d items total, dbSize: %v", totalNumPurged, humanize.Bytes(dbSize))
 	return nil
 }
 
-func (c *levelDbCleaner) cleanBatch(ctx context.Context, startKey []byte) (int, []byte, error) {
+func (c *levelDbCleaner) cleanBatch(startKey []byte) (int, []byte, error) {
 	// Start our range from wherever we left off last time, and clean up until
 	// the permanent entries table begins.
 	iterRange := &util.Range{Start: startKey, Limit: tablePrefix(levelDbTablePerm)}
@@ -309,8 +309,8 @@ func (c *levelDbCleaner) cleanBatch(ctx context.Context, startKey []byte) (int, 
 
 func (c *levelDbCleaner) attemptClean(ctx context.Context) {
 	go func() {
-		if err := c.clean(ctx, false /*force */); err != nil {
-			c.log(ctx, "unable to clean: %v", err)
+		if err := c.clean(false /*force */); err != nil {
+			c.log("unable to clean: %v", err)
 		}
 	}()
 }

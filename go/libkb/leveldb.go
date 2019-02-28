@@ -130,7 +130,7 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 		Contextified: NewContextified(g),
 		filename:     path,
 		dbOpenerOnce: new(sync.Once),
-		cleaner:      newLevelDbCleaner(g, filepath.Base(path)),
+		cleaner:      newLevelDbCleaner(NewMetaContext(context.TODO(), g), filepath.Base(path)),
 	}
 }
 
@@ -289,7 +289,7 @@ func (l *LevelDb) Clean(force bool) (err error) {
 	l.Lock()
 	defer l.Unlock()
 	defer l.G().Trace("LevelDb::Clean", func() error { return err })()
-	return l.cleaner.clean(context.Background(), force)
+	return l.cleaner.clean(force)
 }
 
 func (l *LevelDb) Nuke() (fn string, err error) {
