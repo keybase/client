@@ -117,15 +117,36 @@ class CoinFlip extends React.Component<Props, State> {
     }, 0)
     return `${revealed} / ${total}`
   }
-  render() {
-    const popup = (
-      <CoinFlipParticipants
-        attachTo={this._getAttachmentRef}
-        onHidden={this._hidePopup}
-        participants={this.props.participants}
-        visible={this.state.showPopup}
-      />
+  _renderStatusText = () => {
+    const participants = (
+      <Kb.Text type="BodySmallPrimaryLink" style={styles.participantsLabel} onClick={this._showPopup}>
+        {`${this.props.participants.length} ${pluralize('participant')}`}
+      </Kb.Text>
     )
+    return this.props.showParticipants ? (
+      <Kb.Box2
+        direction="vertical"
+        onMouseOver={this._showPopup}
+        onMouseLeave={this._hidePopup}
+        ref={this._partRef}
+      >
+        <Kb.Text type="BodySmall">Secured by {Styles.isMobile && participants}</Kb.Text>
+        {!Styles.isMobile && participants}
+        <CoinFlipParticipants
+          attachTo={this._getAttachmentRef}
+          onHidden={this._hidePopup}
+          participants={this.props.participants}
+          visible={this.state.showPopup}
+        />
+      </Kb.Box2>
+    ) : (
+      <>
+        <Kb.Text type="BodySmallSemibold">Collecting commitments: {this._commitmentSummary()}</Kb.Text>
+        <Kb.Text type="BodySmallSemibold">Collecting secrets: {this._revealSummary()}</Kb.Text>
+      </>
+    )
+  }
+  render() {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
@@ -135,50 +156,30 @@ class CoinFlip extends React.Component<Props, State> {
             {this.props.progressText}
           </Kb.Text>
         ) : (
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            <Kb.Box2 direction="vertical">
-              {this.props.commitmentVis.length > 0 ? (
-                <Kb.Image src={commitSrc} style={styles.progressVis} />
-              ) : (
-                <Kb.Box2 direction="vertical" style={styles.progressVis} />
-              )}
+          <>
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+              <Kb.Box2 direction="vertical">
+                {this.props.commitmentVis.length > 0 ? (
+                  <Kb.Image src={commitSrc} style={styles.progressVis} />
+                ) : (
+                  <Kb.Box2 direction="vertical" style={styles.progressVis} />
+                )}
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical">
+                {this.props.revealVis.length > 0 ? (
+                  <Kb.Image src={revealSrc} style={styles.progressVis} />
+                ) : (
+                  <Kb.Box2 direction="vertical" style={styles.progressVis} />
+                )}
+              </Kb.Box2>
+              {!Styles.isMobile && <Kb.Box2 direction="vertical">{this._renderStatusText()}</Kb.Box2>}
             </Kb.Box2>
-            <Kb.Box2 direction="vertical">
-              {this.props.revealVis.length > 0 ? (
-                <Kb.Image src={revealSrc} style={styles.progressVis} />
-              ) : (
-                <Kb.Box2 direction="vertical" style={styles.progressVis} />
-              )}
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical">
-              {this.props.showParticipants ? (
-                <Kb.Box2
-                  direction="vertical"
-                  onMouseOver={this._showPopup}
-                  onMouseLeave={this._hidePopup}
-                  ref={this._partRef}
-                >
-                  <Kb.Text type="BodySmall">Secured by</Kb.Text>
-                  <Kb.Text
-                    type="BodySmallPrimaryLink"
-                    style={styles.participantsLabel}
-                    onClick={this._showPopup}
-                  >
-                    {`${this.props.participants.length} ${pluralize('participant')}`}
-                  </Kb.Text>
-                  {popup}
-                </Kb.Box2>
-              ) : (
-                <>
-                  <Kb.Text type="BodySmallSemibold">
-                    Collecting commitments: {this._commitmentSummary()}
-                  </Kb.Text>
-                  <Kb.Text type="BodySmallSemibold">Collecting secrets: {this._revealSummary()}</Kb.Text>
-                  <Kb.Text type="BodySmallSemibold">Verifying cryptography…</Kb.Text>
-                </>
-              )}
-            </Kb.Box2>
-          </Kb.Box2>
+            {Styles.isMobile && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.statusContainer}>
+                {this._renderStatusText()}
+              </Kb.Box2>
+            )}
+          </>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.result}>
@@ -250,6 +251,9 @@ const styles = Styles.styleSheetCreate({
   }),
   result: {
     paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  statusContainer: {
     paddingTop: Styles.globalMargins.tiny,
   },
 })
