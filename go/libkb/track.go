@@ -405,17 +405,17 @@ func LocalTrackDBKey(tracker, trackee keybase1.UID, expireLocal bool) DbKey {
 func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localExpires bool) (ret *TrackChainLink, err error) {
 	data, _, err := m.G().LocalDb.GetRaw(LocalTrackDBKey(tracker, trackee, localExpires))
 	if err != nil {
-		m.CDebugf("| DB lookup failed")
+		m.Debug("| DB lookup failed")
 		return nil, err
 	}
 	if data == nil || len(data) == 0 {
-		m.CDebugf("| No local track found")
+		m.Debug("| No local track found")
 		return nil, nil
 	}
 
 	cl := &ChainLink{Contextified: NewContextified(m.G()), unsigned: true}
 	if err = cl.UnpackLocal(data); err != nil {
-		m.CDebugf("| unpack local failed -> %s", err)
+		m.Debug("| unpack local failed -> %s", err)
 		return nil, err
 	}
 
@@ -424,10 +424,10 @@ func localTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID, localE
 	if localExpires {
 		linkETime = cl.GetCTime().Add(m.G().Env.GetLocalTrackMaxAge())
 
-		m.CDebugf("| local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), m.G().Clock().Now())
+		m.Debug("| local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), m.G().Clock().Now())
 
 		if linkETime.Before(m.G().Clock().Now()) {
-			m.CDebugf("| expired local track, deleting")
+			m.Debug("| expired local track, deleting")
 			removeLocalTrack(m, tracker, trackee, true)
 			return nil, ErrTrackingExpired
 		}
@@ -452,7 +452,7 @@ func LocalTmpTrackChainLinkFor(m MetaContext, tracker, trackee keybase1.UID) (re
 }
 
 func StoreLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, statement *jsonw.Wrapper) error {
-	m.CDebugf("| StoreLocalTrack, expiring = %v", expiringLocal)
+	m.Debug("| StoreLocalTrack, expiring = %v", expiringLocal)
 	err := m.G().LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
 	if err == nil {
 		m.G().IdentifyDispatch.NotifyTrackingSuccess(m, trackee)
@@ -461,7 +461,7 @@ func StoreLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, 
 }
 
 func removeLocalTrack(m MetaContext, tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool) error {
-	m.CDebugf("| RemoveLocalTrack, expiring = %v", expiringLocal)
+	m.Debug("| RemoveLocalTrack, expiring = %v", expiringLocal)
 	return m.G().LocalDb.Delete(LocalTrackDBKey(tracker, trackee, expiringLocal))
 }
 

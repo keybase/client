@@ -282,7 +282,7 @@ func (s *PerUserKeyring) AddKey(m MetaContext, generation keybase1.PerUserKeyGen
 	seqno keybase1.Seqno, seed PerUserKeySeed) error {
 	s.Lock()
 	defer s.Unlock()
-	m.CDebugf("PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
+	m.Debug("PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
 
 	if seed.IsBlank() {
 		return errors.New("attempt to add blank per-user-key")
@@ -461,9 +461,9 @@ func (s *PerUserKeyring) SyncAsProvisioningKey(m MetaContext, upak *keybase1.Use
 
 // `m.LoginContext` and `upak` are optional
 func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
-	defer m.CTrace("PerUserKeyring#sync", func() error { return err })()
+	defer m.Trace("PerUserKeyring#sync", func() error { return err })()
 
-	m.CDebugf("PerUserKeyring#sync(%v, %v)", m.LoginContext() != nil, upak != nil)
+	m.Debug("PerUserKeyring#sync(%v, %v)", m.LoginContext() != nil, upak != nil)
 
 	s.Lock()
 	defer s.Unlock()
@@ -531,7 +531,7 @@ func (m byGeneration) Less(i, j int) bool { return m[i].Generation < m[j].Genera
 func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 	deviceID keybase1.DeviceID) (box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp, err error) {
 
-	defer m.CTrace("PerUserKeyring#fetchBoxesLocked", func() error { return err })()
+	defer m.Trace("PerUserKeyring#fetchBoxesLocked", func() error { return err })()
 
 	var resp perUserKeySyncResp
 	err = m.G().API.GetDecode(APIArg{
@@ -547,7 +547,7 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 	if err != nil {
 		return nil, nil, err
 	}
-	m.CDebugf("| Got back box:%v and prevs:%d from server", resp.Box != nil, len(resp.Prevs))
+	m.Debug("| Got back box:%v and prevs:%d from server", resp.Box != nil, len(resp.Prevs))
 
 	return resp.Box, resp.Prevs, nil
 }
@@ -626,7 +626,7 @@ func (s *PerUserKeyring) importLocked(m MetaContext,
 	box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp,
 	decryptionKey GenericKey, checker *perUserKeyChecker) (ret perUserKeyMap, err error) {
 
-	defer m.CTrace("PerUserKeyring#importLocked", func() error { return err })()
+	defer m.Trace("PerUserKeyring#importLocked", func() error { return err })()
 
 	if box == nil && len(prevs) == 0 {
 		// No new stuff, this keyring is up to date.
@@ -648,7 +648,7 @@ func (s *PerUserKeyring) importLocked(m MetaContext,
 		debugPrevGenList = append(debugPrevGenList, fmt.Sprintf("%d", prev.Generation))
 	}
 	if len(debugPrevGenList) > 0 {
-		m.CDebugf("PerUserKeyring#importLocked prevs:(%s)", strings.Join(debugPrevGenList, ","))
+		m.Debug("PerUserKeyring#importLocked prevs:(%s)", strings.Join(debugPrevGenList, ","))
 	}
 
 	ret = make(perUserKeyMap)

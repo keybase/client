@@ -97,7 +97,7 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 
 	e.confirmResult = ieng.ConfirmResult()
 	if !e.confirmResult.IdentityConfirmed {
-		m.CDebugf("confirmResult: %+v", e.confirmResult)
+		m.Debug("confirmResult: %+v", e.confirmResult)
 		return errors.New("Follow not confirmed")
 	}
 
@@ -108,7 +108,7 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 	}
 
 	if !e.arg.Options.ExpiringLocal && e.confirmResult.ExpiringLocal {
-		m.CDebugf("-ExpiringLocal-")
+		m.Debug("-ExpiringLocal-")
 		e.arg.Options.ExpiringLocal = true
 	}
 

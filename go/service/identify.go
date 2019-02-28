@@ -100,7 +100,7 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 
 func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
 	m := libkb.NewMetaContext(netCtx, h.G())
-	m.CDebugf("IdentifyLite on user")
+	m.Debug("IdentifyLite on user")
 
 	var uid keybase1.UID
 	if arg.Id.Exists() {
@@ -152,7 +152,7 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 
 func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg) (ret keybase1.UserOrTeamLite, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
-	defer mctx.CTrace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
 	retp := &ret
 	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, retp, func(mctx libkb.MetaContext) (interface{}, error) {
 		tmp, err := h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
@@ -384,7 +384,7 @@ func (u *RemoteIdentifyUI) FinishSocialProofCheck(mctx libkb.MetaContext, p keyb
 
 func (u *RemoteIdentifyUI) Confirm(mctx libkb.MetaContext, io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	if u.skipPrompt {
-		mctx.CDebugf("skipping Confirm for %q", io.Username)
+		mctx.Debug("skipping Confirm for %q", io.Username)
 		return keybase1.ConfirmResult{IdentityConfirmed: true}, nil
 	}
 	return u.uicli.Confirm(mctx.Ctx(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})

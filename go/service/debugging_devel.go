@@ -29,7 +29,7 @@ import (
 func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
 	ctx = libkb.WithLogTag(ctx, "DG")
 	m := libkb.NewMetaContext(ctx, t.G())
-	defer m.CTraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
+	defer m.TraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
 	args := arg.Args
 	log := func(format string, args ...interface{}) {
 		t.G().Log.CInfof(ctx, format, args...)

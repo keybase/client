@@ -94,16 +94,16 @@ func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err er
 	var tmp ServerPrivateKeys
 	var found bool
 	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey(uid))
-	m.CDebugf("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
+	m.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if err != nil {
 		return err
 	}
 	if !found {
-		m.CDebugf("| Loaded empty record set")
+		m.Debug("| Loaded empty record set")
 		return nil
 	}
 	if ss.cachedSyncedSecretsOutOfDate(&tmp) {
-		m.CDebugf("| Synced secrets out of date")
+		m.Debug("| Synced secrets out of date")
 		return nil
 	}
 
@@ -113,7 +113,7 @@ func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err er
 	// private key fell back to gpg instead of using a synced key.
 	//
 
-	m.CDebugf("| Loaded version %d", tmp.Version)
+	m.Debug("| Loaded version %d", tmp.Version)
 	ss.keys = &tmp
 
 	return nil
@@ -123,7 +123,7 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 	hargs := HTTPArgs{}
 
 	if ss.keys != nil && !forceReload {
-		m.CDebugf("| adding version %d to fetch_private call", ss.keys.Version)
+		m.Debug("| adding version %d to fetch_private call", ss.keys.Version)
 		hargs.Add("version", I{ss.keys.Version})
 	}
 	var res *APIRes
@@ -134,7 +134,7 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
 		MetaContext: m,
 	})
-	m.CDebugf("| syncFromServer -> %s", ErrToOk(err))
+	m.Debug("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {
 		return
 	}
@@ -144,13 +144,13 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		return
 	}
 
-	m.CDebugf("| Returned object: {Status: %v, Version: %d, #pgpkeys: %d, #devices: %d}", obj.Status, obj.Version, len(obj.PrivateKeys), len(obj.Devices))
+	m.Debug("| Returned object: {Status: %v, Version: %d, #pgpkeys: %d, #devices: %d}", obj.Status, obj.Version, len(obj.PrivateKeys), len(obj.Devices))
 	if forceReload || ss.keys == nil || obj.Version > ss.keys.Version {
-		m.CDebugf("| upgrade to version -> %d", obj.Version)
+		m.Debug("| upgrade to version -> %d", obj.Version)
 		ss.keys = &obj
 		ss.dirty = true
 	} else {
-		m.CDebugf("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
+		m.Debug("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
 	}
 
 	return

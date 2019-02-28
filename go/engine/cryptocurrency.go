@@ -52,7 +52,7 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "CryptocurrencyEngine")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "CryptocurrencyEngine")
 
-	defer m.CTrace("CryptocurrencyEngine", func() error { return err })()
+	defer m.Trace("CryptocurrencyEngine", func() error { return err })()
 
 	var typ libkb.CryptocurrencyType
 	typ, _, err = libkb.CryptocurrencyParseAndCheck(e.arg.Address)

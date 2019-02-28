@@ -1181,38 +1181,38 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 	item gregor.Item) error {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
-	mctx.CDebugf("handleShowTrackerPopupDismiss: %+v", item)
+	mctx.Debug("handleShowTrackerPopupDismiss: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
 	}
 	body, err := jsonw.Unmarshal(item.Body().Bytes())
 	if err != nil {
-		mctx.CDebugf("body failed to unmarshal", err)
+		mctx.Debug("body failed to unmarshal", err)
 		return err
 	}
 	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
-		mctx.CDebugf("failed to extract uid", err)
+		mctx.Debug("failed to extract uid", err)
 		return err
 	}
 	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		mctx.CDebugf("failed to convert UID from string", err)
+		mctx.Debug("failed to convert UID from string", err)
 		return err
 	}
 	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(ctx, h.G(), uid))
 	if err != nil {
-		mctx.CDebugf("failed to load user from UID", err)
+		mctx.Debug("failed to load user from UID", err)
 		return err
 	}
 
 	identifyUI, err := h.G().UIRouter.GetIdentifyUI()
 	if err != nil {
-		mctx.CDebugf("failed to get IdentifyUI", err)
+		mctx.Debug("failed to get IdentifyUI", err)
 		return err
 	}
 	if identifyUI == nil {
-		mctx.CDebugf("got nil IdentifyUI")
+		mctx.Debug("got nil IdentifyUI")
 		return errors.New("got nil IdentifyUI")
 	}
 

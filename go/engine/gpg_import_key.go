@@ -139,7 +139,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	m.CDebugf("SelectKey result: %+v", res)
+	m.Debug("SelectKey result: %+v", res)
 
 	var selected *libkb.GpgPrimaryKey
 	for _, key := range index.Keys {
@@ -190,7 +190,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 			if !res {
 				// But update itself has finished, so this
 				// cancellation is not an error.
-				m.CInfof("User cancelled secret key import.")
+				m.Info("User cancelled secret key import.")
 				return nil
 			}
 			// Fall through with OnlyImport=true so it skips sig posting
@@ -204,7 +204,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {
-		m.CWarningf("error getting TTY for GPG: %s", err)
+		m.Warning("error getting TTY for GPG: %s", err)
 		err = nil
 	}
 
@@ -242,7 +242,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	m.CDebugf("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
+	m.Debug("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
 	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
 		Pregen:      bundle,
@@ -266,7 +266,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
-	m.CDebugf("Key %s imported", selected.GetFingerprint().ToKeyID())
+	m.Debug("Key %s imported", selected.GetFingerprint().ToKeyID())
 
 	e.last = bundle
 

@@ -48,12 +48,12 @@ func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, teamData *keybase1.TeamData,
 	}
 
 	if !chainKey.SigKID.SecureEqual(localSigKey.GetKID()) {
-		mctx.CDebugf("sig KID gen:%v (local) %v != %v (chain)", gen, localSigKey.GetKID(), chainKey.SigKID)
+		mctx.Debug("sig KID gen:%v (local) %v != %v (chain)", gen, localSigKey.GetKID(), chainKey.SigKID)
 		return ret, fmt.Errorf("wrong team key found at generation %v", gen)
 	}
 
 	if !chainKey.EncKID.SecureEqual(localEncKey.GetKID()) {
-		mctx.CDebugf("enc KID gen:%v (local) %v != %v (chain)", gen, localEncKey.GetKID(), chainKey.EncKID)
+		mctx.Debug("enc KID gen:%v (local) %v != %v (chain)", gen, localEncKey.GetKID(), chainKey.EncKID)
 		return ret, fmt.Errorf("wrong team key (enc) found at generation %v", gen)
 	}
 
@@ -133,7 +133,7 @@ func (t *TeamKeyManager) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 // SharedSecretBoxes creates the PerTeamSharedSecretBoxes for recipients with the
 // existing team shared secret.
 func (t *TeamKeyManager) SharedSecretBoxes(mctx libkb.MetaContext, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
-	defer mctx.CTrace("SharedSecretBoxes", func() error { return err })()
+	defer mctx.Trace("SharedSecretBoxes", func() error { return err })()
 
 	// make the nonce prefix, skipping the zero counter
 	// (0 used for previous key encryption nonce)
@@ -149,7 +149,7 @@ func (t *TeamKeyManager) SharedSecretBoxes(mctx libkb.MetaContext, senderKey lib
 // RotateSharedSecretBoxes creates a new shared secret for the team and the
 // required PerTeamKey section.
 func (t *TeamKeyManager) RotateSharedSecretBoxes(mctx libkb.MetaContext, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
-	defer mctx.CTrace("RotateSharedSecretBoxes", func() error { return err })()
+	defer mctx.Trace("RotateSharedSecretBoxes", func() error { return err })()
 
 	// make a new secret
 	nextSecret, err := newSharedSecret()
@@ -292,7 +292,7 @@ func (t *TeamKeyManager) setNextSharedSecret(mctx libkb.MetaContext, secret keyb
 	t.signingKey = nil
 	t.encryptionKey = nil
 
-	mctx.CDebugf("TeamKeyManager: set next shared secret, generation %d", t.generation)
+	mctx.Debug("TeamKeyManager: set next shared secret, generation %d", t.generation)
 }
 
 type prevKeySealedDecoded struct {

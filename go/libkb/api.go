@@ -228,12 +228,12 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 
 	nist, err := m.ActiveDevice().NIST(m.Ctx())
 	if nist == nil {
-		m.CDebugf("active device couldn't generate a NIST")
+		m.Debug("active device couldn't generate a NIST")
 		return nil
 	}
 
 	if err != nil {
-		m.CDebugf("Error generating NIST: %s", err)
+		m.Debug("Error generating NIST: %s", err)
 		return nil
 	}
 	return nist
@@ -246,7 +246,7 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 // so therefore it's fine to call it without checking for nil-ness.
 func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
 	m = m.EnsureCtx().WithLogTag("API")
-	defer m.CTraceTimed("api.doRequestShared", func() error { return err })()
+	defer m.TraceTimed("api.doRequestShared", func() error { return err })()
 	m, tbs := m.WithTimeBuckets()
 	defer tbs.Record("API.request")() // note this doesn't include time reading body from GetResp
 
@@ -260,7 +260,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	nist := getNIST(m, arg.SessionType)
 
 	if err = api.fixHeaders(m, arg, req, nist); err != nil {
-		m.CDebugf("- API %s %s: fixHeaders error: %s", req.Method, req.URL, err)
+		m.Debug("- API %s %s: fixHeaders error: %s", req.Method, req.URL, err)
 		return
 	}
 	needSession := false
@@ -278,13 +278,13 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	var jsonBytes int
 	var status string
 	defer func() {
-		m.CDebugf("- API %s %s: err=%s, status=%q, jsonwBytes=%d", req.Method, req.URL, ErrToOk(err), status, jsonBytes)
+		m.Debug("- API %s %s: err=%s, status=%q, jsonwBytes=%d", req.Method, req.URL, ErrToOk(err), status, jsonBytes)
 	}()
 
 	if m.G().Env.GetAPIDump() {
 		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		m.CDebugf("| full request: json:%s querystring:%s", jpStr, argStr)
+		m.Debug("| full request: json:%s querystring:%s", jpStr, argStr)
 	}
 
 	timer := m.G().Timers.Start(timerType)
@@ -352,7 +352,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 		jw = jsonw.NewWrapper(obj)
 		if m.G().Env.GetAPIDump() {
 			b, _ := json.MarshalIndent(obj, "", "  ")
-			m.CDebugf("| full reply: %s", b)
+			m.Debug("| full reply: %s", b)
 		}
 	}
 
@@ -398,7 +398,7 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		if i > 0 {
-			m.CDebugf("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+			m.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
 		resp, canc, err := doTimeout(m, cli, req, timeout)
 		if err == nil {
@@ -409,7 +409,7 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 
 		// If chat goes offline during this retry loop, then let's bail out early
 		if ConnectivityMonitorNo == m.G().ConnectivityMonitor.IsConnected(m.Ctx()) {
-			m.CDebugf("retry loop aborting since chat went offline")
+			m.Debug("retry loop aborting since chat went offline")
 			break
 		}
 
@@ -494,13 +494,13 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 
 func (a *InternalAPIEngine) sessionArgs(m MetaContext, arg APIArg) (tok, csrf string, err error) {
 	if m.apiTokener != nil {
-		m.CDebugf("Using apiTokener session and CSRF token")
+		m.Debug("Using apiTokener session and CSRF token")
 		tok, csrf = m.apiTokener.Tokens()
 		return tok, csrf, nil
 	}
 
 	if tok, csrf := m.ProvisionalSessionArgs(); len(tok) > 0 && len(csrf) > 0 {
-		m.CDebugf("using provisional session args")
+		m.Debug("using provisional session args")
 		return tok, csrf, nil
 	}
 	return "", "", LoginRequiredError{"no sessionArgs available since no login path worked"}
@@ -555,7 +555,7 @@ func (a *InternalAPIEngine) consumeHeaders(m MetaContext, resp *http.Response, n
 			customMessage = string(decoded)
 		} else {
 			// If base64-decode fails, just log the error and skip decoding.
-			m.CErrorf("Failed to decode X-Keybase-Upgrade-Message header: %s", err)
+			m.Error("Failed to decode X-Keybase-Upgrade-Message header: %s", err)
 		}
 	}
 
@@ -567,9 +567,9 @@ func (a *InternalAPIEngine) consumeHeaders(m MetaContext, resp *http.Response, n
 			nist.MarkSuccess()
 		case "failed":
 			nist.MarkFailure()
-			m.CWarningf("NIST token failed to verify")
+			m.Warning("NIST token failed to verify")
 		default:
-			m.CInfof("Unexpected 'X-Keybase-Auth-NIST' state: %s", nistReply)
+			m.Info("Unexpected 'X-Keybase-Auth-NIST' state: %s", nistReply)
 		}
 	}
 
@@ -608,21 +608,21 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 	if nist != nil {
 		req.Header.Set("X-Keybase-Session", nist.Token().String())
 	} else if arg.SessionType != APISessionTypeNONE {
-		m.CDebugf("fixHeaders: falling back to legacy session management")
+		m.Debug("fixHeaders: falling back to legacy session management")
 		tok, csrf, err := a.sessionArgs(m, arg)
 		if err != nil {
 			if arg.SessionType == APISessionTypeREQUIRED {
-				m.CDebugf("fixHeaders: session required, but error getting sessionArgs: %s", err)
+				m.Debug("fixHeaders: session required, but error getting sessionArgs: %s", err)
 				return err
 			}
-			m.CDebugf("fixHeaders: session optional, error getting sessionArgs: %s", err)
+			m.Debug("fixHeaders: session optional, error getting sessionArgs: %s", err)
 		}
 
 		if m.G().Env.GetTorMode().UseSession() {
 			if len(tok) > 0 {
 				req.Header.Set("X-Keybase-Session", tok)
 			} else if arg.SessionType == APISessionTypeREQUIRED {
-				m.CWarningf("fixHeaders: need session, but session token empty")
+				m.Warning("fixHeaders: need session, but session token empty")
 				return InternalError{Msg: "API request requires session, but session token empty"}
 			}
 		}
@@ -630,7 +630,7 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 			if len(csrf) > 0 {
 				req.Header.Set("X-CSRF-Token", csrf)
 			} else if arg.SessionType == APISessionTypeREQUIRED {
-				m.CWarningf("fixHeaders: need session, but session csrf empty")
+				m.Warning("fixHeaders: need session, but session csrf empty")
 				return InternalError{Msg: "API request requires session, but session csrf empty"}
 			}
 		}
@@ -736,7 +736,7 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 	arg.MetaContext = m
 	resp, finisher, err := a.GetResp(arg)
 	if err != nil {
-		m.CDebugf("| API GetDecode, GetResp error: %s", err)
+		m.Debug("| API GetDecode, GetResp error: %s", err)
 		return err
 	}
 	defer finisher()
@@ -748,17 +748,17 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 		if err != nil {
 			return err
 		}
-		m.CDebugf("| response body: %s", string(body))
+		m.Debug("| response body: %s", string(body))
 		reader = bytes.NewReader(body)
 	}
 
 	dec := json.NewDecoder(reader)
 	if err = dec.Decode(&v); err != nil {
-		m.CDebugf("| API GetDecode, Decode error: %s", err)
+		m.Debug("| API GetDecode, Decode error: %s", err)
 		return err
 	}
 	if err = a.checkAppStatus(arg, v.GetAppStatus()); err != nil {
-		m.CDebugf("| API GetDecode, checkAppStatus error: %s", err)
+		m.Debug("| API GetDecode, checkAppStatus error: %s", err)
 		return err
 	}
 
@@ -863,12 +863,12 @@ func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Reque
 	// http.AppStatus
 	appStatus, err := a.checkAppStatusFromJSONWrapper(arg, status)
 	if err != nil {
-		m.CDebugf("- API call %s error: %s", arg.Endpoint, err)
+		m.Debug("- API call %s error: %s", arg.Endpoint, err)
 		return nil, err
 	}
 
 	body := jw
-	m.CDebugf("- API call %s success", arg.Endpoint)
+	m.Debug("- API call %s success", arg.Endpoint)
 	return &APIRes{status, body, resp.StatusCode, appStatus}, err
 }
 

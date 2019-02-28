@@ -328,7 +328,7 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 		return err
 	}
 	if remember == arg.Remember {
-		m.CDebugf("SetRememberPassphrase: no change necessary (remember = %v)", remember)
+		m.Debug("SetRememberPassphrase: no change necessary (remember = %v)", remember)
 		return nil
 	}
 
@@ -341,11 +341,11 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 
 	// replace the secret store
 	if err := h.G().ReplaceSecretStore(ctx); err != nil {
-		m.CDebugf("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
+		m.Debug("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
 		return err
 	}
 
-	m.CDebugf("SetRememberPassphrase(%v) success", arg.Remember)
+	m.Debug("SetRememberPassphrase(%v) success", arg.Remember)
 
 	return nil
 }

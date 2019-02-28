@@ -86,7 +86,7 @@ func (c *RPCCache) get(mctx libkb.MetaContext, version Version, rpcName string, 
 	}
 
 	if value.Version != version {
-		mctx.CDebugf("Found the wrong version (%d != %d) so returning 'not found", value.Version, version)
+		mctx.Debug("Found the wrong version (%d != %d) so returning 'not found", value.Version, version)
 		return false, nil
 	}
 
@@ -98,7 +98,7 @@ func (c *RPCCache) get(mctx libkb.MetaContext, version Version, rpcName string, 
 }
 
 func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, encrypted bool, arg interface{}, res interface{}) (err error) {
-	defer mctx.CTrace(fmt.Sprintf("RPCCache#put(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("RPCCache#put(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() error { return err })()
 	c.Lock()
 	defer c.Unlock()
 
@@ -137,7 +137,7 @@ func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability
 		return err
 	}
 	mctx = mctx.WithLogTag("OFLN")
-	defer mctx.CTrace(fmt.Sprintf("RPCCache#Serve(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("RPCCache#Serve(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() error { return err })()
 	if mctx.G().ConnectivityMonitor.IsConnected(mctx.Ctx()) == libkb.ConnectivityMonitorNo {
 		found, err := c.get(mctx, version, rpcName, encrypted, arg, res)
 		if err != nil {
@@ -154,7 +154,7 @@ func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability
 	}
 	tmp := c.put(mctx, version, rpcName, encrypted, arg, res)
 	if tmp != nil {
-		mctx.CWarningf("Error putting RPC to offline storage: %s", tmp.Error())
+		mctx.Warning("Error putting RPC to offline storage: %s", tmp.Error())
 	}
 	return nil
 }

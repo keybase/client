@@ -91,12 +91,12 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 	m := libkb.NewMetaContext(ctx, p.G())
 
 	if p.done {
-		m.CDebugf("loader shutdown, not loading payment %s", paymentID)
+		m.Debug("loader shutdown, not loading payment %s", paymentID)
 		return nil
 	}
 
 	if len(paymentID) == 0 {
-		m.CDebugf("LoadPayment called with empty paymentID for %s/%s", convID, msgID)
+		m.Debug("LoadPayment called with empty paymentID for %s/%s", convID, msgID)
 		return nil
 	}
 
@@ -110,7 +110,7 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 		}
 		p.pmessages[paymentID] = msg
 	} else if !msg.convID.Eq(convID) || msg.msgID != msgID {
-		m.CWarningf("existing payment message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
+		m.Warning("existing payment message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
 	}
 
 	payment, ok := p.payments[paymentID]
@@ -140,7 +140,7 @@ func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, m
 	m := libkb.NewMetaContext(ctx, p.G())
 
 	if p.done {
-		m.CDebugf("loader shutdown, not loading request %s", requestID)
+		m.Debug("loader shutdown, not loading request %s", requestID)
 		return nil
 	}
 
@@ -154,7 +154,7 @@ func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, m
 		}
 		p.rmessages[requestID] = msg
 	} else if !msg.convID.Eq(convID) || msg.msgID != msgID {
-		m.CWarningf("existing request message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
+		m.Warning("existing request message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
 	}
 
 	request, ok := p.requests[requestID]
@@ -240,19 +240,19 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	defer cancel()
 
 	mctx := libkb.NewMetaContext(ctx, p.G())
-	defer mctx.CTraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
+	defer mctx.TraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
 
 	s := getGlobal(p.G())
 	details, err := s.remoter.PaymentDetailsGeneric(ctx, stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
-		mctx.CDebugf("error getting payment details for %s: %s", id, err)
+		mctx.Debug("error getting payment details for %s: %s", id, err)
 		return
 	}
 
 	oc := NewOwnAccountLookupCache(mctx)
 	summary, err := TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	if err != nil {
-		mctx.CDebugf("error transforming details for %s: %s", id, err)
+		mctx.Debug("error transforming details for %s: %s", id, err)
 		return
 	}
 
@@ -268,17 +268,17 @@ func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
 	defer cancel()
 
 	m := libkb.NewMetaContext(ctx, p.G())
-	defer m.CTraceTimed(fmt.Sprintf("loadRequest(%s)", id), func() error { return nil })()
+	defer m.TraceTimed(fmt.Sprintf("loadRequest(%s)", id), func() error { return nil })()
 
 	s := getGlobal(p.G())
 	details, err := s.remoter.RequestDetails(ctx, id)
 	if err != nil {
-		m.CDebugf("error getting request details for %s: %s", id, err)
+		m.Debug("error getting request details for %s: %s", id, err)
 		return
 	}
 	local, err := TransformRequestDetails(m, details)
 	if err != nil {
-		m.CDebugf("error transforming request details for %s: %s", id, err)
+		m.Debug("error transforming request details for %s: %s", id, err)
 		return
 	}
 
@@ -344,10 +344,10 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 
 	if !ok {
 		// this is ok: frontend only needs the payment ID
-		m.CDebugf("sending chat notification for payment %s using empty msg info", id)
+		m.Debug("sending chat notification for payment %s using empty msg info", id)
 		msg = chatMsg{}
 	} else {
-		m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
+		m.Debug("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	}
 
 	uid := p.G().ActiveDevice.UID()
@@ -385,11 +385,11 @@ func (p *Loader) sendRequestNotification(m libkb.MetaContext, id stellar1.Keybas
 	p.Unlock()
 
 	if !ok {
-		m.CDebugf("not sending request chat notification for %s (no associated convID, msgID)", id)
+		m.Debug("not sending request chat notification for %s (no associated convID, msgID)", id)
 		return
 	}
 
-	m.CDebugf("sending chat notification for request %s to %s, %s", id, msg.convID, msg.msgID)
+	m.Debug("sending chat notification for request %s to %s, %s", id, msg.convID, msg.msgID)
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiRequestInfo(m, details, msg)
 	p.G().NotifyRouter.HandleChatRequestInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)

@@ -273,7 +273,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	m := arg.MetaContext()
 
 	m = m.WithLogTag("LU")
-	defer m.CTraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
+	defer m.TraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
 
 	var refresh bool
 
@@ -296,7 +296,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
-	m.CDebugf("LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
+	m.Debug("LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
 
 	// resolve the uid from the name, if necessary
 	rres, err := arg.resolveUID()
@@ -307,7 +307,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// check to see if this is a self load
 	arg.checkSelf()
 
-	m.CDebugf("| resolved to %s", arg.uid)
+	m.Debug("| resolved to %s", arg.uid)
 
 	// We can get the user object's body from either the resolution result or
 	// if it was plumbed through as a parameter.
@@ -355,7 +355,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	// Proactively cache fetches from remote server to local storage
 	if e2 := ret.Store(m); e2 != nil {
-		m.CWarningf("Problem storing user %s: %s", ret.GetName(), e2)
+		m.Warning("Problem storing user %s: %s", ret.GetName(), e2)
 	}
 
 	if ret.HasActiveKey() {
@@ -370,7 +370,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 
 	} else if !arg.publicKeyOptional {
-		m.CDebugf("No active key for user: %s", ret.GetUID())
+		m.Debug("No active key for user: %s", ret.GetUID())
 
 		var emsg string
 		if arg.self {
@@ -386,7 +386,7 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 	local, err := LoadUserFromLocalStorage(m, uid)
 	var refresh bool
 	if err != nil {
-		m.CWarningf("Failed to load %s from storage: %s", uid, err)
+		m.Warning("Failed to load %s from storage: %s", uid, err)
 	}
 
 	if leaf == nil {
@@ -399,7 +399,7 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 	var f1, loadRemote bool
 
 	if local == nil {
-		m.CDebugf("| No local user stored for %s", uid)
+		m.Debug("| No local user stored for %s", uid)
 		loadRemote = true
 	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
 		return nil, refresh, err
@@ -408,7 +408,7 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 		refresh = loadRemote
 	}
 
-	m.CDebugf("| Freshness: basics=%v; for %s", f1, uid)
+	m.Debug("| Freshness: basics=%v; for %s", f1, uid)
 
 	var ret *User
 	if !loadRemote && !force {
@@ -428,18 +428,18 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 }
 
 func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err error) {
-	m.CDebugf("+ LoadUserFromLocalStorage(%s)", uid)
+	m.Debug("+ LoadUserFromLocalStorage(%s)", uid)
 	jw, err := m.G().LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
 	}
 
 	if jw == nil {
-		m.CDebugf("- loadUserFromLocalStorage(%s): Not found", uid)
+		m.Debug("- loadUserFromLocalStorage(%s): Not found", uid)
 		return nil, nil
 	}
 
-	m.CDebugf("| Loaded successfully")
+	m.Debug("| Loaded successfully")
 
 	if u, err = NewUserFromLocalStorage(m.G(), jw); err != nil {
 		return nil, err
@@ -449,8 +449,8 @@ func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err err
 		err = fmt.Errorf("Bad lookup; uid mismatch: %s != %s", uid, u.id)
 	}
 
-	m.CDebugf("| Loaded username %s (uid=%s)", u.name, uid)
-	m.CDebugf("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
+	m.Debug("| Loaded username %s (uid=%s)", u.name, uid)
+	m.Debug("- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
 
 	return
 }
@@ -502,7 +502,7 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 }
 
 func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
-	m.CDebugf("Load User from server: %s", uid)
+	m.Debug("Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded as a result of a Resolve call earlier.
 	if body == nil {
@@ -521,13 +521,13 @@ func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u
 		}
 		body = res.Body.AtKey("them")
 	} else {
-		m.CDebugf("| Skipped load; got user object previously")
+		m.Debug("| Skipped load; got user object previously")
 	}
 
 	if u, err = NewUserFromServer(m.G(), body); err != nil {
 		return u, err
 	}
-	m.CDebugf("- Load user from server: %s -> %s", uid, ErrToOk(err))
+	m.Debug("- Load user from server: %s -> %s", uid, ErrToOk(err))
 
 	return u, err
 }
@@ -557,7 +557,7 @@ func lookupMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool, sigHint
 }
 
 func lookupSigHintsAndMerkleLeaf(m MetaContext, uid keybase1.UID, localExists bool) (sigHints *SigHints, leaf *MerkleUserLeaf, err error) {
-	defer m.CTrace("lookupSigHintsAndMerkleLeaf", func() error { return err })()
+	defer m.Trace("lookupSigHintsAndMerkleLeaf", func() error { return err })()
 	sigHints, err = LoadSigHints(m, uid)
 	if err != nil {
 		return nil, nil, err

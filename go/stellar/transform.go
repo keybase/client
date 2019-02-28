@@ -75,7 +75,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 		amountDesc, err := FormatCurrency(mctx, details.Amount, *details.Currency, stellarnet.Round)
 		if err != nil {
 			amountDesc = details.Amount
-			mctx.CDebugf("error formatting external currency: %s", err)
+			mctx.Debug("error formatting external currency: %s", err)
 		}
 		loc.AmountDescription = fmt.Sprintf("%s %s", amountDesc, *details.Currency)
 	} else if details.Asset != nil {
@@ -94,7 +94,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 		amountDesc, err := FormatAmountWithSuffix(mctx, details.Amount, false /* precisionTwo */, true /* simplify */, code)
 		if err != nil {
 			amountDesc = fmt.Sprintf("%s %s", details.Amount, code)
-			mctx.CDebugf("error formatting amount for asset: %s", err)
+			mctx.Debug("error formatting amount for asset: %s", err)
 		}
 		loc.AmountDescription = amountDesc
 	} else {
@@ -229,7 +229,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	loc.FromAccountID = p.FromStellar
 	loc.FromUsername, err = lookupUsername(mctx, p.From.Uid)
 	if err != nil {
-		mctx.CDebugf("sender lookup failed: %s", err)
+		mctx.Debug("sender lookup failed: %s", err)
 		return nil, errors.New("sender lookup failed")
 	}
 	loc.FromType = stellar1.ParticipantType_KEYBASE
@@ -240,7 +240,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	if p.To != nil {
 		username, err := lookupUsername(mctx, p.To.Uid)
 		if err != nil {
-			mctx.CDebugf("recipient lookup failed: %s", err)
+			mctx.Debug("recipient lookup failed: %s", err)
 			return nil, errors.New("recipient lookup failed")
 		}
 		loc.ToUsername = username
@@ -405,7 +405,7 @@ func RemoteRecentPaymentsToPage(mctx libkb.MetaContext, remoter remote.Remoter, 
 	for i, p := range remotePage.Payments {
 		page.Payments[i].Payment, err = TransformPaymentSummaryAccount(mctx, p, oc, accountID)
 		if err != nil {
-			mctx.CDebugf("RemoteRecentPaymentsToPage error transforming payment %v: %v", i, err)
+			mctx.Debug("RemoteRecentPaymentsToPage error transforming payment %v: %v", i, err)
 			s := err.Error()
 			page.Payments[i].Err = &s
 			page.Payments[i].Payment = nil // just to make sure

@@ -209,20 +209,20 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
 		team, _, err := loadedTeams.getTeamForMember(ctx, memberInfo, serverSaysNeedAdmin)
 		if err != nil {
-			m.CDebugf("| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
+			m.Debug("| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			expectEmptyList = false // so we tell user about errors at the end.
 			continue
 		}
 
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			m.CDebugf("| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			m.Debug("| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 
 		expectEmptyList = false
 
 		if memberInfo.UserID != queryUID {
-			m.CDebugf("| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
+			m.Debug("| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
 			continue
 		}
 
@@ -245,7 +245,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 		if team.IsImplicit() {
 			displayName, err := team.ImplicitTeamDisplayNameString(ctx)
 			if err != nil {
-				m.CDebugf("| Failed to get ImplicitTeamDisplayNameString() for team %q: %v", team.ID, err)
+				m.Debug("| Failed to get ImplicitTeamDisplayNameString() for team %q: %v", team.ID, err)
 			} else {
 				anMemberInfo.ImpTeamDisplayName = displayName
 			}
@@ -253,7 +253,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 
 		members, err := team.Members()
 		if err != nil {
-			m.CDebugf("| Failed to get Members() for team %q: %v", team.ID, err)
+			m.Debug("| Failed to get Members() for team %q: %v", team.ID, err)
 			continue
 		}
 
@@ -266,14 +266,14 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 		for invID, invite := range invites {
 			category, err := invite.Type.C()
 			if err != nil {
-				m.CDebugf("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
+				m.Debug("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 				continue
 			}
 
 			if category == keybase1.TeamInviteCategory_KEYBASE {
 				uv, err := invite.KeybaseUserVersion()
 				if err != nil {
-					m.CDebugf("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
+					m.Debug("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 					continue
 				}
 

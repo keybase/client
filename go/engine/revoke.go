@@ -119,7 +119,7 @@ func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.Devic
 }
 
 func (e *RevokeEngine) Run(m libkb.MetaContext) error {
-	m.CDebugf("RevokeEngine#Run (mode:%v)", e.mode)
+	m.Debug("RevokeEngine#Run (mode:%v)", e.mode)
 
 	e.G().LocalSigchainGuard().Set(m.Ctx(), "RevokeEngine")
 	defer e.G().LocalSigchainGuard().Clear(m.Ctx(), "RevokeEngine")
@@ -285,10 +285,10 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 			userEKSection["boxes"] = filteredBoxes
 			payload["user_ek"] = userEKSection
 		} else {
-			m.CDebugf("skipping userEK publishing, there are no valid deviceEKs")
+			m.Debug("skipping userEK publishing, there are no valid deviceEKs")
 		}
 	}
-	m.CDebugf("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",
+	m.Debug("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",
 		len(pukBoxes), pukPrev != nil, newPukGeneration, myUserEKBox != nil)
 
 	_, err = m.G().API.PostJSON(libkb.APIArg{
@@ -312,7 +312,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	if myUserEKBox != nil {
 		err = e.G().GetUserEKBoxStorage().Put(m.Ctx(), newUserEKMetadata.Generation, *myUserEKBox)
 		if err != nil {
-			m.CWarningf("error while saving userEK box: %s", err)
+			m.Warning("error while saving userEK box: %s", err)
 		}
 	}
 

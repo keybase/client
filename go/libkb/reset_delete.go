@@ -5,17 +5,17 @@ import (
 )
 
 func ResetAccount(m MetaContext, username NormalizedUsername, passphrase string) (err error) {
-	defer m.CTrace("ResetAccount", func() error { return err })()
+	defer m.Trace("ResetAccount", func() error { return err })()
 	return resetOrDeleteAccount(m, username, passphrase, "nuke")
 }
 
 func DeleteAccount(m MetaContext, username NormalizedUsername, passphrase string) (err error) {
-	defer m.CTrace("DeleteAccount", func() error { return err })()
+	defer m.Trace("DeleteAccount", func() error { return err })()
 	return resetOrDeleteAccount(m, username, passphrase, "delete")
 }
 
 func resetOrDeleteAccount(m MetaContext, username NormalizedUsername, passphrase string, endpoint string) (err error) {
-	defer m.CTrace("resetOrDeleteAccount", func() error { return err })()
+	defer m.Trace("resetOrDeleteAccount", func() error { return err })()
 
 	m = m.WithNewProvisionalLoginContext()
 	err = PassphraseLoginNoPrompt(m, username.String(), passphrase)

@@ -68,7 +68,7 @@ func (h *Handler) Name() string {
 
 // The server is telling the client to claim relay payments.
 func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received", h.Name(), category)
+	mctx.Debug("%v: %v received", h.Name(), category)
 	mctx.G().GetStellar().KickAutoClaimRunner(mctx, item.Metadata().MsgID())
 	return nil
 }
@@ -79,7 +79,7 @@ type accountChangeMsg struct {
 }
 
 func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received", h.Name(), category)
+	mctx.Debug("%v: %v received", h.Name(), category)
 
 	if item.Body() == nil {
 		return errors.New("stellar handler for account_change: nil message body")
@@ -115,7 +115,7 @@ func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInte
 
 // paymentStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
+	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
@@ -127,7 +127,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 
 // paymentNotification is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%s: %s received IBM, ignoring it", h.Name(), category)
+	mctx.Debug("%s: %s received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
@@ -139,7 +139,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 
 // requestStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
+	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {

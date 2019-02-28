@@ -60,7 +60,7 @@ func (e *FavoriteList) cacheFolder(m libkb.MetaContext, folder keybase1.Folder) 
 	}
 	name, err := keybase1.TeamNameFromString(folder.Name)
 	if err != nil {
-		m.CDebugf("cannot cache folder %+v: %s", folder, err)
+		m.Debug("cannot cache folder %+v: %s", folder, err)
 		return
 	}
 	m.G().Resolver.CacheTeamResolution(m, *folder.TeamID, name)
