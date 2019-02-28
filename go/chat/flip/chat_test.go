@@ -72,6 +72,9 @@ func (s *chatServer) archive(msg GameMessageWrappedEncoded) {
 	if s.clockForArchiver != nil {
 		cl = s.clockForArchiver
 	}
+	if len(v) == 0 {
+		msg.FirstInConversation = true
+	}
 	v = append(v, GameMessageReplayed{GameMessageWrappedEncoded: msg, Time: cl.Now()})
 	s.gameHistories[GameIDToKey(msg.GameID)] = v
 }
