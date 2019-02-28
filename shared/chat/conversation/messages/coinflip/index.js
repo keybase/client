@@ -48,7 +48,7 @@ class CoinFlip extends React.Component<Props, State> {
   _renderStatusText = () => {
     const participants = (
       <Kb.Text type="BodySmallPrimaryLink" style={styles.participantsLabel} onClick={this._showPopup}>
-        {`${this.props.participants.length} ${pluralize('participant')}`}
+        {`${this.props.participants.length} ${pluralize('participant', this.props.participants.length)}`}
       </Kb.Text>
     )
     return this.props.showParticipants ? (
