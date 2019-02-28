@@ -378,8 +378,8 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 
 	apiArg := libkb.NewAPIArgWithMetaContext(m, "pkg/check")
 	apiArg.Args = libkb.HTTPArgs{
-		"version":  libkb.S{version},
-		"platform": libkb.S{platform},
+		"version":  libkb.S{Val: version},
+		"platform": libkb.S{Val: platform},
 	}
 	var raw rawGetPkgCheck
 	if err = m.G().API.GetDecode(apiArg, &raw); err != nil {
