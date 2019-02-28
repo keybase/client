@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -128,21 +129,33 @@ func (s *Stellar) GetMigrationLock() *sync.Mutex {
 }
 
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
+	s.serverConfLock.Lock()
+	defer s.serverConfLock.Unlock()
 	if s.cachedServerConf.Revision == 0 {
-		s.serverConfLock.Lock()
-		defer s.serverConfLock.Unlock()
-		if s.cachedServerConf.Revision == 0 {
-			// check if still 0, we might have waited for other thread
-			// to finish fetching.
-			if ret, err = remote.FetchServerConfig(ctx, s.G()); err != nil {
-				return ret, err
-			}
-
-			s.cachedServerConf = ret
+		// check if still 0, we might have waited for other thread
+		// to finish fetching.
+		if ret, err = remote.FetchServerConfig(ctx, s.G()); err != nil {
+			return ret, err
 		}
+
+		s.cachedServerConf = ret
 	}
 
 	return s.cachedServerConf, nil
+}
+
+func (s *Stellar) KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool) {
+	code = strings.ToUpper(code)
+	if code == "XLM" {
+		return true, true
+	}
+	s.serverConfLock.Lock()
+	defer s.serverConfLock.Unlock()
+	if s.cachedServerConf.Revision == 0 {
+		return false, false
+	}
+	_, known = s.cachedServerConf.Currencies[stellar1.OutsideCurrencyCode(code)]
+	return known, true
 }
 
 // `trigger` is optional, and is of the gregor message that caused the kick.
