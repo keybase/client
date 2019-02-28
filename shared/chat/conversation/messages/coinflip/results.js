@@ -81,19 +81,19 @@ const cards = [
 const suits = {
   clubs: {
     color: Styles.globalColors.black,
-    icon: 'iconfont-bomb',
+    icon: 'iconfont-club',
   },
   diamonds: {
     color: Styles.globalColors.red,
-    icon: 'iconfont-star',
+    icon: 'iconfont-diamond',
   },
   hearts: {
     color: Styles.globalColors.red,
-    icon: 'iconfont-reacji-heart',
+    icon: 'iconfont-heart',
   },
   spades: {
     color: Styles.globalColors.black,
-    icon: 'iconfont-hand-wave',
+    icon: 'iconfont-spade',
   },
 }
 
@@ -105,16 +105,23 @@ const Card = (props: CardType) => (
   <Kb.Box2
     direction="vertical"
     centerChildren={true}
-    gap={Styles.isMobile ? 'xxtiny' : 'xtiny'}
+    gap={Styles.isMobile ? undefined : 'xtiny'}
     style={Styles.collapseStyles([styles.card, !props.hand && styles.cardStacked])}
   >
     <Kb.Box2 direction="horizontal">
-      <Kb.Text type="Header" style={{color: suits[cards[props.card].suit].color}}>
+      <Kb.Text
+        type={Styles.isMobile ? 'BodyBig' : 'Header'}
+        style={{color: suits[cards[props.card].suit].color}}
+      >
         {props.card && cards[props.card].value}
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
-      <Kb.Icon type={suits[cards[props.card].suit].icon} color={suits[cards[props.card].suit].color} />
+      <Kb.Icon
+        fontSize={16}
+        type={suits[cards[props.card].suit].icon}
+        color={suits[cards[props.card].suit].color}
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -141,9 +148,9 @@ const CoinFlipResultCoin = (props: CoinType) => (
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
       <Kb.Icon
         color={Styles.globalColors.white}
-        fontSize={28}
+        fontSize={props.coin ? 28 : 22}
         style={styles.coinIcon}
-        type={props.coin ? 'iconfont-emoji' : 'iconfont-leave'}
+        type={props.coin ? 'iconfont-heads' : 'iconfont-tails'}
       />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
@@ -238,17 +245,24 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  card: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    flexShrink: 0,
-    height: 56,
-    marginRight: -8,
-    width: 40,
-  },
+  card: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      borderColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      flexShrink: 0,
+      height: 56,
+      marginRight: -8,
+      width: 40,
+    },
+    isMobile: {
+      height: 48,
+      marginRight: -4,
+      width: 32,
+    },
+  }),
   cardStacked: {
     marginBottom: 8,
   },
