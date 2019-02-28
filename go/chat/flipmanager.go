@@ -565,15 +565,18 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 		formatted := m.formatError(ctx, update.Err)
 		status.ErrorInfo = &formatted
 	case update.Commitment != nil:
+		status.ErrorInfo = nil
 		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
 		m.addParticipant(ctx, &status, *update.Commitment)
 	case update.CommitmentComplete != nil:
+		status.ErrorInfo = nil
 		status.Phase = chat1.UICoinFlipPhase_REVEALS
 		status.ProgressText = "Commitments complete, revealing secrets..."
 	case update.Reveal != nil:
 		m.addReveal(ctx, &status, *update.Reveal)
 	case update.Result != nil:
 		status.Phase = chat1.UICoinFlipPhase_COMPLETE
+		status.ErrorInfo = nil
 		m.addResult(ctx, &status, *update.Result, update.Metadata.ConversationID)
 	default:
 		return errors.New("unknown update kind")
