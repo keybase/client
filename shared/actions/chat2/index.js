@@ -753,7 +753,7 @@ const onChatThreadStale = (_, action) => {
 
 const onChatShowManageChannels = (state, action) => {
   const {teamname} = action.payload.params
-  return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})
+  return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
 }
 
 const onNewChatActivity = (state, action) => {
