@@ -292,7 +292,14 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'add people':
-        return <AddPeople key="add people" isGeneralChannel={row.isGeneralChannel} teamname={row.teamname} />
+        return (
+          <AddPeople
+            key="add people"
+            isGeneralChannel={row.isGeneralChannel}
+            teamname={row.teamname}
+            conversationIDKey={this.props.selectedConversationIDKey}
+          />
+        )
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 

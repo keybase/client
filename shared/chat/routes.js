@@ -25,10 +25,16 @@ const routeTree = () => {
   const RetentionWarning = require('../teams/team/settings-tab/retention/warning/container').default
   const ChooseEmoji = require('./conversation/messages/react-button/emoji-picker/container').default
   const PaymentsConfirm = require('./payments/confirm/container').default
+  const AddToChannel = require('./conversation/info-panel/add-to-channel/container').default
 
   const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
   const chatChildren = {
+    chatAddToChannel: {
+      children: key => makeRouteDefNode(chatChildren[key]),
+      component: AddToChannel,
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
+    },
     chatAttachmentFullscreen: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: AttachmentFullscreen,

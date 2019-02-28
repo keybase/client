@@ -2696,6 +2696,19 @@ const prepareFulfillRequestForm = (state, action) => {
   })
 }
 
+const addUsersToChannel = (_, action) => {
+  const {conversationIDKey, usernames} = action.payload
+  return RPCChatTypes.localBulkAddToConvRpcPromise(
+    {convID: Types.keyToConversationID(conversationIDKey), usernames},
+    Constants.waitingKeyAddUsersToChannel
+  )
+    .then(() => [
+      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      Chat2Gen.createNavigateToThread(),
+    ])
+    .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2971,6 +2984,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.selectConversation,
     loadChannelInfos
   )
+
+  yield* Saga.chainAction<Chat2Gen.AddUsersToChannelPayload>(Chat2Gen.addUsersToChannel, addUsersToChannel)
 
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPromptUnfurlPayload>(
     EngineGen.chat1NotifyChatChatPromptUnfurl,
