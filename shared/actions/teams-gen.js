@@ -18,6 +18,7 @@ export const addToTeam = 'teams:addToTeam'
 export const addUserToTeams = 'teams:addUserToTeams'
 export const badgeAppForTeams = 'teams:badgeAppForTeams'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
+export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearTeamRequests = 'teams:clearTeamRequests'
 export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
@@ -83,6 +84,7 @@ type _AddToTeamPayload = $ReadOnly<{|teamname: string, username: string, role: T
 type _AddUserToTeamsPayload = $ReadOnly<{|role: Types.TeamRoleType, teams: Array<string>, user: string|}>
 type _BadgeAppForTeamsPayload = $ReadOnly<{|newTeamNames: Array<string>, newTeamAccessRequests: Array<string>, teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>|}>
 type _CheckRequestedAccessPayload = $ReadOnly<{|teamname: string|}>
+type _ClearAddUserToTeamsResultsPayload = void
 type _ClearTeamRequestsPayload = $ReadOnly<{|teamname: string|}>
 type _CreateChannelPayload = $ReadOnly<{|teamname: string, channelname: string, description: ?string, rootPath: I.List<string>, sourceSubPath: I.List<string>, destSubPath: I.List<string>|}>
 type _CreateNewTeamFromConversationPayload = $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey, teamname: string|}>
@@ -111,7 +113,7 @@ type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|email: string, teamname: 
 type _RemoveParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
 type _SaveChannelMembershipPayload = $ReadOnly<{|teamname: string, oldChannelState: Types.ChannelMembershipState, newChannelState: Types.ChannelMembershipState, you: string|}>
 type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string, policy: RetentionPolicy|}>
-type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|results: string|}>
+type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|error: boolean, results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
 type _SetEmailInviteErrorPayload = $ReadOnly<{|message: string, malformed: Array<string>|}>
 type _SetMemberPublicityPayload = $ReadOnly<{|teamname: string, showcase: boolean|}>
@@ -168,6 +170,7 @@ export const createAddToTeam = (payload: _AddToTeamPayload) => ({payload, type: 
 export const createAddUserToTeams = (payload: _AddUserToTeamsPayload) => ({payload, type: addUserToTeams})
 export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload) => ({payload, type: badgeAppForTeams})
 export const createCheckRequestedAccess = (payload: _CheckRequestedAccessPayload) => ({payload, type: checkRequestedAccess})
+export const createClearAddUserToTeamsResults = (payload: _ClearAddUserToTeamsResultsPayload) => ({payload, type: clearAddUserToTeamsResults})
 export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload) => ({payload, type: clearTeamRequests})
 export const createCreateChannel = (payload: _CreateChannelPayload) => ({payload, type: createChannel})
 export const createCreateNewTeam = (payload: _CreateNewTeamPayload) => ({payload, type: createNewTeam})
@@ -228,6 +231,7 @@ export type AddToTeamPayload = {|+payload: _AddToTeamPayload, +type: 'teams:addT
 export type AddUserToTeamsPayload = {|+payload: _AddUserToTeamsPayload, +type: 'teams:addUserToTeams'|}
 export type BadgeAppForTeamsPayload = {|+payload: _BadgeAppForTeamsPayload, +type: 'teams:badgeAppForTeams'|}
 export type CheckRequestedAccessPayload = {|+payload: _CheckRequestedAccessPayload, +type: 'teams:checkRequestedAccess'|}
+export type ClearAddUserToTeamsResultsPayload = {|+payload: _ClearAddUserToTeamsResultsPayload, +type: 'teams:clearAddUserToTeamsResults'|}
 export type ClearTeamRequestsPayload = {|+payload: _ClearTeamRequestsPayload, +type: 'teams:clearTeamRequests'|}
 export type CreateChannelPayload = {|+payload: _CreateChannelPayload, +type: 'teams:createChannel'|}
 export type CreateNewTeamFromConversationPayload = {|+payload: _CreateNewTeamFromConversationPayload, +type: 'teams:createNewTeamFromConversation'|}
@@ -295,6 +299,7 @@ export type Actions =
   | AddUserToTeamsPayload
   | BadgeAppForTeamsPayload
   | CheckRequestedAccessPayload
+  | ClearAddUserToTeamsResultsPayload
   | ClearTeamRequestsPayload
   | CreateChannelPayload
   | CreateNewTeamFromConversationPayload

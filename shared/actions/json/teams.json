@@ -29,7 +29,9 @@
       "sourceSubPath": "I.List<string>",
       "destSubPath": "I.List<string>"
     },
+    "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
+      "error": "boolean",
       "results": "string"
     },
     "setEmailInviteError": {
@@ -120,7 +122,7 @@
     },
     "reAddToTeam": {
       "teamname": "string",
-      "username": "string",
+      "username": "string"
     },
     "editTeamDescription": {
       "teamname": "string",

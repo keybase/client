@@ -672,7 +672,7 @@ function* addUserToTeams(state, action) {
           sendChatNotification: true,
           username: user,
         },
-        Constants.teamWaitingKey(team)
+        [Constants.teamWaitingKey(team), Constants.addUserToTeamsWaitingKey(user)]
       )
       teamsAddedTo.push(team)
     } catch (error) {
@@ -706,8 +706,12 @@ function* addUserToTeams(state, action) {
     }
     result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
   }
-
-  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: result}))
+  yield Saga.put(
+    TeamsGen.createSetAddUserToTeamsResults({
+      error: errorAddingTo.length > 0,
+      results: result,
+    })
+  )
 }
 
 const getTeamOperations = (_, action) =>
