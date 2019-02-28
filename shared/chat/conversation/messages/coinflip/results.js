@@ -22,6 +22,7 @@ const CoinFlipResult = (props: Props) => {
   }
 }
 
+// The order here is important.
 const cards = [
   {suit: 'spades', value: '2'},
   {suit: 'spades', value: '3'},
@@ -98,9 +99,15 @@ const suits = {
 
 type CardType = {|
   card: number,
+  hand?: boolean,
 |}
 const Card = (props: CardType) => (
-  <Kb.Box2 direction="vertical" centerChildren={true} gap="xtiny" style={styles.card}>
+  <Kb.Box2
+    direction="vertical"
+    centerChildren={true}
+    gap={Styles.isMobile ? 'xxtiny' : 'xtiny'}
+    style={Styles.collapseStyles([styles.card, !props.hand && styles.cardStacked])}
+  >
     <Kb.Box2 direction="horizontal">
       <Kb.Text type="Header" style={{color: suits[cards[props.card].suit].color}}>
         {props.card && cards[props.card].value}
@@ -114,10 +121,15 @@ const Card = (props: CardType) => (
 
 type DeckType = {|
   deck: ?Array<number>,
+  hand?: boolean,
 |}
 const CoinFlipResultDeck = (props: DeckType) => (
-  <Kb.Box2 direction="horizontal">
-    {props.deck && props.deck.map(card => <Card key={card} card={card} />)}
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={Styles.collapseStyles([styles.cards, !props.hand && styles.cardsStacked])}
+  >
+    {props.deck && props.deck.map(card => <Card key={card} card={card} hand={props.hand} />)}
   </Kb.Box2>
 )
 
@@ -125,8 +137,18 @@ type CoinType = {|
   coin: ?boolean,
 |}
 const CoinFlipResultCoin = (props: CoinType) => (
-  <Kb.Box2 direction="horizontal" style={styles.coin}>
-    <Kb.Icon type={props.coin ? 'iconfont-emoji' : 'iconfont-leave'} />
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+    <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
+      <Kb.Icon
+        color={Styles.globalColors.white}
+        fontSize={28}
+        style={styles.coinIcon}
+        type={props.coin ? 'iconfont-emoji' : 'iconfont-leave'}
+      />
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.Text type="Header">{props.coin ? 'Heads!' : 'Tails!'}</Kb.Text>
+    </Kb.Box2>
   </Kb.Box2>
 )
 
@@ -134,14 +156,22 @@ type HandType = {|
   hands: ?Array<RPCChatTypes.UICoinFlipHand>,
 |}
 const CoinFlipResultHands = (props: HandType) => (
-  <Kb.Box2 direction="vertical">
-    {props.hands &&
-      props.hands.map(hand => (
-        <Kb.Box2 direction="horizontal" key={hand.target}>
-          <Kb.Box2 direction="horizontal">{hand.target}</Kb.Box2>
-          <CoinFlipResultDeck deck={hand.hand} />
-        </Kb.Box2>
-      ))}
+  <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <Kb.Box2 direction="vertical" gap="tiny">
+      {props.hands &&
+        props.hands.map(hand => (
+          <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true} key={hand.target}>
+            <Kb.Box2
+              alignItems="flex-start"
+              direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+              style={styles.handTarget}
+            >
+              <Kb.Text type="BodyBig">{hand.target}</Kb.Text>
+            </Kb.Box2>
+            <CoinFlipResultDeck deck={hand.hand} hand={true} />
+          </Kb.Box2>
+        ))}
+    </Kb.Box2>
   </Kb.Box2>
 )
 
@@ -149,7 +179,7 @@ type NumberType = {|
   number: ?string,
 |}
 const CoinFlipResultNumber = (props: NumberType) => (
-  <Kb.Box2 direction="horizontal">
+  <Kb.Box2 direction="horizontal" fullWidth={true}>
     <Kb.Text type="Header">{props.number}</Kb.Text>
   </Kb.Box2>
 )
@@ -214,40 +244,80 @@ const styles = Styles.styleSheetCreate({
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
+    flexShrink: 0,
     height: 56,
-    marginRight: -4,
+    marginRight: -8,
     width: 40,
   },
-  coin: {
-    borderRadius: 32,
-    borderStyle: 'solid',
-    borderWidth: 4,
-    height: 32,
-    width: 32,
+  cardStacked: {
+    marginBottom: 8,
   },
+  cards: {
+    flexWrap: 'wrap',
+  },
+  // compensate for the bottom margin on cards
+  cardsStacked: Styles.platformStyles({
+    isElectron: {
+      marginBottom: -8,
+    },
+    isMobile: {
+      marginBottom: -4,
+    },
+  }),
+  coin: {
+    backgroundColor: Styles.globalColors.black,
+    borderRadius: 48,
+    height: 48,
+    width: 48,
+  },
+  coinIcon: {
+    position: 'relative',
+    top: 2,
+  },
+  handTarget: Styles.platformStyles({
+    isElectron: {
+      minWidth: 150,
+    },
+    isMobile: {
+      alignSelf: 'flex-start',
+      marginBottom: Styles.globalMargins.xtiny,
+    },
+  }),
   listFull: {
     color: Styles.globalColors.black,
   },
   listFullContainer: {
     marginTop: Styles.globalMargins.tiny,
   },
-  listOrder: {
-    color: Styles.globalColors.black,
-    height: 14,
-    width: 14,
-  },
+  listOrder: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black,
+      height: 14,
+      width: 14,
+    },
+    isMobile: {
+      position: 'relative',
+      top: -1,
+    },
+  }),
   listOrderContainer: {
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
     width: 20,
   },
-  listOrderFirst: {
-    backgroundColor: Styles.globalColors.black,
-    borderRadius: 2,
-    color: Styles.globalColors.white,
-    height: 18,
-    width: 18,
-  },
+  listOrderFirst: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.black,
+      borderRadius: 2,
+      color: Styles.globalColors.white,
+      height: 18,
+      width: 18,
+    },
+    isMobile: {
+      height: 20,
+      top: -2,
+    },
+  }),
 })
 
 export default CoinFlipResult

@@ -91,13 +91,11 @@ class CoinFlip extends React.Component<Props, State> {
                   </Kb.Box2>
                 )}
               </Kb.Box2>
-              <Kb.Box2 direction="vertical">
-                {this.props.revealVis.length > 0 ? (
+              {this.props.revealVis.length > 0 && (
+                <Kb.Box2 direction="vertical">
                   <Kb.Image src={revealSrc} style={styles.progressVis} />
-                ) : (
-                  <Kb.Box2 direction="vertical" style={styles.progressVis} />
-                )}
-              </Kb.Box2>
+                </Kb.Box2>
+              )}
               {!Styles.isMobile && <Kb.Box2 direction="vertical">{this._renderStatusText()}</Kb.Box2>}
             </Kb.Box2>
             {Styles.isMobile && (
@@ -119,11 +117,10 @@ const styles = Styles.styleSheetCreate({
   container: {
     alignSelf: 'flex-start',
     borderColor: Styles.globalColors.lightGrey,
-    borderRadius: Styles.borderRadius,
+    borderLeftWidth: 4,
     borderStyle: 'solid',
-    borderWidth: 1,
     marginTop: Styles.globalMargins.xtiny,
-    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
   },
   error: {
     color: Styles.globalColors.red,
