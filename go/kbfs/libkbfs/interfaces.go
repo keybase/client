@@ -343,7 +343,7 @@ type KBFSOps interface {
 	ClearCachedFavorites(ctx context.Context)
 	// AddFavorite adds the favorite to both the server and
 	// the local cache.
-	AddFavorite(ctx context.Context, fav Favorite, data favoriteData) error
+	AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.

@@ -46,7 +46,7 @@ func (e errIncorrectFavoritesCacheVersion) Error() string {
 
 type favToAdd struct {
 	Favorite Favorite
-	Data     favoriteData
+	Data     FavoriteData
 
 	// created, if set to true, indicates that this is the first time the TLF has
 	// ever existed. It is only used when adding the TLF to favorites
@@ -82,7 +82,7 @@ type favReq struct {
 	ctx context.Context
 }
 
-type favoriteData struct {
+type FavoriteData struct {
 	Name         string
 	FolderType   keybase1.FolderType
 	Private      bool
@@ -90,8 +90,8 @@ type favoriteData struct {
 	ResetMembers []keybase1.User
 }
 
-func favoriteDataFrom(folder keybase1.Folder) favoriteData {
-	return favoriteData{
+func favoriteDataFrom(folder keybase1.Folder) FavoriteData {
+	return FavoriteData{
 		Name:       folder.Name,
 		FolderType: folder.FolderType,
 		Private:    folder.Private,
@@ -124,9 +124,9 @@ type Favorites struct {
 	// the last refresh and this device is offline.
 	// When another device modifies the favorites [or new or ignored] list,
 	// the server will try to alert the other devices to refresh.
-	favCache        map[Favorite]favoriteData
-	newCache        map[Favorite]favoriteData
-	ignoredCache    map[Favorite]favoriteData
+	favCache        map[Favorite]FavoriteData
+	newCache        map[Favorite]FavoriteData
+	ignoredCache    map[Favorite]FavoriteData
 	cacheExpireTime time.Time
 
 	diskCache *LevelDb
@@ -170,9 +170,9 @@ func NewFavorites(config Config) *Favorites {
 
 type favoritesCacheForDisk struct {
 	version      int
-	favCache     map[Favorite]favoriteData
-	newCache     map[Favorite]favoriteData
-	ignoredCache map[Favorite]favoriteData
+	favCache     map[Favorite]FavoriteData
+	newCache     map[Favorite]FavoriteData
+	ignoredCache map[Favorite]FavoriteData
 }
 type favoritesCacheEncryptedForDisk struct {
 	version        int
@@ -317,7 +317,7 @@ func (f *Favorites) closeReq(req *favReq, err error) {
 
 // sendChangesToEditHistory notes any deleted favorites and removes them
 // from this user's kbfsedits.UserHistory.
-func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]favoriteData) {
+func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]FavoriteData) {
 	for oldFav := range oldCache {
 		if _, present := f.favCache[oldFav]; !present {
 			f.config.UserHistory().ClearTLF(tlf.CanonicalName(oldFav.Name),
@@ -331,7 +331,7 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]favoriteData)
 	}
 }
 
-func toFolder(fav Favorite, data favoriteData) keybase1.Folder {
+func toFolder(fav Favorite, data FavoriteData) keybase1.Folder {
 	return keybase1.Folder{
 		Name:       fav.Name,
 		Private:    data.Private,
@@ -372,9 +372,9 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		} else { // Successfully got new favorites from server.
 			session, sessionErr := f.config.KBPKI().GetCurrentSession(req.ctx)
 			oldCache := f.favCache
-			f.newCache = make(map[Favorite]favoriteData)
-			f.favCache = make(map[Favorite]favoriteData)
-			f.ignoredCache = make(map[Favorite]favoriteData)
+			f.newCache = make(map[Favorite]FavoriteData)
+			f.favCache = make(map[Favorite]FavoriteData)
+			f.ignoredCache = make(map[Favorite]FavoriteData)
 			f.cacheExpireTime = libkb.ForceWallClock(f.config.Clock().Now()).Add(
 				favoritesCacheExpirationTime)
 			for _, folder := range favResult.FavoriteFolders {
@@ -398,13 +398,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			}
 			if err == nil {
 				// Add favorites for the current user, that cannot be deleted.
-				f.favCache[Favorite{string(session.Name), tlf.Private}] = favoriteData{
+				f.favCache[Favorite{string(session.Name), tlf.Private}] = FavoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
 					TeamID:     &f.homeTLFInfo.PrivateTeamID,
 					Private:    true,
 				}
-				f.favCache[Favorite{string(session.Name), tlf.Public}] = favoriteData{
+				f.favCache[Favorite{string(session.Name), tlf.Public}] = FavoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
 					TeamID:     &f.homeTLFInfo.PublicTeamID,

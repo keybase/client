@@ -1852,7 +1852,7 @@ func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(ctx interface{}) *gomock
 }
 
 // AddFavorite mocks base method
-func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite, data favoriteData) error {
+func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav, data)
 	ret0, _ := ret[0].(error)

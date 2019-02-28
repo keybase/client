@@ -412,10 +412,10 @@ func (h *TlfHandle) ToFavorite() Favorite {
 	}
 }
 
-// FavoriteData converts a TlfHandle into favoriteData, suitable for
+// FavoriteData converts a TlfHandle into FavoriteData, suitable for
 // Favorites calls.
-func (h *TlfHandle) FavoriteData() favoriteData {
-	fd := favoriteData{
+func (h *TlfHandle) FavoriteData() FavoriteData {
+	fd := FavoriteData{
 		Name:         string(h.GetCanonicalName()),
 		FolderType:   h.Type().FolderType(),
 		Private:      h.Type() != tlf.Public,

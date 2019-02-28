@@ -289,7 +289,7 @@ func (fs *KBFSOpsStandard) ClearCachedFavorites(ctx context.Context) {
 
 // AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
-	fav Favorite, data favoriteData) error {
+	fav Favorite, data FavoriteData) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
