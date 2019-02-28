@@ -704,7 +704,8 @@ func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID,
+	outboxID *chat1.OutboxID, joinMentionsAs *chat1.ConversationMemberStatus) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
@@ -805,6 +806,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			AtMentions:     prepareRes.AtMentions,
 			ChannelMention: prepareRes.ChannelMention,
 			TopicNameState: prepareRes.TopicNameState,
+			JoinMentionsAs: joinMentionsAs,
 		}
 		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
@@ -1425,7 +1427,7 @@ func (s *Deliverer) deliverLoop() {
 					continue
 				}
 				if err == nil {
-					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
+					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil, nil)
 				}
 			}
 			if err != nil {
@@ -1489,7 +1491,11 @@ func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaint
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
+	joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	if joinMentionsAs != nil { // joinMentionsAs is not stored in the outbox, only supported by the BlockingSender
+		return nil, nil, fmt.Errorf("Unable to post joinMentionsAs with a nonblock message")
+	}
 	if clientPrev == 0 {
 		uid, err := utils.AssertLoggedInUID(ctx, s.G())
 		if err != nil {
@@ -1519,6 +1525,6 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 
 func (s *NonblockingSender) SendUnfurlNonblock(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID chat1.OutboxID) (chat1.OutboxID, error) {
-	res, _, err := s.Send(ctx, convID, msg, clientPrev, &outboxID)
+	res, _, err := s.Send(ctx, convID, msg, clientPrev, &outboxID, nil)
 	return res, err
 }

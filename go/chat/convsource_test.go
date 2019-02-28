@@ -60,7 +60,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
@@ -85,7 +85,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 			MessageID: msgID,
 			Body:      "EDITED",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	editMsgID := editMsgBoxed.GetMessageID()
 
@@ -127,7 +127,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 			DeleteHistory: delHeader,
 		},
 		MessageBody: delBody,
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
 	thread, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
@@ -198,7 +198,7 @@ func TestExplodeNow(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "30s ephemeral",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 
 	msgID := msgBoxed.GetMessageID()
@@ -231,7 +231,7 @@ func TestExplodeNow(t *testing.T) {
 			MessageID: msgID,
 			Body:      "EDITED ephemeral",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	editMsgID := editMsgBoxed.GetMessageID()
 
@@ -266,7 +266,7 @@ func TestExplodeNow(t *testing.T) {
 			Supersedes:  delSupersedes,
 		},
 		MessageBody: delBody,
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
@@ -358,7 +358,7 @@ func TestReactions(t *testing.T) {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: body,
 			}),
-		}, 0, nil)
+		}, 0, nil, nil)
 		require.NoError(t, err)
 		return msgBoxed.GetMessageID()
 	}
@@ -377,7 +377,7 @@ func TestReactions(t *testing.T) {
 				MessageID: supersedes,
 				Body:      editText,
 			}),
-		}, 0, nil)
+		}, 0, nil, nil)
 		require.NoError(t, err)
 		return editMsgBoxed.GetMessageID()
 	}
@@ -396,7 +396,7 @@ func TestReactions(t *testing.T) {
 				MessageID: supersedes,
 				Body:      reactionText,
 			}),
-		}, 0, nil)
+		}, 0, nil, nil)
 		require.NoError(t, err)
 		return reactionMsgboxed.GetMessageID()
 	}
@@ -415,7 +415,7 @@ func TestReactions(t *testing.T) {
 				Supersedes:  supsersedes,
 			},
 			MessageBody: delBody,
-		}, 0, nil)
+		}, 0, nil, nil)
 		require.NoError(t, err)
 		return deleteMsgBoxed.GetMessageID()
 
@@ -508,7 +508,7 @@ func TestReactions(t *testing.T) {
 			MessageID: 0,
 			Body:      ":wave:",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.Error(t, err)
 }
 
@@ -911,7 +911,7 @@ func TestGetThreadCaching(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 
@@ -1292,7 +1292,7 @@ func TestClearFromDelete(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{3},
 		}),
-	}, 0, nil)
+	}, 0, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(4), delMsg.GetMessageID())
 
