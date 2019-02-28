@@ -29,6 +29,7 @@ const props = {
   fileName: null,
   files: 0,
   folderProps: null,
+  kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),

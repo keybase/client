@@ -117,7 +117,8 @@ const openPathInSystemFileManager = (state, action) =>
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
             _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
-            state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
+            !['in-group-tlf', 'in-team-tlf'].includes(Constants.parsePath(action.payload.path).kind) ||
+              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
           )
         )
         .catch(err => {
