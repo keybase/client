@@ -46,6 +46,9 @@ const parts = [
 
 const gathering = {
   commitmentVis: '',
+  hasCommitments: false,
+  hasSecrets: false,
+  isComplete: false,
   participants: [],
   progressText: 'Gathering commitments...',
   resultText: '',
@@ -55,15 +58,21 @@ const gathering = {
 
 const partialGather = {
   commitmentVis,
+  hasCommitments: false,
+  hasSecrets: false,
+  isComplete: false,
   participants: parts.slice(0, 2),
   progressText: 'Gathered 2 commitments...',
   resultText: '',
   revealVis: '',
-  showParticipants: true,
+  showParticipants: false,
 }
 
 const result = {
   commitmentVis,
+  hasCommitments: true,
+  hasSecrets: true,
+  isComplete: true,
   participants: parts,
   progressText: '2 participants have revealed secrets...',
   resultText: 'HEADS',
@@ -77,6 +86,9 @@ const error = {
     generic: 'Something went wrong: Somebody pulled the plug',
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.generic,
   },
+  hasCommitments: true,
+  hasSecrets: true,
+  isComplete: true,
   participants: [],
   progressText: 'Something went wrong: Somebody pulled the plug',
   resultText: '',
@@ -105,6 +117,9 @@ const absenteeError = {
     },
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee,
   },
+  hasCommitments: true,
+  hasSecrets: true,
+  isComplete: true,
   participants: [],
   progressText: 'Something went wrong: Somebody pulled the plug',
   resultText: '',
