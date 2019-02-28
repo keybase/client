@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 
@@ -25,11 +26,22 @@ func main() {
 }
 
 func main2() (err error) {
-	if len(os.Args) != 2 {
-		return fmt.Errorf("Usage: tool <jsonfile>")
+	var silent bool
+	flag.BoolVar(&silent, "silent", false, "print nothing")
+	var filepath string
+	flag.StringVar(&filepath, "path", "", "path to file containing json team chain")
+	flag.Parse()
+	if filepath == "" {
+		flag.Usage()
+		return fmt.Errorf("missing required path flag")
 	}
-	filepath := os.Args[1]
-	cf, err := readChainFile(filepath)
+
+	var cf ChainFile
+	if filepath == "-" {
+		cf, err = readChainStdin()
+	} else {
+		cf, err = readChainFile(filepath)
+	}
 	if err != nil {
 		return err
 	}
@@ -46,15 +58,24 @@ func main2() (err error) {
 			return err
 		}
 
-		signerX := teams.NewSignerX(keybase1.NewUserVersion(prelink.UID, prelink.EldestSeqno), false)
+		implicitAdmin := link.TeamAdmin() != nil // Assume all admin claims are OK.
+		signerX := teams.NewSignerX(
+			keybase1.NewUserVersion(prelink.UID, prelink.EldestSeqno), implicitAdmin)
 		newState, err := teams.AppendChainLink(mctx.Ctx(), g, reader, state, link, &signerX)
 		if err != nil {
 			return err
 		}
 		state = &newState
 	}
-	fmt.Printf("%v\n", spew.Sdump(state))
+	if !silent {
+		fmt.Printf("%v\n", spew.Sdump(state))
+	}
 	return nil
+}
+
+func readChainStdin() (res ChainFile, err error) {
+	err = json.NewDecoder(os.Stdin).Decode(&res)
+	return res, err
 }
 
 func readChainFile(path string) (res ChainFile, err error) {
