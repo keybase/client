@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {TeamAvatar} from './avatars'
-import {isMobile} from '../constants/platform'
 
 type Props = {|
   isSelected: boolean,
@@ -54,7 +53,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
                 {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
               ])}
               title={this.props.teamname}
-              lineClamp={isMobile ? 1 : undefined}
+              lineClamp={Styles.isMobile ? 1 : undefined}
               ellipsizeMode="tail"
             >
               {this.props.teamname}
@@ -66,7 +65,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
                 {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
               ])}
               title={`#${this.props.channelname}`}
-              lineClamp={isMobile ? 1 : undefined}
+              lineClamp={Styles.isMobile ? 1 : undefined}
               ellipsizeMode="tail"
             >
               &nbsp;#
@@ -79,7 +78,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
   }
 }
 
-export const rowHeight = isMobile ? 64 : 56
+export const rowHeight = Styles.isMobile ? 64 : 56
 
 const styles = Styles.styleSheetCreate({
   channelname: Styles.platformStyles({

@@ -52,16 +52,8 @@ const mapStateToProps = (state, ownProps) => {
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onEditAvatar: (image?: Response) => dispatch(ProfileGen.createEditAvatar()),
-  _onReload: (assertion: string, isYou: boolean) => {
-    dispatch(
-      Tracker2Gen.createLoad({
-        assertion,
-        guiID: Constants.generateGUIID(),
-        ignoreCache: true,
-        inTracker: false,
-        reason: '',
-      })
-    )
+  _onReload: (username: string, isYou: boolean) => {
+    dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
 
     if (isYou) {
       dispatch(Tracker2Gen.createGetProofSuggestions())

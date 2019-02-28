@@ -7,8 +7,6 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
-import * as Tracker2Constants from '../../constants/tracker2'
-import flags from '../../util/feature-flags'
 import {peopleTab} from '../../constants/tabs'
 
 const checkProof = (state, action) => {
@@ -42,15 +40,8 @@ const checkProof = (state, action) => {
 }
 
 const recheckProof = (state, action) =>
-  flags.identify3 &&
   RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey).then(() =>
-    Tracker2Gen.createLoad({
-      assertion: state.config.username,
-      guiID: Tracker2Constants.generateGUIID(),
-      ignoreCache: true,
-      inTracker: false,
-      reason: '',
-    })
+    Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
   )
 
 const addProof = (_, action) => {

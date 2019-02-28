@@ -2,27 +2,34 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
 import Icon from './icon'
-import {collapseStyles, globalColors, styleSheetCreate, type StylesCrossPlatform} from '../styles'
-import {isMobile} from '../constants/platform'
+import * as Styles from '../styles'
 
 export type Props = {
-  containerStyle?: StylesCrossPlatform,
+  containerStyle?: Styles.StylesCrossPlatform,
   children?: React.Node,
   color?: ?string,
 }
 
 const InfoNote = (props: Props) => (
-  <Box2 direction="vertical" gap="xtiny" style={collapseStyles([styles.alignCenter, props.containerStyle])}>
+  <Box2
+    direction="vertical"
+    gap="xtiny"
+    style={Styles.collapseStyles([styles.alignCenter, props.containerStyle])}
+  >
     <Box2 direction="horizontal" gap="tiny" style={styles.alignCenter}>
-      <Box style={{backgroundColor: props.color || globalColors.black_10, height: 1, width: 24}} />
-      <Icon color={props.color || globalColors.black_10} type="iconfont-info" fontSize={isMobile ? 22 : 16} />
-      <Box style={{backgroundColor: props.color || globalColors.black_10, height: 1, width: 24}} />
+      <Box style={{backgroundColor: props.color || Styles.globalColors.black_10, height: 1, width: 24}} />
+      <Icon
+        color={props.color || Styles.globalColors.black_10}
+        type="iconfont-info"
+        fontSize={Styles.isMobile ? 22 : 16}
+      />
+      <Box style={{backgroundColor: props.color || Styles.globalColors.black_10, height: 1, width: 24}} />
     </Box2>
     {props.children}
   </Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   alignCenter: {
     alignItems: 'center',
   },

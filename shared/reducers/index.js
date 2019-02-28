@@ -19,7 +19,6 @@ import routeTree from './route-tree'
 import settings from './settings'
 import signup from './signup'
 import teams from './teams'
-import tracker from './tracker'
 import unlockFolders from './unlock-folders'
 import users from './users'
 import waiting from './waiting'
@@ -49,7 +48,6 @@ const reducers = {
   settings,
   signup,
   teams,
-  tracker,
   tracker2,
   unlockFolders,
   users,

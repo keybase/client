@@ -6,7 +6,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as TrackerConstants from '../../constants/tracker2'
-import * as TrackerGen from '../tracker-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import keybaseUrl from '../../constants/urls'
 import logger from '../../logger'
@@ -16,7 +15,6 @@ import type {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
-import flags from '../../util/feature-flags'
 import {isMobile} from '../../constants/platform'
 
 const editProfile = (state, action) =>
@@ -27,19 +25,7 @@ const editProfile = (state, action) =>
       location: action.payload.location,
     },
     TrackerConstants.waitingKey
-  ).then(() => {
-    if (flags.identify3) {
-      return Tracker2Gen.createLoad({
-        assertion: state.config.username,
-        guiID: TrackerConstants.generateGUIID(),
-        ignoreCache: true,
-        inTracker: false,
-        reason: '',
-      })
-    } else {
-      return RouteTreeGen.createNavigateUp()
-    }
-  })
+  ).then(() => Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}))
 
 const uploadAvatar = (_, action) =>
   RPCTypes.userUploadUserAvatarRpcPromise(
@@ -55,8 +41,8 @@ const uploadAvatar = (_, action) =>
       logger.warn(`Error uploading user avatar: ${e.message}`)
     })
 
-const finishRevoking = () => [
-  TrackerGen.createGetMyProfile({ignoreCache: true}),
+const finishRevoking = state => [
+  Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
   ProfileGen.createRevokeFinish(),
   RouteTreeGen.createNavigateUp(),
 ]
@@ -137,8 +123,8 @@ const editAvatar = () =>
     ? undefined // handled in platform specific
     : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'editAvatar'}]})
 
-const backToProfile = () => [
-  TrackerGen.createGetMyProfile({}),
+const backToProfile = state => [
+  Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
   RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profile']}),
 ]
 
