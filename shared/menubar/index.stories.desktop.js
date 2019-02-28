@@ -140,6 +140,15 @@ const load = () => {
           onClick={Storybook.action('onClick')}
           uploading={false}
         />
+        <FileUpdate
+          path={Types.stringToPath(
+            '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
+          )}
+          name="poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={false}
+        />
       </Kb.Box2>
     ))
 }
