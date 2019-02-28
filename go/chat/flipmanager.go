@@ -127,6 +127,10 @@ type FlipManager struct {
 	forceCh           chan struct{}
 	loadGameCh        chan loadGameJob
 
+	deck           string
+	cardMap        map[string]int
+	cardReverseMap map[int]string
+
 	gamesMu    sync.Mutex
 	games      *lru.Cache
 	dirtyGames map[string]chat1.FlipGameID
@@ -156,9 +160,16 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		maxConvParticipationsReset: 5 * time.Minute,
 		desktopVisualizer:          NewFlipVisualizer(256, 100),
 		mobileVisualizer:           NewFlipVisualizer(220, 100),
+		cardMap:                    make(map[string]int),
+		cardReverseMap:             make(map[int]string),
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
+	m.deck = "2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️"
+	for index, card := range strings.Split(m.deck, ",") {
+		m.cardMap[card] = index
+		m.cardReverseMap[index] = card
+	}
 	return m
 }
 
@@ -304,31 +315,101 @@ func (m *FlipManager) addReveal(ctx context.Context, status *chat1.UICoinFlipSta
 	status.ProgressText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
 }
 
+func (m *FlipManager) cardIndex(card string) (int, error) {
+	if index, ok := m.cardMap[card]; ok {
+		return index, nil
+	}
+	return 0, fmt.Errorf("unknown card: %s", card)
+}
+
 func (m *FlipManager) addCardHandResult(ctx context.Context, status *chat1.UICoinFlipStatus,
 	result flip.Result, hmi hostMessageInfo) {
 	deckIndex := 0
 	numCards := len(result.Shuffle)
-	var rows []string
 	handSize := int(hmi.HandCardCount)
-	for targetIndex, target := range hmi.HandTargets {
+	var uiHandResult []chat1.UICoinFlipHand
+	for _, target := range hmi.HandTargets {
 		if numCards-handSize < deckIndex {
-			rows = append(rows, fmt.Sprintf("%d. %s: 🤨", targetIndex+1, target))
+			uiHandResult = append(uiHandResult, chat1.UICoinFlipHand{
+				Target: target,
+			})
 			continue
 		}
 		var hand []string
-		for di := deckIndex; di < deckIndex+handSize; di++ {
-			hand = append(hand, hmi.ShuffleItems[result.Shuffle[di]])
+		uiHand := chat1.UICoinFlipHand{
+			Target: target,
 		}
-		rows = append(rows, fmt.Sprintf("%d. %s: %s", targetIndex+1, target,
-			strings.TrimRight(strings.Join(hand, ", "), " ")))
+		for di := deckIndex; di < deckIndex+handSize; di++ {
+			card := hmi.ShuffleItems[result.Shuffle[di]]
+			hand = append(hand, card)
+			cardIndex, err := m.cardIndex(card)
+			if err != nil {
+				m.Debug(ctx, "addCardHandResult: failed to get card: %s", err)
+				m.setGenericError(status, "Failed to describe card hand result")
+				return
+			}
+			uiHand.Hand = append(uiHand.Hand, cardIndex)
+		}
+		uiHandResult = append(uiHandResult, uiHand)
 		deckIndex += handSize
 	}
-	status.ResultText = strings.Join(rows, "\n")
+	resultInfo := chat1.NewUICoinFlipResultWithHands(uiHandResult)
+	status.ResultInfo = &resultInfo
+}
+
+func (m *FlipManager) setGenericError(status *chat1.UICoinFlipStatus, errMsg string) {
+	status.Phase = chat1.UICoinFlipPhase_ERROR
+	status.ProgressText = errMsg
+	errorInfo := chat1.NewUICoinFlipErrorWithGeneric(status.ProgressText)
+	status.ErrorInfo = &errorInfo
+}
+
+func (m *FlipManager) resultToText(result chat1.UICoinFlipResult) string {
+	typ, err := result.Typ()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case chat1.UICoinFlipResultTyp_COIN:
+		if result.Coin() {
+			return "HEADS"
+		}
+		return "TAILS"
+	case chat1.UICoinFlipResultTyp_NUMBER:
+		return result.Number()
+	case chat1.UICoinFlipResultTyp_DECK:
+		var cards []string
+		for _, cardIndex := range result.Deck() {
+			cards = append(cards, m.cardReverseMap[cardIndex])
+		}
+		return strings.TrimRight(strings.Join(cards, ", "), " ")
+	case chat1.UICoinFlipResultTyp_SHUFFLE:
+		return strings.TrimRight(strings.Join(result.Shuffle(), ", "), " ")
+	case chat1.UICoinFlipResultTyp_HANDS:
+		var rows []string
+		for index, hand := range result.Hands() {
+			if len(hand.Hand) == 0 {
+				rows = append(rows, fmt.Sprintf("%d. %s: 🤨", index+1, hand.Target))
+			} else {
+				var cards []string
+				for _, cardIndex := range hand.Hand {
+					cards = append(cards, m.cardReverseMap[cardIndex])
+				}
+				rows = append(rows, fmt.Sprintf("%d. %s: %s", index+1, hand.Target,
+					strings.TrimRight(strings.Join(cards, ", "), " ")))
+			}
+		}
+		return strings.Join(rows, "\n")
+	}
+	return ""
 }
 
 func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result flip.Result,
 	convID chat1.ConversationID) {
 	defer func() {
+		if status.ResultInfo != nil {
+			status.ResultText = m.resultToText(*status.ResultInfo)
+		}
 		if len(status.ResultText) > 0 {
 			status.ProgressText += " (complete)"
 		}
@@ -337,37 +418,50 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 	switch {
 	case err != nil:
 		m.Debug(ctx, "addResult: failed to describe result: %s", err)
-		status.Phase = chat1.UICoinFlipPhase_ERROR
-		status.ProgressText = "Failed to describe result"
+		m.setGenericError(status, "Failed to describe result")
 	case result.Big != nil:
 		lb := new(big.Int)
 		res := new(big.Int)
 		lb.SetString(hmi.LowerBound, 0)
 		res.Add(lb, result.Big)
-		status.ResultText = res.String()
+		resultInfo := chat1.NewUICoinFlipResultWithNumber(res.String())
+		status.ResultInfo = &resultInfo
 	case result.Bool != nil:
-		if *result.Bool {
-			status.ResultText = "HEADS"
-		} else {
-			status.ResultText = "TAILS"
-		}
+		resultInfo := chat1.NewUICoinFlipResultWithCoin(*result.Bool)
+		status.ResultInfo = &resultInfo
 	case result.Int != nil:
-		status.ResultText = fmt.Sprintf("%d", *result.Int)
+		resultInfo := chat1.NewUICoinFlipResultWithNumber(fmt.Sprintf("%d", *result.Int))
+		status.ResultInfo = &resultInfo
 	case len(result.Shuffle) > 0:
 		if hmi.HandCardCount > 0 {
 			m.addCardHandResult(ctx, status, result, hmi)
 			return
 		}
 		if len(hmi.ShuffleItems) != len(result.Shuffle) {
-			status.Phase = chat1.UICoinFlipPhase_ERROR
-			status.ProgressText = "Failed to describe shuffle result"
+			m.setGenericError(status, "Failed to describe shuffle result")
 			return
 		}
 		items := make([]string, len(hmi.ShuffleItems))
 		for index, r := range result.Shuffle {
 			items[index] = hmi.ShuffleItems[r]
 		}
-		status.ResultText = strings.TrimRight(strings.Join(items, ", "), " ")
+		var resultInfo chat1.UICoinFlipResult
+		if hmi.DeckShuffle {
+			var cardIndexes []int
+			for _, card := range items {
+				cardIndex, err := m.cardIndex(card)
+				if err != nil {
+					m.Debug(ctx, "addResult: failed to get card: %s", err)
+					m.setGenericError(status, "Failed to describe deck result")
+					return
+				}
+				cardIndexes = append(cardIndexes, cardIndex)
+			}
+			resultInfo = chat1.NewUICoinFlipResultWithDeck(cardIndexes)
+		} else {
+			resultInfo = chat1.NewUICoinFlipResultWithShuffle(items)
+		}
+		status.ResultInfo = &resultInfo
 	}
 }
 
@@ -565,7 +659,7 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
-		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️", nPlayersApprox)
+		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle(m.deck, nPlayersApprox)
 		deckShuffleMetadata.DeckShuffle = true
 		if arg == "cards" {
 			return deckShuffle, deckShuffleMetadata, nil
@@ -947,7 +1041,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			return nil
 		}
 		summary = &flip.GameSummary{
-			Err: fmt.Errorf("Replay failed: %s", err),
+			Err: err,
 		}
 	}
 	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConv.GetConvID(), true)

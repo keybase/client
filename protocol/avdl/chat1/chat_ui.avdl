@@ -307,6 +307,24 @@ protocol chatUi {
   case GENERIC: string;
   case ABSENTEE: UICoinFlipAbsenteeError;
   }
+  enum UICoinFlipResultTyp {
+    NUMBER_0,
+    SHUFFLE_1,
+    DECK_2,
+    HANDS_3,
+    COIN_4
+  }
+  record UICoinFlipHand {
+    string target;
+    array<int> hand;
+  }
+  variant UICoinFlipResult switch (UICoinFlipResultTyp typ) {
+    case NUMBER: string;
+    case SHUFFLE: array<string>;
+    case DECK: array<int>;
+    case HANDS: array<UICoinFlipHand>;
+    case COIN: bool; // heads?
+  }
   record UICoinFlipParticipant {
     string uid;
     string deviceID;
@@ -324,6 +342,7 @@ protocol chatUi {
     string revealVisualization;
     array<UICoinFlipParticipant> participants;
     union { null, UICoinFlipError } errorInfo;
+    union { null, UICoinFlipResult } resultInfo;
   }
   void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
 
