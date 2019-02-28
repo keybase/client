@@ -41,6 +41,8 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 
 	options = append(options, fuse.VolumeName(volName))
 	options = append(options, fuse.ExclCreate())
+	options = append(options, fuse.MaxReadahead(500*1024))
+	options = append(options, fuse.AsyncRead())
 
 	if platformParams.UseLocal {
 		options = append(options, fuse.LocalVolume())
