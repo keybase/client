@@ -61,10 +61,9 @@ const shimNewRoute = (Original: any) => {
   }
   return ShimmedNew
 }
-const ViewForGatewayDest = <T>(props: T) => (
-  <Kb.NativeView {...props} style={{height: '100%', width: '100%'}} />
-)
+const ViewForGatewayDest = <T>(props: T) => <Kb.NativeView {...props} />
 const styles = Styles.styleSheetCreate({
+  gatewayDest: {height: '100%', position: 'absolute', top: 0, width: '100%'},
   keyboard: {
     flexGrow: 1,
     position: 'relative',
