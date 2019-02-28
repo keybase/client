@@ -349,3 +349,41 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 
 	return nil
 }
+
+type rawGetPkgCheck struct {
+	Status libkb.AppStatus      `json:"status"`
+	Res    keybase1.UpdateInfo2 `json:"res"`
+}
+
+func (r *rawGetPkgCheck) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdateInfo2Arg) (res keybase1.UpdateInfo2, err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+
+	var version string
+	var platform string
+
+	if arg.Platform != nil {
+		platform = *arg.Platform
+	} else {
+		platform = libkb.GetPlatformString()
+	}
+	if arg.Version != nil {
+		version = *arg.Version
+	} else {
+		version = libkb.VersionString()
+	}
+
+	apiArg := libkb.NewAPIArgWithMetaContext(m, "pkg/check")
+	apiArg.Args = libkb.HTTPArgs{
+		"version":  libkb.S{Val: version},
+		"platform": libkb.S{Val: platform},
+	}
+	var raw rawGetPkgCheck
+	if err = m.G().API.GetDecode(apiArg, &raw); err != nil {
+		return res, err
+	}
+	return raw.Res, nil
+}

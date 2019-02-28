@@ -22,8 +22,8 @@ import (
 	service "github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	context "golang.org/x/net/context"
 	"github.com/stretchr/testify/require"
+	context "golang.org/x/net/context"
 )
 
 type fakeConnectivityMonitor struct {
@@ -97,6 +97,8 @@ func TestRPCs(t *testing.T) {
 	testConfig(t, tc2.G)
 	stage("testResolve3Offline")
 	testResolve3Offline(t, tc2.G, &fcm)
+	stage("testGetUpdateInfo2")
+	testGetUpdateInfo2(t, tc2.G)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -112,13 +114,13 @@ func testResolve3Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnecti
 	cli, err := client.GetIdentifyClient(g)
 	require.NoError(t, err)
 	fetch := func() {
-		arg := keybase1.Resolve3Arg{Assertion: "uid:eb72f49f2dde6429e5d78003dae0c919", Oa : keybase1.OfflineAvailability_BEST_EFFORT}
+		arg := keybase1.Resolve3Arg{Assertion: "uid:eb72f49f2dde6429e5d78003dae0c919", Oa: keybase1.OfflineAvailability_BEST_EFFORT}
 		res, err := cli.Resolve3(context.TODO(), arg)
 		require.NoError(t, err)
 		require.Equal(t, "t_tracy", res.Name)
 	}
 	fetchFail := func(expectedError error) {
-		arg := keybase1.Resolve3Arg{Assertion: "no_such_user_yo", Oa : keybase1.OfflineAvailability_BEST_EFFORT}
+		arg := keybase1.Resolve3Arg{Assertion: "no_such_user_yo", Oa: keybase1.OfflineAvailability_BEST_EFFORT}
 		_, err = cli.Resolve3(context.TODO(), arg)
 		require.Error(t, err)
 		require.IsType(t, expectedError, err)
@@ -343,6 +345,25 @@ func testConfig(t *testing.T, g *libkb.GlobalContext) {
 	if config.ServerURI == "" {
 		t.Fatal("No service URI")
 	}
+}
+
+func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
+	cli, err := client.GetConfigClient(g)
+	require.NoError(t, err)
+	res, err := cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{})
+	require.NoError(t, err)
+	status, err := res.Status()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.UpdateInfoStatus2_OK, status)
+	platform := "ios"
+	version := "0.0.1"
+	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Platform: &platform, Version: &version})
+	require.NoError(t, err)
+	status, err = res.Status()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.UpdateInfoStatus2_CRITICAL, status)
+	require.IsType(t, "foo", res.Critical().Message)
+	require.True(t, len(res.Critical().Message) > 10)
 }
 
 type FakeGregorState struct {
