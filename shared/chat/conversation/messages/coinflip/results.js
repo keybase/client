@@ -110,6 +110,7 @@ const Card = (props: CardType) => (
   >
     <Kb.Box2 direction="horizontal">
       <Kb.Text
+        selectable={true}
         type={Styles.isMobile ? 'BodyBig' : 'Header'}
         style={{color: suits[cards[props.card].suit].color}}
       >
@@ -154,7 +155,9 @@ const CoinFlipResultCoin = (props: CoinType) => (
       />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text type="Header">{props.coin ? 'Heads!' : 'Tails!'}</Kb.Text>
+      <Kb.Text selectable={true} type="Header">
+        {props.coin ? 'Heads!' : 'Tails!'}
+      </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -173,7 +176,9 @@ const CoinFlipResultHands = (props: HandType) => (
               direction={Styles.isMobile ? 'vertical' : 'horizontal'}
               style={styles.handTarget}
             >
-              <Kb.Text type="BodyBig">{hand.target}</Kb.Text>
+              <Kb.Text selectable={true} type="BodyBig">
+                {hand.target}
+              </Kb.Text>
             </Kb.Box2>
             <CoinFlipResultDeck deck={hand.hand} hand={true} />
           </Kb.Box2>
@@ -187,7 +192,9 @@ type NumberType = {|
 |}
 const CoinFlipResultNumber = (props: NumberType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <Kb.Text type="Header">{props.number}</Kb.Text>
+    <Kb.Text selectable={true} type="Header">
+      {props.number}
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -206,6 +213,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
             style={styles.listOrderContainer}
           >
             <Kb.Text
+              selectable={true}
               center={true}
               type={i === 0 ? 'BodyBig' : 'BodyTiny'}
               style={Styles.collapseStyles([styles.listOrder, i === 0 && styles.listOrderFirst])}
@@ -233,9 +241,9 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
       ))}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
-        <Kb.Text type="BodySmallSemibold" style={styles.listFull}>
+        <Kb.Text selectable={true} type="BodySmallSemibold" style={styles.listFull}>
           Full shuffle:{' '}
-          <Kb.Text type="BodySmall" style={styles.listFull}>
+          <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
             {props.shuffle && props.shuffle.join(', ')}
           </Kb.Text>
         </Kb.Text>
@@ -305,6 +313,8 @@ const styles = Styles.styleSheetCreate({
   },
   listOrder: Styles.platformStyles({
     common: {
+      backgroundColor: Styles.globalColors.black_10,
+      borderRadius: 2,
       color: Styles.globalColors.black,
       height: 14,
       width: 14,
@@ -322,7 +332,6 @@ const styles = Styles.styleSheetCreate({
   listOrderFirst: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black,
-      borderRadius: 2,
       color: Styles.globalColors.white,
       height: 18,
       width: 18,

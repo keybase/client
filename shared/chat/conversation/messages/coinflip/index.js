@@ -47,7 +47,12 @@ class CoinFlip extends React.Component<Props, State> {
   }
   _renderStatusText = () => {
     const participants = (
-      <Kb.Text type="BodySmallPrimaryLink" style={styles.participantsLabel} onClick={this._showPopup}>
+      <Kb.Text
+        selectable={true}
+        type="BodySmallPrimaryLink"
+        style={styles.participantsLabel}
+        onClick={this._showPopup}
+      >
         {`${this.props.participants.length} ${pluralize('participant', this.props.participants.length)}`}
       </Kb.Text>
     )
@@ -58,7 +63,9 @@ class CoinFlip extends React.Component<Props, State> {
         onMouseLeave={this._hidePopup}
         ref={this._partRef}
       >
-        <Kb.Text type="BodySmall">Secured by {Styles.isMobile && participants}</Kb.Text>
+        <Kb.Text selectable={true} type="BodySmall">
+          Secured by {Styles.isMobile && participants}
+        </Kb.Text>
         {!Styles.isMobile && participants}
         <CoinFlipParticipants
           attachTo={this._getAttachmentRef}
@@ -70,12 +77,16 @@ class CoinFlip extends React.Component<Props, State> {
     ) : (
       <>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-          <Kb.Text type="BodySmallSemibold">Collecting commitments: {this.props.participants.length}</Kb.Text>
+          <Kb.Text selectable={true} type="BodySmallSemibold">
+            Collecting commitments: {this.props.participants.length}
+          </Kb.Text>
           {this.props.hasCommitments && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
         </Kb.Box2>
         {this.props.hasCommitments && (
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            <Kb.Text type="BodySmallSemibold">Collecting secrets: {this._revealSummary()}</Kb.Text>
+            <Kb.Text selectable={true} type="BodySmallSemibold">
+              Collecting secrets: {this._revealSummary()}
+            </Kb.Text>
             {this.props.hasSecrets && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
           </Kb.Box2>
         )}
@@ -97,7 +108,9 @@ class CoinFlip extends React.Component<Props, State> {
                   <Kb.Image src={commitSrc} style={styles.progressVis} />
                 ) : (
                   <Kb.Box2 direction="vertical" style={styles.progressVis}>
-                    <Kb.Text type="BodyItalic">Starting flip...</Kb.Text>
+                    <Kb.Text selectable={true} type="BodyItalic">
+                      Starting flip...
+                    </Kb.Text>
                   </Kb.Box2>
                 )}
               </Kb.Box2>
