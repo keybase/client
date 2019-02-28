@@ -154,7 +154,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		games:                      games,
 		dirtyGames:                 make(map[string]chat1.FlipGameID),
 		forceCh:                    make(chan struct{}, 10),
-		loadGameCh:                 make(chan loadGameJob, 100),
+		loadGameCh:                 make(chan loadGameJob, 200),
 		convParticipations:         make(map[string]convParticipationsRateLimit),
 		maxConvParticipations:      1000,
 		maxConvParticipationsReset: 5 * time.Minute,
@@ -1075,10 +1075,15 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat
 		return
 	}
 	// If we miss the in-memory game storage, attempt to replay the game
-	m.loadGameCh <- loadGameJob{
+	job := loadGameJob{
 		gameID: gameID,
 		uid:    uid,
 		convID: convID,
+	}
+	select {
+	case m.loadGameCh <- job:
+	default:
+		m.Debug(ctx, "Unable to load gameID %v, convID %v, loadGameCh full.", gameID, convID)
 	}
 }
 
