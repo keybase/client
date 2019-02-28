@@ -17,11 +17,12 @@ export type Props = {
   daemonHandshakeState: DaemonHandshakeState,
   logIn: () => void,
   loggedIn: boolean,
+  kbfsEnabled: boolean,
   updateNow: () => void,
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
   outOfDate?: ConfigTypes.OutOfDate,
-  showInFinder: (tab: ?string) => void,
+  showInFinder: () => void,
   quit: () => void,
   refresh: () => void,
   showBug: () => void,
@@ -235,12 +236,9 @@ class MenubarRender extends React.Component<Props, State> {
       : [{onClick: () => this.props.openApp(), title: 'Open main app'}, 'Divider']
 
     const showFinder =
-      startingUp || loggedOut
+      startingUp || loggedOut || !this.props.kbfsEnabled
         ? []
-        : [
-            {onClick: () => this.props.showInFinder('/'), title: `Open folders in ${Styles.fileUIName}`},
-            'Divider',
-          ]
+        : [{onClick: this.props.showInFinder, title: `Open folders in ${Styles.fileUIName}`}, 'Divider']
 
     const webLink = startingUp ? [] : [{onClick: () => this.props.showUser(), title: 'Keybase.io'}]
 
