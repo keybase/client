@@ -19,6 +19,7 @@ import {makeLeafTags} from '../route-tree'
 import {tabBarHeight} from './tab-bar/index.native'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
 import {GatewayDest} from 'react-gateway'
+import OutOfDate from './out-of-date'
 
 type CardStackShimProps = {
   mode: 'modal' | 'card',
@@ -379,6 +380,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
         {layers}
         <GlobalError key="globalError" />
         <RpcStats />
+        <OutOfDate />
       </>
     )
   }

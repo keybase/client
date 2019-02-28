@@ -364,8 +364,12 @@ const editAvatar = () =>
     })
   })
 
-// TODO
-const openAppStore = () => null
+const openAppStore = () =>
+  Linking.openURL(
+    isAndroid
+      ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
+      : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
+  ).catch(e => {})
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   if (flags.useNewRouter) {
