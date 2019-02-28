@@ -113,7 +113,7 @@ const Card = (props: CardType) => (
         type={Styles.isMobile ? 'BodyBig' : 'Header'}
         style={{color: suits[cards[props.card].suit].color}}
       >
-        {props.card && cards[props.card].value}
+        {cards[props.card].value}
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
