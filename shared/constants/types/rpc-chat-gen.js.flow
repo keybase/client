@@ -1223,7 +1223,7 @@ export type UICoinFlipPhase =
   | 2 // COMPLETE_2
   | 3 // ERROR_3
 
-export type UICoinFlipResult = {typ: 0, number: ?String} | {typ: 1, shuffle: ?$Array<string>} | {typ: 2, deck: ?$Array<int>} | {typ: 3, hands: ?$Array<UICoinFlipHand>} | {typ: 4, coin: ?Bool}
+export type UICoinFlipResult = {typ: 0, number: ?String} | {typ: 1, shuffle: ?Array<string>} | {typ: 2, deck: ?Array<int>} | {typ: 3, hands: ?Array<UICoinFlipHand>} | {typ: 4, coin: ?Bool}
 export type UICoinFlipResultTyp =
   | 0 // NUMBER_0
   | 1 // SHUFFLE_1
