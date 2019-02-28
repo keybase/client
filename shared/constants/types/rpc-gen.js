@@ -110,6 +110,12 @@ export const configUpdateInfoStatus = {
   criticallyOutOfDate: 2,
 }
 
+export const configUpdateInfoStatus2 = {
+  ok: 0,
+  suggested: 1,
+  critical: 2,
+}
+
 export const constantsStatusCode = {
   scok: 0,
   scinputerror: 100,
