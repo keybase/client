@@ -371,7 +371,7 @@ function parseVariant(t, project) {
         } else if (typeof c.body === 'string') {
           bodyType = capitalize(c.body)
         } else if (c.body.type === 'array') {
-          bodyType = `Array<${c.body.items}>`
+          bodyType = `Array<${capitalize(c.body.items)}>`
         }
         const bodyStr = c.body ? `, ${label}: ?${bodyType}` : ''
         return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
