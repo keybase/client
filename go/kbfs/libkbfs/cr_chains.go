@@ -1148,20 +1148,22 @@ func (ccs *crChains) findPathForDeleted(mostRecent BlockPointer) path {
 	}
 }
 
-func (ccs *crChains) findPathForCreated(mostRecent BlockPointer) path {
+func (ccs *crChains) findPathForCreated(createdChain *crChain) path {
+	mostRecent := createdChain.mostRecent
+
 	// Find the parent chain that deleted this one.
-	for ptr, chain := range ccs.byMostRecent {
+	for _, chain := range ccs.byMostRecent {
 		for _, op := range chain.ops {
 			co, ok := op.(*createOp)
 			if !ok {
 				continue
 			}
 			for _, ref := range co.Refs() {
-				if ref == mostRecent {
+				if ref == createdChain.original {
 					// If the path isn't set yet, recurse.
 					p := co.getFinalPath()
 					if !p.isValid() {
-						p = ccs.findPathForCreated(ptr)
+						p = ccs.findPathForCreated(chain)
 					}
 					return p.ChildPath(co.NewName, mostRecent)
 				}
@@ -1296,7 +1298,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 			if !ok {
 				continue
 			}
-			p := ccs.findPathForCreated(chain.mostRecent)
+			p := ccs.findPathForCreated(chain)
 			for _, op := range chain.ops {
 				op.setFinalPath(p)
 			}
