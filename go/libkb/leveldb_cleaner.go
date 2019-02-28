@@ -31,7 +31,7 @@ type DbCleanerConfig struct {
 }
 
 func (c DbCleanerConfig) String() string {
-	return fmt.Sprintf("MaxSize: %v, HaltSize: %v, CleanInterval: %v, CacheCapacity: %v, MinCacheSize: %v, SleepInterval: %v",
+	return fmt.Sprintf("DbCleanerConfig{MaxSize: %v, HaltSize: %v, CleanInterval: %v, CacheCapacity: %v, MinCacheSize: %v, SleepInterval: %v}",
 		humanize.Bytes(c.MaxSize), humanize.Bytes(c.HaltSize),
 		c.CleanInterval, c.CacheCapacity,
 		c.MinCacheSize, c.SleepInterval)
@@ -103,6 +103,11 @@ func newLevelDbCleanerWithConfig(g *GlobalContext, dbName string, config DbClean
 		go c.monitorAppState()
 	}
 	return c
+}
+
+func (c *levelDbCleaner) Status() string {
+	return fmt.Sprintf("levelDbCleaner{cacheSize: %d, lastRun: %v, lastKey: %v, running: %v}\n%v\n",
+		c.cache.Len(), c.lastRun, c.lastKey, c.running, c.config)
 }
 
 func (c *levelDbCleaner) Stop() {

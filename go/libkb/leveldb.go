@@ -226,6 +226,7 @@ func (l *LevelDb) ForceOpen() error {
 func (l *LevelDb) Stats() (stats string) {
 	if err := l.doWhileOpenAndNukeIfCorrupted(func() (err error) {
 		stats, err = l.db.GetProperty("leveldb.stats")
+		stats = fmt.Sprintf("%s\n%s", stats, l.cleaner.Status())
 		return err
 	}); err != nil {
 		return ""
