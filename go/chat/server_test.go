@@ -6341,6 +6341,7 @@ func TestChatBulkAddToConv(t *testing.T) {
 		ctc := makeChatTestContext(t, "BulkAddToConv", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
+		t.Logf("uid1: %v, uid2: %v", users[0].User.GetUID(), users[1].User.GetUID())
 
 		tc1 := ctc.world.Tcs[users[0].Username]
 		tc2 := ctc.world.Tcs[users[0].Username]
@@ -6398,6 +6399,8 @@ func TestChatBulkAddToConv(t *testing.T) {
 		}
 		assertSysMsg(usernames, usernames, listener0)
 		assertSysMsg(usernames, usernames, listener1)
+		consumeMembersUpdate(t, listener0)
+		consumeJoinConv(t, listener1)
 		// u1 can now send
 		mustPostLocalForTest(t, ctc, users[1], channel.Conv.Info,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
