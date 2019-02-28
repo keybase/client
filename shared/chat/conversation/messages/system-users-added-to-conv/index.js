@@ -41,8 +41,9 @@ const maxUsernamesToShow = 3
 const getAddedUsernames = (usernames: Array<string>) => {
   const diff = Math.max(0, usernames.length - maxUsernamesToShow)
   const othersStr = diff ? `and ${diff} other${diff > 1 ? 's' : ''} ` : ''
-  return usernames.reduce((res, username, idx) => {
-    if (idx === usernames.length - 1 && usernames.length > 1 && !othersStr) {
+  const users = usernames.slice(0, maxUsernamesToShow)
+  return users.reduce((res, username, idx) => {
+    if (idx === users.length - 1 && users.length > 1 && !othersStr) {
       // last user and no others
       res.push('and ')
     }
@@ -56,9 +57,9 @@ const getAddedUsernames = (usernames: Array<string>) => {
         usernames={[username]}
         key={username}
       />,
-      idx < usernames.length - (othersStr ? 1 : 2) ? ', ' : ' '
+      idx < users.length - (othersStr ? 1 : 2) ? ', ' : ' '
     )
-    if (idx === usernames.length - 1 && othersStr) {
+    if (idx === users.length - 1 && othersStr) {
       res.push(othersStr)
     }
     return res
