@@ -1129,6 +1129,10 @@
         }
       ],
       "response": null
+    },
+    "simpleFSPing": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

@@ -1360,6 +1360,9 @@ type SimpleFSSetFolderSyncConfigArg struct {
 	Config FolderSyncConfig `codec:"config" json:"config"`
 }
 
+type SimpleFSPingArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1463,6 +1466,7 @@ type SimpleFSInterface interface {
 	SimpleFSReset(context.Context, Path) error
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
+	SimpleFSPing(context.Context) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1934,6 +1938,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSPing": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSPingArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSPing(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2184,5 +2198,10 @@ func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, p
 
 func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg SimpleFSSetFolderSyncConfigArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSPing(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSPing", []interface{}{SimpleFSPingArg{}}, nil)
 	return
 }

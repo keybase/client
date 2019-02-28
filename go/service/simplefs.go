@@ -435,3 +435,14 @@ func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 	}
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)
 }
+
+// SimpleFSPing implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSPing(ctx context.Context) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSPing(ctx)
+}
