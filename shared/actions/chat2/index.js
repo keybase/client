@@ -1345,7 +1345,6 @@ function* messageSend(state, action) {
   // messages to not send. Do this after creating the objects above to
   // narrow down the places where the action can possibly stop.
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
-  storeStellarConfirmWindowResponse(false, null)
 }
 
 let _stellarConfirmWindowResponse = null
