@@ -256,7 +256,9 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				// exploding message.
 				mvalid := newMsg.Valid()
 				if !mvalid.IsEphemeral() || mvalid.HideExplosion(conv.GetMaxDeletedUpTo(), time.Now()) {
-					t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
+					t.Debug(ctx, "skipping: %d because not valid full: typ: %v bodymatch: %v",
+						msg.GetMessageID(), msg.GetMessageType(),
+						mvalid.MessageBody.IsType(msg.GetMessageType()))
 					xformDelete(msg.GetMessageID())
 					continue
 				}
