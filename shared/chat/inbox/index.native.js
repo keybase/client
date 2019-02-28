@@ -57,11 +57,13 @@ class Inbox extends React.PureComponent<Props, State> {
         />
       )
     } else {
+      // Loosen up flow here as it rightly complains about missing channelnane, convo keys etc
+      const r: any = row
       element = makeRow({
-        channelname: row.channelname,
-        conversationIDKey: row.conversationIDKey,
+        channelname: r.channelname,
+        conversationIDKey: r.conversationIDKey,
         filtered: !!this.props.filter,
-        teamname: row.teamname,
+        teamname: r.teamname,
         type: row.type,
       })
     }
@@ -145,6 +147,10 @@ class Inbox extends React.PureComponent<Props, State> {
   _getItemLayout = (data, index) => {
     if (this.props.filter.length) {
       return {index, length: RowSizes.smallRowHeight, offset: RowSizes.smallRowHeight * (index - 1)}
+    }
+
+    if (!data) {
+      return {index, length: 0, offset: 0}
     }
 
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all

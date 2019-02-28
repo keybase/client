@@ -74,6 +74,7 @@ export default compose(
         if (state._conversationIDKey === props.conversationIDKey) {
           if (state._lastLoadMoreOrdinalTime + 1000 > Date.now()) {
             // ignore a load if its too recent for the same ordinal
+            // $FlowIssue don't use recompose
             return
           }
         }

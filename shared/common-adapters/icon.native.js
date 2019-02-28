@@ -123,6 +123,7 @@ class Icon extends React.PureComponent<Props> {
       }
 
       icon = (
+        // $FlowIssue
         <Text style={iconStyle} type={props.type} fontSize={fontSize}>
           {code}
         </Text>

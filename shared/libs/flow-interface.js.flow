@@ -16,10 +16,6 @@ declare module 'react-window' {
 declare module 'electron-packager' {
   declare module.exports: any
 }
-// TODO pull in the real defs
-declare module 'react-native' {
-  declare module.exports: any
-}
 declare module 'react-navigation/src/views/CardStack/CardStackTransitioner' {
   declare module.exports: any
 }

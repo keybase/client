@@ -337,7 +337,6 @@ class Input extends Component<Props, State> {
       multiline: true,
       onContentSizeChange: this._onContentSizeChange,
       style: collapseStyles([multilineStyle, this.props.inputStyle]),
-      ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {}),
     }
 
     return (

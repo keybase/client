@@ -70,6 +70,7 @@ export default compose(
       muted: props._storeMuted,
       saving: false,
     }),
+    // $FlowIssue don't use recompose
     {
       syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
         channelWide,

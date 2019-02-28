@@ -19,13 +19,15 @@ const ScrollView = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  overflowAuto: {
-    overflow: 'auto',
-  },
-  overflowHidden: {
-    overflowX: 'hidden',
-    overflowY: 'auto',
-  },
+  overflowAuto: Styles.platformStyles({
+    isElectron: {overflow: 'auto'},
+  }),
+  overflowHidden: Styles.platformStyles({
+    isElectron: {
+      overflowX: 'hidden',
+      overflowY: 'auto',
+    },
+  }),
 })
 
 export default ScrollView

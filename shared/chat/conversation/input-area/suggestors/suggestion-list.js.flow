@@ -4,8 +4,8 @@ import * as Styles from '../../../../styles'
 
 export type Props = {
   items: Array<string>,
-  keyExtractor: ?(item: any) => string | number,
-  renderItem: (index: number, item: string) => React.Node,
+  keyExtractor: ?(item: any) => string,
+  renderItem: (index: number, item: string) => ?React.Element<any>,
   selectedIndex: number,
   style?: Styles.StylesCrossPlatform,
 }

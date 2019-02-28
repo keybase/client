@@ -12,15 +12,19 @@ class List2<T> extends PureComponent<Props<T>, void> {
   }
 
   _itemRender = ({item, index}) => {
-    return this.props.renderItem(index, item)
+    // $ForceType
+    const itemT: T = item
+    return this.props.renderItem(index, itemT)
   }
 
   _getItemLayout = (data, index) => {
     switch (this.props.itemHeight.type) {
       case 'fixed':
         return {height: this.props.itemHeight.height, index, offset: this.props.itemHeight.height * index}
-      case 'variable':
-        return {index, ...this.props.itemHeight.getItemLayout(index, data[index])}
+      case 'variable': {
+        const itemT: T = data[index]
+        return {index, ...this.props.itemHeight.getItemLayout(index, itemT)}
+      }
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight.type)
         return {height: 0, index, offset: 0}
@@ -33,7 +37,9 @@ class List2<T> extends PureComponent<Props<T>, void> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
-    return item[keyProp]
+    // $ForceType
+    const key: string = String(item[keyProp])
+    return key
   }
 
   render() {

@@ -45,6 +45,7 @@ export default compose(
     {name: ''},
     {
       onNameChange: () => (name: string) => ({name}),
+      // $FlowIssue don't use recompose
       onSubmit: (_, {_onCreateNewTeam}) => teamname => {
         _onCreateNewTeam(teamname)
       },

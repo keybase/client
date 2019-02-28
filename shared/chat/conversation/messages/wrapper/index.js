@@ -475,7 +475,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
     return (
       <>
-        {LongPressable({
+        {// $FlowIssue RN doesn't want you to call a component as a function, even though it works
+        LongPressable({
           ...this._containerProps(),
           children: [
             this._authorAndContent([

@@ -8,7 +8,7 @@ export type Props<Item> = {
   items: Array<Item>,
   style?: StylesCrossPlatform,
   fixedHeight?: ?number,
-  renderItem: (index: number, item: Item) => React.Node,
+  renderItem: (index: number, item: Item) => React.Element<any>,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys
   selectedIndex?: number, // TODO work on mobile
   itemSizeEstimator?: (index: number, cache: {[index: number]: number}) => number, // Desktop only

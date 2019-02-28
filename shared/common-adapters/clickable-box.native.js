@@ -19,9 +19,7 @@ class ClickableBox extends React.Component<Props> {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
             onLongPress={props.onLongPress}
-            pointerEvents={props.pointerEvents}
             style={clickStyle}
-            underlayColor={props.underlayColor || globalColors.white}
             activeOpacity={this.props.activeOpacity ?? 0.7}
           >
             {props.children}
@@ -32,9 +30,7 @@ class ClickableBox extends React.Component<Props> {
           <TouchableWithoutFeedback
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
-            style={clickStyle}
             onPress={props.onClick}
-            pointerEvents={props.pointerEvents}
             onLongPress={props.onLongPress}
           >
             {props.children}

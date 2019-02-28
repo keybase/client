@@ -14,13 +14,19 @@
 <PROJECT_ROOT>/desktop/release/.*
 <PROJECT_ROOT>/node_modules/electron-packager
 <PROJECT_ROOT>/node_modules/react-window
-<PROJECT_ROOT>/node_modules/react-native/Libraries/Components/View/ViewPropTypes.js
-<PROJECT_ROOT>/node_modules/react-native/Libraries/EventEmitter/__mocks__
-<PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js
 <PROJECT_ROOT>/node_modules/simple-markdown
 <PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
 <PROJECT_ROOT>/node_modules/react-native-fast-image/.*
 <PROJECT_ROOT>/node_modules/@emotion
+# pulled from https://github.com/facebook/react-native/blob/master/.flowconfig
+<PROJECT_ROOT>/node_modules/react-native/template/.*
+<PROJECT_ROOT>/node_modules/react-native/bots/dangerfile.js
+<PROJECT_ROOT>/node_modules/react-native/\.buckd/
+<PROJECT_ROOT>/node_modules/react-native/node_modules/.*/node_modules/fbjs/.*
+<PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/React.js
+<PROJECT_ROOT>/node_modules/react-native/Libraries/polyfills/.*
+<PROJECT_ROOT>/node_modules/react-native/node_modules/warning/.*
+<PROJECT_ROOT>/node_modules/react-native/Libraries/Utilities/HMRLoadingView.js
 .*[.]gif$
 .*[.]png$
 
@@ -30,6 +36,8 @@
 [include]
 
 [libs]
+<PROJECT_ROOT>/react-native/Libraries/react-native/react-native-interface.js
+<PROJECT_ROOT>/react-native/Libraries/react-native/flow
 ./libs/flow-interface.js.flow
 ./libs/electron_vx.x.x.js.flow
 ./libs/simple-markdown.js.flow
@@ -42,17 +50,38 @@ esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
 experimental.const_params=true
 esproposal.optional_chaining=enable
-
-module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> '<PROJECT_ROOT>/__mocks__/global-image-stub.js'
+esproposal.nullish_coalescing=enable
 
 module.system=haste
-
 module.system.haste.use_name_reducers=true
+# keep the following in sync with server/haste/hasteImpl.js
+# get basename
+module.system.haste.name_reducers='^.*/\([a-zA-Z0-9$_.-]+\.js\(\.flow\)?\)$' -> '\1'
 # strip .js or .js.flow suffix
 module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
-module.system.haste.paths.blacklist=.*__mocks__.*
-module.system.haste.paths.blacklist=<PROJECT_ROOT>/node_modules/react-native/Libraries/Animated/src/polyfills/.*
+# strip .ios suffix
+module.system.haste.name_reducers='^\(.*\)\.ios$' -> '\1'
+module.system.haste.name_reducers='^\(.*\)\.android$' -> '\1'
+module.system.haste.name_reducers='^\(.*\)\.native$' -> '\1'
+module.system.haste.paths.blacklist=.*/__tests__/.*
+module.system.haste.paths.blacklist=.*/__mocks__/.*
 module.system.haste.paths.whitelist=<PROJECT_ROOT>/node_modules/react-native/Libraries/.*
+module.system.haste.paths.whitelist=<PROJECT_ROOT>/node_modules/react-native/RNTester/.*
+module.system.haste.paths.whitelist=<PROJECT_ROOT>/node_modules/react-native/IntegrationTests/.*
+module.system.haste.paths.blacklist=<PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js
+module.system.haste.paths.blacklist=<PROJECT_ROOT>/node_modules/react-native/Libraries/Animated/src/polyfills/.*
+
+# module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> '<PROJECT_ROOT>/__mocks__/global-image-stub.js'
+module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> '<PROJECT_ROOT>/__mocks__/global-image-stub.js'
+
+# module.system=haste
+
+# module.system.haste.use_name_reducers=true
+# strip .js or .js.flow suffix
+# module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
+# module.system.haste.paths.blacklist=.*__mocks__.*
+# module.system.haste.paths.blacklist=<PROJECT_ROOT>/node_modules/react-native/Libraries/Animated/src/polyfills/.*
+# module.system.haste.paths.whitelist=<PROJECT_ROOT>/node_modules/react-native/Libraries/.*
 # strip .mobile suffix
 # module.system.haste.name_reducers='^\(.*\)\.ios$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.android$' -> '\1'
@@ -92,4 +121,4 @@ untyped-import
 untyped-type-import
 
 [version]
-^0.90.0
+^0.93.0

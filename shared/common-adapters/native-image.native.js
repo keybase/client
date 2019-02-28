@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Image, type ImageProps} from 'react-native'
+import {Image} from 'react-native'
+import type {ImageProps} from 'react-native/Libraries/Image/ImageProps'
 import FastImageImpl from 'react-native-fast-image'
 import {isArray} from 'lodash-es'
 

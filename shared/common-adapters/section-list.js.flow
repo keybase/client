@@ -1,10 +1,7 @@
 // @flow
 import * as React from 'react'
 import {SectionList} from 'react-native'
+import type {SectionBase} from 'react-native/Libraries/Lists/SectionList'
 
-// This resolves to 'any'
-// check https://facebook.github.io/react-native/docs/sectionlist#props for the time being
-// TODO import the type from react-native
-export type Props = React.ElementProps<typeof SectionList>
-
-export default class extends SectionList {}
+export type Props = React.ElementConfig<typeof SectionList>
+export default class KBSectionList extends React.Component<SectionBase<any>> {}

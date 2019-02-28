@@ -3,6 +3,39 @@ import * as React from 'react'
 import {type StylesCrossPlatform, globalMargins} from '../styles'
 export type Props = any
 
+// From RN CoreEventTypes
+type Layout = $ReadOnly<{|
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+|}>
+
+type RNSyntheticEvent<T> = $ReadOnly<{|
+  bubbles: ?boolean,
+  cancelable: ?boolean,
+  currentTarget: number,
+  defaultPrevented: ?boolean,
+  dispatchConfig: $ReadOnly<{|
+    registrationName: string,
+  |}>,
+  eventPhase: ?number,
+  isDefaultPrevented: () => boolean,
+  isPropagationStopped: () => boolean,
+  isTrusted: ?boolean,
+  nativeEvent: T,
+  persist: () => void,
+  target: ?number,
+  timeStamp: number,
+  type: ?string,
+|}>
+
+type LayoutEvent = RNSyntheticEvent<
+  $ReadOnly<{|
+    layout: Layout,
+  |}>
+>
+
 export type Box2Props = {|
   alignItems?: 'center' | 'flex-start' | 'flex-end',
   alignSelf?: null | 'center' | 'flex-start' | 'flex-end',
@@ -13,7 +46,7 @@ export type Box2Props = {|
   fullHeight?: boolean,
   fullWidth?: boolean,
   noShrink?: boolean,
-  onLayout?: (evt: {nativeEvent: {layout: {x: number, y: number, width: number, height: number}}}) => void, // mobile only
+  onLayout?: (evt: LayoutEvent) => void, // mobile only
   onMouseLeave?: (SyntheticEvent<Element>) => void, // desktop only
   onMouseOver?: (SyntheticEvent<Element>) => void, // desktop only
   style?: StylesCrossPlatform,

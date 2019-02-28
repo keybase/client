@@ -41,7 +41,7 @@ type AddSuggestorsProps = {
     [key: string]: (filter: string) => Array<any>, // typing TODO
   },
   keyExtractors?: {
-    [key: string]: (item: any) => string | number,
+    [key: string]: (item: any) => string,
   },
   renderers: {
     [key: string]: (item: any, selected: boolean) => React.Node,

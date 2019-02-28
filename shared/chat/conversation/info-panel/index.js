@@ -289,7 +289,7 @@ const typeSizeEstimator = (row: Row): number => {
 }
 
 class _InfoPanel extends React.Component<InfoPanelProps> {
-  _renderRow = (i: number, row: Row): React.Node => {
+  _renderRow = (i: number, row: Row) => {
     switch (row.type) {
       case 'add people':
         return <AddPeople key="add people" isGeneralChannel={row.isGeneralChannel} teamname={row.teamname} />
