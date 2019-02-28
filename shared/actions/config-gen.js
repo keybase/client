@@ -36,6 +36,7 @@ export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
+export const openAppStore = 'config:openAppStore'
 export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
@@ -49,7 +50,6 @@ export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const swapRouter = 'config:swapRouter'
-export const updateApp = 'config:updateApp'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
@@ -79,6 +79,7 @@ type _LogoutHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, in
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
+type _OpenAppStorePayload = void
 type _PersistRoutePayload = $ReadOnly<{|path: Array<any>|}>
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
@@ -92,16 +93,15 @@ type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>
-type _UpdateAppPayload = void
 type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
 type _UpdateNowPayload = void
 
 // Action Creators
 /**
- * On a critical red bar an action to update cross platform
+ * Open a link to the app store
  */
-export const createUpdateApp = (payload: _UpdateAppPayload) => ({payload, type: updateApp})
+export const createOpenAppStore = (payload: _OpenAppStorePayload) => ({payload, type: openAppStore})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
@@ -204,6 +204,7 @@ export type LogoutHandshakeWaitPayload = {|+payload: _LogoutHandshakeWaitPayload
 export type LogoutPayload = {|+payload: _LogoutPayload, +type: 'config:logout'|}
 export type MobileAppStatePayload = {|+payload: _MobileAppStatePayload, +type: 'config:mobileAppState'|}
 export type OpenAppSettingsPayload = {|+payload: _OpenAppSettingsPayload, +type: 'config:openAppSettings'|}
+export type OpenAppStorePayload = {|+payload: _OpenAppStorePayload, +type: 'config:openAppStore'|}
 export type PersistRoutePayload = {|+payload: _PersistRoutePayload, +type: 'config:persistRoute'|}
 export type PushLoadedPayload = {|+payload: _PushLoadedPayload, +type: 'config:pushLoaded'|}
 export type RestartHandshakePayload = {|+payload: _RestartHandshakePayload, +type: 'config:restartHandshake'|}
@@ -217,7 +218,6 @@ export type SetupEngineListenersPayload = {|+payload: _SetupEngineListenersPaylo
 export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
 export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
 export type SwapRouterPayload = {|+payload: _SwapRouterPayload, +type: 'config:swapRouter'|}
-export type UpdateAppPayload = {|+payload: _UpdateAppPayload, +type: 'config:updateApp'|}
 export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
 export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
 export type UpdateNowPayload = {|+payload: _UpdateNowPayload, +type: 'config:updateNow'|}
@@ -249,6 +249,7 @@ export type Actions =
   | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
+  | OpenAppStorePayload
   | PersistRoutePayload
   | PushLoadedPayload
   | RestartHandshakePayload
@@ -262,7 +263,6 @@ export type Actions =
   | ShowMainPayload
   | StartHandshakePayload
   | SwapRouterPayload
-  | UpdateAppPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload

@@ -106,8 +106,8 @@
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
     "updateNow": {},
-    "updateApp": {
-      "_description": "On a critical red bar an action to update cross platform"
+    "openAppStore": {
+      "_description": "Open a link to the app store"
     },
   }
 }

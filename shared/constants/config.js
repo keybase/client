@@ -80,8 +80,8 @@ export const urlToUsername = (url: {
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
-  appOutOfDateStatus: 'checking',
-  appOutOfDateReason: '',
+  appOutOfDateMessage: 'aaa',
+  appOutOfDateStatus: 'critical',
   avatars: I.Map(),
   configuredAccounts: I.List(),
   daemonError: null,

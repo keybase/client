@@ -17,8 +17,8 @@ export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
+  appOutOfDateMessage: string,
   appOutOfDateStatus: AppOutOfDateStatus,
-  appOutOfDateReason: string,
   avatars: I.Map<string, I.Map<number, string>>,
   configuredAccounts: I.List<string>,
   daemonError: ?Error,

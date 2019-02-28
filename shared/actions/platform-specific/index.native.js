@@ -364,6 +364,9 @@ const editAvatar = () =>
     })
   })
 
+// TODO
+const openAppStore = () => null
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   if (flags.useNewRouter) {
     yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
@@ -385,6 +388,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshake,
     waitForStartupDetails
   )
+  yield* Saga.chainAction<ConfigGen.OpenAppStorePayload>(ConfigGen.openAppStore, openAppStore)
   yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
   yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
   // Start this immediately instead of waiting so we can do more things in parallel

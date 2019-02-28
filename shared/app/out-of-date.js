@@ -8,37 +8,45 @@ import * as Types from '../constants/types/config'
 
 type OwnProps = {||}
 type Props = {|
-  reason: string,
+  message: string,
+  onOpenAppStore: () => void,
   status: Types.AppOutOfDateStatus,
 |}
 
-const OutOfDate = (p: Props) => {
-  return p.status !== 'critical' ? null : (
+const OutOfDate = (p: Props) =>
+  p.status !== 'critical' ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
-      <Kb.Text center={true} type="Body">
-        You version of Keybase is critically out of date!
+      <Kb.Text center={true} type="Header" negative={true}>
+        Your version of Keybase is critically out of date!
       </Kb.Text>
-      <Kb.Text center={true} type="BodySmall">
-        {p.reason}
-      </Kb.Text>
-      <Kb.Button type="Primary" label="Update" click={p.onUpdate} />
+      <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
+        <Kb.Markdown type="BodySmall">{p.message}</Kb.Markdown>
+      </Kb.Box2>
+      {Styles.isMobile && <Kb.Button type="Primary" label="Update" onClick={p.onOpenAppStore} />}
     </Kb.Box2>
   )
-}
 
 const styles = Styles.styleSheetCreate({
   container: {
+    ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.red,
+    bottom: undefined,
     padding: Styles.globalMargins.small,
+    zIndex: 9999,
+  },
+  messageContainer: {
+    backgroundColor: Styles.globalColors.white_90,
+    borderRadius: Styles.borderRadius,
+    padding: Styles.globalMargins.medium,
   },
 })
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
+  message: state.config.appOutOfDateMessage,
   status: state.config.appOutOfDateStatus,
-  reason: state.config.appOutOfDateReason,
 })
 const mapDispatchToProps = dispatch => ({
-  onUpdate: dispatch(ConfigGen.createUpdateApp()),
+  onOpenAppStore: () => dispatch(ConfigGen.createOpenAppStore()),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps})
 
