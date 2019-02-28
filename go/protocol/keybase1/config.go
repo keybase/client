@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -517,6 +518,127 @@ func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 	}
 }
 
+type UpdateInfoStatus2 int
+
+const (
+	UpdateInfoStatus2_OK        UpdateInfoStatus2 = 0
+	UpdateInfoStatus2_SUGGESTED UpdateInfoStatus2 = 1
+	UpdateInfoStatus2_CRITICAL  UpdateInfoStatus2 = 2
+)
+
+func (o UpdateInfoStatus2) DeepCopy() UpdateInfoStatus2 { return o }
+
+var UpdateInfoStatus2Map = map[string]UpdateInfoStatus2{
+	"OK":        0,
+	"SUGGESTED": 1,
+	"CRITICAL":  2,
+}
+
+var UpdateInfoStatus2RevMap = map[UpdateInfoStatus2]string{
+	0: "OK",
+	1: "SUGGESTED",
+	2: "CRITICAL",
+}
+
+func (e UpdateInfoStatus2) String() string {
+	if v, ok := UpdateInfoStatus2RevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UpdateDetails struct {
+	Message string `codec:"message" json:"message"`
+}
+
+func (o UpdateDetails) DeepCopy() UpdateDetails {
+	return UpdateDetails{
+		Message: o.Message,
+	}
+}
+
+type UpdateInfo2 struct {
+	Status__    UpdateInfoStatus2 `codec:"status" json:"status"`
+	Suggested__ *UpdateDetails    `codec:"suggested,omitempty" json:"suggested,omitempty"`
+	Critical__  *UpdateDetails    `codec:"critical,omitempty" json:"critical,omitempty"`
+}
+
+func (o *UpdateInfo2) Status() (ret UpdateInfoStatus2, err error) {
+	switch o.Status__ {
+	case UpdateInfoStatus2_SUGGESTED:
+		if o.Suggested__ == nil {
+			err = errors.New("unexpected nil value for Suggested__")
+			return ret, err
+		}
+	case UpdateInfoStatus2_CRITICAL:
+		if o.Critical__ == nil {
+			err = errors.New("unexpected nil value for Critical__")
+			return ret, err
+		}
+	}
+	return o.Status__, nil
+}
+
+func (o UpdateInfo2) Suggested() (res UpdateDetails) {
+	if o.Status__ != UpdateInfoStatus2_SUGGESTED {
+		panic("wrong case accessed")
+	}
+	if o.Suggested__ == nil {
+		return
+	}
+	return *o.Suggested__
+}
+
+func (o UpdateInfo2) Critical() (res UpdateDetails) {
+	if o.Status__ != UpdateInfoStatus2_CRITICAL {
+		panic("wrong case accessed")
+	}
+	if o.Critical__ == nil {
+		return
+	}
+	return *o.Critical__
+}
+
+func NewUpdateInfo2WithOk() UpdateInfo2 {
+	return UpdateInfo2{
+		Status__: UpdateInfoStatus2_OK,
+	}
+}
+
+func NewUpdateInfo2WithSuggested(v UpdateDetails) UpdateInfo2 {
+	return UpdateInfo2{
+		Status__:    UpdateInfoStatus2_SUGGESTED,
+		Suggested__: &v,
+	}
+}
+
+func NewUpdateInfo2WithCritical(v UpdateDetails) UpdateInfo2 {
+	return UpdateInfo2{
+		Status__:   UpdateInfoStatus2_CRITICAL,
+		Critical__: &v,
+	}
+}
+
+func (o UpdateInfo2) DeepCopy() UpdateInfo2 {
+	return UpdateInfo2{
+		Status__: o.Status__.DeepCopy(),
+		Suggested__: (func(x *UpdateDetails) *UpdateDetails {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Suggested__),
+		Critical__: (func(x *UpdateDetails) *UpdateDetails {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Critical__),
+	}
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -593,6 +715,11 @@ type SetRememberPassphraseArg struct {
 	Remember  bool `codec:"remember" json:"remember"`
 }
 
+type GetUpdateInfo2Arg struct {
+	Platform *string `codec:"platform,omitempty" json:"platform,omitempty"`
+	Version  *string `codec:"version,omitempty" json:"version,omitempty"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -617,6 +744,9 @@ type ConfigInterface interface {
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
+	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
+	// you are critically out of date.
+	GetUpdateInfo2(context.Context, GetUpdateInfo2Arg) (UpdateInfo2, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -878,6 +1008,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getUpdateInfo2": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUpdateInfo2Arg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUpdateInfo2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUpdateInfo2Arg)(nil), args)
+						return
+					}
+					ret, err = i.GetUpdateInfo2(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -988,5 +1133,12 @@ func (c ConfigClient) GetRememberPassphrase(ctx context.Context, sessionID int) 
 
 func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememberPassphraseArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.setRememberPassphrase", []interface{}{__arg}, nil)
+	return
+}
+
+// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
+// you are critically out of date.
+func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res)
 	return
 }
