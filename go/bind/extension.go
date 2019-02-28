@@ -1,5 +1,3 @@
-// +build !darwin
-
 package keybase
 
 import (
