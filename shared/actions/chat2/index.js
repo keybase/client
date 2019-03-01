@@ -2258,28 +2258,15 @@ function* createConversation2(state, action) {
 }
 
 const createConversation = (state, action, afterActionCreator) => {
-  if (action.type === Chat2Gen.createConversation) {
-    return
-  }
-
   let participants
 
-  switch (action.type) {
-    case Chat2Gen.createConversation:
-      participants = action.payload.participants
-      break
-    case Chat2Gen.messageReplyPrivately:
-      {
-        const {sourceConversationIDKey, ordinal} = action.payload
-        const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
-        if (!message) {
-          logger.warn("Can't find message to reply to", ordinal)
-          return
-        }
-        participants = [message.author]
-      }
-      break
+  const {sourceConversationIDKey, ordinal} = action.payload
+  const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
+    return
   }
+  participants = [message.author]
 
   if (!participants) {
     return
@@ -2941,8 +2928,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.createConversation,
     createConversation2
   )
-  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload | Chat2Gen.MessageReplyPrivatelyPayload>(
-    [Chat2Gen.messageReplyPrivately, Chat2Gen.createConversation],
+  yield* Saga.chainAction<Chat2Gen.MessageReplyPrivatelyPayload>(
+    Chat2Gen.messageReplyPrivately,
     createConversation
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
