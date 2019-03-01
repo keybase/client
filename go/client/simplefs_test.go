@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 package client
@@ -210,6 +210,11 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 // SimpleFSReset implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
 	return nil
+}
+
+func (s SimpleFSMock) SimpleFSListFavorites(_ context.Context) (
+	keybase1.FavoritesResult, error) {
+	return keybase1.FavoritesResult{}, nil
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
