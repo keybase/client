@@ -186,7 +186,7 @@ type NumberType = {|
 |}
 const CoinFlipResultNumber = (props: NumberType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <Kb.Text selectable={true} type="Header">
+    <Kb.Text selectable={true} type="Header" style={styles.break}>
       {props.number}
     </Kb.Text>
   </Kb.Box2>
@@ -201,7 +201,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
       props.shuffle.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
-        <Kb.Text selectable={true} type="BodySmallSemibold" style={styles.listFull}>
+        <Kb.Text selectable={true} type="BodySmallSemibold" style={Styles.collapseStyles([styles.listFull, styles.break])}>
           Full shuffle:{' '}
           <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
             {props.shuffle && props.shuffle.join(', ')}
@@ -239,6 +239,11 @@ const paragraphOverrides = {
 }
 
 const styles = Styles.styleSheetCreate({
+  break: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
   card: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
@@ -249,11 +254,6 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 0,
       height: 44,
       marginRight: -4,
-      width: 28,
-    },
-    isMobile: {
-      height: 44,
-      marginRight: -2,
       width: 28,
     },
   }),
@@ -293,13 +293,14 @@ const styles = Styles.styleSheetCreate({
   },
   listOrder: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.black_10,
+      backgroundColor: Styles.globalColors.grey,
       borderRadius: 2,
       color: Styles.globalColors.black,
       height: 14,
       width: 14,
     },
     isMobile: {
+      height: 16,
       position: 'relative',
       top: -1,
     },

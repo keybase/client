@@ -76,7 +76,7 @@ class CoinFlip extends React.Component<Props, State> {
       )
     } else {
       return (
-        <>
+        <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Text selectable={true} type="BodySmallSemibold">
               Collecting commitments: {this.props.participants.length}
@@ -95,7 +95,7 @@ class CoinFlip extends React.Component<Props, State> {
               )}
             </Kb.Box2>
           )}
-        </>
+        </Kb.Box2>
       )
     }
   }
