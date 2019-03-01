@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {smartPluralize} from '../../../../util/string'
+import {pluralize} from '../../../../util/string'
 
 type Props = {|
   error: ?string,
@@ -113,7 +113,7 @@ class AddToChannel extends React.Component<Props, State> {
                 type="Primary"
                 label={
                   this.state.selected.size
-                    ? `Add ${this.state.selected.size} ${smartPluralize('user', this.state.selected.size)}`
+                    ? `Add ${this.state.selected.size} ${pluralize('user', this.state.selected.size)}`
                     : 'Add'
                 }
                 onClick={() => this.props.onSubmit(this.state.selected.toArray())}

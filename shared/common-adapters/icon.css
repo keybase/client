@@ -125,4 +125,16 @@
 .icon-gen-iconfont-contact-card::before {content: "\e96d";}
 .icon-gen-iconfont-contact-card-2::before {content: "\e96e";}
 .icon-gen-iconfont-identity-stellar::before {content: "\e96f";}
+.icon-gen-iconfont-identity-mastodon::before {content: "\e970";}
+.icon-gen-iconfont-coin::before {content: "\e971";}
+.icon-gen-iconfont-coin-stack::before {content: "\e972";}
+.icon-gen-iconfont-cloud::before {content: "\e973";}
+.icon-gen-iconfont-circle::before {content: "\e974";}
+.icon-gen-iconfont-file::before {content: "\e975";}
+.icon-gen-iconfont-club::before {content: "\e976";}
+.icon-gen-iconfont-diamond::before {content: "\e977";}
+.icon-gen-iconfont-heart::before {content: "\e978";}
+.icon-gen-iconfont-spade::before {content: "\e979";}
+.icon-gen-iconfont-heads::before {content: "\e97a";}
+.icon-gen-iconfont-tails::before {content: "\e97b";}
 
