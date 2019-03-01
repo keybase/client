@@ -147,12 +147,7 @@ type CoinType = {|
 const CoinFlipResultCoin = (props: CoinType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
-      <Kb.Icon
-        color={Styles.globalColors.white}
-        fontSize={props.coin ? 28 : 22}
-        style={styles.coinIcon}
-        type={props.coin ? 'iconfont-heads' : 'iconfont-tails'}
-      />
+      <Kb.Icon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text selectable={true} type="Header">
@@ -284,14 +279,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   coin: {
-    backgroundColor: Styles.globalColors.black,
-    borderRadius: 48,
     height: 48,
     width: 48,
-  },
-  coinIcon: {
-    position: 'relative',
-    top: 2,
   },
   handTarget: Styles.platformStyles({
     isElectron: {

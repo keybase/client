@@ -86,6 +86,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
   },
+  'icon-coin-heads-48-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-coin-heads-48-48.png'),
+  },
+  'icon-coin-tails-48-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-coin-tails-48-48.png'),
+  },
   'icon-computer-32': {
     extension: 'png',
     isFont: false,
