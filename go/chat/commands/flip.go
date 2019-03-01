@@ -66,7 +66,7 @@ const flipDesktopUsage = `Variations: %s
 /flip vegan, keto, soylent   # shuffle some options
 /flip cards                  # deal 52 cards
 /flip cards 5 Ana, Sam, Kat  # deal 5 cards to 3 friends%s
-How it all works: https://keybase.io/coin-flips
+How it all works: https://keybase.io/coin-flip
 Current flip: %s`
 
 const flipMobileUsage = `Variations: %s
