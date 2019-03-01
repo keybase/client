@@ -105,7 +105,6 @@ const Card = (props: CardType) => (
   <Kb.Box2
     direction="vertical"
     centerChildren={true}
-    // gap={Styles.isMobile ? undefined : 'xtiny'}
     style={Styles.collapseStyles([styles.card, !props.hand && styles.cardStacked])}
   >
     <Kb.Box2 direction="horizontal">
@@ -225,24 +224,19 @@ const CoinFlipResultShuffleItem = props => (
         {props.index + 1}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Markdown
-      allowFontScaling={true}
-      styleOverride={
-        props.index === 0
-          ? {
-              paragraph: {
-                // These are Header's styles.
-                fontSize: Styles.isMobile ? 20 : 18,
-                fontWeight: '700',
-              },
-            }
-          : undefined
-      }
-    >
+    <Kb.Markdown allowFontScaling={true} styleOverride={props.index === 0 ? paragraphOverrides : undefined}>
       {props.item}
     </Kb.Markdown>
   </Kb.Box2>
 )
+
+const paragraphOverrides = {
+  paragraph: {
+    // These are Header's styles.
+    fontSize: Styles.isMobile ? 20 : 18,
+    fontWeight: '700',
+  },
+}
 
 const styles = Styles.styleSheetCreate({
   card: Styles.platformStyles({

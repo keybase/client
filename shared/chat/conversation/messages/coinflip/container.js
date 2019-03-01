@@ -6,12 +6,6 @@ import {namedConnect} from '../../../../util/container'
 
 type OwnProps = {|flipGameID: string|}
 
-const participantStatuses = [
-  RPCChatTypes.chatUiUICoinFlipPhase.commitment,
-  RPCChatTypes.chatUiUICoinFlipPhase.reveals,
-  RPCChatTypes.chatUiUICoinFlipPhase.complete,
-]
-
 const noParticipants = []
 
 const mapStateToProps = (state, {flipGameID}: OwnProps) => {
@@ -35,7 +29,7 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
         resultInfo: status.resultInfo,
         resultText: status.resultText,
         revealVis: status.revealVisualization,
-        showParticipants: participantStatuses.indexOf(status.phase) === 2,
+        showParticipants: Constants.flipPhaseToString(status.phase) === 'complete',
       }
 }
 

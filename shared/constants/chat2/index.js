@@ -246,7 +246,7 @@ export const threadRoute = isMobile
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
-export const flipPhaseToString = (phase: number): string => {
+export const flipPhaseToString = (phase: number) => {
   switch (phase) {
     case RPCChatTypes.chatUiUICoinFlipPhase.commitment:
       return 'commitments'
