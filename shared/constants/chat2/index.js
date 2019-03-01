@@ -246,6 +246,19 @@ export const threadRoute = isMobile
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
+export const flipPhaseToString = (phase: number) => {
+  switch (phase) {
+    case RPCChatTypes.chatUiUICoinFlipPhase.commitment:
+      return 'commitments'
+    case RPCChatTypes.chatUiUICoinFlipPhase.reveals:
+      return 'secrets'
+    case RPCChatTypes.chatUiUICoinFlipPhase.complete:
+      return 'complete'
+    default:
+      return 'loading'
+  }
+}
+
 export {
   getChannelForTeam,
   getChannelSuggestions,
