@@ -11,6 +11,7 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
+import KbfsDaemonNotRunning from '../fs/common/kbfs-daemon-not-running'
 import type {DaemonHandshakeState} from '../constants/types/config'
 
 export type Props = {
@@ -315,7 +316,13 @@ class MenubarRender extends React.Component<Props, State> {
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
-          <FilesPreview />
+          {this.props.kbfsDaemonConnected ? (
+            <FilesPreview />
+          ) : (
+            <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
+              <KbfsDaemonNotRunning />
+            </Kb.Box2>
+          )}
         </Kb.ScrollView>
         <Kb.Box style={styles.footer}>
           <UploadWithCountdown
