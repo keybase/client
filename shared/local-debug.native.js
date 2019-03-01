@@ -98,9 +98,6 @@ if (nativeBridge.serverConfig) {
     const serverConfig = JSON.parse(nativeBridge.serverConfig)
     if (serverConfig.lastLoggedInUser) {
       const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
-      if (userConfig.walletsEnabled) {
-        config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',walletsEnabled'
-      }
       if (userConfig.printRPCStats) {
         config.printRPCStats = true
       }

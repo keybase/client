@@ -19,7 +19,6 @@ const ff: FeatureFlags = {
   outOfDateBanner: true,
   plansEnabled: false,
   useNewRouter: false,
-  walletsEnabled: true,
 }
 
 console.warn('feature flag mock in effect')

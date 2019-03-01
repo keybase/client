@@ -249,8 +249,8 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
-    WalletsGen.createWalletDisclaimerReceived({accepted})
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(accepted =>
+    WalletsGen.createWalletDisclaimerReceived({accepted}),
   )
 
 const loadAccounts = (state, action) => {
@@ -1014,11 +1014,6 @@ const gregorPushState = (_, action) =>
   })
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  if (!flags.walletsEnabled) {
-    console.log('Wallets saga disabled')
-    return
-  }
-
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(WalletsGen.createNewAccount, createNewAccount)
   yield* Saga.chainAction<
     | WalletsGen.LoadAccountsPayload

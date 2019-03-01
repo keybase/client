@@ -5,7 +5,6 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from '../../follow-button'
-import flags from '../../../util/feature-flags'
 
 type Props = {|
   followThem: boolean,
@@ -127,8 +126,8 @@ const Actions = (p: Props) => {
 const DropdownButton = Kb.OverlayParentHOC(p => {
   const items = [
     {onClick: p.onAddToTeam, title: 'Add to team...'},
-    flags.walletsEnabled ? {newTag: true, onClick: p.onSendLumens, title: 'Send Lumens (XLM)'} : null,
-    flags.walletsEnabled ? {newTag: true, onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'} : null,
+    {newTag: true, onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    {newTag: true, onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
     !Styles.isMobile ? {onClick: p.onOpenPrivateFolder, title: 'Open private folder'} : null,
     !Styles.isMobile ? {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'} : null,
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, style: {borderTopWidth: 0}, title: 'Unfollow'},

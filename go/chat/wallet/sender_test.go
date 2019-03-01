@@ -53,6 +53,10 @@ func (m *mockStellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.
 	return m.miniFn(payments)
 }
 
+func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
+	return false, false
+}
+
 type mockUpakLoader struct {
 	libkb.UPAKLoader
 	usernameFn func(gregor1.UID) string
