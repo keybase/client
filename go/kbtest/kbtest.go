@@ -441,5 +441,6 @@ func SkipTestOnNonMasterCI(t *testing.T, reason string) {
 
 // CORE-10146
 func SkipIconRemoteTest() bool {
-	return RunningInCI()
+	//return RunningInCI()
+	return false
 }
