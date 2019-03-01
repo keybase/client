@@ -322,6 +322,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('pathItemActionMenu', pathItemActionMenu =>
         pathItemActionMenu.set('downloadKey', action.payload.key)
       )
+    case FsGen.kbfsDaemonConnected:
+      return state.set('kbfsDaemonConnected', true)
+    case FsGen.kbfsDaemonDisconnected:
+      return state.set('kbfsDaemonConnected', false)
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:

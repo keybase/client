@@ -348,6 +348,26 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
   ...(path ? [FsGen.createOpenPathInFilesTab({path})] : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
 ]
 
+let pingKbfsDaemonLoopRunning = false
+function* pingKbfsDaemonLoop() {
+  if (pingKbfsDaemonLoopRunning) {
+    return
+  }
+  while (true) {
+    pingKbfsDaemonLoopRunning = true
+    const state = yield* Saga.selectState()
+    yield Saga.delay(state.fs.kbfsDaemonConnected ? 10 * 1e3 : 1e3)
+    let connected = yield* Saga.callPromise(() =>
+      RPCTypes.SimpleFSSimpleFSPingRpcPromise()
+        .then(() => true)
+        .catch(() => false)
+    )
+    if (state.fs.kbfsDaemonConnected !== connected) {
+      yield Saga.put(connected ? FsGen.createKbfsDaemonConnected() : FsGen.createKbfsDaemonDisconnected())
+    }
+  }
+}
+
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.OpenLocalPathInSystemFileManagerPayload>(
     FsGen.openLocalPathInSystemFileManager,
@@ -357,8 +377,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload | FsGen.FuseStatusPayload>(
-    [ConfigGen.setupEngineListeners, FsGen.fuseStatus],
+  yield* Saga.chainGenerator<FsGen.KbfsDaemonConnectedPayload | FsGen.FuseStatusPayload>(
+    [FsGen.kbfsDaemonConnected, FsGen.fuseStatus],
     fuseStatusSaga
   )
   yield* Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)
@@ -383,6 +403,11 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openSecurityPreferences,
     openSecurityPreferences
   )
+  yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
+    FsGen.openSecurityPreferences,
+    openSecurityPreferences
+  )
+  yield* Saga.chainGenerator<ConfigGen.InstallerRanPayload>(ConfigGen.installerRan, pingKbfsDaemonLoop)
 }
 
 export default platformSpecificSaga

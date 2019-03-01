@@ -17,6 +17,7 @@ export type Props = {
   daemonHandshakeState: DaemonHandshakeState,
   logIn: () => void,
   loggedIn: boolean,
+  kbfsDaemonConnected: boolean,
   kbfsEnabled: boolean,
   updateNow: () => void,
   onRekey: (path: string) => void,
@@ -24,7 +25,7 @@ export type Props = {
   outOfDate?: ConfigTypes.OutOfDate,
   showInFinder: () => void,
   quit: () => void,
-  refresh: () => void,
+  refreshUserFileEdits: () => void,
   showBug: () => void,
   showHelp: () => void,
   showUser: (username: ?string) => void,
@@ -43,19 +44,20 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  _refreshIfLoggedIn = () => this.props.loggedIn && this.props.refresh()
+  _refreshUserFileEditsIfPossible = () =>
+    this.props.loggedIn && this.props.kbfsDaemonConnected && this.props.refreshUserFileEdits()
 
   componentDidMount() {
-    this._refreshIfLoggedIn()
+    this._refreshUserFileEditsIfPossible()
     SafeElectron.getRemote()
       .getCurrentWindow()
-      .on('show', this._refreshIfLoggedIn)
+      .on('show', this._refreshUserFileEditsIfPossible)
   }
 
   componentWillUnmount() {
     SafeElectron.getRemote()
       .getCurrentWindow()
-      .removeListener('show', this._refreshIfLoggedIn)
+      .removeListener('show', this._refreshUserFileEditsIfPossible)
   }
 
   render() {

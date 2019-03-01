@@ -199,6 +199,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   errors: I.Map(),
   flags: makeFlags(),
   fuseStatus: null,
+  kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
   localHTTPServerInfo: null,
   moveOrCopy: makeMoveOrCopy(),
