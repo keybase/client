@@ -22,7 +22,6 @@ import {
   gitTab,
   walletsTab,
 } from '../constants/tabs'
-import flags from '../util/feature-flags'
 import {appRouteTreeTitle} from './route-constants'
 
 const appRouteTree = makeRouteDefNode({
@@ -33,7 +32,7 @@ const appRouteTree = makeRouteDefNode({
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
     [teamsTab]: teamsRoutes,
-    ...(flags.walletsEnabled && !isMobile ? {[walletsTab]: walletsRoutes} : {}),
+    ...(isMobile ? {} : {[walletsTab]: walletsRoutes}),
     ...(isMobile
       ? {}
       : {
