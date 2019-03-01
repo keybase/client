@@ -46,52 +46,56 @@ class CoinFlip extends React.Component<Props, State> {
     return `${revealed} / ${total}`
   }
   _renderStatusText = () => {
-    const participants = (
-      <Kb.Text
-        selectable={true}
-        type="BodySmallPrimaryLink"
-        style={styles.participantsLabel}
-        onClick={this._showPopup}
-      >
-        {`${this.props.participants.length} ${pluralize('participant', this.props.participants.length)}`}
-      </Kb.Text>
-    )
-    return this.props.showParticipants ? (
-      <Kb.Box2
-        direction="vertical"
-        onMouseOver={this._showPopup}
-        onMouseLeave={this._hidePopup}
-        ref={this._partRef}
-      >
-        <Kb.Text selectable={true} type="BodySmall">
-          Secured by {Styles.isMobile && participants}
+    if (this.props.showParticipants) {
+      const participants = (
+        <Kb.Text
+          selectable={true}
+          type="BodySmallPrimaryLink"
+          style={styles.participantsLabel}
+          onClick={this._showPopup}
+        >
+          {`${this.props.participants.length} ${pluralize('participant', this.props.participants.length)}`}
         </Kb.Text>
-        {!Styles.isMobile && participants}
-        <CoinFlipParticipants
-          attachTo={this._getAttachmentRef}
-          onHidden={this._hidePopup}
-          participants={this.props.participants}
-          visible={this.state.showPopup}
-        />
-      </Kb.Box2>
-    ) : (
-      <>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-          <Kb.Text selectable={true} type="BodySmallSemibold">
-            Collecting commitments: {this.props.participants.length}
+      )
+      return (
+        <Kb.Box2
+          direction="vertical"
+          onMouseOver={this._showPopup}
+          onMouseLeave={this._hidePopup}
+          ref={this._partRef}
+        >
+          <Kb.Text selectable={true} type="BodySmall">
+            Secured by {Styles.isMobile && participants}
           </Kb.Text>
-          {this.props.hasCommitments && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
+          {!Styles.isMobile && participants}
+          <CoinFlipParticipants
+            attachTo={this._getAttachmentRef}
+            onHidden={this._hidePopup}
+            participants={this.props.participants}
+            visible={this.state.showPopup}
+          />
         </Kb.Box2>
-        {this.props.hasCommitments && (
+      )
+    } else {
+      return (
+        <>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Text selectable={true} type="BodySmallSemibold">
-              Collecting secrets: {this._revealSummary()}
+              Collecting commitments: {this.props.participants.length}
             </Kb.Text>
-            {this.props.hasSecrets && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
+            {this.props.hasCommitments && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
           </Kb.Box2>
-        )}
-      </>
-    )
+          {this.props.hasCommitments && (
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+              <Kb.Text selectable={true} type="BodySmallSemibold">
+                Collecting secrets: {this._revealSummary()}
+              </Kb.Text>
+              {this.props.hasSecrets && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
+            </Kb.Box2>
+          )}
+        </>
+      )
+    }
   }
   render() {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`

@@ -105,13 +105,13 @@ const Card = (props: CardType) => (
   <Kb.Box2
     direction="vertical"
     centerChildren={true}
-    gap={Styles.isMobile ? undefined : 'xtiny'}
+    // gap={Styles.isMobile ? undefined : 'xtiny'}
     style={Styles.collapseStyles([styles.card, !props.hand && styles.cardStacked])}
   >
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
-        type={Styles.isMobile ? 'BodyBig' : 'Header'}
+        type={Styles.isMobile ? 'Body' : 'BodyBig'}
         style={{color: suits[cards[props.card].suit].color}}
       >
         {cards[props.card].value}
@@ -119,7 +119,7 @@ const Card = (props: CardType) => (
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
-        fontSize={16}
+        fontSize={12}
         type={suits[cards[props.card].suit].icon}
         color={suits[cards[props.card].suit].color}
       />
@@ -204,41 +204,7 @@ type ShuffleType = {|
 const CoinFlipResultShuffle = (props: ShuffleType) => (
   <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny">
     {props.shuffle &&
-      props.shuffle.slice(0, 5).map((item, i) => (
-        <Kb.Box2 key={i} direction="horizontal" alignSelf="flex-start" centerChildren={true}>
-          <Kb.Box2
-            direction="vertical"
-            centerChildren={true}
-            alignItems="center"
-            style={styles.listOrderContainer}
-          >
-            <Kb.Text
-              selectable={true}
-              center={true}
-              type={i === 0 ? 'BodyBig' : 'BodyTiny'}
-              style={Styles.collapseStyles([styles.listOrder, i === 0 && styles.listOrderFirst])}
-            >
-              {i + 1}
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Markdown
-            allowFontScaling={true}
-            styleOverride={
-              i === 0
-                ? {
-                    paragraph: {
-                      // These are Header's styles.
-                      fontSize: Styles.isMobile ? 20 : 18,
-                      fontWeight: '700',
-                    },
-                  }
-                : undefined
-            }
-          >
-            {item}
-          </Kb.Markdown>
-        </Kb.Box2>
-      ))}
+      props.shuffle.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
         <Kb.Text selectable={true} type="BodySmallSemibold" style={styles.listFull}>
@@ -252,6 +218,37 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
   </Kb.Box2>
 )
 
+const CoinFlipResultShuffleItem = props => (
+  <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
+    <Kb.Box2 direction="vertical" centerChildren={true} alignItems="center" style={styles.listOrderContainer}>
+      <Kb.Text
+        selectable={true}
+        center={true}
+        type={props.index === 0 ? 'BodyBig' : 'BodyTiny'}
+        style={Styles.collapseStyles([styles.listOrder, props.index === 0 && styles.listOrderFirst])}
+      >
+        {props.index + 1}
+      </Kb.Text>
+    </Kb.Box2>
+    <Kb.Markdown
+      allowFontScaling={true}
+      styleOverride={
+        props.index === 0
+          ? {
+              paragraph: {
+                // These are Header's styles.
+                fontSize: Styles.isMobile ? 20 : 18,
+                fontWeight: '700',
+              },
+            }
+          : undefined
+      }
+    >
+      {props.item}
+    </Kb.Markdown>
+  </Kb.Box2>
+)
+
 const styles = Styles.styleSheetCreate({
   card: Styles.platformStyles({
     common: {
@@ -261,14 +258,14 @@ const styles = Styles.styleSheetCreate({
       borderStyle: 'solid',
       borderWidth: 1,
       flexShrink: 0,
-      height: 56,
-      marginRight: -8,
-      width: 40,
+      height: 44,
+      marginRight: -4,
+      width: 28,
     },
     isMobile: {
-      height: 48,
-      marginRight: -4,
-      width: 32,
+      height: 44,
+      marginRight: -2,
+      width: 28,
     },
   }),
   cardStacked: {

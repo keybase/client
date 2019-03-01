@@ -2,7 +2,7 @@
 
 // Add pluralization rules as necessary
 function pluralize(str: string, count?: number): string {
-  return count && count === 1 ? str : str.endsWith('s') ? str : `${str}s`
+  return count === 1 ? str : str.endsWith('s') ? str : `${str}s`
 }
 
 function toStringForLog(a: any): string {
