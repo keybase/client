@@ -43,7 +43,9 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 		return err
 	}
 
-	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp, tb)
+	baseFee := walletState.BaseFee(mctx)
+
+	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp, tb, baseFee)
 	if err != nil {
 		return err
 	}
