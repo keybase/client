@@ -62,7 +62,7 @@ const downloadSuccess = (state, action) => {
 
 function* pingKbfsDaemonUntilConnected() {
   while (true) {
-    yield Saga.delay(1e3)
+    yield Saga.delay(1000)
     let connected = yield* Saga.callPromise(() =>
       RPCTypes.SimpleFSSimpleFSPingRpcPromise()
         .then(() => true)

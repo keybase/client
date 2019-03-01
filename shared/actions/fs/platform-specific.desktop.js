@@ -189,7 +189,7 @@ function* installFuseSaga() {
   if (kextPermissionError) {
     // Add a small delay here, since on 10.13 the OS will be a little laggy
     // when showing a kext permission error.
-    yield Saga.delay(1e3)
+    yield Saga.delay(1000)
   }
 
   yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
@@ -334,7 +334,7 @@ function* pingKbfsDaemonLoop() {
   while (true) {
     pingKbfsDaemonLoopRunning = true
     const state = yield* Saga.selectState()
-    yield Saga.delay(state.fs.kbfsDaemonConnected ? 10 * 1e3 : 1e3)
+    yield Saga.delay(state.fs.kbfsDaemonConnected ? 10 * 1000 : 1000)
     let connected = yield* Saga.callPromise(() =>
       RPCTypes.SimpleFSSimpleFSPingRpcPromise()
         .then(() => true)
