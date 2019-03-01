@@ -192,7 +192,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	change.Misc = row.Misc
 	m := libkb.NewMetaContext(ctx, g)
 
-	defer m.CTrace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
 	HintLatestSeqno(m, row.Id, row.LatestSeqno)
 
@@ -200,7 +200,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	// the KBFS favorites cache
 	if change.Renamed {
 		if err = PurgeResolverTeamID(ctx, g, row.Id); err != nil {
-			m.CWarningf("error in PurgeResolverTeamID: %v", err)
+			m.Warning("error in PurgeResolverTeamID: %v", err)
 			err = nil // non-fatal
 		}
 		refreshKBFSFavoritesCache(g)

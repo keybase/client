@@ -736,6 +736,13 @@
             null,
             "TopicNameState"
           ]
+        },
+        {
+          "name": "joinMentionsAs",
+          "type": [
+            null,
+            "ConversationMemberStatus"
+          ]
         }
       ],
       "response": "PostRemoteRes"

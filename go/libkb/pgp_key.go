@@ -715,7 +715,7 @@ func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 
 func (k *PGPKeyBundle) Unlock(m MetaContext, reason string, secretUI SecretUI) error {
 	if !k.isAnyKeyEncrypted() {
-		m.CDebugf("Key is not encrypted, skipping Unlock.")
+		m.Debug("Key is not encrypted, skipping Unlock.")
 		return nil
 	}
 

@@ -95,12 +95,12 @@ func GetDeviceCloneState(m MetaContext) (state DeviceCloneState, err error) {
 		c = 1
 	}
 	state = DeviceCloneState{Prior: p, Stage: s, Clones: c}
-	m.CDebugf("GetDeviceCloneState: %+v", state)
+	m.Debug("GetDeviceCloneState: %+v", state)
 	return state, nil
 }
 
 func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
-	m.CDebugf("SetDeviceCloneState: %+v", d)
+	m.Debug("SetDeviceCloneState: %+v", d)
 	writer, err := newDeviceCloneStateWriter(m)
 	if err != nil {
 		return err

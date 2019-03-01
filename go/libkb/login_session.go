@@ -198,7 +198,7 @@ func (s *LoginSession) Load(m MetaContext) error {
 }
 
 func LookupSaltForUID(m MetaContext, uid keybase1.UID) (salt []byte, err error) {
-	defer m.CTrace(fmt.Sprintf("GetSaltForUID(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("GetSaltForUID(%s)", uid), func() error { return err })()
 	res, err := m.G().API.Get(APIArg{
 		Endpoint:    "getsalt",
 		SessionType: APISessionTypeNONE,

@@ -10,6 +10,7 @@ import {loginTab, type Tab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import * as FsConstants from '../constants/fs'
 import {urlHelper} from '../util/url-helper'
 import {isWindows, isDarwin} from '../constants/platform'
 
@@ -59,7 +60,7 @@ const mapDispatchToProps = dispatch => ({
     link && openUrl(link)
     closeWindow()
   },
-  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
+  showInFinder: () => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath})),
   updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
 })
 

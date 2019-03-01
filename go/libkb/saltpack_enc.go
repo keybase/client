@@ -81,7 +81,7 @@ func SaltpackEncrypt(m MetaContext, arg *SaltpackEncryptArg) error {
 		return err
 	}
 
-	m.CDebugf("Encrypt: wrote %d bytes", n)
+	m.Debug("Encrypt: wrote %d bytes", n)
 
 	if err := plainsink.Close(); err != nil {
 		return err

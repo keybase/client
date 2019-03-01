@@ -569,7 +569,7 @@ type ChangeMembershipOptions struct {
 }
 
 func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.TeamChangeReq, opts ChangeMembershipOptions) (err error) {
-	defer t.G().CTrace(ctx, "Team.ChangeMembershipPermanent", func() error { return err })()
+	defer t.G().CTrace(ctx, "Team.ChangeMembershipWithOptions", func() error { return err })()
 
 	if t.IsSubteam() && len(req.Owners) > 0 {
 		return NewSubteamOwnersError()
@@ -1852,11 +1852,11 @@ func (t *Team) boxKBFSCryptKeys(ctx context.Context, key keybase1.TeamApplicatio
 func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 	cryptKeys []keybase1.CryptKey, appType keybase1.TeamApplication) (err error) {
 	m := t.MetaContext(ctx)
-	defer m.CTrace("Team.AssociateWithTLFKeyset", func() error { return err })()
+	defer m.Trace("Team.AssociateWithTLFKeyset", func() error { return err })()
 
 	// If we get no crypt keys, just associate TLF ID and bail
 	if len(cryptKeys) == 0 {
-		m.CDebugf("AssociateWithTLFKeyset: no crypt keys given, aborting")
+		m.Debug("AssociateWithTLFKeyset: no crypt keys given, aborting")
 		return nil
 	}
 
@@ -1922,7 +1922,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 
 func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
 	m := t.MetaContext(ctx)
-	defer m.CTrace("Team.AssociateWithTLFID", func() error { return err })()
+	defer m.Trace("Team.AssociateWithTLFID", func() error { return err })()
 
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
@@ -1984,11 +1984,11 @@ func (t *Team) HintLatestSeqno(m libkb.MetaContext, n keybase1.Seqno) error {
 func HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, n keybase1.Seqno) error {
 	err := m.G().GetTeamLoader().HintLatestSeqno(m.Ctx(), id, n)
 	if err != nil {
-		m.CWarningf("error in TeamLoader#HintLatestSeqno: %v", err)
+		m.Warning("error in TeamLoader#HintLatestSeqno: %v", err)
 	}
 	e2 := m.G().GetFastTeamLoader().HintLatestSeqno(m, id, n)
 	if e2 != nil {
-		m.CWarningf("error in FastTeamLoader#HintLatestSeqno: %v", err)
+		m.Warning("error in FastTeamLoader#HintLatestSeqno: %v", err)
 	}
 	if err != nil {
 		return err

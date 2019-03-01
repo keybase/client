@@ -36,7 +36,7 @@ type FilesPreviewProps = {|
 |}
 
 export const FileUpdate = (props: FileUpdateProps) => (
-  <Kb.ClickableBox onClick={props.onClick}>
+  <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
       <Kb.Icon
         type={props.tlfType === 'public' ? 'icon-file-public-32' : 'icon-file-private-32'}
@@ -191,6 +191,10 @@ const styles = Styles.styleSheetCreate({
   fileUpdateRow: {
     alignItems: 'center',
     marginTop: Styles.globalMargins.xtiny,
+  },
+  fullWidth: {
+    // needed to avoid icon being pinched
+    width: '100%',
   },
   iconBadge: {
     height: 12,

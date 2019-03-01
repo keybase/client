@@ -202,7 +202,7 @@ func (s *SecretStoreFile) ClearSecret(m MetaContext, username NormalizedUsername
 	// try both
 
 	if username.IsNil() {
-		m.CDebugf("NOOPing SecretStoreFile#ClearSecret for empty username")
+		m.Debug("NOOPing SecretStoreFile#ClearSecret for empty username")
 		return nil
 	}
 

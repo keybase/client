@@ -10,21 +10,24 @@ import (
 
 var txPattern = regexp.MustCompile(
 	// Start at the beginng of the line, space, or some hand picked artisanal characters
-	`(?:^|[\s([{:;.,])` +
+	`(?:^|[\s([{:;.,!?"'])` +
 		// Have a + in front
-		`(\+` +
+		`\+` +
 		// Stellar decimal amount
 		`(\d+\.?\d*|\d*\.?\d+)` +
 		// Currency code
 		`([A-Za-z]{2,6})` +
 		// At sign and username, optional for direct messages
-		// If not used, must be followed by a non-tx-character or end of string
-		`(?:(?:@((?:[a-zA-Z0-9]+_?)+))|(?:[^A-Za-z@]|\z)))`,
+		`(?:@((?:[a-zA-Z0-9]+_?)+))?` +
+		// Sentinel group for advancing the scan
+		`()` +
+		// Must be followed by a nice character or the end of the string.
+		`(?:[\s)\]}:;.,!?"']|\z)`,
 )
 
 var maxAmountLength = 100
 var maxUsernameLength = 16
-var maxTxsPerMessage = -1
+var maxTxsPerMessage = 3000
 
 type ChatTxCandidate struct {
 	Amount       string
@@ -39,46 +42,61 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// false positives from concatenations.
 	replaced := utils.ReplaceQuotedSubstrings(xs, false)
 
-	allRawIndices := txPattern.FindAllStringSubmatchIndex(replaced, maxTxsPerMessage)
-	matches := make([]ChatTxCandidate, 0, len(allRawIndices))
-	for _, rawIndices := range allRawIndices {
+	buf := replaced // buf is a suffix of replaced
+	bufOffset := 0  // buf[0] is replaced[bufOffset]
+
+	// Munch matches off the front of buf.
+	// Can't use FindAllStringSubmatchIndex (emphasis on All) because
+	// adjacent matches of txPattern can overlap.
+	// For example: "+1xlm +2xlm" -> "+1xlm ", " +2xlm"
+	var matches []ChatTxCandidate
+	for i := 0; i < maxTxsPerMessage; i++ {
+		rawIndices := txPattern.FindStringSubmatchIndex(buf)
+		if rawIndices == nil {
+			break
+		}
 		group := func(n int) (s string, startIndex, endIndex int) {
 			startIndex, endIndex = rawIndices[2*n], rawIndices[2*n+1]
 			if startIndex >= 0 {
-				return xs[startIndex:endIndex], startIndex, endIndex
+				return buf[startIndex:endIndex], startIndex, endIndex
 			}
 			return "", startIndex, endIndex
 		}
-		_, plusStart, _ := group(1)
-		amount, _, _ := group(2)
-		if amount == "0" {
-			continue
-		}
-		currencyCode, _, ccEnd := group(3)
-		currencyCode = strings.ToUpper(currencyCode)
-		username, _, usernameEndIndex := group(4)
-		var atSign string
-		endIndex := ccEnd
-		if len(username) > 0 {
-			atSign = "@"
-			endIndex = usernameEndIndex
-		}
-		full := fmt.Sprintf("+%s%s%s%s", amount, currencyCode, atSign, username)
-		if len(amount) <= maxAmountLength && len(username) <= maxUsernameLength {
-			var txUsername *string
-			if username == "" {
-				txUsername = nil
-			} else {
-				txUsername = &username
+		amount, amountStart, _ := group(1)
+		_, _, nextIndex := group(4)
+		if amount != "0" {
+			currencyCode, _, ccEnd := group(2)
+			currencyCode = strings.ToUpper(currencyCode)
+			var atSign string
+			endIndex := ccEnd
+			username, _, usernameEndIndex := group(3)
+			if len(username) > 0 {
+				atSign = "@"
+				endIndex = usernameEndIndex
 			}
-			matches = append(matches, ChatTxCandidate{
-				Full:         full,
-				Amount:       amount,
-				CurrencyCode: currencyCode,
-				Username:     txUsername,
-				Position:     []int{plusStart, endIndex},
-			})
+			full := fmt.Sprintf("+%s%s%s%s", amount, currencyCode, atSign, username)
+			if len(amount) <= maxAmountLength && len(username) <= maxUsernameLength {
+				var txUsername *string
+				if username == "" {
+					txUsername = nil
+				} else {
+					txUsername = &username
+				}
+				matches = append(matches, ChatTxCandidate{
+					Full:         full,
+					Amount:       amount,
+					CurrencyCode: currencyCode,
+					Username:     txUsername,
+					Position:     []int{amountStart - 1 + bufOffset, endIndex + bufOffset},
+				})
+			}
 		}
+		if nextIndex == -1 || nextIndex > len(buf) {
+			// should never happen
+			return nil
+		}
+		buf = buf[nextIndex:]
+		bufOffset += nextIndex
 	}
 	return matches
 }

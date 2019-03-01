@@ -13,13 +13,13 @@ func ClearSecretsOnDeprovision(m MetaContext, username NormalizedUsername) error
 
 	var logger func(string, ...interface{})
 	if m.UIs().LogUI == nil {
-		logger = m.CInfof
+		logger = m.Info
 	} else {
 		logger = m.UIs().LogUI.Info
 	}
 
 	if clearSecretErr := ClearStoredSecret(m, username); clearSecretErr != nil {
-		m.CWarningf("ClearStoredSecret error: %s", clearSecretErr)
+		m.Warning("ClearStoredSecret error: %s", clearSecretErr)
 	}
 
 	// XXX: Delete the user's secret keyring. It's very important that we never

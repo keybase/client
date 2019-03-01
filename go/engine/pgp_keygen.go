@@ -70,7 +70,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 	}
 
 	// tell the UI about the key
-	m.CDebugf("generated pgp key: %s", eng.bundle.GetFingerprint())
+	m.Debug("generated pgp key: %s", eng.bundle.GetFingerprint())
 	pub, err := eng.bundle.Encode()
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	m.CDebugf("push private generated pgp key to API server? %v", pushPrivate)
+	m.Debug("push private generated pgp key to API server? %v", pushPrivate)
 	if err := e.push(m, eng.bundle, pushPrivate); err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 }
 
 func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
-	defer m.CTrace("PGPKeyGen.push", func() error { return err })()
+	defer m.Trace("PGPKeyGen.push", func() error { return err })()
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	if err != nil {

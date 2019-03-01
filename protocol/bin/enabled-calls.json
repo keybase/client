@@ -1,4 +1,5 @@
 {
+  "chat.1.local.bulkAddToConv": {"promise": true},
   "chat.1.local.CancelPost": {"promise": true},
   "chat.1.local.DownloadFileAttachmentLocal": {"engineSaga": true},
   "chat.1.local.RetryPost": {"promise": true},

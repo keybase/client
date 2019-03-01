@@ -129,6 +129,7 @@ export type {
   MessageSystemLeft,
   MessageSystemSimpleToComplex,
   MessageSystemText,
+  MessageSystemUsersAddedToConversation,
   MessageText,
   MessageType,
   Ordinal,

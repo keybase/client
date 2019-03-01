@@ -1,11 +1,23 @@
 // @flow
 
 // Add pluralization rules as necessary
+<<<<<<< HEAD
 function pluralize(str: string, count?: number): string {
   return count === 1 ? str : str.endsWith('s') ? str : `${str}s`
+=======
+export function pluralize(str: string): string {
+  return str.endsWith('s') ? str : `${str}s`
+>>>>>>> master
 }
 
-function toStringForLog(a: any): string {
+export function smartPluralize(str: string, amt: number): string {
+  if (amt === 1) {
+    return str
+  }
+  return pluralize(str)
+}
+
+export function toStringForLog(a: any): string {
   switch (typeof a) {
     case 'undefined':
       return 'undefined'
@@ -35,5 +47,3 @@ function toStringForLog(a: any): string {
       return `Failed to turn item of type ${typeof a} to string in toStringForLog`
   }
 }
-
-export {pluralize, toStringForLog}

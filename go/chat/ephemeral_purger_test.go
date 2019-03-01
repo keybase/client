@@ -75,7 +75,7 @@ func TestBackgroundPurge(t *testing.T) {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "hi",
 			}),
-		}, 0, nil)
+		}, 0, nil, nil)
 		require.NoError(t, err)
 		thread, err := tc.ChatG.ConvSource.Pull(ctx, convID, uid,
 			chat1.GetThreadReason_GENERAL,

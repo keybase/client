@@ -91,11 +91,30 @@ const Actions = (p: Props) => {
       ]
     }
   } else {
-    buttons = [
-      <FollowButton key="follow" following={false} onFollow={p.onFollow} waitingKey={Constants.waitingKey} />,
-      chatButton,
-      dropdown,
-    ]
+    if (p.state === 'error') {
+      buttons = [
+        <Kb.WaitingButton
+          type="Primary"
+          key="Reload"
+          label="Reload"
+          waitingKey={Constants.waitingKey}
+          onClick={p.onReload}
+        />,
+        chatButton,
+        dropdown,
+      ]
+    } else {
+      buttons = [
+        <FollowButton
+          key="follow"
+          following={false}
+          onFollow={p.onFollow}
+          waitingKey={Constants.waitingKey}
+        />,
+        chatButton,
+        dropdown,
+      ]
+    }
   }
 
   return (

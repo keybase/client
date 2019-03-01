@@ -588,25 +588,36 @@ func TestTeamAddAfterReset(t *testing.T) {
 }
 
 func TestTeamReAddAfterReset(t *testing.T) {
-	testTeamReAddAfterReset(t, true, false)
+	testTeamReAddAfterReset(t, true, false, false)
 }
 
 func TestTeamReAddAfterResetPukless(t *testing.T) {
-	testTeamReAddAfterReset(t, false, false)
+	testTeamReAddAfterReset(t, false, false, false)
 }
 
 func TestTeamReAddAfterResetAdminOwner(t *testing.T) {
-	testTeamReAddAfterReset(t, true, true)
+	testTeamReAddAfterReset(t, true, true, false)
 }
 
 func TestTeamReAddAfterResetAdminOwnerPukless(t *testing.T) {
-	testTeamReAddAfterReset(t, false, true)
+	testTeamReAddAfterReset(t, false, true, false)
+}
+
+func TestTeamResetReAddRemoveAdminOwner(t *testing.T) {
+	testTeamReAddAfterReset(t, true, true, true)
+}
+
+func TestTeamResetReAddRemoveAdminOwnerPukless(t *testing.T) {
+	testTeamReAddAfterReset(t, false, true, true)
 }
 
 // Add a member after reset in a normal (non-implicit) team
 // pukful - re-add the user after they get a puk
 // adminOwner - an admin is re-adding an owner.
-func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
+func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset bool) {
+	if removeAfterReset && !adminOwner {
+		require.FailNow(t, "nope")
+	}
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -646,6 +657,15 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
 		Username: bob.username,
 	})
 	require.NoError(t, err)
+
+	if removeAfterReset {
+		err := ann.getTeamsClient().TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
+			Name:     team.name,
+			Username: bob.username,
+		})
+		require.NoError(t, err)
+		return
+	}
 
 	if !pukful {
 		// Bob gets a puk AFTER being re-added.

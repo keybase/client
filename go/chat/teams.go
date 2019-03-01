@@ -43,11 +43,11 @@ func shouldFallbackToSlowLoadAfterFTLError(m libkb.MetaContext, err error) bool 
 	}
 	switch tErr := err.(type) {
 	case libkb.TeamFTLOutdatedError:
-		m.CDebugf("Our FTL implementation is too old; falling back to slow loader (%v)", err)
+		m.Debug("Our FTL implementation is too old; falling back to slow loader (%v)", err)
 		return true
 	case libkb.FeatureFlagError:
 		if tErr.Feature() == libkb.FeatureFTL {
-			m.CDebugf("FTL feature-flagged off on the server, falling back to regular loader")
+			m.Debug("FTL feature-flagged off on the server, falling back to regular loader")
 			return true
 		}
 	}
@@ -77,7 +77,7 @@ func decryptionKeyViaFTL(m libkb.MetaContext, tlfID chat1.TLFID, keyGeneration i
 }
 
 func getKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID, keyGeneration int) (res keybase1.FastTeamLoadRes, err error) {
-	defer m.CTrace(fmt.Sprintf("getKeyViaFTL(%s,%v,%d)", name, tlfID, keyGeneration), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("getKeyViaFTL(%s,%v,%d)", name, tlfID, keyGeneration), func() error { return err })()
 
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())
 	if err != nil {

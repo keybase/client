@@ -128,7 +128,7 @@ func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 }
 
 func (p *Prove) checkExists2(m libkb.MetaContext) (err error) {
-	defer m.CTrace("Prove#CheckExists2", func() error { return err })()
+	defer m.Trace("Prove#CheckExists2", func() error { return err })()
 	if !p.serviceType.LastWriterWins() {
 		var found libkb.RemoteProofChainLink
 		for _, proof := range p.me.IDTable().GetActiveProofsFor(p.serviceType) {
@@ -162,7 +162,7 @@ func (p *Prove) doPrechecks(m libkb.MetaContext) (err error) {
 	w, err = p.serviceType.PreProofCheck(m, p.remoteNameNormalized)
 	if w != nil {
 		if uierr := m.UIs().ProveUI.OutputPrechecks(m.Ctx(), keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
-			m.CWarningf("prove ui OutputPrechecks call error: %s", uierr)
+			m.Warning("prove ui OutputPrechecks call error: %s", uierr)
 		}
 	}
 	return err
@@ -266,7 +266,7 @@ func (p *Prove) checkAutoPost(m libkb.MetaContext, txt string) error {
 	if libkb.RemoteServiceTypes[p.arg.Service] != keybase1.ProofType_ROOTER {
 		return nil
 	}
-	m.CDebugf("making automatic post of proof to rooter")
+	m.Debug("making automatic post of proof to rooter")
 	apiArg := libkb.APIArg{
 		Endpoint:    "rooter",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -277,7 +277,7 @@ func (p *Prove) checkAutoPost(m libkb.MetaContext, txt string) error {
 		NetContext: m.Ctx(),
 	}
 	if _, err := m.G().API.Post(apiArg); err != nil {
-		m.CDebugf("error posting to rooter: %s", err)
+		m.Debug("error posting to rooter: %s", err)
 		return err
 	}
 	return nil
@@ -308,7 +308,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 				Text: warn.Export(),
 			})
 			if uierr != nil {
-				m.CWarningf("prove ui DisplayRecheckWarning call error: %s", uierr)
+				m.Warning("prove ui DisplayRecheckWarning call error: %s", uierr)
 			}
 		}
 		if err != nil {
@@ -331,14 +331,14 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 		Name: p.serviceType.DisplayName(),
 	})
 	if uierr != nil {
-		m.CWarningf("prove ui Checking call error: %s", uierr)
+		m.Warning("prove ui Checking call error: %s", uierr)
 	}
 	for i := 0; ; i++ {
 		found, status, _, err := libkb.CheckPosted(m, p.postRes.ID)
 		if err != nil {
 			return err
 		}
-		m.CDebugf("Prove.verifyLoop round:%v found:%v status:%v", i, found, status)
+		m.Debug("Prove.verifyLoop round:%v found:%v status:%v", i, found, status)
 		if found {
 			return nil
 		}
@@ -354,8 +354,8 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 }
 
 func (p *Prove) checkProofText(m libkb.MetaContext) error {
-	m.CDebugf("p.postRes.Text: %q", p.postRes.Text)
-	m.CDebugf("p.sigID: %q", p.sigID)
+	m.Debug("p.postRes.Text: %q", p.postRes.Text)
+	m.Debug("p.sigID: %q", p.sigID)
 	return p.serviceType.CheckProofText(p.postRes.Text, p.sigID, p.sig)
 }
 
@@ -382,10 +382,10 @@ func (p *Prove) SigID() keybase1.SigID {
 
 // Run runs the Prove engine, performing all steps of the proof process.
 func (p *Prove) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("ProofEngine.Run", func() error { return err })()
+	defer m.Trace("ProofEngine.Run", func() error { return err })()
 
 	stage := func(s string) {
-		m.CDebugf("| ProofEngine.Run() %s", s)
+		m.Debug("| ProofEngine.Run() %s", s)
 	}
 
 	stage("GetServiceType")
@@ -437,7 +437,7 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if !p.arg.PromptPosted {
-		m.CDebugf("PromptPosted not set, prove run finished")
+		m.Debug("PromptPosted not set, prove run finished")
 		return nil
 	}
 

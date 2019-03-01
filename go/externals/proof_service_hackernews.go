@@ -115,7 +115,7 @@ func (t *HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string)
  have <strong>karma &gt; 1</strong>.</p>
 <p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
 		if e != nil {
-			mctx.CDebugf("Error from HN: %s", e)
+			mctx.Debug("Error from HN: %s", e)
 		}
 		err = libkb.NewInsufficientKarmaError(un)
 	}

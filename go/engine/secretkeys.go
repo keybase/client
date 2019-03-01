@@ -43,7 +43,7 @@ func (e *SecretKeysEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SecretKeysEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SecretKeysEngine#Run", func() error { return err })()
+	defer m.Trace("SecretKeysEngine#Run", func() error { return err })()
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
@@ -69,7 +69,7 @@ func (e *SecretKeysEngine) Run(m libkb.MetaContext) (err error) {
 	if !ok {
 		return fmt.Errorf("Expected a NaCl signing key.")
 	}
-	m.CDebugf("| got signing key")
+	m.Debug("| got signing key")
 
 	ska.KeyType = libkb.DeviceEncryptionKeyType
 	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "to revoke another key"))
@@ -83,7 +83,7 @@ func (e *SecretKeysEngine) Run(m libkb.MetaContext) (err error) {
 	if !ok {
 		return fmt.Errorf("Expected a NaCl encryption key.")
 	}
-	m.CDebugf("| got encryption key")
+	m.Debug("| got encryption key")
 
 	e.result.Signing = [64]byte(*sigNaclKey.Private)
 	e.result.Encryption = [32]byte(*encNaclKey.Private)

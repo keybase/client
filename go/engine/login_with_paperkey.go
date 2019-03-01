@@ -52,12 +52,12 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 	}
 
 	if loggedIn, _ := isLoggedIn(m); loggedIn {
-		m.CDebugf("Already logged in with unlocked device keys")
+		m.Debug("Already logged in with unlocked device keys")
 		return nil
 	}
 
 	// Prompts for a paper key.
-	m.CDebugf("No device keys available; getting paper key")
+	m.Debug("No device keys available; getting paper key")
 	kp, err := findPaperKeys(m, me)
 	if err != nil {
 		return err
@@ -78,30 +78,30 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 		return err
 	}
 	lks := libkb.NewLKSecWithClientHalf(clientLKS, gen, me.GetUID())
-	m.CDebugf("Got LKS client half")
+	m.Debug("Got LKS client half")
 
 	// Get the LKS server half.
 	err = lks.Load(m)
 	if err != nil {
 		return err
 	}
-	m.CDebugf("Got LKS full")
+	m.Debug("Got LKS full")
 
 	secretStore := libkb.NewSecretStore(m.G(), me.GetNormalizedName())
-	m.CDebugf("Got secret store")
+	m.Debug("Got secret store")
 
 	// Extract the LKS secret
 	secret, err := lks.GetSecret(m)
 	if err != nil {
 		return err
 	}
-	m.CDebugf("Got LKS secret")
+	m.Debug("Got LKS secret")
 
 	err = secretStore.StoreSecret(m, secret)
 	if err != nil {
 		return err
 	}
-	m.CDebugf("Stored secret with LKS from paperkey")
+	m.Debug("Stored secret with LKS from paperkey")
 
 	// Remove our provisional active device, and fall back to global device
 	m = m.WithGlobalActiveDevice()
@@ -110,11 +110,11 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 	if _, err = libkb.BootstrapActiveDeviceFromConfig(m, true); err != nil {
 		return err
 	}
-	m.CDebugf("Unlocked device keys")
+	m.Debug("Unlocked device keys")
 
-	m.CDebugf("LoginWithPaperkey success, sending login notification")
+	m.Debug("LoginWithPaperkey success, sending login notification")
 	m.G().NotifyRouter.HandleLogin(string(m.G().Env.GetUsername()))
-	m.CDebugf("LoginWithPaperkey success, calling login hooks")
+	m.Debug("LoginWithPaperkey success, calling login hooks")
 	m.G().CallLoginHooks()
 
 	return nil

@@ -289,7 +289,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	g := m.G()
 	ctx := m.Ctx()
 
-	defer m.CVTrace(VLog0, culDebug(arg.uid), func() error { return err })()
+	defer m.VTrace(VLog0, culDebug(arg.uid), func() error { return err })()
 
 	if arg.uid.IsNil() {
 		if len(arg.name) == 0 {
@@ -432,7 +432,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	}
 
 	if err := u.putUPAKToCache(ctx, ret); err != nil {
-		m.CDebugf("continuing past error in putUPAKToCache: %s", err)
+		m.Debug("continuing past error in putUPAKToCache: %s", err)
 	}
 
 	if u.TestDeadlocker != nil {
@@ -695,7 +695,7 @@ func (u *CachedUPAKLoader) LookupUID(ctx context.Context, un NormalizedUsername)
 		return keybase1.UID(""), err
 	}
 	if !un.Eq(un2) {
-		m.CWarningf("Unexpected mismatched usernames (uid=%s): %s != %s", rres.GetUID(), un.String(), un2.String())
+		m.Warning("Unexpected mismatched usernames (uid=%s): %s != %s", rres.GetUID(), un.String(), un2.String())
 		return keybase1.UID(""), NewBadUsernameError(un.String())
 	}
 	return rres.GetUID(), nil
@@ -857,7 +857,7 @@ func checkDeviceValidForUID(ctx context.Context, u UPAKLoader, uid keybase1.UID,
 }
 
 func CheckCurrentUIDDeviceID(m MetaContext) (err error) {
-	defer m.CTrace("CheckCurrentUIDDeviceID", func() error { return err })()
+	defer m.Trace("CheckCurrentUIDDeviceID", func() error { return err })()
 	uid := m.G().Env.GetUID()
 	if uid.IsNil() {
 		return NoUIDError{}

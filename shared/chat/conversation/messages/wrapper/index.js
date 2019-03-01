@@ -13,6 +13,7 @@ import SystemJoined from '../system-joined/container'
 import SystemLeft from '../system-left/container'
 import SystemSimpleToComplex from '../system-simple-to-complex/container'
 import SystemText from '../system-text/container'
+import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
 import SetDescription from '../set-description/container'
 import SetChannelname from '../set-channelname/container'
 import TextMessage from '../text/container'
@@ -353,6 +354,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemChangeRetention':
         child = <SystemChangeRetention key="systemChangeRetention" message={message} />
+        break
+      case 'systemUsersAddedToConversation':
+        child = <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
         break
       case 'systemJoined':
         child = <SystemJoined key="systemJoined" message={message} />
