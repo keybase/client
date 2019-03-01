@@ -860,6 +860,8 @@ const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
 
 export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string => picker.type === 'move-or-copy' ? Types.getPathName(picker.sourceItemPath) : Types.getLocalPathName(picker.sourceItemLocalPath)
 
+export const splitFileNameAndExtension = (fileName: string) => ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')
   const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
