@@ -323,7 +323,7 @@ export type _State = {
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
-  localHTTPServerInfo: ?LocalHTTPServer,
+  localHTTPServerInfo: LocalHTTPServer,
   errors: I.Map<string, FsError>,
   tlfUpdates: UserTlfUpdates,
   moveOrCopy: MoveOrCopy,

@@ -525,29 +525,27 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   }
 
   const state = yield* Saga.selectState()
-  let localHTTPServerInfo = state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
+  let localHTTPServerInfo = state.fs.localHTTPServerInfo
   // This should finish within 2 iterations at most. But just in case we bound
   // it at 3.
   for (let i = 0; i < 3; ++i) {
-    if (localHTTPServerInfo.address === '' || localHTTPServerInfo.token === '') {
-      const temp = yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
-      localHTTPServerInfo = Constants.makeLocalHTTPServer(temp)
+    if (!localHTTPServerInfo.address || !localHTTPServerInfo.token) {
+      const {address, token} = yield* Saga.callPromise(
+        RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise
+      )
       yield Saga.put(
         FsGen.createLocalHTTPServerInfo({
-          address: localHTTPServerInfo.address,
-          token: localHTTPServerInfo.token,
+          address,
+          token,
         })
       )
+      localHTTPServerInfo = Constants.makeLocalHTTPServer({address, token})
     }
     try {
       const mimeType: Types.Mime = yield Saga.callUntyped(getMimeTypePromise, localHTTPServerInfo, path)
       yield Saga.put(FsGen.createMimeTypeLoaded({mimeType, path}))
       return mimeType
     } catch (err) {
-      if (err === Constants.invalidTokenError) {
-        localHTTPServerInfo = localHTTPServerInfo.set('token', '') // Set token to '' to trigger the refresh in next iteration.
-        continue
-      }
       if (err === Constants.notFoundError) {
         // This file or its parent folder has been removed. So just stop here.
         // This could happen when there are KBFS updates if user has previously
@@ -555,13 +553,8 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
         // but the path has been removed since then.
         return
       }
-      // It's still possible we have a critical error, but if it's just the
-      // server port number that's changed, it's hard to detect. So just treat
-      // all other errors as this case. If this is actually a critical error,
-      // we end up doing this 3 times for nothing, which isn't the end of the
-      // world.
-      logger.info(`_loadMimeType i=${i} error:`, err)
-      localHTTPServerInfo = localHTTPServerInfo.set('address', '')
+      err !== Constants.invalidTokenError && logger.info(`_loadMimeType i=${i} error:`, err)
+      localHTTPServerInfo = Constants.makeLocalHTTPServer()
     }
   }
   throw new Error('exceeded max retries')
