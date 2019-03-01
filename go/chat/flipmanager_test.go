@@ -273,7 +273,7 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	fm := NewFlipManager(g, nil)
 	testCase := func(text string, ftyp flip.FlipType, refMetadata flipTextMetadata) {
-		start, metadata := fm.startFromText(text, 3)
+		start, metadata := fm.startFromText(text, nil)
 		ft, err := start.Params.T()
 		require.NoError(t, err)
 		require.Equal(t, ftyp, ft)
