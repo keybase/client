@@ -11,6 +11,7 @@ import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
 import Loading from './loading'
+import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
@@ -198,6 +199,7 @@ const load = () => {
         <PathItemInfo mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
+    .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
 
   Sb.storiesOf('Files/PathItemIcon', module)
     .add('tlf list', () => (
