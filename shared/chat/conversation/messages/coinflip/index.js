@@ -10,13 +10,11 @@ import CoinFlipResult from './results'
 
 export type Props = {|
   commitmentVis: string,
-  hasCommitments: boolean,
-  hasSecrets: boolean,
-  isComplete: boolean,
   revealVis: string,
   resultText: string,
   errorInfo?: ?RPCChatTypes.UICoinFlipError,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
+  phase?: 'commitments' | 'secrets' | 'complete' | 'loading',
   progressText: string,
   resultInfo?: ?RPCChatTypes.UICoinFlipResult,
   showParticipants: boolean,
@@ -83,14 +81,18 @@ class CoinFlip extends React.Component<Props, State> {
             <Kb.Text selectable={true} type="BodySmallSemibold">
               Collecting commitments: {this.props.participants.length}
             </Kb.Text>
-            {this.props.hasCommitments && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
+            {this.props.phase === 'secrets' && (
+              <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+            )}
           </Kb.Box2>
-          {this.props.hasCommitments && (
+          {this.props.phase === 'secrets' && (
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
               <Kb.Text selectable={true} type="BodySmallSemibold">
                 Collecting secrets: {this._revealSummary()}
               </Kb.Text>
-              {this.props.hasSecrets && <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />}
+              {this.props.phase === 'complete' && (
+                <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+              )}
             </Kb.Box2>
           )}
         </>
@@ -118,7 +120,7 @@ class CoinFlip extends React.Component<Props, State> {
                   </Kb.Box2>
                 )}
               </Kb.Box2>
-              {this.props.revealVis.length > 0 && this.props.hasCommitments && (
+              {this.props.revealVis.length > 0 && this.props.phase !== 'commitments' && (
                 <Kb.Box2 direction="vertical">
                   <Kb.Image src={revealSrc} style={styles.progressVis} />
                 </Kb.Box2>

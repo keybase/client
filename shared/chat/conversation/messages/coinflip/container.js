@@ -1,6 +1,7 @@
 // @flow
 import CoinFlip from '.'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Constants from '../../../../constants/chat2'
 import {namedConnect} from '../../../../util/container'
 
 type OwnProps = {|flipGameID: string|}
@@ -27,11 +28,9 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
     : {
         commitmentVis: status.commitmentVisualization,
         errorInfo: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error ? status.errorInfo : null,
-        hasCommitments: participantStatuses.includes(status.phase),
-        hasSecrets: participantStatuses.includes(status.phase),
-        isComplete: participantStatuses.includes(status.phase),
         isError: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error,
         participants: status.participants || [],
+        phase: Constants.flipPhaseToString(status.phase),
         progressText: status.progressText,
         resultInfo: status.resultInfo,
         resultText: status.resultText,
