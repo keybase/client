@@ -107,9 +107,11 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, 
     const metas = metaMap.valueSeq().toArray()
     const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
+    // Clear RegExp special characters: see
+    // https://stackoverflow.com/a/9310752 .
     const insertMatcher = new RegExp(
       `${filter
-        .replace(/ |#/g, '')
+        .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '')
         .split('')
         .map(c => `${c}.*?`)
         .join('')}`,
