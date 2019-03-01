@@ -87,46 +87,31 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     if (this.state.isEditing || this.props.filter) {
       children = (
         <Kb.Box2
+          alignItems="center"
           direction="horizontal"
           fullWidth={true}
-          style={Styles.collapseStyles([styles.container, this.props.style])}
+          gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+          style={Styles.collapseStyles([styles.containerFiltering, this.props.style])}
         >
-          <Kb.Box2
-            gapStart={true}
-            direction="horizontal"
-            fullWidth={true}
-            fullHeight={true}
-            alignItems="center"
-            gap="xsmall"
-          >
-            <Kb.Box2
-              direction="horizontal"
-              fullWidth={true}
-              fullHeight={true}
-              gap="xtiny"
-              alignItems="center"
-            >
-              <Kb.Icon
-                type="iconfont-search"
-                style={styles.icon}
-                color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 20 : 16}
-              />
-              <Kb.Input
-                hideUnderline={true}
-                small={true}
-                value={this.props.filter}
-                hintText="Jump to..."
-                onChangeText={this.props.onSetFilter}
-                onFocus={this._startEditing}
-                onBlur={this._stopEditing}
-                onKeyDown={this._onKeyDown}
-                onEnterKeyDown={this._onEnterKeyDown}
-                ref={this._setRef}
-                style={styles.text}
-              />
-            </Kb.Box2>
-          </Kb.Box2>
+          <Kb.Icon
+            type="iconfont-search"
+            style={styles.icon}
+            color={Styles.globalColors.black_50}
+            fontSize={Styles.isMobile ? 20 : 16}
+          />
+          <Kb.Input
+            hideUnderline={true}
+            small={true}
+            value={this.props.filter}
+            hintText="Jump to..."
+            onChangeText={this.props.onSetFilter}
+            onFocus={this._startEditing}
+            onBlur={this._stopEditing}
+            onKeyDown={this._onKeyDown}
+            onEnterKeyDown={this._onEnterKeyDown}
+            ref={this._setRef}
+            style={styles.input}
+          />
         </Kb.Box2>
       )
     } else {
@@ -135,7 +120,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           direction="horizontal"
           centerChildren={true}
           gap="tiny"
-          style={Styles.collapseStyles([styles.container, this.props.style])}
+          style={Styles.collapseStyles([styles.containerNotFiltering, this.props.style])}
           gapStart={true}
           gapEnd={true}
           fullWidth={true}
@@ -186,7 +171,21 @@ const styles = Styles.styleSheetCreate({
   backButton: {
     ...Styles.padding(Styles.globalMargins.tiny, 0),
   },
-  container: Styles.platformStyles({
+  containerFiltering: Styles.platformStyles({
+    common: {
+      height: 48,
+      position: 'relative',
+    },
+    isElectron: {
+      ...Styles.padding(0, Styles.globalMargins.small),
+      backgroundColor: Styles.globalColors.blueGrey,
+    },
+    isMobile: {
+      ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
+      backgroundColor: Styles.globalColors.fastBlank,
+    },
+  }),
+  containerNotFiltering: Styles.platformStyles({
     common: {
       height: 48,
       position: 'relative',
