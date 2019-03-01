@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
@@ -316,32 +315,11 @@ const openAndUpload = (state, action) =>
   )
 
 const loadUserFileEdits = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits => {
-    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
-    const updateSet = tlfUpdates
-      .reduce(
-        (acc: I.Set<Types.Path>, u) =>
-          Types.getPathElements(u.path).reduce((acc, e, i, a) => {
-            if (i < 2) return acc
-            const path = Types.getPathFromElements(a.slice(0, i + 1))
-            return acc.add(path)
-          }, acc),
-        I.Set()
-      )
-      .toArray()
-    // TODO (songgao): make a new action that accepts an array of updates,
-    // so that we only need to trigger one update through store/rpc/widget
-    // for all these each time.
-    return [
-      ...updateSet.map(path =>
-        FsGen.createFilePreviewLoad({
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          path,
-        })
-      ),
-      FsGen.createUserFileEditsLoaded({tlfUpdates}),
-    ]
-  })
+  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
+    FsGen.createUserFileEditsLoaded({
+      tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
+    })
+  )
 
 const openFilesFromWidget = (state, {payload: {path, type}}) => [
   ConfigGen.createShowMain(),
