@@ -855,6 +855,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		},
 	}, 0, &outboxID, nil); err != nil {
 		m.Debug(ctx, "StartFlip: failed to send flip message: %s", err)
+		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
 		return err
 	}
 	if err := <-convCreatedCh; err != nil {
