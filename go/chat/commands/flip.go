@@ -29,7 +29,7 @@ func (s *Flip) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	return s.G().CoinFlipManager.StartFlip(ctx, uid, convID, tlfName, text)
+	return s.G().CoinFlipManager.StartFlip(ctx, uid, convID, tlfName, text, nil)
 }
 
 func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {

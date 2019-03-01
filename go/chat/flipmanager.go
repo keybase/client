@@ -46,6 +46,11 @@ type sentMessageListener struct {
 	listenCh chan sentMessageResult
 }
 
+type startFlipSendStatus struct {
+	status     types.FlipSendStatus
+	flipConvID chat1.ConversationID
+}
+
 func newSentMessageListener(g *globals.Context, outboxID chat1.OutboxID) *sentMessageListener {
 	return &sentMessageListener{
 		Contextified: globals.NewContextified(g),
@@ -781,9 +786,20 @@ func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string 
 	return ""
 }
 
+func (m *FlipManager) setStartFlipSendStatus(ctx context.Context, outboxID chat1.OutboxID,
+	status types.FlipSendStatus, flipConvID *chat1.ConversationID) {
+	payload := startFlipSendStatus{
+		status: status,
+	}
+	if flipConvID != nil {
+		payload.flipConvID = *flipConvID
+	}
+	m.flipConvs.Add(outboxID.String(), payload)
+}
+
 // StartFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	tlfName, text string) (err error) {
+	tlfName, text string, inOutboxID *chat1.OutboxID) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
 	gameID := flip.GenerateGameID()
 	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
@@ -797,20 +813,26 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	// First generate the message representing the flip into the host conversation. We also wait for it
 	// to actually get sent before doing anything flip related.
-	outboxID, err := storage.NewOutboxID()
-	if err != nil {
-		return err
-	}
-
-	// Generate dev channel for game messages
-	go func() {
-		topicName := m.gameTopicNameFromGameID(gameID)
-		conv, err := m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
-			chat1.TopicType_DEV, hostConv.GetMembersType(),
-			keybase1.TLFVisibility_PRIVATE, &hostConvID)
-		if err != nil {
+	var outboxID chat1.OutboxID
+	if inOutboxID != nil {
+		outboxID = *inOutboxID
+	} else {
+		if outboxID, err = storage.NewOutboxID(); err != nil {
 			return err
 		}
+	}
+
+	// Generate dev channel for game message
+	var conv chat1.ConversationLocal
+	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusInProgress, nil)
+	convCreatedCh := make(chan error)
+	go func() {
+		var err error
+		topicName := m.gameTopicNameFromGameID(gameID)
+		conv, err = m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
+			chat1.TopicType_DEV, hostConv.GetMembersType(),
+			keybase1.TLFVisibility_PRIVATE, &hostConvID)
+		convCreatedCh <- err
 	}()
 
 	listener := newSentMessageListener(m.G(), outboxID)
@@ -822,6 +844,13 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		}), chat1.MessageType_FLIP, &outboxID); err != nil {
 		return err
 	}
+	if err := <-convCreatedCh; err != nil {
+		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
+		return err
+	}
+	flipConvID := conv.GetConvID()
+	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusSent, &flipConvID)
+
 	sendRes := <-listener.listenCh
 	if sendRes.Err != nil {
 		return sendRes.Err
@@ -856,7 +885,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	if err != nil {
 		return err
 	}
-	if err := m.G().ChatHelper.SendMsgByID(ctx, conv.GetConvID(), tlfName,
+	if err := m.G().ChatHelper.SendMsgByID(ctx, flipConvID, tlfName,
 		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
 			Text:   string(infoBody),
 			GameID: gameID,
@@ -865,7 +894,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Start the game
-	return m.dealer.StartFlipWithGameID(ctx, start, conv.GetConvID(), gameID)
+	return m.dealer.StartFlipWithGameID(ctx, start, flipConvID, gameID)
 }
 
 func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipConvID chat1.ConversationID,
@@ -1093,10 +1122,17 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat
 	}
 }
 
-func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, convID chat1.ConversationID,
-	gameID chat1.FlipGameID) (chat1.ConversationID, bool) {
+func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (convID chat1.ConversationID, status types.FlipSendStatus) {
 	defer m.Trace(ctx, func() error { return nil }, "IsFlipConversationCreated")()
-
+	if rec, ok := m.flipConvs.Get(outboxID.String()); ok {
+		status := rec.(startFlipSendStatus)
+		switch status.status {
+		case types.FlipSendStatusSent:
+			convID = status.flipConvID
+		}
+		return convID, status.status
+	}
+	return convID, types.FlipSendStatusError
 }
 
 // CLogf implements the flip.DealersHelper interface

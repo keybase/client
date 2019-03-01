@@ -1286,13 +1286,28 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 	return obr, nil
 }
 
+type flipPermError struct{}
+
+func (e flipPermError) Error() string {
+	return "flip permanent error"
+}
+
+func (e flipPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 func (s *Deliverer) processFlip(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsChatFlip() {
 		return obr, nil
 	}
-	gameID := obr.Msg.MessageBody.Flip().GameID
-	if flipConvID, ok := s.G().CoinFlipManager.IsFlipConversationCreated(ctx, obr.ConvID, gameID); ok {
-		body := obr.Msg.MessageBody.Flip()
+	body := obr.Msg.MessageBody.Flip()
+	flipConvID, status := s.G().CoinFlipManager.IsFlipConversationCreated(ctx, obr.OutboxID)
+	switch status {
+	case types.FlipSendStatusInProgress:
+		return obr, errDelivererFlipConvCreationInProgress
+	case types.FlipSendStatusError:
+		return obr, flipPermError{}
+	case types.FlipSendStatusSent:
 		obr.Msg.MessageBody = chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
 			Text:       body.Text,
 			GameID:     body.GameID,
@@ -1303,7 +1318,7 @@ func (s *Deliverer) processFlip(ctx context.Context, obr chat1.OutboxRecord) (ch
 		}
 		return obr, nil
 	}
-	return obr, errDelivererFlipConvCreationInProgress
+	return obr, nil
 }
 
 func (s *Deliverer) processBackgroundTaskMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {

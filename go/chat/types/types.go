@@ -200,6 +200,14 @@ const (
 	AttachmentUploaderTaskStatusFailed
 )
 
+type FlipSendStatus int
+
+const (
+	FlipSendStatusInProgress FlipSendStatus = iota
+	FlipSendStatusSent
+	FlipSendStatusError
+)
+
 type AttachmentUploadResult struct {
 	Error    *string
 	Object   chat1.Asset
@@ -429,7 +437,7 @@ func (d DummyCoinFlipManager) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
 	return nil
 }
-func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error {
+func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string, outboxID *chat1.OutboxID) error {
 	return nil
 }
 func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
@@ -447,7 +455,6 @@ func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
 	return false
 }
 
-func (d DummyCoinFlipManager) IsFlipConversationCreated(ctx context.Context, convID chat1.ConversationID,
-	gameID chat1.FlipGameID) (chat1.ConversationID, bool) {
-	return nil, false
+func (d DummyCoinFlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus) {
+	return nil, FlipSendStatusError
 }
