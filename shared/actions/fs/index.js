@@ -62,7 +62,9 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-const filePreview = (state, action) =>
+const silenceErrorHandler = () => {}
+
+const pathItemLoad = (state, action) =>
   RPCTypes.SimpleFSSimpleFSStatRpcPromise({
     path: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
@@ -71,12 +73,12 @@ const filePreview = (state, action) =>
     ...(action.payload.identifyBehavior ? {identifyBehavior: action.payload.identifyBehavior} : {}),
   })
     .then(dirent =>
-      FsGen.createFilePreviewLoaded({
+      FsGen.createPathItemLoaded({
         meta: makeEntry(dirent),
         path: action.payload.path,
       })
     )
-    .catch(makeRetriableErrorHandler(action))
+    .catch(action.payload.silenceErrors ? silenceErrorHandler : makeRetriableErrorHandler(action))
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
@@ -669,7 +671,7 @@ function* loadPathMetadata(state, action) {
     })
     pathItem = makeEntry(dirent)
     yield Saga.put(
-      FsGen.createFilePreviewLoaded({
+      FsGen.createPathItemLoaded({
         meta: pathItem,
         path,
       })
@@ -872,7 +874,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.FilePreviewLoadPayload>(FsGen.filePreviewLoad, filePreview)
+  yield* Saga.chainAction<FsGen.PathItemLoadPayload>(FsGen.pathItemLoad, pathItemLoad)
   yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)

@@ -25,7 +25,7 @@ export const filepreviewProvider = {
     }),
   }),
   FilePreviewHeader: ({path}: {path: Types.Path}) => ({
-    loadFilePreview: () => {},
+    loadPathItem: () => {},
     name: Types.getPathName(path),
     onAction: () => {},
     onBack: () => {},
