@@ -36,29 +36,22 @@ type AbsenteeProps = {|
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-      <Kb.Text type="Body" style={styles.error}>
-        Some players that committed to the coin flip failed to reveal their secrets in time:
+      <Kb.Text type="Body">
+        {props.error.absentees && props.error.absentees.length === 1 ? 'One player' : 'Some players'} that
+        committed to the coin flip failed to reveal their secrets in time:
       </Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        {(props.error.absentees || []).map(a => {
-          const text = `${a.user} (device: ${a.device})`
-          return (
-            <Kb.Text key={text} type="BodySemibold" style={styles.error}>
-              {text}
-            </Kb.Text>
-          )
-        })}
+        <Kb.Text type="BodySemibold">
+          {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="Body" style={styles.error}>
-          This could mean one of two things:
+        <Kb.Text type="BodySemibold">This could mean one of two things:</Kb.Text>
+        <Kb.Text type="Body">
+          • Either their client disconnected and could not reveal their secret, or
         </Kb.Text>
-        <Kb.Text type="Body" style={styles.error}>
-          1. Their client disconnected, or was otherwise incapacitated, and could not reveal their secret.
-        </Kb.Text>
-        <Kb.Text type="Body" style={styles.error}>
-          2. A small chance they disconnected on purpose in order to force a new flip. If you suspect this,
-          then just ask them what happened.
+        <Kb.Text type="Body">
+          • They're trying to cheat by disconnecting on purpose in order to force a new flip.
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
