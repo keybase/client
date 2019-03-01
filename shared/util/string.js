@@ -1,15 +1,8 @@
 // @flow
 
 // Add pluralization rules as necessary
-function pluralize(str: string, count?: number): string {
+export function pluralize(str: string, count?: number): string {
   return count === 1 ? str : str.endsWith('s') ? str : `${str}s`
-}
-
-export function smartPluralize(str: string, amt: number): string {
-  if (amt === 1) {
-    return str
-  }
-  return pluralize(str)
 }
 
 export function toStringForLog(a: any): string {
