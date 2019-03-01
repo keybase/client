@@ -2,19 +2,17 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as SettingsTabs from '../../../constants/settings'
-import * as Tabs from '../../../constants/tabs'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as WalletsTypes from '../../../constants/types/wallets'
 import PaymentsConfirm from '.'
-import {namedConnect, isMobile} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 
 type OwnProps = {||}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const pinfo = state.chat2.paymentConfirmInfo
   const payments = pinfo?.summary?.payments || []
-  const errorIsNoWallet = pinfo?.error?.code == RPCTypes.constantsStatusCode.scstellarmissingbundle
+  const errorIsNoWallet = pinfo?.error?.code === RPCTypes.constantsStatusCode.scstellarmissingbundle
   return {
     displayTotal: pinfo?.summary?.displayTotal,
     error: errorIsNoWallet ? 'Wallet needed to send money in chat.' : pinfo?.error?.desc,

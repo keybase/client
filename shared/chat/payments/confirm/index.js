@@ -176,13 +176,13 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-  pushDown: Styles.platformStyles({
-    isElectron: {flex: 1, justifyContent: 'flex-end'},
-  }),
   buttonContainer: Styles.platformStyles({
     common: {
       justifyContent: 'space-between',
     },
+  }),
+  pushDown: Styles.platformStyles({
+    isElectron: {flex: 1, justifyContent: 'flex-end'},
   }),
   cancelButton: Styles.platformStyles({
     isElectron: {
@@ -204,14 +204,14 @@ const styles = Styles.styleSheetCreate({
   errorText: {
     color: Styles.globalColors.red,
   },
-  happyErrorText: {
-    color: Styles.globalColors.black,
-  },
   fullErrorContainer: Styles.platformStyles({
     isElectron: {
       padding: 20,
     },
   }),
+  happyErrorText: {
+    color: Styles.globalColors.black,
+  },
   headerText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white,
