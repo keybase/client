@@ -77,6 +77,7 @@ type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
   teamname: string,
+  isAdmin: boolean,
   isGeneralChannel: boolean,
 }
 
@@ -295,6 +296,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         return (
           <AddPeople
             key="add people"
+            isAdmin={row.isAdmin}
             isGeneralChannel={row.isGeneralChannel}
             teamname={row.teamname}
             conversationIDKey={this.props.selectedConversationIDKey}
@@ -461,7 +463,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         },
       ]
       let addPeopleRow = false
-      if (props.admin && props.teamname && !props.isPreview) {
+      if (props.teamname && !props.isPreview && (props.admin || channelname !== 'general')) {
+        // admins can add people to the team and to channels
+        // anyone else can only add people to channels
         subHeaderRows.push(
           {
             key: nextKey(),
@@ -470,6 +474,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             type: 'divider',
           },
           {
+            isAdmin: props.admin,
             isGeneralChannel: channelname === 'general',
             key: 'add people',
             teamname: props.teamname,

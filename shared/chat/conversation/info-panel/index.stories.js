@@ -49,6 +49,12 @@ const retentionPickerPropSelector = props => ({
 
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(),
+  AddPeople: p => ({
+    isAdmin: p.isAdmin,
+    isGeneralChannel: p.isGeneralChannel,
+    onAddPeople: Sb.action('onAddPeople'),
+    onAddToChannel: Sb.action('onAddToChannel'),
+  }),
   InfoPanel: (props: InfoPanelProps) => props,
   LifecycleNotifications: () => notificationProps,
   MinWriterRole: () => minWriterRoleProps,
@@ -113,6 +119,7 @@ const teamCommonProps = {
 const smallTeamProps = {
   ...teamCommonProps,
   admin: false,
+  channelname: 'general',
   description: "You shouldn't be seeing this",
   isPreview: false,
   onEditChannel: Sb.unexpected('onEditChannel'),
