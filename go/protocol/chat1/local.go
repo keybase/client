@@ -209,14 +209,16 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 }
 
 type MessageFlip struct {
-	Text   string     `codec:"text" json:"text"`
-	GameID FlipGameID `codec:"gameID" json:"gameID"`
+	Text       string         `codec:"text" json:"text"`
+	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
+	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
 }
 
 func (o MessageFlip) DeepCopy() MessageFlip {
 	return MessageFlip{
-		Text:   o.Text,
-		GameID: o.GameID.DeepCopy(),
+		Text:       o.Text,
+		GameID:     o.GameID.DeepCopy(),
+		FlipConvID: o.FlipConvID.DeepCopy(),
 	}
 }
 

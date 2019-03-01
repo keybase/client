@@ -1683,7 +1683,8 @@ func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err err
 	} else if obr == nil {
 		return nil
 	}
-	if obr.IsAttachment() {
+	switch {
+	case obr.IsAttachment():
 		if _, err := h.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
 			h.Debug(ctx, "RetryPost: failed to retry attachment upload: %s", err)
 		}

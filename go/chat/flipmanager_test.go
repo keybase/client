@@ -373,7 +373,8 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		gameID := body.Flip().GameID
 
 		testLoadFlip := func() {
-			tc.Context().CoinFlipManager.LoadFlip(ctx, uid, conv.Id, gameID)
+			tc.Context().CoinFlipManager.LoadFlip(ctx, uid, conv.Id, hostMsg.GetMessageID(),
+				body.Flip().FlipConvID, gameID)
 			select {
 			case updates := <-ui0.CoinFlipUpdates:
 				require.Equal(t, 1, len(updates))

@@ -29,7 +29,7 @@ func (s *Flip) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	return s.G().CoinFlipManager.StartFlip(ctx, uid, convID, tlfName, text)
+	return s.G().CoinFlipManager.StartFlip(ctx, uid, convID, tlfName, text, nil)
 }
 
 func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
@@ -66,7 +66,7 @@ const flipDesktopUsage = `Variations: %s
 /flip vegan, keto, soylent   # shuffle some options
 /flip cards                  # deal 52 cards
 /flip cards 5 Ana, Sam, Kat  # deal 5 cards to 3 friends%s
-How it all works: https://keybase.io/coin-flips
+How it all works: https://keybase.io/coin-flip
 Current flip: %s`
 
 const flipMobileUsage = `Variations: %s

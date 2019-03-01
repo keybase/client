@@ -165,6 +165,10 @@
         {
           "type": "FlipGameID",
           "name": "gameID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "flipConvID"
         }
       ]
     },
