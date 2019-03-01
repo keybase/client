@@ -4,6 +4,8 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as SettingsTabs from '../../../constants/settings'
 import * as Tabs from '../../../constants/tabs'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import * as WalletsTypes from '../../../constants/types/wallets'
 import PaymentsConfirm from '.'
 import {namedConnect, isMobile} from '../../../util/container'
 
@@ -15,7 +17,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const errorIsNoWallet = pinfo?.error?.code == RPCTypes.constantsStatusCode.scstellarmissingbundle
   return {
     displayTotal: pinfo?.summary?.displayTotal,
-    error: errorIsNoWallet ? "Wallet needed to send money in chat." : pinfo?.error?.desc,
+    error: errorIsNoWallet ? 'Wallet needed to send money in chat.' : pinfo?.error?.desc,
     errorIsNoWallet,
     loading: !pinfo,
     payments,
@@ -30,12 +32,17 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onCancel: () => {
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: false}))
   },
-  onWallet: () =>
+  onWallet: () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(Chat2Gen.createConfirmScreenResponse({accept: false}))
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        path: isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
+      WalletsGen.createSelectAccount({
+        accountID: WalletsTypes.noAccountID,
+        reason: 'from-chat',
+        show: true,
       })
-    ),
+    )
+  },
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

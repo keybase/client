@@ -20,7 +20,15 @@ type ErrorProps = {|
   onWallet: () => void,
 |}
 
-const _PaymentsConfirmError = (props: ErrorProps) => (
+const _PaymentsConfirmError = (props: ErrorProps) => {
+  if (props.errorIsNoWallet) {
+    return _PaymentsConfirmErrorNoWallet(props)
+  } else {
+    return _PaymentsConfirmErrorMisc(props)
+  }
+}
+
+const _PaymentsConfirmErrorMisc = (props: ErrorProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2
       direction="vertical"
@@ -29,10 +37,28 @@ const _PaymentsConfirmError = (props: ErrorProps) => (
       fullHeight={true}
       style={styles.fullErrorContainer}
     >
-      <Kb.Text type="BodyExtrabold" style={props.errorIsNoWallet ? styles.happyErrorText : styles.errorText}>
+      <Kb.Text type="BodyExtrabold" style={styles.errorText}>
         {props.error}
       </Kb.Text>
-      { props.errorIsNoWallet ?
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
+const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2
+      direction="vertical"
+      centerChildren={true}
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.fullErrorContainer}
+    >
+      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
+        <Kb.Text type="BodyExtrabold" style={styles.happyErrorText}>
+          {props.error}
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
           <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
           <Kb.Button
@@ -42,7 +68,7 @@ const _PaymentsConfirmError = (props: ErrorProps) => (
             label={'Set up wallet'}
           />
         </Kb.ButtonBar>
-        : null }
+      </Kb.Box2>
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -149,6 +175,9 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
+  }),
+  pushDown: Styles.platformStyles({
+    isElectron: {flex: 1, justifyContent: 'flex-end'},
   }),
   buttonContainer: Styles.platformStyles({
     common: {
