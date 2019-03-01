@@ -7,6 +7,9 @@ import (
 	"math/big"
 )
 
+// PRNG is based on AES-CTR. The input key is a 32-byte random secret (as generated
+// by our commitment scheme). The output is a AES(k,1), AES(k,2), AES(k,3), etc...
+// We are relying on the fact that AES is a PRP, which is pretty widely assumed.
 type PRNG struct {
 	key    Secret
 	buf    []byte
