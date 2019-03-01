@@ -46,7 +46,7 @@ const mapDispatchToProps = dispatch => ({
       executeActionsForContext('quitButton')
     }, 2000)
   },
-  refresh: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
+  refreshUserFileEdits: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
     SafeElectron.getShell().openExternal(
@@ -68,7 +68,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    refresh: dispatchProps.refresh,
+    refreshUserFileEdits: dispatchProps.refreshUserFileEdits,
     showUser: () => dispatchProps._showUser(stateProps.username),
     ...ownProps,
   }

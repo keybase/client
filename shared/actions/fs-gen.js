@@ -39,6 +39,8 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const journalUpdate = 'fs:journalUpdate'
+export const kbfsDaemonConnected = 'fs:kbfsDaemonConnected'
+export const kbfsDaemonDisconnected = 'fs:kbfsDaemonDisconnected'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadingPath = 'fs:loadingPath'
@@ -110,6 +112,8 @@ type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
+type _KbfsDaemonConnectedPayload = void
+type _KbfsDaemonDisconnectedPayload = void
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
 type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path|}>
 type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
@@ -181,6 +185,8 @@ export const createInstallFuse = (payload: _InstallFusePayload) => ({payload, ty
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({payload, type: installKBFS})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
+export const createKbfsDaemonConnected = (payload: _KbfsDaemonConnectedPayload) => ({payload, type: kbfsDaemonConnected})
+export const createKbfsDaemonDisconnected = (payload: _KbfsDaemonDisconnectedPayload) => ({payload, type: kbfsDaemonDisconnected})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({payload, type: letResetUserBackIn})
 export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({payload, type: loadPathMetadata})
 export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
@@ -252,6 +258,8 @@ export type InstallFusePayload = {|+payload: _InstallFusePayload, +type: 'fs:ins
 export type InstallFuseResultPayload = {|+payload: _InstallFuseResultPayload, +type: 'fs:installFuseResult'|}
 export type InstallKBFSPayload = {|+payload: _InstallKBFSPayload, +type: 'fs:installKBFS'|}
 export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
+export type KbfsDaemonConnectedPayload = {|+payload: _KbfsDaemonConnectedPayload, +type: 'fs:kbfsDaemonConnected'|}
+export type KbfsDaemonDisconnectedPayload = {|+payload: _KbfsDaemonDisconnectedPayload, +type: 'fs:kbfsDaemonDisconnected'|}
 export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, +type: 'fs:letResetUserBackIn'|}
 export type LoadPathMetadataPayload = {|+payload: _LoadPathMetadataPayload, +type: 'fs:loadPathMetadata'|}
 export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loadingPath'|}
@@ -325,6 +333,8 @@ export type Actions =
   | InstallFuseResultPayload
   | InstallKBFSPayload
   | JournalUpdatePayload
+  | KbfsDaemonConnectedPayload
+  | KbfsDaemonDisconnectedPayload
   | LetResetUserBackInPayload
   | LoadPathMetadataPayload
   | LoadingPathPayload

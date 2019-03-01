@@ -229,6 +229,8 @@
     "setPathItemActionMenuDownloadKey": {
       "key": "?string"
     },
+    "kbfsDaemonConnected": {},
+    "kbfsDaemonDisconnected": {},
 
     "placeholderAction": {}
   }

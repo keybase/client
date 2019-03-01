@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as FsGen from '../fs-gen'
+import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import type {TypedState} from '../../constants/reducer'
@@ -61,4 +62,9 @@ const downloadSuccess = (state, action) => {
 export default function* nativeSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
   yield* Saga.chainAction<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccess)
+  yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(
+    ConfigGen.installerRan,
+    // There's no separate daemon on mobile, so we are connected for free.
+    () => Promise.resolve(FsGen.createKbfsDaemonConnected())
+  )
 }
