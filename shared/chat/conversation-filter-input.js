@@ -86,7 +86,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     let children
     if (this.state.isEditing || this.props.filter) {
       children = (
-        <Kb.Box style={styles.inputContainer}>
+        <Kb.Box2 direction="horizontal" style={styles.flexOne}>
           <Kb.Icon
             type="iconfont-search"
             style={styles.icon}
@@ -106,7 +106,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             ref={this._setRef}
             style={styles.text}
           />
-        </Kb.Box>
+        </Kb.Box2>
       )
     } else {
       children = (
@@ -118,7 +118,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             fontSize={Styles.isMobile ? 20 : 16}
           />
           <Kb.Text type="BodySemibold" style={styles.text}>
-            Jump to chat
+            Jump to...
           </Kb.Text>
           {!Styles.isMobile && (
             <Kb.Text type="BodySemibold" style={styles.textFaint}>
@@ -128,56 +128,41 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
         </Kb.ClickableBox>
       )
     }
-    return Styles.isMobile ? (
+    return (
       <>
-        <Kb.HeaderHocHeader
-          borderless={true}
-          leftAction={flags.useNewRouter ? 'back' : undefined}
-          onLeftAction={flags.useNewRouter ? this.props.onBack : undefined}
-          rightActions={[
-            {
-              icon: 'iconfont-compose',
-              iconColor: Styles.globalColors.blue,
-              label: 'New chat',
-              onPress: this.props.onNewChat,
-            },
-          ]}
-          titleComponent={children}
-        />
-        {this.props.isLoading && (
+        <Kb.Box2
+          direction="horizontal"
+          centerChildren={true}
+          gap="tiny"
+          style={Styles.collapseStyles([styles.container, this.props.style])}
+          gapStart={true}
+          gapEnd={true}
+          fullWidth={true}
+        >
+          {flags.useNewRouter && Styles.isMobile && (
+            <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
+          )}
+          {children}
+          {!!this.props.onNewChat && (
+            <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
+              <Kb.Button small={true} type="Primary" label="New chat" onClick={this.props.onNewChat} />
+            </Kb.WithTooltip>
+          )}
+        </Kb.Box2>
+        {this.props.isLoading && Styles.isMobile && (
           <Kb.Box style={styles.loadingContainer}>
             <Kb.LoadingLine />
           </Kb.Box>
         )}
       </>
-    ) : (
-      <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        gap="small"
-        style={Styles.collapseStyles([styles.container, this.props.style])}
-        gapStart={true}
-        gapEnd={true}
-        fullWidth={true}
-      >
-        {children}
-        {!!this.props.onNewChat && (
-          <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
-            <Kb.Icon
-              type="iconfont-compose"
-              style={propsIconPlatform.style}
-              color={propsIconPlatform.color}
-              fontSize={propsIconPlatform.fontSize}
-              onClick={this.props.onNewChat}
-            />
-          </Kb.WithTooltip>
-        )}
-      </Kb.Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
+  backButton: {
+    ...Styles.padding(Styles.globalMargins.tiny, 0),
+  },
   container: Styles.platformStyles({
     common: {
       minHeight: 48,
@@ -196,31 +181,23 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       backgroundColor: Styles.globalColors.black_10,
       borderRadius: Styles.borderRadius,
-      justifyContent: 'center',
+      flexGrow: 1,
+      justifyContent: 'flex-start',
     },
     isElectron: {
       ...Styles.desktopStyles.editable,
-      flexGrow: 1,
-      height: 24,
+      height: 28,
+      paddingLeft: 8,
     },
     isMobile: {
       height: 32,
-      width: '100%',
+      paddingLeft: 16,
     },
   }),
-  icon: Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
-    isElectron: {
-      top: 2,
-    },
-    isMobile: {
-      top: 1,
-    },
-  }),
-  inputContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+  flexOne: {flex: 1},
+  icon: {
+    position: 'relative',
+    top: 1,
   },
   loadingContainer: {
     bottom: 0,
@@ -230,28 +207,16 @@ const styles = Styles.styleSheetCreate({
   },
   text: {
     color: Styles.globalColors.black_50,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.xtiny,
+    position: 'relative',
+    top: 1,
   },
   textFaint: {
     color: Styles.globalColors.black_35,
+    position: 'relative',
+    top: 1,
   },
 })
-
-const propsIconCompose = {
-  color: Styles.globalColors.blue,
-  fontSize: 16,
-  style: {},
-}
-
-const propsIconComposeMobile = {
-  ...propsIconCompose,
-  fontSize: 20,
-  style: {
-    padding: Styles.globalMargins.xtiny,
-  },
-}
-
-const propsIconPlatform = Styles.isMobile ? propsIconComposeMobile : propsIconCompose
 
 export default ConversationFilterInput
