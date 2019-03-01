@@ -92,27 +92,33 @@ const canBackUp = isMobile
     )
   : (s, o) => false
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  index: getIndex(ownProps),
-  onBackUp: canBackUp(stateProps, ownProps)
-    ? stateProps._destinationPicker.type === 'move-or-copy'
-      ? () => dispatchProps._onBackUpMoveOrCopy(getDestinationParentPath(stateProps, ownProps))
-      : () => dispatchProps._onBackUpIncomingShare(getDestinationParentPath(stateProps, ownProps))
-    : null,
-  onCancel: dispatchProps.onCancel,
-  onCopyHere: canCopy(stateProps, ownProps)
-    ? () => dispatchProps._onCopyHere(getDestinationParentPath(stateProps, ownProps))
-    : null,
-  onMoveHere: canMove(stateProps, ownProps)
-    ? () => dispatchProps._onMoveHere(getDestinationParentPath(stateProps, ownProps))
-    : null,
-  onNewFolder: canWrite(stateProps, ownProps)
-    ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
-    : null,
-  parentPath: getDestinationParentPath(stateProps, ownProps),
-  routePath: ownProps.routePath,
-  targetName: Constants.getDestinationPickerPathName(stateProps._destinationPicker),
-})
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const targetName = Constants.getDestinationPickerPathName(stateProps._destinationPicker)
+  const [targetNameWithoutExtension, targetExtension] = Constants.splitFileNameAndExtension(targetName)
+  return {
+    index: getIndex(ownProps),
+    onBackUp: canBackUp(stateProps, ownProps)
+      ? stateProps._destinationPicker.type === 'move-or-copy'
+        ? () => dispatchProps._onBackUpMoveOrCopy(getDestinationParentPath(stateProps, ownProps))
+        : () => dispatchProps._onBackUpIncomingShare(getDestinationParentPath(stateProps, ownProps))
+      : null,
+    onCancel: dispatchProps.onCancel,
+    onCopyHere: canCopy(stateProps, ownProps)
+      ? () => dispatchProps._onCopyHere(getDestinationParentPath(stateProps, ownProps))
+      : null,
+    onMoveHere: canMove(stateProps, ownProps)
+      ? () => dispatchProps._onMoveHere(getDestinationParentPath(stateProps, ownProps))
+      : null,
+    onNewFolder: canWrite(stateProps, ownProps)
+      ? () => dispatchProps._onNewFolder(getDestinationParentPath(stateProps, ownProps))
+      : null,
+    parentPath: getDestinationParentPath(stateProps, ownProps),
+    routePath: ownProps.routePath,
+    targetExtension,
+    targetName,
+    targetNameWithoutExtension,
+  }
+}
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
