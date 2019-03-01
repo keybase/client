@@ -29,6 +29,7 @@ const props = {
   fileName: null,
   files: 0,
   folderProps: null,
+  kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),
@@ -136,6 +137,15 @@ const load = () => {
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/poo')}
           name="poo"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={false}
+        />
+        <FileUpdate
+          path={Types.stringToPath(
+            '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
+          )}
+          name="poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={false}

@@ -136,7 +136,10 @@ protocol remote {
     MessageBoxed messageBoxed,
     array<gregor1.UID> atMentions,
     ChannelMention channelMention,
-    union { null, TopicNameState } topicNameState
+    union { null, TopicNameState } topicNameState,
+    // Add any atMentions to the conversation automatically with the given
+    // status
+    union { null, ConversationMemberStatus } joinMentionsAs
   );
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
 

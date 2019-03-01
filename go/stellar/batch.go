@@ -40,8 +40,8 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 		return res, err
 	}
 
-	mctx.CDebugf("Batch sender account ID: %s", senderAccountID)
-	mctx.CDebugf("Batch size: %d", len(arg.Payments))
+	mctx.Debug("Batch sender account ID: %s", senderAccountID)
+	mctx.Debug("Batch size: %d", len(arg.Payments))
 
 	// prepare the payments
 	prepared, unlock, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
@@ -97,7 +97,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 
 	// wait for the payments
 	waitingCount := len(waiting)
-	mctx.CDebugf("waiting for %d payments to complete", waitingCount)
+	mctx.Debug("waiting for %d payments to complete", waitingCount)
 
 	timedOut := false
 	var chatWaitGroup sync.WaitGroup
@@ -105,28 +105,28 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 		select {
 		case <-time.After(5 * time.Second):
 			if time.Since(startTime) > time.Duration(arg.TimeoutSecs)*time.Second {
-				mctx.CDebugf("ran out of time waiting for tx status updates (%d remaining)", waitingCount)
+				mctx.Debug("ran out of time waiting for tx status updates (%d remaining)", waitingCount)
 				timedOut = true
 			}
 		case update := <-listenerCh:
 			index, ok := waiting[update.TxID]
 			if ok {
-				mctx.CDebugf("received status update for %s: %s", update.TxID, update.Status)
+				mctx.Debug("received status update for %s: %s", update.TxID, update.Status)
 				resultList[index].Status = update.Status
 				resultList[index].StatusDescription = stellar1.PaymentStatusRevMap[update.Status]
 				if update.Status != stellar1.PaymentStatus_PENDING {
 					waitingCount--
 					resultList[index].EndTime = stellar1.ToTimeMs(time.Now())
 					delete(waiting, update.TxID)
-					mctx.CDebugf("no longer waiting for %s status updates (%d remaining)", update.TxID, waitingCount)
+					mctx.Debug("no longer waiting for %s status updates (%d remaining)", update.TxID, waitingCount)
 				}
 				if update.Status == stellar1.PaymentStatus_COMPLETED || update.Status == stellar1.PaymentStatus_CLAIMABLE {
 					chatWaitGroup.Add(1)
 					go func(m libkb.MetaContext, recipient string, txID stellar1.TransactionID) {
 						if err := chatSendPaymentMessageTo(m, recipient, txID); err != nil {
-							m.CDebugf("chatSendPaymentMessageTo %s (%s): error: %s", recipient, txID, err)
+							m.Debug("chatSendPaymentMessageTo %s (%s): error: %s", recipient, txID, err)
 						} else {
-							m.CDebugf("chatSendPaymentMessageTo %s (%s): success", recipient, txID)
+							m.Debug("chatSendPaymentMessageTo %s (%s): success", recipient, txID)
 						}
 
 						chatWaitGroup.Done()
@@ -137,11 +137,11 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	}
 
 	res.AllCompleteTime = stellar1.ToTimeMs(time.Now())
-	mctx.CDebugf("done waiting for payments to complete")
+	mctx.Debug("done waiting for payments to complete")
 
-	mctx.CDebugf("waiting for chat messages to finish sending")
+	mctx.Debug("waiting for chat messages to finish sending")
 	chatWaitGroup.Wait()
-	mctx.CDebugf("done waiting for chat messages to finish sending")
+	mctx.Debug("done waiting for chat messages to finish sending")
 
 	res.Payments = resultList
 	res.EndTime = stellar1.ToTimeMs(time.Now())
@@ -154,7 +154,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 // Each payment is prepared concurrently.
 // (this is an exposed function to make testing from outside this package easier)
 func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, func(), error) {
-	mctx.CDebugf("preparing %d batch payments", len(payments))
+	mctx.Debug("preparing %d batch payments", len(payments))
 
 	baseFee := walletState.BaseFee(mctx)
 
@@ -180,7 +180,7 @@ func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, send
 func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, baseFee uint64) *MiniPrepared {
 	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(payment.Recipient), false /* isCLI for identify purposes */)
 	if err != nil {
-		mctx.CDebugf("LookupRecipient error: %s", err)
+		mctx.Debug("LookupRecipient error: %s", err)
 		return &MiniPrepared{
 			Username: libkb.NewNormalizedUsername(payment.Recipient),
 			Error:    errors.New("error looking up recipient"),
@@ -365,12 +365,12 @@ func makeResultError(res *stellar1.BatchPaymentResult, err error) {
 }
 
 func submitBatchTx(mctx libkb.MetaContext, walletState *WalletState, senderAccountID stellar1.AccountID, prepared *MiniPrepared, bpResult *stellar1.BatchPaymentResult) {
-	mctx.CDebugf("submitting batch payment seqno %d", prepared.Seqno)
+	mctx.Debug("submitting batch payment seqno %d", prepared.Seqno)
 
 	err := walletState.AddPendingTx(mctx.Ctx(), senderAccountID, prepared.TxID, prepared.Seqno)
 	if err != nil {
 		// it's ok to keep going here
-		mctx.CDebugf("error calling AddPendingTx: %s", err)
+		mctx.Debug("error calling AddPendingTx: %s", err)
 	}
 
 	var submitRes stellar1.PaymentResult
@@ -386,7 +386,7 @@ func submitBatchTx(mctx libkb.MetaContext, walletState *WalletState, senderAccou
 	bpResult.SubmittedTime = stellar1.ToTimeMs(time.Now())
 
 	if err != nil {
-		mctx.CDebugf("error submitting batch payment seqno %d, txid %s: %s", prepared.Seqno, prepared.TxID, err)
+		mctx.Debug("error submitting batch payment seqno %d, txid %s: %s", prepared.Seqno, prepared.TxID, err)
 		makeResultError(bpResult, err)
 		return
 	}

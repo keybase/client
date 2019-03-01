@@ -457,7 +457,7 @@ func ExtensionPostText(strConvID, name string, public bool, membersType int, bod
 			Body: body,
 		}),
 	}
-	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, &outboxID); err != nil {
+	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, &outboxID, nil); err != nil {
 		return err
 	}
 	extensionRegisterSendNonblock(ctx, gc, convID, outboxID)

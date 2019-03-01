@@ -128,17 +128,27 @@ function* load(state, action) {
   if (!guiID.guiID) {
     throw new Error('No guid on profile 2 load? ' + action.payload.assertion || '')
   }
-  yield* Saga.callRPCs(
-    RPCTypes.identify3Identify3RpcSaga({
-      incomingCallMap: {},
-      params: {
-        assertion: action.payload.assertion,
+  try {
+    yield* Saga.callRPCs(
+      RPCTypes.identify3Identify3RpcSaga({
+        incomingCallMap: {},
+        params: {
+          assertion: action.payload.assertion,
+          guiID: action.payload.guiID,
+          ignoreCache: !!action.payload.ignoreCache,
+        },
+        waitingKey: Constants.waitingKey,
+      })
+    )
+  } catch (err) {
+    yield Saga.put(
+      Tracker2Gen.createUpdateResult({
         guiID: action.payload.guiID,
-        ignoreCache: !!action.payload.ignoreCache,
-      },
-      waitingKey: Constants.waitingKey,
-    })
-  )
+        reason: 'Error loading entire profile',
+        result: 'error',
+      })
+    )
+  }
 }
 
 // Just to bridge the old action
@@ -166,9 +176,17 @@ const loadFollow = (_, action) => {
     Promise.all([
       RPCTypes.userListTrackers2RpcPromise({assertion, reverse: false}).then(convert),
       RPCTypes.userListTrackers2RpcPromise({assertion, reverse: true}).then(convert),
-    ]).then(([followers, following]) => {
-      return Tracker2Gen.createUpdateFollowers({followers, following, username: action.payload.assertion})
-    })
+    ])
+      .then(([followers, following]) =>
+        Tracker2Gen.createUpdateFollowers({followers, following, username: action.payload.assertion})
+      )
+      .catch(_ =>
+        Tracker2Gen.createUpdateResult({
+          guiID: action.payload.guiID,
+          reason: 'Error loading followers',
+          result: 'error',
+        })
+      )
   )
 }
 

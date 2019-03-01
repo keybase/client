@@ -113,7 +113,7 @@ func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHin
 	if i.checkStatusHook != nil {
 		return nil, i.checkStatusHook(h, pcm)
 	}
-	m.CDebugf("Check status rubber stamp: %+v", h)
+	m.Debug("Check status rubber stamp: %+v", h)
 	return nil, nil
 }
 

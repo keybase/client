@@ -187,7 +187,7 @@ func (e *PaperKeyGen) makeEncKey(seed []byte) error {
 }
 
 func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientHalf libkb.LKSecClientHalf, ppgen libkb.PassphraseGeneration, err error) {
-	defer m.CTrace("PaperKeyGen#getClientHalfFromSecretStore", func() error { return err })
+	defer m.Trace("PaperKeyGen#getClientHalfFromSecretStore", func() error { return err })
 
 	secretStore := libkb.NewSecretStore(e.G(), e.arg.Me.GetNormalizedName())
 	if secretStore == nil {
@@ -224,7 +224,7 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore(m libkb.MetaContext) (clientH
 }
 
 func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PaperKeyGen#push", func() error { return err })()
+	defer m.Trace("PaperKeyGen#push", func() error { return err })()
 	if e.arg.SkipPush {
 		return nil
 	}
@@ -249,11 +249,11 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 	var ppgen libkb.PassphraseGeneration
 	var clientHalf libkb.LKSecClientHalf
 	if stream := m.PassphraseStream(); stream != nil {
-		m.CDebugf("Got cached passphrase stream")
+		m.Debug("Got cached passphrase stream")
 		clientHalf = stream.LksClientHalf()
 		ppgen = stream.Generation()
 	} else {
-		m.CDebugf("Got nil passphrase stream; going to secret store")
+		m.Debug("Got nil passphrase stream; going to secret store")
 		// stream was nil, so we must have loaded lks from the secret
 		// store.
 		clientHalf, ppgen, err = e.getClientHalfFromSecretStore(m)
@@ -316,12 +316,12 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	m.CDebugf("PaperKeyGen#push running delegators")
+	m.Debug("PaperKeyGen#push running delegators")
 	return libkb.DelegatorAggregator(m, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil, nil)
 }
 
 func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
-	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes")
+	m.Debug("PaperKeyGen#makePerUserKeyBoxes")
 
 	var pukBoxes []keybase1.PerUserKeyBox
 	pukring, err := e.getPerUserKeyring(m)
@@ -340,7 +340,7 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUs
 		}
 		pukBoxes = append(pukBoxes, pukBox)
 	}
-	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
+	m.Debug("PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
 	return pukBoxes, nil
 }
 

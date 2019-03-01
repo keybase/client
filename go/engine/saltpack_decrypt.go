@@ -61,7 +61,7 @@ func (e *SaltpackDecrypt) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybase1.KID, isAnon bool) (err error) {
-	defer m.CTrace("SaltpackDecrypt#promptForDecrypt", func() error { return err })()
+	defer m.Trace("SaltpackDecrypt#promptForDecrypt", func() error { return err })()
 
 	spsiArg := SaltpackSenderIdentifyArg{
 		isAnon:           isAnon,
@@ -130,7 +130,7 @@ func (t *nilPseudonymResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Sy
 
 // Run starts the engine.
 func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SaltpackDecrypt::Run", func() error { return err })()
+	defer m.Trace("SaltpackDecrypt::Run", func() error { return err })()
 
 	// We don't load this in the --paperkey case.
 	var me *libkb.User
@@ -149,7 +149,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		addToKeyring(keyring, &encryptionNaclKeyPair)
 
 		// If a paper key is used, we do not have PUK or an active session, so we cannot talk to the server to resolve pseudonym.
-		m.CDebugf("substituting the default PseudonymResolver as a paper key is being used for decryption")
+		m.Debug("substituting the default PseudonymResolver as a paper key is being used for decryption")
 		e.pnymResolver = &nilPseudonymResolver{}
 	} else {
 		// This does require you to be logged in.
@@ -170,7 +170,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		if err != nil {
 			return err
 		}
-		m.CDebugf("adding device key for decryption: %v", key.GetKID())
+		m.Debug("adding device key for decryption: %v", key.GetKID())
 		addToKeyring(keyring, key)
 
 		perUserKeyring, err := m.G().GetPerUserKeyring(m.Ctx())
@@ -180,7 +180,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		pukGen := perUserKeyring.CurrentGeneration()
 		for i := 1; i <= int(pukGen); i++ {
 			key, err = perUserKeyring.GetEncryptionKeyByGeneration(m, keybase1.PerUserKeyGeneration(i))
-			m.CDebugf("adding per user key at generation %v for decryption: %v", i, key.GetKID())
+			m.Debug("adding per user key at generation %v for decryption: %v", i, key.GetKID())
 			if err != nil {
 				return err
 			}
@@ -205,11 +205,11 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		return e.promptForDecrypt(m, kidToIdentify, isAnon)
 	}
 
-	m.CDebugf("| SaltpackDecrypt")
+	m.Debug("| SaltpackDecrypt")
 	var mki *saltpack.MessageKeyInfo
 	mki, err = libkb.SaltpackDecrypt(m, e.arg.Source, e.arg.Sink, keyring, hookMki, hookSenderSigningKey, e.pnymResolver)
 	if decErr, ok := err.(libkb.DecryptionError); ok && decErr.Cause == saltpack.ErrNoDecryptionKey {
-		m.CDebugf("switching cause of libkb.DecryptionError from saltpack.ErrNoDecryptionKey to more specific libkb.NoDecryptionKeyError")
+		m.Debug("switching cause of libkb.DecryptionError from saltpack.ErrNoDecryptionKey to more specific libkb.NoDecryptionKeyError")
 		if e.arg.Opts.UsePaperKey {
 			return libkb.DecryptionError{Cause: libkb.NoDecryptionKeyError{Msg: "this message was not directly encrypted for the given paper key. In some cases, you might still be able to decrypt the message from a device provisioned with this key."}}
 		}

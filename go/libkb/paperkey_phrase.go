@@ -99,7 +99,7 @@ func NewPaperKeyPhraseCheckVersion(m MetaContext, passphrase string) (ret PaperK
 		return ret, err
 	}
 	if version != PaperKeyVersion {
-		m.CDebugf("paper version mismatch: generated paper key version = %d, libkb version = %d", version, PaperKeyVersion)
+		m.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, PaperKeyVersion)
 		return ret, KeyVersionError{}
 	}
 	return paperPhrase, nil

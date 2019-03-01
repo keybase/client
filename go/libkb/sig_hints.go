@@ -130,36 +130,36 @@ func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {
 }
 
 func (sh *SigHints) Store(m MetaContext) (err error) {
-	m.CDebugf("+ SigHints.Store() for uid=%s", sh.uid)
+	m.Debug("+ SigHints.Store() for uid=%s", sh.uid)
 	if sh.dirty {
 		err = sh.G().LocalDb.Put(DbKeyUID(DBSigHints, sh.uid), []DbKey{}, sh.MarshalToJSON())
 		sh.dirty = false
 	} else {
-		m.CDebugf("| SigHints.Store() skipped; wasn't dirty")
+		m.Debug("| SigHints.Store() skipped; wasn't dirty")
 	}
-	m.CDebugf("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
+	m.Debug("- SigHints.Store() for uid=%s -> %v", sh.uid, ErrToOk(err))
 	return err
 }
 
 func LoadSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
-	defer m.CTrace(fmt.Sprintf("+ LoadSigHints(%s)", uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("+ LoadSigHints(%s)", uid), func() error { return err })()
 	var jw *jsonw.Wrapper
 	jw, err = m.G().LocalDb.Get(DbKeyUID(DBSigHints, uid))
 	if err != nil {
 		jw = nil
-		m.CDebugf("| SigHints failed to access local storage: %s", err)
+		m.Debug("| SigHints failed to access local storage: %s", err)
 	}
 	// jw might be nil here, but that's allowed.
 	sh, err = NewSigHints(jw, uid, false, m.G())
 	if err == nil {
-		m.CDebugf("| SigHints loaded @v%d", sh.version)
+		m.Debug("| SigHints loaded @v%d", sh.version)
 	}
-	m.CDebugf("- LoadSigHints(%s)", uid)
+	m.Debug("- LoadSigHints(%s)", uid)
 	return
 }
 
 func (sh *SigHints) Refresh(m MetaContext) (err error) {
-	defer m.CTrace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
 	res, err := m.G().API.Get(APIArg{
 		Endpoint:    "sig/hints",
 		SessionType: APISessionTypeNONE,
@@ -177,14 +177,14 @@ func (sh *SigHints) Refresh(m MetaContext) (err error) {
 }
 
 func (sh *SigHints) RefreshWith(m MetaContext, jw *jsonw.Wrapper) (err error) {
-	defer m.CTrace("RefreshWith", func() error { return err })()
+	defer m.Trace("RefreshWith", func() error { return err })()
 
 	n, err := jw.AtKey("hints").Len()
 	if err != nil {
 		return err
 	}
 	if n == 0 {
-		m.CDebugf("| No changes; version %d was up-to-date", sh.version)
+		m.Debug("| No changes; version %d was up-to-date", sh.version)
 	} else if err = sh.PopulateWith(jw); err != nil {
 		return err
 	} else {

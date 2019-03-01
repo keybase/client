@@ -75,12 +75,12 @@ func (t *TrackerSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err er
 	var tmp Trackers
 	found, err = t.G().LocalDb.GetInto(&tmp, t.dbKey(uid))
 
-	m.CDebugf("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
+	m.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if found {
-		m.CDebugf("| Loaded version %d", tmp.Version)
+		m.Debug("| Loaded version %d", tmp.Version)
 		t.trackers = &tmp
 	} else if err == nil {
-		m.CDebugf("| Loaded empty record set")
+		m.Debug("| Loaded empty record set")
 	}
 
 	return err
@@ -129,7 +129,7 @@ func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		SessionType: APISessionTypeNONE,
 		MetaContext: m,
 	})
-	m.CDebugf("| syncFromServer() -> %s", ErrToOk(err))
+	m.Debug("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {
 		return
 	}
@@ -138,15 +138,15 @@ func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		return
 	}
 	if lv < 0 || tmp.Version > lv || forceReload {
-		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
+		m.Debug("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
 			len(tmp.Trackers))
 		tmp = tmp.compact()
-		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
+		m.Debug("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
 			len(tmp.Trackers))
 		t.trackers = &tmp
 		t.dirty = true
 	} else {
-		m.CDebugf("| syncFromServer(): no change needed @ %d", lv)
+		m.Debug("| syncFromServer(): no change needed @ %d", lv)
 	}
 
 	return

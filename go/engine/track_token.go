@@ -65,14 +65,14 @@ func (e *TrackToken) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("TrackToken#Run", func() error { return err })()
+	defer m.Trace("TrackToken#Run", func() error { return err })()
 
 	if len(e.arg.Token) == 0 && e.arg.Outcome == nil {
 		err = fmt.Errorf("missing TrackToken argument")
 		return err
 	}
 	if err = e.loadMe(m); err != nil {
-		m.CInfof("loadme err: %s", err)
+		m.Info("loadme err: %s", err)
 		return err
 	}
 
@@ -86,7 +86,7 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if outcome.TrackStatus() == keybase1.TrackStatus_UPDATE_OK && !e.arg.Options.ForceRetrack {
-		m.CDebugf("tracking statement up-to-date.")
+		m.Debug("tracking statement up-to-date.")
 		return nil
 	}
 
@@ -100,7 +100,7 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if err = e.isTrackTokenStale(m, outcome); err != nil {
-		m.CDebugf("Track statement is stale")
+		m.Debug("Track statement is stale")
 		return err
 	}
 
@@ -112,17 +112,17 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 
 	e.trackStatement, err = e.arg.Me.TrackingProofFor(m, signingKeyPub, libkb.SigVersion(*e.arg.Options.SigVersion), e.them, outcome)
 	if err != nil {
-		m.CDebugf("tracking proof err: %s", err)
+		m.Debug("tracking proof err: %s", err)
 		return err
 	}
 	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
 		return err
 	}
 
-	m.CDebugf("| Tracking statement: %s", string(e.trackStatementBytes))
+	m.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
 
 	if e.arg.Options.LocalOnly || e.arg.Options.ExpiringLocal {
-		m.CDebugf("| Local")
+		m.Debug("| Local")
 		err = e.storeLocalTrack(m)
 	} else {
 		err = e.storeRemoteTrack(m, signingKeyPub.GetKID())
@@ -173,7 +173,7 @@ func (e *TrackToken) isTrackTokenStale(m libkb.MetaContext, o *libkb.IdentifyOut
 	} else if o.TrackUsed.GetTrackerSeqno() < lastTrack.GetSeqno() {
 		// Similarly, if there was a last track for this user that wasn't the
 		// one we were expecting, someone also must have intervened.
-		m.CDebugf("Stale track! We were at seqno %d, but %d is already in chain", o.TrackUsed.GetTrackerSeqno(), lastTrack.GetSeqno())
+		m.Debug("Stale track! We were at seqno %d, but %d is already in chain", o.TrackUsed.GetTrackerSeqno(), lastTrack.GetSeqno())
 		return libkb.TrackStaleError{FirstTrack: false}
 	}
 	return nil
@@ -208,7 +208,7 @@ func (e *TrackToken) storeLocalTrack(m libkb.MetaContext) error {
 }
 
 func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) (err error) {
-	defer m.CTrace("TrackToken#StoreRemoteTrack", func() error { return err })()
+	defer m.Trace("TrackToken#StoreRemoteTrack", func() error { return err })()
 
 	// need unlocked signing key
 	me := e.arg.Me
@@ -266,7 +266,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 	})
 
 	if err != nil {
-		m.CWarningf("api error: %s", err)
+		m.Warning("api error: %s", err)
 		return err
 	}
 
@@ -277,7 +277,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 }
 
 func (e *TrackToken) removeLocalTracks(m libkb.MetaContext) (err error) {
-	defer m.CTrace("removeLocalTracks", func() error { return err })()
+	defer m.Trace("removeLocalTracks", func() error { return err })()
 	err = libkb.RemoveLocalTracks(m, e.arg.Me.GetUID(), e.them.GetUID())
 	return err
 }

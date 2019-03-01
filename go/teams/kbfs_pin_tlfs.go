@@ -27,14 +27,14 @@ func getUnpinnedTLF(m libkb.MetaContext) (res *unpinnedTLF, err error) {
 }
 
 func (b *backgroundTLFPinner) pinTLF(m libkb.MetaContext, tlf unpinnedTLF) (err error) {
-	defer m.CTrace(fmt.Sprintf("pinTLF(%+v)", tlf), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("pinTLF(%+v)", tlf), func() error { return err })()
 	team, err := GetForTeamManagementByTeamID(m.Ctx(), m.G(), tlf.TeamID, false)
 	if err != nil {
 		return err
 	}
 	ids := team.KBFSTLFIDs()
 	if len(ids) > 0 {
-		m.CDebugf("Team %+v already has a TLF IDs in chain (%+v); ignoring", tlf.TeamID, ids)
+		m.Debug("Team %+v already has a TLF IDs in chain (%+v); ignoring", tlf.TeamID, ids)
 		return nil
 	}
 	role, err := team.myRole(m.Ctx())
@@ -64,7 +64,7 @@ func (r *unpinnedTLFsRaw) GetAppStatus() *libkb.AppStatus {
 
 func (b *backgroundTLFPinner) pinOneTLF(m libkb.MetaContext) (done bool, err error) {
 	m = m.WithLogTag("PIN")
-	defer m.CTrace("pinOneTLF", func() error { return err })()
+	defer m.Trace("pinOneTLF", func() error { return err })()
 
 	tlf, err := b.getUnpinnedTLF(m)
 	if err != nil {
@@ -72,7 +72,7 @@ func (b *backgroundTLFPinner) pinOneTLF(m libkb.MetaContext) (done bool, err err
 	}
 
 	if tlf == nil {
-		m.CDebugf("work done, no TLFs need upgrade")
+		m.Debug("work done, no TLFs need upgrade")
 		return true, nil
 	}
 	err = b.pinTLF(m, *tlf)
@@ -93,7 +93,7 @@ var _ pinLoopTimer = defaultPinLoopTimer{}
 
 func (p defaultPinLoopTimer) wait(m libkb.MetaContext, why string, rangeMinutes int64, minMinutes int64) error {
 	dur := time.Duration(minMinutes)*time.Minute + time.Duration(insecurerand.Int63n(rangeMinutes*60))*time.Second
-	m.CDebugf("BackgroundPinLoop: waiting %v before %s", dur, why)
+	m.Debug("BackgroundPinLoop: waiting %v before %s", dur, why)
 	wakeAt := m.G().Clock().Now().Add(dur)
 	return libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt)
 }
@@ -132,7 +132,7 @@ func (b *backgroundTLFPinner) run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("PIN")
 
 	uv := m.CurrentUserVersion()
-	defer m.CTrace(fmt.Sprintf("teams.BackgroundPinTLFLoop(%+v)", uv), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("teams.BackgroundPinTLFLoop(%+v)", uv), func() error { return err })()
 
 	// For the purposes of testing, get make a note of when we are done.
 	defer func() {
@@ -149,16 +149,16 @@ func (b *backgroundTLFPinner) run(m libkb.MetaContext) (err error) {
 	for {
 		uv2 := m.CurrentUserVersion()
 		if !uv.Eq(uv2) {
-			m.CDebugf("leaving loop since, we changed to new user version %+v (or logged out)", uv2)
+			m.Debug("leaving loop since, we changed to new user version %+v (or logged out)", uv2)
 			return libkb.NewLoginRequiredError(fmt.Sprintf("required a login for user %+v", uv))
 		}
 		done, tmp := b.pinOneTLF(m)
 		if done {
-			m.CDebugf("done with TLF BG pin operation")
+			m.Debug("done with TLF BG pin operation")
 			return nil
 		}
 		if tmp != nil {
-			m.CWarningf("TLF Pin operation failed: %v", tmp)
+			m.Warning("TLF Pin operation failed: %v", tmp)
 		}
 		err = b.timer.LoopWait(m, tmp)
 		if err != nil {

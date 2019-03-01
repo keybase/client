@@ -38,7 +38,7 @@ func (s *storageGeneric) put(mctx libkb.MetaContext, state teamDataGeneric) {
 
 	err := s.disk.put(mctx, state)
 	if err != nil {
-		mctx.CWarningf("teams.Storage#Put err: %v", err)
+		mctx.Warning("teams.Storage#Put err: %v", err)
 	}
 }
 
@@ -62,7 +62,7 @@ func (s *storageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamID, pub
 		return res
 	}
 	if err != nil {
-		mctx.CDebugf("teams.Storage#Get(%v) disk err: %v", teamID, err)
+		mctx.Debug("teams.Storage#Get(%v) disk err: %v", teamID, err)
 	}
 	mctx.VLogf(libkb.VLog0, "teams.Storage#Get(%v) missed (%s)", teamID, s.description)
 	return nil
@@ -124,7 +124,7 @@ func (s *diskStorageGeneric) put(mctx libkb.MetaContext, state teamDataGeneric) 
 	defer s.Unlock()
 
 	if !mctx.ActiveDevice().Valid() && !state.IsPublic() {
-		mctx.CDebugf("skipping team store since user is logged out")
+		mctx.Debug("skipping team store since user is logged out")
 		return nil
 	}
 
@@ -225,7 +225,7 @@ func (s *memoryStorageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamI
 	}
 	state, ok := untyped.(teamDataGeneric)
 	if !ok {
-		mctx.CWarningf("Team MemoryStorage got bad type from lru: %T", untyped)
+		mctx.Warning("Team MemoryStorage got bad type from lru: %T", untyped)
 		return nil
 	}
 	return state

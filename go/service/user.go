@@ -209,7 +209,7 @@ func (h *UserHandler) LoadAllPublicKeysUnverified(ctx context.Context,
 
 func (h *UserHandler) ListTrackers2(ctx context.Context, arg keybase1.ListTrackers2Arg) (res keybase1.UserSummary2Set, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
-	defer m.CTrace(fmt.Sprintf("ListTrackers2(assertion=%s,reverse=%v)", arg.Assertion, arg.Reverse),
+	defer m.Trace(fmt.Sprintf("ListTrackers2(assertion=%s,reverse=%v)", arg.Assertion, arg.Reverse),
 		func() error { return err })()
 	eng := engine.NewListTrackers2(h.G(), arg)
 	uis := libkb.UIs{
@@ -356,7 +356,7 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 
 func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProofSuggestionsRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
-	defer mctx.CTraceTimed("ProofSuggestions", func() error { return err })()
+	defer mctx.TraceTimed("ProofSuggestions", func() error { return err })()
 	suggestions, err := h.proofSuggestionsHelper(mctx)
 	if err != nil {
 		return ret, err
@@ -425,11 +425,11 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		}
 		serviceType := mctx.G().GetProofServices().GetServiceType(service)
 		if serviceType == nil {
-			mctx.CDebugf("missing proof service type: %v", service)
+			mctx.Debug("missing proof service type: %v", service)
 			continue
 		}
 		if len(user.IDTable().GetActiveProofsFor(serviceType)) > 0 {
-			mctx.CDebugf("user has an active proof: %v", serviceType.Key())
+			mctx.Debug("user has an active proof: %v", serviceType.Key())
 			continue
 		}
 		subtext := serviceType.DisplayGroup()
@@ -537,21 +537,21 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 func (h *UserHandler) FindNextMerkleRootAfterRevoke(ctx context.Context, arg keybase1.FindNextMerkleRootAfterRevokeArg) (ret keybase1.NextMerkleRootRes, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
 	m = m.WithLogTag("FNMR")
-	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterRevoke", func() error { return err })()
+	defer m.TraceTimed("UserHandler#FindNextMerkleRootAfterRevoke", func() error { return err })()
 	return libkb.FindNextMerkleRootAfterRevoke(m, arg)
 }
 
 func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keybase1.FindNextMerkleRootAfterResetArg) (ret keybase1.NextMerkleRootRes, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
 	m = m.WithLogTag("FNMR")
-	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
+	defer m.TraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
 }
 
 func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasRandomPwArg) (res bool, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
 	m = m.WithLogTag("HASRPW")
-	defer m.CTraceTimed(fmt.Sprintf("UserHandler#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
+	defer m.TraceTimed(fmt.Sprintf("UserHandler#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
 
 	meUID := m.G().ActiveDevice.UID()
 	cacheKey := libkb.DbKey{
@@ -563,13 +563,13 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 	if !arg.ForceRepoll {
 		if hasCache, err = m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
 			if hasCache && !cachedValue {
-				m.CDebugf("Returning HasRandomPW=false from KVStore cache")
+				m.Debug("Returning HasRandomPW=false from KVStore cache")
 				return false, nil
 			}
 			// If it was never cached or user *IS* RandomPW right now, pass through
 			// and call the API.
 		} else {
-			m.CDebugf("Unable to get cached value for HasRandomPW: %v", err)
+			m.Debug("Unable to get cached value for HasRandomPW: %v", err)
 		}
 	}
 
@@ -595,11 +595,11 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		if !arg.ForceRepoll {
 			if hasCache {
 				// We are allowed to return cache if we have any.
-				m.CWarningf("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
+				m.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
 				return cachedValue, nil
 			}
 
-			m.CWarningf("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
+			m.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
 		}
 		return res, err
 	}
@@ -611,9 +611,9 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		// keep asking the network, but we will be resilient to bad network conditions
 		// because we will have this cached state to fall back on.
 		if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
-			m.CDebugf("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
+			m.Debug("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
 		} else {
-			m.CDebugf("Unable to add HasRandomPW state to KVStore")
+			m.Debug("Unable to add HasRandomPW state to KVStore")
 		}
 	}
 

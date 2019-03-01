@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type teardowner struct {
@@ -133,7 +132,7 @@ func TestLevelDb(t *testing.T) {
 				require.NoError(t, err)
 
 				// cleaner will not clean the key since it was recently used
-				err = db.cleaner.clean(context.TODO(), true /* force */)
+				err = db.cleaner.clean(true /* force */)
 				require.NoError(t, err)
 				_, found, err := db.Get(key)
 				require.NoError(t, err)
@@ -143,7 +142,7 @@ func TestLevelDb(t *testing.T) {
 				require.True(t, found)
 
 				db.cleaner.clearCache()
-				err = db.cleaner.clean(context.TODO(), true /* force */)
+				err = db.cleaner.clean(true /* force */)
 				require.NoError(t, err)
 				_, found, err = db.Get(key)
 				require.NoError(t, err)

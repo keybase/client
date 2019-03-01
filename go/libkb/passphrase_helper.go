@@ -224,7 +224,7 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 
 	// check for empty
 	if len(phrase.String()) == 0 {
-		m.CDebugf("paper phrase is empty")
+		m.Debug("paper phrase is empty")
 		return PassphraseError{Msg: "Empty paper key. Please try again."}
 	}
 
@@ -236,7 +236,7 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 	// check for invalid words
 	invalids := phrase.InvalidWords()
 	if len(invalids) > 0 {
-		m.CDebugf("paper phrase has invalid word(s) in it")
+		m.Debug("paper phrase has invalid word(s) in it")
 		var perr PassphraseError
 		if len(invalids) > 1 {
 			perr.Msg = fmt.Sprintf("Please try again. These words are invalid: %s", strings.Join(invalids, ", "))
@@ -249,12 +249,12 @@ func (p *PaperChecker) Check(m MetaContext, s string) error {
 	// check version
 	version, err := phrase.Version()
 	if err != nil {
-		m.CDebugf("error getting paper key version: %s", err)
+		m.Debug("error getting paper key version: %s", err)
 		// despite the error, just tell the user the paper key is wrong:
 		return PassphraseError{Msg: "Wrong paper key. Please try again."}
 	}
 	if version != PaperKeyVersion {
-		m.CDebugf("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
+		m.Debug("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
 		return PassphraseError{Msg: "Wrong paper key. Please try again."}
 	}
 

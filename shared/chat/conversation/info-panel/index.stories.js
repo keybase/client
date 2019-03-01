@@ -6,6 +6,7 @@ import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {InfoPanel, type InfoPanelProps} from '.'
+import addToChannel from './add-to-channel/index.stories'
 
 const onlyValidConversationsProps = {
   conversationIDKey: 'fake key',
@@ -152,6 +153,8 @@ const bigTeamNoPreviewProps = {
 }
 
 const load = () => {
+  addToChannel()
+
   Sb.storiesOf('Chat/Conversation/InfoPanel', module)
     .addDecorator(provider)
     .addDecorator(story => (

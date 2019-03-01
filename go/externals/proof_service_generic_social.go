@@ -194,7 +194,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 	}
 
 	// We expect a single result to match which contains an array of proofs.
-	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf, libkb.NewInvalidPVLSelectorError)
+	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.Debug, libkb.NewInvalidPVLSelectorError)
 	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
 		return nil, perrInner
 	}
@@ -229,7 +229,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 
 	humanURL, err := rc.config.profileURLWithValues(remoteUsername)
 	if err != nil {
-		mctx.CDebugf("Unable to generate humanURL for verifiedSigHint: %v", err)
+		mctx.Debug("Unable to generate humanURL for verifiedSigHint: %v", err)
 		humanURL = ""
 	}
 	verifiedSigHint := libkb.NewVerifiedSigHint(sigID, "" /* remoteID */, apiURL, humanURL, "" /* checkText */)
