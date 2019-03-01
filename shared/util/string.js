@@ -1,13 +1,8 @@
 // @flow
 
 // Add pluralization rules as necessary
-<<<<<<< HEAD
 function pluralize(str: string, count?: number): string {
   return count === 1 ? str : str.endsWith('s') ? str : `${str}s`
-=======
-export function pluralize(str: string): string {
-  return str.endsWith('s') ? str : `${str}s`
->>>>>>> master
 }
 
 export function smartPluralize(str: string, amt: number): string {
