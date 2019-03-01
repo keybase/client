@@ -52,6 +52,7 @@ protocol local {
   record MessageFlip {
     string text;
     FlipGameID gameID;
+    ConversationID flipConvID;
   }
 
   enum MessageSystemType {

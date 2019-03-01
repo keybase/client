@@ -444,6 +444,7 @@ type CoinFlipManager interface {
 	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
 	DescribeFlipText(ctx context.Context, text string) string
 	HasActiveGames(ctx context.Context) bool
+	IsFlipConversationCreated(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID) (chat1.ConversationID, bool)
 }
 
 type InternalError interface {

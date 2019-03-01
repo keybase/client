@@ -446,3 +446,8 @@ func (d DummyCoinFlipManager) DescribeFlipText(ctx context.Context, text string)
 func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
 	return false
 }
+
+func (d DummyCoinFlipManager) IsFlipConversationCreated(ctx context.Context, convID chat1.ConversationID,
+	gameID chat1.FlipGameID) (chat1.ConversationID, bool) {
+	return nil, false
+}

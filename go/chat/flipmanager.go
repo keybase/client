@@ -134,6 +134,7 @@ type FlipManager struct {
 	gamesMu    sync.Mutex
 	games      *lru.Cache
 	dirtyGames map[string]chat1.FlipGameID
+	flipConvs  *lru.Cache
 
 	partMu                     sync.Mutex
 	maxConvParticipations      int
@@ -146,6 +147,7 @@ type FlipManager struct {
 
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
 	games, _ := lru.New(100)
+	flipConvs, _ := lru.New(100)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
 		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
@@ -162,6 +164,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		mobileVisualizer:           NewFlipVisualizer(220, 100),
 		cardMap:                    make(map[string]int),
 		cardReverseMap:             make(map[int]string),
+		flipConvs:                  flipConvs,
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -795,6 +798,18 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	if err != nil {
 		return err
 	}
+
+	// Generate dev channel for game messages
+	go func() {
+		topicName := m.gameTopicNameFromGameID(gameID)
+		conv, err := m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
+			chat1.TopicType_DEV, hostConv.GetMembersType(),
+			keybase1.TLFVisibility_PRIVATE, &hostConvID)
+		if err != nil {
+			return err
+		}
+	}()
+
 	listener := newSentMessageListener(m.G(), outboxID)
 	nid := m.G().NotifyRouter.AddListener(listener)
 	if _, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
@@ -809,15 +824,6 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return sendRes.Err
 	}
 	m.G().NotifyRouter.RemoveListener(nid)
-
-	// Generate dev channel for game messages
-	topicName := m.gameTopicNameFromGameID(gameID)
-	conv, err := m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
-		chat1.TopicType_DEV, hostConv.GetMembersType(),
-		keybase1.TLFVisibility_PRIVATE, &hostConvID)
-	if err != nil {
-		return err
-	}
 
 	nPlayersApprox := len(hostConv.Conv.Metadata.AllList)
 	m.Debug(ctx, "StartFlip: generating parameters for %d players", nPlayersApprox)
@@ -1079,6 +1085,12 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat
 	}
 }
 
+func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, convID chat1.ConversationID,
+	gameID chat1.FlipGameID) (chat1.ConversationID, bool) {
+	defer m.Trace(ctx, func() error { return nil }, "IsFlipConversationCreated")()
+
+}
+
 // CLogf implements the flip.DealersHelper interface
 func (m *FlipManager) CLogf(ctx context.Context, fmt string, args ...interface{}) {
 	m.Debug(ctx, fmt, args...)
@@ -1124,6 +1136,7 @@ func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID,
 	return err
 }
 
+// Me implements the flip.DealersHelper interface
 func (m *FlipManager) Me() flip.UserDevice {
 	ad := m.G().ActiveDevice
 	did := ad.DeviceID()

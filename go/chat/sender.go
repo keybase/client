@@ -1191,6 +1191,7 @@ func (e delivererBackgroundTaskError) Error() string {
 
 var errDelivererUploadInProgress = delivererBackgroundTaskError{Typ: "attachment upload"}
 var errDelivererUnfurlInProgress = delivererBackgroundTaskError{Typ: "unfurl"}
+var errDelivererFlipConvCreationInProgress = delivererBackgroundTaskError{Typ: "flip"}
 
 func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsAttachment() {
@@ -1283,12 +1284,34 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 	return obr, nil
 }
 
+func (s *Deliverer) processFlip(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+	if !obr.IsChatFlip() {
+		return obr, nil
+	}
+	gameID := obr.Msg.MessageBody.Flip().GameID
+	if flipConvID, ok := s.G().CoinFlipManager.IsFlipConversationCreated(ctx, obr.ConvID, gameID); ok {
+		body := obr.Msg.MessageBody.Flip()
+		obr.Msg.MessageBody = chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:       body.Text,
+			GameID:     body.GameID,
+			FlipConvID: flipConvID,
+		})
+		if _, err := s.outbox.UpdateMessage(ctx, obr); err != nil {
+			return obr, err
+		}
+		return obr, nil
+	}
+	return obr, errDelivererFlipConvCreationInProgress
+}
+
 func (s *Deliverer) processBackgroundTaskMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	switch obr.MessageType() {
 	case chat1.MessageType_ATTACHMENT:
 		return s.processAttachment(ctx, obr)
 	case chat1.MessageType_UNFURL:
 		return s.processUnfurl(ctx, obr)
+	case chat1.MessageType_FLIP:
+		return s.processFlip(ctx, obr)
 	default:
 		return obr, nil
 	}
