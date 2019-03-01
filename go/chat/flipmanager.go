@@ -94,11 +94,12 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 }
 
 type flipTextMetadata struct {
-	LowerBound    string
-	ShuffleItems  []string
-	DeckShuffle   bool
-	HandCardCount uint
-	HandTargets   []string
+	LowerBound        string
+	ShuffleItems      []string
+	DeckShuffle       bool
+	HandCardCount     uint
+	HandTargets       []string
+	ConvMemberShuffle bool
 }
 
 type hostMessageInfo struct {
@@ -669,7 +670,7 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 	}, nil
 }
 
-func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
+func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
 		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle(m.deck, nPlayersApprox)
@@ -697,12 +698,38 @@ func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.
 			HandCardCount: uint(handCount),
 			HandTargets:   targets,
 		}, nil
+	case arg == "@here" || arg == "@channel":
+		if len(convMembers) == 0 {
+			return flip.NewStartWithShuffle(m.clock.Now(), 1, nPlayersApprox), flipTextMetadata{
+				ShuffleItems:      []string{"@here"},
+				ConvMemberShuffle: true,
+			}, nil
+		}
+		var kuids []keybase1.UID
+		for _, uid := range convMembers {
+			kuids = append(kuids, keybase1.UID(uid.String()))
+		}
+		rows, err := m.G().UIDMapper.MapUIDsToUsernamePackages(context.TODO(), m.G(), kuids, 0, 0,
+			false)
+		if err != nil {
+			return start, metadata, err
+		}
+		var usernames []string
+		for _, r := range rows {
+			usernames = append(usernames, r.NormalizedUsername.String())
+		}
+		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(usernames)), nPlayersApprox),
+			flipTextMetadata{
+				ShuffleItems:      usernames,
+				ConvMemberShuffle: true,
+			}, nil
 	}
 	return start, metadata, errFailedToParse
 }
 
-func (m *FlipManager) startFromText(text string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata) {
+func (m *FlipManager) startFromText(text string, convMembers []gregor1.UID) (start flip.Start, metadata flipTextMetadata) {
 	var err error
+	nPlayersApprox := len(convMembers)
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
 	if len(toks) == 1 {
 		return flip.NewStartWithBool(m.clock.Now(), nPlayersApprox), flipTextMetadata{}
@@ -710,7 +737,7 @@ func (m *FlipManager) startFromText(text string, nPlayersApprox int) (start flip
 	// Combine into one argument if there is more than one
 	arg := strings.Join(toks[1:], " ")
 	// Check for special flips
-	if start, metadata, err = m.parseSpecials(arg, nPlayersApprox); err == nil {
+	if start, metadata, err = m.parseSpecials(arg, convMembers, nPlayersApprox); err == nil {
 		return start, metadata
 	}
 	// Check for /flip 20
@@ -759,7 +786,7 @@ func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.Conve
 
 func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string {
 	defer m.Trace(ctx, func() error { return nil }, "DescribeFlipText")()
-	start, metadata := m.startFromText(text, 0)
+	start, metadata := m.startFromText(text, nil)
 	typ, err := start.Params.T()
 	if err != nil {
 		m.Debug(ctx, "DescribeFlipText: failed get start typ: %s", err)
@@ -779,6 +806,8 @@ func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string 
 	case flip.FlipType_SHUFFLE:
 		if metadata.DeckShuffle {
 			return "*Shuffling a deck of cards*"
+		} else if metadata.ConvMemberShuffle {
+			return "*Shuffling all members of the conversation*"
 		} else if metadata.HandCardCount > 0 {
 			return fmt.Sprintf("*Dealing hands of %d cards*", metadata.HandCardCount)
 		}
@@ -887,9 +916,8 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Record metadata of the host message into the game thread as the first message
-	nPlayersApprox := len(hostConv.Conv.Metadata.AllList)
-	m.Debug(ctx, "StartFlip: generating parameters for %d players", nPlayersApprox)
-	start, metadata := m.startFromText(text, nPlayersApprox)
+	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(hostConv.Conv.Metadata.AllList))
+	start, metadata := m.startFromText(text, hostConv.Conv.Metadata.AllList)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		flipTextMetadata: metadata,
 		ConvID:           hostConvID,
