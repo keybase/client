@@ -364,6 +364,13 @@ const editAvatar = () =>
     })
   })
 
+const openAppStore = () =>
+  Linking.openURL(
+    isAndroid
+      ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
+      : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
+  ).catch(e => {})
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   if (flags.useNewRouter) {
     yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
@@ -385,6 +392,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshake,
     waitForStartupDetails
   )
+  yield* Saga.chainAction<ConfigGen.OpenAppStorePayload>(ConfigGen.openAppStore, openAppStore)
   yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
   yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
   // Start this immediately instead of waiting so we can do more things in parallel

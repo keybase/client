@@ -16,6 +16,7 @@ import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import * as Shared from './router.shared'
 import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
+import OutOfDate from '../app/out-of-date'
 
 /**
  * How this works:
@@ -98,6 +99,7 @@ class ModalView extends React.PureComponent<any> {
             />
           </Kb.Box2>
         )}
+        <OutOfDate />
       </>
     )
   }

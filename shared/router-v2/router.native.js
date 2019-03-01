@@ -15,6 +15,7 @@ import {useScreens} from 'react-native-screens'
 import * as Shim from './shim.native'
 import {debounce} from 'lodash-es'
 import logger from '../logger'
+import OutOfDate from '../app/out-of-date'
 
 // turn on screens
 useScreens()
@@ -52,6 +53,7 @@ class MainStackNavigator extends React.PureComponent<any> {
         <MainStackNavigatorPlain navigation={this.props.navigation} />
         <TabBar selectedTab={nameToTab[routeName]} />
         <GlobalError />
+        <OutOfDate />
       </Kb.Box2>
     )
   }
