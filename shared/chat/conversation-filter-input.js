@@ -131,7 +131,11 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           direction="horizontal"
           centerChildren={true}
           gap="tiny"
-          style={Styles.collapseStyles([styles.containerNotFiltering, this.props.style])}
+          style={Styles.collapseStyles([
+            styles.containerNotFiltering,
+            flags.useNewRouter && Styles.isMobile && styles.containerWithBackButton,
+            this.props.style,
+          ])}
           gapStart={true}
           gapEnd={true}
           fullWidth={true}
@@ -210,6 +214,9 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
+  containerWithBackButton: {
+    ...Styles.padding(0, Styles.globalMargins.tiny, 0, 0), // back button adds the left space
+  },
   filterContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
