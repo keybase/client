@@ -2219,9 +2219,6 @@ const removePendingConversation = function*() {
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
 function* createConversation2(state, action) {
-  if (!flags.newTeamBuildingForChat) {
-    return
-  }
   const username = state.config.username
   if (!username) {
     logger.error('Making a convo while logged out?')
@@ -2261,7 +2258,7 @@ function* createConversation2(state, action) {
 }
 
 const createConversation = (state, action, afterActionCreator) => {
-  if (action.type === Chat2Gen.createConversation && flags.newTeamBuildingForChat) {
+  if (action.type === Chat2Gen.createConversation) {
     return
   }
 
