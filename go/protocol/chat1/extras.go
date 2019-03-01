@@ -949,7 +949,7 @@ func (o OutboxRecord) IsUnfurl() bool {
 
 func (o OutboxRecord) IsChatFlip() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_FLIP &&
-		o.Msg.ClientHeader.Conv.TopicType == TopicType_DEV
+		o.Msg.ClientHeader.Conv.TopicType == TopicType_CHAT
 }
 
 func (o OutboxRecord) MessageType() MessageType {

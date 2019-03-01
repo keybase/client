@@ -1308,6 +1308,7 @@ func (s *Deliverer) processFlip(ctx context.Context, obr chat1.OutboxRecord) (ch
 	case types.FlipSendStatusError:
 		return obr, flipPermError{}
 	case types.FlipSendStatusSent:
+		s.Debug(ctx, "processFlip: sending with convID: %s", flipConvID)
 		obr.Msg.MessageBody = chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
 			Text:       body.Text,
 			GameID:     body.GameID,

@@ -108,9 +108,11 @@ type hostMessageInfo struct {
 }
 
 type loadGameJob struct {
-	gameID chat1.FlipGameID
-	uid    gregor1.UID
-	convID chat1.ConversationID
+	uid        gregor1.UID
+	hostConvID chat1.ConversationID
+	hostMsgID  chat1.MessageID
+	gameID     chat1.FlipGameID
+	flipConvID chat1.ConversationID
 }
 
 type convParticipationsRateLimit struct {
@@ -795,6 +797,7 @@ func (m *FlipManager) setStartFlipSendStatus(ctx context.Context, outboxID chat1
 		payload.flipConvID = *flipConvID
 	}
 	m.flipConvs.Add(outboxID.String(), payload)
+	m.G().MessageDeliverer.ForceDeliverLoop(ctx)
 }
 
 // StartFlip implements the types.CoinFlipManager interface
@@ -837,11 +840,21 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	listener := newSentMessageListener(m.G(), outboxID)
 	nid := m.G().NotifyRouter.AddListener(listener)
-	if _, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
-		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+	sender := NewNonblockingSender(m.G(), NewBlockingSender(m.G(), NewBoxer(m.G()), m.ri))
+	if _, _, err := sender.Send(ctx, hostConvID, chat1.MessagePlaintext{
+		MessageBody: chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
 			Text:   text,
 			GameID: gameID,
-		}), chat1.MessageType_FLIP, &outboxID); err != nil {
+		}),
+		ClientHeader: chat1.MessageClientHeader{
+			TlfName:     tlfName,
+			MessageType: chat1.MessageType_FLIP,
+			Conv: chat1.ConversationIDTriple{
+				TopicType: chat1.TopicType_CHAT,
+			},
+		},
+	}, 0, &outboxID, nil); err != nil {
+		m.Debug(ctx, "StartFlip: failed to send flip message: %s", err)
 		return err
 	}
 	if err := <-convCreatedCh; err != nil {
@@ -849,16 +862,13 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return err
 	}
 	flipConvID := conv.GetConvID()
+	m.Debug(ctx, "StartFlip: flip conv created: %s", flipConvID)
 	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusSent, &flipConvID)
-
 	sendRes := <-listener.listenCh
 	if sendRes.Err != nil {
 		return sendRes.Err
 	}
 	m.G().NotifyRouter.RemoveListener(nid)
-
-	nPlayersApprox := len(hostConv.Conv.Metadata.AllList)
-	m.Debug(ctx, "StartFlip: generating parameters for %d players", nPlayersApprox)
 
 	// Preserve the ephemeral lifetime from the conv/message to the game
 	// conversation.
@@ -876,6 +886,8 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Record metadata of the host message into the game thread as the first message
+	nPlayersApprox := len(hostConv.Conv.Metadata.AllList)
+	m.Debug(ctx, "StartFlip: generating parameters for %d players", nPlayersApprox)
 	start, metadata := m.startFromText(text, nPlayersApprox)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		flipTextMetadata: metadata,
@@ -1014,28 +1026,23 @@ func (m *FlipManager) HasActiveGames(ctx context.Context) bool {
 }
 
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
-	defer m.Trace(ctx, func() error { return err }, "loadGame: convID: %s gameID: %s",
-		job.convID, job.gameID)()
-	// Attempt to find the conversation for the game ID
-	conv, err := utils.GetVerifiedConv(ctx, m.G(), job.uid, job.convID,
-		types.InboxSourceDataSourceAll)
+	defer m.Trace(ctx, func() error { return err },
+		"loadGame: hostConvID: %s flipConvID: %s gameID: %s hostMsgID: %d",
+		job.hostConvID, job.flipConvID, job.gameID, job.hostMsgID)()
+
+	// Check to make sure the flip conversation aligns with the host message
+	flipConvID := job.flipConvID
+	hmi, err := m.getHostMessageInfo(ctx, flipConvID)
 	if err != nil {
-		m.Debug(ctx, "loadGame: failed to load conv for job: %s", err)
+		m.Debug(ctx, "loadGame: failed to get host message info: %s", err)
 		return err
 	}
-	topicName := m.gameTopicNameFromGameID(job.gameID)
-	flipConvs, err := m.G().ChatHelper.FindConversations(ctx, conv.Info.TlfName,
-		&topicName, chat1.TopicType_DEV, conv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
-	if err != nil {
-		m.Debug(ctx, "loadGame: failure finding flip conv: %s", err)
-		return err
+	if !(hmi.ConvID.Eq(job.hostConvID) && hmi.MsgID == job.hostMsgID) {
+		m.Debug(ctx, "loadGame: host message info mismatch: job.hostConvID: %s hmi.ConvID: %s job.hostMsgID: %d hmi.msgID: %d", job.hostConvID, hmi.ConvID, job.hostMsgID, hmi.MsgID)
+		return errors.New("flip conversation does not match host message info")
 	}
-	if len(flipConvs) != 1 {
-		m.Debug(ctx, "loadGame: bad number of convs: num: %d", len(flipConvs))
-		return errors.New("no conv found")
-	}
-	flipConv := flipConvs[0]
-	tv, err := m.G().ConvSource.PullFull(ctx, flipConv.GetConvID(), job.uid,
+
+	tv, err := m.G().ConvSource.PullFull(ctx, flipConvID, job.uid,
 		chat1.GetThreadReason_COINFLIP, nil, nil)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to pull thread:  %s", err)
@@ -1074,7 +1081,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
 		// Make sure we aren't current playing this game, and bail out if we are
-		if m.dealer.IsGameActive(ctx, flipConv.GetConvID(), job.gameID) {
+		if m.dealer.IsGameActive(ctx, flipConvID, job.gameID) {
 			m.Debug(ctx, "loadGame: game is currently active, bailing out")
 			return nil
 		}
@@ -1082,7 +1089,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			Err: err,
 		}
 	}
-	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConv.GetConvID(), true)
+	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
 	return nil
 }
 
@@ -1101,8 +1108,8 @@ func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 }
 
 // LoadFlip implements the types.CoinFlipManager interface
-func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	gameID chat1.FlipGameID) {
+func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
+	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) {
 	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
 	_, ok := m.games.Get(gameID.String())
 	if ok {
@@ -1111,14 +1118,17 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat
 	}
 	// If we miss the in-memory game storage, attempt to replay the game
 	job := loadGameJob{
-		gameID: gameID,
-		uid:    uid,
-		convID: convID,
+		uid:        uid,
+		hostConvID: hostConvID,
+		hostMsgID:  hostMsgID,
+		flipConvID: flipConvID,
+		gameID:     gameID,
 	}
 	select {
 	case m.loadGameCh <- job:
 	default:
-		m.Debug(ctx, "Unable to load gameID %v, convID %v, loadGameCh full.", gameID, convID)
+		m.Debug(ctx, "LoadFlip: queue full: gameID: %s hostConvID %s flipConvID: %s", gameID, hostConvID,
+			flipConvID)
 	}
 }
 

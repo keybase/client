@@ -1371,7 +1371,8 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	}
 	if msg.GetTopicType() == chat1.TopicType_CHAT {
 		// only queue up a flip load for the flip messages in chat channels
-		g.CoinFlipManager.LoadFlip(ctx, uid, convID, body.Flip().GameID)
+		g.CoinFlipManager.LoadFlip(ctx, uid, convID, msg.GetMessageID(), body.Flip().FlipConvID,
+			body.Flip().GameID)
 	}
 	ret := body.Flip().GameID.String()
 	return &ret

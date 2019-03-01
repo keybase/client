@@ -1146,6 +1146,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		SendPayment:        mb.Sendpayment__,
 		RequestPayment:     mb.Requestpayment__,
 		Unfurl:             mb.Unfurl__,
+		Flip:               mb.Flip__,
 	}
 }
 
@@ -1272,6 +1273,7 @@ type MsgContent struct {
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
 	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
+	Flip               *chat1.MessageFlip                 `json:"flip,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
