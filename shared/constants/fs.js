@@ -201,7 +201,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   fuseStatus: null,
   kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
-  localHTTPServerInfo: null,
+  localHTTPServerInfo: makeLocalHTTPServer(),
   moveOrCopy: makeMoveOrCopy(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
@@ -504,16 +504,12 @@ const encodePathForURL = (path: Types.Path) =>
     )
 
 const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (
-  path: Types.Path,
-  localHTTPServerInfo: ?$ReadOnly<Types._LocalHTTPServer>
-): string => {
-  if (localHTTPServerInfo === null) {
+export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.LocalHTTPServer): string => {
+  const {address, token} = localHTTPServerInfo
+  if (!address || !token) {
     return 'about:blank'
   }
-  const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
   const encoded = encodePathForURL(path)
-
   return `http://${address}/files/${encoded}?token=${token}`
 }
 
