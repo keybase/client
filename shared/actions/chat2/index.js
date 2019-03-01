@@ -2258,17 +2258,10 @@ function* createConversation2(state, action) {
 }
 
 const createConversation = (state, action, afterActionCreator) => {
-  let participants
-
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
     logger.warn("Can't find message to reply to", ordinal)
-    return
-  }
-  participants = [message.author]
-
-  if (!participants) {
     return
   }
 
@@ -2280,9 +2273,7 @@ const createConversation = (state, action, afterActionCreator) => {
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-      tlfName: I.Set([username])
-        .concat(participants)
-        .join(','),
+      tlfName: I.Set([username, message.author]).join(','),
       tlfVisibility: RPCTypes.commonTLFVisibility.private,
       topicType: RPCChatTypes.commonTopicType.chat,
     },
@@ -2295,23 +2286,14 @@ const createConversation = (state, action, afterActionCreator) => {
         return
       }
 
-      switch (action.type) {
-        case Chat2Gen.createConversation:
-          return [
-            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}),
-            Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}),
-          ]
-        case Chat2Gen.messageReplyPrivately: {
-          return [
-            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
-            Chat2Gen.createMessageSetQuoting({
-              ordinal: action.payload.ordinal,
-              sourceConversationIDKey: action.payload.sourceConversationIDKey,
-              targetConversationIDKey: conversationIDKey,
-            }),
-          ]
-        }
-      }
+      return [
+        Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
+        Chat2Gen.createMessageSetQuoting({
+          ordinal: action.payload.ordinal,
+          sourceConversationIDKey: action.payload.sourceConversationIDKey,
+          targetConversationIDKey: conversationIDKey,
+        }),
+      ]
     })
     .catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
 }
