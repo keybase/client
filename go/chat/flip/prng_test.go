@@ -145,3 +145,25 @@ func TestPRNGCornerCases(t *testing.T) {
 	require.NotEqual(t, 0, flips)
 	require.NotEqual(t, n, flips)
 }
+
+// Test the PRNG will cover all values within a given range, if given enough attempts.
+func TestPRNGCoverage(t *testing.T) {
+
+	test := func(b byte) {
+		var secret Secret
+		secret[0] = b
+		prng := NewPRNG(secret)
+		n := 32
+		v := make([]bool, n, n)
+		for i := 0; i < n*9; i++ {
+			v[prng.Int(int64(n))] = true
+		}
+		for _, e := range v {
+			require.True(t, e)
+		}
+	}
+
+	for i := 1; i < 100; i++ {
+		test(byte(i))
+	}
+}
