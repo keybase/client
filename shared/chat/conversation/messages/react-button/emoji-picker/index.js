@@ -51,7 +51,7 @@ const cacheSections = (width: number, sections: Array<Section>) => {
 
 type Section = {
   category: string,
-  data: Array<{emojis: Array<EmojiData>, key: string}>,
+  data: $ReadOnlyArray<{emojis: Array<EmojiData>, key: string}>,
   key: string,
 }
 
@@ -61,7 +61,7 @@ type Props = {
   width: number,
 }
 type State = {
-  sections: ?Array<Section>,
+  sections: ?$ReadOnlyArray<Section>,
 }
 class EmojiPicker extends React.Component<Props, State> {
   state = {sections: cachedSections}
