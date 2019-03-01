@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as FsGen from '../fs-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
@@ -59,12 +60,29 @@ const downloadSuccess = (state, action) => {
   }
 }
 
+function* pingKbfsDaemonUntilConnected() {
+  while (true) {
+    yield Saga.delay(1e3)
+    let connected = yield* Saga.callPromise(() =>
+      RPCTypes.SimpleFSSimpleFSPingRpcPromise()
+        .then(() => true)
+        .catch(() => false)
+    )
+    if (connected) {
+      yield Saga.put(FsGen.createKbfsDaemonConnected())
+      return
+    }
+  }
+}
+
 export default function* nativeSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
   yield* Saga.chainAction<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccess)
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(
+  yield* Saga.chainGenerator<ConfigGen.InstallerRanPayload>(
     ConfigGen.installerRan,
-    // There's no separate daemon on mobile, so we are connected for free.
-    () => Promise.resolve(FsGen.createKbfsDaemonConnected())
+    // There's no separate daemon on mobile, but in case we make init more
+    // async, it might be possible we get here before KBFS is actually up. So
+    // wait until a successful ping before filing FsGen.kbfsDaemonConnected.
+    pingKbfsDaemonUntilConnected
   )
 }
