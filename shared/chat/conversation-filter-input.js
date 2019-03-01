@@ -81,6 +81,10 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
   }
 
   _setRef = r => (this._input = r)
+  _onCancel = () => {
+    this.props.onSetFilter('')
+    this._stopEditing()
+  }
 
   render() {
     let children
@@ -111,6 +115,13 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             onEnterKeyDown={this._onEnterKeyDown}
             ref={this._setRef}
             style={styles.input}
+          />
+          <Kb.Icon
+            type="iconfont-remove"
+            fontSize={16}
+            color={Styles.globalColors.black_50}
+            onClick={this._onCancel}
+            style={styles.icon}
           />
         </Kb.Box2>
       )
