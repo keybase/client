@@ -86,50 +86,51 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     let children
     if (this.state.isEditing || this.props.filter) {
       children = (
-        <Kb.Box2 direction="horizontal" style={styles.flexOne}>
-          <Kb.Icon
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
-          <Kb.Input
-            hideUnderline={true}
-            small={true}
-            value={this.props.filter}
-            hintText="Jump to..."
-            onChangeText={this.props.onSetFilter}
-            onFocus={this._startEditing}
-            onBlur={this._stopEditing}
-            onKeyDown={this._onKeyDown}
-            onEnterKeyDown={this._onEnterKeyDown}
-            ref={this._setRef}
-            style={styles.text}
-          />
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={Styles.collapseStyles([styles.container, this.props.style])}
+        >
+          <Kb.Box2
+            gapStart={true}
+            direction="horizontal"
+            fullWidth={true}
+            fullHeight={true}
+            alignItems="center"
+            gap="xsmall"
+          >
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              fullHeight={true}
+              gap="xtiny"
+              alignItems="center"
+            >
+              <Kb.Icon
+                type="iconfont-search"
+                style={styles.icon}
+                color={Styles.globalColors.black_50}
+                fontSize={Styles.isMobile ? 20 : 16}
+              />
+              <Kb.Input
+                hideUnderline={true}
+                small={true}
+                value={this.props.filter}
+                hintText="Jump to..."
+                onChangeText={this.props.onSetFilter}
+                onFocus={this._startEditing}
+                onBlur={this._stopEditing}
+                onKeyDown={this._onKeyDown}
+                onEnterKeyDown={this._onEnterKeyDown}
+                ref={this._setRef}
+                style={styles.text}
+              />
+            </Kb.Box2>
+          </Kb.Box2>
         </Kb.Box2>
       )
     } else {
       children = (
-        <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
-          <Kb.Icon
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
-          <Kb.Text type="BodySemibold" style={styles.text}>
-            Jump to...
-          </Kb.Text>
-          {!Styles.isMobile && (
-            <Kb.Text type="BodySemibold" style={styles.textFaint}>
-              ({Platforms.shortcutSymbol}K)
-            </Kb.Text>
-          )}
-        </Kb.ClickableBox>
-      )
-    }
-    return (
-      <>
         <Kb.Box2
           direction="horizontal"
           centerChildren={true}
@@ -142,13 +143,33 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           {flags.useNewRouter && Styles.isMobile && (
             <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
           )}
-          {children}
+          <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
+            <Kb.Icon
+              type="iconfont-search"
+              style={styles.icon}
+              color={Styles.globalColors.black_50}
+              fontSize={Styles.isMobile ? 20 : 16}
+            />
+            <Kb.Text type="BodySemibold" style={styles.text}>
+              Jump to...
+            </Kb.Text>
+            {!Styles.isMobile && (
+              <Kb.Text type="BodySemibold" style={styles.textFaint}>
+                ({Platforms.shortcutSymbol}K)
+              </Kb.Text>
+            )}
+          </Kb.ClickableBox>
           {!!this.props.onNewChat && (
             <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
               <Kb.Button small={true} type="Primary" label="New chat" onClick={this.props.onNewChat} />
             </Kb.WithTooltip>
           )}
         </Kb.Box2>
+      )
+    }
+    return (
+      <>
+        {children}
         {this.props.isLoading && Styles.isMobile && (
           <Kb.Box style={styles.loadingContainer}>
             <Kb.LoadingLine />
@@ -165,7 +186,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: Styles.platformStyles({
     common: {
-      minHeight: 48,
+      height: 48,
       position: 'relative',
     },
     isElectron: {
@@ -196,6 +217,11 @@ const styles = Styles.styleSheetCreate({
   }),
   flexOne: {flex: 1},
   icon: {
+    position: 'relative',
+    top: 1,
+  },
+  input: {
+    color: Styles.globalColors.black_50,
     position: 'relative',
     top: 1,
   },
