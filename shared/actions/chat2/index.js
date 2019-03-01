@@ -2218,7 +2218,7 @@ const removePendingConversation = function*() {
 // TODO This will break if you try to make 2 new conversations at the same time because there is
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
-function* createConversation2(state, action) {
+function* createConversation(state, action) {
   const username = state.config.username
   if (!username) {
     logger.error('Making a convo while logged out?')
@@ -2257,7 +2257,7 @@ function* createConversation2(state, action) {
   yield removePendingConversation()
 }
 
-const createConversation = (state, action) => {
+const messageReplyPrivately = (state, action) => {
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
@@ -2908,11 +2908,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainGenerator<Chat2Gen.CreateConversationPayload>(
     Chat2Gen.createConversation,
-    createConversation2
+    createConversation
   )
   yield* Saga.chainAction<Chat2Gen.MessageReplyPrivatelyPayload>(
     Chat2Gen.messageReplyPrivately,
-    createConversation
+    messageReplyPrivately
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
     [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
