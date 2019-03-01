@@ -894,7 +894,7 @@ func enableOpenSweepForTeam(g *libkb.GlobalContext, t libkb.TestingTB, teamID ke
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	t.Logf("Calling team_enable_open_sweep for team ID: %s")
+	t.Logf("Calling team_enable_open_sweep for team ID: %s", teamID)
 
 	_, err := g.API.Post(apiArg)
 	require.NoError(t, err)
