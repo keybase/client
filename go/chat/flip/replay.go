@@ -49,6 +49,10 @@ func (g GameHistory) start(rh ReplayHelper) (game *Game, rest GameHistory, err e
 		return nil, nil, NewReplayError("bad initiator; didn't match sender")
 	}
 
+	if !first.FirstInConversation {
+		return nil, nil, GameReplayError{md.GameID}
+	}
+
 	_, err = computeClockSkew(md, first.Time, start.StartTime.Time(), first.Time)
 	if err != nil {
 		return nil, nil, err
