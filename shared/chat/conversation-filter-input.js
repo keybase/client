@@ -140,25 +140,27 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           gapEnd={true}
           fullWidth={true}
         >
-          {flags.useNewRouter && Styles.isMobile && (
-            <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
-          )}
-          <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
-            <Kb.Icon
-              type="iconfont-search"
-              style={styles.icon}
-              color={Styles.globalColors.black_50}
-              fontSize={Styles.isMobile ? 20 : 16}
-            />
-            <Kb.Text type="BodySemibold" style={styles.text}>
-              Jump to...
-            </Kb.Text>
-            {!Styles.isMobile && (
-              <Kb.Text type="BodySemibold" style={styles.textFaint}>
-                ({Platforms.shortcutSymbol}K)
-              </Kb.Text>
+          <Kb.Box2 alignItems="center" direction="horizontal" style={styles.flexOne}>
+            {flags.useNewRouter && Styles.isMobile && (
+              <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
             )}
-          </Kb.ClickableBox>
+            <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
+              <Kb.Icon
+                type="iconfont-search"
+                style={styles.icon}
+                color={Styles.globalColors.black_50}
+                fontSize={Styles.isMobile ? 20 : 16}
+              />
+              <Kb.Text type="BodySemibold" style={styles.text}>
+                Jump to...
+              </Kb.Text>
+              {!Styles.isMobile && (
+                <Kb.Text type="BodySemibold" style={styles.textFaint}>
+                  ({Platforms.shortcutSymbol}K)
+                </Kb.Text>
+              )}
+            </Kb.ClickableBox>
+          </Kb.Box2>
           {!!this.props.onNewChat && (
             <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
               <Kb.Button small={true} type="Primary" label="New chat" onClick={this.props.onNewChat} />
@@ -190,9 +192,11 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
+      ...Styles.padding(0, Styles.globalMargins.xtiny),
       backgroundColor: Styles.globalColors.blueGrey,
     },
     isMobile: {
+      ...Styles.padding(0, Styles.globalMargins.tiny),
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
