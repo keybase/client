@@ -27,9 +27,6 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
     : {
         commitmentVis: status.commitmentVisualization,
         errorInfo: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error ? status.errorInfo : null,
-        // hasCommitments: status.phase > RPCChatTypes.chatUiUICoinFlipPhase.commitment,
-        // hasSecrets: status.phase > RPCChatTypes.chatUiUICoinFlipPhase.reveals,
-        // isComplete: status.phase >= RPCChatTypes.chatUiUICoinFlipPhase.complete,
         hasCommitments: participantStatuses.includes(status.phase),
         hasSecrets: participantStatuses.includes(status.phase),
         isComplete: participantStatuses.includes(status.phase),
