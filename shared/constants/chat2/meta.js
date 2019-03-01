@@ -12,7 +12,6 @@ import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
-import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {getFullname} from '../users'
 
@@ -378,7 +377,6 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (
-    flags.walletsEnabled &&
     !sendDisabled &&
     meta.teamType === 'adhoc' &&
     meta.participants.filter(u => u !== state.config.username).size === 1

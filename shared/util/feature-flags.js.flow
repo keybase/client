@@ -13,7 +13,6 @@ export type FeatureFlags = {|
   outOfDateBanner: boolean,
   plansEnabled: boolean,
   useNewRouter: boolean,
-  walletsEnabled: boolean,
 |}
 
 declare var ff: FeatureFlags

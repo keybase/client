@@ -1014,11 +1014,6 @@ const gregorPushState = (_, action) =>
   })
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  if (!flags.walletsEnabled) {
-    console.log('Wallets saga disabled')
-    return
-  }
-
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(WalletsGen.createNewAccount, createNewAccount)
   yield* Saga.chainAction<
     | WalletsGen.LoadAccountsPayload
