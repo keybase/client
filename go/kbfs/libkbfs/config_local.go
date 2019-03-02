@@ -107,6 +107,7 @@ type ConfigLocal struct {
 	rwpWaitTime        time.Duration
 	diskLimiter        DiskLimiter
 	syncedTlfs         map[tlf.ID]FolderSyncConfig
+	syncedTlfPaths     map[string]bool
 	defaultBlockType   keybase1.BlockType
 	kbfsService        *KBFSService
 	kbCtx              Context
@@ -1551,8 +1552,10 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
+	syncedTlfPaths := make(map[string]bool)
 	if c.IsTestMode() {
 		c.syncedTlfs = syncedTlfs
+		c.syncedTlfPaths = syncedTlfPaths
 		return nil
 	}
 	if c.storageRoot == "" {
@@ -1590,8 +1593,12 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 			config.Mode = keybase1.FolderSyncMode_ENABLED
 		}
 		syncedTlfs[tlfID] = config
+		if config.TlfPath != "" {
+			syncedTlfPaths[config.TlfPath] = true
+		}
 	}
 	c.syncedTlfs = syncedTlfs
+	c.syncedTlfPaths = syncedTlfPaths
 	return ldb.Write(deleteBatch, nil)
 }
 
@@ -1606,6 +1613,14 @@ func (c *ConfigLocal) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 // IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
 func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
 	return c.GetTlfSyncState(tlfID).Mode == keybase1.FolderSyncMode_ENABLED
+}
+
+// IsSyncedTlfPath implements the isSyncedTlfGetter interface for
+// ConfigLocal.
+func (c *ConfigLocal) IsSyncedTlfPath(tlfPath string) bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.syncedTlfPaths[tlfPath]
 }
 
 // SetTlfSyncState implements the Config interface for ConfigLocal.
@@ -1674,7 +1689,15 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 		ch <- nil
 	}
 
+	oldConfig := c.syncedTlfs[tlfID]
+	if config.TlfPath != oldConfig.TlfPath {
+		delete(c.syncedTlfPaths, oldConfig.TlfPath)
+	}
+
 	c.syncedTlfs[tlfID] = config
+	if config.TlfPath != "" {
+		c.syncedTlfPaths[config.TlfPath] = true
+	}
 	return ch, c.bops, nil
 }
 

@@ -936,6 +936,20 @@ func (mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlf(tlfID interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlf", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).IsSyncedTlf), tlfID)
 }
 
+// IsSyncedTlfPath mocks base method
+func (m *MocksyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSyncedTlfPath", tlfPath)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlfPath indicates an expected call of IsSyncedTlfPath
+func (mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlfPath(tlfPath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlfPath", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).IsSyncedTlfPath), tlfPath)
+}
+
 // GetTlfSyncState mocks base method
 func (m *MocksyncedTlfGetterSetter) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	m.ctrl.T.Helper()
@@ -9382,6 +9396,20 @@ func (m *MockConfig) IsSyncedTlf(tlfID tlf.ID) bool {
 func (mr *MockConfigMockRecorder) IsSyncedTlf(tlfID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlf", reflect.TypeOf((*MockConfig)(nil).IsSyncedTlf), tlfID)
+}
+
+// IsSyncedTlfPath mocks base method
+func (m *MockConfig) IsSyncedTlfPath(tlfPath string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSyncedTlfPath", tlfPath)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlfPath indicates an expected call of IsSyncedTlfPath
+func (mr *MockConfigMockRecorder) IsSyncedTlfPath(tlfPath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlfPath", reflect.TypeOf((*MockConfig)(nil).IsSyncedTlfPath), tlfPath)
 }
 
 // GetTlfSyncState mocks base method

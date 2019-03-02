@@ -790,13 +790,13 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 
 func (fbo *folderBranchOps) getProtocolSyncConfig(
 	ctx context.Context, lState *lockState, kmd KeyMetadata) (
-	ret keybase1.FolderSyncConfig, err error) {
+	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.AssertAnyLocked(lState)
 
 	config := fbo.config.GetTlfSyncState(fbo.id())
 	ret.Mode = config.Mode
 	if ret.Mode != keybase1.FolderSyncMode_PARTIAL {
-		return ret, nil
+		return ret, config.TlfPath, nil
 	}
 
 	var block *FileBlock
@@ -806,7 +806,7 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 		var ok bool
 		block, ok = b.(*FileBlock)
 		if !ok {
-			return keybase1.FolderSyncConfig{}, errors.Errorf(
+			return keybase1.FolderSyncConfig{}, "", errors.Errorf(
 				"Partial sync block is not a file block, but %T", b)
 		}
 	} else {
@@ -816,21 +816,21 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 			fbo.config.Crypto(), kmd, config.Paths.Ptr, block,
 			config.Paths.Buf, config.Paths.ServerHalf)
 		if err != nil {
-			return keybase1.FolderSyncConfig{}, err
+			return keybase1.FolderSyncConfig{}, "", err
 		}
 	}
 
 	paths, err := syncPathListFromBlock(fbo.config.Codec(), block)
 	if err != nil {
-		return keybase1.FolderSyncConfig{}, err
+		return keybase1.FolderSyncConfig{}, "", err
 	}
 	ret.Paths = paths.Paths
-	return ret, nil
+	return ret, config.TlfPath, nil
 }
 
 func (fbo *folderBranchOps) getProtocolSyncConfigUnlocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata) (
-	ret keybase1.FolderSyncConfig, err error) {
+	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.RLock(lState)
 	defer fbo.syncLock.RUnlock(lState)
 	return fbo.getProtocolSyncConfig(ctx, lState, kmd)
@@ -1065,7 +1065,7 @@ func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
 	ctx context.Context, lState *lockState,
 	rmd ImmutableRootMetadata) {
 	// Check if we need to kick off a partial sync.
-	syncConfig, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, rmd)
+	syncConfig, _, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, rmd)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "Couldn't get sync config: %+v", err)
 		return
@@ -1295,7 +1295,7 @@ func (fbo *folderBranchOps) kickOffPartialMarkAndSweepIfNeeded(
 		return nil, nil, 0, nil
 	}
 
-	syncConfig, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
+	syncConfig, _, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
 	if err != nil {
 		return nil, nil, 0, err
 	}
@@ -8173,7 +8173,27 @@ func (fbo *folderBranchOps) GetSyncConfig(
 
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
-	return fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
+	config, tlfPath, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
+	if err != nil {
+		return keybase1.FolderSyncConfig{}, err
+	}
+
+	if md == (ImmutableRootMetadata{}) ||
+		md.GetTlfHandle().GetCanonicalPath() == tlfPath {
+		return config, nil
+	}
+
+	// This means either the config was originally written before we
+	// started saving TLF paths, or the TLF paths has changed due to
+	// an SBS resolution or a subteam rename.  Calling `SetSyncConfig`
+	// will use the newest path from the MD's TlfHandle.
+	fbo.log.CDebugf(ctx, "Updating sync config TLF path from \"%s\" to \"%s\"",
+		tlfPath, md.GetTlfHandle().GetCanonicalPath())
+	_, err = fbo.SetSyncConfig(ctx, tlfID, config)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't update TLF path: %+v", err)
+	}
+	return config, nil
 }
 
 func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
@@ -8181,7 +8201,7 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 	FolderSyncEncryptedPartialPaths, error) {
 	fbo.syncLock.AssertLocked(lState)
 
-	oldConfig, err := fbo.getProtocolSyncConfig(ctx, lState, kmd)
+	oldConfig, _, err := fbo.getProtocolSyncConfig(ctx, lState, kmd)
 	if err != nil {
 		return FolderSyncEncryptedPartialPaths{}, err
 	}
@@ -8296,7 +8316,10 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 	fbo.log.CDebugf(ctx, "Setting sync config for %s, mode=%s",
 		tlfID, config.Mode)
-	newConfig := FolderSyncConfig{Mode: config.Mode}
+	newConfig := FolderSyncConfig{
+		Mode:    config.Mode,
+		TlfPath: md.GetTlfHandle().GetCanonicalPath(),
+	}
 
 	if config.Mode == keybase1.FolderSyncMode_PARTIAL {
 		paths, err := fbo.makeEncryptedPartialPathsLocked(
@@ -8307,7 +8330,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		newConfig.Paths = paths
 	}
 
-	oldConfig, err := fbo.getProtocolSyncConfig(ctx, lState, md)
+	oldConfig, _, err := fbo.getProtocolSyncConfig(ctx, lState, md)
 	if err != nil {
 		return nil, err
 	}
@@ -8569,7 +8592,7 @@ func (fbo *folderBranchOps) kickOffEditActivityPartialSync(
 		}
 	}()
 
-	syncConfig, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, rmd)
+	syncConfig, _, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, rmd)
 	if err != nil {
 		return err
 	}
