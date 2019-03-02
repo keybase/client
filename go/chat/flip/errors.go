@@ -115,13 +115,13 @@ func (d DuplicateRegistrationError) Error() string {
 	return fmt.Sprintf("User %s registered more than once in game %s", d.G, d.U.ToKey())
 }
 
-type UnregisteredUserError struct {
+type DuplicateCommitmentCompleteError struct {
 	G GameMetadata
 	U UserDevice
 }
 
-func (u UnregisteredUserError) Error() string {
-	return fmt.Sprintf("Initiator announced an unexpected user %s in game %s", u.U.ToKey(), u.G)
+func (d DuplicateCommitmentCompleteError) Error() string {
+	return fmt.Sprintf("Initiator announced a duplicate commitment user %s in game %s", d.U.ToKey(), d.G)
 }
 
 type WrongSenderError struct {
