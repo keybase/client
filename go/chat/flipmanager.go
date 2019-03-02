@@ -670,6 +670,22 @@ func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Sta
 	}, nil
 }
 
+func (m *FlipManager) resolveConvMembers(convMembers []gregor1.UID) (usernames []string, err error) {
+	var kuids []keybase1.UID
+	for _, uid := range convMembers {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	rows, err := m.G().UIDMapper.MapUIDsToUsernamePackages(context.TODO(), m.G(), kuids, 0, 0,
+		false)
+	if err != nil {
+		return usernames, err
+	}
+	for _, r := range rows {
+		usernames = append(usernames, r.NormalizedUsername.String())
+	}
+	return usernames, nil
+}
+
 func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
 	case strings.HasPrefix(arg, "cards"):
@@ -687,10 +703,17 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlay
 			return deckShuffle, deckShuffleMetadata, nil
 		}
 		var targets []string
-		for _, pt := range strings.Split(strings.Join(toks[2:], " "), ",") {
-			t := strings.Trim(pt, " ")
-			if len(t) > 0 {
-				targets = append(targets, t)
+		handParts := strings.Split(strings.Join(toks[2:], " "), ",")
+		if len(handParts) == 1 && (handParts[0] == "@here" || handParts[0] == "@channel") {
+			if targets, err = m.resolveConvMembers(convMembers); err != nil {
+				return start, metadata, err
+			}
+		} else {
+			for _, pt := range handParts {
+				t := strings.Trim(pt, " ")
+				if len(t) > 0 {
+					targets = append(targets, t)
+				}
 			}
 		}
 		return deckShuffle, flipTextMetadata{
@@ -705,18 +728,9 @@ func (m *FlipManager) parseSpecials(arg string, convMembers []gregor1.UID, nPlay
 				ConvMemberShuffle: true,
 			}, nil
 		}
-		var kuids []keybase1.UID
-		for _, uid := range convMembers {
-			kuids = append(kuids, keybase1.UID(uid.String()))
-		}
-		rows, err := m.G().UIDMapper.MapUIDsToUsernamePackages(context.TODO(), m.G(), kuids, 0, 0,
-			false)
+		usernames, err := m.resolveConvMembers(convMembers)
 		if err != nil {
 			return start, metadata, err
-		}
-		var usernames []string
-		for _, r := range rows {
-			usernames = append(usernames, r.NormalizedUsername.String())
 		}
 		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(usernames)), nPlayersApprox),
 			flipTextMetadata{
