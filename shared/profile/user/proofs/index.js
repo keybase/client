@@ -76,11 +76,11 @@ class ProofsList extends React.Component<Props, State> {
             />
             <Kb.Input
               hideUnderline={true}
-              small={true}
-              value={this.props.filter}
               hintText={`Search ${this.props.providers.length} platforms`}
               onChangeText={this.props.onSetFilter}
+              small={true}
               style={styles.text}
+              value={this.props.filter}
             />
           </Kb.Box>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
@@ -90,7 +90,6 @@ class ProofsList extends React.Component<Props, State> {
           </Kb.Box2>
           <HoverBox
             centerChildren={true}
-            direction="horizontal"
             fullWidth={true}
             onClick={this.props.onClickLearn}
             style={styles.footer}
