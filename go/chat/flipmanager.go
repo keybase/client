@@ -257,7 +257,7 @@ func (m *FlipManager) notifyDirtyGames() {
 			m.getVisualizer().Visualize(&status)
 			presentStatus := status.DeepCopy()
 			m.sortParticipants(&presentStatus)
-			updates = append(updates, status)
+			updates = append(updates, presentStatus)
 		}
 	}
 	if err := ui.ChatCoinFlipStatus(ctx, updates); err != nil {
