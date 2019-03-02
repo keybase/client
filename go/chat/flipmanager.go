@@ -1318,9 +1318,9 @@ func (v *FlipVisualizer) drawImage(img *image.NRGBA, status *chat1.UICoinFlipSta
 				grid := blen * newPixelX / v.width
 				color := palette[b[grid]]
 				if !hasReveal {
-					color.R = color.R + (255-color.R)/2
-					color.G = color.G + (255-color.G)/2
-					color.B = color.B + (255-color.B)/2
+					color.R = color.R + (255-color.R)/4
+					color.G = color.G + (255-color.G)/4
+					color.B = color.B + (255-color.B)/4
 				}
 				img.Set(pixelX, pixelY, color)
 			}
