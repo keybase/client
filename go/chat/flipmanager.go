@@ -255,7 +255,8 @@ func (m *FlipManager) notifyDirtyGames() {
 		if game, ok := m.games.Get(dg.String()); ok {
 			status := game.(chat1.UICoinFlipStatus)
 			m.getVisualizer().Visualize(&status)
-			m.sortParticipants(&status) // do this after Visualize to not mess up time order
+			presentStatus := status.DeepCopy()
+			m.sortParticipants(&presentStatus)
 			updates = append(updates, status)
 		}
 	}
