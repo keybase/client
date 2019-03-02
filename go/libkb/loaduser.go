@@ -32,6 +32,7 @@ type LoadUserArg struct {
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 	upakLite                 bool
+	fullSigchain             bool
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
 	// the result of an earlier no-features load from cache. We shouldn't add
@@ -195,6 +196,11 @@ func (arg LoadUserArg) WithForceReload() LoadUserArg {
 	return arg
 }
 
+func (arg LoadUserArg) WithFullSigchain() LoadUserArg {
+	arg.fullSigchain = true
+	return arg
+}
+
 func (arg *LoadUserArg) checkUIDName() error {
 	if arg.uid.Exists() {
 		return nil
@@ -341,7 +347,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(m, &ret.leaf, arg.self); err != nil {
+	if err = ret.LoadSigChains(m, &ret.leaf, arg.self, arg.fullSigchain); err != nil {
 		return ret, err
 	}
 
