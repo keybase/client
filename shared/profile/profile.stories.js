@@ -13,6 +13,7 @@ import {
   metaPending,
   metaUnreachable,
 } from '../constants/tracker'
+import proofsList from './user/proofs/index.stories'
 
 const followers = [
   {following: false, followsYou: true, fullname: 'Alex Wendland', uid: '0', username: 'awendland'},
@@ -197,6 +198,8 @@ const provider = (cfProps =>
 })
 
 const load = () => {
+  proofsList()
+
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(provider)
     .add('Your Profile', () => <Profile {...props} bioEditFns={bioEditFns} isYou={true} />)
