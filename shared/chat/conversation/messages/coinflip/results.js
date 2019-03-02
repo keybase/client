@@ -111,7 +111,7 @@ const Card = (props: CardType) => (
       <Kb.Text
         selectable={true}
         type={Styles.isMobile ? 'Body' : 'BodyBig'}
-        style={{color: suits[cards[props.card].suit].color}}
+        style={Styles.collapseStyles([styles.cardNumber, {color: suits[cards[props.card].suit].color}])}
       >
         {cards[props.card].value}
       </Kb.Text>
@@ -201,7 +201,11 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
       props.shuffle.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
-        <Kb.Text selectable={true} type="BodySmallSemibold" style={Styles.collapseStyles([styles.listFull, styles.break])}>
+        <Kb.Text
+          selectable={true}
+          type="BodySmallSemibold"
+          style={Styles.collapseStyles([styles.listFull, styles.break])}
+        >
           Full shuffle:{' '}
           <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
             {props.shuffle && props.shuffle.join(', ')}
@@ -252,7 +256,7 @@ const styles = Styles.styleSheetCreate({
       borderStyle: 'solid',
       borderWidth: 1,
       flexShrink: 0,
-      height: 44,
+      height: 35,
       marginRight: -4,
       width: 28,
     },
@@ -263,6 +267,11 @@ const styles = Styles.styleSheetCreate({
   cards: {
     flexWrap: 'wrap',
   },
+  cardNumber: Styles.platformStyles({
+    isElectron: {
+      lineHeight: 14,
+    },
+  }),
   // compensate for the bottom margin on cards
   cardsStacked: Styles.platformStyles({
     isElectron: {
