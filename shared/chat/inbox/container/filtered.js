@@ -3,6 +3,7 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import {memoize} from '../../../util/memoize'
+import {makeInsertMatcher} from '../../../util/string'
 import type {RowItem} from '../index.types'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher: RegExp): number => {
@@ -107,14 +108,7 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, 
     const metas = metaMap.valueSeq().toArray()
     const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
-    const insertMatcher = new RegExp(
-      `${filter
-        .replace(/ |#/g, '')
-        .split('')
-        .map(c => `${c}.*?`)
-        .join('')}`,
-      'i'
-    )
+    const insertMatcher = makeInsertMatcher(filter)
     const rows: Array<RowItem> = metas
       .map(meta => {
         if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
