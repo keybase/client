@@ -168,12 +168,12 @@ const styles = Styles.styleSheetCreate({
   }),
   progressVis: Styles.platformStyles({
     isElectron: {
-      height: 50,
-      width: 128,
+      height: 40,
+      width: 40,
     },
     isMobile: {
       height: 50,
-      width: 112,
+      width: 50,
     },
   }),
   result: Styles.platformStyles({

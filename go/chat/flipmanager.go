@@ -13,7 +13,6 @@ import (
 	"image/png"
 	"math"
 	"math/big"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -168,8 +167,8 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		convParticipations:         make(map[string]convParticipationsRateLimit),
 		maxConvParticipations:      1000,
 		maxConvParticipationsReset: 5 * time.Minute,
-		desktopVisualizer:          NewFlipVisualizer(256, 100),
-		mobileVisualizer:           NewFlipVisualizer(220, 100),
+		desktopVisualizer:          NewFlipVisualizer(400, 400),
+		mobileVisualizer:           NewFlipVisualizer(400, 400),
 		cardMap:                    make(map[string]int),
 		cardReverseMap:             make(map[int]string),
 		flipConvs:                  flipConvs,
@@ -283,11 +282,10 @@ func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 }
 
 func (m *FlipManager) sortParticipants(status *chat1.UICoinFlipStatus) {
-	sort.Slice(status.Participants, func(i, j int) bool {
-		return status.Participants[i].Username < status.Participants[j].Username
-	})
+	//sort.Slice(status.Participants, func(i, j int) bool {
+	//	return status.Participants[i].Username < status.Participants[j].Username
+	//})
 }
-
 func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFlipStatus,
 	update flip.CommitmentUpdate) {
 	username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
@@ -1255,7 +1253,6 @@ func (m *FlipManager) clearGameCache() {
 
 type FlipVisualizer struct {
 	width, height         int
-	commitmentColors      [256]color.RGBA
 	secretColors          [256]color.RGBA
 	commitmentMatchColors [256]color.RGBA
 }
@@ -1266,72 +1263,79 @@ func NewFlipVisualizer(width, height int) *FlipVisualizer {
 		width:  width,  // 128
 	}
 	for i := 0; i < 256; i++ {
-		v.commitmentColors[i] = color.RGBA{
-			R: uint8(i),
-			G: uint8((128 + i*5) % 128),
-			B: 255,
-			A: 128,
-		}
+		// skew towards white
+		j := math.Pow(float64(i)/256, 4)
+		col := uint8(j * 256)
 		v.secretColors[i] = color.RGBA{
-			R: 255,
-			G: uint8(64 + i/2),
-			B: 0,
+			R: 255 - col,
+			G: 255 - col,
+			B: 255 - col,
 			A: 255,
 		}
 		v.commitmentMatchColors[i] = color.RGBA{
-			R: uint8(i * 3 / 4),
-			G: uint8((192 + i*4) % 64),
-			B: 255,
+			R: col,
+			G: col,
+			B: col,
 			A: 255,
 		}
 	}
 	return v
 }
 
-func (v *FlipVisualizer) fillCell(img *image.NRGBA, x, y, cellHeight, cellWidth int, b byte,
-	palette [256]color.RGBA) {
-	for i := x; i < x+cellWidth; i++ {
-		for j := y; j < y+cellHeight; j++ {
-			img.Set(i, j, palette[b])
-		}
-	}
-}
+func (v *FlipVisualizer) drawImage(img *image.NRGBA, status *chat1.UICoinFlipStatus, palette [256]color.RGBA, isCommitment bool) {
+	ctrX := 1 + v.width/2
+	ctrY := 1 + v.height/2
+	numParts := len(status.Participants)
+	for pixelY := 0; pixelY < v.height; pixelY++ {
+		for pixelX := 0; pixelX < v.width; pixelX++ {
 
-func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth int,
-	source string, palette [256]color.RGBA) {
-	b, _ := hex.DecodeString(source)
-	x := 0
-	for i := 0; i < len(b); i++ {
-		v.fillCell(img, x, startY, cellHeight, cellWidth, b[i], palette)
-		x += cellWidth
+			dxUnit := float64((pixelX-ctrX)*2) / float64(v.width)
+			dyUnit := float64((pixelY-ctrY)*2) / float64(v.height)
+
+			// inside the circle
+			if (dxUnit*dxUnit + dyUnit*dyUnit) < 1 {
+				// scale spherically
+				yScale := math.Asin(dyUnit) / (math.Pi / 2)
+				circleRadX := math.Sqrt(float64(1) - dyUnit*dyUnit)
+				dxUnit2 := dxUnit / circleRadX
+				xScale := math.Asin(dxUnit2) / (math.Pi / 2)
+				newPixelX := ctrX + int(xScale*float64(v.width)/2) - 1
+				newPixelY := ctrY + int(yScale*float64(v.height)/2) - 1
+				participantInd := newPixelY * numParts / v.height
+				participant := status.Participants[participantInd]
+				hasReveal := participant.Reveal != nil
+				source := participant.Commitment
+				if !isCommitment {
+					if hasReveal {
+						source = *participant.Reveal
+					} else {
+						continue
+					}
+				}
+				b, _ := hex.DecodeString(source)
+				blen := len(b)
+
+				grid := blen * newPixelX / v.width
+				color := palette[b[grid]]
+				if !hasReveal {
+					color.R = color.R + (255-color.R)/2
+					color.G = color.G + (255-color.G)/2
+					color.B = color.B + (255-color.B)/2
+				}
+				img.Set(pixelX, pixelY, color)
+			}
+		}
 	}
 }
 
 func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
-	cellWidth := int(math.Round(float64(v.width) / 32.0))
-	v.width = 32 * cellWidth
+	//cellWidth := int(math.Round(float64(v.width) / 32.0))
+	//v.width = 32 * cellWidth
 	commitmentImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
 	secretImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
-	numParts := len(status.Participants)
-	if numParts > 0 {
-		startY := 0
-		// just add these next 2 things
-		heightAccum := float64(0) // how far into the image we should be
-		rawRowHeight := float64(v.height) / float64(numParts)
-		for _, p := range status.Participants {
-			heightAccum += rawRowHeight
-			rowHeight := int(math.Round(heightAccum - float64(startY)))
-			if rowHeight > 0 {
-				if p.Reveal != nil {
-					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment,
-						v.commitmentMatchColors)
-					v.fillRow(secretImg, startY, rowHeight, cellWidth, *p.Reveal, v.secretColors)
-				} else {
-					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment, v.commitmentColors)
-				}
-				startY += rowHeight
-			}
-		}
+	if len(status.Participants) > 0 {
+		v.drawImage(commitmentImg, status, v.commitmentMatchColors, true)
+		v.drawImage(secretImg, status, v.secretColors, false)
 	}
 	var commitmentBuf, secretBuf bytes.Buffer
 	png.Encode(&commitmentBuf, commitmentImg)
