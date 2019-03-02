@@ -4297,6 +4297,10 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 		require.True(t, pathsMap[p])
 		delete(pathsMap, p)
 	}
+
+	t.Log("Make sure the TLF path is correctly marked as synced")
+	tlfPath := fmt.Sprintf("/keybase/private/%s", name)
+	require.True(t, config.IsSyncedTlfPath(tlfPath))
 }
 
 func waitForPrefetchInTest(
