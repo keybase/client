@@ -35,7 +35,13 @@ class GiphySearch extends React.Component<Props, State> {
     }
     return (
       <Kb.Box style={styles.outerContainer}>
-        <Kb.Box forwardedRef={el => (this.container = el)} style={styles.scrollContainer}>
+        <Kb.Box
+          forwardedRef={el => (this.container = el)}
+          style={Styles.collapseStyles([
+            styles.scrollContainer,
+            {overflowY: this.state.width ? 'auto' : 'scroll'},
+          ])}
+        >
           <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="tiny">
             <Kb.Text style={styles.instructions} type="BodySmall">
               Hit enter for a random GIF, or click a preview to send
@@ -112,7 +118,6 @@ const styles = Styles.styleSheetCreate({
       border: `1px solid ${Styles.globalColors.black_20}`,
       borderRadius: Styles.borderRadius,
       maxHeight: 300,
-      overflow: 'auto',
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
