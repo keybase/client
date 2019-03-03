@@ -19,15 +19,21 @@ class List extends PureComponent<Props<any>, void> {
     const item = this.props.items[index]
     let children
 
-    // If we're in dev, let's check our estimates
+    // If we're in dev, let's check our estimates and warn if we're using margins
     if (__DEV__ && !!this.props.itemSizeEstimator) {
+      const renderedItem = this.props.renderItem(index, item)
+      if (renderedItem?.props?.style) {
+        const hasMargin = Object.keys(renderedItem.props.style).some(styleProp => styleProp.match(/^margin/))
+        hasMargin && console.warn(`Item at ${index} (key: ${item[this.props.keyProperty || 'key']}) has margins. Margins do not work on react-list`)
+      }
+
       const onResize = ({bounds}) => {
         const height = Math.ceil(bounds.height)
         // Neded to make flow happy, this isn't a problem because we check for null above
         const heightEstimate = this.props.itemSizeEstimator ? this.props.itemSizeEstimator(index, {}) : 0
 
         // Ignore cases where the height isn't ready yet
-        if (height > 5) {
+        if (!!heightEstimate && height > 5) {
           const diff = Math.abs(height - heightEstimate)
           if (diff > 5) {
             console.warn(`Estimate for this item in List is off, check your estimates

@@ -152,6 +152,14 @@ const bigTeamNoPreviewProps = {
   smallTeam: false,
 }
 
+const bigTeamLotsaUsersCommonProps = {
+  ...bigTeamNoPreviewProps,
+  participants: new Array(100).fill(0).map((_, i) => ({
+    fullname: `Agent ${i}`,
+    username: `agnt${i}`,
+  })),
+}
+
 const load = () => {
   addToChannel()
 
@@ -162,6 +170,7 @@ const load = () => {
     ))
     .add('Conversation', () => <InfoPanel {...conversationProps} />)
     .add('Small team', () => <InfoPanel {...smallTeamProps} />)
+    .add('Big team lotsa users', () => <InfoPanel {...bigTeamLotsaUsersCommonProps} />)
     .add('Big team preview', () => <InfoPanel {...bigTeamPreviewProps} />)
     .add('Big team no preview', () => <InfoPanel {...bigTeamNoPreviewProps} />)
 }

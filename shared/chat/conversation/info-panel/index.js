@@ -274,7 +274,7 @@ const typeSizeEstimator = (row: Row): number => {
       return 47
 
     case 'leave channel':
-      return 17
+      return 34
 
     case 'retention':
       return row.canSetRetention ? 84 : 49
@@ -304,7 +304,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         return <Participant key={`participant ${row.key}`} {...row} />
 
       case 'divider':
-        return <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
+        // This wrapper is used here with flex so that the margins
+        // do not collapse and the height can be calculated properly
+        return <Box style={{display: 'flex'}}>
+            <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
+          </Box>
 
       case 'spacer':
         return <Spacer height={row.height} key={`spacer ${row.key}`} />
