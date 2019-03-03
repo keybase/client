@@ -607,9 +607,12 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 		formatted := m.formatError(ctx, update.Err)
 		status.ErrorInfo = &formatted
 	case update.Commitment != nil:
-		status.ErrorInfo = nil
-		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
-		m.addParticipant(ctx, &status, *update.Commitment)
+		// Only care about these while we are in the commitment phase
+		if status.Phase == chat1.UICoinFlipPhase_COMMITMENT {
+			status.ErrorInfo = nil
+			status.Phase = chat1.UICoinFlipPhase_COMMITMENT
+			m.addParticipant(ctx, &status, *update.Commitment)
+		}
 	case update.CommitmentComplete != nil:
 		status.ErrorInfo = nil
 		status.Phase = chat1.UICoinFlipPhase_REVEALS
