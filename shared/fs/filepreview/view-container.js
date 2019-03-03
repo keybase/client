@@ -1,37 +1,30 @@
 // @flow
 import * as I from 'immutable'
-import {compose, namedConnect, lifecycle} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
 import AVView from './av-view'
-import {Box, Text} from '../../common-adapters'
-import {globalStyles, globalColors, platformStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
 
-type Props = {
+type OwnProps = {|
   path: Types.Path,
   routePath: I.List<string>,
   onLoadingStateChange: (isLoading: boolean) => void,
-}
+|}
 
-const mapStateToProps = (state, {path}: Props) => {
+const mapStateToProps = (state, {path}) => {
   return {
-    _pathItem: state.fs.pathItems.get(path, Constants.makeFile()),
+    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
     _serverInfo: state.fs.localHTTPServerInfo,
   }
 }
 
-const mapDispatchToProps = (dispatch, {path}: Props) => ({
-  loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
-})
-
 const mergeProps = ({_serverInfo, _pathItem}, {loadMimeType}, {path, routePath, onLoadingStateChange}) => ({
   isSymlink: _pathItem.type === 'symlink',
-  loadMimeType,
   mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : null,
   onLoadingStateChange,
   path,
@@ -40,70 +33,42 @@ const mergeProps = ({_serverInfo, _pathItem}, {loadMimeType}, {path, routePath, 
 })
 
 const Renderer = props => {
-  const {mimeType, isSymlink, url, path, routePath, onLoadingStateChange} = props
-  if (isSymlink) {
-    return <DefaultView path={path} routePath={routePath} />
+  if (props.isSymlink) {
+    return <DefaultView path={props.path} routePath={props.routePath} />
   }
 
-  if (!mimeType) {
-    // We are still loading mimeType which is needed to determine which
+  if (!props.mimeType) {
+    // We are still loading props.mimeType which is needed to determine which
     // component to use.
     return (
-      <Box style={stylesLoadingContainer}>
-        <Text type="BodySmall" style={stylesLoadingText}>
-          Loading ...
-        </Text>
-      </Box>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+        <Kb.Text type="BodySmall">Loading ...</Kb.Text>
+      </Kb.Box2>
     )
   }
 
-  switch (Constants.viewTypeFromMimeType(mimeType)) {
+  const commonProps = {
+    onLoadingStateChange: props.onLoadingStateChange,
+    routePath: props.routePath,
+  }
+
+  switch (Constants.viewTypeFromMimeType(props.mimeType)) {
     case 'default':
-      return <DefaultView path={path} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
+      return <DefaultView path={props.path} {...commonProps} />
     case 'text':
-      return <TextView url={url} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
+      return <TextView url={props.url} onLoadingStateChange={props.onLoadingStateChange} />
     case 'image':
-      return <ImageView url={url} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
+      return <ImageView url={props.url} {...commonProps} />
     case 'av':
-      return <AVView url={url} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
+      return <AVView url={props.url} {...commonProps} />
     case 'pdf':
       // Security risks to links in PDF viewing. See DESKTOP-6888.
-      return <DefaultView path={path} routePath={routePath} />
+      return <DefaultView path={props.path} {...commonProps} />
     default:
-      return <Text type="BodySmallError">This shouldn't happen</Text>
+      return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>
   }
 }
 
-const stylesLoadingContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexGrow,
-  alignItems: 'center',
-  justifyContent: 'center',
-}
-const stylesLoadingText = platformStyles({
-  isMobile: {
-    color: globalColors.white_40,
-  },
-})
-
-export default compose(
-  namedConnect<Props, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ViewContainer'),
-  lifecycle({
-    componentDidMount() {
-      if (!this.props.isSymlink && !this.props.mimeType) {
-        this.props.loadMimeType()
-      }
-    },
-    componentDidUpdate(prevProps) {
-      if (
-        !this.props.isSymlink &&
-        // Trigger loadMimeType if we don't have it yet,
-        !this.props.mimeType &&
-        // but only if we haven't triggered it before.
-        prevProps.mimeType
-      ) {
-        this.props.loadMimeType()
-      }
-    },
-  })
-)(Renderer)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ViewContainer')(
+  Renderer
+)

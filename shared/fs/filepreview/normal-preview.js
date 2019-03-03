@@ -33,13 +33,11 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
           <Kbfs.Errs />
           <Kb.Divider />
           <Kb.Box style={styles.greyContainer}>
-            <Kb.Box style={styles.contentContainer}>
-              <View
-                path={this.props.path}
-                routePath={this.props.routePath}
-                onLoadingStateChange={this._onLoadingStateChange}
-              />
-            </Kb.Box>
+            <View
+              path={this.props.path}
+              routePath={this.props.routePath}
+              onLoadingStateChange={this._onLoadingStateChange}
+            />
             {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
           </Kb.Box>
           <Footer />
