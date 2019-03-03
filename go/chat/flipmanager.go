@@ -311,6 +311,36 @@ func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFl
 	status.ProgressText = fmt.Sprintf("Gathered %d commitment%s", len(status.Participants), endingS)
 }
 
+func (m *FlipManager) finalizeParticipants(ctx context.Context, status *chat1.UICoinFlipStatus,
+	cc flip.CommitmentComplete) {
+	completeMap := make(map[string]bool)
+	mapKey := func(u, d string) string {
+		return u + "," + d
+	}
+	for _, p := range cc.Players {
+		completeMap[mapKey(p.Ud.U.String(), p.Ud.D.String())] = true
+	}
+	var filteredParts []chat1.UICoinFlipParticipant
+	for _, p := range status.Participants {
+		if completeMap[mapKey(p.Uid, p.DeviceID)] {
+			filteredParts = append(filteredParts, p)
+		}
+	}
+	filteredMap := make(map[string]bool)
+	for _, p := range filteredParts {
+		filteredMap[mapKey(p.Uid, p.DeviceID)] = true
+	}
+	status.Participants = filteredParts
+	for _, p := range cc.Players {
+		if !filteredMap[mapKey(p.Ud.U.String(), p.Ud.D.String())] {
+			m.addParticipant(ctx, status, flip.CommitmentUpdate{
+				User:       p.Ud,
+				Commitment: p.C,
+			})
+		}
+	}
+}
+
 func (m *FlipManager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus,
 	update flip.RevealUpdate) {
 	numReveals := 0
@@ -583,7 +613,7 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	case update.CommitmentComplete != nil:
 		status.ErrorInfo = nil
 		status.Phase = chat1.UICoinFlipPhase_REVEALS
-		status.ProgressText = "Commitments complete, revealing secrets..."
+		m.finalizeParticipants(ctx, &status, *update.CommitmentComplete)
 	case update.Reveal != nil:
 		m.addReveal(ctx, &status, *update.Reveal)
 	case update.Result != nil:
