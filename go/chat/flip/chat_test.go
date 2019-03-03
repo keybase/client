@@ -390,6 +390,43 @@ func corruptBytes(b []byte) {
 	b[0] ^= 0x1
 }
 
+func TestBadCommitmentComplete(t *testing.T) {
+	srv := newChatServer()
+	ctx := context.Background()
+	go srv.run(ctx)
+	defer srv.stop()
+	conversationID := genConversationID()
+	n := 10
+	clients := srv.makeAndRunClients(ctx, conversationID, n)
+	defer srv.stopClients()
+
+	srv.corruptor = func(m GameMessageWrappedEncoded) GameMessageWrappedEncoded {
+		typ := getType(t, m)
+		if typ != MessageType_COMMITMENT_COMPLETE {
+			return m
+		}
+		w, err := m.Decode()
+		require.NoError(t, err)
+		cc := w.Msg.Body.CommitmentComplete()
+		com := cc.Players[1].C
+		corruptBytes(com[:])
+		cc.Players[1].C = com
+		w.Msg.Body = NewGameMessageBodyWithCommitmentComplete(cc)
+		enc, err := w.Encode()
+		require.NoError(t, err)
+		m.Body = enc
+		return m
+	}
+
+	start := NewStartWithBigInt(srv.clock.Now(), pi(), 5)
+	gameID := GenerateGameID()
+	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
+	require.NoError(t, err)
+	forAllClients(clients, func(c *chatClient) { nTimes(n, func() { c.consumeCommitment(t) }) })
+	srv.clock.Advance(time.Duration(4001) * time.Millisecond)
+	forAllClients(clients[1:], func(c *chatClient) { c.consumeError(t, CommitmentMismatchError{}) })
+}
+
 func testCorruptions(t *testing.T, nTotal int, nCorruptions int) {
 	srv := newChatServer()
 	ctx := context.Background()
