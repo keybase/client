@@ -335,6 +335,64 @@ func TestReorder(t *testing.T) {
 	forAllClients(clients, func(c *chatClient) { c.consumeResult(t, &b) })
 }
 
+func TestReorderBadCommitment(t *testing.T) {
+	srv := newChatServer()
+	ctx := context.Background()
+	go srv.run(ctx)
+	defer srv.stop()
+	conversationID := genConversationID()
+	gameID := GenerateGameID()
+	n := 25
+	clients := srv.makeAndRunClients(ctx, conversationID, n)
+	defer srv.stopClients()
+
+	last := n - 1
+	normals := clients[0:last] // these guys work as normal
+	testee := clients[last]    // the guy who is being tested --- he sees reorderer messages
+
+	corruptCommitment := func(m GameMessageWrappedEncoded) GameMessageWrappedEncoded {
+		w, err := m.Decode()
+		require.NoError(t, err)
+		c := w.Msg.Body.Commitment()
+		corruptBytes(c[:])
+		w.Msg.Body = NewGameMessageBodyWithCommitment(c)
+		enc, err := w.Encode()
+		require.NoError(t, err)
+		m.Body = enc
+		return m
+	}
+
+	// for the testee, let the first (n-1) commitments go through, then we send through
+	// the commitmentComplete message, and then the delayed commitment, but corrupted.
+	var badMsg *GameMessageWrappedEncoded
+	testee.deliver = func(m GameMessageWrappedEncoded) {
+		typ := getType(t, m)
+
+		if typ == MessageType_COMMITMENT && badMsg == nil {
+			badMsg = &m
+			return
+		}
+		testee.ch <- m
+		if typ == MessageType_COMMITMENT_COMPLETE {
+			b := corruptCommitment(*badMsg)
+			testee.ch <- b
+		}
+	}
+
+	start := NewStartWithBigInt(srv.clock.Now(), pi(), 5)
+	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
+	require.NoError(t, err)
+	forAllClients(normals, func(c *chatClient) { nTimes(n, func() { c.consumeCommitment(t) }) })
+	srv.clock.Advance(time.Duration(4001) * time.Millisecond)
+	forAllClients(normals, func(c *chatClient) { c.consumeCommitmentComplete(t, n) })
+
+	// Now, make sure that the messages made it to the reordered guy,
+	// but in the reordered order.
+	nTimes(n-1, func() { testee.consumeCommitment(t) })
+	testee.consumeCommitmentComplete(t, n)
+	testee.consumeError(t, CommitmentMismatchError{})
+}
+
 func TestSadChatOneAbsentee(t *testing.T) {
 	testAbsentees(t, 10, 1)
 }
