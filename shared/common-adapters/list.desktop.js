@@ -22,9 +22,16 @@ class List extends PureComponent<Props<any>, void> {
     // If we're in dev, let's check our estimates and warn if we're using margins
     if (__DEV__ && !!this.props.itemSizeEstimator) {
       const renderedItem = this.props.renderItem(index, item)
+      // $FlowIssue - Not every rendered item has props
       if (renderedItem?.props?.style) {
+        // $FlowIssue - Not every rendered item has props
         const hasMargin = Object.keys(renderedItem.props.style).some(styleProp => styleProp.match(/^margin/))
-        hasMargin && console.warn(`Item at ${index} (key: ${item[this.props.keyProperty || 'key']}) has margins. Margins do not work on react-list`)
+        hasMargin &&
+          console.warn(
+            `Item at ${index} (key: ${
+              item[this.props.keyProperty || 'key']
+            }) has margins. Margins do not work on react-list`
+          )
       }
 
       const onResize = ({bounds}) => {
@@ -45,17 +52,12 @@ class List extends PureComponent<Props<any>, void> {
       }
       children = (
         <Measure bounds={true} onResize={onResize}>
-          {({measureRef, contentRect}) => (
-            <div ref={measureRef}>
-              {this.props.renderItem(index, item)}
-            </div>
-          )}
+          {({measureRef, contentRect}) => <div ref={measureRef}>{this.props.renderItem(index, item)}</div>}
         </Measure>
       )
     } else {
       children = this.props.renderItem(index, item)
     }
-
 
     if (this.props.indexAsKey) {
       // if indexAsKey is set, just use index.
