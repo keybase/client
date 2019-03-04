@@ -231,61 +231,14 @@ type Row =
   | TeamHeaderRow
 
 const typeSizeEstimator = (row: Row): number => {
-  // The sizes below are retrieved by using the React DevTools
-  // inspector on the appropriate components, including margins.
-  switch (row.type) {
-    case 'add people':
-      return 48
-
-    case 'participant':
-      return 56
-
-    case 'divider':
-      const style = getDividerStyle(row)
-      return 1 + style.marginTop + style.marginBottom
-
-    case 'spacer':
-      return row.height
-
-    case 'notifications':
-      return 270
-
-    case 'turn into team':
-      return 100
-
-    case 'block this conversation':
-      return 17
-
-    case 'clear entire conversation':
-      return 17
-
-    case 'participant count':
-      return 15
-
-    case 'small team header':
-      return 32
-
-    case 'big team header':
-      // This depends on how long the description is
-      // ballpark estimate between an empty and 1-line description
-      return 57
-
-    case 'join channel':
-      return 47
-
-    case 'leave channel':
-      return 34
-
-    case 'retention':
-      return row.canSetRetention ? 84 : 49
-
-    case 'min writer role':
-      return row.canSetMinWriterRole ? 84 : 35
-
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
-      throw new Error(`Impossible case encountered: ${row.type}`)
+  // Don't bother adding more estimates to this.
+  // Early items in the list get sized as soon as they render anyways.
+  // This estimate is useful mostly for off-screen items (like the participants).
+  if (row.type === 'participant') {
+    return 56
   }
+
+  return 0
 }
 
 class _InfoPanel extends React.Component<InfoPanelProps> {
