@@ -81,7 +81,7 @@ func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 	var prfx string
 
 	// If the user explicitly provided a `--home` directory, it overrides any XDG_*
-	// variables. All XDR dirs are taken relative to that.
+	// variables. All XDG dirs are taken relative to that.
 	if x.getHomeFromCmd != nil {
 		prfx = x.getHomeFromCmd()
 	}
