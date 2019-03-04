@@ -29,6 +29,7 @@ export type NameWithIconProps = {|
   onClick?: () => void,
   clickType?: 'tracker' | 'profile',
   onEditIcon?: ?(e?: SyntheticEvent<Element>) => void,
+  selectable?: boolean,
   size?: Size,
   teamname?: string,
   // for non-users
@@ -96,6 +97,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         }
         inline={!this.props.horizontal}
         underline={this.props.underline}
+        selectable={this.props.selectable}
         usernames={[this.props.username]}
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
