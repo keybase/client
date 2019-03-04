@@ -125,15 +125,14 @@ type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer            *flip.Dealer
-	desktopVisualizer *FlipVisualizer
-	mobileVisualizer  *FlipVisualizer
-	clock             clockwork.Clock
-	ri                func() chat1.RemoteInterface
-	shutdownMu        sync.Mutex
-	shutdownCh        chan struct{}
-	forceCh           chan struct{}
-	loadGameCh        chan loadGameJob
+	dealer     *flip.Dealer
+	visualizer *FlipVisualizer
+	clock      clockwork.Clock
+	ri         func() chat1.RemoteInterface
+	shutdownMu sync.Mutex
+	shutdownCh chan struct{}
+	forceCh    chan struct{}
+	loadGameCh chan loadGameJob
 
 	deck           string
 	cardMap        map[string]int
@@ -168,8 +167,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		convParticipations:         make(map[string]convParticipationsRateLimit),
 		maxConvParticipations:      1000,
 		maxConvParticipationsReset: 5 * time.Minute,
-		desktopVisualizer:          NewFlipVisualizer(256, 100),
-		mobileVisualizer:           NewFlipVisualizer(220, 100),
+		visualizer:                 NewFlipVisualizer(128, 80),
 		cardMap:                    make(map[string]int),
 		cardReverseMap:             make(map[int]string),
 		flipConvs:                  flipConvs,
@@ -229,10 +227,7 @@ func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
 }
 
 func (m *FlipManager) getVisualizer() *FlipVisualizer {
-	if m.G().GetAppType() == libkb.MobileAppType {
-		return m.mobileVisualizer
-	}
-	return m.desktopVisualizer
+	return m.visualizer
 }
 
 func (m *FlipManager) notifyDirtyGames() {
@@ -1295,8 +1290,8 @@ type FlipVisualizer struct {
 
 func NewFlipVisualizer(width, height int) *FlipVisualizer {
 	v := &FlipVisualizer{
-		height: height, // 50
-		width:  width,  // 128
+		height: height, // 40
+		width:  width,  // 64
 	}
 	for i := 0; i < 256; i++ {
 		v.commitmentColors[i] = color.RGBA{
