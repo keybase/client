@@ -48,8 +48,8 @@ class GiphySearch extends React.Component<Props, State> {
             </Kb.Text>
             <Kb.Text
               style={styles.instructions}
-              type="BodySmallPrimaryLink"
-              onClickURL={'https://keybase.io/docs/chat/index'}
+              type="BodySmallSecondaryLink"
+              onClickURL={'https://keybase.io/docs/chat/linkpreviews'}
             >
               (More Info)
             </Kb.Text>
@@ -111,11 +111,16 @@ const styles = Styles.styleSheetCreate({
     margin: -1,
     overflow: 'hidden',
   },
-  instructions: {
-    alignSelf: 'center',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  instructions: Styles.platformStyles({
+    common: {
+      alignSelf: 'center',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      lineHeight: 17,
+    },
+  }),
   instructionsContainer: {
     justifyContent: 'center',
   },
