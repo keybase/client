@@ -80,6 +80,10 @@ func (n nullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.Con
 	return nil
 }
 
+func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error {
+	return nil
+}
+
 func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "Preview")()
 	if s.G().GetAppType() == libkb.MobileAppType {
