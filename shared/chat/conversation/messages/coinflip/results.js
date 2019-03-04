@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {partition} from 'lodash-es'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -162,8 +163,7 @@ type HandType = {|
 |}
 const CoinFlipResultHands = (props: HandType) => {
   if (!props.hands) return null
-  const handsWithCards = props.hands.filter(hand => hand.hand)
-  const handsWithoutCards = props.hands ? props.hands.slice(handsWithCards.length) : []
+  const [handsWithCards, handsWithoutCards] = partition(props.hands, hand => hand.hand)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
