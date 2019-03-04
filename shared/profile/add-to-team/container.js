@@ -134,7 +134,6 @@ export default compose(
         props.role,
         Object.keys(props.selectedTeams).filter(team => props.selectedTeams[team])
       )
-      props.setSelectedTeams({})
     },
     onToggle: props => (teamname: string) => {
       props.clearAddUserToTeamsResults()
