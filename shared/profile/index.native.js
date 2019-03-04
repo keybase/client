@@ -52,7 +52,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
       <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Kb.Box>
     <Kb.Box style={{...Styles.globalStyles.flexBoxRow, marginTop: 4}}>
-      <Kb.Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
+      <Kb.Text style={{color: Styles.globalColors.black_50}} type="BodyPrimaryLink">
         Publish the teams you're in
       </Kb.Text>
     </Kb.Box>

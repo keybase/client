@@ -3,6 +3,7 @@ import * as React from 'react'
 import {type State} from './video'
 import {Box2} from './box'
 import Text from './text'
+import {URL} from 'whatwg-url' // URL is not available in rn
 
 type Size = {
   height: number,

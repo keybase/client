@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
-import Giphy from '../giphy/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
@@ -53,7 +52,6 @@ class Conversation extends React.PureComponent<Props> {
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
-        {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
           isPending={this.props.isPending}

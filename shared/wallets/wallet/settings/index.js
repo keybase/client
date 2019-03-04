@@ -80,7 +80,7 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
-              <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
+              <Kb.Text type="BodySmallSemibold" style={styles.identity}>Identity</Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
                 {props.isDefault ? (
                   <Kb.Avatar size={Styles.isMobile ? 48 : 32} username={props.user} />
@@ -250,6 +250,9 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
   },
   icon: {marginLeft: Styles.globalMargins.xtiny},
+  identity: {
+    paddingBottom: Styles.globalMargins.tiny,
+  },
   identityBox: {
     flexGrow: 1,
     flexShrink: 1,

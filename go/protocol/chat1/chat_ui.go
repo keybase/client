@@ -1744,6 +1744,12 @@ type ChatGiphySearchResultsArg struct {
 	Results   []GiphySearchResult `codec:"results" json:"results"`
 }
 
+type ChatGiphyToggleResultWindowArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	ConvID    string `codec:"convID" json:"convID"`
+	Show      bool   `codec:"show" json:"show"`
+}
+
 type ChatShowManageChannelsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Teamname  string `codec:"teamname" json:"teamname"`
@@ -1780,6 +1786,7 @@ type ChatUiInterface interface {
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
 	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
+	ChatGiphyToggleResultWindow(context.Context, ChatGiphyToggleResultWindowArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
@@ -2074,6 +2081,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatGiphyToggleResultWindow": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatGiphyToggleResultWindowArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatGiphyToggleResultWindowArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatGiphyToggleResultWindowArg)(nil), args)
+						return
+					}
+					err = i.ChatGiphyToggleResultWindow(ctx, typedArgs[0])
+					return
+				},
+			},
 			"chatShowManageChannels": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatShowManageChannelsArg
@@ -2222,6 +2244,11 @@ func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDone
 
 func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiphySearchResultsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatGiphyToggleResultWindow(ctx context.Context, __arg ChatGiphyToggleResultWindowArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphyToggleResultWindow", []interface{}{__arg}, nil)
 	return
 }
 

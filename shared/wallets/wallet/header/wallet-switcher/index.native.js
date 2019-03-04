@@ -5,6 +5,7 @@ import * as Types from '../../../../constants/types/wallets'
 import * as Kb from '../../../../common-adapters'
 import * as Flow from '../../../../util/flow'
 import * as Styles from '../../../../styles'
+import flags from '../../../../util/feature-flags'
 import {TouchableOpacity} from 'react-native'
 import {type Props} from '.'
 
@@ -101,12 +102,16 @@ export const WalletSwitcher = (props: Props) => {
   }
 
   const menuItems = [
-    {
-      key: 'airdrop',
-      onPress: props.onJoinAirdrop,
-      title: 'Join the airdrop',
-      type: 'airdrop',
-    },
+    ...(flags.airdrop
+      ? [
+          {
+            key: 'airdrop',
+            onPress: props.onJoinAirdrop,
+            title: 'Join the airdrop',
+            type: 'airdrop',
+          },
+        ]
+      : []),
     {
       key: 'newAccount',
       onPress: props.onAddNew,

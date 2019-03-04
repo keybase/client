@@ -454,6 +454,13 @@ const rootReducer = (
         ? state.setIn(['commandMarkdownMap', conversationIDKey], md)
         : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
+    case Chat2Gen.giphyToggleWindow: {
+      let nextState = state.setIn(['giphyWindowMap', action.payload.conversationIDKey], action.payload.show)
+      if (!action.payload.show) {
+        nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], null)
+      }
+      return nextState
+    }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
@@ -936,7 +943,7 @@ const rootReducer = (
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
     case Chat2Gen.giphySend: {
       let nextState = state
-      nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], [])
+      nextState = nextState.setIn(['giphyWindowMap', action.payload.conversationIDKey], false)
       return nextState.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], new HiddenString(''))
       )

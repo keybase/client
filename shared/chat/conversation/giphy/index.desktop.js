@@ -28,7 +28,7 @@ class GiphySearch extends React.Component<Props, State> {
     if (this.state.width) {
       margins = getMargins(
         this.state.width - 2 * Styles.globalMargins.tiny,
-        this.props.previews.reduce((arr, p) => {
+        (this.props.previews || []).reduce((arr, p) => {
           return arr.concat(p.previewWidth)
         }, [])
       )
@@ -46,29 +46,47 @@ class GiphySearch extends React.Component<Props, State> {
             <Kb.Text style={styles.instructions} type="BodySmall">
               Hit enter for a random GIF, or click a preview to send
             </Kb.Text>
+            <Kb.Text
+              style={styles.instructions}
+              type="BodySmallSecondaryLink"
+              onClickURL={'https://keybase.io/docs/chat/linkpreviews'}
+            >
+              (More Info)
+            </Kb.Text>
           </Kb.Box2>
-          {this.state.width && (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-              {(this.props.previews || []).map((p, index) => {
-                const margin = -margins[index] / 2 - 1
-                return (
-                  <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
-                    <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
-                      <UnfurlImage
-                        autoplayVideo={true}
-                        height={gridHeight}
-                        isVideo={p.previewIsVideo}
-                        onClick={() => this.props.onClick(p.targetUrl)}
-                        style={styles.image}
-                        url={p.previewUrl}
-                        width={scaledWidth(p.previewWidth)}
-                      />
-                    </Kb.Box>
-                  </Kb.Box2>
-                )
-              })}
-            </Kb.Box2>
-          )}
+          {this.state.width &&
+            (this.props.previews ? (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+                {(this.props.previews || []).map((p, index) => {
+                  const margin = -margins[index] / 2 - 1
+                  return (
+                    <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
+                      <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                        <UnfurlImage
+                          autoplayVideo={true}
+                          height={gridHeight}
+                          isVideo={p.previewIsVideo}
+                          onClick={() => this.props.onClick(p.targetUrl)}
+                          style={styles.image}
+                          url={p.previewUrl}
+                          width={scaledWidth(p.previewWidth)}
+                        />
+                      </Kb.Box>
+                    </Kb.Box2>
+                  )
+                })}
+              </Kb.Box2>
+            ) : (
+              <Kb.Box2
+                direction="vertical"
+                style={styles.loadingContainer}
+                centerChildren={true}
+                fullWidth={true}
+                fullHeight={true}
+              >
+                <Kb.ProgressIndicator />
+              </Kb.Box2>
+            ))}
         </Kb.Box>
         <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
       </Kb.Box>
@@ -93,13 +111,21 @@ const styles = Styles.styleSheetCreate({
     margin: -1,
     overflow: 'hidden',
   },
-  instructions: {
-    alignSelf: 'center',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
+  instructions: Styles.platformStyles({
+    common: {
+      alignSelf: 'center',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      lineHeight: 17,
+    },
+  }),
   instructionsContainer: {
     justifyContent: 'center',
+  },
+  loadingContainer: {
+    minHeight: 200,
   },
   outerContainer: {
     marginBottom: Styles.globalMargins.xtiny,

@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {partition} from 'lodash-es'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -110,7 +111,7 @@ const Card = (props: CardType) => (
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
-        type={Styles.isMobile ? 'Body' : 'BodyBig'}
+        type={Styles.isMobile ? 'BodySmall' : 'Body'}
         style={{color: suits[cards[props.card].suit].color}}
       >
         {cards[props.card].value}
@@ -118,9 +119,10 @@ const Card = (props: CardType) => (
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
-        fontSize={12}
+        fontSize={Styles.isMobile ? 10 : 12}
         type={suits[cards[props.card].suit].icon}
         color={suits[cards[props.card].suit].color}
+        style={styles.cardSuit}
       />
     </Kb.Box2>
   </Kb.Box2>
@@ -159,27 +161,40 @@ const CoinFlipResultCoin = (props: CoinType) => (
 type HandType = {|
   hands: ?Array<RPCChatTypes.UICoinFlipHand>,
 |}
-const CoinFlipResultHands = (props: HandType) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <Kb.Box2 direction="vertical" gap="tiny">
-      {props.hands &&
-        props.hands.map(hand => (
-          <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true} key={hand.target}>
-            <Kb.Box2
-              alignItems="flex-start"
-              direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-              style={styles.handTarget}
-            >
-              <Kb.Text selectable={true} type="BodyBig">
-                {hand.target}
-              </Kb.Text>
-            </Kb.Box2>
-            <CoinFlipResultDeck deck={hand.hand} hand={true} />
-          </Kb.Box2>
-        ))}
+const CoinFlipResultHands = (props: HandType) => {
+  if (!props.hands) return null
+  const [handsWithCards, handsWithoutCards] = partition(props.hands, hand => hand.hand)
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
+          {handsWithCards.map(hand => (
+              <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical" style={styles.gap}>
+                <Kb.Text selectable={true} type="BodyBig">
+                  {hand.target}
+                </Kb.Text>
+              </Kb.Box2>
+            ))}
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.handContainer}>
+            {handsWithCards.map(hand => (
+              <Kb.Box2 key={hand.target} direction="vertical" alignSelf="flex-start" style={styles.gap}>
+                <CoinFlipResultDeck deck={hand.hand} />
+              </Kb.Box2>
+            ))}
+        </Kb.Box2>
+      </Kb.Box2>
+      {handsWithoutCards.length > 0 && (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Text type="BodySmallSemibold">
+            Not enough cards for:{' '}
+            <Kb.Text type="BodySmall">{handsWithoutCards.map(hand => hand.target).join(', ')}</Kb.Text>
+          </Kb.Text>
+        </Kb.Box2>
+      )}
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 type NumberType = {|
   number: ?string,
@@ -256,10 +271,21 @@ const styles = Styles.styleSheetCreate({
       marginRight: -4,
       width: 28,
     },
+    isMobile: {
+      height: 36,
+      marginRight: -2,
+      width: 20,
+    },
   }),
   cardStacked: {
     marginBottom: 8,
   },
+  cardSuit: Styles.platformStyles({
+    isMobile: {
+      position: 'relative',
+      top: -1,
+    },
+  }),
   cards: {
     flexWrap: 'wrap',
   },
@@ -276,15 +302,18 @@ const styles = Styles.styleSheetCreate({
     height: 48,
     width: 48,
   },
-  handTarget: Styles.platformStyles({
-    isElectron: {
-      minWidth: 150,
-    },
-    isMobile: {
-      alignSelf: 'flex-start',
-      marginBottom: Styles.globalMargins.xtiny,
-    },
-  }),
+  gap: {
+    paddingBottom: Styles.globalMargins.tiny,
+  },
+  handContainer: {
+    flexShrink: 1,
+    paddingRight: Styles.globalMargins.tiny,
+  },
+  handTarget: {
+    height: 'auto',
+    justifyContent: 'space-around',
+    paddingRight: Styles.globalMargins.tiny,
+  },
   listFull: {
     color: Styles.globalColors.black,
   },

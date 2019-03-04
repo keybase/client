@@ -11,6 +11,7 @@ import {type InputProps} from './types'
 import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
+import Giphy from '../../giphy/container'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -248,7 +249,7 @@ class Input extends React.Component<InputProps, InputState> {
   _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
 
   _getCommandSuggestions = filter => {
-    if (this.props.showCommandMarkdown) {
+    if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
       return []
     }
     const sel = this._input && this._input.getSelection()
@@ -367,6 +368,7 @@ class Input extends React.Component<InputProps, InputState> {
         {this.props.showCommandMarkdown && (
           <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
         )}
+        {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <PlatformInput
           {...platformInputProps}
           dataSources={this._suggestorDatasource}
