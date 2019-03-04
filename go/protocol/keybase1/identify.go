@@ -187,6 +187,7 @@ type IdentifyLiteArg struct {
 	CanSuppressUI         bool                `codec:"canSuppressUI" json:"canSuppressUI"`
 	IdentifyBehavior      TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	ForceDisplay          bool                `codec:"forceDisplay" json:"forceDisplay"`
+	Oa                    OfflineAvailability `codec:"oa" json:"oa"`
 }
 
 type ResolveIdentifyImplicitTeamArg struct {

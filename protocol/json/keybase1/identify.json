@@ -298,6 +298,10 @@
           "name": "forceDisplay",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "IdentifyLiteRes"
