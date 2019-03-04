@@ -7,6 +7,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
+import {anyWaiting} from '../../../constants/waiting'
 import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
@@ -36,7 +37,7 @@ const mapStateToProps = state => {
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
     filter,
-    neverLoaded,
+    loading: anyWaiting(state, Constants.waitingKeyInboxRefresh),
     rows,
     smallTeamsExpanded,
   }
@@ -87,7 +88,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _refreshInbox: dispatchProps._refreshInbox,
   allowShowFloatingButton: stateProps.allowShowFloatingButton,
   filter: stateProps.filter,
-  neverLoaded: stateProps.neverLoaded,
+  loading: stateProps.loading,
   onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
   onEnsureSelection: () => {
     // $ForceType
