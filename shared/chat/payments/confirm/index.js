@@ -181,9 +181,6 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'space-between',
     },
   }),
-  pushDown: Styles.platformStyles({
-    isElectron: {flex: 1, justifyContent: 'flex-end'},
-  }),
   cancelButton: Styles.platformStyles({
     isElectron: {
       height: Styles.globalMargins.large,
@@ -244,6 +241,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       height: 150,
     },
+  }),
+  pushDown: Styles.platformStyles({
+    isElectron: {flex: 1, justifyContent: 'flex-end'},
   }),
   submitButton: Styles.platformStyles({
     common: {
