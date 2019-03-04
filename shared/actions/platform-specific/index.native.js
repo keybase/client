@@ -294,7 +294,7 @@ function* loadStartupDetails() {
       } else {
         const state = JSON.parse(routeState)
         if (state) {
-          startupTab = state.routeName
+          startupTab = state.tab
           startupConversation = state.selectedConversationIDKey
         }
       }
