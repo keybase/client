@@ -54,6 +54,12 @@ const errorProps = {
   error: 'Failed!',
 }
 
+const errorNoWalletProps = {
+  ...props,
+  error: 'Wallet needed to send money in chat',
+  errorIsNoWallet: true,
+}
+
 const smallProps = {
   ...props,
   xlmTotal: '1 XLM',
@@ -79,6 +85,7 @@ const load = () => {
     .add('Loaded (small total)', () => <PaymentsConfirm {...smallProps} />)
     .add('Loading', () => <PaymentsConfirm {...loadingProps} />)
     .add('Error', () => <PaymentsConfirm {...errorProps} />)
+    .add('Error (no wallet)', () => <PaymentsConfirm {...errorNoWalletProps} />)
 }
 
 export default load
