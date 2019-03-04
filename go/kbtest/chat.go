@@ -977,6 +977,7 @@ type ChatUI struct {
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
 	GiphyResults       chan []chat1.GiphySearchResult
+	GiphyWindow        chan bool
 	CoinFlipUpdates    chan []chat1.UICoinFlipStatus
 	CommandMarkdown    chan *chat1.UICommandMarkdown
 }
@@ -995,6 +996,7 @@ func NewChatUI() *ChatUI {
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
+		GiphyWindow:        make(chan bool, 10),
 		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
 		CommandMarkdown:    make(chan *chat1.UICommandMarkdown, 10),
 	}
@@ -1129,6 +1131,12 @@ func (c *ChatUI) ChatShowManageChannels(ctx context.Context, teamname string) er
 func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 	results []chat1.GiphySearchResult) error {
 	c.GiphyResults <- results
+	return nil
+}
+
+func (c *ChatUI) ChatGiphyToggleResultWindow(ctx context.Context,
+	convID chat1.ConversationID, show bool) error {
+	c.GiphyWindow <- show
 	return nil
 }
 

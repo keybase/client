@@ -522,6 +522,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "results": "Array<RPCChatTypes.GiphySearchResult>"
     },
+    "giphyToggleWindow": {
+      "_description": "Toggle Giphy search preview window",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "show": "boolean"
+    },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"
     },

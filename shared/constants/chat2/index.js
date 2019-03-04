@@ -31,6 +31,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   flipStatusMap: I.Map(),
   focus: null,
   giphyResultMap: I.Map(),
+  giphyWindowMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,

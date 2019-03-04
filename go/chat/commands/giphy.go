@@ -25,7 +25,7 @@ func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urls
 type Giphy struct {
 	sync.Mutex
 	*baseCommand
-	shownResults      map[string]bool
+	shownResults      map[string]*string
 	currentOpCancelFn context.CancelFunc
 	currentOpDoneCb   chan struct{}
 	searcher          giphySearcher
@@ -37,8 +37,8 @@ func NewGiphy(g *globals.Context) *Giphy {
 		usage = "Post a random GIF"
 	}
 	return &Giphy{
-		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, false),
-		shownResults: make(map[string]bool),
+		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, true),
+		shownResults: make(map[string]*string),
 		searcher:     defaultGiphySearcher{},
 	}
 }
@@ -101,21 +101,26 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	s.Unlock()
 	defer close(s.currentOpDoneCb)
 
-	if !s.Match(ctx, text) || text == "/giphy" {
-		shown := s.shownResults[convID.String()]
-		if shown {
+	if !s.Match(ctx, text) {
+		if _, ok := s.shownResults[convID.String()]; ok {
 			// tell UI to clear
-			s.getChatUI().ChatGiphySearchResults(ctx, convID, nil)
-			s.shownResults[convID.String()] = false
+			s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false)
+			delete(s.shownResults, convID.String())
 		}
 		return
 	}
-	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
+	query := s.getQuery(text)
+	if shown, ok := s.shownResults[convID.String()]; ok && shown == query {
+		s.Debug(ctx, "Preview: same query given, skipping")
+		return
+	}
+	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true)
+	s.shownResults[convID.String()] = query
+	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query,
 		s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
 		return
 	}
-	s.shownResults[convID.String()] = true
 	s.getChatUI().ChatGiphySearchResults(ctx, convID, results)
 }

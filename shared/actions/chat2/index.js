@@ -2597,6 +2597,14 @@ const onGiphyResults = (state, action) => {
   })
 }
 
+const onGiphyToggleWindow = (state, action) => {
+  const {convID, show} = action.payload.params
+  return Chat2Gen.createGiphyToggleWindow({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    show,
+  })
+}
+
 const giphySend = (state, action) => {
   const {conversationIDKey, url} = action.payload
   return Chat2Gen.createMessageSend({conversationIDKey, text: url})
@@ -3050,6 +3058,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphySearchResultsPayload>(
     EngineGen.chat1ChatUiChatGiphySearchResults,
     onGiphyResults
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload>(
+    EngineGen.chat1ChatUiChatGiphyToggleResultWindow,
+    onGiphyToggleWindow
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatShowManageChannelsPayload>(
     EngineGen.chat1ChatUiChatShowManageChannels,
