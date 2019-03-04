@@ -11,7 +11,6 @@ import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
-import * as SettingsConstants from '../../constants/settings'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -21,7 +20,6 @@ import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
-import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import flags from '../../util/feature-flags'
@@ -249,25 +247,8 @@ const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set passphrase screen.
 const startLogoutHandshakeIfAllowed = state =>
-  RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
-    if (canLogoutRes.canLogout) {
-      return startLogoutHandshake(state)
-    } else {
-      const heading = canLogoutRes.reason
-      if (isMobile) {
-        return RouteTreeGen.createNavigateTo({
-          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passphraseTab}],
-        })
-      } else {
-        return [
-          RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab]}),
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {heading}, selected: 'changePassphrase'}],
-          }),
-        ]
-      }
-    }
-  })
+  // TODO: Always allowed right now for release, because of bugs in offline mode.
+  startLogoutHandshake(state)
 
 const startLogoutHandshake = state =>
   ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
