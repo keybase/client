@@ -956,7 +956,7 @@ const rootReducer = (
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
       let nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
-      nextState = action.payload.initialTrustedLoad ? state.set('trustedInboxHasLoaded', true) : state
+      nextState = action.payload.initialTrustedLoad ? nextState.set('trustedInboxHasLoaded', true) : nextState
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
