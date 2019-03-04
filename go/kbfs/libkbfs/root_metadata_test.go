@@ -298,7 +298,8 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	rmd.fakeInitialRekey()
 
-	u, id, err := config.KBPKI().Resolve(ctx, "bob")
+	u, id, err := config.KBPKI().Resolve(
+		ctx, "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	uid, err := id.AsUser()
 	require.NoError(t, err)
@@ -319,14 +320,16 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "alice,bob@twitter", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil,
+		"alice,bob@twitter", tlf.Private)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 
 	rmd.fakeInitialRekey()
 
-	u, id, err := config.KBPKI().Resolve(ctx, "bob")
+	u, id, err := config.KBPKI().Resolve(
+		ctx, "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	uid, err := id.AsUser()
 	require.NoError(t, err)
@@ -338,7 +341,7 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
 		"bob", "bob@twitter")
 
-	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil)
+	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil, nil)
 	require.NoError(t, err)
 
 	dummyErr := errors.New("dummy")
@@ -420,7 +423,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 1, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
 
 	// revoke bob's device
-	_, bobID, err := config.KBPKI().Resolve(context.Background(), "bob")
+	_, bobID, err := config.KBPKI().Resolve(
+		context.Background(), "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	bobUID, err := bobID.AsUser()
 	require.NoError(t, err)
@@ -452,7 +456,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// add a device for charlie and rekey as charlie
-	_, charlieID, err := config.KBPKI().Resolve(context.Background(), "charlie")
+	_, charlieID, err := config.KBPKI().Resolve(
+		context.Background(), "charlie", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	charlieUID, err := charlieID.AsUser()
 	require.NoError(t, err)
@@ -666,7 +671,8 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown(ctx)
 
-	_, id, err := config.KBPKI().Resolve(context.Background(), "alice")
+	_, id, err := config.KBPKI().Resolve(
+		context.Background(), "alice", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	uid, err := id.AsUser()
 	require.NoError(t, err)
@@ -731,7 +737,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	// Set the private MD, to make sure it gets copied properly during
 	// upconversion.
 	_, aliceID, err := configWriter.KBPKI().Resolve(
-		context.Background(), "alice")
+		context.Background(), "alice", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	aliceUID, err := aliceID.AsUser()
 	require.NoError(t, err)
@@ -742,7 +748,8 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	require.NoError(t, err)
 
 	// add a device for bob and rekey as bob
-	_, bobID, err := configWriter.KBPKI().Resolve(context.Background(), "bob")
+	_, bobID, err := configWriter.KBPKI().Resolve(
+		context.Background(), "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	bobUID, err := bobID.AsUser()
 	require.NoError(t, err)
@@ -809,7 +816,8 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	require.NoError(t, err)
 
 	getUser := func(name string) (keybase1.UID, kbfscrypto.VerifyingKey) {
-		_, id, err := config.KBPKI().Resolve(context.Background(), name)
+		_, id, err := config.KBPKI().Resolve(
+			context.Background(), name, keybase1.OfflineAvailability_NONE)
 		require.NoError(t, err)
 		uid, err := id.AsUser()
 		require.NoError(t, err)

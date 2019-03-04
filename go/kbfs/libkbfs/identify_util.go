@@ -190,8 +190,9 @@ func getExtendedIdentify(ctx context.Context) (ei *extendedIdentify) {
 // identifyUID performs identify based only on UID. It should be
 // used only if the username is not known - as e.g. when rekeying.
 func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, id keybase1.UserOrTeamID, t tlf.Type) error {
-	name, err := nug.GetNormalizedUsername(ctx, id)
+	identifier identifier, id keybase1.UserOrTeamID, t tlf.Type,
+	offline keybase1.OfflineAvailability) error {
+	name, err := nug.GetNormalizedUsername(ctx, id, offline)
 	if err != nil {
 		return err
 	}
@@ -301,7 +302,8 @@ func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
 // identifyUserList identifies the users in the given list.
 // Only use this when the usernames are not known - like when rekeying.
 func identifyUserList(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, ids []keybase1.UserOrTeamID, t tlf.Type) error {
+	identifier identifier, ids []keybase1.UserOrTeamID, t tlf.Type,
+	offline keybase1.OfflineAvailability) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// TODO: limit the number of concurrent identifies?
@@ -310,7 +312,8 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter,
 		// Capture range variable.
 		id := id
 		eg.Go(func() error {
-			return identifyUID(ctx, nug, identifier, id, t)
+			return identifyUID(
+				ctx, nug, identifier, id, t, offline)
 		})
 	}
 

@@ -27,9 +27,11 @@ func (d *daemonKBPKI) GetCurrentSession(ctx context.Context) (
 	return d.daemon.CurrentSession(ctx, sessionID)
 }
 
-func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
+func (d *daemonKBPKI) Resolve(
+	ctx context.Context, assertion string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	return d.daemon.Resolve(ctx, assertion)
+	return d.daemon.Resolve(ctx, assertion, offline)
 }
 
 func (d *daemonKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion string) (
@@ -51,8 +53,8 @@ func (d *daemonKBPKI) ResolveImplicitTeam(
 }
 
 func (d *daemonKBPKI) GetNormalizedUsername(
-	ctx context.Context, id keybase1.UserOrTeamID) (
-	kbname.NormalizedUsername, error) {
+	ctx context.Context, id keybase1.UserOrTeamID,
+	offline keybase1.OfflineAvailability) (kbname.NormalizedUsername, error) {
 	asUser, err := id.AsUser()
 	if err != nil {
 		return kbname.NormalizedUsername(""), err

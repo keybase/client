@@ -160,10 +160,12 @@ func chargedToForTLF(ctx context.Context, sessionGetter CurrentSessionGetter,
 // GetHandleFromFolderNameAndType returns a TLFHandle given a folder
 // name (e.g., "u1,u2#u3") and a TLF type.
 func GetHandleFromFolderNameAndType(
-	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter, tlfName string,
+	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter,
+	syncGetter syncedTlfGetterSetter, tlfName string,
 	t tlf.Type) (*TlfHandle, error) {
 	for {
-		tlfHandle, err := ParseTlfHandle(ctx, kbpki, idGetter, tlfName, t)
+		tlfHandle, err := ParseTlfHandle(
+			ctx, kbpki, idGetter, syncGetter, tlfName, t)
 		switch e := errors.Cause(err).(type) {
 		case TlfNameNotCanonical:
 			tlfName = e.NameToTry
@@ -178,7 +180,8 @@ func GetHandleFromFolderNameAndType(
 // getHandleFromFolderName returns a TLFHandle given a folder
 // name (e.g., "u1,u2#u3") and a public/private bool.  DEPRECATED.
 func getHandleFromFolderName(
-	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter, tlfName string,
+	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter,
+	syncGetter syncedTlfGetterSetter, tlfName string,
 	public bool) (*TlfHandle, error) {
 	// TODO(KBFS-2185): update the protocol to support requests
 	// for single-team TLFs.
@@ -186,7 +189,8 @@ func getHandleFromFolderName(
 	if public {
 		t = tlf.Public
 	}
-	return GetHandleFromFolderNameAndType(ctx, kbpki, idGetter, tlfName, t)
+	return GetHandleFromFolderNameAndType(
+		ctx, kbpki, idGetter, syncGetter, tlfName, t)
 }
 
 // IsWriterFromHandle checks whether the given UID is a writer for the

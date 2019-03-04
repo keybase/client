@@ -378,7 +378,8 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 			tlfName := selfMessage.Folder.Name
 			tlfType := tlf.TypeFromFolderType(selfMessage.Folder.FolderType)
 			h, err := GetHandleFromFolderNameAndType(
-				ctx, c.config.KBPKI(), c.config.MDOps(), tlfName, tlfType)
+				ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
+				tlfName, tlfType)
 			if err != nil {
 				c.log.CDebugf(ctx,
 					"Ignoring errors getting handle for %s/%s: %+v",
@@ -459,7 +460,8 @@ func (c *ChatRPC) GetGroupedInbox(
 		}
 
 		h, err := GetHandleFromFolderNameAndType(
-			ctx, c.config.KBPKI(), c.config.MDOps(), info.TlfName, tlfType)
+			ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
+			info.TlfName, tlfType)
 		if err != nil {
 			c.log.CDebugf(ctx, "Ignoring errors getting handle for %s/%s: %+v",
 				info.TlfName, tlfType, err)
@@ -628,7 +630,7 @@ func (c *ChatRPC) newNotificationChannel(
 	}
 
 	tlfHandle, err := GetHandleFromFolderNameAndType(
-		ctx, c.config.KBPKI(), c.config.MDOps(), conv.Name, tlfType)
+		ctx, c.config.KBPKI(), c.config.MDOps(), c.config, conv.Name, tlfType)
 	if err != nil {
 		return err
 	}

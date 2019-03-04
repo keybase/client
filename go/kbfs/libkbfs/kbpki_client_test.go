@@ -79,7 +79,8 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 	c, _, _, _ := makeTestKBPKIClient(t)
 
 	name, err := c.GetNormalizedUsername(
-		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam())
+		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam(),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatal(err)
 	}

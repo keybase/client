@@ -300,7 +300,8 @@ func (j *JournalManager) makeFBOForJournal(
 
 	handle, err := MakeTlfHandle(
 		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
-		j.config.KBPKI(), constIDGetter{tlfID})
+		j.config.KBPKI(), constIDGetter{tlfID},
+		j.config.OfflineAvailabilityForID(tlfID))
 	if err != nil {
 		return err
 	}

@@ -456,9 +456,15 @@ func ConvertIdentifyError(assertion string, err error) error {
 }
 
 // Resolve implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
+func (k *KeybaseServiceBase) Resolve(
+	ctx context.Context, assertion string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	res, err := k.identifyClient.Resolve3(ctx, keybase1.Resolve3Arg{Assertion: assertion})
+	res, err := k.identifyClient.Resolve3(
+		ctx, keybase1.Resolve3Arg{
+			Assertion: assertion,
+			Oa:        offline,
+		})
 	if err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
@@ -1205,7 +1211,7 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), k.config.MDOps(), req.Folder.Name,
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, req.Folder.Name,
 		!req.Folder.Private)
 	if err != nil {
 		return err
@@ -1323,7 +1329,8 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	// Making a favorite here to reuse the code that converts from
 	// `keybase1.FolderType` into `tlf.Type`.
 	fav := NewFavoriteFromFolder(folder)
-	handle, err := GetHandleFromFolderNameAndType(ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
+	handle, err := GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
 		return err
 	}
@@ -1336,7 +1343,7 @@ func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder) (err error) {
 	fav := NewFavoriteFromFolder(folder)
 	handle, err := GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
 		return err
 	}
@@ -1371,7 +1378,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	}
 
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), k.config.MDOps(), query.TlfName, false)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, query.TlfName, false)
 	if err != nil {
 		return res, err
 	}
@@ -1413,7 +1420,7 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	}
 
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), k.config.MDOps(), query.TlfName,
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, query.TlfName,
 		true /* public */)
 	if err != nil {
 		return res, err

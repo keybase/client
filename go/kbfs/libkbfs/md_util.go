@@ -46,10 +46,11 @@ func makeRekeyReadErrorHelper(
 }
 
 func makeRekeyReadError(
-	ctx context.Context, err error, kbpki KBPKI, kmd KeyMetadata,
+	ctx context.Context, err error, kbpki KBPKI,
+	syncGetter syncedTlfGetterSetter, kmd KeyMetadata,
 	uid keybase1.UID, username kbname.NormalizedUsername) error {
 	h := kmd.GetTlfHandle()
-	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki, nil)
+	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki, nil, syncGetter)
 	if resolveErr != nil {
 		// Ignore error and pretend h is already fully
 		// resolved.
@@ -61,7 +62,8 @@ func makeRekeyReadError(
 // Helper which returns nil if the md block is uninitialized or readable by
 // the current user. Otherwise an appropriate read access error is returned.
 func isReadableOrError(
-	ctx context.Context, kbpki KBPKI, md ReadOnlyRootMetadata) error {
+	ctx context.Context, kbpki KBPKI, syncGetter syncedTlfGetterSetter,
+	md ReadOnlyRootMetadata) error {
 	if !md.IsInitialized() || md.IsReadable() {
 		return nil
 	}
@@ -73,8 +75,8 @@ func isReadableOrError(
 	}
 	err = errors.Errorf("%s is not readable by %s (uid:%s)", md.TlfID(),
 		session.Name, session.UID)
-	return makeRekeyReadError(ctx, err, kbpki, md,
-		session.UID, session.Name)
+	return makeRekeyReadError(
+		ctx, err, kbpki, syncGetter, md, session.UID, session.Name)
 }
 
 func getMDRange(ctx context.Context, config Config, id tlf.ID, bid kbfsmd.BranchID,
@@ -262,7 +264,7 @@ func getMergedMDUpdatesWithEnd(ctx context.Context, config Config, id tlf.ID,
 	// readable until the newer revision, containing the key for this
 	// device, is processed.
 	for i, rmd := range mergedRmds {
-		if err := isReadableOrError(ctx, config.KBPKI(), rmd.ReadOnly()); err != nil {
+		if err := isReadableOrError(ctx, config.KBPKI(), config, rmd.ReadOnly()); err != nil {
 			// The right secret key for the given rmd's
 			// key generation may only be present in the
 			// most recent rmd.

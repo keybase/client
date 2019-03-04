@@ -98,10 +98,12 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 }
 
 // Resolve implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) Resolve(ctx context.Context, assertion string) (
+func (k KeybaseServiceMeasured) Resolve(
+	ctx context.Context, assertion string,
+	offline keybase1.OfflineAvailability) (
 	name kbname.NormalizedUsername, uid keybase1.UserOrTeamID, err error) {
 	k.resolveTimer.Time(func() {
-		name, uid, err = k.delegate.Resolve(ctx, assertion)
+		name, uid, err = k.delegate.Resolve(ctx, assertion, offline)
 	})
 	return name, uid, err
 }

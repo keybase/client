@@ -258,7 +258,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
 	tlfHandle, err := ParseTlfHandle(
-		ctx, config1B.KBPKI(), config1B.MDOps(), name, tlf.Private)
+		ctx, config1B.KBPKI(), config1B.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 
 	_, _, err = config1B.KBFSOps().GetTLFCryptKeys(ctx, tlfHandle)

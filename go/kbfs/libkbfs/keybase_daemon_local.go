@@ -217,7 +217,8 @@ func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 }
 
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
+func (k *KeybaseDaemonLocal) Resolve(
+	ctx context.Context, assertion string, _ keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if err := checkContext(ctx); err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
@@ -261,7 +262,7 @@ func (k *KeybaseDaemonLocal) Identify(
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// The local daemon doesn't need to distinguish resolves from
 	// identifies.
-	return k.Resolve(ctx, assertion)
+	return k.Resolve(ctx, assertion, keybase1.OfflineAvailability_NONE)
 }
 
 // NormalizeSocialAssertion implements the KeybaseService interface for
