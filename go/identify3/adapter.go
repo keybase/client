@@ -134,7 +134,7 @@ func (i *UIAdapter) priority(key string) int {
 func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
 
 	needUpgrade := false
-	mctx.Debug("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
+	mctx.Debug("ID3: setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
 		lcr, lcr.Cached, lcr.Diff, lcr.RemoteDiff, lcr.Hint)
 
 	switch {
