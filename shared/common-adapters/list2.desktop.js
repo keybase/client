@@ -16,6 +16,11 @@ class List2<T> extends PureComponent<Props<T>, void> {
     return item[keyProp]
   }
 
+  // This has to be a separate variable since if we construct it inside render
+  // it's a new function everytime, and that triggers react-window to unmount
+  // all rows and mount again.
+  _row = ({index, style}) => <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>
+
   _fixed = ({height, width, itemHeight}) => (
     <FixedSizeList
       style={this.props.style}
@@ -25,7 +30,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
       itemKey={this._keyExtractor}
       itemSize={itemHeight}
     >
-      {({index, style}) => <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>}
+      {this._row}
     </FixedSizeList>
   )
 
@@ -39,7 +44,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
       itemSize={index => getItemLayout(index, this.props.items[index]).height}
       estimatedItemSize={this.props.estimatedItemHeight}
     >
-      {({index, style}) => <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>}
+      {this._row}
     </VariableSizeList>
   )
 
