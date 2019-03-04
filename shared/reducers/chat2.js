@@ -456,7 +456,7 @@ const rootReducer = (
     }
     case Chat2Gen.giphyToggleWindow: {
       let nextState = state.setIn(['giphyWindowMap', action.payload.conversationIDKey], action.payload.show)
-      if (action.payload.show) {
+      if (!action.payload.show) {
         nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], null)
       }
       return nextState
