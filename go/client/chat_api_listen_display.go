@@ -121,13 +121,26 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 	}
 }
 
+func matchMembersTypeToFilter(filter ChatChannel, typ chat1.ConversationMembersType) bool {
+	if filter.MembersType == "" {
+		// Default empty value matches to any non-team convo.
+		switch typ {
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+			return true
+		default:
+			return false
+		}
+	}
+	return filter.MembersType == typ.String()
+}
+
 func (d *chatNotificationDisplay) matchFilters(conv *chat1.InboxUIItem) bool {
 	if len(d.filtersNormalized) == 0 {
 		// No fliters - every message is relayed.
 		return true
 	}
 	for _, v := range d.filtersNormalized {
-		if conv.MembersType.String() == v.MembersType && v.Name == strings.ToLower(conv.Name) {
+		if matchMembersTypeToFilter(v, conv.MembersType) && v.Name == strings.ToLower(conv.Name) {
 			// If any of the following were specified by user and differ from
 			// what was received, filter the msg out.
 			if v.TopicType != "" && conv.TopicType.String() != v.TopicType {

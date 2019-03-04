@@ -134,8 +134,8 @@ func (c *CmdChatAPIListen) Run() error {
 		return err
 	}
 
-	if len(chatDisplay.filtersNormalized) > 0 {
-		c.ErrWriteLn("Message filtering is active: %d filters")
+	if filterLen := len(chatDisplay.filtersNormalized); filterLen > 0 {
+		c.ErrWriteLn("Message filtering is active: %d filters", filterLen)
 		for i, v := range chatDisplay.filtersNormalized {
 			c.ErrWriteLn("filter %d: %+v", i, v)
 		}
