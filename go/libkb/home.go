@@ -18,7 +18,8 @@ type RunModeGetter func() RunMode
 
 type Base struct {
 	appName             string
-	getHome             ConfigGetter
+	getHomeFromCmd      ConfigGetter
+	getHomeFromConfig   ConfigGetter
 	getMobileSharedHome ConfigGetter
 	getRunMode          RunModeGetter
 	getLog              LogGetter
@@ -40,6 +41,22 @@ type HomeFinder interface {
 	InfoDir() string
 }
 
+func (b Base) getHome() string {
+	if b.getHomeFromCmd != nil {
+		ret := b.getHomeFromCmd()
+		if ret != "" {
+			return ret
+		}
+	}
+	if b.getHomeFromConfig != nil {
+		ret := b.getHomeFromConfig()
+		if ret != "" {
+			return ret
+		}
+	}
+	return ""
+}
+
 func (b Base) Join(elem ...string) string { return filepath.Join(elem...) }
 
 type XdgPosix struct {
@@ -49,10 +66,7 @@ type XdgPosix struct {
 func (x XdgPosix) Normalize(s string) string { return s }
 
 func (x XdgPosix) Home(emptyOk bool) string {
-	var ret string
-	if x.getHome != nil {
-		ret = x.getHome()
-	}
+	ret := x.getHome()
 	if len(ret) == 0 && !emptyOk {
 		ret = os.Getenv("HOME")
 	}
@@ -65,12 +79,28 @@ func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
 
 func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 	var prfx string
-	prfx = os.Getenv(env)
-	if len(prfx) == 0 {
+
+	// If the use explicitly provided a `--home` directory, it overrides any XDG_*
+	// variables. All XDR dirs are taken relative to that.
+	if x.getHomeFromCmd != nil {
+		prfx = x.getHomeFromCmd()
+	}
+
+	// If the command line didn't specify anything, then we're going to go with the XDG_
+	// environment variablre specification.
+	if prfx == "" {
+		prfx = os.Getenv(env)
+	}
+
+	// If there was no XDG_ environment variable, then we wind up falling back to
+	// (1) the config file first, and if not there, then: (2) the HOME environment
+	// variable.
+	if prfx == "" {
 		h := x.Home(false)
 		v := append([]string{h}, prefixDirs...)
 		prfx = x.Join(v...)
 	}
+
 	appName := x.appName
 	if x.getRunMode() != ProductionRunMode {
 		appName = appName + "." + string(x.getRunMode())
@@ -185,7 +215,7 @@ func (d Darwin) InfoDir() string {
 	// If the user is explicitly passing in a HomeDirectory, make the PID file directory
 	// local to that HomeDir. This way it's possible to have multiple keybases in parallel
 	// running for a given run mode, without having to explicitly specify a PID file.
-	if d.getHome != nil && d.getHome() != "" {
+	if d.getHome() != "" {
 		return d.CacheDir()
 	}
 	return d.appDir(os.TempDir())
@@ -193,9 +223,7 @@ func (d Darwin) InfoDir() string {
 
 func (d Darwin) Home(emptyOk bool) string {
 	var ret string
-	if d.getHome != nil {
-		ret = d.getHome()
-	}
+	ret = d.getHome()
 	if len(ret) == 0 && !emptyOk {
 		ret = os.Getenv("HOME")
 	}
@@ -282,11 +310,7 @@ func (w Win32) deriveFromTemp() (ret string) {
 }
 
 func (w Win32) Home(emptyOk bool) string {
-	var ret string
-
-	if w.getHome != nil {
-		ret = w.getHome()
-	}
+	ret := w.getHome()
 	if len(ret) == 0 && !emptyOk {
 		ret, _ = LocalDataDir()
 		if len(ret) == 0 {
@@ -319,9 +343,9 @@ func (w Win32) MobileSharedHome(emptyOk bool) string {
 	return w.Home(emptyOk)
 }
 
-func NewHomeFinder(appName string, getHome ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
+func NewHomeFinder(appName string, getHomeFromCmd ConfigGetter, getHomeFromConfig ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
 	getRunMode RunModeGetter, getLog LogGetter) HomeFinder {
-	base := Base{appName, getHome, getMobileSharedHome, getRunMode, getLog}
+	base := Base{appName, getHomeFromCmd, getHomeFromConfig, getMobileSharedHome, getRunMode, getLog}
 	switch osname {
 	case "windows":
 		return Win32{base}

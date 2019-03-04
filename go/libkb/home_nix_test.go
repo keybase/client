@@ -13,7 +13,7 @@ import (
 )
 
 func TestPosix(t *testing.T) {
-	hf := NewHomeFinder("tester", nil, nil, "posix", func() RunMode { return ProductionRunMode },
+	hf := NewHomeFinder("tester", nil, nil, nil, "posix", func() RunMode { return ProductionRunMode },
 		makeLogGetter(t))
 	d := hf.CacheDir()
 	if !strings.Contains(d, ".cache/tester") {
@@ -30,7 +30,7 @@ func TestPosix(t *testing.T) {
 }
 
 func TestDarwinHomeFinder(t *testing.T) {
-	hf := NewHomeFinder("keybase", nil, nil, "darwin", func() RunMode { return ProductionRunMode }, makeLogGetter(t))
+	hf := NewHomeFinder("keybase", nil, nil, nil, "darwin", func() RunMode { return ProductionRunMode }, makeLogGetter(t))
 	d := hf.ConfigDir()
 	if !strings.HasSuffix(d, "Library/Application Support/Keybase") {
 		t.Errorf("Bad config dir: %s", d)
@@ -39,7 +39,7 @@ func TestDarwinHomeFinder(t *testing.T) {
 	if !strings.HasSuffix(d, "Library/Caches/Keybase") {
 		t.Errorf("Bad cache dir: %s", d)
 	}
-	hfInt := NewHomeFinder("keybase", func() string { return "home" }, func() string { return "mobilehome" },
+	hfInt := NewHomeFinder("keybase", func() string { return "home" }, nil, func() string { return "mobilehome" },
 		"darwin", func() RunMode { return ProductionRunMode }, makeLogGetter(t))
 	hfDarwin := hfInt.(Darwin)
 	hfDarwin.forceIOS = true
@@ -55,7 +55,7 @@ func TestDarwinHomeFinder(t *testing.T) {
 }
 
 func TestDarwinHomeFinderInDev(t *testing.T) {
-	devHomeFinder := NewHomeFinder("keybase", nil, nil, "darwin", func() RunMode { return DevelRunMode }, makeLogGetter(t))
+	devHomeFinder := NewHomeFinder("keybase", nil, nil, nil, "darwin", func() RunMode { return DevelRunMode }, makeLogGetter(t))
 	configDir := devHomeFinder.ConfigDir()
 	if !strings.HasSuffix(configDir, "Library/Application Support/KeybaseDevel") {
 		t.Errorf("Bad config dir: %s", configDir)
