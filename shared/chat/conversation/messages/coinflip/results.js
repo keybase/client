@@ -110,7 +110,7 @@ const Card = (props: CardType) => (
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
-        type={Styles.isMobile ? 'Body' : 'BodyBig'}
+        type={Styles.isMobile ? 'BodySmall' : 'Body'}
         style={{color: suits[cards[props.card].suit].color}}
       >
         {cards[props.card].value}
@@ -118,7 +118,7 @@ const Card = (props: CardType) => (
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
-        fontSize={12}
+        fontSize={Styles.isMobile ? 10 : 12}
         type={suits[cards[props.card].suit].icon}
         color={suits[cards[props.card].suit].color}
       />
@@ -161,20 +161,23 @@ type HandType = {|
 |}
 const CoinFlipResultHands = (props: HandType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <Kb.Box2 direction="vertical" gap="tiny">
+    <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={{backgroundColor: Styles.globalColors.green, paddingRight: Styles.globalMargins.tiny}}>
       {props.hands &&
         props.hands.map(hand => (
-          <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true} key={hand.target}>
-            <Kb.Box2
-              alignItems="flex-start"
-              direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-              style={styles.handTarget}
-            >
-              <Kb.Text selectable={true} type="BodyBig">
-                {hand.target}
-              </Kb.Text>
-            </Kb.Box2>
-            <CoinFlipResultDeck deck={hand.hand} hand={true} />
+          <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical" style={{backgroundColor: Styles.globalColors.orange}}>
+            <Kb.Text selectable={true} type="BodyBig" style={styles.handTarget}>
+              {hand.target}
+            </Kb.Text>
+          </Kb.Box2>
+        ))}
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" gap="tiny">
+        {props.hands &&
+        props.hands.map(hand => (
+          <Kb.Box2 key={hand.target} direction="vertical" alignSelf="flex-start">
+            {hand.hand ? <CoinFlipResultDeck deck={hand.hand} /> : (
+              <Kb.Text type="Body">no more cards</Kb.Text>
+            )}
           </Kb.Box2>
         ))}
     </Kb.Box2>
@@ -256,6 +259,11 @@ const styles = Styles.styleSheetCreate({
       marginRight: -4,
       width: 28,
     },
+    isMobile: {
+      height: 36,
+      marginRight: -2,
+      width: 20,
+    },
   }),
   cardStacked: {
     marginBottom: 8,
@@ -278,11 +286,10 @@ const styles = Styles.styleSheetCreate({
   },
   handTarget: Styles.platformStyles({
     isElectron: {
-      minWidth: 150,
+      paddingTop: 12,
     },
     isMobile: {
-      alignSelf: 'flex-start',
-      marginBottom: Styles.globalMargins.xtiny,
+      paddingTop: 8,
     },
   }),
   listFull: {

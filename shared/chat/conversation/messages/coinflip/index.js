@@ -43,9 +43,19 @@ class CoinFlip extends React.Component<Props, State> {
     }, 0)
     return `${revealed} / ${total}`
   }
-  _renderStatusText = () => {
-    if (this.props.showParticipants) {
-      const participants = (
+  _renderStatusText = () =>
+    this.props.showParticipants ? (
+      <Kb.Box2
+        direction="vertical"
+        onMouseOver={this._showPopup}
+        onMouseLeave={this._hidePopup}
+        ref={this._partRef}
+      >
+        {!Styles.isMobile && (
+          <Kb.Text selectable={true} type="BodySmall">
+            Secured by{' '}
+          </Kb.Text>
+        )}
         <Kb.Text
           selectable={true}
           type="BodySmallPrimaryLink"
@@ -54,51 +64,35 @@ class CoinFlip extends React.Component<Props, State> {
         >
           {`${this.props.participants.length} ${pluralize('participant', this.props.participants.length)}`}
         </Kb.Text>
-      )
-      return (
-        <Kb.Box2
-          direction="vertical"
-          onMouseOver={this._showPopup}
-          onMouseLeave={this._hidePopup}
-          ref={this._partRef}
-        >
-          <Kb.Text selectable={true} type="BodySmall">
-            Secured by {Styles.isMobile && participants}
+        <CoinFlipParticipants
+          attachTo={this._getAttachmentRef}
+          onHidden={this._hidePopup}
+          participants={this.props.participants}
+          visible={this.state.showPopup}
+        />
+      </Kb.Box2>
+    ) : (
+      <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          <Kb.Text selectable={true} type="BodySmallSemibold">
+            Collecting commitments: {this.props.participants.length}
           </Kb.Text>
-          {!Styles.isMobile && participants}
-          <CoinFlipParticipants
-            attachTo={this._getAttachmentRef}
-            onHidden={this._hidePopup}
-            participants={this.props.participants}
-            visible={this.state.showPopup}
-          />
+          {this.props.phase === 'secrets' && (
+            <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+          )}
         </Kb.Box2>
-      )
-    } else {
-      return (
-        <Kb.Box2 direction="vertical">
+        {this.props.phase === 'secrets' && (
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Text selectable={true} type="BodySmallSemibold">
-              Collecting commitments: {this.props.participants.length}
+              Collecting secrets: {this._revealSummary()}
             </Kb.Text>
-            {this.props.phase === 'secrets' && (
+            {this.props.phase === 'complete' && (
               <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
             )}
           </Kb.Box2>
-          {this.props.phase === 'secrets' && (
-            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-              <Kb.Text selectable={true} type="BodySmallSemibold">
-                Collecting secrets: {this._revealSummary()}
-              </Kb.Text>
-              {this.props.phase === 'complete' && (
-                <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
-              )}
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      )
-    }
-  }
+        )}
+      </Kb.Box2>
+    )
   render() {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
@@ -115,7 +109,7 @@ class CoinFlip extends React.Component<Props, State> {
                 ) : (
                   <Kb.Box2 direction="vertical" style={styles.progressVis}>
                     <Kb.Text selectable={true} type="BodyItalic">
-                      Starting flip...
+                      Starting...
                     </Kb.Text>
                   </Kb.Box2>
                 )}
@@ -125,13 +119,8 @@ class CoinFlip extends React.Component<Props, State> {
                   <Kb.Image src={revealSrc} style={styles.progressVis} />
                 </Kb.Box2>
               )}
-              {!Styles.isMobile && <Kb.Box2 direction="vertical">{this._renderStatusText()}</Kb.Box2>}
+              <Kb.Box2 direction="vertical">{this._renderStatusText()}</Kb.Box2>
             </Kb.Box2>
-            {Styles.isMobile && (
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.statusContainer}>
-                {this._renderStatusText()}
-              </Kb.Box2>
-            )}
           </>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -166,16 +155,10 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-  progressVis: Styles.platformStyles({
-    isElectron: {
-      height: 50,
-      width: 128,
-    },
-    isMobile: {
-      height: 50,
-      width: 112,
-    },
-  }),
+  progressVis: {
+    height: 40,
+    width: 64,
+  },
   result: Styles.platformStyles({
     common: {
       fontWeight: '600',
