@@ -8,6 +8,7 @@ import {teamsTab} from '../../../constants/tabs'
 
 type Props = {|
   ...$Exact<OverlayParentProps>,
+  isAdmin: boolean,
   isGeneralChannel: boolean,
   onAddPeople: () => void,
   onAddToChannel: () => void,
@@ -15,6 +16,8 @@ type Props = {|
 
 const _AddPeople = (props: Props) => {
   let menu = null
+  let directAction = null
+  let directLabel = null
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
     const items = [
@@ -31,22 +34,31 @@ const _AddPeople = (props: Props) => {
         closeOnSelect={true}
       />
     )
+  } else {
+    directAction = props.onAddPeople
+    directLabel = 'Add to team'
+  }
+  if (!props.isAdmin) {
+    directAction = props.onAddToChannel
+    directLabel = 'Add to channel'
   }
   return (
     <Box2 direction="horizontal" centerChildren={true}>
       {menu}
       <Button
         type="Primary"
-        onClick={props.isGeneralChannel ? props.onAddPeople : props.toggleShowingMenu}
-        label={props.isGeneralChannel ? 'Add to team' : 'Add someone...'}
+        onClick={directAction || props.toggleShowingMenu}
+        label={directLabel || 'Add someone...'}
         ref={props.setAttachmentRef}
       />
     </Box2>
   )
 }
+_AddPeople.displayName = 'AddPeople'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  isAdmin: boolean,
   isGeneralChannel: boolean,
   teamname: string,
 }
@@ -77,6 +89,7 @@ const AddPeople = compose(
     () => ({}),
     mapDispatchToProps,
     (s, d, o) => ({
+      isAdmin: o.isAdmin,
       isGeneralChannel: o.isGeneralChannel,
       onAddPeople: () => d._onAddPeople(o.teamname),
       onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),

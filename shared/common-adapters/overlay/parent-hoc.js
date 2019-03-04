@@ -43,6 +43,7 @@ const OverlayParentHOC = <T: OverlayParentProps>(
       )
     }
   }
+  OverlayParent.displayName = ComposedComponent.displayName || 'OverlayParent'
   return OverlayParent
 }
 
