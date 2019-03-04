@@ -422,8 +422,7 @@ func (h *TlfHandle) FavoriteData() FavoriteData {
 		ResetMembers: []keybase1.User{},
 	}
 	if h.IsBackedByTeam() {
-		var teamID keybase1.TeamID
-		teamID = h.FirstResolvedWriter().AsTeamOrBust()
+		teamID := h.FirstResolvedWriter().AsTeamOrBust()
 		fd.TeamID = &teamID
 	}
 	return fd

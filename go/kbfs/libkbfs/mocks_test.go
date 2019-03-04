@@ -1879,6 +1879,18 @@ func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(ctx, fav interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), ctx, fav)
 }
 
+// SetFavoritesHomeTLFInfo mocks base method
+func (m *MockKBFSOps) SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetFavoritesHomeTLFInfo", ctx, info)
+}
+
+// SetFavoritesHomeTLFInfo indicates an expected call of SetFavoritesHomeTLFInfo
+func (mr *MockKBFSOpsMockRecorder) SetFavoritesHomeTLFInfo(ctx, info interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetFavoritesHomeTLFInfo", reflect.TypeOf((*MockKBFSOps)(nil).SetFavoritesHomeTLFInfo), ctx, info)
+}
+
 // RefreshEditHistory mocks base method
 func (m *MockKBFSOps) RefreshEditHistory(fav Favorite) {
 	m.ctrl.T.Helper()

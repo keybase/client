@@ -308,6 +308,11 @@ func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	return nil
 }
 
+func (fs *KBFSOpsStandard) SetFavoritesHomeTLFInfo(ctx context.Context,
+	info homeTLFInfo) {
+	fs.favs.setHomeTLFInfo(ctx, info)
+}
+
 func (fs *KBFSOpsStandard) getOpsByFav(fav Favorite) *folderBranchOps {
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()

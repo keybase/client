@@ -262,7 +262,7 @@ func TestFavoritesGetAll(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Prep
-	teamID := keybase1.TeamID(0xdeadbeef)
+	teamID := keybase1.MakeTestTeamID(0xdeadbeef, false)
 	fol := keybase1.Folder{
 		Name:       "fake folder",
 		Private:    true,
@@ -270,7 +270,7 @@ func TestFavoritesGetAll(t *testing.T) {
 		FolderType: keybase1.FolderType_TEAM,
 		TeamID:     &teamID,
 	}
-	teamID2 := keybase1.TeamID(0xabcdef)
+	teamID2 := keybase1.MakeTestTeamID(0xabcdef, true)
 	fol2 := keybase1.Folder{
 		Name:       "another folder",
 		Private:    false,
@@ -278,7 +278,7 @@ func TestFavoritesGetAll(t *testing.T) {
 		FolderType: keybase1.FolderType_PUBLIC,
 		TeamID:     &teamID2,
 	}
-	teamID3 := keybase1.TeamID(0x87654321)
+	teamID3 := keybase1.MakeTestTeamID(0x87654321, false)
 	fol3 := keybase1.Folder{
 		Name:       "folder three",
 		Private:    true,

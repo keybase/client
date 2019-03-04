@@ -28,8 +28,9 @@ func EnableAdminFeature(ctx context.Context, runMode kbconst.RunMode, config Con
 	return libkb.IsKeybaseAdmin(session.UID)
 }
 
-// setupDiskBlockCache sets the user's home TLFs on the disk block cache.
-func setupDiskBlockCache(ctx context.Context, config Config, username string) {
+// setHomeTlfIdsForDbcAndFavorites sets the user's home TLFs on the disk
+// block cache and the favorites cache.
+func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, username string) {
 	if config.DiskBlockCache() == nil {
 		return
 	}
@@ -59,6 +60,13 @@ func setupDiskBlockCache(ctx context.Context, config Config, username string) {
 				"for disk block cache: %+v", err)
 		}
 	}
+
+	// Send to Favorites cache
+	info := homeTLFInfo{
+		PublicTeamID:  *publicHandle.toFavToAdd(false).Data.TeamID,
+		PrivateTeamID: *publicHandle.toFavToAdd(false).Data.TeamID,
+	}
+	config.KBFSOps().SetFavoritesHomeTLFInfo(ctx, info)
 }
 
 // serviceLoggedIn should be called when a new user logs in. It
@@ -92,7 +100,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 	}
 	// Asynchronously set the TLF IDs for the home folders on the disk block
 	// cache.
-	go setupDiskBlockCache(context.Background(), config, session.Name.String())
+	go setHomeTlfIdsForDbcAndFavorites(context.Background(), config, session.Name.String())
 
 	// Launch auth refreshes in the background, in case we are
 	// currently disconnected from one of these servers.

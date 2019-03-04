@@ -331,7 +331,7 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]FavoriteData)
 	}
 }
 
-func toFolder(fav Favorite, data FavoriteData) keybase1.Folder {
+func favoriteToFolder(fav Favorite, data FavoriteData) keybase1.Folder {
 	return keybase1.Folder{
 		Name:       fav.Name,
 		Private:    data.Private,
@@ -359,7 +359,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				// if we're supposed to refresh the cache and it's not
 				// working, mark the current cache expired.
 				now := f.config.Clock().Now()
-				if now.After(f.cacheExpireTime) {
+				if now.Before(f.cacheExpireTime) {
 					f.cacheExpireTime = now
 				}
 				return err
@@ -466,13 +466,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		ignoredFolders := make([]keybase1.Folder, 0, len(f.ignoredCache))
 
 		for fav, data := range f.favCache {
-			favFolders = append(favFolders, toFolder(fav, data))
+			favFolders = append(favFolders, favoriteToFolder(fav, data))
 		}
 		for fav, data := range f.newCache {
-			newFolders = append(newFolders, toFolder(fav, data))
+			newFolders = append(newFolders, favoriteToFolder(fav, data))
 		}
 		for fav, data := range f.ignoredCache {
-			ignoredFolders = append(ignoredFolders, toFolder(fav, data))
+			ignoredFolders = append(ignoredFolders, favoriteToFolder(fav, data))
 		}
 
 		req.favsAll <- keybase1.FavoritesResult{
