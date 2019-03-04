@@ -119,12 +119,21 @@ type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
 
+// OfflineStatusGetter indicates whether a given TLF needs to be
+// available offline.
+type OfflineStatusGetter interface {
+	OfflineAvailabilityForPath(tlfPath string) keybase1.OfflineAvailability
+	OfflineAvailabilityForID(tlfID tlf.ID) keybase1.OfflineAvailability
+}
+
 type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
 	IsSyncedTlfPath(tlfPath string) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
 	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
 	GetAllSyncedTlfs() []tlf.ID
+
+	OfflineStatusGetter
 }
 
 type blockRetrieverGetter interface {
@@ -618,7 +627,13 @@ type KeybaseService interface {
 	// trusted. Otherwise, Identify() needs to be called on the
 	// assertion before the assertion -> (username, UID) mapping
 	// can be trusted.
-	Resolve(ctx context.Context, assertion string) (
+	//
+	// If the caller knows that the assertion needs to be resolvable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `Resolve` might block on a network call.
+	Resolve(ctx context.Context, assertion string,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 
 	// Identify, given an assertion, returns a UserInfo struct
@@ -758,10 +773,17 @@ type resolver interface {
 	// assertion before the assertion -> (username, UserOrTeamID) mapping
 	// can be trusted.
 	//
+	//
+	// If the caller knows that the assertion needs to be resolvable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `Resolve` might block on a network call.
+	//
 	// TODO: some of the above assumptions on cacheability aren't
 	// right for subteams, which can change their name, so this may
 	// need updating.
-	Resolve(ctx context.Context, assertion string) (
+	Resolve(ctx context.Context, assertion string,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 	// ResolveImplicitTeam resolves the given implicit team.
 	ResolveImplicitTeam(
@@ -803,7 +825,15 @@ type identifier interface {
 type normalizedUsernameGetter interface {
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
-	GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (
+	//
+	// If the caller knows that the assertion needs to be resolvable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetNormalizedUsername` might block on a
+	// network call.
+	GetNormalizedUsername(
+		ctx context.Context, id keybase1.UserOrTeamID,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, error)
 }
 

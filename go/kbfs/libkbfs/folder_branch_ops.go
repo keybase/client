@@ -1742,7 +1742,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	resolvesTo, partialResolvedOldHandle, err :=
 		oldHandle.ResolvesTo(
 			ctx, fbo.config.Codec(), fbo.config.KBPKI(),
-			constIDGetter{fbo.id()}, *newHandle)
+			constIDGetter{fbo.id()}, fbo.config, *newHandle)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "oldHandle=%+v, newHandle=%+v: err=%+v", oldHandle, newHandle, err)
 		return err
@@ -2684,7 +2684,8 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 	}
 
 	// we may be an unkeyed client
-	if err := isReadableOrError(ctx, fbo.config.KBPKI(), md.ReadOnly()); err != nil {
+	err = isReadableOrError(ctx, fbo.config.KBPKI(), fbo.config, md.ReadOnly())
+	if err != nil {
 		return nil, EntryInfo{}, nil, err
 	}
 
@@ -3161,7 +3162,8 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	// set.  See KBFS-2939.
 	if id.IsUser() {
 		res.LastWriterUnverified, err =
-			fbo.config.KBPKI().GetNormalizedUsername(ctx, id)
+			fbo.config.KBPKI().GetNormalizedUsername(
+				ctx, id, fbo.config.OfflineAvailabilityForID(fbo.id()))
 		if err != nil {
 			return res, err
 		}
@@ -6163,7 +6165,9 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			// Already caught up!
 			continue
 		}
-		if err := isReadableOrError(ctx, fbo.config.KBPKI(), rmd.ReadOnly()); err != nil {
+		err := isReadableOrError(
+			ctx, fbo.config.KBPKI(), fbo.config, rmd.ReadOnly())
+		if err != nil {
 			return err
 		}
 
@@ -6175,7 +6179,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			}
 		}
 
-		err := fbo.setHeadSuccessorLocked(ctx, lState, rmd, false)
+		err = fbo.setHeadSuccessorLocked(ctx, lState, rmd, false)
 		if err != nil {
 			return err
 		}
@@ -7048,7 +7052,8 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 	}
 	handle, err := MakeTlfHandle(
 		ctx, bareHandle, fbo.id().Type(), fbo.config.KBPKI(),
-		fbo.config.KBPKI(), fbo.config.MDOps())
+		fbo.config.KBPKI(), fbo.config.MDOps(),
+		fbo.config.OfflineAvailabilityForID(fbo.id()))
 	if err != nil {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized handle: %+v", err)
 		return
@@ -7703,7 +7708,8 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	if newName == "" {
 		var err error
 		newName, err = fbo.config.KBPKI().GetNormalizedUsername(
-			ctx, tid.AsUserOrTeam())
+			ctx, tid.AsUserOrTeam(),
+			fbo.config.OfflineAvailabilityForID(fbo.id()))
 		if err != nil {
 			fbo.log.CWarningf(ctx, "Error getting new team name: %+v", err)
 			return
@@ -7843,7 +7849,8 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 	name := string(md.GetTlfHandle().GetCanonicalName())
 	fbo.log.CDebugf(ctx, "Looking up implicit team for %s", name)
 	newHandle, err := ParseTlfHandle(
-		ctx, fbo.config.KBPKI(), fbo.config.MDOps(), name, id.Type())
+		ctx, fbo.config.KBPKI(), fbo.config.MDOps(), fbo.config,
+		name, id.Type())
 	if err != nil {
 		return err
 	}
@@ -7907,7 +7914,8 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 		writer, ok := writerNames[rmd.LastModifyingWriter()]
 		if !ok {
 			name, err := fbo.config.KBPKI().GetNormalizedUsername(
-				ctx, rmd.LastModifyingWriter().AsUserOrTeam())
+				ctx, rmd.LastModifyingWriter().AsUserOrTeam(),
+				fbo.config.OfflineAvailabilityForID(fbo.id()))
 			if err != nil {
 				return TLFUpdateHistory{}, err
 			}

@@ -1602,7 +1602,7 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	return ldb.Write(deleteBatch, nil)
 }
 
-// GetTlfSyncState implements the isSyncedTlfGetter interface for
+// GetTlfSyncState implements the syncedTlfGetterSetter interface for
 // ConfigLocal.
 func (c *ConfigLocal) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	c.lock.RLock()
@@ -1610,12 +1610,13 @@ func (c *ConfigLocal) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	return c.syncedTlfs[tlfID]
 }
 
-// IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
+// IsSyncedTlf implements the syncedTlfGetterSetter interface for
+// ConfigLocal.
 func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
 	return c.GetTlfSyncState(tlfID).Mode == keybase1.FolderSyncMode_ENABLED
 }
 
-// IsSyncedTlfPath implements the isSyncedTlfGetter interface for
+// IsSyncedTlfPath implements the syncedTlfGetterSetter interface for
 // ConfigLocal.
 func (c *ConfigLocal) IsSyncedTlfPath(tlfPath string) bool {
 	c.lock.RLock()
@@ -1623,7 +1624,26 @@ func (c *ConfigLocal) IsSyncedTlfPath(tlfPath string) bool {
 	return c.syncedTlfPaths[tlfPath]
 }
 
-// SetTlfSyncState implements the Config interface for ConfigLocal.
+// OfflineAvailabilityForPath implements the offlineStatusGetter
+// interface for ConfigLocal.
+func (c *ConfigLocal) OfflineAvailabilityForPath(
+	tlfPath string) keybase1.OfflineAvailability {
+	if c.IsSyncedTlfPath(tlfPath) {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
+}
+
+// OfflineAvailabilityForID implements the offlineStatusGetter
+// interface for ConfigLocal.
+func (c *ConfigLocal) OfflineAvailabilityForID(
+	tlfID tlf.ID) keybase1.OfflineAvailability {
+	if c.IsSyncedTlf(tlfID) {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
+}
+
 func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, BlockOps, error) {
 	c.lock.Lock()
@@ -1701,7 +1721,8 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	return ch, c.bops, nil
 }
 
-// SetTlfSyncState implements the Config interface for ConfigLocal.
+// SetTlfSyncState implements the syncedTlfGetterSetter interface for
+// ConfigLocal.
 func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, error) {
 	ch, bops, err := c.setTlfSyncState(tlfID, config)
@@ -1711,7 +1732,8 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	return ch, err
 }
 
-// GetAllSyncedTlfs implements the Config interface for ConfigLocal.
+// GetAllSyncedTlfs implements the syncedTlfGetterSetter interface for
+// ConfigLocal.
 func (c *ConfigLocal) GetAllSyncedTlfs() []tlf.ID {
 	c.lock.RLock()
 	defer c.lock.RUnlock()

@@ -837,7 +837,8 @@ func CheckConfigAndShutdown(
 func GetRootNodeForTest(
 	ctx context.Context, config Config, name string,
 	t tlf.Type) (Node, error) {
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), config.MDOps(), name, t)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, name, t)
 	if err != nil {
 		return nil, err
 	}

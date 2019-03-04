@@ -130,7 +130,8 @@ func (j journalMDOps) getHeadFromJournal(
 	if handle == nil {
 		handle, err = MakeTlfHandle(
 			ctx, headBareHandle, id.Type(), j.jManager.config.KBPKI(),
-			j.jManager.config.KBPKI(), constIDGetter{id})
+			j.jManager.config.KBPKI(), constIDGetter{id},
+			j.jManager.config.OfflineAvailabilityForID(id))
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
@@ -138,14 +139,16 @@ func (j journalMDOps) getHeadFromJournal(
 		// Check for mutual handle resolution.
 		headHandle, err := MakeTlfHandle(
 			ctx, headBareHandle, id.Type(), j.jManager.config.KBPKI(),
-			j.jManager.config.KBPKI(), constIDGetter{id})
+			j.jManager.config.KBPKI(), constIDGetter{id},
+			j.jManager.config.OfflineAvailabilityForID(id))
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
 
 		if err := headHandle.MutuallyResolvesTo(ctx, j.jManager.config.Codec(),
-			j.jManager.config.KBPKI(), j.jManager.config.MDOps(), *handle,
-			head.RevisionNumber(), head.TlfID(), j.jManager.log); err != nil {
+			j.jManager.config.KBPKI(), j.jManager.config.MDOps(),
+			j.jManager.config, *handle, head.RevisionNumber(), head.TlfID(),
+			j.jManager.log); err != nil {
 			return ImmutableRootMetadata{}, err
 		}
 	}
@@ -201,7 +204,8 @@ func (j journalMDOps) getRangeFromJournal(
 	}
 	handle, err := MakeTlfHandle(
 		ctx, bareHandle, id.Type(), j.jManager.config.KBPKI(),
-		j.jManager.config.KBPKI(), constIDGetter{id})
+		j.jManager.config.KBPKI(), constIDGetter{id},
+		j.jManager.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return nil, err
 	}

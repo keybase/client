@@ -21,8 +21,8 @@ import (
 type testNormalizedUsernameGetter map[keybase1.UserOrTeamID]kbname.NormalizedUsername
 
 func (g testNormalizedUsernameGetter) GetNormalizedUsername(
-	ctx context.Context, id keybase1.UserOrTeamID) (
-	kbname.NormalizedUsername, error) {
+	ctx context.Context, id keybase1.UserOrTeamID,
+	_ keybase1.OfflineAvailability) (kbname.NormalizedUsername, error) {
 	name, ok := g[id]
 	if !ok {
 		return kbname.NormalizedUsername(""),

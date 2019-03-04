@@ -214,7 +214,8 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		fbs.Staged = fbsk.md.IsUnmergedSet()
 		fbs.BranchID = fbsk.md.BID().String()
 		name, err := fbsk.config.KBPKI().GetNormalizedUsername(
-			ctx, fbsk.md.LastModifyingWriter().AsUserOrTeam())
+			ctx, fbsk.md.LastModifyingWriter().AsUserOrTeam(),
+			fbsk.config.OfflineAvailabilityForID(tlfID))
 		if err != nil {
 			return FolderBranchStatus{}, nil, tlf.NullID, err
 		}

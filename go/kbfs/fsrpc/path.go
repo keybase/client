@@ -248,12 +248,14 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 // automatically resolves non-canonical names.
 func ParseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
-	name string, t tlf.Type) (*libkbfs.TlfHandle, error) {
+	osg libkbfs.OfflineStatusGetter, name string, t tlf.Type) (
+	*libkbfs.TlfHandle, error) {
 	var tlfHandle *libkbfs.TlfHandle
 outer:
 	for {
 		var parseErr error
-		tlfHandle, parseErr = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, name, t)
+		tlfHandle, parseErr = libkbfs.ParseTlfHandle(
+			ctx, kbpki, mdOps, osg, name, t)
 		switch parseErr := errors.Cause(parseErr).(type) {
 		case nil:
 			// No error.
@@ -282,7 +284,7 @@ func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node,
 	}
 
 	tlfHandle, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), p.TLFName, p.TLFType)
+		ctx, config.KBPKI(), config.MDOps(), config, p.TLFName, p.TLFType)
 	if err != nil {
 		return nil, libkbfs.EntryInfo{}, err
 	}

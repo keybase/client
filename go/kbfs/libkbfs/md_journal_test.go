@@ -96,7 +96,8 @@ func makeMDForTest(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 	h, err := MakeTlfHandle(
-		context.Background(), bh, bh.Type(), nil, nug, nil)
+		context.Background(), bh, bh.Type(), nil, nug, nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	md, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)

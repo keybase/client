@@ -42,7 +42,7 @@ func makeTestKBFSConfig(t *testing.T) (
 	}
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, cfg.KBPKI(), cfg.MDOps(), "alice,bob", tlf.Private)
+		ctx, cfg.KBPKI(), cfg.MDOps(), cfg, "alice,bob", tlf.Private)
 	require.NoError(t, err)
 
 	root, _, err := cfg.KBFSOps().GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)

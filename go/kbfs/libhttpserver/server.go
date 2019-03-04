@@ -112,7 +112,7 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	}
 
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(ctx,
-		s.config.KBPKI(), s.config.MDOps(), fields[1], tlfType)
+		s.config.KBPKI(), s.config.MDOps(), s.config, fields[1], tlfType)
 	if err != nil {
 		return "", nil, err
 	}

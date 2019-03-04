@@ -85,8 +85,9 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	}
 
 	tlf := handle.GetCanonicalPath()
-	writer, nameErr := md.config.KBPKI().GetNormalizedUsername(ctx,
-		rmds.MD.LastModifyingWriter().AsUserOrTeam())
+	writer, nameErr := md.config.KBPKI().GetNormalizedUsername(
+		ctx, rmds.MD.LastModifyingWriter().AsUserOrTeam(),
+		md.config.OfflineAvailabilityForPath(tlf))
 	if nameErr != nil {
 		writer = kbname.NormalizedUsername("uid: " +
 			rmds.MD.LastModifyingWriter().String())
@@ -931,14 +932,15 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	}
 
 	mdHandle, err := MakeTlfHandle(
-		ctx, bareMdHandle, id.Type(), md.config.KBPKI(), md.config.KBPKI(), nil)
+		ctx, bareMdHandle, id.Type(), md.config.KBPKI(), md.config.KBPKI(), nil,
+		md.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	// Check for mutual handle resolution.
 	if err := mdHandle.MutuallyResolvesTo(ctx, md.config.Codec(),
-		md.config.KBPKI(), nil, *handle, rmds.MD.RevisionNumber(),
+		md.config.KBPKI(), nil, md.config, *handle, rmds.MD.RevisionNumber(),
 		rmds.MD.TlfID(), md.log); err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -1037,7 +1039,8 @@ func (md *MDOpsStandard) processSignedMD(
 	}
 	handle, err := MakeTlfHandle(
 		ctx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-		md.config.KBPKI(), constIDGetter{id})
+		md.config.KBPKI(), constIDGetter{id},
+		md.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1132,7 +1135,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 			}
 			handle, err := MakeTlfHandle(
 				groupCtx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-				md.config.KBPKI(), constIDGetter{id})
+				md.config.KBPKI(), constIDGetter{id},
+				md.config.OfflineAvailabilityForID(id))
 			if err != nil {
 				return err
 			}

@@ -28,10 +28,11 @@ func (nitk noImplicitTeamKBPKI) ResolveImplicitTeam(
 // doing this time consuming checks needed for implicit-team checking
 // or TLF-ID-fetching.
 func ParseTlfHandlePreferredQuick(
-	ctx context.Context, kbpki libkbfs.KBPKI, name string, ty tlf.Type) (
+	ctx context.Context, kbpki libkbfs.KBPKI, osg libkbfs.OfflineStatusGetter,
+	name string, ty tlf.Type) (
 	handle *libkbfs.TlfHandle, err error) {
 	// Override the KBPKI with one that doesn't try to resolve
 	// implicit teams.
 	kbpki = noImplicitTeamKBPKI{kbpki}
-	return libkbfs.ParseTlfHandlePreferred(ctx, kbpki, nil, name, ty)
+	return libkbfs.ParseTlfHandlePreferred(ctx, kbpki, nil, osg, name, ty)
 }

@@ -137,7 +137,9 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
 	}
 
 	_, id, err := fis.fi.fs.config.KBPKI().Resolve(
-		fis.fi.fs.ctx, lastWriterName.String())
+		fis.fi.fs.ctx, lastWriterName.String(),
+		fis.fi.fs.config.OfflineAvailabilityForID(
+			fis.fi.fs.root.GetFolderBranch().Tlf))
 	if err != nil {
 		return KBFSMetadataForSimpleFS{}, err
 	}

@@ -126,7 +126,8 @@ func (c *chatLocal) GetConversationID(
 	c.data.convsByID[id.String()] = conv
 
 	h, err := GetHandleFromFolderNameAndType(
-		ctx, c.config.KBPKI(), c.config.MDOps(), string(tlfName), tlfType)
+		ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
+		string(tlfName), tlfType)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +234,8 @@ func (c *chatLocal) GetGroupedInbox(
 			}
 
 			h, err := GetHandleFromFolderNameAndType(
-				ctx, c.config.KBPKI(), c.config.MDOps(), string(name), t)
+				ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
+				string(name), t)
 			if err != nil {
 				return nil, err
 			}
@@ -271,7 +273,7 @@ func (c *chatLocal) GetGroupedInbox(
 	for i := len(c.selfConvInfos) - 1; i >= 0 && len(selfHandles) < max; i-- {
 		info := c.selfConvInfos[i]
 		h, err := GetHandleFromFolderNameAndType(
-			ctx, c.config.KBPKI(), c.config.MDOps(),
+			ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
 			string(info.tlfName), info.tlfType)
 		if err != nil {
 			return nil, err

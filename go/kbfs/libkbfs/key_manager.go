@@ -221,7 +221,8 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(
 	kbpki := km.config.KBPKI()
 	crypto := km.config.Crypto()
 	localMakeRekeyReadError := func(err error) error {
-		return makeRekeyReadError(ctx, err, kbpki, kmd, uid, username)
+		return makeRekeyReadError(
+			ctx, err, kbpki, km.config, kmd, uid, username)
 	}
 
 	if flags&getTLFCryptKeyAnyDevice != 0 {
@@ -447,7 +448,9 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 		return err
 	}
 
-	return identifyUserList(ctx, kbpki, kbpki, ids, tlfID.Type())
+	return identifyUserList(
+		ctx, kbpki, kbpki, ids, tlfID.Type(),
+		km.config.OfflineAvailabilityForID(tlfID))
 }
 
 // generateKeyMapForUsers returns a kbfsmd.UserDevicePublicKeys object for
@@ -512,7 +515,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	idGetter := constIDGetter{md.TlfID()}
 	resolvedHandle, err := handle.ResolveAgain(
-		ctx, km.config.KBPKI(), idGetter)
+		ctx, km.config.KBPKI(), idGetter, km.config)
 	if err != nil {
 		return false, nil, err
 	}
@@ -527,7 +530,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		} else {
 			// Only allow yourself to change
 			resolvedHandle, err = handle.ResolveAgainForUser(
-				ctx, km.config.KBPKI(), idGetter, session.UID)
+				ctx, km.config.KBPKI(), idGetter, km.config, session.UID)
 			if err != nil {
 				return false, nil, err
 			}

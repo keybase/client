@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -68,7 +69,8 @@ func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
 			}
 
 			username, _, err := service.Resolve(
-				ctx, fmt.Sprintf("uid:%s", u))
+				ctx, fmt.Sprintf("uid:%s", u),
+				keybase1.OfflineAvailability_NONE)
 			if err == nil {
 				replacements[u.String()] = fmt.Sprintf(
 					"%s (uid:%s)", username, u)

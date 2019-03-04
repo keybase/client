@@ -150,7 +150,7 @@ func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
 	if f.h.TlfID() == tlf.NullID {
 		// If the handle doesn't have a TLF ID yet, fetch it now.
 		handle, err := libkbfs.ParseTlfHandlePreferred(
-			ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(),
+			ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(), f.fs.config,
 			string(f.hPreferredName), f.h.Type())
 		if err != nil {
 			return nil, err
@@ -165,7 +165,7 @@ func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
 	// updates yet for this folder, we might have missed a name
 	// change.
 	handle, err := f.h.ResolveAgain(
-		ctx, f.fs.config.KBPKI(), f.fs.config.MDOps())
+		ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(), f.fs.config)
 	if err != nil {
 		return nil, err
 	}
