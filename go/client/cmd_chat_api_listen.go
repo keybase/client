@@ -113,6 +113,7 @@ func (c *CmdChatAPIListen) resolveFilterDisplayNames(ctx context.Context) error 
 
 		}
 	}
+	return nil
 }
 
 func NewCmdChatAPIListenRunner(g *libkb.GlobalContext) *CmdChatAPIListen {
