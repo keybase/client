@@ -46,6 +46,13 @@ class GiphySearch extends React.Component<Props, State> {
             <Kb.Text style={styles.instructions} type="BodySmall">
               Hit enter for a random GIF, or click a preview to send
             </Kb.Text>
+            <Kb.Text
+              style={styles.instructions}
+              type="BodySmallPrimaryLink"
+              onClickURL={'https://keybase.io/docs/chat/index'}
+            >
+              (More Info)
+            </Kb.Text>
           </Kb.Box2>
           {this.state.width &&
             (this.props.previews ? (
