@@ -165,7 +165,7 @@ const CoinFlipResultHands = (props: HandType) => {
   const handsWithCards = props.hands.filter(hand => hand.hand)
   const handsWithoutCards = props.hands ? props.hands.slice(handsWithCards.length) : []
   return (
-    <Kb.Box2 direction="vertical">
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
           {handsWithCards.map(hand => (
@@ -306,6 +306,7 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
   },
   handContainer: {
+    flexShrink: 1,
     paddingRight: Styles.globalMargins.tiny,
   },
   handTarget: {
