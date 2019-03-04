@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/cli"
@@ -25,6 +26,7 @@ type CmdChatAPIListen struct {
 	hideExploding   bool
 	subscribeDev    bool
 	subscribeWallet bool
+	channelFilter   []ChatChannel
 }
 
 func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -55,16 +57,62 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "wallet",
 				Usage: "Subscribe to notifications for wallet events",
 			},
+			cli.StringFlag{
+				Name:  "filter-channel",
+				Usage: "Only show notifications for specified (one) channel.",
+			},
+			cli.StringFlag{
+				Name:  "filter-channels",
+				Usage: "Only show notifications for specified list of channels.",
+			},
 		},
 	}
 }
 
 func (c *CmdChatAPIListen) ParseArgv(ctx *cli.Context) error {
+	if err := c.parseFilterChannelArgs(ctx); err != nil {
+		return err
+	}
+
 	c.hideExploding = ctx.Bool("hide-exploding")
 	c.showLocal = ctx.Bool("local")
 	c.subscribeDev = ctx.Bool("dev")
 	c.subscribeWallet = ctx.Bool("wallet")
+
 	return nil
+}
+
+func (c *CmdChatAPIListen) parseFilterChannelArgs(ctx *cli.Context) error {
+	if chs := ctx.String("filter-channels"); chs != "" {
+		if err := json.Unmarshal([]byte(chs), &c.channelFilter); err != nil {
+			return err
+		}
+	}
+
+	if ch := ctx.String("filter-channel"); ch != "" {
+		var channel ChatChannel
+		if err := json.Unmarshal([]byte(ch), &channel); err != nil {
+			return err
+		}
+		c.channelFilter = append(c.channelFilter, channel)
+	}
+
+	for _, v := range c.channelFilter {
+		if !v.Valid() {
+			str, _ := json.Marshal(v)
+			return fmt.Errorf("Channel filter not valid: %s", str)
+		}
+	}
+
+	return nil
+}
+
+func (c *CmdChatAPIListen) resolveFilterDisplayNames(ctx context.Context) error {
+	for _, v := range c.channelFilter {
+		if strings.ToUpper(v.MembersType) != "TEAM" {
+
+		}
+	}
 }
 
 func NewCmdChatAPIListenRunner(g *libkb.GlobalContext) *CmdChatAPIListen {

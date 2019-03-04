@@ -37,6 +37,13 @@ type msgNotification struct {
 	Pagination *chat1.UIPagination `json:"pagination,omitempty"`
 }
 
+type notificationDisplayFilter struct {
+	Team    string `json:"team,omitempty"`
+	Channel string `json:"channel,omitempty"`
+	// or: display name for user conversation, cannot be combined with team/channel.
+	Users string `json:"users,omitempty"`
+}
+
 func newMsgNotification(source string) *msgNotification {
 	return &msgNotification{
 		Type:   notifTypeChat,
