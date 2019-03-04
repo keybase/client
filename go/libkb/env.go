@@ -359,7 +359,8 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
 		osname,
 		func() RunMode { return e.GetRunMode() },
-		getLog)
+		getLog,
+		os.Getenv)
 	return &e
 }
 
