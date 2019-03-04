@@ -3,10 +3,13 @@ import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
 
 export type VariableItemHeight<Item> = {
-  getItemLayout: (index: number, item: Item) => ({|
+  getItemLayout: (
+    index: number,
+    item: Item
+  ) => {|
     height: number,
     offset: number,
-  |}),
+  |},
   type: 'variable',
 }
 
@@ -22,11 +25,11 @@ export type Props<Item> = {
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys
 
   items: Array<Item>,
-  renderItem: (index: number, item: Item) => React.Node,
+  renderItem: (index: number, item: Item) => ?React.Element<any>,
   itemHeight: VariableItemHeight<Item> | FixedHeight,
   estimatedItemHeight?: number,
 
-  selectedIndex?: number, // TODO 
+  selectedIndex?: number, // TODO
 
   bounces?: boolean, // mobile only
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only

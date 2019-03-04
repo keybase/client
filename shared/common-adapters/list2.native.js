@@ -20,14 +20,16 @@ class List2<T> extends PureComponent<Props<T>, void> {
   _getItemLayout = (data, index) => {
     switch (this.props.itemHeight.type) {
       case 'fixed':
-        return {height: this.props.itemHeight.height, index, offset: this.props.itemHeight.height * index}
+        return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
       case 'variable': {
+        // $ForceType
         const itemT: T = data[index]
-        return {index, ...this.props.itemHeight.getItemLayout(index, itemT)}
+        const lay = this.props.itemHeight.getItemLayout(index, itemT)
+        return {index, length: lay.height, offset: lay.offset}
       }
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.itemHeight.type)
-        return {height: 0, index, offset: 0}
+        return {index, length: 0, offset: 0}
     }
   }
 

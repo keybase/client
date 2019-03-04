@@ -7,5 +7,5 @@ import {ScrollView} from 'react-native'
 // changes this behavior: https://github.com/facebook/react-native/issues/4087
 type Props = React.ElementProps<typeof ScrollView>
 export default (p: Props) => (
-  <ScrollView keybaseDismissMode="on-drag" keyboardShouldPersistTaps="handled" {...p} />
+  <ScrollView keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" {...p} />
 )

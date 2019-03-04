@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 
-type Section<T> = {
+export type Section<T> = {
   data: $ReadOnlyArray<T>,
   /**
    * Optional key to keep track of section re-ordering. If you don't plan on re-ordering sections,
@@ -23,7 +23,7 @@ type Section<T> = {
   ItemSeparatorComponent?: ?React.ComponentType<any>,
   keyExtractor?: (item: T) => string,
 }
-type Props<T> = {
+export type Props<T> = {
   sections: $ReadOnlyArray<Section<T>>,
   renderItem?: (info: {
     item: T,

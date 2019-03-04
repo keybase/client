@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import {VirtualizedList} from 'react-native'
+import type {Props} from 'react-native/Libraries/Lists/VirtualizedList'
 
-class NativeVirtualizedList extends React.Component<React.ElementProps<VirtualizedList>> {
+class NativeVirtualizedList extends React.Component<Props> {
   _mounted = false
 
   componentDidMount() {

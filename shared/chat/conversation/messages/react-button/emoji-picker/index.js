@@ -6,6 +6,7 @@ import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../
 import {isAndroid} from '../../../../../constants/platform'
 import {chunk} from 'lodash-es'
 import {memoize} from '../../../../../util/memoize'
+import type {Section as ListSection} from '../../../../../common-adapters/section-list'
 
 // defer loading this until we need to, very expensive
 const getData = memoize(() => {
@@ -49,11 +50,10 @@ const cacheSections = (width: number, sections: Array<Section>) => {
   cachedSections = sections
 }
 
-type Section = {
-  category: string,
-  data: $ReadOnlyArray<{emojis: Array<EmojiData>, key: string}>,
+type Section = ListSection<{
   key: string,
-}
+  emojis: $ReadOnlyArray<EmojiData>,
+}>
 
 type Props = {
   filter?: string,
@@ -83,7 +83,7 @@ class EmojiPicker extends React.Component<Props, State> {
     sections = emojiSections.map(c => ({
       category: c.category,
       data: chunk(c.data.emojis, emojisPerLine).map(c => ({
-        emojis: c,
+        mojis: c,
         key: c[0].short_name,
       })),
       key: c.key,
@@ -145,21 +145,21 @@ class EmojiPicker extends React.Component<Props, State> {
   }
 }
 
-const EmojiRow = (props: {item: {emojis: Array<EmojiData>, key: string}, onChoose: EmojiData => void}) => (
-  <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
-    {props.item.emojis.map(e => (
+const EmojiRow = ({item}) => (
+  <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
+    {item.emojis.map(e => (
       <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />
     ))}
   </Box2>
 )
 
-const EmojiRender = ({emoji, onChoose}: {emoji: EmojiData, onChoose: EmojiData => void}) => (
+const EmojiRender = ({emoji, onChoose}) => (
   <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
     <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
   </ClickableBox>
 )
 
-const HeaderRow = ({section}: {section: Section}) => (
+const HeaderRow = ({section}) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
     <Text type="BodySmallSemibold">{section.category}</Text>
   </Box2>
