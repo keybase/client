@@ -52,6 +52,24 @@ const props = {
       name: 'hackers.town',
       new: true,
     },
+    {
+      desc: 'Mastodon instance',
+      icon: 'icon-placeholder-avatar-32',
+      name: 'rockclimbing.social',
+      new: false,
+    },
+    {
+      desc: 'Mastodon instance',
+      icon: 'icon-placeholder-avatar-32',
+      name: 'phrenology.social',
+      new: true,
+    },
+    {
+      desc: 'Mastodon instance',
+      icon: 'icon-placeholder-avatar-32',
+      name: 'boardgames.town',
+      new: true,
+    },
   ],
 }
 

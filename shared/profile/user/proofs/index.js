@@ -27,24 +27,21 @@ const HoverBox = Styles.isMobile
 
 class Providers extends React.Component<Props> {
   render() {
-    return this.props.providers.map(a => (
-      <>
+    return this.props.providers.map(provider => (
+      <React.Fragment key={provider.name}>
         <Kb.Divider />
-        <HoverBox
-          fullWidth={true}
-          key={a.name}
-          onClick={this.props.providerClicked(a.name)}
-          style={styles.containerBox}
-        >
-          <Kb.Icon type={a.icon} style={Kb.iconCastPlatformStyles(styles.icon)} />
+        <HoverBox onClick={this.props.providerClicked(provider.name)} style={styles.containerBox}>
+          <Kb.Icon type={provider.icon} style={Kb.iconCastPlatformStyles(styles.icon)} />
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.Text type="BodySemibold" style={styles.title}>
-              {a.name}
+              {provider.name}
             </Kb.Text>
             <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-              {a.new && <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />}
+              {provider.new && (
+                <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
+              )}
               <Kb.Text type="BodySmall" style={styles.description}>
-                {a.desc}
+                {provider.desc}
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
@@ -55,7 +52,7 @@ class Providers extends React.Component<Props> {
             style={styles.iconArrow}
           />
         </HoverBox>
-      </>
+      </React.Fragment>
     ))
   }
 }
@@ -86,20 +83,16 @@ class ProofsList extends React.Component<Props, State> {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Kb.ScrollView>
               <Providers {...this.props} />
+              <Kb.Divider />
             </Kb.ScrollView>
           </Kb.Box2>
-          <HoverBox
-            centerChildren={true}
-            fullWidth={true}
-            onClick={this.props.onClickLearn}
-            style={styles.footer}
-          >
-            <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
-            <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
-              Learn how to list your platform here
-            </Kb.Text>
-          </HoverBox>
         </Kb.Box2>
+        <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
+          <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
+          <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
+            Learn how to list your platform here
+          </Kb.Text>
+        </HoverBox>
       </Kb.MaybePopup>
     )
   }
