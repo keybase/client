@@ -314,6 +314,10 @@ func (c *ChatCLIUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGi
 	return nil
 }
 
+func (c *ChatCLIUI) ChatGiphyToggleResultWindow(ctx context.Context, arg chat1.ChatGiphyToggleResultWindowArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
 	return nil
 }

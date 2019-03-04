@@ -454,6 +454,13 @@ const rootReducer = (
         ? state.setIn(['commandMarkdownMap', conversationIDKey], md)
         : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
+    case Chat2Gen.giphyToggleWindow: {
+      let nextState = state.setIn(['giphyWindowMap', action.payload.conversationIDKey], action.payload.show)
+      if (action.payload.show) {
+        nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], null)
+      }
+      return nextState
+    }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:

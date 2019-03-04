@@ -1525,6 +1525,23 @@
       ],
       "response": null
     },
+    "chatGiphyToggleResultWindow": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "show",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
     "chatShowManageChannels": {
       "request": [
         {

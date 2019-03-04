@@ -28,7 +28,7 @@ class GiphySearch extends React.Component<Props, State> {
     if (this.state.width) {
       margins = getMargins(
         this.state.width - 2 * Styles.globalMargins.tiny,
-        this.props.previews.reduce((arr, p) => {
+        (this.props.previews || []).reduce((arr, p) => {
           return arr.concat(p.previewWidth)
         }, [])
       )
@@ -47,28 +47,39 @@ class GiphySearch extends React.Component<Props, State> {
               Hit enter for a random GIF, or click a preview to send
             </Kb.Text>
           </Kb.Box2>
-          {this.state.width && (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-              {(this.props.previews || []).map((p, index) => {
-                const margin = -margins[index] / 2 - 1
-                return (
-                  <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
-                    <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
-                      <UnfurlImage
-                        autoplayVideo={true}
-                        height={gridHeight}
-                        isVideo={p.previewIsVideo}
-                        onClick={() => this.props.onClick(p.targetUrl)}
-                        style={styles.image}
-                        url={p.previewUrl}
-                        width={scaledWidth(p.previewWidth)}
-                      />
-                    </Kb.Box>
-                  </Kb.Box2>
-                )
-              })}
-            </Kb.Box2>
-          )}
+          {this.state.width &&
+            (this.props.previews ? (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+                {(this.props.previews || []).map((p, index) => {
+                  const margin = -margins[index] / 2 - 1
+                  return (
+                    <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
+                      <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                        <UnfurlImage
+                          autoplayVideo={true}
+                          height={gridHeight}
+                          isVideo={p.previewIsVideo}
+                          onClick={() => this.props.onClick(p.targetUrl)}
+                          style={styles.image}
+                          url={p.previewUrl}
+                          width={scaledWidth(p.previewWidth)}
+                        />
+                      </Kb.Box>
+                    </Kb.Box2>
+                  )
+                })}
+              </Kb.Box2>
+            ) : (
+              <Kb.Box2
+                direction="vertical"
+                style={styles.loadingContainer}
+                centerChildren={true}
+                fullWidth={true}
+                fullHeight={true}
+              >
+                <Kb.ProgressIndicator />
+              </Kb.Box2>
+            ))}
         </Kb.Box>
         <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
       </Kb.Box>
@@ -100,6 +111,9 @@ const styles = Styles.styleSheetCreate({
   },
   instructionsContainer: {
     justifyContent: 'center',
+  },
+  loadingContainer: {
+    minHeight: 200,
   },
   outerContainer: {
     marginBottom: Styles.globalMargins.xtiny,
