@@ -80,14 +80,14 @@ func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
 func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 	var prfx string
 
-	// If the use explicitly provided a `--home` directory, it overrides any XDG_*
+	// If the user explicitly provided a `--home` directory, it overrides any XDG_*
 	// variables. All XDR dirs are taken relative to that.
 	if x.getHomeFromCmd != nil {
 		prfx = x.getHomeFromCmd()
 	}
 
 	// If the command line didn't specify anything, then we're going to go with the XDG_
-	// environment variablre specification.
+	// environment variable specification.
 	if prfx == "" {
 		prfx = os.Getenv(env)
 	}
