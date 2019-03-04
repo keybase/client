@@ -12,10 +12,10 @@ import (
 
 type chatNotificationDisplay struct {
 	*baseNotificationDisplay
-	svc           *chatServiceHandler
-	showLocal     bool
-	hideExploding bool
-	convIdFilters map[string]bool
+	svc               *chatServiceHandler
+	showLocal         bool
+	hideExploding     bool
+	filtersNormalized []ChatChannel
 }
 
 func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding bool) *chatNotificationDisplay {
@@ -47,13 +47,22 @@ func newMsgNotification(source string) *msgNotification {
 }
 
 func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilters []ChatChannel) error {
-	d.convIdFilters = make(map[string]bool, len(channelFilters))
+	d.filtersNormalized = channelFilters
 	for i, v := range channelFilters {
-		conv, _, err := d.svc.findConversation(ctx, v)
-		if err != nil {
-			return fmt.Errorf("When processing filters: %s", err.Error())
+		v.MembersType = strings.ToUpper(v.MembersType)
+		v.TopicType = strings.ToUpper(v.TopicType)
+		if v.MembersType != "TEAM" {
+			// We are looking in inbox for conversations between users
+			// to normalize display name without using resolve RPC.
+			conv, _, err := d.svc.findConversation(ctx, v)
+			if err != nil {
+				return fmt.Errorf("Unable to find chat channel for: %s: %s", v.Name, err.Error())
+			}
+			v.Name = conv.Info.TlfName
+		} else {
+			v.Name = strings.ToLower(v.Name)
 		}
-		d.convIdFilters[conv.Info.Id.String()] = true
+		d.filtersNormalized[i] = v
 	}
 	return nil
 }
@@ -112,13 +121,27 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 	}
 }
 
-func (d *chatNotificationDisplay) matchFilters(convID chat1.ConversationID) bool {
-	if len(d.convIdFilters) == 0 {
-		// No filters.
+func (d *chatNotificationDisplay) matchFilters(conv *chat1.InboxUIItem) bool {
+	if len(d.filtersNormalized) == 0 {
+		// No fliters - every message is relayed.
 		return true
 	}
-	_, ok := d.convIdFilters[convID.String()]
-	return ok
+	for _, v := range d.filtersNormalized {
+		if conv.MembersType.String() == v.MembersType && v.Name == strings.ToLower(conv.Name) {
+			// If any of the following were specified by user and differ from
+			// what was received, filter the msg out.
+			if v.TopicType != "" && conv.TopicType.String() != v.TopicType {
+				continue
+			}
+			if v.TopicName != "" && conv.Channel != v.TopicName {
+				continue
+			}
+			// It's a match.
+			return true
+		}
+	}
+	// None of our filters matched.
+	return false
 }
 
 func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
@@ -139,7 +162,7 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 			// Skip exploding message
 			return nil
 		}
-		if !d.matchFilters(inMsg.ConvID) {
+		if !d.matchFilters(inMsg.Conv) {
 			// Skip filtered out message.
 			return nil
 		}

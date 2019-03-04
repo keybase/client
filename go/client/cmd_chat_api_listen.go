@@ -118,6 +118,10 @@ func sendPing(cli keybase1.SessionClient) error {
 	return cli.SessionPing(ctx)
 }
 
+func (c *CmdChatAPIListen) ErrWriteLn(format string, obj ...interface{}) {
+	c.G().UI.GetTerminalUI().ErrorWriter().Write([]byte(fmt.Sprintf(format, obj...) + "\n"))
+}
+
 func (c *CmdChatAPIListen) Run() error {
 	sessionClient, err := GetSessionClient(c.G())
 	if err != nil {
@@ -125,8 +129,16 @@ func (c *CmdChatAPIListen) Run() error {
 	}
 
 	chatDisplay := newChatNotificationDisplay(c.G(), c.showLocal, c.hideExploding)
+
 	if err := chatDisplay.setupFilters(context.TODO(), c.channelFilters); err != nil {
 		return err
+	}
+
+	if len(chatDisplay.filtersNormalized) > 0 {
+		c.ErrWriteLn("Message filtering is active: %d filters")
+		for i, v := range chatDisplay.filtersNormalized {
+			c.ErrWriteLn("filter %d: %+v", i, v)
+		}
 	}
 
 	protocols := []rpc.Protocol{
