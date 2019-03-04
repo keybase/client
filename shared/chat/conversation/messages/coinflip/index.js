@@ -75,7 +75,7 @@ class CoinFlip extends React.Component<Props, State> {
       <Kb.Box2 direction="vertical">
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
           <Kb.Text selectable={true} type="BodySmallSemibold">
-            Collecting commitments: {this.props.participants.length}
+            {!Styles.isMobile && 'Collecting '}commitments: {this.props.participants.length}
           </Kb.Text>
           {this.props.phase === 'secrets' && (
             <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
@@ -84,7 +84,7 @@ class CoinFlip extends React.Component<Props, State> {
         {this.props.phase === 'secrets' && (
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Text selectable={true} type="BodySmallSemibold">
-              Collecting secrets: {this._revealSummary()}
+              {!Styles.isMobile && 'Collecting '}secrets: {this._revealSummary()}
             </Kb.Text>
             {this.props.phase === 'complete' && (
               <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />

@@ -121,6 +121,7 @@ const Card = (props: CardType) => (
         fontSize={Styles.isMobile ? 10 : 12}
         type={suits[cards[props.card].suit].icon}
         color={suits[cards[props.card].suit].color}
+        style={styles.cardSuit}
       />
     </Kb.Box2>
   </Kb.Box2>
@@ -159,30 +160,41 @@ const CoinFlipResultCoin = (props: CoinType) => (
 type HandType = {|
   hands: ?Array<RPCChatTypes.UICoinFlipHand>,
 |}
-const CoinFlipResultHands = (props: HandType) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={{backgroundColor: Styles.globalColors.green, paddingRight: Styles.globalMargins.tiny}}>
-      {props.hands &&
-        props.hands.map(hand => (
-          <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical" style={{backgroundColor: Styles.globalColors.orange}}>
-            <Kb.Text selectable={true} type="BodyBig" style={styles.handTarget}>
-              {hand.target}
-            </Kb.Text>
-          </Kb.Box2>
-        ))}
+const CoinFlipResultHands = (props: HandType) => {
+  if (!props.hands) return null
+  const handsWithCards = props.hands.filter(hand => hand.hand)
+  const handsWithoutCards = props.hands ? props.hands.slice(handsWithCards.length) : []
+  return (
+    <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
+          {handsWithCards.map(hand => (
+              <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical" style={styles.gap}>
+                <Kb.Text selectable={true} type="BodyBig">
+                  {hand.target}
+                </Kb.Text>
+              </Kb.Box2>
+            ))}
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.handContainer}>
+            {handsWithCards.map(hand => (
+              <Kb.Box2 key={hand.target} direction="vertical" alignSelf="flex-start" style={styles.gap}>
+                <CoinFlipResultDeck deck={hand.hand} />
+              </Kb.Box2>
+            ))}
+        </Kb.Box2>
+      </Kb.Box2>
+      {handsWithoutCards.length > 0 && (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Text type="BodySmallSemibold">
+            Not enough cards for:{' '}
+            <Kb.Text type="BodySmall">{handsWithoutCards.map(hand => hand.target).join(', ')}</Kb.Text>
+          </Kb.Text>
+        </Kb.Box2>
+      )}
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" gap="tiny">
-        {props.hands &&
-        props.hands.map(hand => (
-          <Kb.Box2 key={hand.target} direction="vertical" alignSelf="flex-start">
-            {hand.hand ? <CoinFlipResultDeck deck={hand.hand} /> : (
-              <Kb.Text type="Body">no more cards</Kb.Text>
-            )}
-          </Kb.Box2>
-        ))}
-    </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 type NumberType = {|
   number: ?string,
@@ -268,6 +280,12 @@ const styles = Styles.styleSheetCreate({
   cardStacked: {
     marginBottom: 8,
   },
+  cardSuit: Styles.platformStyles({
+    isMobile: {
+      position: 'relative',
+      top: -1,
+    },
+  }),
   cards: {
     flexWrap: 'wrap',
   },
@@ -284,14 +302,17 @@ const styles = Styles.styleSheetCreate({
     height: 48,
     width: 48,
   },
-  handTarget: Styles.platformStyles({
-    isElectron: {
-      paddingTop: 12,
-    },
-    isMobile: {
-      paddingTop: 8,
-    },
-  }),
+  gap: {
+    paddingBottom: Styles.globalMargins.tiny,
+  },
+  handContainer: {
+    paddingRight: Styles.globalMargins.tiny,
+  },
+  handTarget: {
+    height: 'auto',
+    justifyContent: 'space-around',
+    paddingRight: Styles.globalMargins.tiny,
+  },
   listFull: {
     color: Styles.globalColors.black,
   },
