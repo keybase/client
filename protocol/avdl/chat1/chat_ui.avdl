@@ -38,6 +38,7 @@ protocol chatUi {
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
+    LocalConversationVers localVersion;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
     MessageID maxMsgID;
@@ -80,6 +81,7 @@ protocol chatUi {
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
+    LocalConversationVers localVersion;
     MessageID maxMsgID;
     MessageID maxVisibleMsgID;
     MessageID readMsgID;
