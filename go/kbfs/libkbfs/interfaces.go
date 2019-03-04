@@ -348,7 +348,7 @@ type KBFSOps interface {
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
 	DeleteFavorite(ctx context.Context, fav Favorite) error
-	// SetFavoritesHomeTLFInfo sets the hom TLF TeamIDs to initialize the
+	// SetFavoritesHomeTLFInfo sets the home TLF TeamIDs to initialize the
 	// favorites cache on login.
 	SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo)
 	// RefreshEditHistory asks the FBO for the given favorite to reload its

@@ -62,9 +62,18 @@ func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, usernam
 	}
 
 	// Send to Favorites cache
-	info := homeTLFInfo{
-		PublicTeamID:  *publicHandle.toFavToAdd(false).Data.TeamID,
-		PrivateTeamID: *publicHandle.toFavToAdd(false).Data.TeamID,
+	info := homeTLFInfo{}
+	if publicHandle != nil {
+		teamID := publicHandle.toFavToAdd(false).Data.TeamID
+		if teamID != nil {
+			info.PublicTeamID = *teamID
+		}
+	}
+	if privateHandle != nil {
+		teamID := privateHandle.toFavToAdd(false).Data.TeamID
+		if teamID != nil {
+			info.PrivateTeamID = *teamID
+		}
 	}
 	config.KBFSOps().SetFavoritesHomeTLFInfo(ctx, info)
 }

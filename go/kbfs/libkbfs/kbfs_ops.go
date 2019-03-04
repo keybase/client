@@ -308,6 +308,7 @@ func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	return nil
 }
 
+// SetFavoritesHomeTLFInfo implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) SetFavoritesHomeTLFInfo(ctx context.Context,
 	info homeTLFInfo) {
 	fs.favs.setHomeTLFInfo(ctx, info)
