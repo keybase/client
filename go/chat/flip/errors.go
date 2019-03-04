@@ -112,7 +112,7 @@ type DuplicateRegistrationError struct {
 }
 
 func (d DuplicateRegistrationError) Error() string {
-	return fmt.Sprintf("User %s registered more than once in game %s", d.G, d.U.ToKey())
+	return fmt.Sprintf("User %s registered more than once in game %s", d.U.ToKey(), d.G)
 }
 
 type DuplicateCommitmentCompleteError struct {
