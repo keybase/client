@@ -80,5 +80,5 @@ func TestPosixRuntimeDir(t *testing.T) {
 	home = ""
 	require.Equal(t, "/barland/tester", hf.RuntimeDir())
 	delete(env, "XDG_RUNTIME_DIR")
-	require.Equal(t, "/yoyo/.config//tester", hf.RuntimeDir())
+	require.Equal(t, "/yoyo/.config/tester", hf.RuntimeDir())
 }
