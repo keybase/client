@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -14,6 +15,7 @@ type chatNotificationDisplay struct {
 	svc           *chatServiceHandler
 	showLocal     bool
 	hideExploding bool
+	convIdFilters map[string]bool
 }
 
 func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding bool) *chatNotificationDisplay {
@@ -42,6 +44,18 @@ func newMsgNotification(source string) *msgNotification {
 		Type:   notifTypeChat,
 		Source: source,
 	}
+}
+
+func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilters []ChatChannel) error {
+	d.convIdFilters = make(map[string]bool, len(channelFilters))
+	for i, v := range channelFilters {
+		conv, _, err := d.svc.findConversation(ctx, v)
+		if err != nil {
+			return fmt.Errorf("When processing filters: %s", err.Error())
+		}
+		d.convIdFilters[conv.Info.Id.String()] = true
+	}
+	return nil
 }
 
 func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Message {
@@ -98,6 +112,15 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 	}
 }
 
+func (d *chatNotificationDisplay) matchFilters(convID chat1.ConversationID) bool {
+	if len(d.convIdFilters) == 0 {
+		// No filters.
+		return true
+	}
+	_, ok := d.convIdFilters[convID.String()]
+	return ok
+}
+
 func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
 	if !d.showLocal && arg.Source == chat1.ChatActivitySource_LOCAL {
 		// Skip local message
@@ -114,6 +137,10 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 		inMsg := activity.IncomingMessage()
 		if d.hideExploding && inMsg.Message.IsEphemeral() {
 			// Skip exploding message
+			return nil
+		}
+		if !d.matchFilters(inMsg.ConvID) {
+			// Skip filtered out message.
 			return nil
 		}
 		msg := d.formatMessage(inMsg)
