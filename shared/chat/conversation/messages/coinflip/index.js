@@ -107,18 +107,16 @@ class CoinFlip extends React.Component<Props, State> {
                 {this.props.commitmentVis.length > 0 ? (
                   <Kb.Image src={commitSrc} style={styles.progressVis} />
                 ) : (
-                  <Kb.Box2 direction="vertical" style={styles.progressVis}>
-                    <Kb.Text selectable={true} type="BodyItalic">
-                      Starting...
-                    </Kb.Text>
-                  </Kb.Box2>
+                  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.placeholder, styles.progressVis])} />
                 )}
               </Kb.Box2>
-              {this.props.revealVis.length > 0 && this.props.phase !== 'commitments' && (
-                <Kb.Box2 direction="vertical">
+              <Kb.Box2 direction="vertical">
+                {this.props.revealVis.length > 0 && this.props.phase !== 'commitments' ? (
                   <Kb.Image src={revealSrc} style={styles.progressVis} />
-                </Kb.Box2>
-              )}
+                ) : (
+                  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.placeholder, styles.progressVis])} />
+                )}
+              </Kb.Box2>
               <Kb.Box2 direction="vertical">{this._renderStatusText()}</Kb.Box2>
             </Kb.Box2>
           </>
@@ -148,6 +146,9 @@ const styles = Styles.styleSheetCreate({
       lineHeight: 16,
     },
   }),
+  placeholder: {
+    backgroundColor: Styles.globalColors.lightGrey,
+  },
   progress: Styles.platformStyles({
     isElectron: {
       cursor: 'text',
