@@ -29,7 +29,7 @@ const listStyle = {
       }),
 }
 const styleTurnIntoTeam = {
-  margin: globalMargins.small,
+  padding: globalMargins.small,
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
@@ -251,7 +251,7 @@ const typeSizeEstimator = (row: Row): number => {
       return 270
 
     case 'turn into team':
-      return 47
+      return 100
 
     case 'block this conversation':
       return 17
@@ -306,9 +306,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       case 'divider':
         // This wrapper is used here with flex so that the margins
         // do not collapse and the height can be calculated properly
-        return <Box style={{display: 'flex'}}>
+        return (
+          <Box style={{display: 'flex'}}>
             <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
           </Box>
+        )
 
       case 'spacer':
         return <Spacer height={row.height} key={`spacer ${row.key}`} />
