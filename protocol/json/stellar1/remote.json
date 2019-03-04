@@ -721,6 +721,27 @@
           "name": "baseFee"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "DetailsPlusPayments",
+      "fields": [
+        {
+          "type": "AccountDetails",
+          "name": "details"
+        },
+        {
+          "type": "PaymentsPage",
+          "name": "recentPayments"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentSummary"
+          },
+          "name": "pendingPayments"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1002,6 +1023,19 @@
         }
       ],
       "response": "NetworkOptions"
+    },
+    "detailsPlusPayments": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "DetailsPlusPayments"
     }
   },
   "namespace": "stellar.1"

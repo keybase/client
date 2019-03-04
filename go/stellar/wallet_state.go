@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -544,77 +545,64 @@ func (a *AccountState) Refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string) (err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("WalletState.Refresh(%s) [%s]", a.accountID, reason), func() error { return err })()
 
-	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		if seqno > a.seqno {
-			a.seqno = seqno
-		}
-		a.Unlock()
+	dpp, err := a.remoter.DetailsPlusPayments(mctx.Ctx(), a.accountID)
+	if err != nil {
+		return err
 	}
 
-	balances, err := a.remoter.Balances(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		a.balances = balances
-		a.Unlock()
-	}
-
-	details, err := a.remoter.Details(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		notify := detailsChanged(a.details, &details)
-		a.details = &details
-		// get these while locked
-		isPrimary := a.isPrimary
-		name := a.name
-		accountMode := a.accountMode
-		a.Unlock()
-
-		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, details, isPrimary, name, accountMode)
-			if err == nil {
-				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
-			}
-		}
-		if notify {
-			getGlobal(mctx.G()).UpdateUnreadCount(mctx.Ctx(), a.accountID, details.UnreadPayments)
-		}
-	}
-
-	pending, err := a.remoter.PendingPayments(mctx.Ctx(), a.accountID, 25)
-	if err == nil {
-		a.Lock()
-		notify := pendingChanged(a.pending, pending)
-		a.pending = pending
-		a.Unlock()
-
-		if notify && router != nil {
-			local, err := RemotePendingToLocal(mctx, a.remoter, a.accountID, pending)
-			if err == nil {
-				router.HandleWalletPendingPaymentsUpdate(mctx.Ctx(), a.accountID, local)
-			}
-		}
-	}
-
-	recent, err := a.remoter.RecentPayments(mctx.Ctx(), a.accountID, nil, 50, true)
-	if err == nil {
-		a.Lock()
-		notify := recentChanged(a.recent, &recent)
-		a.recent = &recent
-		a.Unlock()
-
-		if notify && router != nil {
-			localPage, err := RemoteRecentPaymentsToPage(mctx, a.remoter, a.accountID, recent)
-			if err == nil {
-				router.HandleWalletRecentPaymentsUpdate(mctx.Ctx(), a.accountID, localPage)
-			}
-		}
+	seqno, err := strconv.ParseUint(dpp.Details.Seqno, 10, 64)
+	if err != nil {
+		return err
 	}
 
 	a.Lock()
+	if seqno > a.seqno {
+		a.seqno = seqno
+	}
+
+	a.balances = dpp.Details.Balances
+
+	notifyDetails := detailsChanged(a.details, &dpp.Details)
+	a.details = &dpp.Details
+
+	notifyPending := pendingChanged(a.pending, dpp.PendingPayments)
+	a.pending = dpp.PendingPayments
+
+	notifyRecent := recentChanged(a.recent, &dpp.RecentPayments)
+	a.recent = &dpp.RecentPayments
+
+	// get these while locked
+	isPrimary := a.isPrimary
+	name := a.name
+	accountMode := a.accountMode
+
 	a.rtime = time.Now()
+
 	a.Unlock()
+
+	if notifyDetails && router != nil {
+		accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, dpp.Details, isPrimary, name, accountMode)
+		if err == nil {
+			router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
+		}
+	}
+	if notifyDetails {
+		getGlobal(mctx.G()).UpdateUnreadCount(mctx.Ctx(), a.accountID, dpp.Details.UnreadPayments)
+	}
+
+	if notifyPending && router != nil {
+		local, err := RemotePendingToLocal(mctx, a.remoter, a.accountID, dpp.PendingPayments)
+		if err == nil {
+			router.HandleWalletPendingPaymentsUpdate(mctx.Ctx(), a.accountID, local)
+		}
+	}
+
+	if notifyRecent && router != nil {
+		localPage, err := RemoteRecentPaymentsToPage(mctx, a.remoter, a.accountID, dpp.RecentPayments)
+		if err == nil {
+			router.HandleWalletRecentPaymentsUpdate(mctx.Ctx(), a.accountID, localPage)
+		}
+	}
 
 	return err
 }
