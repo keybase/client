@@ -55,8 +55,14 @@ const uploadAvatar = (_, action) =>
       logger.warn(`Error uploading user avatar: ${e.message}`)
     })
 
-const finishRevoking = () => [
+const finishRevoking = state => [
   TrackerGen.createGetMyProfile({ignoreCache: true}),
+  Tracker2Gen.createLoad({
+    assertion: state.config.username,
+    guiID: TrackerConstants.generateGUIID(),
+    inTracker: false,
+    reason: 'justRevoked',
+  }),
   ProfileGen.createRevokeFinish(),
   RouteTreeGen.createNavigateUp(),
 ]
