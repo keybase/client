@@ -4,6 +4,7 @@ import {memoize} from '../../util/memoize'
 import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
 import * as Flow from '../../util/flow'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 import ConversationList, {type SmallTeamRowItem, type BigTeamChannelRowItem} from './conversation-list'
 import getFilteredRowsAndMetadata from '../inbox/container/filtered'
@@ -137,7 +138,9 @@ const mapStateToProps = state => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+})
 
 const selectNext = (rows, current, delta) => {
   if (!rows.length) {
@@ -161,6 +164,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       isLoading: false,
       onSetFilter: ownProps.onSetFilter,
     },
+    onBack: dispatchProps.onBack,
     onEnsureSelection: () => {
       if (selectedIndex === null) {
         const nextConvIDKey = selectNext(rows, selectedIndex, 1)

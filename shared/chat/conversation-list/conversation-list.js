@@ -39,6 +39,7 @@ type Props = {|
     filter: string,
     onSetFilter: (filter: string) => void,
   },
+  onBack: () => void,
   onEnsureSelection: () => void,
   onSelectDown: () => void,
   onSelectUp: () => void,
@@ -89,6 +90,7 @@ const ConversationList = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       {!!props.filter && (
         <ConversationFilterInput
+          onBack={props.onBack}
           style={styles.filter}
           isLoading={props.filter.isLoading}
           filter={props.filter.filter}

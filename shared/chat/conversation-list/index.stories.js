@@ -100,6 +100,7 @@ const getRows = (numShown, upstreamOnSelect) => {
 }
 
 const actions = {
+  onBack: Sb.action('onBack'),
   onEnsureSelection: Sb.action('onEnsureSelection'),
   onSelectDown: Sb.action('onSelectDown'),
   onSelectUp: Sb.action('onSelectUp'),
