@@ -100,10 +100,15 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
   onViewTeam: () => {
-    dispatch(
-      RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: [{props: {teamname}, selected: 'team'}]})
-    )
-    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
+    if (flags.useNewRouter) {
+      dispatch(RouteTreeGen.createClearModals())
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
+    } else {
+      dispatch(
+        RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: [{props: {teamname}, selected: 'team'}]})
+      )
+      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
+    }
   },
 })
 
