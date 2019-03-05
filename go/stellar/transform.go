@@ -464,9 +464,12 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 	deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
 
 	// Is there enough to make any transaction?
-	availableInt, err := stellarnet.ParseStellarAmount(details.Available)
-	if err != nil {
-		return empty, err
+	var availableInt int64
+	if details.Available != "" {
+		availableInt, err = stellarnet.ParseStellarAmount(details.Available)
+		if err != nil {
+			return empty, err
+		}
 	}
 	baseFee := getGlobal(mctx.G()).BaseFee(mctx)
 	canSubmitTx := availableInt > int64(baseFee)
