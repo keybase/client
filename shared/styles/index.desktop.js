@@ -151,7 +151,7 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
-export {globalMargins, backgroundModeToColor, platformStyles, padding} from './shared'
+export {globalMargins, backgroundModeToColor, backgroundModeToTextColor, platformStyles, padding} from './shared'
 export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
 export {default as styled} from '@emotion/styled'
 export {default as globalColors} from './colors'
