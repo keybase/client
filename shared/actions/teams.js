@@ -21,6 +21,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
+import * as TrackerGen from './tracker-gen'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
 import {chatTab, teamsTab} from '../constants/tabs'
@@ -305,6 +306,23 @@ const addToTeamWaitingKeys = (teamname, username) => [
   Constants.addMemberWaitingKey(teamname, username),
 ]
 
+const addReAddErrorHandler = (username, e) => {
+  // identify error
+  if (e.code === RPCTypes.constantsStatusCode.scidentifysummaryerror) {
+    if (isMobile) {
+      // show profile card on mobile
+      return ProfileGen.createShowUserProfile({username})
+    } else {
+      // otherwise show tracker popup
+      return TrackerGen.createGetProfile({
+        forceDisplay: true,
+        ignoreCache: true,
+        username,
+      })
+    }
+  }
+}
+
 const addToTeam = (_, action) => {
   const {teamname, username, role, sendChatNotification} = action.payload
   return RPCTypes.teamsTeamAddMemberRpcPromise(
@@ -318,15 +336,7 @@ const addToTeam = (_, action) => {
     addToTeamWaitingKeys(teamname, username)
   )
     .then(() => {})
-    .catch(e => {
-      // identify error
-      if (e.code === RPCTypes.constantsStatusCode.scidentifysummaryerror) {
-        if (isMobile) {
-          // show profile card on mobile
-          return ProfileGen.createShowUserProfile({username})
-        }
-      }
-    })
+    .catch(e => addReAddErrorHandler(username, e))
 }
 
 const reAddToTeam = (state, action) => {
@@ -343,15 +353,7 @@ const reAddToTeam = (state, action) => {
     addToTeamWaitingKeys(teamname, username)
   )
     .then(() => {})
-    .catch(e => {
-      // identify error
-      if (e.code === RPCTypes.constantsStatusCode.scidentifysummaryerror) {
-        if (isMobile) {
-          // show profile card on mobile
-          return ProfileGen.createShowUserProfile({username})
-        }
-      }
-    })
+    .catch(e => addReAddErrorHandler(username, e))
 }
 
 const editDescription = (_, action) => {
@@ -672,7 +674,7 @@ function* addUserToTeams(state, action) {
           sendChatNotification: true,
           username: user,
         },
-        Constants.teamWaitingKey(team)
+        [Constants.teamWaitingKey(team), Constants.addUserToTeamsWaitingKey(user)]
       )
       teamsAddedTo.push(team)
     } catch (error) {
@@ -706,8 +708,12 @@ function* addUserToTeams(state, action) {
     }
     result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
   }
-
-  yield Saga.put(TeamsGen.createSetAddUserToTeamsResults({results: result}))
+  yield Saga.put(
+    TeamsGen.createSetAddUserToTeamsResults({
+      error: errorAddingTo.length > 0,
+      results: result,
+    })
+  )
 }
 
 const getTeamOperations = (_, action) =>

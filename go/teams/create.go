@@ -642,6 +642,6 @@ func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason s
 	eng := engine.NewPerUserKeyUpgrade(g, arg)
 	err := engine.RunEngine2(m, eng)
 	if err != nil {
-		m.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
+		m.Debug("PerUserKeyUpgrade failed (%s): %v", reason, err)
 	}
 }

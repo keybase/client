@@ -6,6 +6,7 @@ import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {InfoPanel, type InfoPanelProps} from '.'
+import addToChannel from './add-to-channel/index.stories'
 
 const onlyValidConversationsProps = {
   conversationIDKey: 'fake key',
@@ -48,6 +49,12 @@ const retentionPickerPropSelector = props => ({
 
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(),
+  AddPeople: p => ({
+    isAdmin: p.isAdmin,
+    isGeneralChannel: p.isGeneralChannel,
+    onAddPeople: Sb.action('onAddPeople'),
+    onAddToChannel: Sb.action('onAddToChannel'),
+  }),
   InfoPanel: (props: InfoPanelProps) => props,
   LifecycleNotifications: () => notificationProps,
   MinWriterRole: () => minWriterRoleProps,
@@ -112,6 +119,7 @@ const teamCommonProps = {
 const smallTeamProps = {
   ...teamCommonProps,
   admin: false,
+  channelname: 'general',
   description: "You shouldn't be seeing this",
   isPreview: false,
   onEditChannel: Sb.unexpected('onEditChannel'),
@@ -151,7 +159,17 @@ const bigTeamNoPreviewProps = {
   smallTeam: false,
 }
 
+const bigTeamLotsaUsersCommonProps = {
+  ...bigTeamNoPreviewProps,
+  participants: new Array(100).fill(0).map((_, i) => ({
+    fullname: `Agent ${i}`,
+    username: `agnt${i}`,
+  })),
+}
+
 const load = () => {
+  addToChannel()
+
   Sb.storiesOf('Chat/Conversation/InfoPanel', module)
     .addDecorator(provider)
     .addDecorator(story => (
@@ -159,6 +177,7 @@ const load = () => {
     ))
     .add('Conversation', () => <InfoPanel {...conversationProps} />)
     .add('Small team', () => <InfoPanel {...smallTeamProps} />)
+    .add('Big team lotsa users', () => <InfoPanel {...bigTeamLotsaUsersCommonProps} />)
     .add('Big team preview', () => <InfoPanel {...bigTeamPreviewProps} />)
     .add('Big team no preview', () => <InfoPanel {...bigTeamNoPreviewProps} />)
 }

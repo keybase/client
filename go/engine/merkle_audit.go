@@ -136,14 +136,14 @@ func saveMerkleAuditState(m libkb.MetaContext, state merkleAuditState) error {
 
 func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
-		m.CDebugf("MerkleAudit giving up offline")
+		m.Debug("MerkleAudit giving up offline")
 		return errAuditOffline
 	}
 
 	// Acquire the most recent merkle tree root
 	lastRoot := m.G().MerkleClient.LastRoot()
 	if lastRoot == nil {
-		m.CDebugf("MerkleAudit unable to retrieve the last root")
+		m.Debug("MerkleAudit unable to retrieve the last root")
 		return errAuditNoLastRoot
 	}
 
@@ -194,12 +194,12 @@ func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 
 func MerkleAuditRound(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("MAUDT")
-	defer m.CTraceTimed("MerkleAuditRound", func() error { return err })()
+	defer m.TraceTimed("MerkleAuditRound", func() error { return err })()
 
 	// Look up any previously requested retries
 	startSeqno, err := lookupMerkleAuditRetryFromState(m)
 	if err != nil {
-		m.CDebugf("MerkleAudit unable to acquire saved state from localdb")
+		m.Debug("MerkleAudit unable to acquire saved state from localdb")
 		return nil
 	}
 
@@ -209,7 +209,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 		// 1. Acquire the most recent merkle tree root
 		lastRoot := m.G().MerkleClient.LastRoot()
 		if lastRoot == nil {
-			m.CDebugf("MerkleAudit unable to retrieve the last root")
+			m.Debug("MerkleAudit unable to retrieve the last root")
 			return nil
 		}
 		lastSeqno := *lastRoot.Seqno()
@@ -241,14 +241,14 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 
 	// All MerkleClientErrors would suggest that the server is tampering with the roots
 	if _, ok := err.(libkb.MerkleClientError); ok {
-		m.CErrorf("MerkleAudit fatally failed: %s", err)
+		m.Error("MerkleAudit fatally failed: %s", err)
 		// Send the notification to the client
 		m.G().NotifyRouter.HandleRootAuditError(fmt.Sprintf(
 			"Merkle tree audit from %d failed: %s",
 			startSeqno, err.Error(),
 		))
 	} else {
-		m.CDebugf("MerkleAudit could not complete: %s", err)
+		m.Debug("MerkleAudit could not complete: %s", err)
 	}
 
 	// Use another error variable to prevent shadowing

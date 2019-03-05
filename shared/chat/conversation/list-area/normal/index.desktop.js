@@ -19,6 +19,7 @@ import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
+import {memoize} from '../../../../util/memoize'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -324,14 +325,17 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   _makeItems = () => {
+    return this._makeItemsMemoized(this.props.conversationIDKey, this.props.messageOrdinals)
+  }
+  _makeItemsMemoized = memoize((conversationIDKey, messageOrdinals) => {
     const items = []
-    items.push(<TopItem key="topItem" conversationIDKey={this.props.conversationIDKey} />)
+    items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
 
-    const numOrdinals = this.props.messageOrdinals.size
+    const numOrdinals = messageOrdinals.size
     let ordinals = []
     let previous = null
     let lastBucket = null
-    this.props.messageOrdinals.forEach((ordinal, idx) => {
+    messageOrdinals.forEach((ordinal, idx) => {
       // We want to keep the mapping of ordinal to bucket fixed always
       const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
       if (lastBucket === null) {
@@ -367,10 +371,10 @@ class Thread extends React.PureComponent<Props, State> {
       ordinals.push(ordinal)
     })
 
-    items.push(<BottomItem key="bottomItem" conversationIDKey={this.props.conversationIDKey} />)
+    items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} />)
 
     return items
-  }
+  })
 
   _onResize = ({scroll}) => {
     if (this._scrollHeight) {

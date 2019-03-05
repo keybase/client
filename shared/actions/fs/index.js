@@ -2,6 +2,7 @@
 import * as Constants from '../../constants/fs'
 import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
+import * as ConfigGen from '../config-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -62,7 +63,9 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-const filePreview = (state, action) =>
+const silenceErrorHandler = () => {}
+
+const pathItemLoad = (state, action) =>
   RPCTypes.SimpleFSSimpleFSStatRpcPromise({
     path: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
@@ -71,12 +74,12 @@ const filePreview = (state, action) =>
     ...(action.payload.identifyBehavior ? {identifyBehavior: action.payload.identifyBehavior} : {}),
   })
     .then(dirent =>
-      FsGen.createFilePreviewLoaded({
+      FsGen.createPathItemLoaded({
         meta: makeEntry(dirent),
         path: action.payload.path,
       })
     )
-    .catch(makeRetriableErrorHandler(action))
+    .catch(action.payload.silenceErrors ? silenceErrorHandler : makeRetriableErrorHandler(action))
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
@@ -669,7 +672,7 @@ function* loadPathMetadata(state, action) {
     })
     pathItem = makeEntry(dirent)
     yield Saga.put(
-      FsGen.createFilePreviewLoaded({
+      FsGen.createPathItemLoaded({
         meta: pathItem,
         path,
       })
@@ -857,6 +860,26 @@ const clearRefreshTag = (state, action) => {
   mimeTypeRefreshTags.delete(action.payload.refreshTag)
 }
 
+let pingKbfsDaemonLoopRunning = false
+function* pingKbfsDaemonUntilConnected() {
+  if (pingKbfsDaemonLoopRunning) {
+    return
+  }
+  while (true) {
+    pingKbfsDaemonLoopRunning = true
+    yield Saga.delay(1000)
+    let connected = yield* Saga.callPromise(() =>
+      RPCTypes.SimpleFSSimpleFSPingRpcPromise()
+        .then(() => true)
+        .catch(() => false)
+    )
+    if (connected) {
+      yield Saga.put(FsGen.createKbfsDaemonConnected())
+      return
+    }
+  }
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -872,7 +895,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.FilePreviewLoadPayload>(FsGen.filePreviewLoad, filePreview)
+  yield* Saga.chainAction<FsGen.PathItemLoadPayload>(FsGen.pathItemLoad, pathItemLoad)
   yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
@@ -904,6 +927,15 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.CloseMoveOrCopyPayload>(FsGen.closeMoveOrCopy, closeMoveOrCopy)
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
+
+  yield* Saga.chainGenerator<ConfigGen.InstallerRanPayload>(
+    ConfigGen.installerRan,
+    // Wait until a successful ping before filing FsGen.kbfsDaemonConnected.
+    // We need this on desktop as KBFS and service are two separate processes.
+    // There's no separate daemon on mobile, but in case we make init more
+    // async, it might be possible we get here before KBFS is actually up.
+    pingKbfsDaemonUntilConnected
+  )
 
   yield Saga.spawn(platformSpecificSaga)
 }

@@ -175,6 +175,7 @@ function figureType(type, prefix = '') {
   if (!type) {
     return 'null' // keep backwards compat with old script
   }
+
   if (type instanceof Array) {
     if (type.length === 2) {
       if (type[0] === null) {
@@ -289,18 +290,23 @@ function rpcPromiseGen(methodName, name, justType) {
     : `export const ${name}RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error, result) => error ? reject(error) : resolve(result), waitingKey}))`
 }
 
+function maybeIfNot(s) {
+  if (s.substr(0, 1) === '?') return s
+  return `?${s}`
+}
+
 // Type parsing
 function parseInnerType(t) {
   if (!t) {
-    t = 'null' // keep backwards compat with old script
+    return 'void' // keep backwards compat with old script
   }
+
   if (t.constructor === Array) {
-    if (t.length === 2 && t.indexOf(null) >= 0) {
-      return parseMaybe(t)
+    if (t.length === 2 && t[0] === null) {
+      return maybeIfNot(figureType(t[1]))
+    } else {
+      return parseUnion(t)
     }
-    return parseUnion(t)
-  } else if (t === 'null') {
-    return 'void'
   }
 
   switch (t.type) {
@@ -318,11 +324,6 @@ function parseEnumSymbol(s) {
 
 function parseEnum(t) {
   return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} // ${s}\n`))
-}
-
-function parseMaybe(t) {
-  var maybeType = t.filter(x => x !== null)[0]
-  return `?${maybeType}`
 }
 
 function parseUnion(unionTypes) {
@@ -362,11 +363,17 @@ function parseVariant(t, project) {
     .map(c => {
       if (c.label.def) {
         return null
-        // const bodyStr = c.body ? `, 'default': ?${c.body}` : ''
-        // return `{ ${t.switch.name}: any${bodyStr} }`
       } else {
         var label = fixCase(c.label.name)
-        const bodyStr = c.body ? `, ${label}: ?${capitalize(c.body)}` : ''
+        let bodyType = ''
+        if (c.body === null) {
+          bodyType = 'null'
+        } else if (typeof c.body === 'string') {
+          bodyType = capitalize(c.body)
+        } else if (c.body.type === 'array') {
+          bodyType = `Array<${capitalize(c.body.items)}>`
+        }
+        const bodyStr = c.body ? `, ${label}: ?${bodyType}` : ''
         return `{ ${t.switch.name}: ${project.enums[type][label]}${bodyStr} }`
       }
     })

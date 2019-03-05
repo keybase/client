@@ -121,6 +121,7 @@ type diskLimiterGetter interface {
 
 type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
+	IsSyncedTlfPath(tlfPath string) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
 	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
 	GetAllSyncedTlfs() []tlf.ID
@@ -2780,4 +2781,14 @@ type fileBlockMap interface {
 		ctx context.Context, parentPtr BlockPointer, childName string) (
 		*FileBlock, error)
 	getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error)
+}
+
+type dirBlockMap interface {
+	putBlock(
+		ctx context.Context, ptr BlockPointer, block *DirBlock) error
+	getBlock(
+		ctx context.Context, ptr BlockPointer) (*DirBlock, error)
+	hasBlock(ctx context.Context, ptr BlockPointer) (bool, error)
+	deleteBlock(ctx context.Context, ptr BlockPointer) error
+	numBlocks() int
 }

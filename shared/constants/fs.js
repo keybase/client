@@ -199,6 +199,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   errors: I.Map(),
   flags: makeFlags(),
   fuseStatus: null,
+  kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
   localHTTPServerInfo: null,
   moveOrCopy: makeMoveOrCopy(),
@@ -878,7 +879,7 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return 'Failed to load TLF lists.' + suffix
     case FsGen.refreshLocalHTTPServerInfo:
       return 'Failed to get information about internal HTTP server.' + suffix
-    case FsGen.filePreviewLoad:
+    case FsGen.pathItemLoad:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix

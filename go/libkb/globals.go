@@ -280,11 +280,11 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
 	ctx = mctx.Ctx()
 
-	defer mctx.CTrace("GlobalContext#Logout", func() error { return err })()
+	defer mctx.Trace("GlobalContext#Logout", func() error { return err })()
 
 	defer g.switchUserMu.Acquire(NewMetaContext(ctx, g), "Logout")()
 
-	mctx.CDebugf("GlobalContext#Logout: after switchUserMu acquisition")
+	mctx.Debug("GlobalContext#Logout: after switchUserMu acquisition")
 
 	username := g.Env.GetUsername()
 
@@ -292,9 +292,9 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 
 	g.LocalSigchainGuard().Clear(mctx.Ctx(), "Logout")
 
-	mctx.CDebugf("+ GlobalContext#Logout: calling logout hooks")
+	mctx.Debug("+ GlobalContext#Logout: calling logout hooks")
 	g.CallLogoutHooks(mctx)
-	mctx.CDebugf("- GlobalContext#Logout: called logout hooks")
+	mctx.Debug("- GlobalContext#Logout: called logout hooks")
 
 	g.ClearPerUserKeyring()
 
@@ -326,14 +326,14 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	g.secretStoreMu.Lock()
 	if g.secretStore != nil && !username.IsNil() {
 		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
-			mctx.CDebugf("clear stored secret error: %s", err)
+			mctx.Debug("clear stored secret error: %s", err)
 		}
 	}
 	g.secretStoreMu.Unlock()
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
-		mctx.CDebugf("Logout ConfigReload error: %s", err)
+		mctx.Debug("Logout ConfigReload error: %s", err)
 	}
 
 	// send logout notification
@@ -997,7 +997,7 @@ func (g *GlobalContext) CallLogoutHooks(m MetaContext) {
 	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
 		if err := h.OnLogout(m); err != nil {
-			m.CWarningf("OnLogout hook error: %s", err)
+			m.Warning("OnLogout hook error: %s", err)
 		}
 	}
 }
@@ -1038,12 +1038,12 @@ func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
 	mctx := NewMetaContext(ctx, g)
 	uid := g.ActiveDevice.UID()
 	if uid.IsNil() {
-		mctx.CDebugf("LogoutSelfCheck: no uid")
+		mctx.Debug("LogoutSelfCheck: no uid")
 		return nil
 	}
 	deviceID := g.ActiveDevice.DeviceID()
 	if deviceID.IsNil() {
-		mctx.CDebugf("LogoutSelfCheck: no device id")
+		mctx.Debug("LogoutSelfCheck: no device id")
 		return nil
 	}
 
@@ -1066,9 +1066,9 @@ func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
 		return err
 	}
 
-	mctx.CDebugf("LogoutSelfCheck: should log out? %v", logout)
+	mctx.Debug("LogoutSelfCheck: should log out? %v", logout)
 	if logout {
-		mctx.CDebugf("LogoutSelfCheck: logging out...")
+		mctx.Debug("LogoutSelfCheck: logging out...")
 		return g.Logout(mctx.Ctx())
 	}
 
@@ -1290,13 +1290,13 @@ func (g *GlobalContext) ReplaceSecretStore(ctx context.Context) error {
 	// get the current secret
 	secret, err := g.secretStore.RetrieveSecret(m, username)
 	if err != nil {
-		m.CDebugf("error retrieving existing secret for ReplaceSecretStore: %s", err)
+		m.Debug("error retrieving existing secret for ReplaceSecretStore: %s", err)
 		return err
 	}
 
 	// clear the existing secret from the existing secret store
 	if err := g.secretStore.ClearSecret(m, username); err != nil {
-		m.CDebugf("error clearing existing secret for ReplaceSecretStore: %s", err)
+		m.Debug("error clearing existing secret for ReplaceSecretStore: %s", err)
 		return err
 	}
 
@@ -1305,11 +1305,11 @@ func (g *GlobalContext) ReplaceSecretStore(ctx context.Context) error {
 
 	// store the secret in the secret store
 	if err := g.secretStore.StoreSecret(m, username, secret); err != nil {
-		m.CDebugf("error storing existing secret for ReplaceSecretStore: %s", err)
+		m.Debug("error storing existing secret for ReplaceSecretStore: %s", err)
 		return err
 	}
 
-	m.CDebugf("ReplaceSecretStore success")
+	m.Debug("ReplaceSecretStore success")
 
 	return nil
 }
@@ -1342,5 +1342,6 @@ func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
 	return g.Env.GetRunMode() == DevelRunMode ||
 		g.Env.RunningInCI() ||
 		g.Env.GetFeatureFlags().Admin() ||
-		g.Env.GetProveBypass()
+		g.Env.GetProveBypass() ||
+		g.Env.GetFeatureFlags().HasFeature(ExperimentalGenericProofs)
 }

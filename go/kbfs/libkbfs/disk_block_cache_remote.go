@@ -97,7 +97,7 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 	return res.Buf, serverHalf, prefetchStatus, nil
 }
 
-// GetPefetchStatus implements the DiskBlockCache interface for
+// GetPrefetchStatus implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) GetPrefetchStatus(
 	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,

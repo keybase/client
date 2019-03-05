@@ -19,6 +19,7 @@ export default class extends React.PureComponent<Props> {
       <List
         items={this.props.rows}
         itemSizeEstimator={this.itemSizeEstimator}
+        indexAsKey={true}
         style={styleList}
         renderItem={this._renderItem}
         windowsSize={10}

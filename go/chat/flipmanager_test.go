@@ -273,7 +273,7 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	fm := NewFlipManager(g, nil)
 	testCase := func(text string, ftyp flip.FlipType, refMetadata flipTextMetadata) {
-		start, metadata := fm.startFromText(text, 3)
+		start, metadata := fm.startFromText(text, nil)
 		ft, err := start.Params.T()
 		require.NoError(t, err)
 		require.Equal(t, ftyp, ft)
@@ -373,7 +373,8 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		gameID := body.Flip().GameID
 
 		testLoadFlip := func() {
-			tc.Context().CoinFlipManager.LoadFlip(ctx, uid, conv.Id, gameID)
+			tc.Context().CoinFlipManager.LoadFlip(ctx, uid, conv.Id, hostMsg.GetMessageID(),
+				body.Flip().FlipConvID, gameID)
 			select {
 			case updates := <-ui0.CoinFlipUpdates:
 				require.Equal(t, 1, len(updates))

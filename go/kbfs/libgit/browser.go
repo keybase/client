@@ -61,6 +61,13 @@ func NewBrowser(
 		return nil, err
 	}
 
+	const masterBranch = "refs/heads/master"
+	if gitBranchName == "" {
+		gitBranchName = masterBranch
+	} else if !strings.HasPrefix(string(gitBranchName), "refs/") {
+		gitBranchName = "refs/heads/" + gitBranchName
+	}
+
 	repo, err := gogit.Open(storage, nil)
 	if errors.Cause(err) == gogit.ErrWorktreeNotProvided {
 		// This is not a bare repo (it might be for a test).  So we
@@ -69,15 +76,15 @@ func NewBrowser(
 		// matter what we pass in.
 		repo, err = gogit.Open(storage, repoFS)
 	}
-	if err != nil {
-		return nil, err
-	}
 
-	const masterBranch = "refs/heads/master"
-	if gitBranchName == "" {
-		gitBranchName = masterBranch
-	} else if !strings.HasPrefix(string(gitBranchName), "refs/") {
-		gitBranchName = "refs/heads/" + gitBranchName
+	if err == gogit.ErrRepositoryNotExists && gitBranchName == masterBranch {
+		// This repo is not initialized yet, so pretend it's empty.
+		return &Browser{
+			root:        string(gitBranchName),
+			sharedCache: sharedCache,
+		}, nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	ref, err := repo.Reference(gitBranchName, true)

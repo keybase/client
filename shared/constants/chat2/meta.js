@@ -12,7 +12,6 @@ import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
-import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {getFullname} from '../users'
 
@@ -354,6 +353,13 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
     .toList()
 }
 
+export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
+  state.chat2.metaMap.find(
+    m => m.teamname === teamname && m.channelname === channelname,
+    undefined,
+    emptyMeta
+  )
+
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
   if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin && commands.builtin) {
@@ -371,7 +377,6 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (
-    flags.walletsEnabled &&
     !sendDisabled &&
     meta.teamType === 'adhoc' &&
     meta.participants.filter(u => u !== state.config.username).size === 1

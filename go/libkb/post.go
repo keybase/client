@@ -194,12 +194,12 @@ func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, statu
 func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
-	m.CDebugf("| PostDeviceLKS: %s", deviceID)
+	m.Debug("| PostDeviceLKS: %s", deviceID)
 	if serverHalf.IsNil() {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
 	if ppGen < 1 {
-		m.CWarningf("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
+		m.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
 		debug.PrintStack()
 	}
 	arg := APIArg{
@@ -219,7 +219,7 @@ func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string,
 	}
 	_, err := m.G().API.Post(arg)
 	if err != nil {
-		m.CInfof("device/update(%+v) failed: %s", arg.Args, err)
+		m.Info("device/update(%+v) failed: %s", arg.Args, err)
 	}
 	return err
 }

@@ -24,6 +24,7 @@ const cases = [
       'systemInviteAccepted',
       'systemSimpleToComplex',
       'systemText',
+      'systemUsersAddedToConversation',
     ],
   },
   {in: RPCChatTypes.commonMessageType.deletehistory, out: []},

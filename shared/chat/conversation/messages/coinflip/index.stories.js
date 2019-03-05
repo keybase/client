@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Box} from '../../../../common-adapters/index'
 import * as Sb from '../../../../stories/storybook'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 import CoinFlip from '.'
 import CoinFlipParticipants from './participants'
@@ -45,8 +46,8 @@ const parts = [
 
 const gathering = {
   commitmentVis: '',
-  isError: false,
   participants: [],
+  phase: 'commitments',
   progressText: 'Gathering commitments...',
   resultText: '',
   revealVis: '',
@@ -55,18 +56,18 @@ const gathering = {
 
 const partialGather = {
   commitmentVis,
-  isError: false,
   participants: parts.slice(0, 2),
+  phase: 'commitments',
   progressText: 'Gathered 2 commitments...',
   resultText: '',
   revealVis: '',
-  showParticipants: true,
+  showParticipants: false,
 }
 
 const result = {
   commitmentVis,
-  isError: false,
   participants: parts,
+  phase: 'complete',
   progressText: '2 participants have revealed secrets...',
   resultText: 'HEADS',
   revealVis,
@@ -75,12 +76,107 @@ const result = {
 
 const error = {
   commitmentVis: '',
-  isError: true,
+  errorInfo: {
+    generic: 'Something went wrong: Somebody pulled the plug',
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.generic,
+  },
   participants: [],
+  phase: 'complete',
   progressText: 'Something went wrong: Somebody pulled the plug',
   resultText: '',
   revealVis: '',
   showParticipants: false,
+}
+
+const absentee: RPCChatTypes.UICoinFlipAbsenteeError = {
+  absentees: [
+    {
+      device: 'boombox',
+      user: 'mikem',
+    },
+    {
+      device: 'walkietalkie',
+      user: 'karenm',
+    },
+    {
+      device: 'longer device name',
+      user: 'dan',
+    },
+  ],
+}
+
+const absenteeError = {
+  ...error,
+  errorInfo: {
+    absentee,
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee,
+  },
+}
+
+const timeoutError = {
+  ...error,
+  errorInfo: {
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.timeout,
+  },
+}
+
+const abortedError = {
+  ...error,
+  errorInfo: {
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted,
+  },
+}
+
+const dupRegError = {
+  ...error,
+  errorInfo: {
+    dupreg: {
+      device: 'My IOS Device 2019',
+      user: 'mikem',
+    },
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreg,
+  },
+}
+
+const dupCommitCompleteError = {
+  ...error,
+  errorInfo: {
+    dupcommitcomplete: {
+      device: 'My IOS Device 2019',
+      user: 'mikem',
+    },
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupcommitcomplete,
+  },
+}
+
+const dupRevealError = {
+  ...error,
+  errorInfo: {
+    dupreveal: {
+      device: 'My IOS Device 2019',
+      user: 'mikem',
+    },
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreveal,
+  },
+}
+
+const dupCommitMismatchError = {
+  ...error,
+  errorInfo: {
+    commitmismatch: {
+      device: 'My IOS Device 2019',
+      user: 'mikem',
+    },
+    // $FlowIssue variant types with void don't work
+    typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.commitmismatch,
+  },
 }
 
 const participantProps = {
@@ -97,6 +193,13 @@ const load = () => {
     .add('Partial Gather', () => <CoinFlip {...partialGather} />)
     .add('Result', () => <CoinFlip {...result} />)
     .add('Error', () => <CoinFlip {...error} />)
+    .add('Absentee Error', () => <CoinFlip {...absenteeError} />)
+    .add('Timeout Error', () => <CoinFlip {...timeoutError} />)
+    .add('Aborted Error', () => <CoinFlip {...abortedError} />)
+    .add('DupReg Error', () => <CoinFlip {...dupRegError} />)
+    .add('DupCC Error', () => <CoinFlip {...dupCommitCompleteError} />)
+    .add('DupReveal Error', () => <CoinFlip {...dupRevealError} />)
+    .add('CommitMismatch Error', () => <CoinFlip {...dupCommitMismatchError} />)
     .add('Participants', () => <CoinFlipParticipants {...participantProps} />)
 }
 

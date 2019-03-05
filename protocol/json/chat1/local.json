@@ -165,6 +165,10 @@
         {
           "type": "FlipGameID",
           "name": "gameID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "flipConvID"
         }
       ]
     },
@@ -178,7 +182,8 @@
         "CREATETEAM_3",
         "GITPUSH_4",
         "CHANGEAVATAR_5",
-        "CHANGERETENTION_6"
+        "CHANGERETENTION_6",
+        "BULKADDTOCONV_7"
       ]
     },
     {
@@ -355,6 +360,19 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemBulkAddToConv",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "usernames"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -410,6 +428,13 @@
             "def": false
           },
           "body": "MessageSystemChangeRetention"
+        },
+        {
+          "label": {
+            "name": "BULKADDTOCONV",
+            "def": false
+          },
+          "body": "MessageSystemBulkAddToConv"
         }
       ]
     },
@@ -4228,6 +4253,22 @@
         {
           "name": "collapse",
           "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "bulkAddToConv": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null

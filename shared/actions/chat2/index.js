@@ -753,7 +753,7 @@ const onChatThreadStale = (_, action) => {
 
 const onChatShowManageChannels = (state, action) => {
   const {teamname} = action.payload.params
-  return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})
+  return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
 }
 
 const onNewChatActivity = (state, action) => {
@@ -2597,6 +2597,14 @@ const onGiphyResults = (state, action) => {
   })
 }
 
+const onGiphyToggleWindow = (state, action) => {
+  const {convID, show} = action.payload.params
+  return Chat2Gen.createGiphyToggleWindow({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    show,
+  })
+}
+
 const giphySend = (state, action) => {
   const {conversationIDKey, url} = action.payload
   return Chat2Gen.createMessageSend({conversationIDKey, text: url})
@@ -2694,6 +2702,19 @@ const prepareFulfillRequestForm = (state, action) => {
     secretNote: message.note,
     to: message.author,
   })
+}
+
+const addUsersToChannel = (_, action) => {
+  const {conversationIDKey, usernames} = action.payload
+  return RPCChatTypes.localBulkAddToConvRpcPromise(
+    {convID: Types.keyToConversationID(conversationIDKey), usernames},
+    Constants.waitingKeyAddUsersToChannel
+  )
+    .then(() => [
+      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      Chat2Gen.createNavigateToThread(),
+    ])
+    .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -2972,6 +2993,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     loadChannelInfos
   )
 
+  yield* Saga.chainAction<Chat2Gen.AddUsersToChannelPayload>(Chat2Gen.addUsersToChannel, addUsersToChannel)
+
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPromptUnfurlPayload>(
     EngineGen.chat1NotifyChatChatPromptUnfurl,
     onChatPromptUnfurl
@@ -3035,6 +3058,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphySearchResultsPayload>(
     EngineGen.chat1ChatUiChatGiphySearchResults,
     onGiphyResults
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload>(
+    EngineGen.chat1ChatUiChatGiphyToggleResultWindow,
+    onGiphyToggleWindow
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatShowManageChannelsPayload>(
     EngineGen.chat1ChatUiChatShowManageChannels,

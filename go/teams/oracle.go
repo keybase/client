@@ -20,7 +20,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 		return nil, err
 	}
 
-	mctx.CDebugf("Loaded team %q, max key generation is %d", team.ID, team.Generation())
+	mctx.Debug("Loaded team %q, max key generation is %d", team.ID, team.Generation())
 
 	tryKeys := func(min keybase1.PerTeamKeyGeneration) (ret []byte, found bool, err error) {
 		if min == 0 {
@@ -30,7 +30,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 		for gen := team.Generation(); gen >= min; gen-- {
 			key, err := team.encryptionKeyAtGen(mctx.Ctx(), gen)
 			if err != nil {
-				mctx.CDebugf("Failed to get key gen %d: %v", gen, err)
+				mctx.Debug("Failed to get key gen %d: %v", gen, err)
 				switch err.(type) {
 				case libkb.NotFoundError:
 					continue
@@ -39,14 +39,14 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 				}
 			}
 
-			mctx.CDebugf("Trying to unbox with key gen %d", gen)
+			mctx.Debug("Trying to unbox with key gen %d", gen)
 			decryptedData, ok := box.Open(nil, arg.EncryptedData[:], (*[24]byte)(&arg.Nonce),
 				(*[32]byte)(&arg.PeersPublicKey), (*[32]byte)(key.Private))
 			if !ok {
 				continue
 			}
 
-			mctx.CDebugf("Success! Decrypted using encryption key gen=%d", gen)
+			mctx.Debug("Success! Decrypted using encryption key gen=%d", gen)
 			return decryptedData, true, nil
 		}
 
@@ -64,7 +64,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 		return ret, nil
 	}
 
-	mctx.CDebugf("Repolling team")
+	mctx.Debug("Repolling team")
 
 	// Repoll the team and if we get more keys, try again.
 	loadArg.Refreshers = keybase1.TeamRefreshers{}
@@ -73,7 +73,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 	if err != nil {
 		return nil, err
 	}
-	mctx.CDebugf("Reloaded team %q, max key generation is %d", team.ID, team.Generation())
+	mctx.Debug("Reloaded team %q, max key generation is %d", team.ID, team.Generation())
 	ret, found, err = tryKeys(1)
 	if err != nil {
 		return nil, err

@@ -56,7 +56,7 @@ func (e *loginLoadUser) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *loginLoadUser) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("loginLoadUser#Run", func() error { return err })()
+	defer m.Trace("loginLoadUser#Run", func() error { return err })()
 
 	var username string
 	username, err = e.findUsername(m)
@@ -64,7 +64,7 @@ func (e *loginLoadUser) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	m.CDebugf("loginLoadUser: found username %q", username)
+	m.Debug("loginLoadUser: found username %q", username)
 
 	// NOTE(max) 2018-05-09: ForceReload since older versions of cached users don't
 	// have salt stored, ad we need it in DeviceWrap to write out the config file.
@@ -75,7 +75,7 @@ func (e *loginLoadUser) Run(m libkb.MetaContext) (err error) {
 	}
 	e.user = user
 
-	m.CDebugf("loginLoadUser: found user %s for username %q", e.user.GetUID(), username)
+	m.Debug("loginLoadUser: found user %s for username %q", e.user.GetUID(), username)
 
 	return nil
 }
@@ -104,14 +104,14 @@ func (e *loginLoadUser) findUsername(m libkb.MetaContext) (string, error) {
 	}
 
 	// looks like an email address
-	m.CDebugf("%q looks like an email address, must get login session to get user", e.usernameOrEmail)
+	m.Debug("%q looks like an email address, must get login session to get user", e.usernameOrEmail)
 
 	if err := libkb.PassphraseLoginPromptThenSecretStore(m, e.usernameOrEmail, 3, false /* failOnStoreError */); err != nil {
 		return "", err
 	}
 
 	username := m.LoginContext().GetUsername().String()
-	m.CDebugf("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
+	m.Debug("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
 
 	return username, nil
 }

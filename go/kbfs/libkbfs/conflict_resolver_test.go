@@ -1292,18 +1292,18 @@ func TestCRDoActionsSimple(t *testing.T) {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
 
-	lbc := make(localBcache)
+	dbm := newDirBlockMapMemory()
 	newFileBlocks := newFileBlockMapMemory()
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
+		unmergedPaths, mergedPaths, actionMap, dbm, newFileBlocks, dirtyBcache)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)
 	}
 
 	// Does the merged block contain both entries?
 	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
-	block1, ok := lbc[mergedRootPath.tailPointer()]
+	block1, ok := dbm.blocks[mergedRootPath.tailPointer()]
 	if !ok {
 		t.Fatalf("Couldn't find merged block at path %s", mergedRootPath)
 	}
@@ -1415,11 +1415,11 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
 
-	lbc := make(localBcache)
+	dbm := newDirBlockMapMemory()
 	newFileBlocks := newFileBlockMapMemory()
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
+		unmergedPaths, mergedPaths, actionMap, dbm, newFileBlocks, dirtyBcache)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)
 	}

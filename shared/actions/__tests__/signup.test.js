@@ -52,7 +52,7 @@ describe('requestAutoInvite', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
     expect(_testing.showInviteScreen()).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
     )
   })
 
@@ -61,7 +61,7 @@ describe('requestAutoInvite', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showInviteScreen()).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
     )
   })
 })
@@ -81,7 +81,7 @@ describe('requestInvite', () => {
     expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.name).toEqual(action.payload.name)
     expect(_testing.showInviteSuccessOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
     )
   })
 
@@ -131,7 +131,7 @@ describe('checkInviteCode', () => {
     // leaves state alone
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']})
     )
   })
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
@@ -233,7 +233,7 @@ describe('checkedUsernameEmail', () => {
     const nextState = makeTypedState(reducer(state, action))
     // doesn't update
     expect(_testing.showPassphraseOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['passphraseSignup']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupPassphrase']})
     )
   })
 })

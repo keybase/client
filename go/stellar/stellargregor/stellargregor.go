@@ -29,18 +29,23 @@ func New(g *libkb.GlobalContext, walletState *stellar.WalletState) *Handler {
 }
 
 func (h *Handler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
-	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("WGR")
+	mctx := libkb.NewMetaContextBackground(h.G()).WithLogTag("WAIBM")
 	switch category {
 	case stellar1.PushAutoClaim:
-		return true, h.autoClaim(mctx, cli, category, item)
+		go h.autoClaim(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushPaymentStatus:
-		return true, h.paymentStatus(mctx, cli, category, item)
+		go h.paymentStatus(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushPaymentNotification:
-		return true, h.paymentNotification(mctx, cli, category, item)
+		go h.paymentNotification(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushRequestStatus:
-		return true, h.requestStatus(mctx, cli, category, item)
+		go h.requestStatus(mctx, cli, category, item)
+		return true, nil
 	case stellar1.PushAccountChange:
-		return true, h.accountChange(mctx, cli, category, item)
+		go h.accountChange(mctx, cli, category, item)
+		return true, nil
 	default:
 		if strings.HasPrefix(category, "stellar.") {
 			return false, fmt.Errorf("unknown handler category: %q", category)
@@ -63,7 +68,7 @@ func (h *Handler) Name() string {
 
 // The server is telling the client to claim relay payments.
 func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received", h.Name(), category)
+	mctx.Debug("%v: %v received", h.Name(), category)
 	mctx.G().GetStellar().KickAutoClaimRunner(mctx, item.Metadata().MsgID())
 	return nil
 }
@@ -74,7 +79,7 @@ type accountChangeMsg struct {
 }
 
 func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received", h.Name(), category)
+	mctx.Debug("%v: %v received", h.Name(), category)
 
 	if item.Body() == nil {
 		return errors.New("stellar handler for account_change: nil message body")
@@ -110,7 +115,7 @@ func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInte
 
 // paymentStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
+	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
@@ -122,7 +127,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 
 // paymentNotification is an old IBM and shouldn't happen anymore
 func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%s: %s received IBM, ignoring it", h.Name(), category)
+	mctx.Debug("%s: %s received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
@@ -134,7 +139,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 
 // requestStatus is an old IBM and shouldn't happen anymore
 func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
+	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {

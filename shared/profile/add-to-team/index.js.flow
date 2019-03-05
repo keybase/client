@@ -1,5 +1,4 @@
 // @flow
-import {Component} from 'react'
 import * as React from 'react'
 import * as Types from '../../constants/types/teams'
 import {type StylesCrossPlatform} from '../../styles'
@@ -15,9 +14,12 @@ export type RowProps = {
 }
 
 export type Props = {
+  addUserToTeamsResults: string,
+  addUserToTeamsState: Types.AddUserToTeamsState,
   customComponent?: ?React.Node,
   headerStyle?: StylesCrossPlatform,
   loaded: {[string]: boolean},
+  loadTeamList: () => void,
   onBack: () => void,
   onCancel?: () => void,
   onOpenRolePicker: (
@@ -38,4 +40,4 @@ export type Props = {
   waiting: boolean,
 }
 
-export default class AddToTeam extends Component<Props> {}
+export default class AddToTeam extends React.Component<Props> {}

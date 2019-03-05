@@ -72,16 +72,34 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	return res, err
 }
 
-func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
-	netCtx = libkb.WithLogTag(netCtx, "IDL")
-	defer h.G().CTrace(netCtx, "IdentifyHandler#IdentifyLite", func() error { return err })()
+func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (ret keybase1.IdentifyLiteRes, err error) {
+	mctx := libkb.NewMetaContext(netCtx, h.G()).WithLogTag("IDL")
+	defer mctx.Trace("IdentifyHandler#IdentifyLite", func() error { return err })()
+	retp := &ret
+	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+		tmp, err := h.identifyLite(mctx, arg)
+		if err == nil {
+			*retp = tmp
+		}
+		return tmp, err
+	}
+	cacheArg := keybase1.IdentifyLiteArg{
+		Id : arg.Id,
+		Assertion : arg.Assertion,
+		IdentifyBehavior : arg.IdentifyBehavior,
+	}
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.identifyLite", false, cacheArg, retp, loader)
+	return ret, err
+}
+
+func (h *IdentifyHandler) identifyLite(mctx libkb.MetaContext, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
 
 	var au libkb.AssertionURL
 	var parseError error
 	if len(arg.Assertion) > 0 {
 		// It's OK to fail this assertion; it will be off in the case of regular lookups
 		// for users like `t_ellen` without a `type` specification
-		au, parseError = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
+		au, parseError = libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(), arg.Assertion, true)
 	} else {
 		// empty assertion url required for teams.IdentifyLite
 		au = libkb.AssertionKeybase{}
@@ -92,15 +110,15 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 		if parseError != nil {
 			return res, parseError
 		}
-		return teams.IdentifyLite(netCtx, h.G(), arg, au)
+		return teams.IdentifyLite(mctx.Ctx(), mctx.G(), arg, au)
 	}
 
-	return h.identifyLiteUser(netCtx, arg)
+	return h.identifyLiteUser(mctx.Ctx(), arg)
 }
 
 func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
 	m := libkb.NewMetaContext(netCtx, h.G())
-	m.CDebugf("IdentifyLite on user")
+	m.Debug("IdentifyLite on user")
 
 	var uid keybase1.UID
 	if arg.Id.Exists() {
@@ -152,7 +170,7 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 
 func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg) (ret keybase1.UserOrTeamLite, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
-	defer mctx.CTrace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
 	retp := &ret
 	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, retp, func(mctx libkb.MetaContext) (interface{}, error) {
 		tmp, err := h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
@@ -175,16 +193,31 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 }
 
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
-	ctx = libkb.WithLogTag(ctx, "RIIT")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
-
-	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RIIT")
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
+	mctx.Debug("ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
 	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
 	if err != nil {
 		return res, err
 	}
-	return h.resolveIdentifyImplicitTeamHelper(ctx, arg, writerAssertions, readerAssertions)
+
+	cacheArg := keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions: arg.Assertions,
+		Suffix:     arg.Suffix,
+		IsPublic:   arg.IsPublic,
+	}
+
+	resp := &res
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, resp, func(mctx libkb.MetaContext) (interface{}, error) {
+		tmp, err := h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
+		if tmp.DisplayName != "" {
+			*resp = tmp
+		}
+		return tmp, err
+	})
+
+	return res, err
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
@@ -384,7 +417,7 @@ func (u *RemoteIdentifyUI) FinishSocialProofCheck(mctx libkb.MetaContext, p keyb
 
 func (u *RemoteIdentifyUI) Confirm(mctx libkb.MetaContext, io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	if u.skipPrompt {
-		mctx.CDebugf("skipping Confirm for %q", io.Username)
+		mctx.Debug("skipping Confirm for %q", io.Username)
 		return keybase1.ConfirmResult{IdentityConfirmed: true}, nil
 	}
 	return u.uicli.Confirm(mctx.Ctx(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})

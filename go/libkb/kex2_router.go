@@ -25,9 +25,9 @@ func NewKexRouter(m MetaContext) *KexRouter {
 // Post implements Post in the kex2.MessageRouter interface.
 func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2.Seqno, msg []byte) (err error) {
 	mctx := k.M().WithLogTag("KEXR")
-	mctx.CDebugf("+ KexRouter.Post(%x, %x, %d, ...)", sessID, sender, seqno)
+	mctx.Debug("+ KexRouter.Post(%x, %x, %d, ...)", sessID, sender, seqno)
 	defer func() {
-		mctx.CDebugf("- KexRouter.Post(%x, %x, %d) -> %s", sessID, sender, seqno, ErrToOk(err))
+		mctx.Debug("- KexRouter.Post(%x, %x, %d) -> %s", sessID, sender, seqno, ErrToOk(err))
 	}()
 
 	arg := APIArg{
@@ -70,9 +70,9 @@ func kexAPITimeout(arg *APIArg, initial time.Duration) {
 // Get implements Get in the kex2.MessageRouter interface.
 func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.Seqno, poll time.Duration) (msgs [][]byte, err error) {
 	mctx := k.M().WithLogTag("KEXR")
-	mctx.CDebugf("+ KexRouter.Get(%x, %x, %d, %s)", sessID, receiver, low, poll)
+	mctx.Debug("+ KexRouter.Get(%x, %x, %d, %s)", sessID, receiver, low, poll)
 	defer func() {
-		mctx.CDebugf("- KexRouter.Get(%x, %x, %d, %s) -> %s (messages: %d)", sessID, receiver, low, poll, ErrToOk(err), len(msgs))
+		mctx.Debug("- KexRouter.Get(%x, %x, %d, %s) -> %s (messages: %d)", sessID, receiver, low, poll, ErrToOk(err), len(msgs))
 	}()
 
 	if poll > HTTPPollMaximum {

@@ -409,27 +409,27 @@ func (h *Home) RunUpdateLoop(m libkb.MetaContext) {
 
 func (h *Home) updateLoopThread(m libkb.MetaContext) {
 	m = m.WithLogTag("HULT")
-	m.CDebugf("Starting Home#updateLoopThread")
+	m.Debug("Starting Home#updateLoopThread")
 	slp := time.Minute * (time.Duration(5) + time.Duration((rand.Int() % 10)))
 	var err error
 	for {
-		m.CDebugf("Sleeping %v until next poll", slp)
+		m.Debug("Sleeping %v until next poll", slp)
 		m.G().Clock().Sleep(slp)
 		slp, err = h.pollOnce(m)
 		if _, ok := err.(libkb.DeviceRequiredError); ok {
 			slp = time.Duration(1) * time.Minute
 		} else if err != nil {
 			slp = time.Duration(15) * time.Minute
-			m.CDebugf("Hit an error in home update loop: %v", err)
+			m.Debug("Hit an error in home update loop: %v", err)
 		}
 	}
 }
 
 func (h *Home) pollOnce(m libkb.MetaContext) (d time.Duration, err error) {
-	defer m.CTraceTimed("Home#pollOnce", func() error { return err })()
+	defer m.TraceTimed("Home#pollOnce", func() error { return err })()
 
 	if !m.HasAnySession() {
-		m.CDebugf("No-op, since don't have keys (and/or am not logged in)")
+		m.Debug("No-op, since don't have keys (and/or am not logged in)")
 		return time.Duration(0), libkb.DeviceRequiredError{}
 	}
 
@@ -441,7 +441,7 @@ func (h *Home) pollOnce(m libkb.MetaContext) (d time.Duration, err error) {
 		MetaContext: m,
 	}, &raw)
 	if err != nil {
-		m.CWarningf("Unable to Home#pollOnce: %v", err)
+		m.Warning("Unable to Home#pollOnce: %v", err)
 		return time.Duration(0), err
 	}
 	return time.Duration(raw.NextPollSecs) * time.Second, nil

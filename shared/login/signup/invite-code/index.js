@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Icon, Text} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {|
@@ -11,34 +12,58 @@ type Props = {|
 |}
 type State = {|
   inviteCode: string,
+  loading: boolean, // don't show this screen immediately
 |}
 
 class InviteCode extends React.Component<Props, State> {
-  state = {inviteCode: ''}
+  state = {inviteCode: '', loading: !__STORYSHOT__}
+  _loadingID: ?TimeoutID
+  _doneLoading = () => this.setState({loading: false})
+
+  componentDidMount() {
+    this._loadingID = setTimeout(this._doneLoading, 1000)
+  }
+
+  componentWillUnmount() {
+    this._loadingID && clearTimeout(this._loadingID)
+  }
 
   _onSubmit = () => {
     this.props.onSubmit(this.state.inviteCode)
   }
+
   render() {
     return (
       <Wrapper onBack={this.props.onBack}>
-        <Text type="Header">Type in your invite code:</Text>
-        <Icon type="icon-invite-code-48" />
-        <Input
-          autoFocus={true}
-          value={this.state.inviteCode}
-          errorText={this.props.error}
-          onEnterKeyDown={this._onSubmit}
-          onChangeText={inviteCode => this.setState({inviteCode})}
-        />
-        <ContinueButton disabled={!this.state.inviteCode} onClick={this._onSubmit} />
-        <Text type="BodySmall">Not invited?</Text>
-        <Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>
-          Request an invite
-        </Text>
+        {this.state.loading ? (
+          <Kb.ProgressIndicator style={styles.progress} />
+        ) : (
+          <>
+            <Kb.Text type="Header">Type in your invite code:</Kb.Text>
+            <Kb.Icon type="icon-invite-code-48" />
+            <Input
+              autoFocus={true}
+              value={this.state.inviteCode}
+              errorText={this.props.error}
+              onEnterKeyDown={this._onSubmit}
+              onChangeText={inviteCode => this.setState({inviteCode})}
+            />
+            <ContinueButton disabled={!this.state.inviteCode} onClick={this._onSubmit} />
+            <Kb.Text type="BodySmall">Not invited?</Kb.Text>
+            <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>
+              Request an invite
+            </Kb.Text>
+          </>
+        )}
       </Wrapper>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  progress: {
+    width: 40,
+  },
+})
 
 export default InviteCode

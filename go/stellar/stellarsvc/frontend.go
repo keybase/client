@@ -47,7 +47,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("GetWalletAccountLocal called with an empty account id")
+		mctx.Debug("GetWalletAccountLocal called with an empty account id")
 		return acct, ErrAccountIDMissing
 	}
 
@@ -546,7 +546,7 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("ChangeWalletAccountNameLocal called with an empty account id")
+		mctx.Debug("ChangeWalletAccountNameLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -565,7 +565,7 @@ func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("SetWalletAccountAsDefaultLocal called with an empty account id")
+		mctx.Debug("SetWalletAccountAsDefaultLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -588,7 +588,7 @@ func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.Dele
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("DeleteWalletAccountLocal called with an empty account id")
+		mctx.Debug("DeleteWalletAccountLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -905,7 +905,7 @@ func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLoc
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("IsAccountMobileOnlyLocal called with an empty account id")
+		mctx.Debug("IsAccountMobileOnlyLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -930,7 +930,7 @@ func (s *Server) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAc
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("IsAccountMobileOnlyLocal called with an empty account id")
+		mctx.Debug("IsAccountMobileOnlyLocal called with an empty account id")
 		return false, ErrAccountIDMissing
 	}
 
@@ -948,7 +948,7 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("SetAccountMobileOnlyLocal called with an empty account id")
+		mctx.Debug("SetAccountMobileOnlyLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -966,7 +966,7 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("SetAccountAllDevicesLocal called with an empty account id")
+		mctx.Debug("SetAccountAllDevicesLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -1011,7 +1011,7 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("GetInflationDestinationLocal called with an empty account id")
+		mctx.Debug("GetInflationDestinationLocal called with an empty account id")
 		return res, ErrAccountIDMissing
 	}
 

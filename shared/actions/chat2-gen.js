@@ -13,6 +13,7 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
+export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentFullscreenNext = 'chat2:attachmentFullscreenNext'
@@ -34,6 +35,7 @@ export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
+export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
@@ -115,6 +117,7 @@ export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Payload Types
+type _AddUsersToChannelPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, usernames: Array<string>|}>
 type _AttachmentDownloadPayload = $ReadOnly<{|message: Types.Message|}>
 type _AttachmentDownloadedPayload = $ReadOnly<{|message: Types.Message, path?: string|}>
 type _AttachmentFullscreenNextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, backInTime: boolean|}>
@@ -136,6 +139,7 @@ type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, author: string, body: string|}>
 type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, results: Array<RPCChatTypes.GiphySearchResult>|}>
 type _GiphySendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, url: HiddenString|}>
+type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, show: boolean|}>
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -182,7 +186,7 @@ type _ResetLetThemInPayload = $ReadOnly<{|conversationIDKey: Types.ConversationI
 type _SaveMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+  reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat' | 'addedToChannel',
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
 type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, md: ?RPCChatTypes.UICommandMarkdown|}>
@@ -225,6 +229,10 @@ type _UpdateUnreadlinePayload = $ReadOnly<{|conversationIDKey: Types.Conversatio
  * Actually start a conversation
  */
 export const createCreateConversation = (payload: _CreateConversationPayload) => ({payload, type: createConversation})
+/**
+ * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
+ */
+export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload) => ({payload, type: addUsersToChannel})
 /**
  * Add an unfurl prompt to a message
  */
@@ -318,6 +326,10 @@ export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({pay
  * The user has interacted with wallets in chat.
  */
 export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) => ({payload, type: handleSeeingWallets})
+/**
+ * Toggle Giphy search preview window
+ */
+export const createGiphyToggleWindow = (payload: _GiphyToggleWindowPayload) => ({payload, type: giphyToggleWindow})
 /**
  * Toggle a reaction in the store.
  */
@@ -432,6 +444,7 @@ export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({p
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
 
 // Action Payloads
+export type AddUsersToChannelPayload = {|+payload: _AddUsersToChannelPayload, +type: 'chat2:addUsersToChannel'|}
 export type AttachmentDownloadPayload = {|+payload: _AttachmentDownloadPayload, +type: 'chat2:attachmentDownload'|}
 export type AttachmentDownloadedPayload = {|+payload: _AttachmentDownloadedPayload, +type: 'chat2:attachmentDownloaded'|}
 export type AttachmentFullscreenNextPayload = {|+payload: _AttachmentFullscreenNextPayload, +type: 'chat2:attachmentFullscreenNext'|}
@@ -453,6 +466,7 @@ export type CreateConversationPayload = {|+payload: _CreateConversationPayload, 
 export type DesktopNotificationPayload = {|+payload: _DesktopNotificationPayload, +type: 'chat2:desktopNotification'|}
 export type GiphyGotSearchResultPayload = {|+payload: _GiphyGotSearchResultPayload, +type: 'chat2:giphyGotSearchResult'|}
 export type GiphySendPayload = {|+payload: _GiphySendPayload, +type: 'chat2:giphySend'|}
+export type GiphyToggleWindowPayload = {|+payload: _GiphyToggleWindowPayload, +type: 'chat2:giphyToggleWindow'|}
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
@@ -537,6 +551,7 @@ export type UpdateUnreadlinePayload = {|+payload: _UpdateUnreadlinePayload, +typ
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentFullscreenNextPayload
@@ -558,6 +573,7 @@ export type Actions =
   | DesktopNotificationPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
+  | GiphyToggleWindowPayload
   | HandleSeeingWalletsPayload
   | InboxRefreshPayload
   | JoinConversationPayload

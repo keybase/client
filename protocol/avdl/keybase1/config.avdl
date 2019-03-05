@@ -199,4 +199,26 @@ protocol config {
 
   boolean getRememberPassphrase(int sessionID);
   void setRememberPassphrase(int sessionID, boolean remember);
+
+  enum UpdateInfoStatus2 {
+    OK_0,
+    SUGGESTED_1,
+    CRITICAL_2
+  }
+
+  record UpdateDetails {
+    string message;
+  }
+
+  variant UpdateInfo2 switch (UpdateInfoStatus2 status) {
+    case OK: void;
+    case SUGGESTED: UpdateDetails;
+    case CRITICAL: UpdateDetails;
+  }
+
+  /**
+   getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
+   you are critically out of date.
+   */
+  UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version);
 }

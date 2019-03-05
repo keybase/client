@@ -44,7 +44,7 @@ func (rc *WebChecker) GetTorError() libkb.ProofError {
 func (rc *WebChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode,
 	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
 	if pcm != libkb.ProofCheckerModeActive {
-		mctx.CDebugf("Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
+		mctx.Debug("Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return nil, libkb.ProofErrorUnchecked
 	}
 	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.

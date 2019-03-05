@@ -10,6 +10,7 @@ import {loginTab, type Tab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import * as FsConstants from '../constants/fs'
 import {urlHelper} from '../util/url-helper'
 import {isWindows, isDarwin} from '../constants/platform'
 
@@ -45,7 +46,7 @@ const mapDispatchToProps = dispatch => ({
       executeActionsForContext('quitButton')
     }, 2000)
   },
-  refresh: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
+  refreshUserFileEdits: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
     SafeElectron.getShell().openExternal(
@@ -59,7 +60,7 @@ const mapDispatchToProps = dispatch => ({
     link && openUrl(link)
     closeWindow()
   },
-  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
+  showInFinder: () => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath})),
   updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
 })
 
@@ -67,7 +68,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    refresh: dispatchProps.refresh,
+    refreshUserFileEdits: dispatchProps.refreshUserFileEdits,
     showUser: () => dispatchProps._showUser(stateProps.username),
     ...ownProps,
   }

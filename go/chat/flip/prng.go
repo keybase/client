@@ -1,16 +1,20 @@
 package flip
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/binary"
 	"math/big"
 )
 
+// PRNG is based on AES-CTR. The input key is a 32-byte random secret (as generated
+// by our commitment scheme). The output is a AES(k,1), AES(k,2), AES(k,3), etc...
+// We are relying on the fact that AES is a PRP, which is pretty widely assumed.
 type PRNG struct {
-	key Secret
-	buf []byte
-	i   uint64
+	key    Secret
+	buf    []byte
+	i      uint64
+	cipher cipher.Block
 }
 
 func NewPRNG(s Secret) *PRNG {
@@ -18,12 +22,6 @@ func NewPRNG(s Secret) *PRNG {
 		key: s,
 		i:   uint64(1),
 	}
-}
-
-func uint64ToSlice(i uint64) []byte {
-	var ret [8]byte
-	binary.BigEndian.PutUint64(ret[:], i)
-	return ret[:]
 }
 
 func min(x, y int) int {
@@ -40,12 +38,35 @@ func (p *PRNG) read(ret []byte) int {
 	return n
 }
 
+type block [16]byte
+
+func (b *block) counter(i uint64) {
+	binary.BigEndian.PutUint64(b[8:], i)
+}
+
+func (p *PRNG) getCipher() cipher.Block {
+	if p.cipher == nil {
+		var err error
+		p.cipher, err = aes.NewCipher(p.key[:])
+		if err != nil {
+			panic(err.Error())
+		}
+		var tmp block
+		if p.cipher.BlockSize() != len(tmp) {
+			panic("Expected a 16-byte block size")
+		}
+	}
+	return p.cipher
+}
+
 func (p *PRNG) replenish() {
 	if len(p.buf) == 0 {
-		hm := hmac.New(sha256.New, p.key[:])
-		hm.Write(uint64ToSlice(p.i))
-		p.buf = hm.Sum(nil)
+		var input block
+		var output block
+		input.counter(p.i)
 		p.i++
+		p.getCipher().Encrypt(output[:], input[:])
+		p.buf = output[:]
 	}
 }
 
@@ -69,9 +90,15 @@ func (p *PRNG) Big(modulus *big.Int) *big.Int {
 	if sign == 0 {
 		return modulus
 	}
+
+	// Find out how many bits are in numbers that are between 0 and |modulus|, exclusive.
+	// To do this, we find the absolute value of modulus, store it into n, and ask
+	// how many bits are in (n-1).
 	var n big.Int
 	n.Abs(modulus)
-	bits := n.BitLen()
+	var nMinus1 big.Int
+	nMinus1.Sub(&n, big.NewInt(1))
+	bits := nMinus1.BitLen()
 
 	// For a modulus n, we want to clear out the bits that are
 	// greater than the greatest bit of n. So compute 2^(ceil(log2(n)))-1,

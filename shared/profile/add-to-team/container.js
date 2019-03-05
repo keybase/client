@@ -21,6 +21,8 @@ const mapStateToProps = (state, {routeProps}) => {
   return {
     _teamNameToRole: state.teams.teamNameToRole,
     _them: routeProps.get('username'),
+    addUserToTeamsResults: state.teams.addUserToTeamsResults,
+    addUserToTeamsState: state.teams.addUserToTeamsState,
     teamProfileAddList: state.teams.get('teamProfileAddList'),
     teamnames: Constants.getSortedTeamnames(state),
     waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
@@ -30,7 +32,6 @@ const mapStateToProps = (state, {routeProps}) => {
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) => ({
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
-    dispatch(navigateUp())
   },
   _onOpenRolePicker: (
     role: TeamRoleType,
@@ -54,6 +55,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) 
       ])
     )
   },
+  clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
   loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
   onBack: () => {
     dispatch(navigateUp())
@@ -109,6 +111,7 @@ export default compose(
   ),
   lifecycle({
     componentDidMount() {
+      this.props.clearAddUserToTeamsResults()
       this.props.loadTeamList()
     },
   }),
@@ -125,11 +128,20 @@ export default compose(
     }
   ),
   withHandlers({
-    onSave: props => () => props.onAddToTeams(props.role, Object.keys(props.selectedTeams)),
-    onToggle: props => (teamname: string) =>
+    // Return rows set to true.
+    onSave: props => () => {
+      props.onAddToTeams(
+        props.role,
+        Object.keys(props.selectedTeams).filter(team => props.selectedTeams[team])
+      )
+      props.setSelectedTeams({})
+    },
+    onToggle: props => (teamname: string) => {
+      props.clearAddUserToTeamsResults()
       props.setSelectedTeams({
         ...props.selectedTeams,
         [teamname]: !props.selectedTeams[teamname],
-      }),
+      })
+    },
   })
 )(HeaderOnMobile(Render))

@@ -20,7 +20,8 @@ protocol tlfKeys {
     DEFAULT_KBFS_10,
     KBFS_CHAT_11,
     RESOLVE_AND_CHECK_12,
-    GUI_PROFILE_13
+    GUI_PROFILE_13,
+    KBFS_INIT_14
   }
 
   @typedef("string")

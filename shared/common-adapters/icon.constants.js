@@ -86,6 +86,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
   },
+  'icon-coin-heads-48-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-coin-heads-48-48.png'),
+  },
+  'icon-coin-tails-48-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-coin-tails-48-48.png'),
+  },
   'icon-computer-32': {
     extension: 'png',
     isFont: false,
@@ -1996,6 +2006,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-circle': {
+    charCode: 0xe974,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-clipboard': {
     charCode: 0xe910,
     gridSize: 16,
@@ -2008,6 +2023,26 @@ const iconMeta_ = {
   },
   'iconfont-close': {
     charCode: 0xe912,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-cloud': {
+    charCode: 0xe973,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-club': {
+    charCode: 0xe976,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-coin': {
+    charCode: 0xe971,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-coin-stack': {
+    charCode: 0xe972,
     gridSize: 16,
     isFont: true,
   },
@@ -2033,6 +2068,11 @@ const iconMeta_ = {
   },
   'iconfont-crown-owner': {
     charCode: 0xe915,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-diamond': {
+    charCode: 0xe977,
     gridSize: 16,
     isFont: true,
   },
@@ -2068,6 +2108,11 @@ const iconMeta_ = {
   },
   'iconfont-exclamation': {
     charCode: 0xe91c,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-file': {
+    charCode: 0xe975,
     gridSize: 16,
     isFont: true,
   },
@@ -2141,6 +2186,16 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-heads': {
+    charCode: 0xe97a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-heart': {
+    charCode: 0xe978,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-identity-bitcoin': {
     charCode: 0xe92c,
     gridSize: 16,
@@ -2163,6 +2218,11 @@ const iconMeta_ = {
   },
   'iconfont-identity-hn': {
     charCode: 0xe930,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-identity-mastodon': {
+    charCode: 0xe970,
     gridSize: 16,
     isFont: true,
   },
@@ -2376,6 +2436,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-spade': {
+    charCode: 0xe979,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-star': {
     charCode: 0xe95a,
     gridSize: 16,
@@ -2393,6 +2458,11 @@ const iconMeta_ = {
   },
   'iconfont-success': {
     charCode: 0xe95c,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-tails': {
+    charCode: 0xe97b,
     gridSize: 16,
     isFont: true,
   },

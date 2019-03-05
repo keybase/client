@@ -13,6 +13,7 @@ import * as Tabs from '../constants/tabs'
 import {isMobile} from '../constants/platform'
 import type {TypedState} from '../util/container'
 import {logError} from '../util/errors'
+import flags from '../util/feature-flags'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
@@ -95,11 +96,14 @@ const clearBadgesAfterNav = (state, action) => {
   } else if (_wasOnGitTab) {
     _wasOnGitTab = false
     // clear badges
-    return RPCTypes.gregorDismissCategoryRpcPromise({
-      category: 'new_git_repo',
-    }).catch(logError)
+    return clearNavBadges()
   }
 }
+
+const clearNavBadges = () =>
+  RPCTypes.gregorDismissCategoryRpcPromise({
+    category: 'new_git_repo',
+  }).catch(logError)
 
 const handleIncomingGregor = (_, action) => {
   const gitMessages = action.payload.messages.filter(i => i.system === 'git')
@@ -153,11 +157,13 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Nav*
-  yield* Saga.chainAction<GitGen.NavToGitPayload>(GitGen.navToGit, navToGit)
-  yield* Saga.chainAction<GitGen.RepoCreatedPayload | GitGen.RepoDeletedPayload>(
-    [GitGen.repoCreated, GitGen.repoDeleted],
-    navBack
-  )
+  if (!flags.useNewRouter) {
+    yield* Saga.chainAction<GitGen.NavToGitPayload>(GitGen.navToGit, navToGit)
+    yield* Saga.chainAction<GitGen.RepoCreatedPayload | GitGen.RepoDeletedPayload>(
+      [GitGen.repoCreated, GitGen.repoDeleted],
+      navBack
+    )
+  }
 
   // Loading
   yield* Saga.chainAction<GitGen.LoadedPayload>(GitGen.loaded, surfaceGlobalErrors)
@@ -171,7 +177,13 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
     NotificationsGen.receivedBadgeState,
     receivedBadgeState
   )
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
+
+  if (flags.useNewRouter) {
+    // clear on load
+    yield* Saga.chainAction<GitGen.LoadGitPayload>(GitGen.loadGit, clearNavBadges)
+  } else {
+    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
+  }
 
   // Gregor
   yield* Saga.chainAction<GregorGen.PushOOBMPayload>(GregorGen.pushOOBM, handleIncomingGregor)

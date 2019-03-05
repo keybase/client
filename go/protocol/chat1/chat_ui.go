@@ -1170,6 +1170,543 @@ func (e UICoinFlipPhase) String() string {
 	return ""
 }
 
+type UICoinFlipErrorParticipant struct {
+	User   string `codec:"user" json:"user"`
+	Device string `codec:"device" json:"device"`
+}
+
+func (o UICoinFlipErrorParticipant) DeepCopy() UICoinFlipErrorParticipant {
+	return UICoinFlipErrorParticipant{
+		User:   o.User,
+		Device: o.Device,
+	}
+}
+
+type UICoinFlipAbsenteeError struct {
+	Absentees []UICoinFlipErrorParticipant `codec:"absentees" json:"absentees"`
+}
+
+func (o UICoinFlipAbsenteeError) DeepCopy() UICoinFlipAbsenteeError {
+	return UICoinFlipAbsenteeError{
+		Absentees: (func(x []UICoinFlipErrorParticipant) []UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UICoinFlipErrorParticipant, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Absentees),
+	}
+}
+
+type UICoinFlipErrorTyp int
+
+const (
+	UICoinFlipErrorTyp_GENERIC           UICoinFlipErrorTyp = 0
+	UICoinFlipErrorTyp_ABSENTEE          UICoinFlipErrorTyp = 1
+	UICoinFlipErrorTyp_TIMEOUT           UICoinFlipErrorTyp = 2
+	UICoinFlipErrorTyp_ABORTED           UICoinFlipErrorTyp = 3
+	UICoinFlipErrorTyp_DUPREG            UICoinFlipErrorTyp = 4
+	UICoinFlipErrorTyp_DUPCOMMITCOMPLETE UICoinFlipErrorTyp = 5
+	UICoinFlipErrorTyp_DUPREVEAL         UICoinFlipErrorTyp = 6
+	UICoinFlipErrorTyp_COMMITMISMATCH    UICoinFlipErrorTyp = 7
+)
+
+func (o UICoinFlipErrorTyp) DeepCopy() UICoinFlipErrorTyp { return o }
+
+var UICoinFlipErrorTypMap = map[string]UICoinFlipErrorTyp{
+	"GENERIC":           0,
+	"ABSENTEE":          1,
+	"TIMEOUT":           2,
+	"ABORTED":           3,
+	"DUPREG":            4,
+	"DUPCOMMITCOMPLETE": 5,
+	"DUPREVEAL":         6,
+	"COMMITMISMATCH":    7,
+}
+
+var UICoinFlipErrorTypRevMap = map[UICoinFlipErrorTyp]string{
+	0: "GENERIC",
+	1: "ABSENTEE",
+	2: "TIMEOUT",
+	3: "ABORTED",
+	4: "DUPREG",
+	5: "DUPCOMMITCOMPLETE",
+	6: "DUPREVEAL",
+	7: "COMMITMISMATCH",
+}
+
+func (e UICoinFlipErrorTyp) String() string {
+	if v, ok := UICoinFlipErrorTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UICoinFlipError struct {
+	Typ__               UICoinFlipErrorTyp          `codec:"typ" json:"typ"`
+	Generic__           *string                     `codec:"generic,omitempty" json:"generic,omitempty"`
+	Absentee__          *UICoinFlipAbsenteeError    `codec:"absentee,omitempty" json:"absentee,omitempty"`
+	Dupreg__            *UICoinFlipErrorParticipant `codec:"dupreg,omitempty" json:"dupreg,omitempty"`
+	Dupcommitcomplete__ *UICoinFlipErrorParticipant `codec:"dupcommitcomplete,omitempty" json:"dupcommitcomplete,omitempty"`
+	Dupreveal__         *UICoinFlipErrorParticipant `codec:"dupreveal,omitempty" json:"dupreveal,omitempty"`
+	Commitmismatch__    *UICoinFlipErrorParticipant `codec:"commitmismatch,omitempty" json:"commitmismatch,omitempty"`
+}
+
+func (o *UICoinFlipError) Typ() (ret UICoinFlipErrorTyp, err error) {
+	switch o.Typ__ {
+	case UICoinFlipErrorTyp_GENERIC:
+		if o.Generic__ == nil {
+			err = errors.New("unexpected nil value for Generic__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_ABSENTEE:
+		if o.Absentee__ == nil {
+			err = errors.New("unexpected nil value for Absentee__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPREG:
+		if o.Dupreg__ == nil {
+			err = errors.New("unexpected nil value for Dupreg__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPCOMMITCOMPLETE:
+		if o.Dupcommitcomplete__ == nil {
+			err = errors.New("unexpected nil value for Dupcommitcomplete__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPREVEAL:
+		if o.Dupreveal__ == nil {
+			err = errors.New("unexpected nil value for Dupreveal__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_COMMITMISMATCH:
+		if o.Commitmismatch__ == nil {
+			err = errors.New("unexpected nil value for Commitmismatch__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o UICoinFlipError) Generic() (res string) {
+	if o.Typ__ != UICoinFlipErrorTyp_GENERIC {
+		panic("wrong case accessed")
+	}
+	if o.Generic__ == nil {
+		return
+	}
+	return *o.Generic__
+}
+
+func (o UICoinFlipError) Absentee() (res UICoinFlipAbsenteeError) {
+	if o.Typ__ != UICoinFlipErrorTyp_ABSENTEE {
+		panic("wrong case accessed")
+	}
+	if o.Absentee__ == nil {
+		return
+	}
+	return *o.Absentee__
+}
+
+func (o UICoinFlipError) Dupreg() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPREG {
+		panic("wrong case accessed")
+	}
+	if o.Dupreg__ == nil {
+		return
+	}
+	return *o.Dupreg__
+}
+
+func (o UICoinFlipError) Dupcommitcomplete() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPCOMMITCOMPLETE {
+		panic("wrong case accessed")
+	}
+	if o.Dupcommitcomplete__ == nil {
+		return
+	}
+	return *o.Dupcommitcomplete__
+}
+
+func (o UICoinFlipError) Dupreveal() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPREVEAL {
+		panic("wrong case accessed")
+	}
+	if o.Dupreveal__ == nil {
+		return
+	}
+	return *o.Dupreveal__
+}
+
+func (o UICoinFlipError) Commitmismatch() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_COMMITMISMATCH {
+		panic("wrong case accessed")
+	}
+	if o.Commitmismatch__ == nil {
+		return
+	}
+	return *o.Commitmismatch__
+}
+
+func NewUICoinFlipErrorWithGeneric(v string) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:     UICoinFlipErrorTyp_GENERIC,
+		Generic__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithAbsentee(v UICoinFlipAbsenteeError) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:      UICoinFlipErrorTyp_ABSENTEE,
+		Absentee__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithTimeout() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: UICoinFlipErrorTyp_TIMEOUT,
+	}
+}
+
+func NewUICoinFlipErrorWithAborted() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: UICoinFlipErrorTyp_ABORTED,
+	}
+}
+
+func NewUICoinFlipErrorWithDupreg(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:    UICoinFlipErrorTyp_DUPREG,
+		Dupreg__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithDupcommitcomplete(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:               UICoinFlipErrorTyp_DUPCOMMITCOMPLETE,
+		Dupcommitcomplete__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithDupreveal(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:       UICoinFlipErrorTyp_DUPREVEAL,
+		Dupreveal__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithCommitmismatch(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:            UICoinFlipErrorTyp_COMMITMISMATCH,
+		Commitmismatch__: &v,
+	}
+}
+
+func (o UICoinFlipError) DeepCopy() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: o.Typ__.DeepCopy(),
+		Generic__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Generic__),
+		Absentee__: (func(x *UICoinFlipAbsenteeError) *UICoinFlipAbsenteeError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Absentee__),
+		Dupreg__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupreg__),
+		Dupcommitcomplete__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupcommitcomplete__),
+		Dupreveal__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupreveal__),
+		Commitmismatch__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Commitmismatch__),
+	}
+}
+
+type UICoinFlipResultTyp int
+
+const (
+	UICoinFlipResultTyp_NUMBER  UICoinFlipResultTyp = 0
+	UICoinFlipResultTyp_SHUFFLE UICoinFlipResultTyp = 1
+	UICoinFlipResultTyp_DECK    UICoinFlipResultTyp = 2
+	UICoinFlipResultTyp_HANDS   UICoinFlipResultTyp = 3
+	UICoinFlipResultTyp_COIN    UICoinFlipResultTyp = 4
+)
+
+func (o UICoinFlipResultTyp) DeepCopy() UICoinFlipResultTyp { return o }
+
+var UICoinFlipResultTypMap = map[string]UICoinFlipResultTyp{
+	"NUMBER":  0,
+	"SHUFFLE": 1,
+	"DECK":    2,
+	"HANDS":   3,
+	"COIN":    4,
+}
+
+var UICoinFlipResultTypRevMap = map[UICoinFlipResultTyp]string{
+	0: "NUMBER",
+	1: "SHUFFLE",
+	2: "DECK",
+	3: "HANDS",
+	4: "COIN",
+}
+
+func (e UICoinFlipResultTyp) String() string {
+	if v, ok := UICoinFlipResultTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UICoinFlipHand struct {
+	Target string `codec:"target" json:"target"`
+	Hand   []int  `codec:"hand" json:"hand"`
+}
+
+func (o UICoinFlipHand) DeepCopy() UICoinFlipHand {
+	return UICoinFlipHand{
+		Target: o.Target,
+		Hand: (func(x []int) []int {
+			if x == nil {
+				return nil
+			}
+			ret := make([]int, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hand),
+	}
+}
+
+type UICoinFlipResult struct {
+	Typ__     UICoinFlipResultTyp `codec:"typ" json:"typ"`
+	Number__  *string             `codec:"number,omitempty" json:"number,omitempty"`
+	Shuffle__ *[]string           `codec:"shuffle,omitempty" json:"shuffle,omitempty"`
+	Deck__    *[]int              `codec:"deck,omitempty" json:"deck,omitempty"`
+	Hands__   *[]UICoinFlipHand   `codec:"hands,omitempty" json:"hands,omitempty"`
+	Coin__    *bool               `codec:"coin,omitempty" json:"coin,omitempty"`
+}
+
+func (o *UICoinFlipResult) Typ() (ret UICoinFlipResultTyp, err error) {
+	switch o.Typ__ {
+	case UICoinFlipResultTyp_NUMBER:
+		if o.Number__ == nil {
+			err = errors.New("unexpected nil value for Number__")
+			return ret, err
+		}
+	case UICoinFlipResultTyp_SHUFFLE:
+		if o.Shuffle__ == nil {
+			err = errors.New("unexpected nil value for Shuffle__")
+			return ret, err
+		}
+	case UICoinFlipResultTyp_DECK:
+		if o.Deck__ == nil {
+			err = errors.New("unexpected nil value for Deck__")
+			return ret, err
+		}
+	case UICoinFlipResultTyp_HANDS:
+		if o.Hands__ == nil {
+			err = errors.New("unexpected nil value for Hands__")
+			return ret, err
+		}
+	case UICoinFlipResultTyp_COIN:
+		if o.Coin__ == nil {
+			err = errors.New("unexpected nil value for Coin__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o UICoinFlipResult) Number() (res string) {
+	if o.Typ__ != UICoinFlipResultTyp_NUMBER {
+		panic("wrong case accessed")
+	}
+	if o.Number__ == nil {
+		return
+	}
+	return *o.Number__
+}
+
+func (o UICoinFlipResult) Shuffle() (res []string) {
+	if o.Typ__ != UICoinFlipResultTyp_SHUFFLE {
+		panic("wrong case accessed")
+	}
+	if o.Shuffle__ == nil {
+		return
+	}
+	return *o.Shuffle__
+}
+
+func (o UICoinFlipResult) Deck() (res []int) {
+	if o.Typ__ != UICoinFlipResultTyp_DECK {
+		panic("wrong case accessed")
+	}
+	if o.Deck__ == nil {
+		return
+	}
+	return *o.Deck__
+}
+
+func (o UICoinFlipResult) Hands() (res []UICoinFlipHand) {
+	if o.Typ__ != UICoinFlipResultTyp_HANDS {
+		panic("wrong case accessed")
+	}
+	if o.Hands__ == nil {
+		return
+	}
+	return *o.Hands__
+}
+
+func (o UICoinFlipResult) Coin() (res bool) {
+	if o.Typ__ != UICoinFlipResultTyp_COIN {
+		panic("wrong case accessed")
+	}
+	if o.Coin__ == nil {
+		return
+	}
+	return *o.Coin__
+}
+
+func NewUICoinFlipResultWithNumber(v string) UICoinFlipResult {
+	return UICoinFlipResult{
+		Typ__:    UICoinFlipResultTyp_NUMBER,
+		Number__: &v,
+	}
+}
+
+func NewUICoinFlipResultWithShuffle(v []string) UICoinFlipResult {
+	return UICoinFlipResult{
+		Typ__:     UICoinFlipResultTyp_SHUFFLE,
+		Shuffle__: &v,
+	}
+}
+
+func NewUICoinFlipResultWithDeck(v []int) UICoinFlipResult {
+	return UICoinFlipResult{
+		Typ__:  UICoinFlipResultTyp_DECK,
+		Deck__: &v,
+	}
+}
+
+func NewUICoinFlipResultWithHands(v []UICoinFlipHand) UICoinFlipResult {
+	return UICoinFlipResult{
+		Typ__:   UICoinFlipResultTyp_HANDS,
+		Hands__: &v,
+	}
+}
+
+func NewUICoinFlipResultWithCoin(v bool) UICoinFlipResult {
+	return UICoinFlipResult{
+		Typ__:  UICoinFlipResultTyp_COIN,
+		Coin__: &v,
+	}
+}
+
+func (o UICoinFlipResult) DeepCopy() UICoinFlipResult {
+	return UICoinFlipResult{
+		Typ__: o.Typ__.DeepCopy(),
+		Number__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Number__),
+		Shuffle__: (func(x *[]string) *[]string {
+			if x == nil {
+				return nil
+			}
+			tmp := (func(x []string) []string {
+				if x == nil {
+					return nil
+				}
+				ret := make([]string, len(x))
+				for i, v := range x {
+					vCopy := v
+					ret[i] = vCopy
+				}
+				return ret
+			})((*x))
+			return &tmp
+		})(o.Shuffle__),
+		Deck__: (func(x *[]int) *[]int {
+			if x == nil {
+				return nil
+			}
+			tmp := (func(x []int) []int {
+				if x == nil {
+					return nil
+				}
+				ret := make([]int, len(x))
+				for i, v := range x {
+					vCopy := v
+					ret[i] = vCopy
+				}
+				return ret
+			})((*x))
+			return &tmp
+		})(o.Deck__),
+		Hands__: (func(x *[]UICoinFlipHand) *[]UICoinFlipHand {
+			if x == nil {
+				return nil
+			}
+			tmp := (func(x []UICoinFlipHand) []UICoinFlipHand {
+				if x == nil {
+					return nil
+				}
+				ret := make([]UICoinFlipHand, len(x))
+				for i, v := range x {
+					vCopy := v.DeepCopy()
+					ret[i] = vCopy
+				}
+				return ret
+			})((*x))
+			return &tmp
+		})(o.Hands__),
+		Coin__: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Coin__),
+	}
+}
+
 type UICoinFlipParticipant struct {
 	Uid        string  `codec:"uid" json:"uid"`
 	DeviceID   string  `codec:"deviceID" json:"deviceID"`
@@ -1204,6 +1741,8 @@ type UICoinFlipStatus struct {
 	CommitmentVisualization string                  `codec:"commitmentVisualization" json:"commitmentVisualization"`
 	RevealVisualization     string                  `codec:"revealVisualization" json:"revealVisualization"`
 	Participants            []UICoinFlipParticipant `codec:"participants" json:"participants"`
+	ErrorInfo               *UICoinFlipError        `codec:"errorInfo,omitempty" json:"errorInfo,omitempty"`
+	ResultInfo              *UICoinFlipResult       `codec:"resultInfo,omitempty" json:"resultInfo,omitempty"`
 }
 
 func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
@@ -1225,6 +1764,20 @@ func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
 			}
 			return ret
 		})(o.Participants),
+		ErrorInfo: (func(x *UICoinFlipError) *UICoinFlipError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ErrorInfo),
+		ResultInfo: (func(x *UICoinFlipResult) *UICoinFlipResult {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ResultInfo),
 	}
 }
 
@@ -1341,6 +1894,12 @@ type ChatGiphySearchResultsArg struct {
 	Results   []GiphySearchResult `codec:"results" json:"results"`
 }
 
+type ChatGiphyToggleResultWindowArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	ConvID    string `codec:"convID" json:"convID"`
+	Show      bool   `codec:"show" json:"show"`
+}
+
 type ChatShowManageChannelsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Teamname  string `codec:"teamname" json:"teamname"`
@@ -1377,6 +1936,7 @@ type ChatUiInterface interface {
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
 	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
+	ChatGiphyToggleResultWindow(context.Context, ChatGiphyToggleResultWindowArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
@@ -1671,6 +2231,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatGiphyToggleResultWindow": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatGiphyToggleResultWindowArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatGiphyToggleResultWindowArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatGiphyToggleResultWindowArg)(nil), args)
+						return
+					}
+					err = i.ChatGiphyToggleResultWindow(ctx, typedArgs[0])
+					return
+				},
+			},
 			"chatShowManageChannels": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatShowManageChannelsArg
@@ -1819,6 +2394,11 @@ func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDone
 
 func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiphySearchResultsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatGiphyToggleResultWindow(ctx context.Context, __arg ChatGiphyToggleResultWindowArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphyToggleResultWindow", []interface{}{__arg}, nil)
 	return
 }
 

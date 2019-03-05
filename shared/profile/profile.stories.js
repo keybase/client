@@ -107,7 +107,6 @@ const proofsDefault = [
 
 const props = {
   ...mockUserInfo,
-  addUserToTeamsResults: '',
   bioEditFns: null,
   currentFriendshipsTab: 'Followers',
   currentlyFollowing: false,
@@ -123,7 +122,6 @@ const props = {
   onBrowsePublicFolder: Sb.action('onBrowsePublicFolder'),
   onChangeFriendshipsTab: Sb.action('onChangeFriendshipsTab'),
   onChat: Sb.action('onChat'),
-  onClearAddUserToTeamsResults: Sb.action('onClearAddUserToTeamsResults'),
   onClickAvatar: Sb.action('onClickAvatar'),
   onClickShowcaseOffer: Sb.action('onClickShowcaseOffer'),
   onClickShowcased: Sb.action('onClickShowcased'),

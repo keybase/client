@@ -2120,6 +2120,36 @@ func (k *SimpleFS) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	return res, nil
 }
 
+// SimpleFSGetTeamQuotaUsage returns the quota usage information for
+// the given team.
+func (k *SimpleFS) SimpleFSGetTeamQuotaUsage(
+	ctx context.Context, teamName keybase1.TeamName) (
+	res keybase1.SimpleFSQuotaUsage, err error) {
+	ctx = k.makeContext(ctx)
+	path := keybase1.NewPathWithKbfs(
+		fmt.Sprintf("team/%s", teamName.String()))
+	fb, _, err := k.getFolderBranchFromPath(ctx, path)
+	if err != nil {
+		return keybase1.SimpleFSQuotaUsage{}, err
+	}
+	if fb == (libkbfs.FolderBranch{}) {
+		return keybase1.SimpleFSQuotaUsage{}, nil
+	}
+
+	status, _, err := k.config.KBFSOps().FolderStatus(ctx, fb)
+	if err != nil {
+		return keybase1.SimpleFSQuotaUsage{}, err
+	}
+
+	res.UsageBytes = status.UsageBytes
+	res.ArchiveBytes = status.ArchiveBytes
+	res.LimitBytes = status.LimitBytes
+	res.GitUsageBytes = status.GitUsageBytes
+	res.GitArchiveBytes = status.GitArchiveBytes
+	res.GitLimitBytes = status.GitLimitBytes
+	return res, nil
+}
+
 func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	tlfID tlf.ID, config keybase1.FolderSyncConfig,
 	err error) {
@@ -2205,4 +2235,9 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 
 	_, err = k.config.KBFSOps().SetSyncConfig(ctx, tlfID, arg.Config)
 	return err
+}
+
+// SimpleFSPing implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSPing(ctx context.Context) error {
+	return nil
 }

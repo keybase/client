@@ -7,6 +7,7 @@ import * as RPCChatTypes from './types/rpc-chat-gen'
 import {invert} from 'lodash-es'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
+import {memoize} from '../util/memoize'
 
 import type {Service} from './types/search'
 import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
@@ -25,6 +26,7 @@ export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamna
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
 
+export const addUserToTeamsWaitingKey = (username: string) => `addUserToTeams:${username}`
 export const addPeopleToTeamWaitingKey = (teamname: Types.Teamname) => `teamAddPeople:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
@@ -102,6 +104,7 @@ export const makeRetentionPolicy: I.RecordFactory<_RetentionPolicy> = I.Record({
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
+  addUserToTeamsState: 'notStarted',
   channelCreationError: '',
   emailInviteError: makeEmailInviteError(),
   newTeamRequests: I.List(),
@@ -362,11 +365,8 @@ function sortTeamnames(a: string, b: string) {
   }
 }
 
-const getSortedTeamnames = (state: TypedState): Types.Teamname[] => {
-  let teamnames = state.teams.teamnames.toArray()
-  teamnames.sort(sortTeamnames)
-  return teamnames
-}
+const _memoizedSorted = memoize(names => names.toArray().sort(sortTeamnames))
+const getSortedTeamnames = (state: TypedState): Types.Teamname[] => _memoizedSorted(state.teams.teamnames)
 
 const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'

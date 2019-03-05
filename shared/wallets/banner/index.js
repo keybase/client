@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Text} from '../../common-adapters'
 import type {Background} from '../../common-adapters/text'
-import {backgroundModeToColor, collapseStyles, globalMargins, styleSheetCreate} from '../../styles'
+import {backgroundModeToColor, backgroundModeToTextColor, collapseStyles, globalMargins, styleSheetCreate} from '../../styles'
 
 type Props = {
   background: Background,
@@ -19,7 +19,9 @@ const Banner = (props: Props) => (
     centerChildren={true}
     style={collapseStyles([styles.container, {backgroundColor: backgroundModeToColor[props.background]}])}
   >
-    <Text center={true} type="BodySmallSemibold" negative={true}>
+    <Text center={true} type="BodySmallSemibold" negative={true} style={{
+      color: backgroundModeToTextColor(props.background),
+    }}>
       {props.text}
       {props.reviewProofs && (
         <Text

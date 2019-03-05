@@ -11,6 +11,7 @@ export type Props = {
   backgroundColor: ?string,
   channelname?: string,
   hasBadge: boolean,
+  hasBottomLine: boolean,
   hasResetUsers: boolean,
   hasUnread: boolean,
   iconHoverColor: string,
@@ -101,7 +102,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               style={Styles.collapseStyles([
                 Styles.globalStyles.flexBoxColumn,
                 styles.flexOne,
-                {justifyContent: 'flex-end'},
+                {justifyContent: props.hasBottomLine ? 'flex-end' : 'center'},
               ])}
             >
               <SimpleTopLine
@@ -119,28 +120,30 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 {...(props.channelname ? {channelname: props.channelname} : {})}
               />
             </Kb.Box>
-            <Kb.Box
-              style={Styles.collapseStyles([
-                Styles.globalStyles.flexBoxColumn,
-                styles.flexOne,
-                {justifyContent: 'flex-start'},
-              ])}
-            >
-              <BottomLine
-                backgroundColor={props.backgroundColor}
-                participantNeedToRekey={props.participantNeedToRekey}
-                youAreReset={props.youAreReset}
-                showBold={props.showBold}
-                snippet={props.snippet}
-                snippetDecoration={props.snippetDecoration}
-                subColor={props.subColor}
-                hasResetUsers={props.hasResetUsers}
-                youNeedToRekey={props.youNeedToRekey}
-                isSelected={props.isSelected}
-                isDecryptingSnippet={props.isDecryptingSnippet}
-                isTypingSnippet={props.isTypingSnippet}
-              />
-            </Kb.Box>
+            {props.hasBottomLine && (
+              <Kb.Box
+                style={Styles.collapseStyles([
+                  Styles.globalStyles.flexBoxColumn,
+                  styles.flexOne,
+                  {justifyContent: 'flex-start'},
+                ])}
+              >
+                <BottomLine
+                  backgroundColor={props.backgroundColor}
+                  participantNeedToRekey={props.participantNeedToRekey}
+                  youAreReset={props.youAreReset}
+                  showBold={props.showBold}
+                  snippet={props.snippet}
+                  snippetDecoration={props.snippetDecoration}
+                  subColor={props.subColor}
+                  hasResetUsers={props.hasResetUsers}
+                  youNeedToRekey={props.youNeedToRekey}
+                  isSelected={props.isSelected}
+                  isDecryptingSnippet={props.isDecryptingSnippet}
+                  isTypingSnippet={props.isTypingSnippet}
+                />
+              </Kb.Box>
+            )}
           </Kb.Box>
         </Kb.Box>
       </SmallTeamBox>

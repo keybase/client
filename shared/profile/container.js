@@ -68,7 +68,6 @@ const mapStateToProps = (state, {routeProps, routePath, navigation}: OwnProps) =
   const youAreInTeams = isInSomeTeam(state)
 
   return {
-    addUserToTeamsResults: state.teams.addUserToTeamsResults,
     currentFriendshipsTab: _currentFriendshipsTab,
     myUsername,
     profileIsRoot: routePath && routePath.size === 1 && routePath.first() === peopleTab,
@@ -80,8 +79,10 @@ const mapStateToProps = (state, {routeProps, routePath, navigation}: OwnProps) =
 
 const mapDispatchToProps = dispatch => ({
   _copyStellarAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-  _onAddToTeam: (username: string) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'addToTeam'}]})),
+  _onAddToTeam: (username: string) => {
+    dispatch(TeamsGen.createClearAddUserToTeamsResults())
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'addToTeam'}]}))
+  },
   _onBrowsePublicFolder: (username: string) =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/public/${username}`)})),
   _onChat: (username: string) =>
@@ -110,7 +111,6 @@ const mapDispatchToProps = dispatch => ({
   onChangeFriendshipsTab: currentFriendshipsTab => {
     _currentFriendshipsTab = currentFriendshipsTab
   },
-  onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickShowcaseOffer: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
   onEditAvatar: (image?: Response) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {image}, selected: 'editAvatar'}]})),
@@ -173,7 +173,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   const okProps = {
     ...stateProps.trackerState,
     ...dispatchProps,
-    addUserToTeamsResults: stateProps.addUserToTeamsResults,
     bioEditFns,
     currentFriendshipsTab: stateProps.currentFriendshipsTab,
     followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
@@ -186,7 +185,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
     onChat: () => dispatchProps._onChat(username),
-    onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps._onClickAvatar(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
     onCopyStellarAddress: () => {

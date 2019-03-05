@@ -8,6 +8,7 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import HiddenString from '../util/hidden-string'
 import {logError, type RPCError} from '../util/errors'
+import flags from '../util/feature-flags'
 
 const load = state =>
   state.config.loggedIn
@@ -128,7 +129,11 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
     NotificationsGen.receivedBadgeState,
     receivedBadgeState
   )
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
+
+  // TODO fix this. see git for an example
+  if (!flags.useNewRouter) {
+    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
+  }
 
   // Loading data
   yield* Saga.chainAction<DevicesGen.ShowRevokePagePayload>(

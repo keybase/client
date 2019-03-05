@@ -84,7 +84,7 @@ declare export var isIPhoneX: boolean
 declare export var dimensionWidth: number
 declare export var dimensionHeight: number
 
-export {platformStyles, globalMargins, backgroundModeToColor} from './shared'
+export {platformStyles, globalMargins, backgroundModeToColor, backgroundModeToTextColor} from './shared'
 export type {
   StylesDesktop,
   StylesMobile,

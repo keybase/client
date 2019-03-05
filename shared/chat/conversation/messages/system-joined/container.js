@@ -23,11 +23,11 @@ const mapDispatchToProps = dispatch => ({
       ? dispatch(
           RouteTreeGen.createNavigateTo({
             parentPath: [chatTab],
-            path: [{props: {teamname}, selected: 'manageChannels'}],
+            path: [{props: {teamname}, selected: 'chatManageChannels'}],
           })
         )
       : dispatch(
-          RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})
+          RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
         ),
 })
 

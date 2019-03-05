@@ -15,13 +15,16 @@ import (
 
 type ConfigGetter func() string
 type RunModeGetter func() RunMode
+type EnvGetter func(s string) string
 
 type Base struct {
 	appName             string
-	getHome             ConfigGetter
+	getHomeFromCmd      ConfigGetter
+	getHomeFromConfig   ConfigGetter
 	getMobileSharedHome ConfigGetter
 	getRunMode          RunModeGetter
 	getLog              LogGetter
+	getenvFunc          EnvGetter
 }
 
 type HomeFinder interface {
@@ -40,6 +43,29 @@ type HomeFinder interface {
 	InfoDir() string
 }
 
+func (b Base) getHome() string {
+	if b.getHomeFromCmd != nil {
+		ret := b.getHomeFromCmd()
+		if ret != "" {
+			return ret
+		}
+	}
+	if b.getHomeFromConfig != nil {
+		ret := b.getHomeFromConfig()
+		if ret != "" {
+			return ret
+		}
+	}
+	return ""
+}
+
+func (b Base) getenv(s string) string {
+	if b.getenvFunc != nil {
+		return b.getenvFunc(s)
+	}
+	return os.Getenv(s)
+}
+
 func (b Base) Join(elem ...string) string { return filepath.Join(elem...) }
 
 type XdgPosix struct {
@@ -49,12 +75,9 @@ type XdgPosix struct {
 func (x XdgPosix) Normalize(s string) string { return s }
 
 func (x XdgPosix) Home(emptyOk bool) string {
-	var ret string
-	if x.getHome != nil {
-		ret = x.getHome()
-	}
+	ret := x.getHome()
 	if len(ret) == 0 && !emptyOk {
-		ret = os.Getenv("HOME")
+		ret = x.getenv("HOME")
 	}
 	return ret
 }
@@ -65,12 +88,39 @@ func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
 
 func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 	var prfx string
-	prfx = os.Getenv(env)
-	if len(prfx) == 0 {
-		h := x.Home(false)
-		v := append([]string{h}, prefixDirs...)
+	var doAppend bool
+
+	// If the user explicitly provided a `--home` directory, it overrides any XDG_*
+	// variables. All XDG dirs are taken relative to that.
+	if x.getHomeFromCmd != nil {
+		prfx = x.getHomeFromCmd()
+		if prfx != "" {
+			doAppend = true
+		}
+	}
+
+	// If the command line didn't specify anything, then we're going to go with the XDG_
+	// environment variable specification.
+	if prfx == "" {
+		prfx = x.getenv(env)
+	}
+
+	// If there was no XDG_ environment variable, then we wind up falling back to
+	// (1) the config file first, and if not there, then: (2) the HOME environment
+	// variable.
+	if prfx == "" {
+		prfx = x.Home(false)
+		doAppend = true
+	}
+
+	// If we're not using XDG_, and we're either using --home or HOME=, then
+	// append on the given prefixDirs, separated by the OS-appropriate path
+	// separator (which should be '/' for XdgPosix).
+	if doAppend {
+		v := append([]string{prfx}, prefixDirs...)
 		prfx = x.Join(v...)
 	}
+
 	appName := x.appName
 	if x.getRunMode() != ProductionRunMode {
 		appName = appName + "." + string(x.getRunMode())
@@ -185,7 +235,7 @@ func (d Darwin) InfoDir() string {
 	// If the user is explicitly passing in a HomeDirectory, make the PID file directory
 	// local to that HomeDir. This way it's possible to have multiple keybases in parallel
 	// running for a given run mode, without having to explicitly specify a PID file.
-	if d.getHome != nil && d.getHome() != "" {
+	if d.getHome() != "" {
 		return d.CacheDir()
 	}
 	return d.appDir(os.TempDir())
@@ -193,11 +243,9 @@ func (d Darwin) InfoDir() string {
 
 func (d Darwin) Home(emptyOk bool) string {
 	var ret string
-	if d.getHome != nil {
-		ret = d.getHome()
-	}
+	ret = d.getHome()
 	if len(ret) == 0 && !emptyOk {
-		ret = os.Getenv("HOME")
+		ret = d.getenv("HOME")
 	}
 	return ret
 }
@@ -208,7 +256,7 @@ func (d Darwin) MobileSharedHome(emptyOk bool) string {
 		ret = d.getMobileSharedHome()
 	}
 	if len(ret) == 0 && !emptyOk {
-		ret = os.Getenv("MOBILE_SHARED_HOME")
+		ret = d.getenv("MOBILE_SHARED_HOME")
 	}
 	return ret
 }
@@ -257,10 +305,10 @@ func (w Win32) ServiceSpawnDir() (string, error) { return w.RuntimeDir(), nil }
 func (w Win32) LogDir() string                   { return w.Home(false) }
 
 func (w Win32) deriveFromTemp() (ret string) {
-	tmp := os.Getenv("TEMP")
+	tmp := w.getenv("TEMP")
 	if len(tmp) == 0 {
 		w.getLog().Info("No 'TEMP' environment variable found")
-		tmp = os.Getenv("TMP")
+		tmp = w.getenv("TMP")
 		if len(tmp) == 0 {
 			w.getLog().Fatalf("No 'TMP' environment variable found")
 		}
@@ -282,11 +330,7 @@ func (w Win32) deriveFromTemp() (ret string) {
 }
 
 func (w Win32) Home(emptyOk bool) string {
-	var ret string
-
-	if w.getHome != nil {
-		ret = w.getHome()
-	}
+	ret := w.getHome()
 	if len(ret) == 0 && !emptyOk {
 		ret, _ = LocalDataDir()
 		if len(ret) == 0 {
@@ -319,9 +363,9 @@ func (w Win32) MobileSharedHome(emptyOk bool) string {
 	return w.Home(emptyOk)
 }
 
-func NewHomeFinder(appName string, getHome ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
-	getRunMode RunModeGetter, getLog LogGetter) HomeFinder {
-	base := Base{appName, getHome, getMobileSharedHome, getRunMode, getLog}
+func NewHomeFinder(appName string, getHomeFromCmd ConfigGetter, getHomeFromConfig ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
+	getRunMode RunModeGetter, getLog LogGetter, getenv EnvGetter) HomeFinder {
+	base := Base{appName, getHomeFromCmd, getHomeFromConfig, getMobileSharedHome, getRunMode, getLog, getenv}
 	switch osname {
 	case "windows":
 		return Win32{base}

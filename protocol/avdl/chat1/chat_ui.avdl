@@ -283,6 +283,7 @@ protocol chatUi {
     boolean previewIsVideo;
   }
   void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
+  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show);
 
   void chatShowManageChannels(int sessionID, string teamname);
 
@@ -291,6 +292,51 @@ protocol chatUi {
     REVEALS_1,
     COMPLETE_2,
     ERROR_3
+  }
+  record UICoinFlipErrorParticipant {
+    string user;
+    string device;
+  }
+  record UICoinFlipAbsenteeError {
+    array<UICoinFlipErrorParticipant> absentees;
+  }
+  enum UICoinFlipErrorTyp {
+    GENERIC_0,
+    ABSENTEE_1,
+    TIMEOUT_2,
+    ABORTED_3,
+    DUPREG_4,
+    DUPCOMMITCOMPLETE_5,
+    DUPREVEAL_6,
+    COMMITMISMATCH_7
+  }
+  variant UICoinFlipError switch (UICoinFlipErrorTyp typ) {
+  case GENERIC: string;
+  case ABSENTEE: UICoinFlipAbsenteeError;
+  case TIMEOUT: void;
+  case ABORTED: void;
+  case DUPREG: UICoinFlipErrorParticipant;
+  case DUPCOMMITCOMPLETE: UICoinFlipErrorParticipant;
+  case DUPREVEAL: UICoinFlipErrorParticipant;
+  case COMMITMISMATCH: UICoinFlipErrorParticipant;
+  }
+  enum UICoinFlipResultTyp {
+    NUMBER_0,
+    SHUFFLE_1,
+    DECK_2,
+    HANDS_3,
+    COIN_4
+  }
+  record UICoinFlipHand {
+    string target;
+    array<int> hand;
+  }
+  variant UICoinFlipResult switch (UICoinFlipResultTyp typ) {
+    case NUMBER: string;
+    case SHUFFLE: array<string>;
+    case DECK: array<int>;
+    case HANDS: array<UICoinFlipHand>;
+    case COIN: bool; // heads?
   }
   record UICoinFlipParticipant {
     string uid;
@@ -308,6 +354,8 @@ protocol chatUi {
     string commitmentVisualization;
     string revealVisualization;
     array<UICoinFlipParticipant> participants;
+    union { null, UICoinFlipError } errorInfo;
+    union { null, UICoinFlipResult } resultInfo;
   }
   void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
 

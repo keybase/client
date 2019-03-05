@@ -124,13 +124,13 @@ func SendTeamChatChangeAvatar(mctx libkb.MetaContext, team, username string) boo
 	var err error
 
 	if !mctx.G().Env.SendSystemChatMessages() {
-		mctx.CDebugf("Skipping SendTeamChatChangeAvatar via environment flag")
+		mctx.Debug("Skipping SendTeamChatChangeAvatar via environment flag")
 		return false
 	}
 
 	defer func() {
 		if err != nil {
-			mctx.CWarningf("failed to send team change avatar message: %s", err.Error())
+			mctx.Warning("failed to send team change avatar message: %s", err.Error())
 		}
 	}()
 

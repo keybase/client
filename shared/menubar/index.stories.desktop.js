@@ -29,6 +29,8 @@ const props = {
   fileName: null,
   files: 0,
   folderProps: null,
+  kbfsDaemonConnected: true,
+  kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),
@@ -36,7 +38,7 @@ const props = {
   onSelectConversation: () => {},
   openApp: Storybook.action('openApp'),
   quit: Storybook.action('quit'),
-  refresh: Storybook.action('refresh'),
+  refreshUserFileEdits: Storybook.action('refreshUserFileEdits'),
   showBug: Storybook.action('showBug'),
   showHelp: Storybook.action('showHelp'),
   showInFinder: Storybook.action('showInFinder'),
@@ -136,6 +138,15 @@ const load = () => {
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/poo')}
           name="poo"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={false}
+        />
+        <FileUpdate
+          path={Types.stringToPath(
+            '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
+          )}
+          name="poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={false}

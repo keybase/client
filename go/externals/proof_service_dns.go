@@ -31,7 +31,7 @@ func (rc *DNSChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libk
 	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
 	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
 	if pcm != libkb.ProofCheckerModeActive {
-		m.CDebugf("DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
+		m.Debug("DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return nil, libkb.ProofErrorUnchecked
 	}
 	return nil, CheckProofPvl(m, keybase1.ProofType_DNS, rc.proof, h, pvlU)

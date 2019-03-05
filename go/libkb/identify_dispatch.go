@@ -23,7 +23,7 @@ func NewIdentifyDispatch() *IdentifyDispatch { return &IdentifyDispatch{} }
 // - A user tracked or untracked the target.
 // When the active user is the target all bets are off.
 func (d *IdentifyDispatch) NotifyTrackingSuccess(mctx MetaContext, target keybase1.UID) {
-	mctx.CDebugf("IdentifyDispatch.NotifyTrackingSuccess(%v)", target)
+	mctx.Debug("IdentifyDispatch.NotifyTrackingSuccess(%v)", target)
 	d.Lock()
 	defer d.Unlock()
 	for _, listener := range d.listeners {
@@ -37,13 +37,13 @@ func (d *IdentifyDispatch) NotifyTrackingSuccess(mctx MetaContext, target keybas
 // Subscribe to notifications.
 // `unsubscribe` releases resources associated with the subscription and should be called asap.
 func (d *IdentifyDispatch) Subscribe(mctx MetaContext) (unsubscribe func(), recvCh <-chan IdentifyDispatchMsg) {
-	mctx.CDebugf("IdentifyDispatch.Subscribe")
+	mctx.Debug("IdentifyDispatch.Subscribe")
 	ch := make(chan IdentifyDispatchMsg, 10)
 	d.Lock()
 	defer d.Unlock()
 	d.listeners = append(d.listeners, ch)
 	unsubscribe = func() {
-		mctx.CDebugf("IdentifyDispatch.Unsubcribe")
+		mctx.Debug("IdentifyDispatch.Unsubcribe")
 		d.Lock()
 		defer d.Unlock()
 		var listeners []chan<- IdentifyDispatchMsg

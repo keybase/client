@@ -55,7 +55,7 @@ func (e *PerUserKeyRoll) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PerUserKeyRoll) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PerUserKeyRoll", func() error { return err })()
+	defer m.Trace("PerUserKeyRoll", func() error { return err })()
 	return e.inner(m)
 }
 
@@ -69,7 +69,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 
 	me := e.args.Me
 	if me == nil {
-		m.CDebugf("PerUserKeyRoll load self")
+		m.Debug("PerUserKeyRoll load self")
 
 		loadArg := libkb.NewLoadUserArgWithMetaContext(m).
 			WithUID(uid).
@@ -102,7 +102,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 
 	// Generation of the new key
 	gen := pukring.CurrentGeneration() + keybase1.PerUserKeyGeneration(1)
-	m.CDebugf("PerUserKeyRoll creating gen: %v", gen)
+	m.Debug("PerUserKeyRoll creating gen: %v", gen)
 
 	pukSeed, err := libkb.GeneratePerUserKeySeed()
 	if err != nil {
@@ -133,7 +133,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 		return err
 	}
 
-	m.CDebugf("PerUserKeyRoll make sigs")
+	m.Debug("PerUserKeyRoll make sigs")
 	sig, err := libkb.PerUserKeyProofReverseSigned(m, me, pukSeed, gen, sigKey)
 	if err != nil {
 		return err
@@ -147,7 +147,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = sigsList
 
-	m.CDebugf("PerUserKeyRoll pukBoxes:%v pukPrev:%v for generation %v",
+	m.Debug("PerUserKeyRoll pukBoxes:%v pukPrev:%v for generation %v",
 		len(pukBoxes), pukPrev != nil, gen)
 	libkb.AddPerUserKeyServerArg(payload, gen, pukBoxes, pukPrev)
 
@@ -173,11 +173,11 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 			userEKSection["boxes"] = boxes
 			payload["user_ek"] = userEKSection
 		} else {
-			m.CDebugf("skipping userEK publishing, there are no valid deviceEKs")
+			m.Debug("skipping userEK publishing, there are no valid deviceEKs")
 		}
 	}
 
-	m.CDebugf("PerUserKeyRoll post")
+	m.Debug("PerUserKeyRoll post")
 	_, err = m.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -199,7 +199,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 	if myUserEKBox != nil {
 		err = m.G().GetUserEKBoxStorage().Put(m.Ctx(), newUserEKMetadata.Generation, *myUserEKBox)
 		if err != nil {
-			m.CErrorf("error while saving userEK box: %s", err)
+			m.Error("error while saving userEK box: %s", err)
 		}
 	}
 

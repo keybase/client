@@ -242,6 +242,11 @@ export default function(state: Types.State = initialState, action: Actions): Typ
             })
           : null
       )
+    case ConfigGen.updateCriticalCheckStatus:
+      return state.merge({
+        appOutOfDateMessage: action.payload.message,
+        appOutOfDateStatus: action.payload.status,
+      })
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -256,6 +261,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.checkForUpdate:
     case ConfigGen.filePickerError:
     case ConfigGen.persistRoute:
+    case ConfigGen.openAppStore:
     case ConfigGen.setNavigator:
       return state
     default:

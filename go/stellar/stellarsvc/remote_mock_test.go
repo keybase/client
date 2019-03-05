@@ -1046,7 +1046,7 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 
 func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
 	mctx := tc.MetaContext()
-	defer mctx.CTraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
+	defer mctx.TraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
 	bundle, err := fetchWholeBundleForTesting(mctx)
 	require.NoError(r.T, err)

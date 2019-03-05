@@ -1320,7 +1320,7 @@ func NewIdentityTable(m MetaContext, eldest keybase1.KID, sc *SigChain, h *SigHi
 }
 
 func (idt *IdentityTable) populate(m MetaContext) (err error) {
-	defer m.CTrace("IdentityTable#populate", func() error { return err })()
+	defer m.Trace("IdentityTable#populate", func() error { return err })()
 
 	var links []*ChainLink
 	if links, err = idt.sigChain.GetCurrentSubchain(m, idt.eldest); err != nil {
@@ -1605,7 +1605,7 @@ func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybas
 func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult, itm IdentifyTableMode) {
 	p := res.link
 
-	m.CDebugf("+ RemoteCheckProof %s", p.ToDebugString())
+	m.Debug("+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
 	pvlHashUsed := keybase1.MerkleStoreKitHash("")
 	sid := p.GetSigID()
@@ -1625,13 +1625,13 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 		}
 
 		if doCache {
-			m.CDebugf("| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
+			m.Debug("| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
 			if cacheErr := idt.G().ProofCache.Put(sid, res, pvlHashUsed); cacheErr != nil {
-				m.CWarningf("proof cache put error: %s", cacheErr)
+				m.Warning("proof cache put error: %s", cacheErr)
 			}
 		}
 
-		m.CDebugf("- RemoteCheckProof %s", p.ToDebugString())
+		m.Debug("- RemoteCheckProof %s", p.ToDebugString())
 	}()
 
 	pvlSource := idt.G().GetPvlSource()
@@ -1670,11 +1670,11 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 
 	if !forceRemoteCheck {
 		res.cached = m.G().ProofCache.Get(sid, pvlU.Hash)
-		m.CDebugf("| Proof cache lookup for %s: %+v", sid, res.cached)
+		m.Debug("| Proof cache lookup for %s: %+v", sid, res.cached)
 		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
 			res.verifiedHint = res.cached.VerifiedHint
-			m.CDebugf("| Early exit after proofCache hit for %s", sid)
+			m.Debug("| Early exit after proofCache hit for %s", sid)
 			return
 		}
 	}
@@ -1706,7 +1706,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	// not to cache it.
 	if ProofErrorIsSoft(res.err) && res.cached != nil && res.cached.Status == nil &&
 		res.cached.Freshness() != keybase1.CheckResultFreshness_RANCID {
-		m.CDebugf("| Got soft error (%s) but returning success (last seen at %s)",
+		m.Debug("| Got soft error (%s) but returning success (last seen at %s)",
 			res.err.Error(), res.cached.Time)
 		res.snoozedErr = res.err
 		res.err = nil
@@ -1714,7 +1714,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 		return
 	}
 
-	m.CDebugf("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
+	m.Debug("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
 
 	return
 }

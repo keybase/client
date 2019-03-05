@@ -171,16 +171,16 @@ func loadIdentifyUser(m libkb.MetaContext, arg libkb.LoadUserArg, cache libkb.Id
 }
 
 func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.NormalizedUsername, uid keybase1.UID) (ret *libkb.TrackChainLink, err error) {
-	defer m.CTrace(fmt.Sprintf("identifyUser#trackChainLinkFor(%s)", name), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("identifyUser#trackChainLinkFor(%s)", name), func() error { return err })()
 
 	if i.full != nil {
-		m.CDebugf("| Using full user object")
+		m.Debug("| Using full user object")
 		return i.full.TrackChainLinkFor(m, name, uid)
 	}
 
 	if i.thin != nil {
 
-		m.CDebugf("| Using thin user object")
+		m.Debug("| Using thin user object")
 
 		// In the common case, we look at the thin UPAK and get the chain link
 		// ID of the track chain link for tracking the given user. We'll then
@@ -189,11 +189,11 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 		// fetching the full user. There's a corner case, see just below...
 		ret, err = libkb.TrackChainLinkFromUPK2AI(m, i.thin, name, uid)
 		if _, inconsistent := err.(libkb.InconsistentCacheStateError); !inconsistent {
-			m.CDebugf("| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
+			m.Debug("| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
 			return ret, err
 		}
 
-		m.CDebugf("| fell through to forceFullLoad corner case")
+		m.Debug("| fell through to forceFullLoad corner case")
 
 		//
 		// NOTE(max) 2016-12-31
@@ -213,7 +213,7 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 	}
 
 	// No user loaded, so no track chain link.
-	m.CDebugf("| fell through the empty default case")
+	m.Debug("| fell through the empty default case")
 	return nil, nil
 }
 
@@ -299,7 +299,7 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 
 func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr error) {
 
-	defer m.CTrace(fmt.Sprintf("Identify2WithUID#resetError(%s)", libkb.ErrToOk(inErr)), func() error { return outErr })()
+	defer m.Trace(fmt.Sprintf("Identify2WithUID#resetError(%s)", libkb.ErrToOk(inErr)), func() error { return outErr })()
 
 	if inErr == nil {
 		return nil
@@ -312,7 +312,7 @@ func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr 
 	}
 
 	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
-		m.CDebugf("| Reset err from %v -> nil since caller is '%s' %d", inErr, e.arg.IdentifyBehavior, e.arg.IdentifyBehavior)
+		m.Debug("| Reset err from %v -> nil since caller is '%s' %d", inErr, e.arg.IdentifyBehavior, e.arg.IdentifyBehavior)
 		return nil
 	}
 
@@ -325,8 +325,8 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 	m = m.WithLogTag("ID2")
 
 	n := fmt.Sprintf("Identify2WithUID#Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
-	defer m.CTraceTimed(n, func() error { return err })()
-	m.CDebugf("| Full Arg: %+v", e.arg)
+	defer m.TraceTimed(n, func() error { return err })()
+	m.Debug("| Full Arg: %+v", e.arg)
 
 	if e.arg.Uid.IsNil() {
 		return libkb.NoUIDError{}
@@ -360,19 +360,19 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 func (e *Identify2WithUID) hitFastCache(m libkb.MetaContext) bool {
 
 	if !e.allowCaching() {
-		m.CDebugf("| missed fast cache: no caching allowed")
+		m.Debug("| missed fast cache: no caching allowed")
 		return false
 	}
 	if e.useAnyAssertions() {
-		m.CDebugf("| missed fast cache: has assertions")
+		m.Debug("| missed fast cache: has assertions")
 		return false
 	}
 	if !e.allowEarlyOuts() {
-		m.CDebugf("| missed fast cache: we don't allow early outs")
+		m.Debug("| missed fast cache: we don't allow early outs")
 		return false
 	}
 	if !e.checkFastCacheHit(m) {
-		m.CDebugf("| missed fast cache: didn't hit")
+		m.Debug("| missed fast cache: didn't hit")
 		return false
 	}
 	return true
@@ -380,10 +380,10 @@ func (e *Identify2WithUID) hitFastCache(m libkb.MetaContext) bool {
 
 func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 
-	defer m.CTraceOK("Identify2WithUID#untrackedFastPath", func() bool { return ret })()
+	defer m.TraceOK("Identify2WithUID#untrackedFastPath", func() bool { return ret })()
 
 	if !e.arg.IdentifyBehavior.CanUseUntrackedFastPath() {
-		m.CDebugf("| Can't use untracked fast path due to identify behavior %v", e.arg.IdentifyBehavior)
+		m.Debug("| Can't use untracked fast path due to identify behavior %v", e.arg.IdentifyBehavior)
 		return false
 	}
 
@@ -394,12 +394,12 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 	}
 
 	if e.testArgs != nil && !e.testArgs.allowUntrackedFastPath {
-		m.CDebugf("| Can't use untracked fast path since disallowed in test")
+		m.Debug("| Can't use untracked fast path since disallowed in test")
 		return false
 	}
 
 	if e.them == nil {
-		m.CDebugf("| Can't use untracked fast path since failed to load them users")
+		m.Debug("| Can't use untracked fast path since failed to load them users")
 		return false
 	}
 
@@ -409,25 +409,25 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 	if e.testArgs != nil && e.testArgs.tcl != nil {
 		trackedUsername, err := e.testArgs.tcl.GetTrackedUsername()
 		if err == nil && trackedUsername == nun {
-			m.CDebugf("| Test track link found for %s", nun.String())
+			m.Debug("| Test track link found for %s", nun.String())
 			return false
 		}
 	}
 
 	if e.me == nil {
-		m.CDebugf("| Can use untracked fastpath since there is no logged in user")
+		m.Debug("| Can use untracked fastpath since there is no logged in user")
 		statInc()
 		return true
 	}
 
 	tcl, err := e.me.trackChainLinkFor(m, nun, e.them.GetUID())
 	if err != nil {
-		m.CDebugf("| Error getting track chain link: %s", err)
+		m.Debug("| Error getting track chain link: %s", err)
 		return false
 	}
 
 	if tcl != nil {
-		m.CDebugf("| Track found for %s", nun.String())
+		m.Debug("| Track found for %s", nun.String())
 		return false
 	}
 
@@ -437,18 +437,18 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 
 func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
-	m.CDebugf("+ acquire singleflight lock for %s", e.arg.Uid)
+	m.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
 	lock, err := locktab.AcquireOnNameWithContext(m.Ctx(), m.G(), e.arg.Uid.String())
 	if err != nil {
-		m.CDebugf("| error acquiring singleflight lock for %s: %v", e.arg.Uid, err)
+		m.Debug("| error acquiring singleflight lock for %s: %v", e.arg.Uid, err)
 		return err
 	}
-	m.CDebugf("- acquired singleflight lock")
+	m.Debug("- acquired singleflight lock")
 
 	defer func() {
-		m.CDebugf("+ Releasing singleflight lock for %s", e.arg.Uid)
+		m.Debug("+ Releasing singleflight lock for %s", e.arg.Uid)
 		lock.Release(m.Ctx())
-		m.CDebugf("- Released singleflight lock")
+		m.Debug("- Released singleflight lock")
 	}()
 
 	if err = e.loadAssertion(); err != nil {
@@ -456,12 +456,12 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 	}
 
 	if e.hitFastCache(m) {
-		m.CDebugf("| hit fast cache")
+		m.Debug("| hit fast cache")
 		e.maybeNotify(m, "hit fast cache")
 		return nil
 	}
 
-	m.CDebugf("| Identify2WithUID.loadUsers")
+	m.Debug("| Identify2WithUID.loadUsers")
 	if err = e.loadUsers(m); err != nil {
 		return err
 	}
@@ -471,7 +471,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 	}
 
 	if e.isSelfLoad() && !e.arg.NoSkipSelf && !e.useRemoteAssertions() {
-		m.CDebugf("| was a self load, short-circuiting")
+		m.Debug("| was a self load, short-circuiting")
 		e.maybeCacheSelf(m)
 		return nil
 	}
@@ -479,26 +479,26 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 	// If we are rekeying or reclaiming quota from KBFS, then let's
 	// skip the external checks.
 	if e.arg.IdentifyBehavior.SkipExternalChecks() {
-		m.CDebugf("| skip external checks specified, short-circuiting")
+		m.Debug("| skip external checks specified, short-circuiting")
 		return nil
 	}
 
 	if !e.useRemoteAssertions() && e.allowEarlyOuts() {
 
 		if e.untrackedFastPath(m) {
-			m.CDebugf("| used untracked fast path")
+			m.Debug("| used untracked fast path")
 			e.maybeNotify(m, "untracked fast path")
 			return nil
 		}
 
 		if e.checkSlowCacheHit(m) {
-			m.CDebugf("| hit slow cache, first check")
+			m.Debug("| hit slow cache, first check")
 			e.maybeNotify(m, "slow cache, first check")
 			return nil
 		}
 	}
 
-	m.CDebugf("| Identify2WithUID.createIdentifyState")
+	m.Debug("| Identify2WithUID.createIdentifyState")
 	if err = e.createIdentifyState(m); err != nil {
 		return err
 	}
@@ -512,12 +512,12 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 	// ProofState_NONE check).
 	okStates := []keybase1.ProofState{keybase1.ProofState_NONE, keybase1.ProofState_OK}
 	if err = e.checkRemoteAssertions(okStates); err != nil {
-		m.CDebugf("| Early fail due to missing remote assertions")
+		m.Debug("| Early fail due to missing remote assertions")
 		return err
 	}
 
 	if e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit(m) {
-		m.CDebugf("| hit slow cache, second check")
+		m.Debug("| hit slow cache, second check")
 		e.maybeNotify(m, "slow cache, second check")
 		return nil
 	}
@@ -547,12 +547,12 @@ func (e *Identify2WithUID) getNow(m libkb.MetaContext) time.Time {
 }
 
 func (e *Identify2WithUID) unblock(m libkb.MetaContext, isFinal bool, err error) {
-	m.CDebugf("| unblocking...")
+	m.Debug("| unblocking...")
 	if e.arg.AlwaysBlock && !isFinal {
-		m.CDebugf("| skipping unblock; isFinal=%v; AlwaysBlock=%v...", isFinal, e.arg.AlwaysBlock)
+		m.Debug("| skipping unblock; isFinal=%v; AlwaysBlock=%v...", isFinal, e.arg.AlwaysBlock)
 	} else {
 		e.resultCh <- err
-		m.CDebugf("| unblock sent...")
+		m.Debug("| unblock sent...")
 	}
 }
 
@@ -591,22 +591,22 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 	isOK := e.state.Result().IsOK()
 	canCacheFailures := e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks()
 
-	m.CDebugf("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
-	defer m.CDebugf("- maybeCacheResult")
+	m.Debug("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
+	defer m.Debug("- maybeCacheResult")
 
 	if e.getCache() == nil {
-		m.CDebugf("| cache is disabled, so nothing to do")
+		m.Debug("| cache is disabled, so nothing to do")
 		return
 	}
 
 	// If we hit an identify failure, and we're not allowed to cache failures,
 	// then at least bust out the cache.
 	if !isOK && !canCacheFailures {
-		m.CDebugf("| clearing cache due to failure")
+		m.Debug("| clearing cache due to failure")
 		uid := e.them.GetUID()
 		e.getCache().Delete(uid)
 		if err := e.removeSlowCacheFromDB(m); err != nil {
-			m.CDebugf("| Error in removing slow cache from db: %s", err)
+			m.Debug("| Error in removing slow cache from db: %s", err)
 		}
 		return
 	}
@@ -614,11 +614,11 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 	// Common case --- (isOK || canCacheFailures)
 	v, err := e.exportToResult(m)
 	if err != nil {
-		m.CDebugf("| not caching: error exporting: %s", err)
+		m.Debug("| not caching: error exporting: %s", err)
 		return
 	}
 	if v == nil {
-		m.CDebugf("| not caching; nil result")
+		m.Debug("| not caching; nil result")
 		return
 	}
 	e.getCache().Insert(v)
@@ -627,14 +627,14 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 	// Don't write failures to the disk cache
 	if isOK {
 		if err := e.storeSlowCacheToDB(m); err != nil {
-			m.CDebugf("| Error in storing slow cache to db: %s", err)
+			m.Debug("| Error in storing slow cache to db: %s", err)
 		}
 	}
 	return
 }
 
 func (e *Identify2WithUID) insertTrackToken(m libkb.MetaContext, outcome *libkb.IdentifyOutcome) (err error) {
-	defer m.CTrace("Identify2WithUID#insertTrackToken", func() error { return err })()
+	defer m.Trace("Identify2WithUID#insertTrackToken", func() error { return err })()
 	e.trackToken, err = m.G().TrackCache().Insert(outcome)
 	if err != nil {
 		return err
@@ -652,25 +652,25 @@ func (e *Identify2WithUID) CCLCheckCompleted(lcr *libkb.LinkCheckResult) {
 	defer e.remotesMutex.Unlock()
 	m := e.metaContext
 
-	m.CDebugf("+ CheckCompleted for %s", lcr.GetLink().ToIDString())
-	defer m.CDebugf("- CheckCompleted")
+	m.Debug("+ CheckCompleted for %s", lcr.GetLink().ToIDString())
+	defer m.Debug("- CheckCompleted")
 
 	// Always add to remotesReceived list, so that we have a full ProofSet.
 	pf := libkb.RemoteProofChainLinkToProof(lcr.GetLink())
 	e.remotesReceived.Add(pf)
 
 	if !e.useRemoteAssertions() || e.useTracking {
-		m.CDebugf("| Not using remote assertions or is tracking")
+		m.Debug("| Not using remote assertions or is tracking")
 		return
 	}
 
 	if !e.remoteAssertion.HasFactor(pf) {
-		m.CDebugf("| Proof isn't needed in our remote-assertion early-out check: %v", pf)
+		m.Debug("| Proof isn't needed in our remote-assertion early-out check: %v", pf)
 		return
 	}
 
 	if err := lcr.GetError(); err != nil {
-		m.CDebugf("| got error -> %v", err)
+		m.Debug("| got error -> %v", err)
 		e.remotesError = err
 	}
 
@@ -678,13 +678,13 @@ func (e *Identify2WithUID) CCLCheckCompleted(lcr *libkb.LinkCheckResult) {
 	// of identities in the assertion. But I can't imagine n > 3, so this is fine
 	// for now.
 	matched := e.remoteAssertion.MatchSet(*e.remotesReceived)
-	m.CDebugf("| matched -> %v", matched)
+	m.Debug("| matched -> %v", matched)
 	if matched {
 		e.remotesCompleted = true
 	}
 
 	if e.remotesError != nil || e.remotesCompleted {
-		m.CDebugf("| unblocking, with err = %v", e.remotesError)
+		m.Debug("| unblocking, with err = %v", e.remotesError)
 		e.unblock(m, false, e.remotesError)
 	}
 }
@@ -776,7 +776,7 @@ func (e *Identify2WithUID) displayUserCardAsync(m libkb.MetaContext) <-chan erro
 
 func (e *Identify2WithUID) setupIdentifyUI(m libkb.MetaContext) libkb.MetaContext {
 	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
-		m.CDebugf("| using the loopback identify UI")
+		m.Debug("| using the loopback identify UI")
 		iui := NewLoopbackIdentifyUI(m.G(), &e.trackBreaks)
 		m = m.WithIdentifyUI(iui)
 	} else if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
@@ -790,7 +790,7 @@ func (e *Identify2WithUID) setupIdentifyUI(m libkb.MetaContext) libkb.MetaContex
 
 func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	n := fmt.Sprintf("+ runIdentifyUI(%s)", e.them.GetName())
-	defer m.CTrace(n, func() error { return err })()
+	defer m.Trace(n, func() error { return err })()
 
 	// RemoteReceived, start with the baseProofSet that has PGP
 	// fingerprints and the user's UID and username.
@@ -799,7 +799,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	m = e.setupIdentifyUI(m)
 	iui := m.UIs().IdentifyUI
 
-	m.CDebugf("| IdentifyUI.Start(%s)", e.them.GetName())
+	m.Debug("| IdentifyUI.Start(%s)", e.them.GetName())
 	if err = iui.Start(m, e.them.GetName(), e.arg.Reason, e.arg.ForceDisplay); err != nil {
 		return err
 	}
@@ -808,18 +808,18 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 			return err
 		}
 	}
-	m.CDebugf("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
+	m.Debug("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
 	if err = iui.ReportLastTrack(m, libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
 		return err
 	}
-	m.CDebugf("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
+	m.Debug("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
 	if err = iui.LaunchNetworkChecks(m, e.state.ExportToUncheckedIdentity(e.G()), e.them.Export()); err != nil {
 		return err
 	}
 
 	waiter := e.displayUserCardAsync(m)
 
-	m.CDebugf("| IdentifyUI.Identify(%s)", e.them.GetName())
+	m.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	var them *libkb.User
 	them, err = e.them.User(e.getCache())
 	if err != nil {
@@ -835,19 +835,19 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	// through (for now), so stash it in the this.
 	e.metaContext = m
 	if them.IDTable() == nil {
-		m.CDebugf("| No IDTable for user")
+		m.Debug("| No IDTable for user")
 	} else if err = them.IDTable().Identify(m, e.state, e.forceRemoteCheck(), iui, e, identifyTableMode); err != nil {
-		m.CDebugf("| Failure in running IDTable")
+		m.Debug("| Failure in running IDTable")
 		return err
 	}
 
 	if waiter != nil {
-		m.CDebugf("+ Waiting for UserCard")
+		m.Debug("+ Waiting for UserCard")
 		if err = <-waiter; err != nil {
-			m.CDebugf("| Failure in showing UserCard")
+			m.Debug("| Failure in showing UserCard")
 			return err
 		}
-		m.CDebugf("- Waited for UserCard")
+		m.Debug("- Waited for UserCard")
 	}
 
 	// use Confirm to display the IdentifyOutcome
@@ -855,17 +855,17 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	outcome.TrackOptions = e.trackOptions
 	e.confirmResult, err = iui.Confirm(m, outcome.Export(e.G()))
 	if err != nil {
-		m.CDebugf("| Failure in iui.Confirm")
+		m.Debug("| Failure in iui.Confirm")
 		return err
 	}
 
 	e.insertTrackToken(m, outcome)
 
 	if err = iui.Finish(m); err != nil {
-		m.CDebugf("| Failure in iui.Finish")
+		m.Debug("| Failure in iui.Finish")
 		return err
 	}
-	m.CDebugf("| IdentifyUI.Finished(%s)", e.them.GetName())
+	m.Debug("| IdentifyUI.Finished(%s)", e.them.GetName())
 
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
 	e.maybeCacheResult(m)
@@ -887,7 +887,7 @@ func (e *Identify2WithUID) forceRemoteCheck() bool {
 }
 
 func (e *Identify2WithUID) createIdentifyState(m libkb.MetaContext) (err error) {
-	defer m.CTrace("createIdentifyState", func() error { return err })()
+	defer m.Trace("createIdentifyState", func() error { return err })()
 	var them *libkb.User
 	them, err = e.them.User(e.getCache())
 	if err != nil {
@@ -897,24 +897,24 @@ func (e *Identify2WithUID) createIdentifyState(m libkb.MetaContext) (err error) 
 	e.state = libkb.NewIdentifyStateWithGregorItem(m.G(), e.responsibleGregorItem, them)
 
 	if e.testArgs != nil && e.testArgs.tcl != nil {
-		m.CDebugf("| using test track")
+		m.Debug("| using test track")
 		e.useTracking = true
 		e.state.SetTrackLookup(e.testArgs.tcl)
 		return nil
 	}
 
 	if e.me == nil {
-		m.CDebugf("| null me")
+		m.Debug("| null me")
 		return nil
 	}
 
 	tcl, err := e.me.trackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if tcl != nil {
-		m.CDebugf("| using track token %s", tcl.LinkID())
+		m.Debug("| using track token %s", tcl.LinkID())
 		e.useTracking = true
 		e.state.SetTrackLookup(tcl)
 		if ttcl, _ := libkb.TmpTrackChainLinkFor(m, e.me.GetUID(), them.GetUID()); ttcl != nil {
-			m.CDebugf("| also have temporary track")
+			m.Debug("| also have temporary track")
 			e.state.SetTmpTrackLookup(ttcl)
 		}
 	}
@@ -1028,7 +1028,7 @@ func (e *Identify2WithUID) loadUsers(m libkb.MetaContext) (err error) {
 
 func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkFastCacheHit(%s)", e.arg.Uid)
-	defer m.CExitTraceOK(prfx, func() bool { return hit })()
+	defer m.ExitTraceOK(prfx, func() bool { return hit })()
 	if e.getCache() == nil {
 		return false
 	}
@@ -1040,10 +1040,10 @@ func (e *Identify2WithUID) checkFastCacheHit(m libkb.MetaContext) (hit bool) {
 	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
 
 	if err != nil {
-		m.CDebugf("| fast cache error for %s: %s", e.arg.Uid, err)
+		m.Debug("| fast cache error for %s: %s", e.arg.Uid, err)
 	}
 	if u == nil {
-		m.CDebugf("| fast cache returning false on nil output")
+		m.Debug("| fast cache returning false on nil output")
 		return false
 	}
 	e.cachedRes = u
@@ -1058,10 +1058,10 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 }
 
 func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybase1.Identify2ResUPK2) {
-	defer m.CExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
+	defer m.ExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
 
 	if e.getCache() != nil && !e.getCache().UseDiskCache() {
-		m.CDebugf("| Disk cached disabled")
+		m.Debug("| Disk cached disabled")
 		return nil
 	}
 
@@ -1069,24 +1069,24 @@ func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybas
 	key := e.dbKey(e.them.GetUID())
 	found, err := e.G().LocalDb.GetInto(&ktm, key)
 	if err != nil {
-		m.CDebugf("| Error loading key %+v from cache: %s", key, err)
+		m.Debug("| Error loading key %+v from cache: %s", key, err)
 		return nil
 	}
 	if !found {
-		m.CDebugf("| Key wasn't found: %+v", key)
+		m.Debug("| Key wasn't found: %+v", key)
 		return nil
 	}
 	tm := ktm.Time()
 	now := e.getNow(m)
 	diff := now.Sub(tm)
 	if diff > libkb.Identify2CacheLongTimeout {
-		m.CDebugf("| Object timed out %s ago", diff)
+		m.Debug("| Object timed out %s ago", diff)
 		return nil
 	}
 	var tmp keybase1.Identify2ResUPK2
 	upk2ai, err := e.them.ExportToUserPlusKeysV2AllIncarnations()
 	if err != nil {
-		m.CWarningf("| Failed to export: %s", err)
+		m.Warning("| Failed to export: %s", err)
 		return nil
 	}
 	tmp.Upk = *upk2ai
@@ -1101,7 +1101,7 @@ func (e *Identify2WithUID) storeSlowCacheToDB(m libkb.MetaContext) (err error) {
 	prfx := fmt.Sprintf("Identify2WithUID#storeSlowCacheToDB(%s)", e.them.GetUID())
 	defer e.G().ExitTrace(prfx, func() error { return err })()
 	if e.me == nil {
-		m.CDebugf("not storing to persistent slow cache since no me user")
+		m.Debug("not storing to persistent slow cache since no me user")
 		return nil
 	}
 
@@ -1116,7 +1116,7 @@ func (e *Identify2WithUID) removeSlowCacheFromDB(m libkb.MetaContext) (err error
 	prfx := fmt.Sprintf("Identify2WithUID#removeSlowCacheFromDB(%s)", e.them.GetUID())
 	defer e.G().Trace(prfx, func() error { return err })()
 	if e.me == nil {
-		m.CDebugf("not removing from persistent slow cache since no me user")
+		m.Debug("not removing from persistent slow cache since no me user")
 		return nil
 	}
 	key := e.dbKey(e.them.GetUID())
@@ -1126,14 +1126,14 @@ func (e *Identify2WithUID) removeSlowCacheFromDB(m libkb.MetaContext) (err error
 
 func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkSlowCacheHit(%s)", e.them.GetUID())
-	defer m.CExitTraceOK(prfx, func() bool { return ret })()
+	defer m.ExitTraceOK(prfx, func() bool { return ret })()
 
 	if e.getCache() == nil {
 		return false
 	}
 
 	if !e.allowCaching() {
-		m.CDebugf("| missed fast cache: no caching allowed")
+		m.Debug("| missed fast cache: no caching allowed")
 		return false
 	}
 
@@ -1148,7 +1148,7 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 
 	trackBrokenError := false
 	if err != nil {
-		m.CDebugf("| slow cache error for %s: %s", e.them.GetUID(), err)
+		m.Debug("| slow cache error for %s: %s", e.them.GetUID(), err)
 		if _, ok := err.(libkb.TrackBrokenError); ok {
 			trackBrokenError = true
 		}
@@ -1159,12 +1159,12 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	}
 
 	if u == nil {
-		m.CDebugf("| %s: identify missed cache", prfx)
+		m.Debug("| %s: identify missed cache", prfx)
 		return false
 	}
 
 	if !e.them.IsCachedIdentifyFresh(&u.Upk) {
-		m.CDebugf("| %s: cached identify was stale", prfx)
+		m.Debug("| %s: cached identify was stale", prfx)
 		return false
 	}
 
@@ -1258,16 +1258,16 @@ func (e *Identify2WithUID) maybeNotify(mctx libkb.MetaContext, explanation strin
 	if e.me == nil {
 		// This check is needed because ActLoggedOut causes the untracked fast path
 		// to succeed even when the true active user is tracking the identifyee.
-		mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) nope missing ME", target, explanation)
+		mctx.Debug("Identify2WithUID.maybeNotify(%v, %v) nope missing ME", target, explanation)
 	}
 	if target.IsNil() {
-		mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) nope missing UID", target, explanation)
+		mctx.Debug("Identify2WithUID.maybeNotify(%v, %v) nope missing UID", target, explanation)
 		return
 	}
 	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
-		mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) nope WarningInsteadOfErrorOnBrokenTracks", target, explanation)
+		mctx.Debug("Identify2WithUID.maybeNotify(%v, %v) nope WarningInsteadOfErrorOnBrokenTracks", target, explanation)
 		return
 	}
-	mctx.CDebugf("Identify2WithUID.maybeNotify(%v, %v) -> sending", target, explanation)
+	mctx.Debug("Identify2WithUID.maybeNotify(%v, %v) -> sending", target, explanation)
 	go mctx.G().IdentifyDispatch.NotifyTrackingSuccess(mctx, target)
 }

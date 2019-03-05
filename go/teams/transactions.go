@@ -407,7 +407,7 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
 
-	defer m.CTrace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
 	upak, err := engine.ResolveAndCheck(m, username, true /* useTracking */)
 	if err != nil {
@@ -452,7 +452,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
 
-	defer m.CTrace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
 
 	isServerTrustInvite, single, err := preprocessAssertion(m, assertion)
 	if err != nil {
@@ -477,7 +477,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	if !doInvite {
 		username = libkb.NewNormalizedUsername(upak.Username)
 		invite, err = tx.addMemberByUPKV2(ctx, upak, role)
-		m.CDebugf("Adding keybase member: %s (isInvite=%v)", username, invite)
+		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
 		return username, uv, invite, err
 	}
 
@@ -486,7 +486,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	}
 
 	typ, name := single.ToKeyValuePair()
-	m.CDebugf("team %s invite sbs member %s/%s", team.Name(), typ, name)
+	m.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}

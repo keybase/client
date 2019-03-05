@@ -65,6 +65,9 @@
         "chat1ChatUiChatGiphySearchResults": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'outParam'>) => void}"
         },
+        "chat1ChatUiChatGiphyToggleResultWindow": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphyToggleResultWindow'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphyToggleResultWindow'>, 'outParam'>) => void}"
+        },
         "chat1ChatUiChatShowManageChannels": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'outParam'>) => void}"
         },

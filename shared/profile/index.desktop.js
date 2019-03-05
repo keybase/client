@@ -10,7 +10,7 @@ import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressPr
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
-import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
+import {AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
 import Folders from './folders/container'
 import flags from '../util/feature-flags'
 import UserProofs from './user-proofs'
@@ -47,7 +47,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
       <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Kb.Box>
     <Kb.Box style={styleShowcasedTeamName}>
-      <Kb.Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
+      <Kb.Text style={{color: Styles.globalColors.black_50}} type="BodyPrimaryLink">
         Publish the teams you're in
       </Kb.Text>
     </Kb.Box>
@@ -333,38 +333,6 @@ class ProfileRender extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box style={styleOuterContainer}>
-        {!!this.props.addUserToTeamsResults && (
-          <Kb.Box2
-            direction="horizontal"
-            style={Styles.collapseStyles([
-              styleScrollHeaderBg,
-              {
-                backgroundColor: Styles.globalColors.green,
-                minHeight: 40,
-                zIndex: ADD_TO_TEAM_ZINDEX,
-              },
-            ])}
-          >
-            <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
-              <Kb.Text
-                center={true}
-                style={{margin: Styles.globalMargins.tiny, width: '100%'}}
-                type="BodySemibold"
-                negative={true}
-              >
-                {this.props.addUserToTeamsResults}
-              </Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
-              <Kb.Icon
-                color={Styles.globalColors.black_50}
-                onClick={this.props.onClearAddUserToTeamsResults}
-                style={{padding: Styles.globalMargins.tiny}}
-                type="iconfont-close"
-              />
-            </Kb.Box2>
-          </Kb.Box2>
-        )}
         <Kb.Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Kb.Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
         {flags.useNewRouter ? (

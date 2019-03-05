@@ -132,7 +132,8 @@ type Indexer interface {
 
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error)
+		clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
+		joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
 		conv *chat1.Conversation) (SenderPrepareResult, error)
 }
@@ -438,12 +439,15 @@ type ConversationCommandsSource interface {
 
 type CoinFlipManager interface {
 	Resumable
-	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error
+	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string,
+		outboxID *chat1.OutboxID) error
 	MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed, inboxVers chat1.InboxVers,
 		uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool
-	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
+	LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, hostMsgID chat1.MessageID,
+		flipConvID chat1.ConversationID, gameID chat1.FlipGameID)
 	DescribeFlipText(ctx context.Context, text string) string
 	HasActiveGames(ctx context.Context) bool
+	IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus)
 }
 
 type InternalError interface {

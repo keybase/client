@@ -80,7 +80,7 @@ func (d Delegator) GetMerkleTriple() MerkleTriple { return d.merkleTriple }
 
 func (d *Delegator) CheckArgs(m MetaContext) (err error) {
 
-	defer m.CTrace("Delegator#CheckArgs", func() error { return err })()
+	defer m.Trace("Delegator#CheckArgs", func() error { return err })()
 
 	if d.DelegationType == "" {
 		err = MissingDelegationTypeError{}
@@ -92,9 +92,9 @@ func (d *Delegator) CheckArgs(m MetaContext) (err error) {
 	}
 
 	if d.ExistingKey != nil {
-		m.CDebugf("| Picked passed-in signing key")
+		m.Debug("| Picked passed-in signing key")
 	} else {
-		m.CDebugf("| Picking new key for an eldest self-sig")
+		m.Debug("| Picking new key for an eldest self-sig")
 		d.DelegationType = DelegationTypeEldest
 	}
 
@@ -106,7 +106,7 @@ func (d *Delegator) CheckArgs(m MetaContext) (err error) {
 		d.EldestKID = kid
 	}
 
-	m.CDebugf("| Picked key %s for signing", d.getSigningKID())
+	m.Debug("| Picked key %s for signing", d.getSigningKID())
 
 	return nil
 }
@@ -117,10 +117,10 @@ func (d *Delegator) CheckArgs(m MetaContext) (err error) {
 // as the eldest key on upload.
 // m.LoginContext can be nil.
 func (d *Delegator) LoadSigningKey(m MetaContext, ui SecretUI) (err error) {
-	defer m.CTrace("Delegator#LoadSigningKey", func() error { return err })()
+	defer m.Trace("Delegator#LoadSigningKey", func() error { return err })()
 
 	if d.ExistingKey != nil {
-		m.CDebugf("| Was set ahead of time")
+		m.Debug("| Was set ahead of time")
 		return nil
 	}
 
@@ -130,13 +130,13 @@ func (d *Delegator) LoadSigningKey(m MetaContext, ui SecretUI) (err error) {
 			return err
 		}
 		if d.Me == nil {
-			m.CDebugf("| Me didn't load")
+			m.Debug("| Me didn't load")
 			return nil
 		}
 	}
 
 	if !d.Me.HasActiveKey() {
-		m.CDebugf("| PGPKeyImportEngine: no active key found, so assuming set of eldest key")
+		m.Debug("| PGPKeyImportEngine: no active key found, so assuming set of eldest key")
 		return nil
 	}
 
@@ -157,7 +157,7 @@ func (d *Delegator) LoadSigningKey(m MetaContext, ui SecretUI) (err error) {
 // on failure and nil on success.
 func (d *Delegator) Run(m MetaContext) (err error) {
 	var jw *jsonw.Wrapper
-	defer m.CTrace("Delegator#Run", func() error { return err })()
+	defer m.Trace("Delegator#Run", func() error { return err })()
 
 	if err = d.CheckArgs(m); err != nil {
 		return
@@ -173,12 +173,12 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 	// sibkey, and then embed that signature for the delegating key
 	if d.DelegationType == DelegationTypeSibkey {
 		if jw, err = KeyProof(m, *d); err != nil {
-			m.CDebugf("| Failure in intermediate KeyProof()")
+			m.Debug("| Failure in intermediate KeyProof()")
 			return err
 		}
 
 		if d.RevSig, _, _, err = SignJSON(jw, d.NewKey); err != nil {
-			m.CDebugf("| Failure in intermediate SignJson()")
+			m.Debug("| Failure in intermediate SignJson()")
 			return err
 		}
 	}
@@ -188,7 +188,7 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 	}
 
 	if jw, err = KeyProof(m, *d); err != nil {
-		m.CDebugf("| Failure in KeyProof()")
+		m.Debug("| Failure in KeyProof()")
 		return
 	}
 
@@ -200,12 +200,12 @@ func (d *Delegator) SignAndPost(m MetaContext, jw *jsonw.Wrapper) (err error) {
 	var linkid LinkID
 
 	if d.sig, d.sigID, linkid, err = SignJSON(jw, d.GetSigningKey()); err != nil {
-		m.CDebugf("| Failure in SignJson()")
+		m.Debug("| Failure in SignJson()")
 		return err
 	}
 
 	if err = d.post(m); err != nil {
-		m.CDebugf("| Failure in post()")
+		m.Debug("| Failure in post()")
 		return
 	}
 

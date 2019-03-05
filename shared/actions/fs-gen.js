@@ -28,8 +28,6 @@ export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
-export const filePreviewLoad = 'fs:filePreviewLoad'
-export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
@@ -39,6 +37,8 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const journalUpdate = 'fs:journalUpdate'
+export const kbfsDaemonConnected = 'fs:kbfsDaemonConnected'
+export const kbfsDaemonDisconnected = 'fs:kbfsDaemonDisconnected'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadingPath = 'fs:loadingPath'
@@ -58,6 +58,8 @@ export const openPathInFilesTab = 'fs:openPathInFilesTab'
 export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
+export const pathItemLoad = 'fs:pathItemLoad'
+export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
@@ -99,8 +101,6 @@ type _FavoriteIgnoreErrorPayload = $ReadOnly<{|path: Types.Path, error: Types.Fs
 type _FavoriteIgnorePayload = $ReadOnly<{|path: Types.Path|}>
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.Tlf>, public: I.Map<string, Types.Tlf>, team: I.Map<string, Types.Tlf>|}>
-type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path, identifyBehavior?: ?RPCTypes.TLFIdentifyBehavior|}>
-type _FilePreviewLoadedPayload = $ReadOnly<{|path: Types.Path, meta: Types.PathItem|}>
 type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
 type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
@@ -110,6 +110,8 @@ type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
+type _KbfsDaemonConnectedPayload = void
+type _KbfsDaemonDisconnectedPayload = void
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
 type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path|}>
 type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
@@ -129,6 +131,8 @@ type _OpenPathInFilesTabPayload = $ReadOnly<{|path: Types.Path, routePath?: I.Li
 type _OpenPathInSystemFileManagerPayload = $ReadOnly<{|path: Types.Path|}>
 type _OpenPathItemPayload = $ReadOnly<{|path: Types.Path, routePath: I.List<string>|}>
 type _OpenSecurityPreferencesPayload = void
+type _PathItemLoadPayload = $ReadOnly<{|path: Types.Path, identifyBehavior?: ?RPCTypes.TLFIdentifyBehavior, silenceErrors?: ?boolean|}>
+type _PathItemLoadedPayload = $ReadOnly<{|path: Types.Path, meta: Types.PathItem|}>
 type _PickAndUploadPayload = $ReadOnly<{|type: Types.MobilePickType, parentPath: Types.Path|}>
 type _PlaceholderActionPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
@@ -170,8 +174,6 @@ export const createFavoriteIgnore = (payload: _FavoriteIgnorePayload) => ({paylo
 export const createFavoriteIgnoreError = (payload: _FavoriteIgnoreErrorPayload) => ({payload, type: favoriteIgnoreError})
 export const createFavoritesLoad = (payload: _FavoritesLoadPayload) => ({payload, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload) => ({payload, type: favoritesLoaded})
-export const createFilePreviewLoad = (payload: _FilePreviewLoadPayload) => ({payload, type: filePreviewLoad})
-export const createFilePreviewLoaded = (payload: _FilePreviewLoadedPayload) => ({payload, type: filePreviewLoaded})
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({payload, type: folderListLoad})
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({payload, type: folderListLoaded})
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
@@ -181,6 +183,8 @@ export const createInstallFuse = (payload: _InstallFusePayload) => ({payload, ty
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({payload, type: installKBFS})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
+export const createKbfsDaemonConnected = (payload: _KbfsDaemonConnectedPayload) => ({payload, type: kbfsDaemonConnected})
+export const createKbfsDaemonDisconnected = (payload: _KbfsDaemonDisconnectedPayload) => ({payload, type: kbfsDaemonDisconnected})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({payload, type: letResetUserBackIn})
 export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({payload, type: loadPathMetadata})
 export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
@@ -200,6 +204,8 @@ export const createOpenPathInFilesTab = (payload: _OpenPathInFilesTabPayload) =>
 export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({payload, type: openPathInSystemFileManager})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({payload, type: openSecurityPreferences})
+export const createPathItemLoad = (payload: _PathItemLoadPayload) => ({payload, type: pathItemLoad})
+export const createPathItemLoaded = (payload: _PathItemLoadedPayload) => ({payload, type: pathItemLoaded})
 export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({payload, type: pickAndUpload})
 export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => ({payload, type: placeholderAction})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({payload, type: refreshLocalHTTPServerInfo})
@@ -241,8 +247,6 @@ export type FavoriteIgnoreErrorPayload = {|+payload: _FavoriteIgnoreErrorPayload
 export type FavoriteIgnorePayload = {|+payload: _FavoriteIgnorePayload, +type: 'fs:favoriteIgnore'|}
 export type FavoritesLoadPayload = {|+payload: _FavoritesLoadPayload, +type: 'fs:favoritesLoad'|}
 export type FavoritesLoadedPayload = {|+payload: _FavoritesLoadedPayload, +type: 'fs:favoritesLoaded'|}
-export type FilePreviewLoadPayload = {|+payload: _FilePreviewLoadPayload, +type: 'fs:filePreviewLoad'|}
-export type FilePreviewLoadedPayload = {|+payload: _FilePreviewLoadedPayload, +type: 'fs:filePreviewLoaded'|}
 export type FolderListLoadPayload = {|+payload: _FolderListLoadPayload, +type: 'fs:folderListLoad'|}
 export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +type: 'fs:folderListLoaded'|}
 export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
@@ -252,6 +256,8 @@ export type InstallFusePayload = {|+payload: _InstallFusePayload, +type: 'fs:ins
 export type InstallFuseResultPayload = {|+payload: _InstallFuseResultPayload, +type: 'fs:installFuseResult'|}
 export type InstallKBFSPayload = {|+payload: _InstallKBFSPayload, +type: 'fs:installKBFS'|}
 export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
+export type KbfsDaemonConnectedPayload = {|+payload: _KbfsDaemonConnectedPayload, +type: 'fs:kbfsDaemonConnected'|}
+export type KbfsDaemonDisconnectedPayload = {|+payload: _KbfsDaemonDisconnectedPayload, +type: 'fs:kbfsDaemonDisconnected'|}
 export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, +type: 'fs:letResetUserBackIn'|}
 export type LoadPathMetadataPayload = {|+payload: _LoadPathMetadataPayload, +type: 'fs:loadPathMetadata'|}
 export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loadingPath'|}
@@ -271,6 +277,8 @@ export type OpenPathInFilesTabPayload = {|+payload: _OpenPathInFilesTabPayload, 
 export type OpenPathInSystemFileManagerPayload = {|+payload: _OpenPathInSystemFileManagerPayload, +type: 'fs:openPathInSystemFileManager'|}
 export type OpenPathItemPayload = {|+payload: _OpenPathItemPayload, +type: 'fs:openPathItem'|}
 export type OpenSecurityPreferencesPayload = {|+payload: _OpenSecurityPreferencesPayload, +type: 'fs:openSecurityPreferences'|}
+export type PathItemLoadPayload = {|+payload: _PathItemLoadPayload, +type: 'fs:pathItemLoad'|}
+export type PathItemLoadedPayload = {|+payload: _PathItemLoadedPayload, +type: 'fs:pathItemLoaded'|}
 export type PickAndUploadPayload = {|+payload: _PickAndUploadPayload, +type: 'fs:pickAndUpload'|}
 export type PlaceholderActionPayload = {|+payload: _PlaceholderActionPayload, +type: 'fs:placeholderAction'|}
 export type RefreshLocalHTTPServerInfoPayload = {|+payload: _RefreshLocalHTTPServerInfoPayload, +type: 'fs:refreshLocalHTTPServerInfo'|}
@@ -314,8 +322,6 @@ export type Actions =
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
   | FavoritesLoadedPayload
-  | FilePreviewLoadPayload
-  | FilePreviewLoadedPayload
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
@@ -325,6 +331,8 @@ export type Actions =
   | InstallFuseResultPayload
   | InstallKBFSPayload
   | JournalUpdatePayload
+  | KbfsDaemonConnectedPayload
+  | KbfsDaemonDisconnectedPayload
   | LetResetUserBackInPayload
   | LoadPathMetadataPayload
   | LoadingPathPayload
@@ -344,6 +352,8 @@ export type Actions =
   | OpenPathInSystemFileManagerPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
+  | PathItemLoadPayload
+  | PathItemLoadedPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
   | RefreshLocalHTTPServerInfoPayload

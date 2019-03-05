@@ -3,15 +3,20 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import {pluralize} from '../../../../util/string'
 import CoinFlipParticipants from './participants'
+import CoinFlipError from './errors'
+import CoinFlipResult from './results'
 
 export type Props = {|
   commitmentVis: string,
   revealVis: string,
   resultText: string,
-  isError: boolean,
+  errorInfo?: ?RPCChatTypes.UICoinFlipError,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
+  phase: 'commitments' | 'secrets' | 'complete' | 'loading',
   progressText: string,
+  resultInfo?: ?RPCChatTypes.UICoinFlipResult,
   showParticipants: boolean,
 |}
 
@@ -38,65 +43,86 @@ class CoinFlip extends React.Component<Props, State> {
     }, 0)
     return `${revealed} / ${total}`
   }
-  render() {
-    const popup = (
-      <CoinFlipParticipants
-        attachTo={this._getAttachmentRef}
-        onHidden={this._hidePopup}
-        participants={this.props.participants}
-        visible={this.state.showPopup}
-      />
+  _renderStatusText = () =>
+    this.props.showParticipants ? (
+      <Kb.Box2
+        direction="vertical"
+        onMouseOver={this._showPopup}
+        onMouseLeave={this._hidePopup}
+        ref={this._partRef}
+      >
+        {!Styles.isMobile && (
+          <Kb.Text selectable={true} type="BodySmall">
+            Secured by{' '}
+          </Kb.Text>
+        )}
+        <Kb.Text
+          selectable={true}
+          type="BodySmallPrimaryLink"
+          style={styles.participantsLabel}
+          onClick={this._showPopup}
+        >
+          {`${this.props.participants.length} ${pluralize('participant', this.props.participants.length)}`}
+        </Kb.Text>
+        <CoinFlipParticipants
+          attachTo={this._getAttachmentRef}
+          onHidden={this._hidePopup}
+          participants={this.props.participants}
+          visible={this.state.showPopup}
+        />
+      </Kb.Box2>
+    ) : (
+      <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          <Kb.Text selectable={true} type="BodySmallSemibold">
+            {!Styles.isMobile && 'Collecting '}commitments: {this.props.participants.length}
+          </Kb.Text>
+          {this.props.phase === 'secrets' && (
+            <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+          )}
+        </Kb.Box2>
+        {this.props.phase === 'secrets' && (
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+            <Kb.Text selectable={true} type="BodySmallSemibold">
+              {!Styles.isMobile && 'Collecting '}secrets: {this._revealSummary()}
+            </Kb.Text>
+            {this.props.phase === 'complete' && (
+              <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+            )}
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
     )
+  render() {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-        {this.props.isError ? (
-          <Kb.Text style={styles.error} type="BodyItalic">
-            {this.props.progressText}
-          </Kb.Text>
+        {this.props.errorInfo ? (
+          <CoinFlipError error={this.props.errorInfo} />
         ) : (
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            <Kb.Box2 direction="vertical">
-              <Kb.Text type="BodySmall">Commitments: {this.props.participants.length}</Kb.Text>
-              {this.props.commitmentVis.length > 0 ? (
-                <Kb.Image src={commitSrc} style={styles.progressVis} />
-              ) : (
-                <Kb.Box2 direction="vertical" style={styles.progressVis}>
-                  <Kb.Text type="BodyItalic">Starting flip...</Kb.Text>
-                </Kb.Box2>
-              )}
+          <>
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+              <Kb.Box2 direction="vertical">
+                {this.props.commitmentVis.length > 0 ? (
+                  <Kb.Image src={commitSrc} style={styles.progressVis} />
+                ) : (
+                  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.placeholder, styles.progressVis])} />
+                )}
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical">
+                {this.props.revealVis.length > 0 && this.props.phase !== 'commitments' ? (
+                  <Kb.Image src={revealSrc} style={styles.progressVis} />
+                ) : (
+                  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.placeholder, styles.progressVis])} />
+                )}
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical">{this._renderStatusText()}</Kb.Box2>
             </Kb.Box2>
-            <Kb.Box2 direction="vertical">
-              <Kb.Text type="BodySmall">Secrets: {this._revealSummary()}</Kb.Text>
-              {this.props.revealVis.length > 0 ? (
-                <Kb.Image src={revealSrc} style={styles.progressVis} />
-              ) : (
-                <Kb.Box2 direction="vertical" style={styles.progressVis} />
-              )}
-            </Kb.Box2>
-          </Kb.Box2>
+          </>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.Text type="BodySmall">Result</Kb.Text>
-            {this.props.showParticipants && (
-              <Kb.Box2 direction="horizontal" onMouseOver={this._showPopup} onMouseLeave={this._hidePopup}>
-                <Kb.Text
-                  ref={this._partRef}
-                  type="BodySmallPrimaryLink"
-                  style={styles.participantsLabel}
-                  onClick={this._showPopup}
-                >
-                  View Participants
-                </Kb.Text>
-                {popup}
-              </Kb.Box2>
-            )}
-          </Kb.Box2>
-          <Kb.Markdown style={styles.result} allowFontScaling={true}>
-            {this.props.resultText.length > 0 ? this.props.resultText : '???'}
-          </Kb.Markdown>
+          {this.props.resultInfo && <CoinFlipResult result={this.props.resultInfo} />}
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -107,11 +133,10 @@ const styles = Styles.styleSheetCreate({
   container: {
     alignSelf: 'flex-start',
     borderColor: Styles.globalColors.lightGrey,
-    borderRadius: Styles.borderRadius,
+    borderLeftWidth: 4,
     borderStyle: 'solid',
-    borderWidth: 1,
     marginTop: Styles.globalMargins.xtiny,
-    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
   },
   error: {
     color: Styles.globalColors.red,
@@ -121,6 +146,9 @@ const styles = Styles.styleSheetCreate({
       lineHeight: 16,
     },
   }),
+  placeholder: {
+    backgroundColor: Styles.globalColors.lightGrey,
+  },
   progress: Styles.platformStyles({
     isElectron: {
       cursor: 'text',
@@ -128,16 +156,10 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-  progressVis: Styles.platformStyles({
-    isElectron: {
-      height: 50,
-      width: 128,
-    },
-    isMobile: {
-      height: 50,
-      width: 112,
-    },
-  }),
+  progressVis: {
+    height: 40,
+    width: 64,
+  },
   result: Styles.platformStyles({
     common: {
       fontWeight: '600',
@@ -148,6 +170,9 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
+  statusContainer: {
+    paddingTop: Styles.globalMargins.tiny,
+  },
 })
 
 export default CoinFlip

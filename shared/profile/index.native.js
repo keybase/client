@@ -17,7 +17,7 @@ import ShowcasedTeamInfo from './showcased-team-info/container'
 import UserProofs from './user-proofs'
 import UserBio from './user-bio'
 import {stateColors} from '../util/tracker'
-import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
+import {AVATAR_SIZE} from '../constants/profile'
 import flags from '../util/feature-flags'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
@@ -52,7 +52,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
       <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Kb.Box>
     <Kb.Box style={{...Styles.globalStyles.flexBoxRow, marginTop: 4}}>
-      <Kb.Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
+      <Kb.Text style={{color: Styles.globalColors.black_50}} type="BodyPrimaryLink">
         Publish the teams you're in
       </Kb.Text>
     </Kb.Box>
@@ -287,34 +287,6 @@ class Profile extends Component<Props, State> {
             <Kb.Text center={true} type="BodySmallSemibold" style={{color: Styles.globalColors.white}}>
               {proofNotice}
             </Kb.Text>
-          </Kb.Box>
-        )}
-        {!!this.props.addUserToTeamsResults && (
-          <Kb.Box
-            style={{
-              ...Styles.globalStyles.flexBoxRow,
-              alignItems: 'center',
-              backgroundColor: Styles.globalColors.green,
-              justifyContent: 'center',
-              maxWidth: '100%',
-              minHeight: 40,
-              paddingBottom: 8,
-              paddingTop: 8,
-              zIndex: ADD_TO_TEAM_ZINDEX,
-            }}
-          >
-            <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 8}}>
-              <Kb.Text center={true} type="BodySemibold" negative={true}>
-                {this.props.addUserToTeamsResults}
-              </Kb.Text>
-            </Kb.Box>
-            <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: 8}}>
-              <Kb.Icon
-                color={Styles.globalColors.black_50}
-                onClick={this.props.onClearAddUserToTeamsResults}
-                type="iconfont-close"
-              />
-            </Kb.Box>
           </Kb.Box>
         )}
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative'}}>

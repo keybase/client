@@ -39,16 +39,16 @@ func (e *LoginOffline) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	m.CDebugf("LoginOffline success, sending login notification")
+	m.Debug("LoginOffline success, sending login notification")
 	m.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	m.CDebugf("LoginOffline success, calling login hooks")
+	m.Debug("LoginOffline success, calling login hooks")
 	m.G().CallLoginHooks()
 
 	return nil
 }
 
 func (e *LoginOffline) run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("LoginOffline#run", func() error { return err })()
+	defer m.Trace("LoginOffline#run", func() error { return err })()
 	_, err = libkb.BootstrapActiveDeviceFromConfig(m, false)
 	if err != nil {
 		err = libkb.NewLoginRequiredError(err.Error())

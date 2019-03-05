@@ -100,6 +100,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemInviteAccepted',
         'systemSimpleToComplex',
         'systemText',
+        'systemUsersAddedToConversation',
       ]
     case RPCChatTypes.commonMessageType.sendpayment:
       return ['sendPayment']
@@ -124,6 +125,8 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
 export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
   'attachment',
   'deleted',
+  'requestPayment',
+  'sendPayment',
   'setChannelname',
   'setDescription',
   'systemAddedToTeam',
@@ -134,6 +137,7 @@ export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
   'systemLeft',
   'systemSimpleToComplex',
   'systemText',
+  'systemUsersAddedToConversation',
   'text',
   'placeholder',
 ])
@@ -357,6 +361,15 @@ const makeMessageSystemChangeRetention: I.RecordFactory<MessageTypes._MessageSys
     type: 'systemChangeRetention',
     user: '',
     you: '',
+  }
+)
+
+const makeMessageSystemUsersAddedToConversation: I.RecordFactory<MessageTypes._MessageSystemUsersAddedToConversation> = I.Record(
+  {
+    ...makeMessageMinimum,
+    reactions: I.Map(),
+    type: 'systemUsersAddedToConversation',
+    usernames: [],
   }
 )
 
@@ -585,6 +598,16 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         policy: body.changeretention.policy,
         reactions,
         user: body.changeretention.user,
+      })
+    }
+    case RPCChatTypes.localMessageSystemType.bulkaddtoconv: {
+      if (!body.bulkaddtoconv || !body.bulkaddtoconv.usernames) {
+        return null
+      }
+      return makeMessageSystemUsersAddedToConversation({
+        ...minimum,
+        reactions,
+        usernames: body.bulkaddtoconv.usernames,
       })
     }
 

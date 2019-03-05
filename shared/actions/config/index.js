@@ -421,6 +421,35 @@ const newNavigation = (_, action) => {
   n && n.dispatchOldAction(action)
 }
 
+function* criticalOutOfDateCheck() {
+  // check every hour
+  while (true) {
+    try {
+      const s = yield* Saga.callPromise(RPCTypes.configGetUpdateInfo2RpcPromise, {})
+      let status = 'ok'
+      let message = ''
+      switch (s.status) {
+        case RPCTypes.configUpdateInfoStatus2.ok:
+          break
+        case RPCTypes.configUpdateInfoStatus2.suggested:
+          status = 'suggested'
+          message = s.suggested?.message
+          break
+        case RPCTypes.configUpdateInfoStatus2.critical:
+          status = 'critical'
+          message = s.critical?.message
+          break
+        default:
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s.status)
+      }
+      yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
+    } catch (e) {
+      logger.error("Can't call critical check", e)
+    }
+    yield Saga.delay(3600 * 1000) // 1 hr
+  }
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -523,6 +552,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(avatarSaga)
+  yield Saga.spawn(criticalOutOfDateCheck)
 }
 
 export default configSaga

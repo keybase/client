@@ -86,7 +86,7 @@ func (e *Kex2Provisioner) Run(m libkb.MetaContext) error {
 
 	// get current passphrase stream if necessary:
 	if e.pps.PassphraseStream == nil {
-		m.CDebugf("kex2 provisioner needs passphrase stream, getting it via GetPassphraseStreamStored")
+		m.Debug("kex2 provisioner needs passphrase stream, getting it via GetPassphraseStreamStored")
 		pps, err := libkb.GetPassphraseStreamStored(m)
 		if err != nil {
 			return err
@@ -174,7 +174,7 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	// kex2/provisioner interface
 	m := e.mctx
 
-	defer m.CTrace("Kex2Provisioner#GetHelloArg()", func() error { return err })()
+	defer m.Trace("Kex2Provisioner#GetHelloArg()", func() error { return err })()
 
 	m.UIs().ProvisionUI.DisplaySecretExchanged(context.Background(), 0)
 
@@ -207,7 +207,7 @@ func (e *Kex2Provisioner) GetHello2Arg() (arg2 keybase1.Hello2Arg, err error) {
 	// kex2/provisioner interface
 	m := e.mctx
 
-	defer m.CTrace("Kex2Provisioner#GetHello2Arg", func() error { return err })()
+	defer m.Trace("Kex2Provisioner#GetHello2Arg", func() error { return err })()
 
 	var arg1 keybase1.HelloArg
 	arg1, err = e.GetHelloArg()
@@ -227,7 +227,7 @@ func (e *Kex2Provisioner) GetHello2Arg() (arg2 keybase1.Hello2Arg, err error) {
 // CounterSign implements CounterSign in kex2.Provisioner.
 func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err error) {
 	m := e.mctx
-	defer m.CTrace("Kex2Provisioner#CounterSign", func() error { return err })()
+	defer m.Trace("Kex2Provisioner#CounterSign", func() error { return err })()
 
 	jw, err := jsonw.Unmarshal([]byte(input))
 	if err != nil {
@@ -237,10 +237,10 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 	// check the reverse signature and put the values from the provisionee into
 	// e.proof
 	if err = e.checkReverseSig(jw); err != nil {
-		m.CDebugf("provisioner failed to verify reverse sig: %s", err)
+		m.Debug("provisioner failed to verify reverse sig: %s", err)
 		return nil, err
 	}
-	m.CDebugf("provisioner verified reverse sig")
+	m.Debug("provisioner verified reverse sig")
 
 	// remember some device information for ProvisionUI.ProvisionerSuccess()
 	if err = e.rememberDeviceInfo(e.proof); err != nil {
@@ -261,7 +261,7 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 
 	m := e.mctx
 
-	defer m.CTrace("Kex2Provisioner#CounterSign2", func() error { return err })()
+	defer m.Trace("Kex2Provisioner#CounterSign2", func() error { return err })()
 	var key libkb.GenericKey
 	key, err = libkb.ImportKeypairFromKID(input.EncryptionKey)
 	if err != nil {
@@ -300,11 +300,11 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 		userEKBox, ekErr := makeUserEKBoxForProvisionee(m, input.DeviceEkKID)
 		if ekErr != nil {
 			userEKBox = nil
-			m.CDebugf("Unable to makeUserEKBox %v", ekErr)
+			m.Debug("Unable to makeUserEKBox %v", ekErr)
 		}
 		output.UserEkBox = userEKBox
 	} else {
-		m.CDebugf("Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
+		m.Debug("Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
 	}
 
 	return output, nil

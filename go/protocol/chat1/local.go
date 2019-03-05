@@ -209,14 +209,16 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 }
 
 type MessageFlip struct {
-	Text   string     `codec:"text" json:"text"`
-	GameID FlipGameID `codec:"gameID" json:"gameID"`
+	Text       string         `codec:"text" json:"text"`
+	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
+	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
 }
 
 func (o MessageFlip) DeepCopy() MessageFlip {
 	return MessageFlip{
-		Text:   o.Text,
-		GameID: o.GameID.DeepCopy(),
+		Text:       o.Text,
+		GameID:     o.GameID.DeepCopy(),
+		FlipConvID: o.FlipConvID.DeepCopy(),
 	}
 }
 
@@ -230,6 +232,7 @@ const (
 	MessageSystemType_GITPUSH           MessageSystemType = 4
 	MessageSystemType_CHANGEAVATAR      MessageSystemType = 5
 	MessageSystemType_CHANGERETENTION   MessageSystemType = 6
+	MessageSystemType_BULKADDTOCONV     MessageSystemType = 7
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -242,6 +245,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"GITPUSH":           4,
 	"CHANGEAVATAR":      5,
 	"CHANGERETENTION":   6,
+	"BULKADDTOCONV":     7,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -252,6 +256,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	4: "GITPUSH",
 	5: "CHANGEAVATAR",
 	6: "CHANGERETENTION",
+	7: "BULKADDTOCONV",
 }
 
 func (e MessageSystemType) String() string {
@@ -425,6 +430,26 @@ func (o MessageSystemChangeRetention) DeepCopy() MessageSystemChangeRetention {
 	}
 }
 
+type MessageSystemBulkAddToConv struct {
+	Usernames []string `codec:"usernames" json:"usernames"`
+}
+
+func (o MessageSystemBulkAddToConv) DeepCopy() MessageSystemBulkAddToConv {
+	return MessageSystemBulkAddToConv{
+		Usernames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Usernames),
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
@@ -434,6 +459,7 @@ type MessageSystem struct {
 	Gitpush__           *MessageSystemGitPush           `codec:"gitpush,omitempty" json:"gitpush,omitempty"`
 	Changeavatar__      *MessageSystemChangeAvatar      `codec:"changeavatar,omitempty" json:"changeavatar,omitempty"`
 	Changeretention__   *MessageSystemChangeRetention   `codec:"changeretention,omitempty" json:"changeretention,omitempty"`
+	Bulkaddtoconv__     *MessageSystemBulkAddToConv     `codec:"bulkaddtoconv,omitempty" json:"bulkaddtoconv,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -471,6 +497,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_CHANGERETENTION:
 		if o.Changeretention__ == nil {
 			err = errors.New("unexpected nil value for Changeretention__")
+			return ret, err
+		}
+	case MessageSystemType_BULKADDTOCONV:
+		if o.Bulkaddtoconv__ == nil {
+			err = errors.New("unexpected nil value for Bulkaddtoconv__")
 			return ret, err
 		}
 	}
@@ -547,6 +578,16 @@ func (o MessageSystem) Changeretention() (res MessageSystemChangeRetention) {
 	return *o.Changeretention__
 }
 
+func (o MessageSystem) Bulkaddtoconv() (res MessageSystemBulkAddToConv) {
+	if o.SystemType__ != MessageSystemType_BULKADDTOCONV {
+		panic("wrong case accessed")
+	}
+	if o.Bulkaddtoconv__ == nil {
+		return
+	}
+	return *o.Bulkaddtoconv__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -593,6 +634,13 @@ func NewMessageSystemWithChangeretention(v MessageSystemChangeRetention) Message
 	return MessageSystem{
 		SystemType__:      MessageSystemType_CHANGERETENTION,
 		Changeretention__: &v,
+	}
+}
+
+func NewMessageSystemWithBulkaddtoconv(v MessageSystemBulkAddToConv) MessageSystem {
+	return MessageSystem{
+		SystemType__:    MessageSystemType_BULKADDTOCONV,
+		Bulkaddtoconv__: &v,
 	}
 }
 
@@ -648,6 +696,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Changeretention__),
+		Bulkaddtoconv__: (func(x *MessageSystemBulkAddToConv) *MessageSystemBulkAddToConv {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Bulkaddtoconv__),
 	}
 }
 
@@ -5181,6 +5236,11 @@ type ToggleMessageCollapseArg struct {
 	Collapse bool           `codec:"collapse" json:"collapse"`
 }
 
+type BulkAddToConvArg struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Usernames []string       `codec:"usernames" json:"usernames"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5247,6 +5307,7 @@ type LocalInterface interface {
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
+	BulkAddToConv(context.Context, BulkAddToConvArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6208,6 +6269,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"bulkAddToConv": {
+				MakeArg: func() interface{} {
+					var ret [1]BulkAddToConvArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BulkAddToConvArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BulkAddToConvArg)(nil), args)
+						return
+					}
+					err = i.BulkAddToConv(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -6548,5 +6624,10 @@ func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSet
 
 func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMessageCollapseArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.toggleMessageCollapse", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil)
 	return
 }

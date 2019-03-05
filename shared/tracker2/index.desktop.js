@@ -161,6 +161,8 @@ const Tracker = (props: Props) => {
               <Kb.ConnectedNameWithIcon
                 onClick="profile"
                 username={props.username}
+                underline={false}
+                selectable={true}
                 colorFollowing={true}
                 notFollowingColorOverride={Styles.globalColors.orange}
               />

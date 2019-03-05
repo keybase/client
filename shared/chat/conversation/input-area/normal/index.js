@@ -11,6 +11,7 @@ import {type InputProps} from './types'
 import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
+import Giphy from '../../giphy/container'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -59,7 +60,8 @@ const suggestorKeyExtractors = {
   users: ({username, fullName}: {username: string, fullName: string}) => username,
 }
 
-const emojiPrepass = /[a-z0-9]/i
+// 2+ valid emoji chars and no ending colon
+const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const emojiDatasource = (filter: string) => (emojiPrepass.test(filter) ? emojiIndex.search(filter) : [])
 const emojiRenderer = (item, selected: boolean) => (
   <Kb.Box2
@@ -144,7 +146,7 @@ class Input extends React.Component<InputProps, InputState> {
     // skip debouncing unsentText if so
     let skipDebounce = false
     if (text.length <= this._maxCmdLength) {
-      skipDebounce = !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === text)
+      skipDebounce = !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === text.trim())
     }
     if (skipDebounce) {
       debounced.cancel()
@@ -248,7 +250,7 @@ class Input extends React.Component<InputProps, InputState> {
   _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
 
   _getCommandSuggestions = filter => {
-    if (this.props.showCommandMarkdown) {
+    if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
       return []
     }
     const sel = this._input && this._input.getSelection()
@@ -367,6 +369,7 @@ class Input extends React.Component<InputProps, InputState> {
         {this.props.showCommandMarkdown && (
           <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
         )}
+        {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <PlatformInput
           {...platformInputProps}
           dataSources={this._suggestorDatasource}

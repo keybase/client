@@ -681,7 +681,7 @@ type SystemMessageUIDSource interface {
 func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
 	typ, err := body.SystemType()
 	if err != nil {
-		return atMentions, chanMention
+		return nil, 0
 	}
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
@@ -700,6 +700,13 @@ func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak S
 		}
 	case chat1.MessageSystemType_COMPLEXTEAM:
 		chanMention = chat1.ChannelMention_ALL
+	case chat1.MessageSystemType_BULKADDTOCONV:
+		for _, username := range body.Bulkaddtoconv().Usernames {
+			uid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(username))
+			if err == nil {
+				atMentions = append(atMentions, uid.ToBytes())
+			}
+		}
 	}
 	sort.Sort(chat1.ByUID(atMentions))
 	return atMentions, chanMention
@@ -851,27 +858,6 @@ func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (ch
 	return chat1.MessageSummary{}, errors.New("not found")
 }
 
-func systemMessageSnippet(msg chat1.MessageSystem) string {
-	typ, err := msg.SystemType()
-	if err != nil {
-		return ""
-	}
-	switch typ {
-	case chat1.MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("%s added to team", msg.Addedtoteam().Addee)
-	case chat1.MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf("%s converted to big team", msg.Complexteam().Team)
-	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("%s added to team", msg.Inviteaddedtoteam().Invitee)
-	case chat1.MessageSystemType_GITPUSH:
-		return fmt.Sprintf("%s pushed to %s", msg.Gitpush().Pusher, msg.Gitpush().RepoName)
-	case chat1.MessageSystemType_CHANGEAVATAR:
-		return fmt.Sprintf("%s changed team avatar", msg.Changeavatar().User)
-	default:
-		return ""
-	}
-}
-
 func showSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal) (showPrefix bool) {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
@@ -941,7 +927,7 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		}
 		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
-		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
+		return msg.Valid().MessageBody.System().String(), decoration
 	case chat1.MessageType_REQUESTPAYMENT:
 		return "🚀 payment request", ""
 	case chat1.MessageType_SENDPAYMENT:
@@ -1364,7 +1350,8 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	}
 	if msg.GetTopicType() == chat1.TopicType_CHAT {
 		// only queue up a flip load for the flip messages in chat channels
-		g.CoinFlipManager.LoadFlip(ctx, uid, convID, body.Flip().GameID)
+		g.CoinFlipManager.LoadFlip(ctx, uid, convID, msg.GetMessageID(), body.Flip().FlipConvID,
+			body.Flip().GameID)
 	}
 	ret := body.Flip().GameID.String()
 	return &ret

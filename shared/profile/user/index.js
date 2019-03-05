@@ -92,6 +92,8 @@ const BioLayout = p => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
       username={p.username}
+      underline={false}
+      selectable={true}
       colorFollowing={true}
       notFollowingColorOverride={Styles.globalColors.orange}
       editableIcon={!!p.onEditAvatar}

@@ -42,7 +42,7 @@ func (s *SeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, erro
 		return 0, err
 	}
 
-	s.mctx.CDebugf("SeqnoProvider.SequenceForAccount(%s) -> %d", aid, seqno)
+	s.mctx.Debug("SeqnoProvider.SequenceForAccount(%s) -> %d", aid, seqno)
 
 	return xdr.SequenceNumber(seqno), nil
 }
