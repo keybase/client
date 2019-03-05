@@ -209,7 +209,8 @@ func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 
 	for _, team := range localTeams {
 		keys, keyGen, err := c.GetTeamTLFCryptKeys(
-			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen)
+			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen,
+			keybase1.OfflineAvailability_NONE)
 		if err != nil {
 			t.Error(err)
 		}

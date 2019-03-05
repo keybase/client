@@ -1162,7 +1162,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	updates = make(map[BlockPointer]BlockPointer)
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fup.config.KBPKI(), fup.config.KBPKI(), md.GetTlfHandle())
+		ctx, fup.config.KBPKI(), fup.config.KBPKI(), fup.config,
+		md.GetTlfHandle())
 	if err != nil {
 		return nil, nil, err
 	}

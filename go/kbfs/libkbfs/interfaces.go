@@ -701,10 +701,17 @@ type KeybaseService interface {
 	// `desiredRole` to force a server check if that particular UID
 	// isn't a member of the team yet according to local caches; it
 	// may be set to "" if no server check is required.
+	//
+	// If the caller knows that the team needs to be loadable while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `LoadTeamPlusKeys` might block on a
+	// network call.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
 		tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
 		desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
-		desiredRole keybase1.TeamRole) (TeamInfo, error)
+		desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
+		TeamInfo, error)
 
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
@@ -864,21 +871,42 @@ type CurrentSessionGetter interface {
 type teamMembershipChecker interface {
 	// IsTeamWriter is a copy of
 	// kbfsmd.TeamMembershipChecker.IsTeamWriter.
-	IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
-		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
+	//
+	// If the caller knows that the writership needs to be checked
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `IsTeamWriter` might block on a network
+	// call.
+	IsTeamWriter(
+		ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+		verifyingKey kbfscrypto.VerifyingKey,
+		offline keybase1.OfflineAvailability) (bool, error)
 	// NoLongerTeamWriter returns the global Merkle root of the
 	// most-recent time the given user (with the given device key,
 	// which implies an eldest seqno) transitioned from being a writer
 	// to not being a writer on the given team.  If the user was never
 	// a writer of the team, it returns an error.
+	//
+	// If the caller knows that the writership needs to be checked
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `NoLongerTeamWriter` might block on a
+	// network call.
 	NoLongerTeamWriter(
 		ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
-		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
-		keybase1.MerkleRootV2, error)
+		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
+		offline keybase1.OfflineAvailability) (keybase1.MerkleRootV2, error)
 	// IsTeamReader is a copy of
 	// kbfsmd.TeamMembershipChecker.IsTeamWriter.
-	IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
-		bool, error)
+	//
+	// If the caller knows that the readership needs to be checked
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `IsTeamReader` might block on a
+	// network call.
+	IsTeamReader(
+		ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+		offline keybase1.OfflineAvailability) (bool, error)
 }
 
 type teamKeysGetter interface {
@@ -887,16 +915,29 @@ type teamKeysGetter interface {
 	// team.  The caller can specify `desiredKeyGen` to force a server
 	// check if that particular key gen isn't yet known; it may be set
 	// to UnspecifiedKeyGen if no server check is required.
+	//
+	// If the caller knows that the keys need to be retrieved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetTeamTLFCryptKeys` might block on a
+	// network call.
 	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID,
-		desiredKeyGen kbfsmd.KeyGen) (
+		desiredKeyGen kbfsmd.KeyGen, offline keybase1.OfflineAvailability) (
 		map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error)
 }
 
 type teamRootIDGetter interface {
 	// GetTeamRootID returns the root team ID for the given (sub)team
 	// ID.
-	GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
-		keybase1.TeamID, error)
+	//
+	// If the caller knows that the root needs to be retrieved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetTeamRootID` might block on a network
+	// call.
+	GetTeamRootID(
+		ctx context.Context, tid keybase1.TeamID,
+		offline keybase1.OfflineAvailability) (keybase1.TeamID, error)
 }
 
 // KBPKI interacts with the Keybase daemon to fetch user info.
@@ -981,8 +1022,8 @@ type KeyMetadata interface {
 	// right now.
 	IsWriter(
 		ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
-		bool, error)
+		osg OfflineStatusGetter, uid keybase1.UID,
+		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
 
 	// HasKeyForUser returns whether or not the given user has
 	// keys for at least one device. Returns an error if the TLF
