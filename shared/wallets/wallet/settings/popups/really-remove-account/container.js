@@ -6,6 +6,7 @@ import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
+import flags from '../../../../../util/feature-flags'
 
 type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
 
@@ -28,12 +29,16 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
     dispatch(navigateUp())
   },
   _onCopyKey: (secretKey: string) => dispatch(ConfigGen.createCopyToClipboard({text: secretKey})),
-  _onFinish: (accountID: Types.AccountID) =>
+  _onFinish: (accountID: Types.AccountID) => {
     dispatch(
       WalletsGen.createDeleteAccount({
         accountID,
       })
-    ),
+    )
+    if (flags.useNewRouter) {
+      dispatch(navigateUp())
+    }
+  },
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
 })
 
