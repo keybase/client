@@ -1034,28 +1034,31 @@ func (m *FlipManager) recordConvParticipation(ctx context.Context, convID chat1.
 }
 
 func (m *FlipManager) rebuildActiveGame(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	hostConvID chat1.ConversationID, curMsgID chat1.MessageID, gameID chat1.FlipGameID, text string) error {
+	hostConvID chat1.ConversationID, curMsgID chat1.MessageID, gameID chat1.FlipGameID) error {
 	if m.dealer.IsGameActive(ctx, convID, gameID) || m.isStartMsgID(curMsgID) {
 		// if the game is active (or the message is a start message), then we don't need to rebuild anything,
 		// just keep going
 		return nil
 	}
+	m.Debug(ctx, "rebuildActiveGame: unknown game in conv: %s gameID: %s", convID, gameID)
 	// Otherwise, grab the thread and inject everything that has happened so far
-	tv, err := m.G().ConvSource.PullFull(ctx, convID, uid, chat1.GetThreadReason_COINFLIP,
-		&chat1.GetThreadQuery{
-			MessageTypes: []chat1.MessageType{chat1.MessageType_FLIP},
-		}, nil)
+	tv, err := m.G().ConvSource.PullFull(ctx, convID, uid, chat1.GetThreadReason_COINFLIP, nil, nil)
 	if err != nil {
 		return err
 	}
-	for _, msg := range tv.Messages {
-		if m.isHostMessageInfoMsgID(msg.GetMessageID()) {
-			continue
-		}
+	m.Debug(ctx, "rebuildActiveGame: got %d messages, injecting...", len(tv.Messages))
+	for i := len(tv.Messages) - 3; i >= 0; i-- {
+		msg := tv.Messages[i]
 		if msg.GetMessageID() >= curMsgID {
+			m.Debug(ctx, "rebuildActiveGame: reached current msgID, finishing...")
 			return nil
 		}
 		if !msg.IsValid() {
+			m.Debug(ctx, "rebuildActiveGame: skipping invalid message: %d", msg.GetMessageID())
+			continue
+		}
+		body := msg.Valid().MessageBody
+		if !body.IsType(chat1.MessageType_FLIP) {
 			continue
 		}
 		sender := flip.UserDevice{
@@ -1064,7 +1067,7 @@ func (m *FlipManager) rebuildActiveGame(ctx context.Context, uid gregor1.UID, co
 		}
 		m.recordConvParticipation(ctx, hostConvID) // record the inject for rate limiting purposes
 		if err := m.dealer.InjectIncomingChat(ctx, sender, convID, gameID,
-			flip.MakeGameMessageEncoded(text), m.isStartMsgID(msg.GetMessageID())); err != nil {
+			flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 			m.Debug(ctx, "rebuildActiveGame: failed to inject: %s", err)
 		}
 	}
@@ -1124,8 +1127,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		return true
 	}
 	// Check to see if the game is unknown, and if so, then rebuild and see what we can do
-	if err := m.rebuildActiveGame(ctx, uid, convID, hmi.ConvID, msg.GetMessageID(), body.Flip().GameID,
-		body.Flip().Text); err != nil {
+	if err := m.rebuildActiveGame(ctx, uid, convID, hmi.ConvID, msg.GetMessageID(), body.Flip().GameID); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to rebuild non-active game: %s", err)
 	}
 	m.recordConvParticipation(ctx, hmi.ConvID) // record the inject for rate limiting purposes
