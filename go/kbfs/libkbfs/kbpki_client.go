@@ -95,9 +95,10 @@ func (k *KBPKIClient) ResolveImplicitTeamByID(
 
 // ResolveTeamTLFID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveTeamTLFID(
-	ctx context.Context, teamID keybase1.TeamID) (tlf.ID, error) {
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (tlf.ID, error) {
 	settings, err := k.serviceOwner.KeybaseService().GetTeamSettings(
-		ctx, teamID)
+		ctx, teamID, offline)
 	if err != nil {
 		return tlf.NullID, err
 	}

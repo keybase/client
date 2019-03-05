@@ -1297,6 +1297,17 @@ func (d *offlineResolveCounterKBPKI) Resolve(
 	return d.KBPKI.Resolve(ctx, assertion, offline)
 }
 
+func (d *offlineResolveCounterKBPKI) ResolveTeamTLFID(
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (tlf.ID, error) {
+	if offline == keybase1.OfflineAvailability_BEST_EFFORT {
+		d.lock.Lock()
+		d.bestEffortOfflineCounts[teamID.String()]++
+		d.lock.Unlock()
+	}
+	return d.KBPKI.ResolveTeamTLFID(ctx, teamID, offline)
+}
+
 type testOfflineStatusPathsGetter struct {
 	bestEffortPaths map[string]bool
 }
@@ -1428,16 +1439,26 @@ func TestParseTlfHandleOfflineAvailability(t *testing.T) {
 
 	t.Log("Check synced team TLF")
 	osg.bestEffortPaths["/keybase/team/u1u2u3"] = true
-	_, err = ParseTlfHandle(ctx, kbpki, nil, osg, "u1u2u3", tlf.SingleTeam)
+	tlfID1 := tlf.FakeID(1, tlf.SingleTeam)
+	err = daemon.CreateTeamTLF(ctx, localTeams[0].TID, tlfID1)
+	require.NoError(t, err)
+	_, err = ParseTlfHandle(
+		ctx, kbpki, constIDGetter{tlfID1}, osg, "u1u2u3", tlf.SingleTeam)
 	assert.NoError(t, err)
 	require.Equal(t, 1, kbpki.bestEffortOfflineCounts["team:u1u2u3"])
 	require.Equal(t, 7, kbpki.bestEffortOfflineCounts["u1"])
 	require.Equal(t, 2, kbpki.bestEffortOfflineCounts["u2@twitter"])
 	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u2"])
 	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u3"])
+	require.Equal(
+		t, 1, kbpki.bestEffortOfflineCounts[localTeams[0].TID.String()])
 
 	t.Log("Check unsynced team TLF")
-	_, err = ParseTlfHandle(ctx, kbpki, nil, osg, "u3u2u1", tlf.SingleTeam)
+	tlfID2 := tlf.FakeID(2, tlf.SingleTeam)
+	err = daemon.CreateTeamTLF(ctx, localTeams[1].TID, tlfID2)
+	require.NoError(t, err)
+	_, err = ParseTlfHandle(
+		ctx, kbpki, constIDGetter{tlfID2}, osg, "u3u2u1", tlf.SingleTeam)
 	assert.NoError(t, err)
 	require.Equal(t, 1, kbpki.bestEffortOfflineCounts["team:u1u2u3"])
 	require.Equal(t, 0, kbpki.bestEffortOfflineCounts["team:u3u2u1"])

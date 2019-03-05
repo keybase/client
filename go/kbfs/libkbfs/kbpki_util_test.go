@@ -66,6 +66,20 @@ func (d *daemonKBPKI) GetNormalizedUsername(
 	return userInfo.Name, nil
 }
 
+func (d *daemonKBPKI) ResolveTeamTLFID(
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (tlf.ID, error) {
+	settings, err := d.daemon.GetTeamSettings(ctx, teamID, offline)
+	if err != nil {
+		return tlf.NullID, err
+	}
+	tlfID, err := tlf.ParseID(settings.TlfID.String())
+	if err != nil {
+		return tlf.NullID, err
+	}
+	return tlfID, nil
+}
+
 // interposeDaemonKBPKI replaces the existing (mock) KBPKI with a
 // daemonKBPKI that handles all the username-related calls.
 //
