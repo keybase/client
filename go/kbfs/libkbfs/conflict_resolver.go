@@ -59,6 +59,8 @@ const (
 	maxConflictResolutionAttempts = 10
 )
 
+// ErrTooManyCRAttempts is an error that indicates that CR has failed
+// too many times, and it being stopped.
 var ErrTooManyCRAttempts = errors.New(
 	"too many attempts at conflict resolution on this TLF")
 
