@@ -120,11 +120,9 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
 
 const styles = Styles.styleSheetCreate({
   bordered: {
-    // alignSelf: 'flex-start',
     borderColor: Styles.globalColors.lightGrey,
     borderLeftWidth: 4,
     borderStyle: 'solid',
-    // marginTop: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
   },
   error: {
