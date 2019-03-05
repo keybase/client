@@ -670,8 +670,15 @@ type KeybaseService interface {
 		ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error
 
 	// GetTeamSettings returns the KBFS settings for the given team.
-	GetTeamSettings(ctx context.Context, teamID keybase1.TeamID) (
-		keybase1.KBFSTeamSettings, error)
+	//
+	// If the caller knows that the settings needs to be readable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetTeamSettings` might block on a
+	// network call.
+	GetTeamSettings(
+		ctx context.Context, teamID keybase1.TeamID,
+		offline keybase1.OfflineAvailability) (keybase1.KBFSTeamSettings, error)
 
 	// LoadUserPlusKeys returns a UserInfo struct for a
 	// user with the specified UID.
@@ -797,8 +804,15 @@ type resolver interface {
 	// ResolveTeamTLFID returns the TLF ID associated with a given
 	// team ID, or tlf.NullID if no ID is yet associated with that
 	// team.
-	ResolveTeamTLFID(ctx context.Context, teamID keybase1.TeamID) (
-		tlf.ID, error)
+	//
+	// If the caller knows that the ID needs to be resolved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `ResolveTeamTLFID` might block on a
+	// network call.
+	ResolveTeamTLFID(
+		ctx context.Context, teamID keybase1.TeamID,
+		offline keybase1.OfflineAvailability) (tlf.ID, error)
 	// NormalizeSocialAssertion creates a SocialAssertion from its input and
 	// normalizes it.  The service name will be lowercased.  If the service is
 	// case-insensitive, then the username will also be lowercased.  Colon

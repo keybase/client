@@ -496,7 +496,8 @@ func (k *KeybaseDaemonLocal) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	_ keybase1.OfflineAvailability) (
 	settings keybase1.KBFSTeamSettings, err error) {
 	if err := checkContext(ctx); err != nil {
 		return keybase1.KBFSTeamSettings{}, err
