@@ -13,7 +13,6 @@ export type Props = {|
   revealVis: string,
   resultText: string,
   errorInfo?: ?RPCChatTypes.UICoinFlipError,
-  howThisWorksURL: string,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
   phase: 'commitments' | 'secrets' | 'complete' | 'loading',
   progressText: string,
@@ -67,7 +66,6 @@ class CoinFlip extends React.Component<Props, State> {
         </Kb.Text>
         <CoinFlipParticipants
           attachTo={this._getAttachmentRef}
-          howThisWorksURL={this.props.howThisWorksURL}
           onHidden={this._hidePopup}
           participants={this.props.participants}
           visible={this.state.showPopup}

@@ -6,7 +6,6 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
-  howThisWorksURL: string,
   onHidden: () => void,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
   visible: boolean,
@@ -40,7 +39,7 @@ const CoinFlipParticipants = (props: Props) => {
         </Kb.ScrollView>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" style={styles.footer} centerChildren={true}>
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL={props.howThisWorksURL}>How This Works</Kb.Text>
+          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/coin-flip">How This Works</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     ),

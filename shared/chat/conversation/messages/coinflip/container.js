@@ -36,9 +36,6 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   (d, o) => ({}),
-  (s, d, o) => ({
-    ...s,
-    howThisWorksURL: 'https://keybase.io/coin-flip',
-  }),
+  (s, d, o) => ({...s}),
   'CoinFlip'
 )(CoinFlip)

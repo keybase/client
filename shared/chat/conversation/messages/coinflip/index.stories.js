@@ -13,8 +13,6 @@ const commitmentVis =
 const revealVis =
   'iVBORw0KGgoAAAANSUhEUgAAAQAAAABkCAIAAADmAnnJAAACV0lEQVR4nOzdPWtfBRyG4SgBEVFQNBhURB1cFFHRwUVw9QM4OLiJ+K1E3DXq4qaI4uQgiEF8KV06tJRCl1JKupf/Q+l8X9f4nCEhOTdn/B1ffHd02NnYnxj7+dg/HvtPY/9z7O+N/cWxXx3782P/b+y3xn469tfG/vXY/xj7G2N/ZOwPj/1k7E+O/ZuxPzP2G2P/aOz/j339358b+0tjf3TsXxye158NEgRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkHZ89OV4sg5brAME18e+DkC8cJ/f7F6Pjf3fsV8b+6Wxvzn2H8f+/th/G/uHY3917FfGvg5//DP2z8f+89hfHvvfY39r7Bdj/33sH4x9vSffjv3dsb9zePYFIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIO2hi7Px5PbYj8e+LsFcHvvTYz8d+ysP+HN/HftnY/9q7DfH/vbY18WXp8a+LtasizjnYz8Z+19jf33sP4z9k7F/P/Z1MejZsT8+9l/Gvt7PT8d+5/DsC0CaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDS7gYAAP//uv4yGmIckmcAAAAASUVORK5CYII='
 
-const howThisWorksURL = 'https://keybase.io/coin-flip'
-
 const parts = [
   {
     commitment: '',
@@ -48,7 +46,6 @@ const parts = [
 
 const gathering = {
   commitmentVis: '',
-  howThisWorksURL,
   participants: [],
   phase: 'commitments',
   progressText: 'Gathering commitments...',
@@ -59,7 +56,6 @@ const gathering = {
 
 const partialGather = {
   commitmentVis,
-  howThisWorksURL,
   participants: parts.slice(0, 2),
   phase: 'commitments',
   progressText: 'Gathered 2 commitments...',
@@ -70,7 +66,6 @@ const partialGather = {
 
 const result = {
   commitmentVis,
-  howThisWorksURL,
   participants: parts,
   phase: 'complete',
   progressText: '2 participants have revealed secrets...',
@@ -85,7 +80,6 @@ const error = {
     generic: 'Something went wrong: Somebody pulled the plug',
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.generic,
   },
-  howThisWorksURL,
   participants: [],
   phase: 'complete',
   progressText: 'Something went wrong: Somebody pulled the plug',
@@ -115,7 +109,6 @@ const absenteeError = {
     },
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee,
   },
-  howThisWorksURL,
   participants: [],
   phase: 'complete',
   progressText: 'Something went wrong: Somebody pulled the plug',
@@ -126,7 +119,6 @@ const absenteeError = {
 
 const participantProps = {
   attachTo: Sb.action('mocked'),
-  howThisWorksURL,
   onHidden: Sb.action('onHidden'),
   participants: parts,
   visible: true,
