@@ -174,6 +174,8 @@ func (p *Prove) doWarnings(m libkb.MetaContext) (err error) {
 		arg := keybase1.PreProofWarningArg{Text: mu.Export()}
 		if ok, err = m.UIs().ProveUI.PreProofWarning(m.Ctx(), arg); err == nil && !ok {
 			err = libkb.NotConfirmedError{}
+		}
+		if err != nil {
 			return err
 		}
 	}
