@@ -138,11 +138,12 @@ type FlipManager struct {
 	cardMap        map[string]int
 	cardReverseMap map[int]string
 
-	gamesMu    sync.Mutex
-	games      *lru.Cache
-	dirtyGames map[string]chat1.FlipGameID
-	flipConvs  *lru.Cache
-	gameMsgIDs *lru.Cache
+	gamesMu       sync.Mutex
+	games         *lru.Cache
+	dirtyGames    map[string]chat1.FlipGameID
+	flipConvs     *lru.Cache
+	gameMsgIDs    *lru.Cache
+	injectLockTab *libkb.LockTable
 
 	partMu                     sync.Mutex
 	maxConvParticipations      int
@@ -174,6 +175,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		cardReverseMap:             make(map[int]string),
 		flipConvs:                  flipConvs,
 		gameMsgIDs:                 gameMsgIDs,
+		injectLockTab:              &libkb.LockTable{},
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -1056,6 +1058,7 @@ func (m *FlipManager) injectIncomingChat(ctx context.Context, uid gregor1.UID,
 	}
 	m.recordConvParticipation(ctx, hostConvID) // record the inject for rate limiting purposes
 	m.gameMsgIDs.Add(gameID.String(), msg.GetMessageID())
+	m.Debug(ctx, "injectIncomingChat: injecting: gameID: %s msgID: %d", gameID, msg.GetMessageID())
 	return m.dealer.InjectIncomingChat(ctx, sender, convID, gameID,
 		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID()))
 }
@@ -1120,12 +1123,9 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.isHostMessageInfoMsgID(boxedMsg.GetMessageID()) {
 		return false
 	}
-	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", convID)()
-	if err := m.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
-		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get conv lock, bailing: %s", err)
-		return true
-	}
-	defer m.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
+	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: uid: %s convID: %s", uid, convID)()
+	lock := m.injectLockTab.AcquireOnName(ctx, m.G(), convID.String())
+	defer lock.Release(ctx)
 
 	// Update inbox for this guy
 	if err := m.G().InboxSource.UpdateInboxVersion(ctx, uid, inboxVers); err != nil {
