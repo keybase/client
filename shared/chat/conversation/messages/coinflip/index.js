@@ -97,7 +97,7 @@ class CoinFlip extends React.Component<Props, State> {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+      <Kb.Box2 direction="vertical" style={Styles.collapseStyles([!this.props.errorInfo && styles.container])} fullWidth={true} gap="tiny">
         {this.props.errorInfo ? (
           <CoinFlipError error={this.props.errorInfo} />
         ) : (
