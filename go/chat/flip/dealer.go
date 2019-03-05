@@ -488,8 +488,10 @@ func (g *Game) handleTimerEvent(ctx context.Context) error {
 		return g.completeCommitments(ctx)
 	}
 
-	if g.stageForTimeout == Stage_ROUND2 {
-		return AbsenteesError{Absentees: g.absentees()}
+	absentees := g.absentees()
+
+	if g.stageForTimeout == Stage_ROUND2 && len(absentees) > 0 {
+		return AbsenteesError{Absentees: absentees}
 	}
 
 	return TimeoutError{G: g.md, Stage: g.stageForTimeout}
