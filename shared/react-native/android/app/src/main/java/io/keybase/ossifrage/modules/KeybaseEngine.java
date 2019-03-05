@@ -34,9 +34,21 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
+    private static final String RPC_META_EVENT_NAME = "META_RPC";
+    private static final String RPC_META_EVENT_ENGINE_RESET = "ENGINE_RESET";
     private ExecutorService executor;
     private Boolean started = false;
     private ReactApplicationContext reactContext;
+
+    private static void relayReset(ReactApplicationContext reactContext) {
+        if (!reactContext.hasActiveCatalystInstance()) {
+            NativeLogger.info(NAME + ": JS Bridge is dead, Can't send EOF message");
+        } else {
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(KeybaseEngine.RPC_META_EVENT_NAME, KeybaseEngine.RPC_META_EVENT_ENGINE_RESET);
+        }
+    }
 
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
@@ -59,7 +71,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                           .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                           .emit(KeybaseEngine.RPC_EVENT_NAME, data);
               } catch (Exception e) {
-                  NativeLogger.error("Exception in ReadFromKBLib.run", e);
+                if (e.getMessage().equals("Read error: EOF")) {
+                    NativeLogger.info("Got EOF from read. Likely because of reset.");
+                } else {
+                    NativeLogger.error("Exception in ReadFromKBLib.run", e);
+                }
               }
           } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
         }
@@ -94,6 +110,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         try {
             executor.shutdownNow();
             Keybase.reset();
+            relayReset(reactContext);
             // We often hit this timeout during app resume, e.g. hit the back
             // button to go to home screen and then tap Keybase app icon again.
             if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
@@ -159,6 +176,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
+        constants.put("metaEventName", RPC_META_EVENT_NAME);
+        constants.put("metaEventEngineReset", RPC_META_EVENT_ENGINE_RESET);
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
         constants.put("version", version());
@@ -180,6 +199,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void reset() {
       try {
           Keybase.reset();
+          relayReset(reactContext);
       } catch (Exception e) {
           NativeLogger.error("Exception in KeybaseEngine.reset", e);
       }

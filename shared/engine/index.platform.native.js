@@ -14,6 +14,8 @@ import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} fro
 const nativeBridge: {
   runWithData: string => void,
   eventName: string,
+  metaEventName: string,
+  metaEventEngineReset: string,
   start: () => void,
   reset: () => void,
 } = NativeModules.KeybaseEngine
@@ -87,6 +89,13 @@ function createClient(
     const ret = client.transport.packetize_data(buffer)
     measureStop(measureName)
     return ret
+  })
+
+  RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
+    switch (payload) {
+      case nativeBridge.metaEventEngineReset:
+        connectCallback()
+    }
   })
 
   return client
