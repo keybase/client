@@ -1183,10 +1183,15 @@ func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) {
 	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
-	_, ok := m.games.Get(gameID.String())
+	stored, ok := m.games.Get(gameID.String())
 	if ok {
-		m.queueDirtyGameID(gameID, true)
-		return
+		switch stored.(chat1.UICoinFlipStatus).Phase {
+		case chat1.UICoinFlipPhase_ERROR:
+			// do nothing here, just replay if we are storing an error
+		default:
+			m.queueDirtyGameID(gameID, true)
+			return
+		}
 	}
 	// If we miss the in-memory game storage, attempt to replay the game
 	job := loadGameJob{
