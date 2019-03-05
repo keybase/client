@@ -458,6 +458,10 @@
         {
           "name": "pollForKID",
           "type": "KID"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "UserPlusKeysV2AllIncarnations"

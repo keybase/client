@@ -97,6 +97,8 @@ func TestRPCs(t *testing.T) {
 	testConfig(t, tc2.G)
 	stage("testResolve3Offline")
 	testResolve3Offline(t, tc2.G, &fcm)
+	stage("testLoadUserPlusKeysV2Offline")
+	testLoadUserPlusKeysV2Offline(t, tc2.G, &fcm)
 	stage("testGetUpdateInfo2")
 	testGetUpdateInfo2(t, tc2.G)
 
@@ -219,6 +221,47 @@ func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
 			t.Fatalf("unknown key in response: %s", key.KID)
 		}
 	}
+}
+
+func testLoadUserPlusKeysV2Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnectivityMonitor) {
+	cli, err := client.GetUserClient(g)
+	require.NoError(t, err)
+
+	kid := keybase1.KID("012012a40a6b77a9de5e48922262870565900f5689e179761ea8c8debaa586bfd0090a")
+	uid := keybase1.UID("359c7644857203be38bfd3bf79bf1819")
+
+	fetch := func() {
+		arg := keybase1.LoadUserPlusKeysV2Arg{
+			Uid:        uid,
+			PollForKID: kid,
+			Oa:         keybase1.OfflineAvailability_BEST_EFFORT,
+		}
+		frank, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
+		require.NoError(t, err)
+		require.NotNil(t, frank)
+		require.Equal(t, len(frank.PastIncarnations), 0)
+		require.Equal(t, frank.Current.Username, "t_frank")
+		_, found := frank.Current.DeviceKeys[kid]
+		require.True(t, found)
+		require.Nil(t, frank.Current.Reset)
+	}
+	fetchFail := func(expectedError error) {
+		arg := keybase1.LoadUserPlusKeysV2Arg{
+			Uid: "00000000000000000000000000000000",
+			Oa:  keybase1.OfflineAvailability_BEST_EFFORT,
+		}
+		_, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
+		require.Error(t, err)
+		require.IsType(t, expectedError, err)
+	}
+
+	fetch()
+	fcm.Set(libkb.ConnectivityMonitorNo)
+	fetch()
+	fetchFail(libkb.OfflineError{})
+	fcm.Set(libkb.ConnectivityMonitorYes)
+	fetch()
+	fetchFail(libkb.NotFoundError{})
 }
 
 func testLoadUserPlusKeysV2(t *testing.T, g *libkb.GlobalContext) {
