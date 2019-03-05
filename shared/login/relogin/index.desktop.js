@@ -30,7 +30,7 @@ const UserRow = ({user}) => (
 )
 
 class Login extends React.Component<Props, State> {
-  _inputRef: ?HTMLInputElement
+  _inputRef: ?Kb.Input
 
   state = {
     open: false,
