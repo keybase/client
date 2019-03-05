@@ -141,12 +141,20 @@ show_cryptosquirrel() {
 }
 
 init() {
-  # Cannot do in go due to background processes being piped to log in bash
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+  runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
+
+  if ! [ -w "$logdir" ]; then
+      echo "WARNING: Cannot write to $logdir. Did you run 'run_keybase' with sudo?"
+      echo "         Keybase does not need root privileges to run."
+      echo "         Permissions can be restored by running 'sudo chown -R $(whoami):$(whoami) $logdir',"
+      echo "         after which 'run_keybase' can be run again."
+  fi
+
+  # Cannot do in go due to background processes being piped to log in bash
   mkdir -p "$logdir"
 
   # Cannot do in go due to flock using a file in this directory
-  runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
   mkdir -p "$runtime_dir"
 
   keybase ctl init
