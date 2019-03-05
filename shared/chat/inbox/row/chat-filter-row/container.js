@@ -5,7 +5,6 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {isDarwin, isMobile} from '../../../../constants/platform'
 import {namedConnect, compose, withProps} from '../../../../util/container'
 import ConversationFilterInput from '../../../conversation-filter-input'
-import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
   filterFocusCount: number,
@@ -28,11 +27,9 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(
-        flags.newTeamBuildingForChat
-          ? RouteTreeGen.createNavigateAppend({
-              path: [{props: {}, selected: 'chatNewChat'}],
-            })
-          : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {}, selected: 'chatNewChat'}],
+        })
       )
     } else {
       focusFilter()

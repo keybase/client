@@ -2218,10 +2218,7 @@ const removePendingConversation = function*() {
 // TODO This will break if you try to make 2 new conversations at the same time because there is
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
-function* createConversation2(state, action) {
-  if (!flags.newTeamBuildingForChat) {
-    return
-  }
+function* createConversation(state, action) {
   const username = state.config.username
   if (!username) {
     logger.error('Making a convo while logged out?')
@@ -2260,31 +2257,11 @@ function* createConversation2(state, action) {
   yield removePendingConversation()
 }
 
-const createConversation = (state, action, afterActionCreator) => {
-  if (action.type === Chat2Gen.createConversation && flags.newTeamBuildingForChat) {
-    return
-  }
-
-  let participants
-
-  switch (action.type) {
-    case Chat2Gen.createConversation:
-      participants = action.payload.participants
-      break
-    case Chat2Gen.messageReplyPrivately:
-      {
-        const {sourceConversationIDKey, ordinal} = action.payload
-        const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
-        if (!message) {
-          logger.warn("Can't find message to reply to", ordinal)
-          return
-        }
-        participants = [message.author]
-      }
-      break
-  }
-
-  if (!participants) {
+const messageReplyPrivately = (state, action) => {
+  const {sourceConversationIDKey, ordinal} = action.payload
+  const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
     return
   }
 
@@ -2296,9 +2273,7 @@ const createConversation = (state, action, afterActionCreator) => {
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-      tlfName: I.Set([username])
-        .concat(participants)
-        .join(','),
+      tlfName: I.Set([username, message.author]).join(','),
       tlfVisibility: RPCTypes.commonTLFVisibility.private,
       topicType: RPCChatTypes.commonTopicType.chat,
     },
@@ -2311,23 +2286,14 @@ const createConversation = (state, action, afterActionCreator) => {
         return
       }
 
-      switch (action.type) {
-        case Chat2Gen.createConversation:
-          return [
-            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}),
-            Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}),
-          ]
-        case Chat2Gen.messageReplyPrivately: {
-          return [
-            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
-            Chat2Gen.createMessageSetQuoting({
-              ordinal: action.payload.ordinal,
-              sourceConversationIDKey: action.payload.sourceConversationIDKey,
-              targetConversationIDKey: conversationIDKey,
-            }),
-          ]
-        }
-      }
+      return [
+        Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
+        Chat2Gen.createMessageSetQuoting({
+          ordinal: action.payload.ordinal,
+          sourceConversationIDKey: action.payload.sourceConversationIDKey,
+          targetConversationIDKey: conversationIDKey,
+        }),
+      ]
     })
     .catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
 }
@@ -2950,11 +2916,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainGenerator<Chat2Gen.CreateConversationPayload>(
     Chat2Gen.createConversation,
-    createConversation2
-  )
-  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload | Chat2Gen.MessageReplyPrivatelyPayload>(
-    [Chat2Gen.messageReplyPrivately, Chat2Gen.createConversation],
     createConversation
+  )
+  yield* Saga.chainAction<Chat2Gen.MessageReplyPrivatelyPayload>(
+    Chat2Gen.messageReplyPrivately,
+    messageReplyPrivately
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
     [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
