@@ -993,6 +993,7 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		}, nil
 	}
 	var balances []stellar1.Balance
+	// this is different than how BackendMock.Balances works:
 	if a.balance.Amount != "" {
 		balances = []stellar1.Balance{a.balance}
 	}
@@ -1083,7 +1084,8 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 	}
 	r.Unlock()
 
-	tc.Srv.walletState.RefreshAll(mctx, "test")
+	err = tc.Srv.walletState.RefreshAll(mctx, "test")
+	require.NoError(r.T, err)
 
 	return res
 }

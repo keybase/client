@@ -399,7 +399,9 @@ func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayC
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
 	if err == nil {
 		mctx := libkb.NewMetaContext(ctx, w.G())
-		w.RefreshAll(mctx, "SubmitRelayClaim")
+		if rerr := w.RefreshAll(mctx, "SubmitRelayClaim"); rerr != nil {
+			mctx.Debug("RefreshAll after SubmitRelayClaim error: %s", rerr)
+		}
 	}
 	return result, err
 
@@ -408,8 +410,12 @@ func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayC
 // MarkAsRead is an override of remoter's MarkAsRead.
 func (w *WalletState) MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	err := w.Remoter.MarkAsRead(ctx, accountID, mostRecentID)
-	mctx := libkb.NewMetaContext(ctx, w.G())
-	w.Refresh(mctx, accountID, "MarkAsRead")
+	if err == nil {
+		mctx := libkb.NewMetaContext(ctx, w.G())
+		if rerr := w.Refresh(mctx, accountID, "MarkAsRead"); rerr != nil {
+			mctx.Debug("Refresh after MarkAsRead error: %s", err)
+		}
+	}
 	return err
 }
 
@@ -584,16 +590,23 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, dpp.Details, isPrimary, name, accountMode)
 		if err == nil {
 			router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
+		} else {
+			mctx.Debug("AccountDetailsToWalletAccountLocal error: %s", err)
 		}
 	}
 	if notifyDetails {
-		getGlobal(mctx.G()).UpdateUnreadCount(mctx.Ctx(), a.accountID, dpp.Details.UnreadPayments)
+		err = getGlobal(mctx.G()).UpdateUnreadCount(mctx.Ctx(), a.accountID, dpp.Details.UnreadPayments)
+		if err != nil {
+			mctx.Debug("UpdateUnreadCount error: %s", err)
+		}
 	}
 
 	if notifyPending && router != nil {
 		local, err := RemotePendingToLocal(mctx, a.remoter, a.accountID, dpp.PendingPayments)
 		if err == nil {
 			router.HandleWalletPendingPaymentsUpdate(mctx.Ctx(), a.accountID, local)
+		} else {
+			mctx.Debug("RemotePendingToLocal error: %s", err)
 		}
 	}
 
@@ -601,10 +614,12 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		localPage, err := RemoteRecentPaymentsToPage(mctx, a.remoter, a.accountID, dpp.RecentPayments)
 		if err == nil {
 			router.HandleWalletRecentPaymentsUpdate(mctx.Ctx(), a.accountID, localPage)
+		} else {
+			mctx.Debug("RemoteRecentPaymentsToPage error: %s", err)
 		}
 	}
 
-	return err
+	return nil
 }
 
 // ForceSeqnoRefresh refreshes the seqno for an account.

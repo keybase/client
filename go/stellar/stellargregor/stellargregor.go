@@ -3,7 +3,6 @@ package stellargregor
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -67,10 +66,9 @@ func (h *Handler) Name() string {
 }
 
 // The server is telling the client to claim relay payments.
-func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
 	mctx.Debug("%v: %v received", h.Name(), category)
 	mctx.G().GetStellar().KickAutoClaimRunner(mctx, item.Metadata().MsgID())
-	return nil
 }
 
 type accountChangeMsg struct {
@@ -78,15 +76,17 @@ type accountChangeMsg struct {
 	Reason    string `json:"reason"`
 }
 
-func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
 	mctx.Debug("%v: %v received", h.Name(), category)
 
 	if item.Body() == nil {
-		return errors.New("stellar handler for account_change: nil message body")
+		mctx.Debug("stellar handler for account_change: nil message body")
+		return
 	}
 	var msgBody accountChangeMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msgBody); err != nil {
-		return err
+		mctx.Debug("stellar handler for account_change: json.Unmarshal error: %s", err)
+		return
 	}
 
 	if msgBody.AccountID != "" {
@@ -94,57 +94,49 @@ func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInte
 		if err == nil {
 			h.G().NotifyRouter.HandleWalletAccountDetailsUpdate(mctx.Ctx(), stellar1.AccountID(msgBody.AccountID), account)
 		} else {
-			h.G().Log.CDebugf(mctx.Ctx(), "failed to HandleWalletAccountDetailsUpdate")
+			mctx.Debug("failed to HandleWalletAccountDetailsUpdate: %s", err)
 		}
 	} else {
 		accounts, err := stellar.AllWalletAccounts(mctx, h.walletState)
 		if err == nil {
 			h.G().NotifyRouter.HandleWalletAccountsUpdate(mctx.Ctx(), accounts)
 		} else {
-			h.G().Log.CDebugf(mctx.Ctx(), "failed to HandleWalletAccountsUpdate")
+			mctx.Debug("failed to HandleWalletAccountsUpdate: %s", err)
 		}
 	}
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
-		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss account_change: %s", err)
+		mctx.Debug("failed to local dismiss account_change: %s", err)
 	}
-
-	return nil
 }
 
 // paymentStatus is an old IBM and shouldn't happen anymore
-func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
 	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_status: %s", err)
 	}
-
-	return nil
 }
 
 // paymentNotification is an old IBM and shouldn't happen anymore
-func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
 	mctx.Debug("%s: %s received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_notification: %s", err)
 	}
-
-	return nil
 }
 
 // requestStatus is an old IBM and shouldn't happen anymore
-func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
+func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) {
 	mctx.Debug("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss request_status: %s", err)
 	}
-
-	return nil
 }

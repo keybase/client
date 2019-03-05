@@ -53,7 +53,7 @@ func TestCreateWallet(t *testing.T) {
 	defer cleanup()
 
 	t.Logf("Lookup for a bogus address")
-	uv, _, err := stellar.LookupUserByAccountID(tcs[0].MetaContext(), "GCCJJFCRCQAWDWRAZ3R6235KCQ4PQYE5KEWHGE5ICVTZLTMRKVWAWP7N")
+	_, _, err := stellar.LookupUserByAccountID(tcs[0].MetaContext(), "GCCJJFCRCQAWDWRAZ3R6235KCQ4PQYE5KEWHGE5ICVTZLTMRKVWAWP7N")
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
 
@@ -119,7 +119,7 @@ func TestCreateWallet(t *testing.T) {
 	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
 
 	t.Logf("Looking up by the old address no longer works")
-	uv, _, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
+	_, _, err = stellar.LookupUserByAccountID(tcs[1].MetaContext(), a1)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
 }
@@ -418,16 +418,13 @@ func TestSendLocalKeybase(t *testing.T) {
 	require.NoError(t, err)
 
 	balances, err := srvSender.BalancesLocal(context.Background(), accountIDSender)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, "9899.9999900", balances[0].Amount)
 
-	srvRecip.walletState.RefreshAll(tcs[1].MetaContext(), "test")
+	err = srvRecip.walletState.RefreshAll(tcs[1].MetaContext(), "test")
+	require.NoError(t, err)
 	balances, err = srvRecip.BalancesLocal(context.Background(), accountIDRecip)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, "10100.0000000", balances[0].Amount)
 
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
@@ -593,7 +590,8 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.NoError(t, err)
 	}
 
-	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+	err = tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+	require.NoError(t, err)
 
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
@@ -681,7 +679,8 @@ func testRelaySBS(t *testing.T, yank bool) {
 		require.Equal(t, "Canceled", history[0].Payment.Status)
 	}
 
-	tcs[0].Srv.walletState.RefreshAll(tcs[0].MetaContext(), "test")
+	err = tcs[0].Srv.walletState.RefreshAll(tcs[0].MetaContext(), "test")
+	require.NoError(t, err)
 
 	fhistoryPage, err = tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[0])})
 	require.NoError(t, err)
@@ -751,7 +750,8 @@ func testRelayReset(t *testing.T, yank bool) {
 		claimant = 0
 	}
 
-	tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+	err = tcs[claimant].Srv.walletState.RefreshAll(tcs[claimant].MetaContext(), "test")
+	require.NoError(t, err)
 	tcs[claimant].Srv.walletState.DumpToLog(tcs[claimant].MetaContext())
 
 	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
@@ -1334,7 +1334,9 @@ func TestShutdown(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		tcs[0].Srv.walletState.Shutdown()
+		if err := tcs[0].Srv.walletState.Shutdown(); err != nil {
+			t.Logf("shutdown error: %s", err)
+		}
 		wg.Done()
 	}()
 
