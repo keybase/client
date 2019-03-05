@@ -6,6 +6,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
+  howThisWorksURL: string,
   onHidden: () => void,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
   visible: boolean,
@@ -18,11 +19,11 @@ const CoinFlipParticipants = (props: Props) => {
     title: 'header',
     view: (
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.container}>
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="Body" style={styles.partHeading}>
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Text type="Body">
             Participants
           </Kb.Text>
-          <Kb.Text type="BodySmall" style={styles.partHeading}>
+          <Kb.Text type="BodySmall">
             {props.participants.length} total
           </Kb.Text>
         </Kb.Box2>
@@ -37,6 +38,10 @@ const CoinFlipParticipants = (props: Props) => {
             />
           ))}
         </Kb.ScrollView>
+        <Kb.Divider />
+        <Kb.Box2 direction="vertical" style={styles.footer} centerChildren={true}>
+          <Kb.Text type="BodySmallPrimaryLink" onClickURL={props.howThisWorksURL}>How This Works</Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
     ),
   }
@@ -56,14 +61,19 @@ const styles = Styles.styleSheetCreate({
   container: {
     paddingTop: Styles.globalMargins.tiny,
   },
+  footer: Styles.platformStyles({
+    isElectron: {
+      paddingBottom: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.xxtiny,
+    },
+  }),
   partContainer: {
     maxHeight: 200,
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
-  },
-  partHeading: {
-    alignSelf: 'center',
   },
 })
 
