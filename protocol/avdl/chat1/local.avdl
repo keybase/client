@@ -998,4 +998,5 @@ protocol local {
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 
   void bulkAddToConv(ConversationID convID, array<string> usernames);
+  array<string> topReactjis();
 }

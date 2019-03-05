@@ -409,6 +409,14 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 		msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{reactionMsgID},
 		})
+	} else {
+		// bookkeep the reaction used so we can keep track of the user's
+		// popular reactions in the UI
+		go func() {
+			if err := s.G().ReactjiStore.Put(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
+				s.Debug(ctx, "unable to put in ReactjiStore: %v", err)
+			}
+		}()
 	}
 
 	return msg.ClientHeader, msg.MessageBody, nil

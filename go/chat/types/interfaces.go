@@ -130,6 +130,11 @@ type Indexer interface {
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
 
+type ReactjiStore interface {
+	Put(ctx context.Context, uid gregor1.UID, reactji string) error
+	TopReactjis(ctx context.Context, uid gregor1.UID) []string
+}
+
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID,

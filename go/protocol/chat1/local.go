@@ -5243,6 +5243,9 @@ type BulkAddToConvArg struct {
 	Usernames []string       `codec:"usernames" json:"usernames"`
 }
 
+type TopReactjisArg struct {
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5310,6 +5313,7 @@ type LocalInterface interface {
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
+	TopReactjis(context.Context) ([]string, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6286,6 +6290,16 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"topReactjis": {
+				MakeArg: func() interface{} {
+					var ret [1]TopReactjisArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.TopReactjis(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -6631,5 +6645,10 @@ func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMess
 
 func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) TopReactjis(ctx context.Context) (res []string, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.topReactjis", []interface{}{TopReactjisArg{}}, &res)
 	return
 }
