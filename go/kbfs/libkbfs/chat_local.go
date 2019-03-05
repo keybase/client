@@ -137,7 +137,8 @@ func (c *chatLocal) GetConversationID(
 		if err != nil {
 			return nil, err
 		}
-		isReader, err := isReaderFromHandle(ctx, h, config.KBPKI(), session.UID)
+		isReader, err := isReaderFromHandle(
+			ctx, h, config.KBPKI(), config, session.UID)
 		if err != nil {
 			return nil, err
 		}
@@ -242,7 +243,7 @@ func (c *chatLocal) GetGroupedInbox(
 
 			// Only include if the current user can read the folder.
 			isReader, err := isReaderFromHandle(
-				ctx, h, c.config.KBPKI(), session.UID)
+				ctx, h, c.config.KBPKI(), c.config, session.UID)
 			if err != nil {
 				return nil, err
 			}

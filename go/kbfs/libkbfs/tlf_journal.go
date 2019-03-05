@@ -416,8 +416,8 @@ func makeTLFJournal(
 
 	mdJournal, err := makeMDJournal(
 		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
-		config.teamMembershipChecker(), tlfID, config.MetadataVersion(), dir,
-		log)
+		config.teamMembershipChecker(), config, tlfID, config.MetadataVersion(),
+		dir, log)
 	if err != nil {
 		return nil, err
 	}
@@ -1752,7 +1752,8 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 			ctx, j.config.Codec(), j.config.Crypto(),
 			j.config.BlockCache(), j.config.BlockOps(),
 			j.config.mdDecryptionKeyGetter(), j.config.teamMembershipChecker(),
-			mode, j.uid, rmd.GetSerializedPrivateMetadata(), rmd, rmd, j.log)
+			j.config, mode, j.uid, rmd.GetSerializedPrivateMetadata(), rmd,
+			rmd, j.log)
 		if err != nil {
 			return nil, err
 		}

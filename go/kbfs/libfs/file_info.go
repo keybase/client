@@ -44,7 +44,8 @@ func (fi *FileInfo) Size() int64 {
 // Mode implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Mode() os.FileMode {
 	mode, err := WritePermMode(
-		fi.fs.ctx, fi.node, os.FileMode(0), fi.fs.config.KBPKI(), fi.fs.h)
+		fi.fs.ctx, fi.node, os.FileMode(0), fi.fs.config.KBPKI(),
+		fi.fs.config, fi.fs.h)
 	if err != nil {
 		fi.fs.log.CWarningf(
 			fi.fs.ctx, "Couldn't get mode for file %s: %+v", fi.Name(), err)

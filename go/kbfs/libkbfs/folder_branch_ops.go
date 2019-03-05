@@ -542,6 +542,10 @@ func (fbo *folderBranchOps) id() tlf.ID {
 	return fbo.folderBranch.Tlf
 }
 
+func (fbo *folderBranchOps) oa() keybase1.OfflineAvailability {
+	return fbo.config.OfflineAvailabilityForID(fbo.id())
+}
+
 func (fbo *folderBranchOps) branch() BranchName {
 	return fbo.folderBranch.Branch
 }
@@ -1999,7 +2003,8 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
-		isReader, err := md.IsReader(ctx, fbo.config.KBPKI(), session.UID)
+		isReader, err := md.IsReader(
+			ctx, fbo.config.KBPKI(), fbo.config, session.UID)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
@@ -2080,7 +2085,8 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
-		isReader, err := md.IsReader(ctx, fbo.config.KBPKI(), session.UID)
+		isReader, err := md.IsReader(
+			ctx, fbo.config.KBPKI(), fbo.config, session.UID)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
@@ -2108,7 +2114,7 @@ func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
 		return ImmutableRootMetadata{}, err
 	}
 	isWriter, err := md.IsWriter(
-		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbo.config.KBPKI(), fbo.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -2136,7 +2142,7 @@ func (fbo *folderBranchOps) getSuccessorMDForWriteLockedForFilename(
 	return md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
 		fbo.config.Codec(),
 		fbo.config.KeyManager(), fbo.config.KBPKI(), fbo.config.KBPKI(),
-		md.mdID, true)
+		fbo.config, md.mdID, true)
 }
 
 // getSuccessorMDForWriteLocked returns a new RootMetadata object with
@@ -2181,7 +2187,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	newMd, err := md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
 		fbo.config.Codec(),
 		fbo.config.KeyManager(), fbo.config.KBPKI(), fbo.config.KBPKI(),
-		md.mdID, handle.IsWriter(session.UID))
+		fbo.config, md.mdID, handle.IsWriter(session.UID))
 	if err != nil {
 		return nil, kbfscrypto.VerifyingKey{}, false, err
 	}
@@ -2206,7 +2212,8 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	}
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), md.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config,
+		md.GetTlfHandle())
 	if err != nil {
 		return nil, err
 	}
@@ -2247,7 +2254,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 	rmd *RootMetadata) (Block, BlockInfo, ReadyBlockData, error) {
 	newDblock := NewDirBlock()
 	chargedTo, err := chargedToForTLF(
-		ctx, config.KBPKI(), config.KBPKI(), rmd.GetTlfHandle())
+		ctx, config.KBPKI(), config.KBPKI(), config, rmd.GetTlfHandle())
 	if err != nil {
 		return nil, BlockInfo{}, ReadyBlockData{}, err
 	}
@@ -2297,7 +2304,7 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	// make sure we're a writer before rekeying or putting any blocks.
 	isWriter, err := md.IsWriter(
-		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbo.config.KBPKI(), fbo.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return err
 	}
@@ -2331,7 +2338,7 @@ func (fbo *folderBranchOps) initMDLocked(
 			return err
 		}
 		keys, keyGen, err := fbo.config.KBPKI().GetTeamTLFCryptKeys(
-			ctx, tid, kbfsmd.UnspecifiedKeyGen)
+			ctx, tid, kbfsmd.UnspecifiedKeyGen, fbo.oa())
 		if err != nil {
 			return err
 		}
@@ -3162,8 +3169,7 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	// set.  See KBFS-2939.
 	if id.IsUser() {
 		res.LastWriterUnverified, err =
-			fbo.config.KBPKI().GetNormalizedUsername(
-				ctx, id, fbo.config.OfflineAvailabilityForID(fbo.id()))
+			fbo.config.KBPKI().GetNormalizedUsername(ctx, id, fbo.oa())
 		if err != nil {
 			return res, err
 		}
@@ -3944,7 +3950,8 @@ func (fbo *folderBranchOps) createEntryLocked(
 	}
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), md.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config,
+		md.GetTlfHandle())
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -7052,8 +7059,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 	}
 	handle, err := MakeTlfHandle(
 		ctx, bareHandle, fbo.id().Type(), fbo.config.KBPKI(),
-		fbo.config.KBPKI(), fbo.config.MDOps(),
-		fbo.config.OfflineAvailabilityForID(fbo.id()))
+		fbo.config.KBPKI(), fbo.config.MDOps(), fbo.oa())
 	if err != nil {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized handle: %+v", err)
 		return
@@ -7708,8 +7714,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	if newName == "" {
 		var err error
 		newName, err = fbo.config.KBPKI().GetNormalizedUsername(
-			ctx, tid.AsUserOrTeam(),
-			fbo.config.OfflineAvailabilityForID(fbo.id()))
+			ctx, tid.AsUserOrTeam(), fbo.oa())
 		if err != nil {
 			fbo.log.CWarningf(ctx, "Error getting new team name: %+v", err)
 			return
@@ -7791,7 +7796,7 @@ func (fbo *folderBranchOps) getMDForMigrationLocked(
 		return ImmutableRootMetadata{}, err
 	}
 	isWriter, err := md.IsWriter(
-		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbo.config.KBPKI(), fbo.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -7869,7 +7874,7 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 	newMD, err := md.MakeSuccessorWithNewHandle(
 		ctx, newHandle, fbo.config.MetadataVersion(), fbo.config.Codec(),
 		fbo.config.KeyManager(), fbo.config.KBPKI(), fbo.config.KBPKI(),
-		md.mdID, isWriter)
+		fbo.config, md.mdID, isWriter)
 	if err != nil {
 		return err
 	}
@@ -7914,8 +7919,7 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 		writer, ok := writerNames[rmd.LastModifyingWriter()]
 		if !ok {
 			name, err := fbo.config.KBPKI().GetNormalizedUsername(
-				ctx, rmd.LastModifyingWriter().AsUserOrTeam(),
-				fbo.config.OfflineAvailabilityForID(fbo.id()))
+				ctx, rmd.LastModifyingWriter().AsUserOrTeam(), fbo.oa())
 			if err != nil {
 				return TLFUpdateHistory{}, err
 			}
@@ -8254,7 +8258,8 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 	}
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config,
+		kmd.GetTlfHandle())
 	if err != nil {
 		return FolderSyncEncryptedPartialPaths{}, err
 	}

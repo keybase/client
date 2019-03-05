@@ -359,7 +359,8 @@ func (f *Folder) writePermMode(ctx context.Context,
 	node libkbfs.Node, original os.FileMode) (os.FileMode, error) {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
-	return libfs.WritePermMode(ctx, node, original, f.fs.config.KBPKI(), f.h)
+	return libfs.WritePermMode(
+		ctx, node, original, f.fs.config.KBPKI(), f.fs.config, f.h)
 }
 
 // fillAttrWithUIDAndWritePerm sets attributes based on the entry info, and
@@ -387,7 +388,7 @@ func (f *Folder) fillAttrWithUIDAndWritePerm(
 func (f *Folder) isWriter(ctx context.Context) (bool, error) {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
-	return libfs.IsWriter(ctx, f.fs.config.KBPKI(), f.h)
+	return libfs.IsWriter(ctx, f.fs.config.KBPKI(), f.fs.config, f.h)
 }
 
 func (f *Folder) access(ctx context.Context, r *fuse.AccessRequest) error {
