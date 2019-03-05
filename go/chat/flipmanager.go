@@ -142,6 +142,7 @@ type FlipManager struct {
 	games      *lru.Cache
 	dirtyGames map[string]chat1.FlipGameID
 	flipConvs  *lru.Cache
+	gameMsgIDs *lru.Cache
 
 	partMu                     sync.Mutex
 	maxConvParticipations      int
@@ -155,6 +156,7 @@ type FlipManager struct {
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
 	games, _ := lru.New(100)
 	flipConvs, _ := lru.New(100)
+	gameMsgIDs, _ := lru.New(200)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
 		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
@@ -171,6 +173,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		cardMap:                    make(map[string]int),
 		cardReverseMap:             make(map[int]string),
 		flipConvs:                  flipConvs,
+		gameMsgIDs:                 gameMsgIDs,
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -221,9 +224,13 @@ func (m *FlipManager) isHostMessageInfoMsgID(msgID chat1.MessageID) bool {
 	return chat1.MessageID(2) == msgID
 }
 
+func (m *FlipManager) startMsgID() chat1.MessageID {
+	return chat1.MessageID(3)
+}
+
 func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
 	// The first message after the host message is the flip start message, which will have message ID 3
-	return chat1.MessageID(3) == msgID
+	return m.startMsgID() == msgID
 }
 
 func (m *FlipManager) getVisualizer() *FlipVisualizer {
@@ -1033,42 +1040,73 @@ func (m *FlipManager) recordConvParticipation(ctx context.Context, convID chat1.
 	}
 }
 
-func (m *FlipManager) rebuildActiveGame(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	hostConvID chat1.ConversationID, curMsgID chat1.MessageID, gameID chat1.FlipGameID) error {
-	if m.dealer.IsGameActive(ctx, convID, gameID) || m.isStartMsgID(curMsgID) {
-		// if the game is active (or the message is a start message), then we don't need to rebuild anything,
-		// just keep going
+func (m *FlipManager) injectIncomingChat(ctx context.Context, uid gregor1.UID,
+	convID, hostConvID chat1.ConversationID, gameID chat1.FlipGameID, msg chat1.MessageUnboxed) error {
+	if !msg.IsValid() {
+		m.Debug(ctx, "injectIncomingChat: skipping invalid message: %d", msg.GetMessageID())
+		return errors.New("invalid message")
+	}
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_FLIP) {
+		return errors.New("non-flip message")
+	}
+	sender := flip.UserDevice{
+		U: msg.Valid().ClientHeader.Sender,
+		D: msg.Valid().ClientHeader.SenderDevice,
+	}
+	m.recordConvParticipation(ctx, hostConvID) // record the inject for rate limiting purposes
+	m.gameMsgIDs.Add(gameID.String(), msg.GetMessageID())
+	return m.dealer.InjectIncomingChat(ctx, sender, convID, gameID,
+		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID()))
+}
+
+func (m *FlipManager) updateActiveGame(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	hostConvID chat1.ConversationID, nextMsg chat1.MessageUnboxed, gameID chat1.FlipGameID) (err error) {
+	defer func() {
+		if err == nil {
+			if err = m.injectIncomingChat(ctx, uid, convID, hostConvID, gameID, nextMsg); err != nil {
+				m.Debug(ctx, "updateActiveGame: failed to inject next message: %s", err)
+			}
+		}
+	}()
+	if m.isStartMsgID(nextMsg.GetMessageID()) {
+		// if this is a start msg, then just send it in
+		m.Debug(ctx, "updateActiveGame: starting new game: convID: %s gameID: %s", convID, gameID)
 		return nil
 	}
-	m.Debug(ctx, "rebuildActiveGame: unknown game in conv: %s gameID: %s", convID, gameID)
+	m.Debug(ctx, "updateActiveGame: convID: %s gameID: %s nextMsgID: %d", convID, gameID,
+		nextMsg.GetMessageID())
+	// Get current msg ID of the game if we know about it
+	var msgIDStart chat1.MessageID
+	if storedMsgIDIface, ok := m.gameMsgIDs.Get(gameID.String()); ok {
+		storedMsgID := storedMsgIDIface.(chat1.MessageID)
+		if nextMsg.GetMessageID() == storedMsgID+1 {
+			m.Debug(ctx, "updateActiveGame: truly incremental update, injecting...")
+			return nil
+		}
+		m.Debug(ctx, "updateActiveGame: gapped update: storedMsgID: %d", storedMsgID)
+		msgIDStart = storedMsgID
+	} else {
+		m.Debug(ctx, "updateActiveGame: unknown game, setting start to 0")
+	}
 	// Otherwise, grab the thread and inject everything that has happened so far
 	tv, err := m.G().ConvSource.PullFull(ctx, convID, uid, chat1.GetThreadReason_COINFLIP, nil, nil)
 	if err != nil {
 		return err
 	}
-	m.Debug(ctx, "rebuildActiveGame: got %d messages, injecting...", len(tv.Messages))
+	m.Debug(ctx, "updateActiveGame: got %d messages, injecting...", len(tv.Messages))
 	for i := len(tv.Messages) - 3; i >= 0; i-- {
 		msg := tv.Messages[i]
-		if msg.GetMessageID() >= curMsgID {
-			m.Debug(ctx, "rebuildActiveGame: reached current msgID, finishing...")
+		if msg.GetMessageID() <= msgIDStart {
+			m.Debug(ctx, "updateActiveGame: skipping known msgID: %d", msg.GetMessageID())
+			continue
+		}
+		if msg.GetMessageID() >= nextMsg.GetMessageID() {
+			m.Debug(ctx, "updateActiveGame: reached current msgID, finishing...")
 			return nil
 		}
-		if !msg.IsValid() {
-			m.Debug(ctx, "rebuildActiveGame: skipping invalid message: %d", msg.GetMessageID())
-			continue
-		}
-		body := msg.Valid().MessageBody
-		if !body.IsType(chat1.MessageType_FLIP) {
-			continue
-		}
-		sender := flip.UserDevice{
-			U: msg.Valid().ClientHeader.Sender,
-			D: msg.Valid().ClientHeader.SenderDevice,
-		}
-		m.recordConvParticipation(ctx, hostConvID) // record the inject for rate limiting purposes
-		if err := m.dealer.InjectIncomingChat(ctx, sender, convID, gameID,
-			flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
-			m.Debug(ctx, "rebuildActiveGame: failed to inject: %s", err)
+		if err := m.injectIncomingChat(ctx, uid, convID, hostConvID, gameID, msg); err != nil {
+			m.Debug(ctx, "updateActiveGame: failed to inject: %s", err)
 		}
 	}
 	return nil
@@ -1083,6 +1121,12 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		return false
 	}
 	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", convID)()
+	if err := m.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get conv lock, bailing: %s", err)
+		return true
+	}
+	defer m.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
+
 	// Update inbox for this guy
 	if err := m.G().InboxSource.UpdateInboxVersion(ctx, uid, inboxVers); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to update inbox version: %s", err)
@@ -1103,17 +1147,19 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to write max msgid: %s", err)
 		// charge forward from this error
 	}
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_FLIP) {
+		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")
+		return true
+	}
 	// Ignore anything from the current device
 	sender := flip.UserDevice{
 		U: msg.Valid().ClientHeader.Sender,
 		D: msg.Valid().ClientHeader.SenderDevice,
 	}
 	if sender.Eq(m.Me()) {
-		return true
-	}
-	body := msg.Valid().MessageBody
-	if !body.IsType(chat1.MessageType_FLIP) {
-		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")
+		// If this is our own message, then we need to make sure to update the msgID of the flip
+		m.gameMsgIDs.Add(body.Flip().GameID.String(), msg.GetMessageID())
 		return true
 	}
 	// Check to see if we are going to participate from this inject
@@ -1127,13 +1173,8 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		return true
 	}
 	// Check to see if the game is unknown, and if so, then rebuild and see what we can do
-	if err := m.rebuildActiveGame(ctx, uid, convID, hmi.ConvID, msg.GetMessageID(), body.Flip().GameID); err != nil {
+	if err := m.updateActiveGame(ctx, uid, convID, hmi.ConvID, msg, body.Flip().GameID); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to rebuild non-active game: %s", err)
-	}
-	m.recordConvParticipation(ctx, hmi.ConvID) // record the inject for rate limiting purposes
-	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, body.Flip().GameID,
-		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
-		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 	return true
 }
