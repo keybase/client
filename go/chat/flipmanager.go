@@ -155,8 +155,8 @@ type FlipManager struct {
 }
 
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
-	games, _ := lru.New(100)
-	flipConvs, _ := lru.New(100)
+	games, _ := lru.New(200)
+	flipConvs, _ := lru.New(200)
 	gameMsgIDs, _ := lru.New(200)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
@@ -1248,7 +1248,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			Err: err,
 		}
 		go func(ctx context.Context, summary *flip.GameSummary) {
-			time.Sleep(5 * time.Second)
+			m.clock.Sleep(5 * time.Second)
 			rawGame, ok := m.games.Get(job.gameID.String())
 			if ok {
 				status := rawGame.(chat1.UICoinFlipStatus)
