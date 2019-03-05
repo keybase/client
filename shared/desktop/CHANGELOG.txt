@@ -1,4 +1,5 @@
 • New toy: Cryptographic coin flips. Try /flip in chat
+• Giphy support! Try /giphy in chat
 • New font!
 • Easily add members to a channel
 • Faster profile loads
