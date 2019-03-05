@@ -1170,29 +1170,29 @@ func (e UICoinFlipPhase) String() string {
 	return ""
 }
 
-type UICoinFlipAbsentee struct {
+type UICoinFlipErrorParticipant struct {
 	User   string `codec:"user" json:"user"`
 	Device string `codec:"device" json:"device"`
 }
 
-func (o UICoinFlipAbsentee) DeepCopy() UICoinFlipAbsentee {
-	return UICoinFlipAbsentee{
+func (o UICoinFlipErrorParticipant) DeepCopy() UICoinFlipErrorParticipant {
+	return UICoinFlipErrorParticipant{
 		User:   o.User,
 		Device: o.Device,
 	}
 }
 
 type UICoinFlipAbsenteeError struct {
-	Absentees []UICoinFlipAbsentee `codec:"absentees" json:"absentees"`
+	Absentees []UICoinFlipErrorParticipant `codec:"absentees" json:"absentees"`
 }
 
 func (o UICoinFlipAbsenteeError) DeepCopy() UICoinFlipAbsenteeError {
 	return UICoinFlipAbsenteeError{
-		Absentees: (func(x []UICoinFlipAbsentee) []UICoinFlipAbsentee {
+		Absentees: (func(x []UICoinFlipErrorParticipant) []UICoinFlipErrorParticipant {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UICoinFlipAbsentee, len(x))
+			ret := make([]UICoinFlipErrorParticipant, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -1205,20 +1205,38 @@ func (o UICoinFlipAbsenteeError) DeepCopy() UICoinFlipAbsenteeError {
 type UICoinFlipErrorTyp int
 
 const (
-	UICoinFlipErrorTyp_GENERIC  UICoinFlipErrorTyp = 0
-	UICoinFlipErrorTyp_ABSENTEE UICoinFlipErrorTyp = 1
+	UICoinFlipErrorTyp_GENERIC           UICoinFlipErrorTyp = 0
+	UICoinFlipErrorTyp_ABSENTEE          UICoinFlipErrorTyp = 1
+	UICoinFlipErrorTyp_TIMEOUT           UICoinFlipErrorTyp = 2
+	UICoinFlipErrorTyp_ABORTED           UICoinFlipErrorTyp = 3
+	UICoinFlipErrorTyp_DUPREG            UICoinFlipErrorTyp = 4
+	UICoinFlipErrorTyp_DUPCOMMITCOMPLETE UICoinFlipErrorTyp = 5
+	UICoinFlipErrorTyp_DUPREVEAL         UICoinFlipErrorTyp = 6
+	UICoinFlipErrorTyp_COMMITMISMATCH    UICoinFlipErrorTyp = 7
 )
 
 func (o UICoinFlipErrorTyp) DeepCopy() UICoinFlipErrorTyp { return o }
 
 var UICoinFlipErrorTypMap = map[string]UICoinFlipErrorTyp{
-	"GENERIC":  0,
-	"ABSENTEE": 1,
+	"GENERIC":           0,
+	"ABSENTEE":          1,
+	"TIMEOUT":           2,
+	"ABORTED":           3,
+	"DUPREG":            4,
+	"DUPCOMMITCOMPLETE": 5,
+	"DUPREVEAL":         6,
+	"COMMITMISMATCH":    7,
 }
 
 var UICoinFlipErrorTypRevMap = map[UICoinFlipErrorTyp]string{
 	0: "GENERIC",
 	1: "ABSENTEE",
+	2: "TIMEOUT",
+	3: "ABORTED",
+	4: "DUPREG",
+	5: "DUPCOMMITCOMPLETE",
+	6: "DUPREVEAL",
+	7: "COMMITMISMATCH",
 }
 
 func (e UICoinFlipErrorTyp) String() string {
@@ -1229,9 +1247,13 @@ func (e UICoinFlipErrorTyp) String() string {
 }
 
 type UICoinFlipError struct {
-	Typ__      UICoinFlipErrorTyp       `codec:"typ" json:"typ"`
-	Generic__  *string                  `codec:"generic,omitempty" json:"generic,omitempty"`
-	Absentee__ *UICoinFlipAbsenteeError `codec:"absentee,omitempty" json:"absentee,omitempty"`
+	Typ__               UICoinFlipErrorTyp          `codec:"typ" json:"typ"`
+	Generic__           *string                     `codec:"generic,omitempty" json:"generic,omitempty"`
+	Absentee__          *UICoinFlipAbsenteeError    `codec:"absentee,omitempty" json:"absentee,omitempty"`
+	Dupreg__            *UICoinFlipErrorParticipant `codec:"dupreg,omitempty" json:"dupreg,omitempty"`
+	Dupcommitcomplete__ *UICoinFlipErrorParticipant `codec:"dupcommitcomplete,omitempty" json:"dupcommitcomplete,omitempty"`
+	Dupreveal__         *UICoinFlipErrorParticipant `codec:"dupreveal,omitempty" json:"dupreveal,omitempty"`
+	Commitmismatch__    *UICoinFlipErrorParticipant `codec:"commitmismatch,omitempty" json:"commitmismatch,omitempty"`
 }
 
 func (o *UICoinFlipError) Typ() (ret UICoinFlipErrorTyp, err error) {
@@ -1244,6 +1266,26 @@ func (o *UICoinFlipError) Typ() (ret UICoinFlipErrorTyp, err error) {
 	case UICoinFlipErrorTyp_ABSENTEE:
 		if o.Absentee__ == nil {
 			err = errors.New("unexpected nil value for Absentee__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPREG:
+		if o.Dupreg__ == nil {
+			err = errors.New("unexpected nil value for Dupreg__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPCOMMITCOMPLETE:
+		if o.Dupcommitcomplete__ == nil {
+			err = errors.New("unexpected nil value for Dupcommitcomplete__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPREVEAL:
+		if o.Dupreveal__ == nil {
+			err = errors.New("unexpected nil value for Dupreveal__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_COMMITMISMATCH:
+		if o.Commitmismatch__ == nil {
+			err = errors.New("unexpected nil value for Commitmismatch__")
 			return ret, err
 		}
 	}
@@ -1270,6 +1312,46 @@ func (o UICoinFlipError) Absentee() (res UICoinFlipAbsenteeError) {
 	return *o.Absentee__
 }
 
+func (o UICoinFlipError) Dupreg() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPREG {
+		panic("wrong case accessed")
+	}
+	if o.Dupreg__ == nil {
+		return
+	}
+	return *o.Dupreg__
+}
+
+func (o UICoinFlipError) Dupcommitcomplete() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPCOMMITCOMPLETE {
+		panic("wrong case accessed")
+	}
+	if o.Dupcommitcomplete__ == nil {
+		return
+	}
+	return *o.Dupcommitcomplete__
+}
+
+func (o UICoinFlipError) Dupreveal() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPREVEAL {
+		panic("wrong case accessed")
+	}
+	if o.Dupreveal__ == nil {
+		return
+	}
+	return *o.Dupreveal__
+}
+
+func (o UICoinFlipError) Commitmismatch() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_COMMITMISMATCH {
+		panic("wrong case accessed")
+	}
+	if o.Commitmismatch__ == nil {
+		return
+	}
+	return *o.Commitmismatch__
+}
+
 func NewUICoinFlipErrorWithGeneric(v string) UICoinFlipError {
 	return UICoinFlipError{
 		Typ__:     UICoinFlipErrorTyp_GENERIC,
@@ -1281,6 +1363,46 @@ func NewUICoinFlipErrorWithAbsentee(v UICoinFlipAbsenteeError) UICoinFlipError {
 	return UICoinFlipError{
 		Typ__:      UICoinFlipErrorTyp_ABSENTEE,
 		Absentee__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithTimeout() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: UICoinFlipErrorTyp_TIMEOUT,
+	}
+}
+
+func NewUICoinFlipErrorWithAborted() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: UICoinFlipErrorTyp_ABORTED,
+	}
+}
+
+func NewUICoinFlipErrorWithDupreg(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:    UICoinFlipErrorTyp_DUPREG,
+		Dupreg__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithDupcommitcomplete(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:               UICoinFlipErrorTyp_DUPCOMMITCOMPLETE,
+		Dupcommitcomplete__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithDupreveal(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:       UICoinFlipErrorTyp_DUPREVEAL,
+		Dupreveal__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithCommitmismatch(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:            UICoinFlipErrorTyp_COMMITMISMATCH,
+		Commitmismatch__: &v,
 	}
 }
 
@@ -1301,6 +1423,34 @@ func (o UICoinFlipError) DeepCopy() UICoinFlipError {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Absentee__),
+		Dupreg__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupreg__),
+		Dupcommitcomplete__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupcommitcomplete__),
+		Dupreveal__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupreveal__),
+		Commitmismatch__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Commitmismatch__),
 	}
 }
 
