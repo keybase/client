@@ -38,7 +38,7 @@ export type Props<T> = {
   }) => ?React.Element<any>,
   onEndReached?: ?(info: {distanceFromEnd: number}) => void,
   stickySectionHeadersEnabled?: boolean,
-  keyExtractor: (item: Item, index: number) => string,
+  keyExtractor?: (item: Item, index: number) => string,
   renderSectionHeader?: ?(info: {section: SectionT}) => ?React.Element<any>,
 }
 

@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
-import type {Props} from './section-list'
+import type {Props, Section} from './section-list'
 import {throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
 
@@ -19,7 +19,7 @@ type State = {
   currentSectionFlatIndex: number,
 }
 class SectionList<T> extends React.Component<Props<T>, State> {
-  _flat = []
+  _flat: Array<Section<T>> = []
   state = {currentSectionFlatIndex: 0}
   _listRef = React.createRef()
   _mounted = true
@@ -66,6 +66,12 @@ class SectionList<T> extends React.Component<Props<T>, State> {
         // don't render the first one since its always there
         return null
       }
+
+      // this is optional
+      if (!this.props.renderSectionHeader) {
+        return null
+      }
+
       return (
         <Box2 direction="vertical" key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`} style={styles.box}>
           {this.props.renderSectionHeader({section: section.section})}
