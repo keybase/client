@@ -1102,6 +1102,9 @@ func (m *FlipManager) updateActiveGame(ctx context.Context, uid gregor1.UID, con
 		if nextMsg.GetMessageID() == storedMsgID+1 {
 			m.Debug(ctx, "updateActiveGame: truly incremental update, injecting...")
 			return nil
+		} else if nextMsg.GetMessageID() <= storedMsgID {
+			m.Debug(ctx, "updateActiveGame: update from the past, ignoring")
+			return errors.New("update from the past")
 		}
 		m.Debug(ctx, "updateActiveGame: gapped update: storedMsgID: %d", storedMsgID)
 		msgIDStart = storedMsgID
