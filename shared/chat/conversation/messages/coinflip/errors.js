@@ -17,14 +17,14 @@ const CoinFlipError = (props: Props) => {
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted) {
     return <CoinFlipAbortedError />
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreg && props.error.dupreg) {
-    return <CoinFlipDupError offender={props.error.dupreg} desc={'registration'} />
+    return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
   } else if (
     props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupcommitcomplete &&
     props.error.dupcommitcomplete
   ) {
-    return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc={'commitment list'} />
+    return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreveal && props.error.dupreveal) {
-    return <CoinFlipDupError offender={props.error.dupreveal} desc={'secret reveal'} />
+    return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
   } else if (
     props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.commitmismatch &&
     props.error.commitmismatch
@@ -106,7 +106,7 @@ const CoinFlipDupError = (props: DupProps) => {
         Duplicate {props.desc} received from the following participant:
       </Kb.Text>
       <Kb.Text selectable={true} type="BodySemibold">
-        {props.offender.user} (device: {props.offender.device}
+        {props.offender.user} (device: {props.offender.device})
       </Kb.Text>
     </Kb.Box2>
   )
@@ -123,7 +123,7 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => {
         Commitment mismatch from the following participant:
       </Kb.Text>
       <Kb.Text selectable={true} type="BodySemibold">
-        {props.offender.user} (device: {props.offender.device}
+        {props.offender.user} (device: {props.offender.device})
       </Kb.Text>
     </Kb.Box2>
   )
