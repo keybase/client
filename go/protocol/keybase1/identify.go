@@ -199,6 +199,7 @@ type ResolveIdentifyImplicitTeamArg struct {
 	Create           bool                `codec:"create" json:"create"`
 	Reason           IdentifyReason      `codec:"reason" json:"reason"`
 	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	Oa               OfflineAvailability `codec:"oa" json:"oa"`
 }
 
 type ResolveImplicitTeamArg struct {

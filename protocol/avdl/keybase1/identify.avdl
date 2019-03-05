@@ -93,7 +93,8 @@ protocol identify {
     boolean doIdentifies,  // Whether core runs identifies on all the people or assertions
     boolean create,        // Whether to create the team if none exists
     IdentifyReason reason, // Displayed in the header of the tracker popup
-    TLFIdentifyBehavior identifyBehavior
+    TLFIdentifyBehavior identifyBehavior,
+    OfflineAvailability oa
   );
   record ResolveIdentifyImplicitTeamRes {
     // Display name possibly updated by resolutions and conflicts.

@@ -339,6 +339,10 @@
         {
           "name": "identifyBehavior",
           "type": "TLFIdentifyBehavior"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "ResolveIdentifyImplicitTeamRes"
