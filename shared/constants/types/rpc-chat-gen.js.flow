@@ -408,6 +408,12 @@ export const chatUiMessageUnboxedState = {
 export const chatUiUICoinFlipErrorTyp = {
   generic: 0,
   absentee: 1,
+  timeout: 2,
+  aborted: 3,
+  dupreg: 4,
+  dupcommitcomplete: 5,
+  dupreveal: 6,
+  commitmismatch: 7,
 }
 
 export const chatUiUICoinFlipPhase = {
@@ -1216,12 +1222,18 @@ export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, ful
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIChatPayment = $ReadOnly<{username: String, fullName: String, xlmAmount: String, error?: ?String, displayAmount?: ?String}>
 export type UIChatPaymentSummary = $ReadOnly<{xlmTotal: String, displayTotal: String, payments?: ?Array<UIChatPayment>}>
-export type UICoinFlipAbsentee = $ReadOnly<{user: String, device: String}>
-export type UICoinFlipAbsenteeError = $ReadOnly<{absentees?: ?Array<UICoinFlipAbsentee>}>
-export type UICoinFlipError = {typ: 0, generic: ?String} | {typ: 1, absentee: ?UICoinFlipAbsenteeError}
+export type UICoinFlipAbsenteeError = $ReadOnly<{absentees?: ?Array<UICoinFlipErrorParticipant>}>
+export type UICoinFlipError = {typ: 0, generic: ?String} | {typ: 1, absentee: ?UICoinFlipAbsenteeError} | {typ: 2} | {typ: 3} | {typ: 4, dupreg: ?UICoinFlipErrorParticipant} | {typ: 5, dupcommitcomplete: ?UICoinFlipErrorParticipant} | {typ: 6, dupreveal: ?UICoinFlipErrorParticipant} | {typ: 7, commitmismatch: ?UICoinFlipErrorParticipant}
+export type UICoinFlipErrorParticipant = $ReadOnly<{user: String, device: String}>
 export type UICoinFlipErrorTyp =
   | 0 // GENERIC_0
   | 1 // ABSENTEE_1
+  | 2 // TIMEOUT_2
+  | 3 // ABORTED_3
+  | 4 // DUPREG_4
+  | 5 // DUPCOMMITCOMPLETE_5
+  | 6 // DUPREVEAL_6
+  | 7 // COMMITMISMATCH_7
 
 export type UICoinFlipHand = $ReadOnly<{target: String, hand?: ?Array<Int>}>
 export type UICoinFlipParticipant = $ReadOnly<{uid: String, deviceID: String, username: String, deviceName: String, commitment: String, reveal?: ?String}>

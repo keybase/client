@@ -293,20 +293,32 @@ protocol chatUi {
     COMPLETE_2,
     ERROR_3
   }
-  record UICoinFlipAbsentee {
+  record UICoinFlipErrorParticipant {
     string user;
     string device;
   }
   record UICoinFlipAbsenteeError {
-    array<UICoinFlipAbsentee> absentees;
+    array<UICoinFlipErrorParticipant> absentees;
   }
   enum UICoinFlipErrorTyp {
     GENERIC_0,
-    ABSENTEE_1
+    ABSENTEE_1,
+    TIMEOUT_2,
+    ABORTED_3,
+    DUPREG_4,
+    DUPCOMMITCOMPLETE_5,
+    DUPREVEAL_6,
+    COMMITMISMATCH_7
   }
   variant UICoinFlipError switch (UICoinFlipErrorTyp typ) {
   case GENERIC: string;
   case ABSENTEE: UICoinFlipAbsenteeError;
+  case TIMEOUT: void;
+  case ABORTED: void;
+  case DUPREG: UICoinFlipErrorParticipant;
+  case DUPCOMMITCOMPLETE: UICoinFlipErrorParticipant;
+  case DUPREVEAL: UICoinFlipErrorParticipant;
+  case COMMITMISMATCH: UICoinFlipErrorParticipant;
   }
   enum UICoinFlipResultTyp {
     NUMBER_0,
