@@ -134,10 +134,11 @@ func (k KeybaseServiceMeasured) NormalizeSocialAssertion(
 // for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (info ImplicitTeamInfo, err error) {
+	doIdentifies bool, reason string, offline keybase1.OfflineAvailability) (
+	info ImplicitTeamInfo, err error) {
 	k.resolveIdentifyImplicitTeamTimer.Time(func() {
 		info, err = k.delegate.ResolveIdentifyImplicitTeam(
-			ctx, assertions, suffix, tlfType, doIdentifies, reason)
+			ctx, assertions, suffix, tlfType, doIdentifies, reason, offline)
 	})
 	return info, err
 }

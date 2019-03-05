@@ -48,10 +48,11 @@ func (d *daemonKBPKI) Identify(
 
 // ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
 func (d *daemonKBPKI) ResolveImplicitTeam(
-	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	offline keybase1.OfflineAvailability) (
 	ImplicitTeamInfo, error) {
 	return d.daemon.ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, false, "")
+		ctx, assertions, suffix, tlfType, false, "", offline)
 }
 
 func (d *daemonKBPKI) GetNormalizedUsername(

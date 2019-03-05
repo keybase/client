@@ -71,15 +71,17 @@ func (k *KBPKIClient) NormalizeSocialAssertion(
 
 // ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveImplicitTeam(
-	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	offline keybase1.OfflineAvailability) (
 	ImplicitTeamInfo, error) {
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, false, "")
+		ctx, assertions, suffix, tlfType, false, "", offline)
 }
 
 // ResolveImplicitTeamByID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveImplicitTeamByID(
-	ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type) (
+	ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type,
+	offline keybase1.OfflineAvailability) (
 	ImplicitTeamInfo, error) {
 	name, err := k.serviceOwner.KeybaseService().ResolveImplicitTeamByID(
 		ctx, teamID)
@@ -93,7 +95,7 @@ func (k *KBPKIClient) ResolveImplicitTeamByID(
 	}
 
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, false, "")
+		ctx, assertions, suffix, tlfType, false, "", offline)
 }
 
 // ResolveTeamTLFID implements the KBPKI interface for KBPKIClient.
@@ -119,9 +121,10 @@ func (k *KBPKIClient) ResolveTeamTLFID(
 // given implicit team.
 func (k *KBPKIClient) IdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	reason string) (ImplicitTeamInfo, error) {
+	reason string, offline keybase1.OfflineAvailability) (
+	ImplicitTeamInfo, error) {
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, true, reason)
+		ctx, assertions, suffix, tlfType, true, reason, offline)
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
