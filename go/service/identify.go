@@ -184,8 +184,14 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 		return res, err
 	}
 
+	cacheArg := keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions: arg.Assertions,
+		Suffix:     arg.Suffix,
+		IsPublic:   arg.IsPublic,
+	}
+
 	resp := &res
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, arg, resp, func(mctx libkb.MetaContext) (interface{}, error) {
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, resp, func(mctx libkb.MetaContext) (interface{}, error) {
 		tmp, err := h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
 		if tmp.DisplayName != "" {
 			*resp = tmp
