@@ -71,11 +71,12 @@ class ProofsList extends React.Component<Props, State> {
               color={Styles.globalColors.black_50}
               fontSize={Styles.isMobile ? 20 : 16}
             />
-            <Kb.Input
-              hideUnderline={true}
-              hintText={`Search ${this.props.providers.length} platforms`}
+            <Kb.PlainInput
+              placeholder={`Search ${this.props.providers.length} platforms`}
+              placeholderColor={Styles.globalColors.black_50}
+              multiline={false}
               onChangeText={this.props.onSetFilter}
-              small={true}
+              type="text"
               style={styles.text}
               value={this.props.filter}
             />
@@ -183,6 +184,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: 1,
   },
   text: {
+    backgroundColor: Styles.globalColors.transparent,
     color: Styles.globalColors.black_50,
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
