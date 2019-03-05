@@ -225,8 +225,8 @@ func newDiskBlockCacheLocalFromStorage(
 	}
 	closers = append(closers, lastUnrefDb)
 
-	maxBlockID, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType,
-		kbfshash.MaxDefaultHash[:])
+	maxBlockID, err := kbfshash.HashFromRaw(
+		kbfshash.MaxHashType, kbfshash.MaxDefaultHash[:])
 	if err != nil {
 		return nil, err
 	}
