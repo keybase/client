@@ -904,10 +904,15 @@ func (k *KeybaseServiceBase) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (
 	keybase1.KBFSTeamSettings, error) {
 	// TODO: get invalidations from the server and cache the settings?
-	return k.kbfsClient.GetKBFSTeamSettings(ctx, keybase1.GetKBFSTeamSettingsArg{TeamID: teamID})
+	return k.kbfsClient.GetKBFSTeamSettings(
+		ctx, keybase1.GetKBFSTeamSettingsArg{
+			TeamID: teamID,
+			Oa:     offline,
+		})
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (

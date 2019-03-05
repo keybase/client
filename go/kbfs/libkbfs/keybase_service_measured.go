@@ -185,10 +185,11 @@ func (k KeybaseServiceMeasured) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (
 	settings keybase1.KBFSTeamSettings, err error) {
 	k.getTeamSettingsTimer.Time(func() {
-		settings, err = k.delegate.GetTeamSettings(ctx, teamID)
+		settings, err = k.delegate.GetTeamSettings(ctx, teamID, offline)
 	})
 	return settings, err
 }

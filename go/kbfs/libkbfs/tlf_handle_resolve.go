@@ -305,7 +305,8 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 	var tlfID tlf.ID
 	// Only get a team TLF ID if the caller expects to use it.
 	if ruid.idGetter != nil && ruid.id.IsTeamOrSubteam() {
-		tlfID, err = ruid.resolver.ResolveTeamTLFID(ctx, ruid.id.AsTeamOrBust())
+		tlfID, err = ruid.resolver.ResolveTeamTLFID(
+			ctx, ruid.id.AsTeamOrBust(), ruid.offline)
 		if err != nil {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 		}
@@ -663,7 +664,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 		var tlfID tlf.ID
 		// Only get a team TLF ID if the caller expects to use it.
 		if ra.idGetter != nil && id.IsTeamOrSubteam() {
-			tlfID, err = ra.resolver.ResolveTeamTLFID(ctx, id.AsTeamOrBust())
+			tlfID, err = ra.resolver.ResolveTeamTLFID(
+				ctx, id.AsTeamOrBust(), ra.offline)
 			if err != nil {
 				return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 			}
