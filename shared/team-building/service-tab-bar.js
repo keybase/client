@@ -25,47 +25,48 @@ type IconProps = {
   isActive: boolean,
 }
 
-const ServiceIconDesktop = (props: IconProps) => {
-  const HoverIcon = Styles.styled(Kb.Icon)({
-    '&:hover': {
-      color: serviceIdToAccentColor(props.service),
-    },
-    color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor,
-  })
-  return (
-    <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
-        <Kb.WithTooltip text={serviceIdToLabel(props.service)}>
-          <HoverIcon
-            fontSize={18}
-            type={serviceIdToIconFont(props.service)}
-            style={styles.serviceIcon}
+const HoverIcon = Styles.styled(Kb.Icon)(props => ({
+  '&:hover': {
+    color: serviceIdToAccentColor(props.service),
+  },
+  color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor,
+}))
+
+const ServiceIconDesktop = (props: IconProps) => (
+  <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
+    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
+      <Kb.WithTooltip text={serviceIdToLabel(props.service)}>
+        <HoverIcon
+          isActive={props.isActive}
+          service={props.service}
+          fontSize={18}
+          type={serviceIdToIconFont(props.service)}
+          style={styles.serviceIcon}
+        />
+      </Kb.WithTooltip>
+      {!!props.showCount &&
+        (Number.isInteger(props.count) ? (
+          <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
+            {props.count && props.count > 10 ? '10+' : props.count}
+          </Kb.Text>
+        ) : (
+          <Kb.Icon
+            type="icon-progress-grey-animated"
+            color={Styles.globalColors.grey}
+            style={styles.pendingIcon}
           />
-        </Kb.WithTooltip>
-        {!!props.showCount &&
-          (Number.isInteger(props.count) ? (
-            <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
-              {props.count && props.count > 10 ? '10+' : props.count}
-            </Kb.Text>
-          ) : (
-            <Kb.Icon
-              type="icon-progress-grey-animated"
-              color={Styles.globalColors.grey}
-              style={styles.pendingIcon}
-            />
-          ))}
-      </Kb.Box2>
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
-          props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
-        ])}
-      />
-    </Kb.ClickableBox>
-  )
-}
+        ))}
+    </Kb.Box2>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={Styles.collapseStyles([
+        props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+        props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
+      ])}
+    />
+  </Kb.ClickableBox>
+)
 
 const ServiceIconMobile = (props: IconProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
