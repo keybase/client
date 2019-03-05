@@ -87,13 +87,13 @@ class ProofsList extends React.Component<Props, State> {
               <Kb.Divider />
             </Kb.ScrollView>
           </Kb.Box2>
+          <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
+            <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
+            <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
+              Learn how to list your platform here
+            </Kb.Text>
+          </HoverBox>
         </Kb.Box2>
-        <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
-          <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
-          <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
-            Learn how to list your platform here
-          </Kb.Text>
-        </HoverBox>
       </Kb.MaybePopup>
     )
   }
@@ -110,7 +110,9 @@ const rightColumnStyle = Styles.platformStyles({
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
+      borderRadius: 4,
       height: 525,
+      overflow: 'hidden',
       width: 360,
     },
     isMobile: {
