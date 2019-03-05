@@ -215,8 +215,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
-  flags: makeFlags(),
-  fuseStatus: 'unknown',
   kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),

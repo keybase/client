@@ -335,23 +335,23 @@ export type _SystemFileManagerIntegration = {
 }
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
-export type _State = {
-  pathItems: PathItems,
-  tlfs: Tlfs,
-  edits: Edits,
-  pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Map<Path, I.Set<string>>,
+export type _State = {|
   downloads: Downloads,
-  uploads: Uploads,
-  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
-  sfmi: SystemFileManagerIntegration,
-  localHTTPServerInfo: LocalHTTPServer,
+  edits: Edits,
   errors: I.Map<string, FsError>,
-  tlfUpdates: UserTlfUpdates,
+  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
+  loadingPaths: I.Map<Path, I.Set<string>>,
+  localHTTPServerInfo: LocalHTTPServer,
   moveOrCopy: MoveOrCopy,
-  sendLinkToChat: SendLinkToChat,
   pathItemActionMenu: PathItemActionMenu,
-}
+  pathItems: PathItems,
+  pathUserSettings: I.Map<Path, PathUserSetting>,
+  sendLinkToChat: SendLinkToChat,
+  sfmi: SystemFileManagerIntegration,
+  tlfUpdates: UserTlfUpdates,
+  tlfs: Tlfs,
+  uploads: Uploads,
+|}
 export type State = I.RecordOf<_State>
 
 export type Visibility = TlfType | null
