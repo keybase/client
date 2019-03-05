@@ -556,9 +556,12 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		return err
 	}
 
-	seqno, err := strconv.ParseUint(dpp.Details.Seqno, 10, 64)
-	if err != nil {
-		return err
+	var seqno uint64
+	if dpp.Details.Seqno != "" {
+		seqno, err = strconv.ParseUint(dpp.Details.Seqno, 10, 64)
+		if err != nil {
+			return err
+		}
 	}
 
 	a.Lock()
@@ -744,7 +747,7 @@ func (a *AccountState) Details(ctx context.Context) (stellar1.AccountDetails, er
 	defer a.RUnlock()
 	a.enqueueRefreshReq()
 	if a.details == nil {
-		return stellar1.AccountDetails{}, nil
+		return stellar1.AccountDetails{AccountID: a.accountID}, nil
 	}
 	return *a.details, nil
 }

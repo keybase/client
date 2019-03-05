@@ -941,7 +941,7 @@ func NetworkOptions(ctx context.Context, g *libkb.GlobalContext) (stellar1.Netwo
 
 type detailsPlusPaymentsRes struct {
 	libkb.AppStatusEmbed
-	Result stellar1.DetailsPlusPayments
+	Result stellar1.DetailsPlusPayments `json:"res"`
 }
 
 func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
