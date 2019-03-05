@@ -8,6 +8,25 @@ import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../const
 import type {Props} from '.'
 
 class LoginRender extends Component<Props> {
+  _inputRef: ?Kb.Input
+
+  _setInputRef = ref => {
+    this._inputRef = ref
+  }
+
+  _focusInput = () => {
+    if (this._inputRef) {
+      this._inputRef.focus()
+    }
+  }
+
+  _selectedUserChange = selectedUser => {
+    this.props.selectedUserChange(selectedUser)
+    // For some reason, calling this immediately doesn't work, at
+    // least on iOS.
+    setImmediate(this._focusInput)
+  }
+
   render() {
     const inputProps = {
       autoFocus: true,
@@ -16,6 +35,7 @@ class LoginRender extends Component<Props> {
       key: this.props.inputKey,
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       onEnterKeyDown: () => this.props.onSubmit(),
+      ref: this._setInputRef,
       style: {marginBottom: 0},
       type: this.props.showTyping ? 'passwordVisible' : 'password',
       // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
@@ -47,7 +67,7 @@ class LoginRender extends Component<Props> {
             <Dropdown
               type="Username"
               value={this.props.selectedUser}
-              onClick={this.props.selectedUserChange}
+              onClick={this._selectedUserChange}
               onOther={this.props.onSomeoneElse}
               options={this.props.users}
             />
