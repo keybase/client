@@ -143,10 +143,8 @@ func (d *chatNotificationDisplay) matchFilters(conv *chat1.InboxUIItem) bool {
 		if matchMembersTypeToFilter(v, conv.MembersType) && v.Name == strings.ToLower(conv.Name) {
 			// If any of the following were specified by user and differ from
 			// what was received, filter the msg out.
-			if v.TopicType != "" && conv.TopicType.String() != v.TopicType {
-				continue
-			}
-			if v.TopicName != "" && conv.Channel != v.TopicName {
+			if (v.TopicType != "" && conv.TopicType.String() != v.TopicType) ||
+				(v.TopicName != "" && conv.Channel != v.TopicName) {
 				continue
 			}
 			// It's a match.
