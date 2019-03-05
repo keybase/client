@@ -11,15 +11,13 @@ import {measureStart, measureStop} from '../util/user-timings'
 
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
-const nativeBridge: {
+const nativeBridge: {|
   runWithData: string => void,
   eventName: string,
   start: () => void,
   reset: () => void,
-} = NativeModules.KeybaseEngine
-const RNEmitter: {
-  addListener: (string, (string) => void) => void,
-} = new NativeEventEmitter(nativeBridge)
+|} = NativeModules.KeybaseEngine
+const RNEmitter = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {

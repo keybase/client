@@ -51,8 +51,8 @@ const cacheSections = (width: number, sections: Array<Section>) => {
 }
 
 type Section = ListSection<{
-  key: string,
   emojis: $ReadOnlyArray<EmojiData>,
+  key: string,
 }>
 
 type Props = {
@@ -83,7 +83,7 @@ class EmojiPicker extends React.Component<Props, State> {
     sections = emojiSections.map(c => ({
       category: c.category,
       data: chunk(c.data.emojis, emojisPerLine).map(c => ({
-        mojis: c,
+        emojis: c,
         key: c[0].short_name,
       })),
       key: c.key,
@@ -145,10 +145,10 @@ class EmojiPicker extends React.Component<Props, State> {
   }
 }
 
-const EmojiRow = ({item}) => (
+const EmojiRow = ({item, onChoose}) => (
   <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
     {item.emojis.map(e => (
-      <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />
+      <EmojiRender key={e.short_name} emoji={e} onChoose={onChoose} />
     ))}
   </Box2>
 )

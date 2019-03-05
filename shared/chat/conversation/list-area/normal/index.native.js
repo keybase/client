@@ -6,6 +6,7 @@ import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
 import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
+import logger from '../../../../logger'
 import type {Props} from './index.types'
 
 class ConversationList extends React.PureComponent<Props> {
@@ -19,9 +20,15 @@ class ConversationList extends React.PureComponent<Props> {
       const ordinal = this.props.messageOrdinals.get(ordinalIndex)
       const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
 
+      if (ordinal === undefined) {
+        // should never happen
+        logger.error('null ordinal', this.props.conversationIDKey)
+        return null
+      }
+
       return (
         <Message
-          key={ordinal}
+          key={String(ordinal)}
           ordinal={ordinal}
           previous={prevOrdinal}
           measure={null}

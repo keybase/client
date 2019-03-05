@@ -23,6 +23,7 @@ export type Section<T> = {
   ItemSeparatorComponent?: ?React.ComponentType<any>,
   keyExtractor?: (item: T) => string,
 }
+// This isn't the whole type
 export type Props<T> = {
   sections: $ReadOnlyArray<Section<T>>,
   renderItem?: (info: {
@@ -35,6 +36,10 @@ export type Props<T> = {
       updateProps: (select: 'leading' | 'trailing', newProps: Object) => void,
     },
   }) => ?React.Element<any>,
+  onEndReached?: ?(info: {distanceFromEnd: number}) => void,
+  stickySectionHeadersEnabled?: boolean,
+  keyExtractor: (item: Item, index: number) => string,
+  renderSectionHeader?: ?(info: {section: SectionT}) => ?React.Element<any>,
 }
 
 export default class KBSectionList<T> extends React.Component<Props<T>> {}

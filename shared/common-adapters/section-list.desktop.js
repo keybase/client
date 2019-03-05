@@ -18,13 +18,13 @@ import {memoize} from '../util/memoize'
 type State = {
   currentSectionFlatIndex: number,
 }
-class SectionList extends React.Component<Props, State> {
+class SectionList<T> extends React.Component<Props<T>, State> {
   _flat = []
   state = {currentSectionFlatIndex: 0}
   _listRef = React.createRef()
   _mounted = true
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props<T>, prevState: State) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
       this._onEndReached = once(
