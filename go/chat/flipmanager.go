@@ -554,8 +554,6 @@ func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoi
 		return chat1.NewUICoinFlipErrorWithAborted()
 	case flip.DuplicateRegistrationError:
 		return chat1.NewUICoinFlipErrorWithDupreg(m.getErrorParticipant(ctx, terr.U))
-	case flip.DuplicateCommitmentCompleteError:
-		return chat1.NewUICoinFlipErrorWithDupcommitcomplete(m.getErrorParticipant(ctx, terr.U))
 	case flip.DuplicateRevealError:
 		return chat1.NewUICoinFlipErrorWithDupreveal(m.getErrorParticipant(ctx, terr.U))
 	case flip.CommitmentMismatchError:
