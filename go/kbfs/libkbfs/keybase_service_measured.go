@@ -109,10 +109,12 @@ func (k KeybaseServiceMeasured) Resolve(
 }
 
 // Identify implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) Identify(ctx context.Context, assertion, reason string) (
+func (k KeybaseServiceMeasured) Identify(
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	name kbname.NormalizedUsername, id keybase1.UserOrTeamID, err error) {
 	k.identifyTimer.Time(func() {
-		name, id, err = k.delegate.Identify(ctx, assertion, reason)
+		name, id, err = k.delegate.Identify(ctx, assertion, reason, offline)
 	})
 	return name, id, err
 }

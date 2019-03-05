@@ -473,7 +473,9 @@ func (k *KeybaseServiceBase) Resolve(
 }
 
 // Identify implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason string) (
+func (k *KeybaseServiceBase) Identify(
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// setting UseDelegateUI to true here will cause daemon to use
 	// registered identify ui providers instead of terminal if any
@@ -485,6 +487,7 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 		// No need to go back and forth with the UI until the service
 		// knows for sure there's a need for a dialogue.
 		CanSuppressUI: true,
+		Oa:            offline,
 	}
 
 	ei := getExtendedIdentify(ctx)

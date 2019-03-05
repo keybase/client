@@ -196,13 +196,14 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 	if err != nil {
 		return err
 	}
-	return identifyUser(ctx, nug, identifier, name, id, t)
+	return identifyUser(ctx, nug, identifier, name, id, t, offline)
 }
 
 // identifyUser is the preferred way to run identifies.
 func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, name kbname.NormalizedUsername,
-	id keybase1.UserOrTeamID, t tlf.Type) error {
+	id keybase1.UserOrTeamID, t tlf.Type,
+	offline keybase1.OfflineAvailability) error {
 	// Check to see if identify should be skipped altogether.
 	ei := getExtendedIdentify(ctx)
 	if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
@@ -249,7 +250,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	} else {
 		var err error
 		resultName, resultID, err =
-			identifier.Identify(ctx, nameAssertion, reason)
+			identifier.Identify(ctx, nameAssertion, reason, offline)
 		if err != nil {
 			// Convert libkb.NoSigChainError into one we can report.  (See
 			// KBFS-1252).
@@ -275,15 +276,16 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 // identifyUserToChan calls identifyUser and plugs the result into the error channnel.
 func identifyUserToChan(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier, name kbname.NormalizedUsername,
-	id keybase1.UserOrTeamID, t tlf.Type, errChan chan error) {
-	errChan <- identifyUser(ctx, nug, identifier, name, id, t)
+	id keybase1.UserOrTeamID, t tlf.Type, offline keybase1.OfflineAvailability,
+	errChan chan error) {
+	errChan <- identifyUser(ctx, nug, identifier, name, id, t, offline)
 }
 
 // identifyUsers identifies the users in the given maps.
 func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier,
 	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
-	t tlf.Type) error {
+	t tlf.Type, offline keybase1.OfflineAvailability) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	// TODO: limit the number of concurrent identifies?
@@ -292,7 +294,7 @@ func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
 		// Capture range variables.
 		id, name := id, name
 		eg.Go(func() error {
-			return identifyUser(ctx, nug, identifier, name, id, t)
+			return identifyUser(ctx, nug, identifier, name, id, t, offline)
 		})
 	}
 
@@ -324,7 +326,7 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter,
 func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier,
 	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
-	t tlf.Type) error {
+	t tlf.Type, offline keybase1.OfflineAvailability) error {
 	ei := getExtendedIdentify(ctx)
 	if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		return nil
@@ -337,14 +339,20 @@ func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
 	})
 
 	eg.Go(func() error {
-		return identifyUsers(ctx, nug, identifier, names, t)
+		return identifyUsers(ctx, nug, identifier, names, t, offline)
 	})
 
 	return eg.Wait()
 }
 
 // identifyHandle identifies the canonical names in the given handle.
-func identifyHandle(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, h *TlfHandle) error {
-	return identifyUsersForTLF(ctx, nug, identifier,
-		h.ResolvedUsersMap(), h.Type())
+func identifyHandle(
+	ctx context.Context, nug normalizedUsernameGetter, identifier identifier,
+	osg OfflineStatusGetter, h *TlfHandle) error {
+	offline := keybase1.OfflineAvailability_NONE
+	if osg != nil {
+		offline = osg.OfflineAvailabilityForID(h.tlfID)
+	}
+	return identifyUsersForTLF(
+		ctx, nug, identifier, h.ResolvedUsersMap(), h.Type(), offline)
 }

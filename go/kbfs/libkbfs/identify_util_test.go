@@ -40,7 +40,8 @@ type testIdentifier struct {
 }
 
 func (ti *testIdentifier) Identify(
-	ctx context.Context, assertion, reason string) (
+	ctx context.Context, assertion, reason string,
+	_ keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ei := getExtendedIdentify(ctx)
 	userInfo, ok := ti.assertionsBrokenTracks[assertion]
@@ -147,7 +148,8 @@ func TestIdentify(t *testing.T) {
 	}
 
 	err := identifyUsersForTLF(
-		context.Background(), nug, ti, nug.uidMap(), tlf.Private)
+		context.Background(), nug, ti, nug.uidMap(), tlf.Private,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	require.Equal(t, ids, ti.identifiedIDs)
 }
@@ -165,13 +167,17 @@ func TestIdentifyAlternativeBehaviors(t *testing.T) {
 	ctx, err := MakeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	require.NoError(t, err)
-	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), tlf.Private)
+	err = identifyUsersForTLF(
+		ctx, nug, ti, nug.uidMap(), tlf.Private,
+		keybase1.OfflineAvailability_NONE)
 	require.Error(t, err)
 
 	ctx, err = MakeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	require.NoError(t, err)
-	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), tlf.Private)
+	err = identifyUsersForTLF(
+		ctx, nug, ti, nug.uidMap(), tlf.Private,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	tb := getExtendedIdentify(ctx).getTlfBreakAndClose()
 	require.Len(t, tb.Breaks, 1)
@@ -210,19 +216,19 @@ func TestIdentifyImplicitTeams(t *testing.T) {
 		context.Background(), nug, ti,
 		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			privID.AsUserOrTeam(): "alice,bob",
-		}, tlf.Private)
+		}, tlf.Private, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	err = identifyUsersForTLF(
 		context.Background(), nug, ti,
 		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			pubID.AsUserOrTeam(): "alice,bob",
-		}, tlf.Public)
+		}, tlf.Public, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	err = identifyUsersForTLF(
 		context.Background(), nug, ti,
 		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			suffixID.AsUserOrTeam(): "alice,bob (conflicted copy 2016-03-14 #3)",
-		}, tlf.Private)
+		}, tlf.Private, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	require.Equal(t, ids, ti.identifiedIDs)
 }
