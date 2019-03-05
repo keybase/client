@@ -30,6 +30,7 @@ export type BaseUsernamesProps = {|
   onUsernameClicked?: (username: string) => void,
   prefix?: ?string,
   redColor?: string,
+  selectable?: boolean,
   showAnd?: boolean,
   style?: Styles.StylesCrossPlatform,
   suffix?: ?string,
@@ -94,6 +95,7 @@ function UsernameText(props: Props) {
               type={props.type}
               negative={backgroundModeIsNegative(props.backgroundMode)}
               className={Styles.classNames({'hover-underline': props.underline})}
+              selectable={props.selectable}
               onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
               style={userStyle}
             >
@@ -119,6 +121,7 @@ function UsernameText(props: Props) {
 UsernameText.defaultProps = {
   colorBroken: true,
   inlineGrammar: false,
+  selectable: undefined,
   showAnd: false,
   underline: true,
 }
