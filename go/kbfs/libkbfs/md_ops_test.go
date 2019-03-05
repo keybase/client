@@ -1020,7 +1020,7 @@ func makeSuccessorRMDForTesting(
 
 	rmd, err := currRMD.MakeSuccessor(
 		ctx, config.MetadataVersion(), config.Codec(), config.KeyManager(),
-		config.KBPKI(), config.KBPKI(), mdID, true)
+		config.KBPKI(), config.KBPKI(), config, mdID, true)
 	require.NoError(t, err)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)

@@ -163,11 +163,12 @@ func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
 func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 	tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
 	desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
-	desiredRole keybase1.TeamRole) (teamInfo TeamInfo, err error) {
+	desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
+	teamInfo TeamInfo, err error) {
 	k.loadTeamPlusKeysTimer.Time(func() {
 		teamInfo, err = k.delegate.LoadTeamPlusKeys(
 			ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey,
-			desiredRole)
+			desiredRole, offline)
 	})
 	return teamInfo, err
 }

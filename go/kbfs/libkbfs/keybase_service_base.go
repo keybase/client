@@ -763,8 +763,8 @@ var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
 	desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion,
-	desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole) (
-	TeamInfo, error) {
+	desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole,
+	offline keybase1.OfflineAvailability) (TeamInfo, error) {
 	if !allowedLoadTeamRoles[desiredRole] {
 		panic(fmt.Sprintf("Disallowed team role: %v", desiredRole))
 	}
@@ -817,6 +817,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 		Id:              tid,
 		Application:     keybase1.TeamApplication_KBFS,
 		IncludeKBFSKeys: true,
+		Oa:              offline,
 	}
 
 	if desiredKeyGen >= kbfsmd.FirstValidKeyGen {

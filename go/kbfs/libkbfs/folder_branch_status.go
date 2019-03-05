@@ -238,7 +238,7 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 			loggerSuffix := fmt.Sprintf("status-%s", fbsk.md.TlfID())
 			chargedTo, err := chargedToForTLF(
 				ctx, fbsk.config.KBPKI(), fbsk.config.KBPKI(),
-				fbsk.md.GetTlfHandle())
+				fbsk.config, fbsk.md.GetTlfHandle())
 			if err != nil {
 				return FolderBranchStatus{}, nil, tlf.NullID, err
 			}

@@ -447,7 +447,7 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
 func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, _ tlf.Type, _ kbfsmd.KeyGen,
 	_ keybase1.UserVersion, _ kbfscrypto.VerifyingKey,
-	_ keybase1.TeamRole) (TeamInfo, error) {
+	_ keybase1.TeamRole, _ keybase1.OfflineAvailability) (TeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return TeamInfo{}, err
 	}

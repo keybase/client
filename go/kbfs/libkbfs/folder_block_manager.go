@@ -1057,7 +1057,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	isWriter, err := head.IsWriter(
-		ctx, fbm.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbm.config.KBPKI(), fbm.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return err
 	}

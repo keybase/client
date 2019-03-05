@@ -360,7 +360,7 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	rmd.SetFinalBit()
 	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil,
-		nil, kbfsmd.FakeID(1), true)
+		nil, nil, kbfsmd.FakeID(1), true)
 	_, isFinalError := err.(kbfsmd.MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
 }
@@ -484,8 +484,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), nil,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(2), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -576,8 +576,8 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.PublicKeyGen, rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -646,8 +646,8 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(1), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -767,7 +767,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		configReader.MetadataVersion(), configReader.Codec(),
 		configReader.KeyManager(), configReader.KBPKI(),
-		configReader.KBPKI(), kbfsmd.FakeID(1), false)
+		configReader.KBPKI(), configReader, kbfsmd.FakeID(1), false)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.KeyGen(1), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -791,7 +791,8 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 		rmd2.bareMd, configReader.Clock().Now())
 	require.NoError(t, err)
 	err = rmds.IsValidAndSigned(
-		ctx, configReader.Codec(), nil, rmd2.extra)
+		ctx, configReader.Codec(), nil, rmd2.extra,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 }
 
@@ -835,12 +836,12 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	// No user should be able to read this yet.
 	checkWriter := func(uid keybase1.UID, key kbfscrypto.VerifyingKey,
 		expectedIsWriter bool) {
-		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), uid, key)
+		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), config, uid, key)
 		require.NoError(t, err)
 		require.Equal(t, expectedIsWriter, isWriter)
 	}
 	checkReader := func(uid keybase1.UID, expectedIsReader bool) {
-		isReader, err := rmd.IsReader(ctx, config.KBPKI(), uid)
+		isReader, err := rmd.IsReader(ctx, config.KBPKI(), config, uid)
 		require.NoError(t, err)
 		require.Equal(t, expectedIsReader, isReader)
 	}
@@ -908,8 +909,8 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 
 	// No increase yet.
@@ -920,8 +921,8 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 
 	rmd3, err := rmd2.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(),
-		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(2),
-		true)
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), config,
+		kbfsmd.FakeID(2), true)
 	require.NoError(t, err)
 
 	// Should have been bumped by one.
