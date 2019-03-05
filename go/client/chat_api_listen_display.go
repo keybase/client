@@ -56,7 +56,7 @@ func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilte
 			// to normalize display name without using resolve RPC.
 			conv, _, err := d.svc.findConversation(ctx, v)
 			if err != nil {
-				return fmt.Errorf("Unable to find chat channel for: %s: %s", v.Name, err.Error())
+				return fmt.Errorf("Unable to find chat channel for %q: %s", v.Name, err.Error())
 			}
 			v.Name = conv.Info.TlfName
 		} else {
