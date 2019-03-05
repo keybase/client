@@ -101,7 +101,7 @@ type DupProps = {|
 
 const CoinFlipDupError = (props: DupProps) => {
   return (
-    <Kb.Box2 direction="vertical" gap="tiny">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Text selectable={true} type="Body">
         Duplicate {`${props.desc}`} received from the following participant:
       </Kb.Text>
@@ -118,7 +118,7 @@ type CommitMismatchProps = {|
 
 const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => {
   return (
-    <Kb.Box2 direction="vertical" gap="tiny">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Text selectable={true} type="Body">
         Commitment mismatch from the following participant:
       </Kb.Text>
