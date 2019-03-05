@@ -81,8 +81,18 @@ class CardStackShim extends Component<CardStackShimProps> {
           .map((route, index) => {
             const routeName = route.path.join('/')
             // The bottom/back item of the stack is our top (active) screen
-            const shouldRender =
+            let shouldRender =
               !this.props.hidden && (index === stack.size - 1 || (isIOS && index === stack.size - 2))
+            // hack workaround issues w/ role picker on android
+            if (!shouldRender && Styles.isAndroid && index === stack.size - 2) {
+              try {
+                const topRoute = stack.last().path.last()
+                if (topRoute === 'controlledRolePicker') {
+                  shouldRender = true
+                }
+              } catch (_) {}
+            }
+            // end hack workaround issues w/ role picker on android
             return {key: routeName, params: {route, shouldRender}, routeName}
           })
           .toArray(),
