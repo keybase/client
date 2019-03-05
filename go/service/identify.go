@@ -175,16 +175,25 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 }
 
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
-	ctx = libkb.WithLogTag(ctx, "RIIT")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
-
-	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RIIT")
+	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
+	mctx.Debug("ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
 	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
 	if err != nil {
 		return res, err
 	}
-	return h.resolveIdentifyImplicitTeamHelper(ctx, arg, writerAssertions, readerAssertions)
+
+	resp := &res
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, arg, resp, func(mctx libkb.MetaContext) (interface{}, error) {
+		tmp, err := h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
+		if err == nil {
+			*resp = tmp
+		}
+		return tmp, err
+	})
+
+	return res, err
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
