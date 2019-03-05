@@ -39,9 +39,11 @@ func (d *daemonKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion st
 	return d.daemon.NormalizeSocialAssertion(ctx, assertion)
 }
 
-func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (
+func (d *daemonKBPKI) Identify(
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	return d.daemon.Identify(ctx, assertion, reason)
+	return d.daemon.Identify(ctx, assertion, reason, offline)
 }
 
 // ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
@@ -122,8 +124,9 @@ func (ik *identifyCountingKBPKI) getIdentifyCalls() int {
 }
 
 func (ik *identifyCountingKBPKI) Identify(
-	ctx context.Context, assertion, reason string) (
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ik.addIdentifyCall()
-	return ik.KBPKI.Identify(ctx, assertion, reason)
+	return ik.KBPKI.Identify(ctx, assertion, reason, offline)
 }

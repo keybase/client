@@ -496,7 +496,8 @@ type failIdentifyKBPKI struct {
 }
 
 func (kbpki failIdentifyKBPKI) Identify(
-	ctx context.Context, assertion, reason string) (
+	ctx context.Context, assertion, reason string,
+	_ keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 		kbpki.identifyErr

@@ -55,9 +55,12 @@ func (k *KBPKIClient) Resolve(
 }
 
 // Identify implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
+func (k *KBPKIClient) Identify(
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
+	return k.serviceOwner.KeybaseService().Identify(
+		ctx, assertion, reason, offline)
 }
 
 // NormalizeSocialAssertion implements the KBPKI interface for KBPKIClient.

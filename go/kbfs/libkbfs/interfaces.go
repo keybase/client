@@ -648,7 +648,13 @@ type KeybaseService interface {
 	// with the user that matches that assertion, or an error
 	// otherwise. The reason string is displayed on any tracker
 	// popups spawned.
-	Identify(ctx context.Context, assertion, reason string) (
+	//
+	// If the caller knows that the assertion needs to be identifiable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `Identify` might block on a network call.
+	Identify(ctx context.Context, assertion, reason string,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 
 	// NormalizeSocialAssertion creates a SocialAssertion from its input and
@@ -843,7 +849,13 @@ type identifier interface {
 	// username) to a UserInfo struct, spawning tracker popups if
 	// necessary.  The reason string is displayed on any tracker
 	// popups spawned.
-	Identify(ctx context.Context, assertion, reason string) (
+	//
+	// If the caller knows that the assertion needs to be identifiable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `Identify` might block on a network call.
+	Identify(ctx context.Context, assertion, reason string,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 	// IdentifyImplicitTeam identifies (and creates if necessary) the
 	// given implicit team.

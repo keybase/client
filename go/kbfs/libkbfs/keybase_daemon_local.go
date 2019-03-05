@@ -258,11 +258,12 @@ func (k *KeybaseDaemonLocal) Resolve(
 
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Identify(
-	ctx context.Context, assertion, _ string) (
+	ctx context.Context, assertion, _ string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// The local daemon doesn't need to distinguish resolves from
 	// identifies.
-	return k.Resolve(ctx, assertion, keybase1.OfflineAvailability_NONE)
+	return k.Resolve(ctx, assertion, offline)
 }
 
 // NormalizeSocialAssertion implements the KeybaseService interface for

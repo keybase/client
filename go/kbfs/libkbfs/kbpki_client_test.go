@@ -66,7 +66,9 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 func TestKBPKIClientIdentify(t *testing.T) {
 	c, _, _, _ := makeTestKBPKIClient(t)
 
-	_, id, err := c.Identify(context.Background(), "test_name1", "")
+	_, id, err := c.Identify(
+		context.Background(), "test_name1", "",
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatal(err)
 	}

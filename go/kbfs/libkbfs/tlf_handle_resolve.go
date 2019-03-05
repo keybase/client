@@ -649,7 +649,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 		}
 		reason := fmt.Sprintf("You accessed a folder with %s.", ra.assertion)
 		var resName kbname.NormalizedUsername
-		resName, _, err = ra.identifier.Identify(ctx, ra.assertion, reason)
+		resName, _, err = ra.identifier.Identify(
+			ctx, ra.assertion, reason, ra.offline)
 		if err == nil && resName != name {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID,
 				fmt.Errorf(
@@ -877,7 +878,7 @@ func parseTlfHandleLoose(
 	}
 
 	// Otherwise, identify before returning the canonical name.
-	err = identifyHandle(ctx, kbpki, kbpki, h)
+	err = identifyHandle(ctx, kbpki, kbpki, osg, h)
 	if err != nil {
 		return nil, err
 	}
