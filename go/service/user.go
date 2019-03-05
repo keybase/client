@@ -133,17 +133,14 @@ func (h *UserHandler) LoadUserPlusKeysV2(ctx context.Context, arg keybase1.LoadU
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LUPK2")
 	defer mctx.Trace(fmt.Sprintf("UserHandler#LoadUserPlusKeysV2(%+v)", arg), func() error { return err })()
 
-	var retp *keybase1.UserPlusKeysV2AllIncarnations
+	retp := &ret
 	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "user.loadUserPlusKeysV2", false, arg, &retp, func(mctx libkb.MetaContext) (interface{}, error) {
 		tmp, err := h.G().GetUPAKLoader().LoadV2WithKID(mctx.Ctx(), arg.Uid, arg.PollForKID)
 		if tmp != nil {
-			retp = tmp
+			*retp = *tmp
 		}
 		return tmp, err
 	})
-	if retp != nil {
-		ret = *retp
-	}
 
 	return ret, err
 }
