@@ -1516,7 +1516,7 @@ func assertAssetIsSane(asset stellar1.Asset) error {
 		return fmt.Errorf("unrecognized asset type: %v", asset.Type)
 	}
 	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
-	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
+	if len(asset.Code) == 0 || len(asset.Code) >= 20 {
 		return fmt.Errorf("invalid asset code: %v", asset.Code)
 	}
 	return nil
