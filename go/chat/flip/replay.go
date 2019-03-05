@@ -144,11 +144,17 @@ func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary,
 			}
 		}
 		if !found && ret.Err == nil {
-			var ea AbsenteesError
+			var absentees []UserDevice
 			for _, v := range players {
-				ea.Absentees = append(ea.Absentees, v.Device)
+				absentees = append(absentees, v.Device)
 			}
-			ret.Err = ea
+			var err error
+			if len(absentees) > 0 {
+				err = AbsenteesError{Absentees: absentees}
+			} else {
+				err = GameAbortedError{}
+			}
+			ret.Err = err
 		}
 		summaryCh <- ret
 	}()

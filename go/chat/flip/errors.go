@@ -77,6 +77,12 @@ type TimeoutError struct {
 	Stage Stage
 }
 
+type GameAbortedError struct{}
+
+func (g GameAbortedError) Error() string {
+	return "game was aborted before it yielded a result or any reveals"
+}
+
 func (t TimeoutError) Error() string {
 	return fmt.Sprintf("Game %s timed out in stage: %d", t.G, t.Stage)
 }
