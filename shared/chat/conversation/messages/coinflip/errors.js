@@ -103,7 +103,7 @@ const CoinFlipDupError = (props: DupProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Text selectable={true} type="Body">
-        Duplicate {`${props.desc}`} received from the following participant:
+        Duplicate {props.desc} received from the following participant:
       </Kb.Text>
       <Kb.Text selectable={true} type="BodySemibold">
         {props.offender.user} (device: {props.offender.device}

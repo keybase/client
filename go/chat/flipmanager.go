@@ -524,7 +524,7 @@ func (m *FlipManager) getErrorParticipant(ctx context.Context, a flip.UserDevice
 	username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
 		keybase1.UID(a.U.String()), keybase1.DeviceID(a.D.String()))
 	if err != nil {
-		m.Debug(ctx, "formatError: failed to get names: %s", err)
+		m.Debug(ctx, "getErrorParticipant: failed to get names: %s", err)
 		return chat1.UICoinFlipErrorParticipant{
 			User:   a.U.String(),
 			Device: a.D.String(),
