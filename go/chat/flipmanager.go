@@ -1153,11 +1153,10 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		return true
 	}
 	// Ignore anything from the current device
-	sender := flip.UserDevice{
+	if m.Me().Eq(flip.UserDevice{
 		U: msg.Valid().ClientHeader.Sender,
 		D: msg.Valid().ClientHeader.SenderDevice,
-	}
-	if sender.Eq(m.Me()) {
+	}) {
 		// If this is our own message, then we need to make sure to update the msgID of the flip
 		m.gameMsgIDs.Add(body.Flip().GameID.String(), msg.GetMessageID())
 		return true
