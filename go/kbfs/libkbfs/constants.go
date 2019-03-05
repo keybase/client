@@ -35,4 +35,5 @@ const registerForUpdatesFireNowThreshold = 10 * time.Minute
 // connections.
 const dialerTimeout = 16 * time.Second
 
+// NonexistentSignal is a signal that will never be used by the OS.
 const NonexistentSignal = syscall.Signal(-1)
