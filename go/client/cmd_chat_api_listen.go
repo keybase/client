@@ -66,16 +66,16 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			},
 		},
 		Description: `"keybase chat api-listen" is a command that will print incoming chat messages or
-   wallet notifications until it's exited. Messages are printed to standard output in JSON format similar
-   to format used in "keybase chat api".
+   wallet notifications until it's exited. Messages are printed to standard output in a JSON format similar
+   to the format used in "keybase chat api" command.
 
-   For chat messages, by default all messages will be relayed. Filtering can be used using
-   --filter-channel or --filter-channels flags, that take JSON arguments.
+   For chat messages, all messages will be relayed by default. Filtering can be enabled using
+   --filter-channel or --filter-channels flags that take JSON arguments.
 
    Examples:
 
    To only show messages from "alice,bob,charlie" conversation between users, and from
-   "all_things_crypto" team, channel #core:
+   "all_things_crypto" team channel #core:
 
       keybase chat api-listen --filter-channels '[{"name":"alice,bob,charlie"}, {"name":"all_things_crypto", "topic_name": "core", "members_type": "team"}]'
 
