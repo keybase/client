@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type Props = {|
@@ -13,7 +12,26 @@ const CoinFlipError = (props: Props) => {
     return <CoinFlipGenericError error={props.error.generic} />
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee && props.error.absentee) {
     return <CoinFlipAbsenteeError error={props.error.absentee} />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.timeout) {
+    return <CoinFlipTimeoutError />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted) {
+    return <CoinFlipAbortedError />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreg && props.error.dupreg) {
+    return <CoinFlipDupError offender={props.error.dupreg} desc={'registration'} />
+  } else if (
+    props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupcommitcomplete &&
+    props.error.dupcommitcomplete
+  ) {
+    return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc={'commitment list'} />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreveal && props.error.dupreveal) {
+    return <CoinFlipDupError offender={props.error.dupreveal} desc={'secret reveal'} />
+  } else if (
+    props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.commitmismatch &&
+    props.error.commitmismatch
+  ) {
+    return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
   }
+
   return <CoinFlipGenericError error={'Unknown error occurred'} />
 }
 
@@ -23,7 +41,7 @@ type GenericProps = {|
 
 const CoinFlipGenericError = (props: GenericProps) => {
   return (
-    <Kb.Text selectable={true} style={styles.error} type="BodyItalic">
+    <Kb.Text selectable={true} type="Body">
       {props.error}
     </Kb.Text>
   )
@@ -46,7 +64,9 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text selectable={true} type="BodySemibold">This could mean one of two things:</Kb.Text>
+        <Kb.Text selectable={true} type="BodySemibold">
+          This could mean one of two things:
+        </Kb.Text>
         <Kb.Text selectable={true} type="Body">
           • Either their client disconnected and could not reveal their secret, or
         </Kb.Text>
@@ -58,10 +78,55 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  error: {
-    color: Styles.globalColors.red,
-  },
-})
+const CoinFlipTimeoutError = () => {
+  return (
+    <Kb.Text selectable={true} type="Body">
+      Flip timed out before a result was obtained.
+    </Kb.Text>
+  )
+}
+
+const CoinFlipAbortedError = () => {
+  return (
+    <Kb.Text selectable={true} type="Body">
+      Flip aborted before a result was obtained.
+    </Kb.Text>
+  )
+}
+
+type DupProps = {|
+  desc: string,
+  offender: RPCChatTypes.UICoinFlipErrorParticipant,
+|}
+
+const CoinFlipDupError = (props: DupProps) => {
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Text selectable={true} type="Body">
+        Duplicate {`${props.desc}`} received from the following participant:
+      </Kb.Text>
+      <Kb.Text selectable={true} type="BodySemibold">
+        {props.offender.user} (device: {props.offender.device}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
+
+type CommitMismatchProps = {|
+  offender: RPCChatTypes.UICoinFlipErrorParticipant,
+|}
+
+const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => {
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Text selectable={true} type="Body">
+        Commitment mismatch from the following participant:
+      </Kb.Text>
+      <Kb.Text selectable={true} type="BodySemibold">
+        {props.offender.user} (device: {props.offender.device}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 export default CoinFlipError

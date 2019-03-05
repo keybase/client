@@ -78,6 +78,7 @@ const error = {
   commitmentVis: '',
   errorInfo: {
     generic: 'Something went wrong: Somebody pulled the plug',
+    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.generic,
   },
   participants: [],
@@ -88,25 +89,28 @@ const error = {
   showParticipants: false,
 }
 
+const absentee: RPCChatTypes.UICoinFlipAbsenteeError = {
+  absentees: [
+    {
+      device: 'boombox',
+      user: 'mikem',
+    },
+    {
+      device: 'walkietalkie',
+      user: 'karenm',
+    },
+    {
+      device: 'longer device name',
+      user: 'dan',
+    },
+  ],
+}
+
 const absenteeError = {
   commitmentVis: '',
   errorInfo: {
-    absentee: {
-      absentees: [
-        {
-          device: 'boombox',
-          user: 'mikem',
-        },
-        {
-          device: 'walkietalkie',
-          user: 'karenm',
-        },
-        {
-          device: 'longer device name',
-          user: 'dan',
-        },
-      ],
-    },
+    absentee,
+    // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee,
   },
   participants: [],

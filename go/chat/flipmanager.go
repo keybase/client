@@ -520,30 +520,46 @@ func (m *FlipManager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 	}
 }
 
+func (m *FlipManager) getErrorParticipant(ctx context.Context, a flip.UserDevice) chat1.UICoinFlipErrorParticipant {
+	username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
+		keybase1.UID(a.U.String()), keybase1.DeviceID(a.D.String()))
+	if err != nil {
+		m.Debug(ctx, "formatError: failed to get names: %s", err)
+		return chat1.UICoinFlipErrorParticipant{
+			User:   a.U.String(),
+			Device: a.D.String(),
+		}
+	}
+	return chat1.UICoinFlipErrorParticipant{
+		User:   username.String(),
+		Device: deviceName,
+	}
+
+}
+
 func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoinFlipError {
 	switch terr := rawErr.(type) {
 	case flip.AbsenteesError:
 		// lookup all the absentees
-		var absentees []chat1.UICoinFlipAbsentee
+		var absentees []chat1.UICoinFlipErrorParticipant
 		for _, a := range terr.Absentees {
-			username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
-				keybase1.UID(a.U.String()), keybase1.DeviceID(a.D.String()))
-			if err != nil {
-				m.Debug(ctx, "formatError: failed to get names: %s", err)
-				absentees = append(absentees, chat1.UICoinFlipAbsentee{
-					User:   a.U.String(),
-					Device: a.D.String(),
-				})
-			} else {
-				absentees = append(absentees, chat1.UICoinFlipAbsentee{
-					User:   username.String(),
-					Device: deviceName,
-				})
-			}
+			absentees = append(absentees, m.getErrorParticipant(ctx, a))
 		}
 		return chat1.NewUICoinFlipErrorWithAbsentee(chat1.UICoinFlipAbsenteeError{
 			Absentees: absentees,
 		})
+	case flip.TimeoutError:
+		return chat1.NewUICoinFlipErrorWithTimeout()
+	case flip.GameAbortedError:
+		return chat1.NewUICoinFlipErrorWithAborted()
+	case flip.DuplicateRegistrationError:
+		return chat1.NewUICoinFlipErrorWithDupreg(m.getErrorParticipant(ctx, terr.U))
+	case flip.DuplicateCommitmentCompleteError:
+		return chat1.NewUICoinFlipErrorWithDupcommitcomplete(m.getErrorParticipant(ctx, terr.U))
+	case flip.DuplicateRevealError:
+		return chat1.NewUICoinFlipErrorWithDupreveal(m.getErrorParticipant(ctx, terr.U))
+	case flip.CommitmentMismatchError:
+		return chat1.NewUICoinFlipErrorWithCommitmismatch(m.getErrorParticipant(ctx, terr.U))
 	}
 	return chat1.NewUICoinFlipErrorWithGeneric(rawErr.Error())
 }
