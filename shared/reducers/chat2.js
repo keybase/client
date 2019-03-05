@@ -955,12 +955,12 @@ const rootReducer = (
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
-      let nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
-      nextState = action.payload.initialTrustedLoad ? state.set('trustedInboxHasLoaded', true) : state
-      return nextState.withMutations(s => {
-        s.set('metaMap', metaMapReducer(state.metaMap, action))
-        s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
-        s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      return state.merge({
+        inboxHasLoaded: action.payload.fromInboxRefresh ? true : state.inboxHasLoaded,
+        messageMap: messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal),
+        messageOrdinals: messageOrdinalsReducer(state.messageOrdinals, action),
+        metaMap: metaMapReducer(state.metaMap, action),
+        trustedInboxHasLoaded: action.payload.initialTrustedLoad ? true : state.trustedInboxHasLoaded,
       })
     }
     case Chat2Gen.paymentInfoReceived: {
