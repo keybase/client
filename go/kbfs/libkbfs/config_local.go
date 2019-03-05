@@ -64,8 +64,8 @@ const (
 	// block cache.
 	defaultSyncBlockCacheFraction = 1.00
 
-	// By default, use v1 block encryption.
-	defaultBlockCryptVersion = kbfscrypto.EncryptionSecretbox
+	// By default, use v2 block encryption.
+	defaultBlockCryptVersion = kbfscrypto.EncryptionSecretboxWithKeyNonce
 )
 
 // ConfigLocal implements the Config interface using purely local

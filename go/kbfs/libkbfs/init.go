@@ -212,7 +212,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		MDServerAddr:      defaultMDServer(ctx),
 		TLFValidDuration:  tlfValidDurationDefault,
 		MetadataVersion:   defaultMetadataVersion(ctx),
-		BlockCryptVersion: kbfscrypto.EncryptionSecretbox,
+		BlockCryptVersion: kbfscrypto.EncryptionSecretboxWithKeyNonce,
 		LogFileConfig: logger.LogFileConfig{
 			MaxAge:       30 * 24 * time.Hour,
 			MaxSize:      128 * 1024 * 1024,
