@@ -1083,7 +1083,8 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 		wrName, suffix, err := tlf.SplitExtension(name)
 		require.NoError(t, err)
 		iteamInfo, err := daemon.ResolveIdentifyImplicitTeam(
-			ctx, wrName, suffix, ty, true, "")
+			ctx, wrName, suffix, ty, true, "",
+			keybase1.OfflineAvailability_NONE)
 		require.NoError(t, err)
 		err = daemon.CreateTeamTLF(ctx, iteamInfo.TID, id)
 		require.NoError(t, err)
@@ -1234,7 +1235,7 @@ func TestParseTlfHandleImplicitTeams(t *testing.T) {
 	newITeam := func(name, suffix string, ty tlf.Type) (
 		keybase1.TeamID, tlf.ID) {
 		iteamInfo, err := daemon.ResolveIdentifyImplicitTeam(
-			ctx, name, suffix, ty, true, "")
+			ctx, name, suffix, ty, true, "", keybase1.OfflineAvailability_NONE)
 		require.NoError(t, err)
 		tlfID := tlf.FakeID(counter, ty)
 		counter++
@@ -1285,27 +1286,37 @@ type offlineResolveCounterKBPKI struct {
 	bestEffortOfflineCounts map[string]int
 }
 
+func (d *offlineResolveCounterKBPKI) countBestEffort(
+	offline keybase1.OfflineAvailability, s string) {
+	if offline != keybase1.OfflineAvailability_BEST_EFFORT {
+		return
+	}
+	d.lock.Lock()
+	d.bestEffortOfflineCounts[s]++
+	d.lock.Unlock()
+}
+
 func (d *offlineResolveCounterKBPKI) Resolve(
 	ctx context.Context, assertion string,
 	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	if offline == keybase1.OfflineAvailability_BEST_EFFORT {
-		d.lock.Lock()
-		d.bestEffortOfflineCounts[assertion]++
-		d.lock.Unlock()
-	}
+	d.countBestEffort(offline, assertion)
 	return d.KBPKI.Resolve(ctx, assertion, offline)
 }
 
 func (d *offlineResolveCounterKBPKI) ResolveTeamTLFID(
 	ctx context.Context, teamID keybase1.TeamID,
 	offline keybase1.OfflineAvailability) (tlf.ID, error) {
-	if offline == keybase1.OfflineAvailability_BEST_EFFORT {
-		d.lock.Lock()
-		d.bestEffortOfflineCounts[teamID.String()]++
-		d.lock.Unlock()
-	}
+	d.countBestEffort(offline, teamID.String())
 	return d.KBPKI.ResolveTeamTLFID(ctx, teamID, offline)
+}
+
+func (d *offlineResolveCounterKBPKI) ResolveImplicitTeam(
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+	d.countBestEffort(offline, "iteam:"+assertions+" "+suffix)
+	return d.KBPKI.ResolveImplicitTeam(
+		ctx, assertions, suffix, tlfType, offline)
 }
 
 type testOfflineStatusPathsGetter struct {
@@ -1462,4 +1473,25 @@ func TestParseTlfHandleOfflineAvailability(t *testing.T) {
 	assert.NoError(t, err)
 	require.Equal(t, 1, kbpki.bestEffortOfflineCounts["team:u1u2u3"])
 	require.Equal(t, 0, kbpki.bestEffortOfflineCounts["team:u3u2u1"])
+
+	t.Log("Check implicit team TLF")
+	info, err := daemon.ResolveIdentifyImplicitTeam(
+		ctx, "u1,u2,u3", "", tlf.Private, true, "",
+		keybase1.OfflineAvailability_BEST_EFFORT)
+	require.NoError(t, err)
+	tlfID3 := tlf.FakeID(3, tlf.Private)
+	err = daemon.CreateTeamTLF(ctx, info.TID, tlfID3)
+	require.NoError(t, err)
+	_, err = ParseTlfHandle(ctx, kbpki, nil, osg, "u1,u2,u3", tlf.Private)
+	require.NoError(t, err)
+	// The iteam has a best-effort count of 2, because the earlier
+	// lookup of 'u1,u2,u2' already tried to find an implicit team
+	// once with best-effort, but there wasn't yet a TLF ID associated
+	// with the implicit team.  The per-user counts won't change now
+	// that the existence of the TLF ID for the iteam short-circuits
+	// those lookups.
+	require.Equal(t, 2, kbpki.bestEffortOfflineCounts["iteam:u1,u2,u3 "])
+	require.Equal(t, 7, kbpki.bestEffortOfflineCounts["u1"])
+	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u2"])
+	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u3"])
 }

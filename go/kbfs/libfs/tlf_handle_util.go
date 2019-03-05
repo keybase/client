@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +19,8 @@ type noImplicitTeamKBPKI struct {
 
 // ResolveImplicitTeam implements the KBPKI interface for noImplicitTeamKBPKI.
 func (nitk noImplicitTeamKBPKI) ResolveImplicitTeam(
-	_ context.Context, _, _ string, _ tlf.Type) (
+	_ context.Context, _, _ string, _ tlf.Type,
+	_ keybase1.OfflineAvailability) (
 	libkbfs.ImplicitTeamInfo, error) {
 	return libkbfs.ImplicitTeamInfo{},
 		errors.New("Skipping implicit team lookup for quick handle parsing")

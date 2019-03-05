@@ -281,7 +281,7 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 	if doResolveImplicit(ctx, ruid.tlfType) && ruid.id.IsTeamOrSubteam() {
 		// First check if this is an implicit team.
 		iteamInfo, err := ruid.resolver.ResolveImplicitTeamByID(
-			ctx, ruid.id.AsTeamOrBust(), ruid.tlfType)
+			ctx, ruid.id.AsTeamOrBust(), ruid.tlfType, ruid.offline)
 		if err == nil {
 			if ruid.id != iteamInfo.TID.AsUserOrTeam() {
 				return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID,
@@ -691,6 +691,7 @@ type resolvableImplicitTeam struct {
 	resolver resolver
 	name     string
 	tlfType  tlf.Type
+	offline  keybase1.OfflineAvailability
 }
 
 func (rit resolvableImplicitTeam) resolve(ctx context.Context) (
@@ -702,7 +703,7 @@ func (rit resolvableImplicitTeam) resolve(ctx context.Context) (
 	}
 
 	iteamInfo, err := rit.resolver.ResolveImplicitTeam(
-		ctx, assertions, extensionSuffix, rit.tlfType)
+		ctx, assertions, extensionSuffix, rit.tlfType, rit.offline)
 	if err != nil {
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 	}
@@ -737,11 +738,22 @@ func parseTlfHandleLoose(
 		}
 	}
 
+	offline := keybase1.OfflineAvailability_NONE
+	if osg != nil {
+		normalizedName, _, err := normalizeNamesInTLF(
+			writerNames, readerNames, t, extensionSuffix)
+		if err != nil {
+			return nil, err
+		}
+		offline = osg.OfflineAvailabilityForPath(
+			buildCanonicalPathForTlfName(t, tlf.CanonicalName(normalizedName)))
+	}
+
 	// First try resolving this full name as an implicit team.  If
 	// that doesn't work, fall through to individual name resolution.
 	var iteamHandle *TlfHandle
 	if doResolveImplicit(ctx, t) {
-		rit := resolvableImplicitTeam{kbpki, name, t}
+		rit := resolvableImplicitTeam{kbpki, name, t, offline}
 		iteamHandle, err = makeTlfHandleHelper(
 			ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
 		if err == nil && iteamHandle.tlfID != tlf.NullID {
@@ -776,17 +788,6 @@ func parseTlfHandleLoose(
 		// normal team.  TODO: return non-nil errors immediately if they
 		// don't simply indicate the implicit team doesn't exist yet
 		// (i.e., when we start creating them by default).
-	}
-
-	offline := keybase1.OfflineAvailability_NONE
-	if osg != nil {
-		normalizedName, _, err := normalizeNamesInTLF(
-			writerNames, readerNames, t, extensionSuffix)
-		if err != nil {
-			return nil, err
-		}
-		offline = osg.OfflineAvailabilityForPath(
-			buildCanonicalPathForTlfName(t, tlf.CanonicalName(normalizedName)))
 	}
 
 	// Before parsing the tlf handle (which results in identify

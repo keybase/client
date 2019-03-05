@@ -98,8 +98,8 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 
 	// Don't test implicit teams.
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
-		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
-		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(ImplicitTeamInfo{}, errors.New("No such team"))
 
 	// None of these tests depend on time
 	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
