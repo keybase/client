@@ -54,7 +54,7 @@ const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
       style={styles.fullErrorContainer}
     >
       <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
-        <Kb.Text type="BodyExtrabold" style={styles.happyErrorText}>
+        <Kb.Text type="BodyExtrabold">
           {props.error}
         </Kb.Text>
       </Kb.Box2>
@@ -65,7 +65,7 @@ const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
             style={styles.submitButton}
             type="Primary"
             onClick={props.onWallet}
-            label={'Set up wallet'}
+            label="Set up wallet"
           />
         </Kb.ButtonBar>
       </Kb.Box2>
@@ -206,9 +206,6 @@ const styles = Styles.styleSheetCreate({
       padding: 20,
     },
   }),
-  happyErrorText: {
-    color: Styles.globalColors.black,
-  },
   headerText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white,
