@@ -193,7 +193,7 @@ func MakeCopyWithDecryptedPrivateData(
 	pmd, err := decryptMDPrivateData(
 		ctx, config.Codec(), config.Crypto(),
 		config.BlockCache(), config.BlockOps(),
-		config.KeyManager(), config.KBPKI(), config.Mode(), uid,
+		config.KeyManager(), config.KBPKI(), config, config.Mode(), uid,
 		irmdToDecrypt.GetSerializedPrivateMetadata(),
 		irmdToDecrypt, irmdWithKeys, config.MakeLogger(""))
 	if err != nil {
@@ -593,9 +593,9 @@ func reembedBlockChangesIntoCopyIfNeeded(
 func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache BlockCache, bops BlockOps,
 	keyGetter mdDecryptionKeyGetter, teamChecker kbfsmd.TeamMembershipChecker,
-	mode InitMode, uid keybase1.UID, serializedPrivateMetadata []byte,
-	rmdToDecrypt, rmdWithKeys KeyMetadata, log logger.Logger) (
-	PrivateMetadata, error) {
+	osg OfflineStatusGetter, mode InitMode, uid keybase1.UID,
+	serializedPrivateMetadata []byte, rmdToDecrypt, rmdWithKeys KeyMetadata,
+	log logger.Logger) (PrivateMetadata, error) {
 	handle := rmdToDecrypt.GetTlfHandle()
 
 	var pmd PrivateMetadata
@@ -619,7 +619,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 			log.CDebugf(ctx, "Couldn't get crypt key for %s (%s): %+v",
 				handle.GetCanonicalPath(), rmdToDecrypt.TlfID(), err)
 			isReader, readerErr := isReaderFromHandle(
-				ctx, handle, teamChecker, uid)
+				ctx, handle, teamChecker, osg, uid)
 			if readerErr != nil {
 				return PrivateMetadata{}, readerErr
 			}

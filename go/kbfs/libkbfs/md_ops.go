@@ -184,9 +184,9 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 			pmd, err := decryptMDPrivateData(
 				ctx, md.config.Codec(), md.config.Crypto(),
 				md.config.BlockCache(), md.config.BlockOps(),
-				md.config.KeyManager(), md.config.KBPKI(), md.config.Mode(),
-				uid, currRmd.GetSerializedPrivateMetadata(), currRmd,
-				head.ReadOnlyRootMetadata, md.log)
+				md.config.KeyManager(), md.config.KBPKI(), md.config,
+				md.config.Mode(), uid, currRmd.GetSerializedPrivateMetadata(),
+				currRmd, head.ReadOnlyRootMetadata, md.log)
 			if err != nil {
 				return nil, err
 			}
@@ -693,9 +693,10 @@ type merkleBasedTeamChecker struct {
 
 func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	verifyingKey kbfscrypto.VerifyingKey,
+	offline keybase1.OfflineAvailability) (bool, error) {
 	isCurrentWriter, err := mbtc.teamMembershipChecker.IsTeamWriter(
-		ctx, tid, uid, verifyingKey)
+		ctx, tid, uid, verifyingKey, offline)
 	if err != nil {
 		return false, err
 	}
@@ -719,7 +720,7 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 		"checking merkle trees to verify they were a writer at the time the "+
 		"MD was written.", uid, tid)
 	root, err := mbtc.teamMembershipChecker.NoLongerTeamWriter(
-		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey)
+		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey, offline)
 	if err != nil {
 		return false, err
 	}
@@ -735,14 +736,15 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 }
 
 func (mbtc merkleBasedTeamChecker) IsTeamReader(
-	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
+	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+	offline keybase1.OfflineAvailability) (
 	bool, error) {
 	if mbtc.irmd.TlfID().Type() == tlf.Public {
 		return true, nil
 	}
 
 	isCurrentReader, err := mbtc.teamMembershipChecker.IsTeamReader(
-		ctx, tid, uid)
+		ctx, tid, uid, offline)
 	if err != nil {
 		return false, err
 	}
@@ -794,8 +796,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	pmd, err := decryptMDPrivateData(
 		ctx, md.config.Codec(), md.config.Crypto(),
 		md.config.BlockCache(), md.config.BlockOps(),
-		md.config.KeyManager(), md.config.KBPKI(), md.config.Mode(), uid,
-		rmd.GetSerializedPrivateMetadata(), rmd, rmd, md.log)
+		md.config.KeyManager(), md.config.KBPKI(), md.config, md.config.Mode(),
+		uid, rmd.GetSerializedPrivateMetadata(), rmd, rmd, md.log)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -821,7 +823,9 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// Next, verify validity and signatures.  Use a checker that can
 	// check for writership in the past, using the merkle tree.
 	checker := merkleBasedTeamChecker{md.config.KBPKI(), md, rmds, irmd, false}
-	err = rmds.IsValidAndSigned(ctx, md.config.Codec(), checker, extra)
+	err = rmds.IsValidAndSigned(
+		ctx, md.config.Codec(), checker, extra,
+		md.config.OfflineAvailabilityForID(handle.tlfID))
 	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),

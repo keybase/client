@@ -354,7 +354,8 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 			k.log.Errorf("ParseTlfHandlePreferredQuick: %s %q %v", t, pname, err)
 			continue
 		}
-		res[len(res)-1].Writable, err = libfs.IsWriter(ctx, k.config.KBPKI(), handle)
+		res[len(res)-1].Writable, err = libfs.IsWriter(
+			ctx, k.config.KBPKI(), k.config, handle)
 		if err != nil {
 			k.log.Errorf("libfs.IsWriter: %q %+v", pname, err)
 			continue

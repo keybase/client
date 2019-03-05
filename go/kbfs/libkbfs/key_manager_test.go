@@ -168,8 +168,8 @@ func (kmd emptyKeyMetadata) GetTlfHandle() *TlfHandle {
 }
 
 func (kmd emptyKeyMetadata) IsWriter(
-	_ context.Context, _ kbfsmd.TeamMembershipChecker, _ keybase1.UID,
-	_ kbfscrypto.VerifyingKey) (bool, error) {
+	_ context.Context, _ kbfsmd.TeamMembershipChecker, _ OfflineStatusGetter,
+	_ keybase1.UID, _ kbfscrypto.VerifyingKey) (bool, error) {
 	return false, nil
 }
 
@@ -2419,7 +2419,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config1.MetadataVersion(), config1.Codec(),
 		config1.KeyManager(), config1.KBPKI(), config1.KBPKI(),
-		kbfsmd.FakeID(2), true)
+		config1, kbfsmd.FakeID(2), true)
 	require.NoError(t, err)
 
 	// Both users should see the same new key.
@@ -2459,7 +2459,8 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	}
 
 	_, latestKeyGen, err := config1.KBPKI().GetTeamTLFCryptKeys(
-		ctx, teamID, kbfsmd.UnspecifiedKeyGen)
+		ctx, teamID, kbfsmd.UnspecifiedKeyGen,
+		keybase1.OfflineAvailability_NONE)
 
 	rmd, err := makeInitialRootMetadata(config1.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
@@ -2480,7 +2481,7 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config1.MetadataVersion(), config1.Codec(),
 		config1.KeyManager(), config1.KBPKI(), config1.KBPKI(),
-		kbfsmd.FakeID(2), true)
+		config1, kbfsmd.FakeID(2), true)
 	require.NoError(t, err)
 
 	// Both users should see the same new key.

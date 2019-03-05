@@ -2847,18 +2847,18 @@ func (mr *MockKeybaseServiceMockRecorder) LoadUserPlusKeys(ctx, uid, pollForKID 
 }
 
 // LoadTeamPlusKeys mocks base method
-func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole) (TeamInfo, error) {
+func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (TeamInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole)
+	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole, offline)
 	ret0, _ := ret[0].(TeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadTeamPlusKeys indicates an expected call of LoadTeamPlusKeys
-func (mr *MockKeybaseServiceMockRecorder) LoadTeamPlusKeys(ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole interface{}) *gomock.Call {
+func (mr *MockKeybaseServiceMockRecorder) LoadTeamPlusKeys(ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTeamPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadTeamPlusKeys), ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadTeamPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadTeamPlusKeys), ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole, offline)
 }
 
 // CurrentSession mocks base method
@@ -3351,48 +3351,48 @@ func (m *MockteamMembershipChecker) EXPECT() *MockteamMembershipCheckerMockRecor
 }
 
 // IsTeamWriter mocks base method
-func (m *MockteamMembershipChecker) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+func (m *MockteamMembershipChecker) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, offline keybase1.OfflineAvailability) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsTeamWriter", ctx, tid, uid, verifyingKey)
+	ret := m.ctrl.Call(m, "IsTeamWriter", ctx, tid, uid, verifyingKey, offline)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsTeamWriter indicates an expected call of IsTeamWriter
-func (mr *MockteamMembershipCheckerMockRecorder) IsTeamWriter(ctx, tid, uid, verifyingKey interface{}) *gomock.Call {
+func (mr *MockteamMembershipCheckerMockRecorder) IsTeamWriter(ctx, tid, uid, verifyingKey, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamWriter", reflect.TypeOf((*MockteamMembershipChecker)(nil).IsTeamWriter), ctx, tid, uid, verifyingKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamWriter", reflect.TypeOf((*MockteamMembershipChecker)(nil).IsTeamWriter), ctx, tid, uid, verifyingKey, offline)
 }
 
 // NoLongerTeamWriter mocks base method
-func (m *MockteamMembershipChecker) NoLongerTeamWriter(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (keybase1.MerkleRootV2, error) {
+func (m *MockteamMembershipChecker) NoLongerTeamWriter(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, offline keybase1.OfflineAvailability) (keybase1.MerkleRootV2, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NoLongerTeamWriter", ctx, tid, tlfType, uid, verifyingKey)
+	ret := m.ctrl.Call(m, "NoLongerTeamWriter", ctx, tid, tlfType, uid, verifyingKey, offline)
 	ret0, _ := ret[0].(keybase1.MerkleRootV2)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NoLongerTeamWriter indicates an expected call of NoLongerTeamWriter
-func (mr *MockteamMembershipCheckerMockRecorder) NoLongerTeamWriter(ctx, tid, tlfType, uid, verifyingKey interface{}) *gomock.Call {
+func (mr *MockteamMembershipCheckerMockRecorder) NoLongerTeamWriter(ctx, tid, tlfType, uid, verifyingKey, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoLongerTeamWriter", reflect.TypeOf((*MockteamMembershipChecker)(nil).NoLongerTeamWriter), ctx, tid, tlfType, uid, verifyingKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoLongerTeamWriter", reflect.TypeOf((*MockteamMembershipChecker)(nil).NoLongerTeamWriter), ctx, tid, tlfType, uid, verifyingKey, offline)
 }
 
 // IsTeamReader mocks base method
-func (m *MockteamMembershipChecker) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+func (m *MockteamMembershipChecker) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID, offline keybase1.OfflineAvailability) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsTeamReader", ctx, tid, uid)
+	ret := m.ctrl.Call(m, "IsTeamReader", ctx, tid, uid, offline)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsTeamReader indicates an expected call of IsTeamReader
-func (mr *MockteamMembershipCheckerMockRecorder) IsTeamReader(ctx, tid, uid interface{}) *gomock.Call {
+func (mr *MockteamMembershipCheckerMockRecorder) IsTeamReader(ctx, tid, uid, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamReader", reflect.TypeOf((*MockteamMembershipChecker)(nil).IsTeamReader), ctx, tid, uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamReader", reflect.TypeOf((*MockteamMembershipChecker)(nil).IsTeamReader), ctx, tid, uid, offline)
 }
 
 // MockteamKeysGetter is a mock of teamKeysGetter interface
@@ -3419,9 +3419,9 @@ func (m *MockteamKeysGetter) EXPECT() *MockteamKeysGetterMockRecorder {
 }
 
 // GetTeamTLFCryptKeys mocks base method
-func (m *MockteamKeysGetter) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen) (map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
+func (m *MockteamKeysGetter) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen, offline keybase1.OfflineAvailability) (map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTeamTLFCryptKeys", ctx, tid, desiredKeyGen)
+	ret := m.ctrl.Call(m, "GetTeamTLFCryptKeys", ctx, tid, desiredKeyGen, offline)
 	ret0, _ := ret[0].(map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey)
 	ret1, _ := ret[1].(kbfsmd.KeyGen)
 	ret2, _ := ret[2].(error)
@@ -3429,9 +3429,9 @@ func (m *MockteamKeysGetter) GetTeamTLFCryptKeys(ctx context.Context, tid keybas
 }
 
 // GetTeamTLFCryptKeys indicates an expected call of GetTeamTLFCryptKeys
-func (mr *MockteamKeysGetterMockRecorder) GetTeamTLFCryptKeys(ctx, tid, desiredKeyGen interface{}) *gomock.Call {
+func (mr *MockteamKeysGetterMockRecorder) GetTeamTLFCryptKeys(ctx, tid, desiredKeyGen, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamTLFCryptKeys", reflect.TypeOf((*MockteamKeysGetter)(nil).GetTeamTLFCryptKeys), ctx, tid, desiredKeyGen)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamTLFCryptKeys", reflect.TypeOf((*MockteamKeysGetter)(nil).GetTeamTLFCryptKeys), ctx, tid, desiredKeyGen, offline)
 }
 
 // MockteamRootIDGetter is a mock of teamRootIDGetter interface
@@ -3458,18 +3458,18 @@ func (m *MockteamRootIDGetter) EXPECT() *MockteamRootIDGetterMockRecorder {
 }
 
 // GetTeamRootID mocks base method
-func (m *MockteamRootIDGetter) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (keybase1.TeamID, error) {
+func (m *MockteamRootIDGetter) GetTeamRootID(ctx context.Context, tid keybase1.TeamID, offline keybase1.OfflineAvailability) (keybase1.TeamID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTeamRootID", ctx, tid)
+	ret := m.ctrl.Call(m, "GetTeamRootID", ctx, tid, offline)
 	ret0, _ := ret[0].(keybase1.TeamID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTeamRootID indicates an expected call of GetTeamRootID
-func (mr *MockteamRootIDGetterMockRecorder) GetTeamRootID(ctx, tid interface{}) *gomock.Call {
+func (mr *MockteamRootIDGetterMockRecorder) GetTeamRootID(ctx, tid, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamRootID", reflect.TypeOf((*MockteamRootIDGetter)(nil).GetTeamRootID), ctx, tid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamRootID", reflect.TypeOf((*MockteamRootIDGetter)(nil).GetTeamRootID), ctx, tid, offline)
 }
 
 // MockKBPKI is a mock of KBPKI interface
@@ -3663,54 +3663,54 @@ func (mr *MockKBPKIMockRecorder) VerifyMerkleRoot(ctx, root, kbfsRoot interface{
 }
 
 // IsTeamWriter mocks base method
-func (m *MockKBPKI) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+func (m *MockKBPKI) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, offline keybase1.OfflineAvailability) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsTeamWriter", ctx, tid, uid, verifyingKey)
+	ret := m.ctrl.Call(m, "IsTeamWriter", ctx, tid, uid, verifyingKey, offline)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsTeamWriter indicates an expected call of IsTeamWriter
-func (mr *MockKBPKIMockRecorder) IsTeamWriter(ctx, tid, uid, verifyingKey interface{}) *gomock.Call {
+func (mr *MockKBPKIMockRecorder) IsTeamWriter(ctx, tid, uid, verifyingKey, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).IsTeamWriter), ctx, tid, uid, verifyingKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).IsTeamWriter), ctx, tid, uid, verifyingKey, offline)
 }
 
 // NoLongerTeamWriter mocks base method
-func (m *MockKBPKI) NoLongerTeamWriter(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (keybase1.MerkleRootV2, error) {
+func (m *MockKBPKI) NoLongerTeamWriter(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, offline keybase1.OfflineAvailability) (keybase1.MerkleRootV2, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NoLongerTeamWriter", ctx, tid, tlfType, uid, verifyingKey)
+	ret := m.ctrl.Call(m, "NoLongerTeamWriter", ctx, tid, tlfType, uid, verifyingKey, offline)
 	ret0, _ := ret[0].(keybase1.MerkleRootV2)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NoLongerTeamWriter indicates an expected call of NoLongerTeamWriter
-func (mr *MockKBPKIMockRecorder) NoLongerTeamWriter(ctx, tid, tlfType, uid, verifyingKey interface{}) *gomock.Call {
+func (mr *MockKBPKIMockRecorder) NoLongerTeamWriter(ctx, tid, tlfType, uid, verifyingKey, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoLongerTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).NoLongerTeamWriter), ctx, tid, tlfType, uid, verifyingKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NoLongerTeamWriter", reflect.TypeOf((*MockKBPKI)(nil).NoLongerTeamWriter), ctx, tid, tlfType, uid, verifyingKey, offline)
 }
 
 // IsTeamReader mocks base method
-func (m *MockKBPKI) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+func (m *MockKBPKI) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID, offline keybase1.OfflineAvailability) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsTeamReader", ctx, tid, uid)
+	ret := m.ctrl.Call(m, "IsTeamReader", ctx, tid, uid, offline)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsTeamReader indicates an expected call of IsTeamReader
-func (mr *MockKBPKIMockRecorder) IsTeamReader(ctx, tid, uid interface{}) *gomock.Call {
+func (mr *MockKBPKIMockRecorder) IsTeamReader(ctx, tid, uid, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamReader", reflect.TypeOf((*MockKBPKI)(nil).IsTeamReader), ctx, tid, uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamReader", reflect.TypeOf((*MockKBPKI)(nil).IsTeamReader), ctx, tid, uid, offline)
 }
 
 // GetTeamTLFCryptKeys mocks base method
-func (m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen) (map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
+func (m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen, offline keybase1.OfflineAvailability) (map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTeamTLFCryptKeys", ctx, tid, desiredKeyGen)
+	ret := m.ctrl.Call(m, "GetTeamTLFCryptKeys", ctx, tid, desiredKeyGen, offline)
 	ret0, _ := ret[0].(map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey)
 	ret1, _ := ret[1].(kbfsmd.KeyGen)
 	ret2, _ := ret[2].(error)
@@ -3718,24 +3718,24 @@ func (m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID
 }
 
 // GetTeamTLFCryptKeys indicates an expected call of GetTeamTLFCryptKeys
-func (mr *MockKBPKIMockRecorder) GetTeamTLFCryptKeys(ctx, tid, desiredKeyGen interface{}) *gomock.Call {
+func (mr *MockKBPKIMockRecorder) GetTeamTLFCryptKeys(ctx, tid, desiredKeyGen, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamTLFCryptKeys", reflect.TypeOf((*MockKBPKI)(nil).GetTeamTLFCryptKeys), ctx, tid, desiredKeyGen)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamTLFCryptKeys", reflect.TypeOf((*MockKBPKI)(nil).GetTeamTLFCryptKeys), ctx, tid, desiredKeyGen, offline)
 }
 
 // GetTeamRootID mocks base method
-func (m *MockKBPKI) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (keybase1.TeamID, error) {
+func (m *MockKBPKI) GetTeamRootID(ctx context.Context, tid keybase1.TeamID, offline keybase1.OfflineAvailability) (keybase1.TeamID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTeamRootID", ctx, tid)
+	ret := m.ctrl.Call(m, "GetTeamRootID", ctx, tid, offline)
 	ret0, _ := ret[0].(keybase1.TeamID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTeamRootID indicates an expected call of GetTeamRootID
-func (mr *MockKBPKIMockRecorder) GetTeamRootID(ctx, tid interface{}) *gomock.Call {
+func (mr *MockKBPKIMockRecorder) GetTeamRootID(ctx, tid, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamRootID", reflect.TypeOf((*MockKBPKI)(nil).GetTeamRootID), ctx, tid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamRootID", reflect.TypeOf((*MockKBPKI)(nil).GetTeamRootID), ctx, tid, offline)
 }
 
 // PutGitMetadata mocks base method
@@ -3946,18 +3946,18 @@ func (mr *MockKeyMetadataMockRecorder) GetTlfHandle() *gomock.Call {
 }
 
 // IsWriter mocks base method
-func (m *MockKeyMetadata) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+func (m *MockKeyMetadata) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, uid, verifyingKey)
+	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, osg, uid, verifyingKey)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsWriter indicates an expected call of IsWriter
-func (mr *MockKeyMetadataMockRecorder) IsWriter(ctx, checker, uid, verifyingKey interface{}) *gomock.Call {
+func (mr *MockKeyMetadataMockRecorder) IsWriter(ctx, checker, osg, uid, verifyingKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsWriter", reflect.TypeOf((*MockKeyMetadata)(nil).IsWriter), ctx, checker, uid, verifyingKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsWriter", reflect.TypeOf((*MockKeyMetadata)(nil).IsWriter), ctx, checker, osg, uid, verifyingKey)
 }
 
 // HasKeyForUser mocks base method
@@ -4102,18 +4102,18 @@ func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) GetTlfHandle() *gomock.Ca
 }
 
 // IsWriter mocks base method
-func (m *MockKeyMetadataWithRootDirEntry) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+func (m *MockKeyMetadataWithRootDirEntry) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, uid, verifyingKey)
+	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, osg, uid, verifyingKey)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsWriter indicates an expected call of IsWriter
-func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) IsWriter(ctx, checker, uid, verifyingKey interface{}) *gomock.Call {
+func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) IsWriter(ctx, checker, osg, uid, verifyingKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsWriter", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).IsWriter), ctx, checker, uid, verifyingKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsWriter", reflect.TypeOf((*MockKeyMetadataWithRootDirEntry)(nil).IsWriter), ctx, checker, osg, uid, verifyingKey)
 }
 
 // HasKeyForUser mocks base method
