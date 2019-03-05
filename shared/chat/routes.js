@@ -149,13 +149,9 @@ export const newRoutes = {
   },
   chatConversation: {getScreen: () => require('./conversation/container').default},
   chatCreateChannel: {getScreen: () => require('./create-channel/container').default},
-  chatDeleteHistoryWarning: {getScreen: () => require('./delete-history-warning/container').default},
-  chatEditChannel: {getScreen: () => require('./manage-channels/edit-channel-container').default},
   chatEnterPaperkey: {getScreen: () => require('./conversation/rekey/enter-paper-key').default},
-  chatManageChannels: {getScreen: () => require('./manage-channels/container').default},
   chatNewChat: {getScreen: () => require('../team-building/container').default},
   chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},
-  chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
   'tabs.chatTab': {
     getScreen: () =>
       isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
@@ -172,10 +168,14 @@ export const newModalRoutes = {
   chatAttachmentVideoFullscreen: {
     getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
   },
+  chatDeleteHistoryWarning: {getScreen: () => require('./delete-history-warning/container').default},
+  chatEditChannel: {getScreen: () => require('./manage-channels/edit-channel-container').default},
   chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default},
+  chatManageChannels: {getScreen: () => require('./manage-channels/container').default},
   chatShowBlockConversationDialog: {
     getScreen: () => require('./conversation/block-conversation-warning/container').default,
   },
+  chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
 }
 
 export default routeTree
