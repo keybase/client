@@ -287,6 +287,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
+	g.ReactjiStore = storage.NewReactjiStore(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
