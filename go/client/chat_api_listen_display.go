@@ -136,7 +136,7 @@ func matchMembersTypeToFilter(filter ChatChannel, typ chat1.ConversationMembersT
 
 func (d *chatNotificationDisplay) matchFilters(conv *chat1.InboxUIItem) bool {
 	if len(d.filtersNormalized) == 0 {
-		// No fliters - every message is relayed.
+		// No filters - every message is relayed.
 		return true
 	}
 	for _, v := range d.filtersNormalized {
