@@ -45,6 +45,7 @@
 	<string>Attaching images to chat messages</string>
 	<key>UIAppFonts</key>
 	<array>
+		<string>keybase-bold-italic.otf</string>
 		<string>keybase-bold.otf</string>
 		<string>keybase-extrabold.otf</string>
 		<string>keybase-medium.otf</string>
