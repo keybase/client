@@ -265,6 +265,21 @@ const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.teams.getIn(['teammembercounts', teamname], 0)
 
+const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
+  isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
+
+const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
+  let countOfOwners = 0
+  const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map())
+  const moreThanOneOwner = allTeamMembers.some(tm => {
+    if (isOwner(tm.type)) {
+      countOfOwners++
+    }
+    return countOfOwners > 1
+  })
+  return moreThanOneOwner
+}
+
 const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
   state.teams.getIn(['teamNameToID', teamname], '')
 
@@ -463,6 +478,7 @@ export {
   hasChannelInfos,
   getEmailInviteError,
   getTeamMemberCount,
+  isLastOwner,
   userIsActiveInTeamHelper,
   getTeamChannelInfos,
   getChannelInfoFromConvID,
