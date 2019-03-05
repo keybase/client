@@ -60,7 +60,8 @@ const suggestorKeyExtractors = {
   users: ({username, fullName}: {username: string, fullName: string}) => username,
 }
 
-const emojiPrepass = /[a-z0-9]/i
+// 2+ valid emoji chars and no ending colon
+const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const emojiDatasource = (filter: string) => (emojiPrepass.test(filter) ? emojiIndex.search(filter) : [])
 const emojiRenderer = (item, selected: boolean) => (
   <Kb.Box2
