@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../../styles'
 
 type Props = {|
   error: RPCChatTypes.UICoinFlipError,
@@ -40,7 +41,7 @@ type GenericProps = {|
 |}
 
 const CoinFlipGenericError = (props: GenericProps) => (
-  <Kb.Text selectable={true} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="Body">
     {props.error}
   </Kb.Text>
 )
@@ -56,7 +57,7 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
       committed to the coin flip failed to reveal their secrets in time:
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text selectable={true} type="BodySemibold">
+      <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
         {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
       </Kb.Text>
     </Kb.Box2>
@@ -75,13 +76,13 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
 )
 
 const CoinFlipTimeoutError = () => (
-  <Kb.Text selectable={true} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="Body">
     Flip timed out before a result was obtained.
   </Kb.Text>
 )
 
 const CoinFlipAbortedError = () => (
-  <Kb.Text selectable={true} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="Body">
     Flip aborted before a result was obtained.
   </Kb.Text>
 )
@@ -96,7 +97,7 @@ const CoinFlipDupError = (props: DupProps) => (
     <Kb.Text selectable={true} type="Body">
       Duplicate {props.desc} received from the following participant:
     </Kb.Text>
-    <Kb.Text selectable={true} type="BodySemibold">
+    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
       {props.offender.user} (device: {props.offender.device})
     </Kb.Text>
   </Kb.Box2>
@@ -111,10 +112,16 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
     <Kb.Text selectable={true} type="Body">
       Commitment mismatch from the following participant:
     </Kb.Text>
-    <Kb.Text selectable={true} type="BodySemibold">
+    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
       {props.offender.user} (device: {props.offender.device})
     </Kb.Text>
   </Kb.Box2>
 )
+
+const styles = Styles.styleSheetCreate({
+  error: {
+    color: Styles.globalColors.red,
+  },
+})
 
 export default CoinFlipError
