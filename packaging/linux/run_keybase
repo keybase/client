@@ -140,15 +140,23 @@ show_cryptosquirrel() {
   [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
 }
 
+warn_unwritable() {
+  echo "WARNING: Cannot write to $1. Did you run 'run_keybase' with sudo?"
+  echo "         Keybase does not need root privileges to run."
+  echo "         Permissions can be restored by running 'sudo chown -R $(whoami):$(whoami) $1',"
+  echo "         after which 'run_keybase' can be run again."
+}
+
 init() {
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
   runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 
   if ! [ -w "$logdir" ]; then
-      echo "WARNING: Cannot write to $logdir. Did you run 'run_keybase' with sudo?"
-      echo "         Keybase does not need root privileges to run."
-      echo "         Permissions can be restored by running 'sudo chown -R $(whoami):$(whoami) $logdir',"
-      echo "         after which 'run_keybase' can be run again."
+      warn_unwritable "$logdir"
+  fi
+
+  if ! [ -w "$runtime_dir" ]; then
+      warn_unwritable "$runtime_dir"
   fi
 
   # Cannot do in go due to background processes being piped to log in bash
