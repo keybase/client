@@ -155,8 +155,8 @@ type FlipManager struct {
 }
 
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
-	games, _ := lru.New(100)
-	flipConvs, _ := lru.New(100)
+	games, _ := lru.New(200)
+	flipConvs, _ := lru.New(200)
 	gameMsgIDs, _ := lru.New(200)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
@@ -1242,11 +1242,31 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			m.Debug(ctx, "loadGame: game is currently active, bailing out")
 			return nil
 		}
+		// Spawn off this error notification in a goroutine and only deliver it if the game is not active
+		// after the timer
 		summary = &flip.GameSummary{
 			Err: err,
 		}
+		go func(ctx context.Context, summary *flip.GameSummary) {
+			m.clock.Sleep(5 * time.Second)
+			rawGame, ok := m.games.Get(job.gameID.String())
+			if ok {
+				status := rawGame.(chat1.UICoinFlipStatus)
+				switch status.Phase {
+				case chat1.UICoinFlipPhase_ERROR:
+					// we'll send our error if there is an error on the screen
+				default:
+					// any other phase we will send nothing
+					m.Debug(ctx, "loadGame: after pausing, we have a status in phase: %v", status.Phase)
+					return
+				}
+			}
+			m.Debug(ctx, "loadGame: game had no action after pausing, sending error")
+			m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
+		}(BackgroundContext(ctx, m.G()), summary)
+	} else {
+		m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
 	}
-	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
 	return nil
 }
 
