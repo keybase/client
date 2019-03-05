@@ -164,7 +164,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
 		libkb.RPCCancelerReasonLogout))
-	userHandler := NewUserHandler(xp, g, d.ChatG())
+	userHandler := NewUserHandler(xp, g, d.ChatG(), d)
 	protocols = append(protocols, keybase1.UserProtocol(userHandler))
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler, walletHandler)))
 	for _, proto := range protocols {
