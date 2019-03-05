@@ -90,6 +90,7 @@ export const serialize = ({
     channelname: conversation.channelname,
     conversationIDKey: conversation.conversationIDKey,
     hasBadge,
+    hasBottomLine: true,
     hasResetUsers: !!conversation.resetParticipants && conversation.resetParticipants.size > 0,
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
