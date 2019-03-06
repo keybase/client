@@ -21,6 +21,7 @@ const routeTree = () => {
   const DeleteConfirm = require('./delete-confirm/container').default
   const RemoveDevice = require('../devices/device-revoke/container').default
   const InviteGenerated = require('./invite-generated/container').default
+  const LogOut = require('./logout/container').default
   const Passphrase = require('./passphrase/container').default
   const UserEmail = require('./email/container').default
   const SecurityPrefs = require('../fs/common/security-prefs-container.desktop').default
@@ -87,6 +88,9 @@ const routeTree = () => {
       [Constants.chatTab]: {
         component: ChatContainer,
       },
+      logOut: {
+        component: LogOut,
+      },
     },
     containerComponent: Settings,
     defaultSelected: Constants.landingTab,
@@ -102,6 +106,7 @@ const settingsSubRoutes = {
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
+  [Constants.logOut]: {getScreen: () => require('./logout/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   changeEmail: {getScreen: () => require('./email/container').default},
   changePassphrase: {getScreen: () => require('./passphrase/container').default},

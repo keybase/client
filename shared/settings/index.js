@@ -22,7 +22,7 @@ const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
   _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
-  onLogout: () => dispatch(ConfigGen.createLogout()),
+  onLogout: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['logOut']})),
   onTabChange: (tab: Types.Tab) => dispatch(RouteTreeGen.createSwitchTo({path: routePath.push(tab)})),
 })
 
