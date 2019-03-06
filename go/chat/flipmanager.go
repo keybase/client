@@ -56,7 +56,7 @@ func newSentMessageListener(g *globals.Context, outboxID chat1.OutboxID) *sentMe
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sentMessageListener", false),
 		outboxID:     outboxID,
-		listenCh:     make(chan sentMessageResult, 1),
+		listenCh:     make(chan sentMessageResult, 10),
 	}
 }
 
@@ -953,20 +953,22 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}, 0, &outboxID, nil); err != nil {
 		m.Debug(ctx, "StartFlip: failed to send flip message: %s", err)
 		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
+		m.G().NotifyRouter.RemoveListener(nid)
 		return err
 	}
 	if err := <-convCreatedCh; err != nil {
 		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
+		m.G().NotifyRouter.RemoveListener(nid)
 		return err
 	}
 	flipConvID := conv.GetConvID()
 	m.Debug(ctx, "StartFlip: flip conv created: %s", flipConvID)
 	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusSent, &flipConvID)
 	sendRes := <-listener.listenCh
+	m.G().NotifyRouter.RemoveListener(nid)
 	if sendRes.Err != nil {
 		return sendRes.Err
 	}
-	m.G().NotifyRouter.RemoveListener(nid)
 
 	// Preserve the ephemeral lifetime from the conv/message to the game
 	// conversation.
