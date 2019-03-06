@@ -318,6 +318,23 @@ const updateNow = () =>
     ConfigGen.createCheckForUpdate()
   )
 
+function* startPowerMonitor() {
+  const channel = Saga.eventChannel(emitter => {
+    const pm = SafeElectron.getPowerMonitor()
+    pm.on('suspend', () => emitter('suspend'))
+    pm.on('resume', () => emitter('resume'))
+    pm.on('shutdown', () => emitter('shutdown'))
+    pm.on('lock-screen', () => emitter('lock-screen'))
+    pm.on('unlock-screen', () => emitter('unlock-screen'))
+    return () => {}
+  }, Saga.buffers.expanding(1))
+  while (true) {
+    const type = yield Saga.take(channel)
+    logger.info('Got power change: ', type)
+    // RPCTypes.configSomethingSomethingTODOCORE()
+  }
+}
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
     ConfigGen.setOpenAtLogin,
@@ -387,4 +404,5 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(initializeAppSettingsState)
   yield Saga.spawn(setupReachabilityWatcher)
   yield Saga.spawn(startOutOfDateCheckLoop)
+  yield Saga.spawn(startPowerMonitor)
 }
