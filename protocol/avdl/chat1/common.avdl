@@ -11,6 +11,7 @@
   @typedef("bytes")  record TLFID {}
   @typedef("bytes")  record Hash {}
   @typedef("uint64") @lint("ignore") record InboxVers {}
+  @typedef("uint64") @lint("ignore") record LocalConversationVers {}
   @typedef("uint64") @lint("ignore") record ConversationVers {}
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
@@ -231,6 +232,7 @@
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
+    LocalConversationVers localVersion;
 
     // Finalize info for underlying TLF (only makes sense for KBFS convos)
     union { null, ConversationFinalizeInfo } finalizeInfo;

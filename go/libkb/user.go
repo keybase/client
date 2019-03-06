@@ -309,7 +309,7 @@ func (u *User) StoreSigChain(m MetaContext) error {
 	return err
 }
 
-func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool) (err error) {
+func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool, full bool) (err error) {
 	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock().Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
@@ -318,6 +318,7 @@ func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool) (err e
 		leaf:             f,
 		chainType:        PublicChain,
 		preload:          u.sigChain(),
+		full:             full,
 		MetaContextified: NewMetaContextified(m),
 	}
 
@@ -329,7 +330,7 @@ func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool) (err e
 
 func (u *User) Store(m MetaContext) error {
 
-	m.CDebugf("+ Store user %s", u.name)
+	m.Debug("+ Store user %s", u.name)
 
 	// These might be dirty, in which case we can write it back
 	// to local storage. Note, this can be dirty even if the user is clean.
@@ -338,7 +339,7 @@ func (u *User) Store(m MetaContext) error {
 	}
 
 	if !u.dirty {
-		m.CDebugf("- Store for %s skipped; user wasn't dirty", u.name)
+		m.Debug("- Store for %s skipped; user wasn't dirty", u.name)
 		return nil
 	}
 
@@ -351,7 +352,7 @@ func (u *User) Store(m MetaContext) error {
 	}
 
 	u.dirty = false
-	m.CDebugf("- Store user %s -> OK", u.name)
+	m.Debug("- Store user %s -> OK", u.name)
 
 	return nil
 }
@@ -370,7 +371,7 @@ func (u *User) StoreTopLevel(m MetaContext) error {
 		jw,
 	)
 	if err != nil {
-		m.CDebugf("StoreTopLevel -> %s", ErrToOk(err))
+		m.Debug("StoreTopLevel -> %s", ErrToOk(err))
 	}
 	return err
 }
@@ -383,14 +384,14 @@ func (u *User) SyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 }
 
 func (u *User) getSyncedSecretKeyLogin(m MetaContext, lctx LoginContext) (ret *SKB, err error) {
-	defer m.CTrace("User#getSyncedSecretKeyLogin", func() error { return err })()
+	defer m.Trace("User#getSyncedSecretKeyLogin", func() error { return err })()
 
 	if err = lctx.RunSecretSyncer(m, u.id); err != nil {
 		return
 	}
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		m.CDebugf("| short-circuit; no Computed key family")
+		m.Debug("| short-circuit; no Computed key family")
 		return
 	}
 
@@ -399,7 +400,7 @@ func (u *User) getSyncedSecretKeyLogin(m MetaContext, lctx LoginContext) (ret *S
 }
 
 func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
-	defer m.CTrace("User#GetSyncedSecretKey", func() error { return err })()
+	defer m.Trace("User#GetSyncedSecretKey", func() error { return err })()
 
 	if err = u.SyncSecrets(m); err != nil {
 		return
@@ -407,7 +408,7 @@ func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		m.CDebugf("| short-circuit; no Computed key family")
+		m.Debug("| short-circuit; no Computed key family")
 		return
 	}
 
@@ -424,7 +425,7 @@ func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 // synced to API server.  LoginContext can be nil if this isn't
 // used while logging in, signing up.
 func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
-	defer m.CTrace("User#AllSyncedSecretKeys", func() error { return err })()
+	defer m.Trace("User#AllSyncedSecretKeys", func() error { return err })()
 	m.Dump()
 
 	ss, err := m.SyncSecretsForUID(u.GetUID())
@@ -434,7 +435,7 @@ func (u *User) AllSyncedSecretKeys(m MetaContext) (keys []*SKB, err error) {
 
 	ckf := u.GetComputedKeyFamily()
 	if ckf == nil {
-		m.CDebugf("| short-circuit; no Computed key family")
+		m.Debug("| short-circuit; no Computed key family")
 		return nil, nil
 	}
 
@@ -570,9 +571,9 @@ func (u *User) TmpTrackChainLinkFor(m MetaContext, username string, uid keybase1
 }
 
 func TmpTrackChainLinkFor(m MetaContext, me keybase1.UID, them keybase1.UID) (tcl *TrackChainLink, err error) {
-	m.CDebugf("+ TmpTrackChainLinkFor for %s", them)
+	m.Debug("+ TmpTrackChainLinkFor for %s", them)
 	tcl, err = LocalTmpTrackChainLinkFor(m, me, them)
-	m.CDebugf("- TmpTrackChainLinkFor for %s -> %v, %v", them, (tcl != nil), err)
+	m.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", them, (tcl != nil), err)
 	return tcl, err
 }
 
@@ -587,8 +588,8 @@ func TrackChainLinkFor(m MetaContext, me keybase1.UID, them keybase1.UID, remote
 
 	local, e2 := LocalTrackChainLinkFor(m, me, them)
 
-	m.CDebugf("| Load remote -> %v", (remote != nil))
-	m.CDebugf("| Load local -> %v", (local != nil))
+	m.Debug("| Load remote -> %v", (remote != nil))
+	m.Debug("| Load local -> %v", (local != nil))
 
 	if remoteErr != nil && e2 != nil {
 		return nil, remoteErr
@@ -603,12 +604,12 @@ func TrackChainLinkFor(m MetaContext, me keybase1.UID, them keybase1.UID, remote
 	}
 
 	if remote == nil && local != nil {
-		m.CDebugf("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
+		m.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
 		return local, nil
 	}
 
 	if remote.GetCTime().After(local.GetCTime()) {
-		m.CDebugf("| Returning newer remote")
+		m.Debug("| Returning newer remote")
 		return remote, nil
 	}
 

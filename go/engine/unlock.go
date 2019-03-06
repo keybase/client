@@ -53,10 +53,10 @@ func (e *Unlock) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Unlock) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("Unlock#Run", func() error { return err })()
+	defer m.Trace("Unlock#Run", func() error { return err })()
 
 	un := m.CurrentUsername()
-	m.CDebugf("Active device: %+v", *m.ActiveDevice())
+	m.Debug("Active device: %+v", *m.ActiveDevice())
 	if un.IsNil() {
 		return libkb.NewNoUsernameError()
 	}

@@ -89,6 +89,15 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
 	return t.syncedTlfs[tlfID].Mode == keybase1.FolderSyncMode_ENABLED
 }
 
+func (t *testSyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
+	for _, config := range t.syncedTlfs {
+		if config.TlfPath == tlfPath {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
 	config FolderSyncConfig) (<-chan error, error) {
 	t.syncedTlfs[tlfID] = config

@@ -86,6 +86,8 @@ const getUsernameToShow = (message, previous, you, orangeLineAbove) => {
     case 'systemLeft':
     case 'setDescription':
       return message.author
+    case 'systemUsersAddedToConversation':
+      return message.usernames.includes(you) ? '' : message.author
   }
   return ''
 }

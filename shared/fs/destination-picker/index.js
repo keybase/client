@@ -8,7 +8,6 @@ import {withProps} from 'recompose'
 import Rows from '../row/rows-container'
 import * as FsCommon from '../common'
 import * as RowCommon from '../row/common'
-import {asRows as sortBarAsRows} from '../sortbar/container'
 import Breadcrumb from '../header/breadcrumb-container.desktop.js'
 
 type Props = {
@@ -93,12 +92,7 @@ const DestinationPicker = (props: Props) => (
       </Kb.ClickableBox>
     )}
     <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
-      <Rows
-        path={props.parentPath}
-        destinationPickerIndex={props.index}
-        routePath={props.routePath}
-        headerRows={sortBarAsRows(props.parentPath)}
-      />
+      <Rows path={props.parentPath} destinationPickerIndex={props.index} routePath={props.routePath} />
     </Kb.Box2>
     {Styles.isMobile && <Kb.Divider key="dfooter" />}
     <Kb.Box2 key="footer" direction="horizontal" centerChildren={true} fullWidth={true} style={styles.footer}>

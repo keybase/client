@@ -6009,6 +6009,10 @@ func (m *mockStellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []li
 	return m.specFn(payments)
 }
 
+func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
+	return false, false
+}
+
 type xlmDeclineChatUI struct {
 	*kbtest.ChatUI
 }
@@ -6341,17 +6345,19 @@ func TestChatBulkAddToConv(t *testing.T) {
 		ctc := makeChatTestContext(t, "BulkAddToConv", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
+		t.Logf("uid1: %v, uid2: %v", users[0].User.GetUID(), users[1].User.GetUID())
 
-		tc := ctc.world.Tcs[users[0].Username]
+		tc1 := ctc.world.Tcs[users[0].Username]
+		tc2 := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
-		tc.ChatG.Syncer.(*Syncer).isConnected = true
+		tc1.ChatG.Syncer.(*Syncer).isConnected = true
 
 		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
-		tc.ChatG.Syncer.(*Syncer).isConnected = true
+		tc2.ChatG.Syncer.(*Syncer).isConnected = true
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user())
@@ -6370,6 +6376,7 @@ func TestChatBulkAddToConv(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 		usernames := []string{users[1].Username}
 		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
@@ -6379,19 +6386,49 @@ func TestChatBulkAddToConv(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		msg := consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
-		require.True(t, msg.IsValid())
-		require.Equal(t, 1, len(msg.Valid().AtMentions))
-		require.Equal(t, users[1].Username, msg.Valid().AtMentions[0])
-		body := msg.Valid().MessageBody
-		typ, err := body.MessageType()
+		assertSysMsg := func(expectedMentions, expectedBody []string, listener *serverChatListener) {
+			msg := consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+			body := msg.Valid().MessageBody
+			typ, err := body.MessageType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageType_SYSTEM, typ)
+			sysMsg := body.System()
+			sysTyp, err := sysMsg.SystemType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
+			retMsg := sysMsg.Bulkaddtoconv()
+			require.Equal(t, expectedBody, retMsg.Usernames)
+			require.True(t, msg.IsValid())
+			require.Equal(t, expectedMentions, msg.Valid().AtMentions)
+		}
+		assertSysMsg(usernames, usernames, listener0)
+		assertSysMsg(usernames, usernames, listener1)
+		consumeMembersUpdate(t, listener0)
+		consumeJoinConv(t, listener1)
+		// u1 can now send
+		mustPostLocalForTest(t, ctc, users[1], channel.Conv.Info,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+
+		// some users required
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: nil,
+				ConvID:    channel.Conv.GetConvID(),
+			})
+		require.Error(t, err)
+
+		usernames = []string{"foo"}
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: usernames,
+				ConvID:    channel.Conv.GetConvID(),
+			})
 		require.NoError(t, err)
-		require.Equal(t, chat1.MessageType_SYSTEM, typ)
-		sysMsg := body.System()
-		sysTyp, err := sysMsg.SystemType()
-		require.NoError(t, err)
-		require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
-		retMsg := sysMsg.Bulkaddtoconv()
-		require.Equal(t, usernames, retMsg.Usernames)
+		assertSysMsg(nil, usernames, listener0)
+		assertSysMsg(nil, usernames, listener1)
 	})
 }

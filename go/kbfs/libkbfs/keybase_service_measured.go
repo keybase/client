@@ -243,7 +243,7 @@ func (k KeybaseServiceMeasured) FavoriteDelete(ctx context.Context, folder keyba
 // FavoriteList implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) FavoriteList(ctx context.Context, sessionID int) (
-	favorites []keybase1.Folder, err error) {
+	favorites keybase1.FavoritesResult, err error) {
 	k.favoriteListTimer.Time(func() {
 		favorites, err = k.delegate.FavoriteList(ctx, sessionID)
 	})

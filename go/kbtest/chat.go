@@ -973,10 +973,11 @@ type ChatUI struct {
 	InboxSearchDoneCb  chan chat1.ChatSearchInboxDoneArg
 	StellarShowConfirm chan struct{}
 	StellarDataConfirm chan chat1.UIChatPaymentSummary
-	StellarDataError   chan string
+	StellarDataError   chan keybase1.Status
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
 	GiphyResults       chan []chat1.GiphySearchResult
+	GiphyWindow        chan bool
 	CoinFlipUpdates    chan []chat1.UICoinFlipStatus
 	CommandMarkdown    chan *chat1.UICommandMarkdown
 }
@@ -991,10 +992,11 @@ func NewChatUI() *ChatUI {
 		InboxSearchDoneCb:  make(chan chat1.ChatSearchInboxDoneArg, 50),
 		StellarShowConfirm: make(chan struct{}, 10),
 		StellarDataConfirm: make(chan chat1.UIChatPaymentSummary, 10),
-		StellarDataError:   make(chan string, 10),
+		StellarDataError:   make(chan keybase1.Status, 10),
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
+		GiphyWindow:        make(chan bool, 10),
 		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
 		CommandMarkdown:    make(chan *chat1.UICommandMarkdown, 10),
 	}
@@ -1111,8 +1113,8 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UICha
 	return true, nil
 }
 
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, error) {
-	c.StellarDataError <- msg
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, err keybase1.Status) (bool, error) {
+	c.StellarDataError <- err
 	return false, nil
 }
 
@@ -1129,6 +1131,12 @@ func (c *ChatUI) ChatShowManageChannels(ctx context.Context, teamname string) er
 func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 	results []chat1.GiphySearchResult) error {
 	c.GiphyResults <- results
+	return nil
+}
+
+func (c *ChatUI) ChatGiphyToggleResultWindow(ctx context.Context,
+	convID chat1.ConversationID, show bool) error {
+	c.GiphyWindow <- show
 	return nil
 }
 

@@ -49,6 +49,10 @@ func (g GameHistory) start(rh ReplayHelper) (game *Game, rest GameHistory, err e
 		return nil, nil, NewReplayError("bad initiator; didn't match sender")
 	}
 
+	if !first.FirstInConversation {
+		return nil, nil, GameReplayError{md.GameID}
+	}
+
 	_, err = computeClockSkew(md, first.Time, start.StartTime.Time(), first.Time)
 	if err != nil {
 		return nil, nil, err
@@ -140,11 +144,17 @@ func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary,
 			}
 		}
 		if !found && ret.Err == nil {
-			var ea AbsenteesError
+			var absentees []UserDevice
 			for _, v := range players {
-				ea.Absentees = append(ea.Absentees, v.Device)
+				absentees = append(absentees, v.Device)
 			}
-			ret.Err = ea
+			var err error
+			if len(absentees) > 0 {
+				err = AbsenteesError{Absentees: absentees}
+			} else {
+				err = GameAbortedError{}
+			}
+			ret.Err = err
 		}
 		summaryCh <- ret
 	}()

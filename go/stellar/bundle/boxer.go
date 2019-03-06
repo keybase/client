@@ -148,7 +148,7 @@ func parentBoxAndEncode(bundle stellar1.BundleSecretVersioned, pukGen keybase1.P
 	if err != nil {
 		return stellar1.EncryptedBundle{}, "", err
 	}
-	secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
+	secbox := secretbox.Seal(nil, clearpack, &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	// Annotate
 	res := stellar1.EncryptedBundle{
@@ -292,7 +292,7 @@ func accountEncrypt(bundle stellar1.AccountBundleSecretVersioned, pukGen keybase
 	if err != nil {
 		return res, resB64, err
 	}
-	secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
+	secbox := secretbox.Seal(nil, clearpack, &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	// Annotate
 	res = stellar1.EncryptedAccountBundle{

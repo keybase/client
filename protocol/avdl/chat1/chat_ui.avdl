@@ -38,6 +38,7 @@ protocol chatUi {
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
+    LocalConversationVers localVersion;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
     MessageID maxMsgID;
@@ -80,6 +81,7 @@ protocol chatUi {
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
+    LocalConversationVers localVersion;
     MessageID maxMsgID;
     MessageID maxVisibleMsgID;
     MessageID readMsgID;
@@ -272,7 +274,7 @@ protocol chatUi {
   }
   void chatStellarShowConfirm(int sessionID);
   boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
-  boolean chatStellarDataError(int sessionID, string message);
+  boolean chatStellarDataError(int sessionID, keybase1.Status error);
   void chatStellarDone(int sessionID, boolean canceled);
 
  record GiphySearchResult {
@@ -283,6 +285,7 @@ protocol chatUi {
     boolean previewIsVideo;
   }
   void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
+  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show);
 
   void chatShowManageChannels(int sessionID, string teamname);
 
@@ -292,20 +295,32 @@ protocol chatUi {
     COMPLETE_2,
     ERROR_3
   }
-  record UICoinFlipAbsentee {
+  record UICoinFlipErrorParticipant {
     string user;
     string device;
   }
   record UICoinFlipAbsenteeError {
-    array<UICoinFlipAbsentee> absentees;
+    array<UICoinFlipErrorParticipant> absentees;
   }
   enum UICoinFlipErrorTyp {
     GENERIC_0,
-    ABSENTEE_1
+    ABSENTEE_1,
+    TIMEOUT_2,
+    ABORTED_3,
+    DUPREG_4,
+    DUPCOMMITCOMPLETE_5,
+    DUPREVEAL_6,
+    COMMITMISMATCH_7
   }
   variant UICoinFlipError switch (UICoinFlipErrorTyp typ) {
   case GENERIC: string;
   case ABSENTEE: UICoinFlipAbsenteeError;
+  case TIMEOUT: void;
+  case ABORTED: void;
+  case DUPREG: UICoinFlipErrorParticipant;
+  case DUPCOMMITCOMPLETE: UICoinFlipErrorParticipant;
+  case DUPREVEAL: UICoinFlipErrorParticipant;
+  case COMMITMISMATCH: UICoinFlipErrorParticipant;
   }
   enum UICoinFlipResultTyp {
     NUMBER_0,

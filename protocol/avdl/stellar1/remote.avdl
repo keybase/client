@@ -258,4 +258,11 @@ protocol remote {
     uint64 baseFee; 
   }
   NetworkOptions networkOptions(keybase1.UserVersion caller);
+
+  record DetailsPlusPayments {
+    AccountDetails details;
+    PaymentsPage recentPayments;
+    array<PaymentSummary> pendingPayments;
+  }
+  DetailsPlusPayments detailsPlusPayments(keybase1.UserVersion caller, AccountID accountID);
 }

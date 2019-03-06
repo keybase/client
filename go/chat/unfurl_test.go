@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 )
 
 type dummyHTTPSrv struct {
+	sync.Mutex
 	t       *testing.T
 	srv     *http.Server
 	succeed bool
@@ -60,10 +62,14 @@ func (d *dummyHTTPSrv) Stop() {
 }
 
 func (d *dummyHTTPSrv) handleApple(w http.ResponseWriter, r *http.Request) {
+	d.Lock()
+	defer d.Unlock()
 	w.WriteHeader(404)
 }
 
 func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
+	d.Lock()
+	defer d.Unlock()
 	w.WriteHeader(200)
 	f, err := os.Open(filepath.Join("unfurl", "testcases", "nytimes.ico"))
 	require.NoError(d.t, err)
@@ -72,6 +78,8 @@ func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
+	d.Lock()
+	defer d.Unlock()
 	if d.succeed {
 		html := "<html><head><title>MIKE</title></head></html>"
 		w.WriteHeader(200)
@@ -80,6 +88,12 @@ func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(500)
+}
+
+func (d *dummyHTTPSrv) setSucceed(succeed bool) {
+	d.Lock()
+	defer d.Unlock()
+	d.succeed = succeed
 }
 
 type ptsigner struct{}
@@ -246,11 +260,18 @@ func TestChatSrvUnfurl(t *testing.T) {
 
 		t.Logf("now work")
 		// now that we we can succeed
-		httpSrv.succeed = true
+		httpSrv.setSucceed(true)
 
-		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
-		recvSingleRetry()
-		u := recvUnfurl()
+		var u *chat1.Unfurl
+		for i := 0; i < 10; i++ {
+			tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
+			recvSingleRetry()
+			u = recvUnfurl()
+			if u != nil {
+				break
+			}
+			t.Logf("retrying success unfurl, attempt: %d", i)
+		}
 		require.NotNil(t, u)
 		typ, err := u.UnfurlType()
 		require.NoError(t, err)

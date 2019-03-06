@@ -58,3 +58,7 @@ func (n *nullStellar) HandleOobm(context.Context, gregor.OutOfBandMessage) (bool
 func (n *nullStellar) RemovePendingTx(MetaContext, stellar1.AccountID, stellar1.TransactionID) error {
 	return errors.New("nullStellar RemovePendingTx")
 }
+
+func (n *nullStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
+	return false, false
+}

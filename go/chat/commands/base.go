@@ -60,6 +60,7 @@ func (b *baseCommand) commandAndMessage(text string) (cmd string, msg string, er
 func (b *baseCommand) getChatUI() libkb.ChatUI {
 	ui, err := b.G().UIRouter.GetChatUI()
 	if err != nil || ui == nil {
+		b.Debug(context.Background(), "getChatUI: no chat UI found: err: %s", err)
 		return nullChatUI{}
 	}
 	return ui

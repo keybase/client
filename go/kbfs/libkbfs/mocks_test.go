@@ -936,6 +936,20 @@ func (mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlf(tlfID interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlf", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).IsSyncedTlf), tlfID)
 }
 
+// IsSyncedTlfPath mocks base method
+func (m *MocksyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSyncedTlfPath", tlfPath)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlfPath indicates an expected call of IsSyncedTlfPath
+func (mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlfPath(tlfPath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlfPath", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).IsSyncedTlfPath), tlfPath)
+}
+
 // GetTlfSyncState mocks base method
 func (m *MocksyncedTlfGetterSetter) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	m.ctrl.T.Helper()
@@ -1812,6 +1826,21 @@ func (mr *MockKBFSOpsMockRecorder) GetFavorites(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockKBFSOps)(nil).GetFavorites), ctx)
 }
 
+// GetFavoritesAll mocks base method
+func (m *MockKBFSOps) GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavoritesAll", ctx)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavoritesAll indicates an expected call of GetFavoritesAll
+func (mr *MockKBFSOpsMockRecorder) GetFavoritesAll(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesAll", reflect.TypeOf((*MockKBFSOps)(nil).GetFavoritesAll), ctx)
+}
+
 // RefreshCachedFavorites mocks base method
 func (m *MockKBFSOps) RefreshCachedFavorites(ctx context.Context) {
 	m.ctrl.T.Helper()
@@ -1837,17 +1866,17 @@ func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(ctx interface{}) *gomock
 }
 
 // AddFavorite mocks base method
-func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite) error {
+func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav)
+	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddFavorite indicates an expected call of AddFavorite
-func (mr *MockKBFSOpsMockRecorder) AddFavorite(ctx, fav interface{}) *gomock.Call {
+func (mr *MockKBFSOpsMockRecorder) AddFavorite(ctx, fav, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), ctx, fav)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), ctx, fav, data)
 }
 
 // DeleteFavorite mocks base method
@@ -1862,6 +1891,18 @@ func (m *MockKBFSOps) DeleteFavorite(ctx context.Context, fav Favorite) error {
 func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(ctx, fav interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), ctx, fav)
+}
+
+// SetFavoritesHomeTLFInfo mocks base method
+func (m *MockKBFSOps) SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetFavoritesHomeTLFInfo", ctx, info)
+}
+
+// SetFavoritesHomeTLFInfo indicates an expected call of SetFavoritesHomeTLFInfo
+func (mr *MockKBFSOpsMockRecorder) SetFavoritesHomeTLFInfo(ctx, info interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetFavoritesHomeTLFInfo", reflect.TypeOf((*MockKBFSOps)(nil).SetFavoritesHomeTLFInfo), ctx, info)
 }
 
 // RefreshEditHistory mocks base method
@@ -2812,10 +2853,10 @@ func (mr *MockKeybaseServiceMockRecorder) FavoriteDelete(ctx, folder interface{}
 }
 
 // FavoriteList mocks base method
-func (m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
+func (m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", ctx, sessionID)
-	ret0, _ := ret[0].([]keybase1.Folder)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3717,10 +3758,10 @@ func (mr *MockKBPKIMockRecorder) FavoriteDelete(ctx, folder interface{}) *gomock
 }
 
 // FavoriteList mocks base method
-func (m *MockKBPKI) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
+func (m *MockKBPKI) FavoriteList(ctx context.Context) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", ctx)
-	ret0, _ := ret[0].([]keybase1.Folder)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -9384,6 +9425,20 @@ func (mr *MockConfigMockRecorder) IsSyncedTlf(tlfID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlf", reflect.TypeOf((*MockConfig)(nil).IsSyncedTlf), tlfID)
 }
 
+// IsSyncedTlfPath mocks base method
+func (m *MockConfig) IsSyncedTlfPath(tlfPath string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSyncedTlfPath", tlfPath)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlfPath indicates an expected call of IsSyncedTlfPath
+func (mr *MockConfigMockRecorder) IsSyncedTlfPath(tlfPath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlfPath", reflect.TypeOf((*MockConfig)(nil).IsSyncedTlfPath), tlfPath)
+}
+
 // GetTlfSyncState mocks base method
 func (m *MockConfig) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	m.ctrl.T.Helper()
@@ -11419,4 +11474,85 @@ func (m *MockfileBlockMap) getFilenames(ctx context.Context, parentPtr BlockPoin
 func (mr *MockfileBlockMapMockRecorder) getFilenames(ctx, parentPtr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getFilenames", reflect.TypeOf((*MockfileBlockMap)(nil).getFilenames), ctx, parentPtr)
+}
+
+// MockdirBlockMap is a mock of dirBlockMap interface
+type MockdirBlockMap struct {
+	ctrl     *gomock.Controller
+	recorder *MockdirBlockMapMockRecorder
+}
+
+// MockdirBlockMapMockRecorder is the mock recorder for MockdirBlockMap
+type MockdirBlockMapMockRecorder struct {
+	mock *MockdirBlockMap
+}
+
+// NewMockdirBlockMap creates a new mock instance
+func NewMockdirBlockMap(ctrl *gomock.Controller) *MockdirBlockMap {
+	mock := &MockdirBlockMap{ctrl: ctrl}
+	mock.recorder = &MockdirBlockMapMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdirBlockMap) EXPECT() *MockdirBlockMapMockRecorder {
+	return m.recorder
+}
+
+// putBlock mocks base method
+func (m *MockdirBlockMap) putBlock(ctx context.Context, ptr BlockPointer, block *DirBlock) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "putBlock", ctx, ptr, block)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// putBlock indicates an expected call of putBlock
+func (mr *MockdirBlockMapMockRecorder) putBlock(ctx, ptr, block interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "putBlock", reflect.TypeOf((*MockdirBlockMap)(nil).putBlock), ctx, ptr, block)
+}
+
+// getBlock mocks base method
+func (m *MockdirBlockMap) getBlock(ctx context.Context, ptr BlockPointer) (*DirBlock, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getBlock", ctx, ptr)
+	ret0, _ := ret[0].(*DirBlock)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getBlock indicates an expected call of getBlock
+func (mr *MockdirBlockMapMockRecorder) getBlock(ctx, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getBlock", reflect.TypeOf((*MockdirBlockMap)(nil).getBlock), ctx, ptr)
+}
+
+// hasBlock mocks base method
+func (m *MockdirBlockMap) hasBlock(ctx context.Context, ptr BlockPointer) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "hasBlock", ctx, ptr)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// hasBlock indicates an expected call of hasBlock
+func (mr *MockdirBlockMapMockRecorder) hasBlock(ctx, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "hasBlock", reflect.TypeOf((*MockdirBlockMap)(nil).hasBlock), ctx, ptr)
+}
+
+// numBlocks mocks base method
+func (m *MockdirBlockMap) numBlocks() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "numBlocks")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// numBlocks indicates an expected call of numBlocks
+func (mr *MockdirBlockMapMockRecorder) numBlocks() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "numBlocks", reflect.TypeOf((*MockdirBlockMap)(nil).numBlocks))
 }

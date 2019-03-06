@@ -1,12 +1,18 @@
 // @flow
 import * as React from 'react'
-import type {StylesCrossPlatform} from '../styles'
+import type {StylesCrossPlatformWithSomeDisallowed} from '../styles'
+
+// List2 differs from list in that on desktop it uses react-window.
+// Don't use List2 if you need a list with dynamic item sizes
 
 export type VariableItemHeight<Item> = {
-  getItemLayout: (index: number, item: Item) => ({|
+  getItemLayout: (
+    index: number,
+    item: Item
+  ) => {|
     height: number,
     offset: number,
-  |}),
+  |},
   type: 'variable',
 }
 
@@ -15,8 +21,15 @@ export type FixedHeight = {
   type: 'fixed',
 }
 
-export type Props<Item> = {
-  style?: StylesCrossPlatform,
+// Having flex in the list messes with creating the right size inner container
+// for scroll
+type DisallowedStyles = {
+  flex?: empty,
+  flexDirection?: empty,
+}
+
+export type Props<Item> = {|
+  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
 
   indexAsKey?: boolean,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys
@@ -26,12 +39,12 @@ export type Props<Item> = {
   itemHeight: VariableItemHeight<Item> | FixedHeight,
   estimatedItemHeight?: number,
 
-  selectedIndex?: number, // TODO 
+  selectedIndex?: number, // TODO
 
   bounces?: boolean, // mobile only
   keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only
   windowSize?: number, // Mobile only, has a non-RN default
   onEndReached?: () => void,
-}
+|}
 
 export default class List2<Item> extends React.Component<Props<Item>, void> {}

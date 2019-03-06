@@ -354,19 +354,20 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 	e := Env{cmd: cmd, config: config, Test: &TestParameters{}}
 
 	e.HomeFinder = NewHomeFinder("keybase",
-		func() string { return e.getHomeFromCmdOrConfig() },
+		func() string { return e.getHomeFromTestOrCmd() },
+		func() string { return e.GetConfig().GetHome() },
 		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
 		osname,
 		func() RunMode { return e.GetRunMode() },
-		getLog)
+		getLog,
+		os.Getenv)
 	return &e
 }
 
-func (e *Env) getHomeFromCmdOrConfig() string {
+func (e *Env) getHomeFromTestOrCmd() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
 		func() string { return e.cmd.GetHome() },
-		func() string { return e.GetConfig().GetHome() },
 	)
 }
 

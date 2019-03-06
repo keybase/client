@@ -31,6 +31,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   flipStatusMap: I.Map(),
   focus: null,
   giphyResultMap: I.Map(),
+  giphyWindowMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,
@@ -176,6 +177,7 @@ export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey)
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
@@ -245,7 +247,21 @@ export const threadRoute = isMobile
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
+export const flipPhaseToString = (phase: number) => {
+  switch (phase) {
+    case RPCChatTypes.chatUiUICoinFlipPhase.commitment:
+      return 'commitments'
+    case RPCChatTypes.chatUiUICoinFlipPhase.reveals:
+      return 'secrets'
+    case RPCChatTypes.chatUiUICoinFlipPhase.complete:
+      return 'complete'
+    default:
+      return 'loading'
+  }
+}
+
 export {
+  getChannelForTeam,
   getChannelSuggestions,
   getCommands,
   getConversationIDKeyMetasToLoad,

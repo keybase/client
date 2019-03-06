@@ -25,6 +25,9 @@ const (
 	PublicUIDName = "_public"
 )
 
+// SplitAndNormalizeTLFName returns separate lists of normalized
+// writer and reader names, as well as the extension suffix, of the
+// given `name`.
 func SplitAndNormalizeTLFName(g *libkb.GlobalContext, name string, public bool) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
@@ -59,13 +62,13 @@ func SplitAndNormalizeTLFName(g *libkb.GlobalContext, name string, public bool) 
 		return nil, nil, "", err
 	}
 	if normalizedName != name {
-		return nil, nil, "", TlfNameNotCanonical{name, normalizedName}
+		return nil, nil, "", NameNotCanonical{name, normalizedName}
 	}
 
 	return writerNames, readerNames, strings.ToLower(extensionSuffix), nil
 }
 
-// normalizeNamesInTLF takes a split TLF name and, without doing any
+// NormalizeNamesInTLF takes a split TLF name and, without doing any
 // resolutions or identify calls, normalizes all elements of the
 // name. It then returns the normalized name.
 func NormalizeNamesInTLF(g *libkb.GlobalContext, writerNames, readerNames []string,
@@ -100,6 +103,8 @@ func NormalizeNamesInTLF(g *libkb.GlobalContext, writerNames, readerNames []stri
 	return normalizedName, nil
 }
 
+// NormalizeAssertionOrName normalizes the given assertion or name `s`.
+//
 // TODO: this function can likely be replaced with a call to
 // AssertionParseAndOnly when CORE-2967 and CORE-2968 are fixed.
 func NormalizeAssertionOrName(g *libkb.GlobalContext, s string) (string, error) {
@@ -156,13 +161,13 @@ func (e BadTLFNameError) Error() string {
 	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
 }
 
-// TlfNameNotCanonical indicates that a name isn't a canonical, and
-// that another (not necessarily canonical) name should be tried.
-type TlfNameNotCanonical struct {
+// NameNotCanonical indicates that a name isn't a canonical, and that
+// another (not necessarily canonical) name should be tried.
+type NameNotCanonical struct {
 	Name, NameToTry string
 }
 
-func (e TlfNameNotCanonical) Error() string {
+func (e NameNotCanonical) Error() string {
 	return fmt.Sprintf("TLF name %s isn't canonical: try %s instead",
 		e.Name, e.NameToTry)
 }

@@ -1,26 +1,19 @@
 // @flow
 import Session from './session'
-import type {TypedActions} from '../util/container'
 import type {RPCError} from '../util/errors'
-import type {TypedState} from '../constants/reducer'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../constants/types/rpc-all-gen'
 
 type WaitingKey = string | Array<string>
 
 declare export class Engine {
-  deprecatedGetDispatch: () => TypedActions => void; // escape hatch for deprecated code to get dispatch, TODO remove all usages of this
-  // TODO maybe get rid of this, only used by tracker
-  deprecatedGetGetState: () => () => TypedState; // escape hatch for deprecated code to get getState, TODO remove all usages of this
   dispatchWaitingAction: (key: WaitingKey, waiting: boolean, err: ?RPCError) => void;
   reset(): void;
-  // TODO maybe get rid of this, only used by tracker
-  cancelSession(sessionID: any): void;
   rpc(): void;
   sagasAreReady(): void;
   hasEverConnected(): void;
-  setCustomResponseIncomingCallMap(customResponseIncomingCallMap: CustomResponseIncomingCallMapType): void;
+  registerCustomResponse($Keys<CustomResponseIncomingCallMapType>): void;
   createSession({
-    incomingCallMap?: IncomingCallMapType,
+    incomingCallMap?: any,
     waitingKey?: WaitingKey,
     cancelHandler?: any,
     dangling?: boolean,

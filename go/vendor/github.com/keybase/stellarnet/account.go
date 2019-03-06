@@ -583,8 +583,8 @@ func AccountMergeTransaction(from SeedStr, to AddressStr,
 
 // SetInflationDestinationTransaction creates a "set options" transaction that will set the
 // inflation destination for the `from` account to the `to` account.
-func SetInflationDestinationTransaction(from SeedStr, to AddressStr,
-	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds) (SignResult, error) {
+func SetInflationDestinationTransaction(from SeedStr, to AddressStr, seqnoProvider build.SequenceProvider,
+	timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
 	muts := []build.TransactionMutator{
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
 		Network(),
@@ -592,6 +592,7 @@ func SetInflationDestinationTransaction(from SeedStr, to AddressStr,
 		build.SetOptions(
 			build.InflationDest(to.String()),
 		),
+		build.BaseFee{Amount: baseFee},
 	}
 	if timeBounds != nil {
 		muts = append(muts, timeBounds)
@@ -604,7 +605,7 @@ func SetInflationDestinationTransaction(from SeedStr, to AddressStr,
 }
 
 func setInflationDestination(from SeedStr, to AddressStr) (ledger int32, txid string, attempt int, err error) {
-	sig, err := SetInflationDestinationTransaction(from, to, Client(), nil /* timeBounds */)
+	sig, err := SetInflationDestinationTransaction(from, to, Client(), nil /* timeBounds */, build.DefaultBaseFee)
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}

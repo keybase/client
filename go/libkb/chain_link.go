@@ -805,7 +805,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 
 	// unpack the payload
 	if err := tmp.unpackPayloadJSON(c.G(), payload, c.id); err != nil {
-		m.CDebugf("unpack payload json err: %s", err)
+		m.Debug("unpack payload json err: %s", err)
 		return err
 	}
 
@@ -886,7 +886,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 			m.VLogf(VLog1, "| Link is marked as 'sig_verified'")
 			if ckidata, _, _, err := jsonparserw.Get(packed, "computed_key_infos"); err == nil {
 				if uerr := c.UnpackComputedKeyInfos(ckidata); uerr != nil {
-					m.CWarningf("Problem unpacking computed key infos: %s", uerr)
+					m.Warning("Problem unpacking computed key infos: %s", uerr)
 				}
 			}
 		}
@@ -1261,7 +1261,7 @@ func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID 
 	}
 	ret = NewChainLink(m.G(), parent, id)
 	if err = ret.Unpack(m, false, selfUID, data); err != nil {
-		m.CDebugf("Unpack error: %s", err)
+		m.Debug("Unpack error: %s", err)
 		return nil, err
 	}
 

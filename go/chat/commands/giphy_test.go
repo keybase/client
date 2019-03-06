@@ -67,13 +67,20 @@ func TestGiphyPreview(t *testing.T) {
 	g.UIRouter = &fakeUIRouter{ui: ui}
 	timeout := 2 * time.Second
 
-	giphy.Preview(ctx, uid, convID, "/giphy")
+	giphy.Preview(ctx, uid, convID, "/giph")
 	select {
 	case <-ui.GiphyResults:
 		require.Fail(t, "no results")
 	default:
 	}
-	giphy.Preview(ctx, uid, convID, "/giphy ")
+
+	giphy.Preview(ctx, uid, convID, "/giphy")
+	select {
+	case show := <-ui.GiphyWindow:
+		require.True(t, show)
+	case <-time.After(timeout):
+		require.Fail(t, "no window")
+	}
 	select {
 	case res := <-ui.GiphyResults:
 		require.Equal(t, 1, len(res))
@@ -81,12 +88,18 @@ func TestGiphyPreview(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no results")
 	}
+	giphy.Preview(ctx, uid, convID, "/giphy ")
+	select {
+	case <-ui.GiphyResults:
+		require.Fail(t, "no results")
+	default:
+	}
 	giphy.Preview(ctx, uid, convID, "")
 	select {
-	case res := <-ui.GiphyResults:
-		require.Zero(t, len(res))
+	case show := <-ui.GiphyWindow:
+		require.False(t, show)
 	case <-time.After(timeout):
-		require.Fail(t, "no results")
+		require.Fail(t, "no window")
 	}
 
 	waitingCh := make(chan struct{})
@@ -94,7 +107,7 @@ func TestGiphyPreview(t *testing.T) {
 	searcher.waitForCancel = true
 	firstDoneCh := make(chan struct{})
 	go func() {
-		giphy.Preview(ctx, uid, convID, "/giphy ")
+		giphy.Preview(ctx, uid, convID, "/giphy")
 		close(firstDoneCh)
 	}()
 	select {
@@ -104,6 +117,14 @@ func TestGiphyPreview(t *testing.T) {
 		require.Fail(t, "no waiting ch")
 	}
 	giphy.Preview(ctx, uid, convID, "/giphy miketown")
+	for i := 0; i < 2; i++ {
+		select {
+		case show := <-ui.GiphyWindow:
+			require.True(t, show)
+		case <-time.After(timeout):
+			require.Fail(t, "no window")
+		}
+	}
 	select {
 	case res := <-ui.GiphyResults:
 		require.Equal(t, 1, len(res))
@@ -118,10 +139,14 @@ func TestGiphyPreview(t *testing.T) {
 	}
 	giphy.Preview(ctx, uid, convID, "")
 	select {
-	case res := <-ui.GiphyResults:
-		require.Zero(t, len(res))
+	case show := <-ui.GiphyWindow:
+		require.False(t, show)
 	case <-time.After(timeout):
-		require.Fail(t, "no results")
+		require.Fail(t, "no window")
 	}
-
+	select {
+	case <-ui.GiphyResults:
+		require.Fail(t, "no more results")
+	default:
+	}
 }

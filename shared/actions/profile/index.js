@@ -43,6 +43,12 @@ const uploadAvatar = (_, action) =>
 
 const finishRevoking = state => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
+  Tracker2Gen.createLoad({
+    assertion: state.config.username,
+    guiID: TrackerConstants.generateGUIID(),
+    inTracker: false,
+    reason: 'justRevoked',
+  }),
   ProfileGen.createRevokeFinish(),
   RouteTreeGen.createNavigateUp(),
 ]

@@ -83,14 +83,21 @@ type Game struct {
 	commitmentCompleteHash Hash
 	clock                  func() clockwork.Clock
 	clogf                  func(ctx context.Context, fmt string, args ...interface{})
+
+	// To handle reorderings between CommitmentComplete and commitements,
+	// wee need some extra bookkeeping.
+	iWasIncluded          bool
+	gotCommitmentComplete bool
+	latecomers            map[UserDeviceKey]bool
 }
 
 type GamePlayerState struct {
-	ud             UserDevice
-	commitment     Commitment
-	commitmentTime time.Time
-	included       bool
-	secret         *Secret
+	ud               UserDevice
+	commitment       *Commitment
+	commitmentTime   time.Time
+	leaderCommitment *Commitment
+	included         bool
+	secret           *Secret
 }
 
 func (g *Game) GameMetadata() GameMetadata {
@@ -235,7 +242,7 @@ func (g *Game) setSecret(ctx context.Context, ps *GamePlayerState, secret Secret
 	if ps.secret != nil {
 		return DuplicateRevealError{G: g.md, U: ps.ud}
 	}
-	if !expected.Eq(ps.commitment) {
+	if !expected.Eq(*ps.commitment) {
 		return BadRevealError{G: g.md, U: ps.ud}
 	}
 	ps.secret = &secret
@@ -295,6 +302,133 @@ func (g *Game) playerCommitedInTime(ps *GamePlayerState, now time.Time) bool {
 	return diff < g.params.CommitmentWindowWithSlack(true)
 }
 
+func (g *Game) getPlayerState(ud UserDevice) *GamePlayerState {
+	key := ud.ToKey()
+	ret := g.players[key]
+	if ret != nil {
+		return ret
+	}
+	ret = &GamePlayerState{ud: ud}
+	g.players[key] = ret
+	return ret
+}
+
+func (g *Game) handleCommitment(ctx context.Context, sender UserDevice, now time.Time, com Commitment) (err error) {
+	ps := g.getPlayerState(sender)
+	if ps.commitment != nil {
+		return DuplicateRegistrationError{g.md, sender}
+	}
+	if ps.leaderCommitment != nil && !ps.leaderCommitment.Eq(com) {
+		return CommitmentMismatchError{G: g.GameMetadata(), U: sender}
+	}
+	ps.commitment = &com
+	ps.commitmentTime = now
+
+	// If this user was a latecomer (we got the commitment after we got the CommitmentComplete),
+	// then we mark them as being accounted for.
+	delete(g.latecomers, sender.ToKey())
+
+	g.gameUpdateCh <- GameStateUpdateMessage{
+		Metadata: g.GameMetadata(),
+		Commitment: &CommitmentUpdate{
+			User:       sender,
+			Commitment: com,
+		},
+	}
+	return g.maybeReveal(ctx)
+}
+
+func (g *Game) maybeReveal(ctx context.Context) (err error) {
+
+	if !g.gotCommitmentComplete {
+		return nil
+	}
+	if len(g.latecomers) > 0 {
+		return nil
+	}
+
+	g.stage = Stage_ROUND2
+	g.stageForTimeout = Stage_ROUND2
+
+	if g.me == nil {
+		return nil
+	}
+
+	if !g.iWasIncluded {
+		g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
+		return nil
+	}
+
+	reveal := Reveal{
+		Secret: g.me.secret,
+		Cch:    g.commitmentCompleteHash,
+	}
+	g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
+	return nil
+}
+
+func (g *Game) handleCommitmentCompletePlayer(ctx context.Context, u UserDeviceCommitment) (err error) {
+
+	ps := g.getPlayerState(u.Ud)
+	if ps.leaderCommitment != nil {
+		return DuplicateCommitmentCompleteError{G: g.md, U: u.Ud}
+	}
+	if ps.commitment != nil && !ps.commitment.Eq(u.C) {
+		return CommitmentMismatchError{G: g.md, U: u.Ud}
+	}
+	if ps.commitment == nil {
+		g.latecomers[u.Ud.ToKey()] = true
+	}
+	ps.leaderCommitment = &u.C
+	ps.included = true
+	g.nPlayers++
+
+	if g.me != nil && g.me.me.Eq(u.Ud) {
+		g.iWasIncluded = true
+	}
+	return nil
+}
+
+func (g *Game) handleCommitmentComplete(ctx context.Context, sender UserDevice, now time.Time, cc CommitmentComplete) (err error) {
+
+	if !sender.Eq(g.md.Initiator) {
+		return WrongSenderError{G: g.md, Expected: g.md.Initiator, Actual: sender}
+	}
+
+	if !checkUserDeviceCommitments(cc.Players) {
+		return CommitmentCompleteSortError{G: g.md}
+	}
+
+	for _, u := range cc.Players {
+		err = g.handleCommitmentCompletePlayer(ctx, u)
+		if err != nil {
+			return err
+		}
+	}
+
+	cch, err := hashUserDeviceCommitments(cc.Players)
+	if err != nil {
+		return err
+	}
+
+	g.commitmentCompleteHash = cch
+	g.gotCommitmentComplete = true
+
+	// for now, just warn if users who made it in on time weren't included.
+	for _, ps := range g.players {
+		if !ps.included && g.playerCommitedInTime(ps, now) && g.clogf != nil {
+			g.clogf(ctx, "User %s wasn't included, but they should have been", ps.ud)
+		}
+	}
+
+	g.gameUpdateCh <- GameStateUpdateMessage{
+		Metadata:           g.GameMetadata(),
+		CommitmentComplete: &cc,
+	}
+
+	return g.maybeReveal(ctx)
+}
+
 func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) error {
 	t, err := msg.Msg.Body.T()
 	if err != nil {
@@ -317,83 +451,19 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			return nil
 		}
 
-		key := msg.Sender.ToKey()
-		if g.players[key] != nil {
-			return DuplicateRegistrationError{g.md, msg.Sender}
-		}
-		g.players[key] = &GamePlayerState{
-			ud:             msg.Sender,
-			commitment:     msg.Msg.Body.Commitment(),
-			commitmentTime: now,
-		}
-		g.gameUpdateCh <- GameStateUpdateMessage{
-			Metadata: g.GameMetadata(),
-			Commitment: &CommitmentUpdate{
-				User:       msg.Sender,
-				Commitment: msg.Msg.Body.Commitment(),
-			},
+		err = g.handleCommitment(ctx, msg.Sender, now, msg.Msg.Body.Commitment())
+		if err != nil {
+			return err
 		}
 
 	case MessageType_COMMITMENT_COMPLETE:
 		if g.stage != Stage_ROUND1 {
 			return badStage()
 		}
-		if !msg.Sender.Eq(g.md.Initiator) {
-			return WrongSenderError{G: g.md, Expected: g.md.Initiator, Actual: msg.Sender}
-		}
-		cc := msg.Msg.Body.CommitmentComplete()
 
-		if !checkUserDeviceCommitments(cc.Players) {
-			return CommitmentCompleteSortError{G: g.md}
-		}
-
-		iWasIncluded := false
-
-		for _, u := range cc.Players {
-			key := u.Ud.ToKey()
-			ps := g.players[key]
-			if ps == nil {
-				return UnregisteredUserError{G: g.md, U: u.Ud}
-			}
-			if !u.C.Eq(ps.commitment) {
-				return CommitmentMismatchError{G: g.md, U: u.Ud}
-			}
-			ps.included = true
-			g.nPlayers++
-
-			if g.me != nil && g.me.me.Eq(u.Ud) {
-				iWasIncluded = true
-			}
-		}
-
-		cch, err := hashUserDeviceCommitments(cc.Players)
+		err = g.handleCommitmentComplete(ctx, msg.Sender, now, msg.Msg.Body.CommitmentComplete())
 		if err != nil {
 			return err
-		}
-
-		g.commitmentCompleteHash = cch
-
-		// for now, just warn if users who made it in on time weren't included.
-		for _, ps := range g.players {
-			if !ps.included && g.playerCommitedInTime(ps, now) && g.clogf != nil {
-				g.clogf(ctx, "User %s wasn't included, but they should have been", ps.ud)
-			}
-		}
-		g.stage = Stage_ROUND2
-		g.stageForTimeout = Stage_ROUND2
-		g.gameUpdateCh <- GameStateUpdateMessage{
-			Metadata:           g.GameMetadata(),
-			CommitmentComplete: &cc,
-		}
-
-		if iWasIncluded {
-			reveal := Reveal{
-				Secret: g.me.secret,
-				Cch:    cch,
-			}
-			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
-		} else if g.me != nil {
-			g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
 		}
 
 	case MessageType_REVEAL:
@@ -446,7 +516,9 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 func (g *Game) userDeviceCommitmentList() []UserDeviceCommitment {
 	var ret []UserDeviceCommitment
 	for _, p := range g.players {
-		ret = append(ret, UserDeviceCommitment{Ud: p.ud, C: p.commitment})
+		if p.commitment != nil {
+			ret = append(ret, UserDeviceCommitment{Ud: p.ud, C: *p.commitment})
+		}
 	}
 	sortUserDeviceCommitments(ret)
 	return ret
@@ -488,8 +560,10 @@ func (g *Game) handleTimerEvent(ctx context.Context) error {
 		return g.completeCommitments(ctx)
 	}
 
-	if g.stageForTimeout == Stage_ROUND2 {
-		return AbsenteesError{Absentees: g.absentees()}
+	absentees := g.absentees()
+
+	if g.stageForTimeout == Stage_ROUND2 && len(absentees) > 0 {
+		return AbsenteesError{Absentees: absentees}
 	}
 
 	return TimeoutError{G: g.md, Stage: g.stageForTimeout}
@@ -607,6 +681,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		me:              me,
 		clock:           d.dh.Clock,
 		clogf:           d.dh.CLogf,
+		latecomers:      make(map[UserDeviceKey]bool),
 	}
 	d.games[key] = msgCh
 	d.gameIDs[gameIDKey] = md

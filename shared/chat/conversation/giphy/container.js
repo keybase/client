@@ -10,7 +10,7 @@ type OwnProps = {|conversationIDKey: Types.ConversationIDKey|}
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   return {
-    previews: state.chat2.giphyResultMap.get(conversationIDKey, []),
+    previews: state.chat2.giphyResultMap.get(conversationIDKey, null),
   }
 }
 

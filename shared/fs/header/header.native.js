@@ -6,6 +6,7 @@ import {type FolderHeaderProps} from './header'
 
 const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
   <Kb.HeaderHocHeader
+    borderless={true} // we add our own divider
     onLeftAction={onBack}
     rightActions={[
       {

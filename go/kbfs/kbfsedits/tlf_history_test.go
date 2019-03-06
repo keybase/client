@@ -91,8 +91,8 @@ func TestTlfHistorySimple(t *testing.T) {
 	bobMessage := nn.encode(t)
 
 	expected := writersByRevision{
-		{bobName, []NotificationMessage{bobWrite}},
-		{aliceName, []NotificationMessage{aliceWrite}},
+		{bobName, []NotificationMessage{bobWrite}, nil},
+		{aliceName, []NotificationMessage{aliceWrite}, nil},
 	}
 
 	// Alice, then Bob.
@@ -157,8 +157,8 @@ func TestTlfHistoryMultipleWrites(t *testing.T) {
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
 	expected := writersByRevision{
-		{aliceName, []NotificationMessage{aliceModC, aliceModA}},
-		{bobName, []NotificationMessage{bobModA, bobModC, bobCreateB}},
+		{aliceName, []NotificationMessage{aliceModC, aliceModA}, nil},
+		{bobName, []NotificationMessage{bobModA, bobModC, bobCreateB}, nil},
 	}
 
 	// Alice, then Bob.
@@ -239,8 +239,8 @@ func TestTlfHistoryRenamesAndDeletes(t *testing.T) {
 	bobMessages = append(bobMessages, nn.encode(t))
 
 	expected := writersByRevision{
-		{bobName, []NotificationMessage{bobModA}},
-		{aliceName, []NotificationMessage{aliceCreateB}},
+		{bobName, []NotificationMessage{bobModA}, nil},
+		{aliceName, []NotificationMessage{aliceCreateB}, nil},
 	}
 
 	// Alice, then Bob.
@@ -274,7 +274,7 @@ func TestTlfHistoryNeedsMoreThenComplete(t *testing.T) {
 
 	// Input most recent half of messages first.
 	expected := writersByRevision{
-		{aliceName, allExpected[:maxEditsPerWriter/2]},
+		{aliceName, allExpected[:maxEditsPerWriter/2], nil},
 	}
 	th := NewTlfHistory()
 	rev, err := th.AddNotifications(
@@ -289,7 +289,7 @@ func TestTlfHistoryNeedsMoreThenComplete(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, allExpected[0].Revision, rev)
 	expected = writersByRevision{
-		{aliceName, allExpected},
+		{aliceName, allExpected, nil},
 	}
 	checkTlfHistory(t, th, expected, aliceName)
 }
@@ -314,7 +314,7 @@ func TestTlfHistoryTrimming(t *testing.T) {
 
 	// Input the max+1.
 	expected := writersByRevision{
-		{aliceName, allExpected[1 : maxEditsPerWriter+1]},
+		{aliceName, allExpected[1 : maxEditsPerWriter+1], nil},
 	}
 	th := NewTlfHistory()
 	rev, err := th.AddNotifications(
@@ -329,7 +329,7 @@ func TestTlfHistoryTrimming(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, allExpected[0].Revision, rev)
 	expected = writersByRevision{
-		{aliceName, allExpected[:maxEditsPerWriter]},
+		{aliceName, allExpected[:maxEditsPerWriter], nil},
 	}
 	checkTlfHistory(t, th, expected, aliceName)
 }
@@ -368,6 +368,7 @@ func TestTlfHistoryWithUnflushed(t *testing.T) {
 			aliceWrite3,
 			aliceWrite2,
 			aliceWrite1},
+			nil,
 		},
 	}
 	checkTlfHistory(t, th, expected, aliceName)
@@ -377,15 +378,16 @@ func TestTlfHistoryWithUnflushed(t *testing.T) {
 		{aliceName, []NotificationMessage{
 			aliceWrite3,
 			aliceWrite1},
+			nil,
 		},
-		{bobName, []NotificationMessage{bobWrite2}},
+		{bobName, []NotificationMessage{bobWrite2}, nil},
 	}
 	checkTlfHistory(t, th, expected, aliceName)
 
 	th.ClearAllUnflushed()
 	expected = writersByRevision{
-		{bobName, []NotificationMessage{bobWrite2}},
-		{aliceName, []NotificationMessage{aliceWrite1}},
+		{bobName, []NotificationMessage{bobWrite2}, nil},
+		{aliceName, []NotificationMessage{aliceWrite1}, nil},
 	}
 	checkTlfHistory(t, th, expected, aliceName)
 }
@@ -414,7 +416,7 @@ func TestTlfHistoryRenameParentSimple(t *testing.T) {
 	aliceModifyB.Filename = "/k/p/a,b/c/b"
 
 	expected := writersByRevision{
-		{aliceName, []NotificationMessage{aliceModifyB}},
+		{aliceName, []NotificationMessage{aliceModifyB}, nil},
 	}
 
 	// Alice, then Bob.
@@ -427,9 +429,131 @@ func TestTlfHistoryRenameParentSimple(t *testing.T) {
 	require.Equal(t, bobRename.Revision, rev)
 	checkTlfHistory(t, th, expected, aliceName)
 
-	_ = nn.make("/k/p/a,b/c/b", NotificationDelete, aliceUID, nil, time.Time{})
+	aliceDeleteB := nn.make(
+		"/k/p/a,b/c/b", NotificationDelete, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 	_, err = th.AddNotifications(aliceName, aliceMessages)
 	require.NoError(t, err)
-	checkTlfHistory(t, th, writersByRevision{}, aliceName)
+	expected = writersByRevision{
+		{aliceName, nil, []NotificationMessage{aliceDeleteB}},
+	}
+	checkTlfHistory(t, th, expected, aliceName)
+}
+
+func TestTlfHistoryDeleteHistory(t *testing.T) {
+	aliceName, bobName := "alice", "bob"
+	aliceUID, bobUID := keybase1.MakeTestUID(1), keybase1.MakeTestUID(2)
+	tlfID, err := tlf.MakeRandomID(tlf.Private)
+	require.NoError(t, err)
+
+	var aliceMessages, bobMessages []string
+	nn := nextNotification{1, 0, tlfID, nil}
+
+	// Alice and bob each delete one file, then create different files.
+	aliceDeleteA := nn.make("a", NotificationDelete, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+	bobDeleteB := nn.make("b", NotificationDelete, bobUID, nil, time.Time{})
+	bobMessages = append(bobMessages, nn.encode(t))
+
+	aliceWrite := nn.make("c", NotificationCreate, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+	bobWrite := nn.make("d", NotificationCreate, bobUID, nil, time.Time{})
+	bobMessages = append(bobMessages, nn.encode(t))
+
+	expected := writersByRevision{
+		{bobName,
+			[]NotificationMessage{bobWrite},
+			[]NotificationMessage{bobDeleteB},
+		},
+		{aliceName,
+			[]NotificationMessage{aliceWrite},
+			[]NotificationMessage{aliceDeleteA},
+		},
+	}
+
+	// Alice, then Bob.
+	th := NewTlfHistory()
+	rev, err := th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	require.Equal(t, aliceWrite.Revision, rev)
+	rev, err = th.AddNotifications(bobName, bobMessages)
+	require.NoError(t, err)
+	require.Equal(t, bobWrite.Revision, rev)
+	checkTlfHistory(t, th, expected, aliceName)
+
+	// Another delete from alice, which should change the order of the
+	// expected history (bob should still come first).
+	aliceDeleteE := nn.make("e", NotificationDelete, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+	expected[1].deletes = []NotificationMessage{aliceDeleteE, aliceDeleteA}
+	rev, err = th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	require.Equal(t, aliceDeleteE.Revision, rev)
+	checkTlfHistory(t, th, expected, aliceName)
+
+	// Now add > 10 writes each, to make sure the deletes remain in
+	// the history.
+	var allAliceExpected, allBobExpected notificationsByRevision
+	for i := 0; i < 2*(maxEditsPerWriter+1); i += 2 {
+		event := nn.make(
+			strconv.Itoa(i), NotificationCreate, aliceUID, nil, time.Time{})
+		allAliceExpected = append(allAliceExpected, event)
+		aliceMessages = append(aliceMessages, nn.encode(t))
+		event = nn.make(
+			strconv.Itoa(i+1), NotificationCreate, bobUID, nil, time.Time{})
+		allBobExpected = append(allBobExpected, event)
+		bobMessages = append(bobMessages, nn.encode(t))
+	}
+	sort.Sort(allAliceExpected)
+	sort.Sort(allBobExpected)
+
+	expected[0].notifications = allBobExpected[:maxEditsPerWriter]
+	expected[1].notifications = allAliceExpected[:maxEditsPerWriter]
+	rev, err = th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	require.Equal(t, allAliceExpected[0].Revision, rev)
+	rev, err = th.AddNotifications(bobName, bobMessages)
+	require.NoError(t, err)
+	require.Equal(t, allBobExpected[0].Revision, rev)
+	checkTlfHistory(t, th, expected, aliceName)
+
+	// Re-creating a deleted file should remove the delete.
+	aliceRecreateA := nn.make(
+		"a", NotificationCreate, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	expected = writersByRevision{
+		{aliceName,
+			append([]NotificationMessage{aliceRecreateA},
+				allAliceExpected[:maxEditsPerWriter-1]...),
+			[]NotificationMessage{aliceDeleteE},
+		},
+		expected[0],
+	}
+	rev, err = th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	require.Equal(t, aliceRecreateA.Revision, rev)
+	checkTlfHistory(t, th, expected, aliceName)
+
+	// Max out the deletes for alice.
+	var allAliceDeletesExpected notificationsByRevision
+	for i := 0; i < 2*(maxEditsPerWriter+1); i += 2 {
+		event := nn.make(
+			strconv.Itoa(i), NotificationDelete, aliceUID, nil, time.Time{})
+		allAliceDeletesExpected = append(allAliceDeletesExpected, event)
+		aliceMessages = append(aliceMessages, nn.encode(t))
+	}
+	sort.Sort(allAliceDeletesExpected)
+
+	expected = writersByRevision{
+		{aliceName,
+			[]NotificationMessage{aliceRecreateA, aliceWrite},
+			allAliceDeletesExpected[:maxDeletesPerWriter],
+		},
+		expected[1],
+	}
+	rev, err = th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	require.Equal(t, allAliceDeletesExpected[0].Revision, rev)
+	checkTlfHistory(t, th, expected, aliceName)
 }

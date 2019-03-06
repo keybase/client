@@ -1159,7 +1159,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
+	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return res, err
@@ -1240,7 +1240,11 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	}()
 	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
 	if err != nil {
-		ui.ChatStellarDataError(ctx, err.Error())
+		if err := libkb.ExportErrorAsStatus(h.G().GlobalContext, err); err != nil {
+			ui.ChatStellarDataError(ctx, *err)
+		} else {
+			h.Debug(ctx, "error exported to nothing") // should never happen
+		}
 		return res, err
 	}
 	h.Debug(ctx, "runStellarSendUI: payments described, telling UI")
@@ -1461,7 +1465,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
-	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
+	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID, nil)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
@@ -1683,7 +1687,8 @@ func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err err
 	} else if obr == nil {
 		return nil
 	}
-	if obr.IsAttachment() {
+	switch {
+	case obr.IsAttachment():
 		if _, err := h.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
 			h.Debug(ctx, "RetryPost: failed to retry attachment upload: %s", err)
 		}
@@ -2120,11 +2125,10 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		isInherit = true
 	}
 
-	rc, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}
-	conv := rc.Conv
 	if isInherit {
 		teamRetention := conv.TeamRetention
 		if teamRetention == nil {
@@ -2133,22 +2137,16 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 			policy = *teamRetention
 		}
 	}
-	membersType := conv.Metadata.MembersType
-	info, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupName(
-		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC)
-	if err != nil {
-		return err
-	}
 	username := h.G().Env.GetUsername()
 	subBody := chat1.NewMessageSystemWithChangeretention(chat1.MessageSystemChangeRetention{
 		User:        username.String(),
 		IsTeam:      false,
 		IsInherit:   isInherit,
-		MembersType: membersType,
+		MembersType: conv.GetMembersType(),
 		Policy:      policy,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
-	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, info.CanonicalName, body, chat1.MessageType_SYSTEM)
+	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, conv.Info.TlfName, body, chat1.MessageType_SYSTEM)
 }
 
 func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
@@ -2575,6 +2573,16 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 		Usernames: arg.Usernames,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
-	// TODO pass member status to server
-	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, info.CanonicalName, body, chat1.MessageType_SYSTEM)
+	boxer := NewBoxer(h.G())
+	sender := NewBlockingSender(h.G(), boxer, h.remoteClient)
+	msg := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			TlfName:     info.CanonicalName,
+			MessageType: chat1.MessageType_SYSTEM,
+		},
+		MessageBody: body,
+	}
+	status := chat1.ConversationMemberStatus_ACTIVE
+	_, _, err = sender.Send(ctx, arg.ConvID, msg, 0, nil, &status)
+	return err
 }

@@ -64,7 +64,7 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 	}
 	ret, ok := vp.(*keybase1.TeamData)
 	if !ok {
-		mctx.CDebugf("teams.Storage#Get cast error: %T is wrong type", vp)
+		mctx.Debug("teams.Storage#Get cast error: %T is wrong type", vp)
 	}
 	return ret
 }

@@ -52,6 +52,7 @@ protocol local {
   record MessageFlip {
     string text;
     FlipGameID gameID;
+    ConversationID flipConvID;
   }
 
   enum MessageSystemType {
@@ -477,6 +478,7 @@ protocol local {
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
+    LocalConversationVers localVersion;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<ConversationLocalParticipant> participants;

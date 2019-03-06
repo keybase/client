@@ -71,7 +71,7 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (mctx libkb.M
 		}
 		return *opts.Err
 	}
-	fin = mctx.CTraceTimed("LRPC "+opts.RPCName, getFinalErr)
+	fin = mctx.TraceTimed("LRPC "+opts.RPCName, getFinalErr)
 	if !opts.AllowLoggedOut {
 		if err = s.assertLoggedIn(mctx); err != nil {
 			return mctx, fin, err
@@ -139,7 +139,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 	// Prompt for passphrase
 	username := s.G().GetEnv().GetUsername().String()
 	arg := libkb.DefaultPassphrasePromptArg(mctx, username)
-	arg.Prompt = arg.Prompt + " to export Stellar secret keys"
+	arg.Prompt += " to export Stellar secret keys"
 	secretUI := s.uiSource.SecretUI(s.G(), 0)
 	ppRes, err := secretUI.GetPassphrase(arg, nil)
 	if err != nil {

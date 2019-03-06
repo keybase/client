@@ -13,12 +13,10 @@ const ff: FeatureFlags = {
   dbCleanEnabled: false,
   foldersInProfileTab: true,
   moveOrCopy: true,
-  newTeamBuildingForChat: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: true,
   plansEnabled: false,
   useNewRouter: false,
-  walletsEnabled: true,
 }
 
 console.warn('feature flag mock in effect')

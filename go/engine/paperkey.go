@@ -83,7 +83,7 @@ func (e *PaperKey) Run(m libkb.MetaContext) error {
 				Index:  i,
 			})
 		if err != nil {
-			m.CWarningf("prompt error: %s", err)
+			m.Warning("prompt error: %s", err)
 			return err
 		}
 		if revoke {

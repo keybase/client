@@ -1104,12 +1104,9 @@ func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1
 }
 
 // FavoriteList implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
-	results, err := k.favoriteClient.GetFavorites(ctx, sessionID)
-	if err != nil {
-		return nil, err
-	}
-	return results.FavoriteFolders, nil
+func (k *KeybaseServiceBase) FavoriteList(ctx context.Context,
+	sessionID int) (keybase1.FavoritesResult, error) {
+	return k.favoriteClient.GetFavorites(ctx, sessionID)
 }
 
 // EncryptFavorites encrypts cached favorites to store on disk.

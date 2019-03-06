@@ -688,6 +688,30 @@ func (o NetworkOptions) DeepCopy() NetworkOptions {
 	}
 }
 
+type DetailsPlusPayments struct {
+	Details         AccountDetails   `codec:"details" json:"details"`
+	RecentPayments  PaymentsPage     `codec:"recentPayments" json:"recentPayments"`
+	PendingPayments []PaymentSummary `codec:"pendingPayments" json:"pendingPayments"`
+}
+
+func (o DetailsPlusPayments) DeepCopy() DetailsPlusPayments {
+	return DetailsPlusPayments{
+		Details:        o.Details.DeepCopy(),
+		RecentPayments: o.RecentPayments.DeepCopy(),
+		PendingPayments: (func(x []PaymentSummary) []PaymentSummary {
+			if x == nil {
+				return nil
+			}
+			ret := make([]PaymentSummary, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PendingPayments),
+	}
+}
+
 type BalancesArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
@@ -790,6 +814,11 @@ type NetworkOptionsArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 }
 
+type DetailsPlusPaymentsArg struct {
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+}
+
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
@@ -811,6 +840,7 @@ type RemoteInterface interface {
 	SetInflationDestination(context.Context, SetInflationDestinationArg) error
 	Ping(context.Context) (string, error)
 	NetworkOptions(context.Context, keybase1.UserVersion) (NetworkOptions, error)
+	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1112,6 +1142,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"detailsPlusPayments": {
+				MakeArg: func() interface{} {
+					var ret [1]DetailsPlusPaymentsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DetailsPlusPaymentsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DetailsPlusPaymentsArg)(nil), args)
+						return
+					}
+					ret, err = i.DetailsPlusPayments(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1220,5 +1265,10 @@ func (c RemoteClient) Ping(ctx context.Context) (res string, err error) {
 func (c RemoteClient) NetworkOptions(ctx context.Context, caller keybase1.UserVersion) (res NetworkOptions, err error) {
 	__arg := NetworkOptionsArg{Caller: caller}
 	err = c.Cli.Call(ctx, "stellar.1.remote.networkOptions", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) DetailsPlusPayments(ctx context.Context, __arg DetailsPlusPaymentsArg) (res DetailsPlusPayments, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []interface{}{__arg}, &res)
 	return
 }

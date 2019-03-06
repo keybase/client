@@ -17,12 +17,10 @@ const ff: FeatureFlags = {
   dbCleanEnabled: false,
   foldersInProfileTab: false,
   moveOrCopy: false,
-  newTeamBuildingForChat: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
   useNewRouter: false,
-  walletsEnabled: true,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {

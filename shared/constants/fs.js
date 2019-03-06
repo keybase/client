@@ -199,8 +199,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   errors: I.Map(),
   flags: makeFlags(),
   fuseStatus: null,
+  kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
-  localHTTPServerInfo: null,
+  localHTTPServerInfo: makeLocalHTTPServer(),
   moveOrCopy: makeMoveOrCopy(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
@@ -503,16 +504,12 @@ const encodePathForURL = (path: Types.Path) =>
     )
 
 const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (
-  path: Types.Path,
-  localHTTPServerInfo: ?$ReadOnly<Types._LocalHTTPServer>
-): string => {
-  if (localHTTPServerInfo === null) {
+export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.LocalHTTPServer): string => {
+  const {address, token} = localHTTPServerInfo
+  if (!address || !token) {
     return 'about:blank'
   }
-  const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
   const encoded = encodePathForURL(path)
-
   return `http://${address}/files/${encoded}?token=${token}`
 }
 
@@ -878,7 +875,7 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return 'Failed to load TLF lists.' + suffix
     case FsGen.refreshLocalHTTPServerInfo:
       return 'Failed to get information about internal HTTP server.' + suffix
-    case FsGen.filePreviewLoad:
+    case FsGen.pathItemLoad:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix

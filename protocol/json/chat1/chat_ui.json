@@ -144,6 +144,10 @@
           "name": "version"
         },
         {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
+        },
+        {
           "type": [
             null,
             "RetentionPolicy"
@@ -330,6 +334,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
         },
         {
           "type": "MessageID",
@@ -1027,7 +1035,7 @@
     },
     {
       "type": "record",
-      "name": "UICoinFlipAbsentee",
+      "name": "UICoinFlipErrorParticipant",
       "fields": [
         {
           "type": "string",
@@ -1046,7 +1054,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UICoinFlipAbsentee"
+            "items": "UICoinFlipErrorParticipant"
           },
           "name": "absentees"
         }
@@ -1057,7 +1065,13 @@
       "name": "UICoinFlipErrorTyp",
       "symbols": [
         "GENERIC_0",
-        "ABSENTEE_1"
+        "ABSENTEE_1",
+        "TIMEOUT_2",
+        "ABORTED_3",
+        "DUPREG_4",
+        "DUPCOMMITCOMPLETE_5",
+        "DUPREVEAL_6",
+        "COMMITMISMATCH_7"
       ]
     },
     {
@@ -1081,6 +1095,48 @@
             "def": false
           },
           "body": "UICoinFlipAbsenteeError"
+        },
+        {
+          "label": {
+            "name": "TIMEOUT",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "ABORTED",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "DUPREG",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
+        },
+        {
+          "label": {
+            "name": "DUPCOMMITCOMPLETE",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
+        },
+        {
+          "label": {
+            "name": "DUPREVEAL",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
+        },
+        {
+          "label": {
+            "name": "COMMITMISMATCH",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
         }
       ]
     },
@@ -1486,8 +1542,8 @@
           "type": "int"
         },
         {
-          "name": "message",
-          "type": "string"
+          "name": "error",
+          "type": "keybase1.Status"
         }
       ],
       "response": "boolean"
@@ -1521,6 +1577,23 @@
             "type": "array",
             "items": "GiphySearchResult"
           }
+        }
+      ],
+      "response": null
+    },
+    "chatGiphyToggleResultWindow": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "show",
+          "type": "boolean"
         }
       ],
       "response": null

@@ -370,9 +370,10 @@ type LoadUserPlusKeysArg struct {
 }
 
 type LoadUserPlusKeysV2Arg struct {
-	SessionID  int `codec:"sessionID" json:"sessionID"`
-	Uid        UID `codec:"uid" json:"uid"`
-	PollForKID KID `codec:"pollForKID" json:"pollForKID"`
+	SessionID  int                 `codec:"sessionID" json:"sessionID"`
+	Uid        UID                 `codec:"uid" json:"uid"`
+	PollForKID KID                 `codec:"pollForKID" json:"pollForKID"`
+	Oa         OfflineAvailability `codec:"oa" json:"oa"`
 }
 
 type LoadPublicKeysArg struct {

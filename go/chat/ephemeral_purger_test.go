@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -75,7 +76,7 @@ func TestBackgroundPurge(t *testing.T) {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "hi",
 			}),
-		}, 0, nil)
+		}, 0, nil, nil)
 		require.NoError(t, err)
 		thread, err := tc.ChatG.ConvSource.Pull(ctx, convID, uid,
 			chat1.GetThreadReason_GENERAL,
@@ -95,7 +96,7 @@ func TestBackgroundPurge(t *testing.T) {
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 
-	assertEphemeralPurgeNotifInfo := func(convID chat1.ConversationID, msgIDs []chat1.MessageID) {
+	assertEphemeralPurgeNotifInfo := func(convID chat1.ConversationID, msgIDs []chat1.MessageID, localVers chat1.LocalConversationVers) {
 		info := listener.consumeEphemeralPurge(t)
 		require.Equal(t, info.ConvID, convID)
 		if msgIDs == nil {
@@ -107,6 +108,18 @@ func TestBackgroundPurge(t *testing.T) {
 			}
 			require.Equal(t, msgIDs, purgedIDs)
 		}
+		updates := listener.consumeThreadsStale(t)
+		require.Len(t, updates, 1)
+		require.Equal(t, updates[0].ConvID, convID)
+		require.Equal(t, updates[0].UpdateType, chat1.StaleUpdateType_CONVUPDATE)
+
+		rc, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceLocalOnly)
+		require.NoError(t, err)
+		require.Equal(t, localVers, rc.Conv.Metadata.LocalVersion)
+
+		conv, err := utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceLocalOnly)
+		require.NoError(t, err)
+		require.Equal(t, localVers, conv.Info.LocalVersion)
 	}
 
 	// Load our conv with the initial tlf msg
@@ -150,7 +163,9 @@ func TestBackgroundPurge(t *testing.T) {
 	t.Logf("assert listener 1")
 	world.Fc.Advance(lifetimeDuration)
 	assertListener(conv1.ConvID, 2)
-	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[0].GetMessageID()})
+	localVers1 := chat1.LocalConversationVers(1)
+	localVers2 := chat1.LocalConversationVers(1)
+	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[0].GetMessageID()}, localVers1)
 	assertTrackerState(conv1.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv1.ConvID,
 		MinUnexplodedID: msgs[2].GetMessageID(),
@@ -176,7 +191,7 @@ func TestBackgroundPurge(t *testing.T) {
 	t.Logf("assert listener 2")
 	world.Fc.Advance(lifetimeDuration)
 	assertListener(conv2.ConvID, 2)
-	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[1].GetMessageID()})
+	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[1].GetMessageID()}, localVers1)
 	assertTrackerState(conv1.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv1.ConvID,
 		MinUnexplodedID: msgs[2].GetMessageID(),
@@ -202,7 +217,8 @@ func TestBackgroundPurge(t *testing.T) {
 		}, nil)
 	require.NoError(t, err)
 	require.Len(t, thread.Messages, 3)
-	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[2].GetMessageID()})
+	localVers1++
+	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[2].GetMessageID()}, localVers1)
 	assertTrackerState(conv1.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv1.ConvID,
 		MinUnexplodedID: msgs[2].GetMessageID(),
@@ -237,8 +253,10 @@ func TestBackgroundPurge(t *testing.T) {
 			require.Fail(t, "did not drain")
 		}
 	}
-	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[3].GetMessageID()})
-	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[4].GetMessageID()})
+	localVers2++
+	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[3].GetMessageID()}, localVers2)
+	localVers1++
+	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[4].GetMessageID()}, localVers1)
 	assertTrackerState(conv1.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv1.ConvID,
 		MinUnexplodedID: msgs[4].GetMessageID(),

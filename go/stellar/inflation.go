@@ -13,7 +13,7 @@ func GetPredefinedInflationDestinations(mctx libkb.MetaContext) (ret []stellar1.
 }
 
 func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflationDestinationLocalArg) (err error) {
-	defer mctx.CTraceTimed(
+	defer mctx.TraceTimed(
 		fmt.Sprintf("Stellar.SetInflationDestinationLocal(on=%s,to=%s)", arg.AccountID, arg.Destination),
 		func() error { return err })()
 
@@ -43,7 +43,9 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 		return err
 	}
 
-	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp, tb)
+	baseFee := walletState.BaseFee(mctx)
+
+	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp, tb, baseFee)
 	if err != nil {
 		return err
 	}
@@ -51,12 +53,16 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	if err != nil {
 		return err
 	}
-	walletState.Refresh(mctx, senderEntry.AccountID, "set inflation destination")
+	err = walletState.Refresh(mctx, senderEntry.AccountID, "set inflation destination")
+	if err != nil {
+		mctx.Debug("SetInflationDestinationLocal ws.Refresh error: %s", err)
+	}
+
 	return nil
 }
 
 func GetInflationDestination(mctx libkb.MetaContext, accountID stellar1.AccountID) (res stellar1.InflationDestinationResultLocal, err error) {
-	defer mctx.CTraceTimed("Stellar.GetInflationDestination", func() error { return err })()
+	defer mctx.TraceTimed("Stellar.GetInflationDestination", func() error { return err })()
 
 	walletState := getGlobal(mctx.G()).walletState
 	details, err := walletState.Details(mctx.Ctx(), accountID)

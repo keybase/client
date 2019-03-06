@@ -259,6 +259,16 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	return fs.favs.Get(ctx)
 }
 
+// GetFavoritesAll implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (keybase1.
+	FavoritesResult, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	return fs.favs.GetAll(ctx)
+}
+
 // RefreshCachedFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
@@ -279,7 +289,7 @@ func (fs *KBFSOpsStandard) ClearCachedFavorites(ctx context.Context) {
 
 // AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
-	fav Favorite) error {
+	fav Favorite, data FavoriteData) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -288,13 +298,20 @@ func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	isLoggedIn := err == nil
 
 	if isLoggedIn {
-		err := fs.favs.Add(ctx, favToAdd{Favorite: fav, created: false})
+		err := fs.favs.Add(ctx, favToAdd{Favorite: fav,
+			Data: data, created: false})
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// SetFavoritesHomeTLFInfo implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) SetFavoritesHomeTLFInfo(ctx context.Context,
+	info homeTLFInfo) {
+	fs.favs.setHomeTLFInfo(ctx, info)
 }
 
 func (fs *KBFSOpsStandard) getOpsByFav(fav Favorite) *folderBranchOps {

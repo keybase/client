@@ -157,7 +157,7 @@ const styles = Styles.styleSheetCreate({
   }),
   youPublishTeam: {
     alignSelf: 'center',
-    color: Styles.globalColors.black_20,
+    color: Styles.globalColors.black_50,
   },
 })
 

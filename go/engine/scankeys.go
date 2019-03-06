@@ -43,7 +43,7 @@ func NewScanKeys(m libkb.MetaContext) (sk *ScanKeys, err error) {
 		MetaContextified: libkb.NewMetaContextified(m),
 	}
 
-	defer m.CTrace("NewScanKeys", func() error { return err })()
+	defer m.Trace("NewScanKeys", func() error { return err })()
 
 	var loggedIn bool
 	loggedIn, err = isLoggedInWithError(m)
@@ -101,9 +101,9 @@ func (s *ScanKeys) KeysById(id uint64, fp []byte) []openpgp.Key {
 	m := s.M()
 	primaries := s.unlockByID(m, id)
 	memres := primaries.KeysById(id, fp)
-	m.CDebugf("ScanKeys:KeysById(%016x) => %d keys match in memory", id, len(memres))
+	m.Debug("ScanKeys:KeysById(%016x) => %d keys match in memory", id, len(memres))
 	if len(memres) > 0 {
-		m.CDebugf("ScanKeys:KeysById(%016x) => owner == me (%s)", id, s.me.GetName())
+		m.Debug("ScanKeys:KeysById(%016x) => owner == me (%s)", id, s.me.GetName())
 		s.Lock()
 		s.keyOwners[id] = s.me
 		s.Unlock()
@@ -136,9 +136,9 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []ope
 	// check the local keys first.
 	primaries := s.publicByID(m, id)
 	memres := primaries.KeysByIdUsage(id, fp, requiredUsage)
-	m.CDebugf("ScanKeys#KeysByIdUsage(%016x, %x) => %d keys match in memory", id, requiredUsage, len(memres))
+	m.Debug("ScanKeys#KeysByIdUsage(%016x, %x) => %d keys match in memory", id, requiredUsage, len(memres))
 	if len(memres) > 0 {
-		m.CDebugf("ScanKeys#KeysByIdUsage(%016x) => owner == me (%s)", id, s.me.GetName())
+		m.Debug("ScanKeys#KeysByIdUsage(%016x) => owner == me (%s)", id, s.me.GetName())
 		s.Lock()
 		s.keyOwners[id] = s.me
 		s.Unlock()
@@ -148,11 +148,11 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []ope
 	// no match, so now lookup the user on the api server by the key id.
 	list, err := s.scan(m, id)
 	if err != nil {
-		m.CDebugf("error finding keys for %016x: %s", id, err)
+		m.Debug("error finding keys for %016x: %s", id, err)
 		return nil
 	}
 	// use the list to find the keys correctly
-	m.CDebugf("ScanKeys#KeysByIdUsage(%d, %x) => %d keys found via api scan", id, requiredUsage, len(list))
+	m.Debug("ScanKeys#KeysByIdUsage(%d, %x) => %d keys found via api scan", id, requiredUsage, len(list))
 	return list.KeysByIdUsage(id, fp, requiredUsage)
 }
 
@@ -161,7 +161,7 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []ope
 // message.
 func (s *ScanKeys) DecryptionKeys() []openpgp.Key {
 	m := s.M()
-	m.CDebugf("ScanKeys#DecryptionKeys() => %d keys available", s.Count())
+	m.Debug("ScanKeys#DecryptionKeys() => %d keys available", s.Count())
 	all := s.unlockAll(m)
 	return all.DecryptionKeys()
 }
@@ -196,7 +196,7 @@ func (s *ScanKeys) KeyOwnerByEntity(entity *openpgp.Entity) *libkb.User {
 // coalesceBlocks puts the synced pgp key block and all the pgp key
 // blocks in ring into s.skbs.
 func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB) (err error) {
-	defer m.CTrace("ScanKeys#coalesceBlocks", func() error { return err })()
+	defer m.Trace("ScanKeys#coalesceBlocks", func() error { return err })()
 
 	if synced != nil {
 		s.skbs = append(s.skbs, synced)
@@ -222,7 +222,7 @@ func (s *ScanKeys) scan(m libkb.MetaContext, id uint64) (openpgp.EntityList, err
 	if err != nil {
 		return nil, err
 	}
-	m.CDebugf("key id %016x => %s, %s", id, id, username, uid)
+	m.Debug("key id %016x => %s, %s", id, id, username, uid)
 	if len(username) == 0 || len(uid) == 0 {
 		return nil, libkb.NoKeyError{}
 	}
@@ -235,11 +235,11 @@ func (s *ScanKeys) scan(m libkb.MetaContext, id uint64) (openpgp.EntityList, err
 	}
 	uplus := eng.UsersPlusKeys()
 	if len(uplus) != 1 {
-		m.CWarningf("error getting user plus pgp key from %s", username)
+		m.Warning("error getting user plus pgp key from %s", username)
 		return nil, err
 	}
 	// user found is the owner of the keys
-	m.CDebugf("scan(%016x) => owner of key = (%s)", id, uplus[0].User.GetName())
+	m.Debug("scan(%016x) => owner of key = (%s)", id, uplus[0].User.GetName())
 	s.Lock()
 	s.keyOwners[id] = uplus[0].User
 	s.Unlock()
@@ -264,7 +264,7 @@ func (s *ScanKeys) publicByID(m libkb.MetaContext, id uint64) openpgp.EntityList
 	for _, skb := range s.skbs {
 		pubkey, err := skb.GetPubKey()
 		if err != nil {
-			m.CWarningf("error getting pub key from skb: %s", err)
+			m.Warning("error getting pub key from skb: %s", err)
 			continue
 		}
 		bundle, ok := pubkey.(*libkb.PGPKeyBundle)
@@ -285,7 +285,7 @@ func (s *ScanKeys) unlockByID(m libkb.MetaContext, id uint64) openpgp.EntityList
 	for _, skb := range s.skbs {
 		pubkey, err := skb.GetPubKey()
 		if err != nil {
-			m.CWarningf("error getting pub key from skb: %s", err)
+			m.Warning("error getting pub key from skb: %s", err)
 			continue
 		}
 		bundle, ok := pubkey.(*libkb.PGPKeyBundle)
@@ -304,12 +304,12 @@ func (s *ScanKeys) unlockByID(m libkb.MetaContext, id uint64) openpgp.EntityList
 		}
 		unlocked, err := skb.PromptAndUnlock(m, parg, nil, s.me)
 		if err != nil {
-			m.CWarningf("error unlocking key: %s", err)
+			m.Warning("error unlocking key: %s", err)
 			continue
 		}
 		unlockedBundle, ok := unlocked.(*libkb.PGPKeyBundle)
 		if !ok {
-			m.CWarningf("could not convert unlocked key to PGPKeyBundle")
+			m.Warning("could not convert unlocked key to PGPKeyBundle")
 			continue
 		}
 		list = append(list, unlockedBundle.Entity)
@@ -326,12 +326,12 @@ func (s *ScanKeys) unlockAll(m libkb.MetaContext) openpgp.EntityList {
 		}
 		unlocked, err := skb.PromptAndUnlock(m, parg, nil, s.me)
 		if err != nil {
-			m.CWarningf("error unlocking key: %s", err)
+			m.Warning("error unlocking key: %s", err)
 			continue
 		}
 		unlockedBundle, ok := unlocked.(*libkb.PGPKeyBundle)
 		if !ok {
-			m.CWarningf("could not convert unlocked key to PGPKeyBundle")
+			m.Warning("could not convert unlocked key to PGPKeyBundle")
 			continue
 		}
 		list = append(list, unlockedBundle.Entity)

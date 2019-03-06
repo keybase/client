@@ -2,9 +2,16 @@
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
 import type {RouteProps} from '../route-tree/render-route'
+import {constantsStatusCode} from '../constants/types/rpc-gen'
 
 export const NullComponent = () => null
 export const actionHasError = (a: Object) => !!a.error
+
+export const networkErrorCodes = [
+  constantsStatusCode.scgenericapierror,
+  constantsStatusCode.scapinetworkerror,
+  constantsStatusCode.sctimeout,
+]
 
 type TypedDispatch = (action: TypedActions) => void
 type Dispatch = TypedDispatch

@@ -28,15 +28,16 @@
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
 		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
-		8828A757521849ACB90150D0 /* libRNGestureHandler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B47606285394777AF241164 /* libRNGestureHandler.a */; };
 		664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */; };
 		664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */; };
+		664ACA3B222F0B9500D0407E /* keybase-bold-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 664ACA07222F0B9500D0407E /* keybase-bold-italic.otf */; };
 		665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */; };
 		665BAD152209FC4D00E3CC93 /* keybase-semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */; };
 		665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */; };
 		665BAD172209FC4D00E3CC93 /* keybase-medium-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */; };
 		665BAD182209FC4D00E3CC93 /* keybase-semibold-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */; };
 		665BAD192209FC4D00E3CC93 /* keybase-bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD132209FC4D00E3CC93 /* keybase-bold.otf */; };
+		8828A757521849ACB90150D0 /* libRNGestureHandler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B47606285394777AF241164 /* libRNGestureHandler.a */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
@@ -521,16 +522,17 @@
 		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
-		8D1F643AB3B646C08A6F2B7E /* RNScreens.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNScreens.xcodeproj; path = "../../node_modules/react-native-screens/ios/RNScreens.xcodeproj"; sourceTree = "<group>"; };
-		9B47606285394777AF241164 /* libRNGestureHandler.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNGestureHandler.a; sourceTree = "<group>"; };
 		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
 		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
+		664ACA07222F0B9500D0407E /* keybase-bold-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold-italic.otf"; sourceTree = "<group>"; };
 		665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.otf"; sourceTree = "<group>"; };
 		665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.otf"; sourceTree = "<group>"; };
 		665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.otf"; sourceTree = "<group>"; };
 		665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.otf"; sourceTree = "<group>"; };
 		665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold-italic.otf"; sourceTree = "<group>"; };
 		665BAD132209FC4D00E3CC93 /* keybase-bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold.otf"; sourceTree = "<group>"; };
+		8D1F643AB3B646C08A6F2B7E /* RNScreens.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNScreens.xcodeproj; path = "../../node_modules/react-native-screens/ios/RNScreens.xcodeproj"; sourceTree = "<group>"; };
+		9B47606285394777AF241164 /* libRNGestureHandler.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNGestureHandler.a; sourceTree = "<group>"; };
 		A76C0DB4F73E4C83A1521058 /* FastImage.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = FastImage.xcodeproj; path = "../../node_modules/react-native-fast-image/ios/FastImage.xcodeproj"; sourceTree = "<group>"; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
 		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
@@ -956,6 +958,7 @@
 			isa = PBXGroup;
 			children = (
 				DBDC80031DE7CC8E005387B3 /* kb.ttf */,
+				664ACA07222F0B9500D0407E /* keybase-bold-italic.otf */,
 				665BAD132209FC4D00E3CC93 /* keybase-bold.otf */,
 				665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */,
 				665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */,
@@ -1671,6 +1674,7 @@
 				665BAD192209FC4D00E3CC93 /* keybase-bold.otf in Resources */,
 				664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */,
 				665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */,
+				664ACA3B222F0B9500D0407E /* keybase-bold-italic.otf in Resources */,
 				665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */,
 				665BAD182209FC4D00E3CC93 /* keybase-semibold-italic.otf in Resources */,
 				664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */,

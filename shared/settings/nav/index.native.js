@@ -49,14 +49,10 @@ function SettingsNav(props: Props) {
               text: 'Devices',
             },
             {
-              ...(flags.walletsEnabled
-                ? {
-                    badgeNumber: props.badgeNumbers[TabConstants.walletsTab],
-                    icon: 'iconfont-nav-wallets',
-                    onClick: () => props.onTabChange(Constants.walletsTab),
-                    text: 'Wallet',
-                  }
-                : {}),
+              badgeNumber: props.badgeNumbers[TabConstants.walletsTab],
+              icon: 'iconfont-nav-wallets',
+              onClick: () => props.onTabChange(Constants.walletsTab),
+              text: 'Wallet',
             },
           ],
           title: '',

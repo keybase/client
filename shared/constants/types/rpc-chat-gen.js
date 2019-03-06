@@ -16,6 +16,12 @@ export const chatUiMessageUnboxedState = {
 export const chatUiUICoinFlipErrorTyp = {
   generic: 0,
   absentee: 1,
+  timeout: 2,
+  aborted: 3,
+  dupreg: 4,
+  dupcommitcomplete: 5,
+  dupreveal: 6,
+  commitmismatch: 7,
 }
 
 export const chatUiUICoinFlipPhase = {
@@ -339,6 +345,7 @@ export const unfurlUnfurlType = {
   giphy: 2,
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localBulkAddToConvRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteConversationLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.deleteConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDownloadFileAttachmentLocalRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.DownloadFileAttachmentLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})

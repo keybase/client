@@ -104,19 +104,19 @@ func (e *FavoriteAdd) checkInviteNeeded(m libkb.MetaContext) error {
 	for _, user := range strings.Split(e.arg.Folder.Name, ",") {
 		assertion, ok := externals.NormalizeSocialAssertion(m.G(), user)
 		if !ok {
-			m.CDebugf("not a social assertion: %s", user)
+			m.Debug("not a social assertion: %s", user)
 			continue
 		}
 
-		m.CDebugf("social assertion found in FavoriteAdd folder name: %s", assertion)
-		m.CDebugf("requesting an invitation for %s", assertion)
+		m.Debug("social assertion found in FavoriteAdd folder name: %s", assertion)
+		m.Debug("requesting an invitation for %s", assertion)
 
 		inv, err := libkb.GenerateInvitationCodeForAssertion(m.G(), assertion, libkb.InviteArg{})
 		if err != nil {
 			return err
 		}
 
-		m.CDebugf("invitation requested, informing folder creator with result")
+		m.Debug("invitation requested, informing folder creator with result")
 		arg := keybase1.DisplayTLFCreateWithInviteArg{
 			FolderName:      e.arg.Folder.Name,
 			Assertion:       assertion.String(),

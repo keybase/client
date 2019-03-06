@@ -12,6 +12,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {connect, type RouteProps} from '../util/container'
 import {globalStyles} from '../styles'
 import RpcStats from './rpc-stats'
+import OutOfDate from './out-of-date'
 import AirdropBanner from '../wallets/airdrop/banner/container'
 
 type OwnProps = RouteProps<{}, {}>
@@ -66,6 +67,7 @@ class Nav extends React.Component<Props> {
             Tabs.teamsTab,
           ].includes(routeSelected) && <Offline />}
           <GlobalError />
+          <OutOfDate />
         </Box>
         <RpcStats />
       </ErrorBoundary>

@@ -170,8 +170,8 @@ const styles = styleSheetCreate({
   small: {
     borderRadius,
     height: smallHeight,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: globalMargins.xsmall,
+    paddingRight: globalMargins.xsmall,
   },
 })
 

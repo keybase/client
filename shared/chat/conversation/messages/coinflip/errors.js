@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../../styles'
 
 type Props = {|
   error: RPCChatTypes.UICoinFlipError,
@@ -13,7 +13,26 @@ const CoinFlipError = (props: Props) => {
     return <CoinFlipGenericError error={props.error.generic} />
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee && props.error.absentee) {
     return <CoinFlipAbsenteeError error={props.error.absentee} />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.timeout) {
+    return <CoinFlipTimeoutError />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted) {
+    return <CoinFlipAbortedError />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreg && props.error.dupreg) {
+    return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
+  } else if (
+    props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupcommitcomplete &&
+    props.error.dupcommitcomplete
+  ) {
+    return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
+  } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.dupreveal && props.error.dupreveal) {
+    return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
+  } else if (
+    props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.commitmismatch &&
+    props.error.commitmismatch
+  ) {
+    return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
   }
+
   return <CoinFlipGenericError error={'Unknown error occurred'} />
 }
 
@@ -21,49 +40,76 @@ type GenericProps = {|
   error: string,
 |}
 
-const CoinFlipGenericError = (props: GenericProps) => {
-  return (
-    <Kb.Text style={styles.error} type="BodyItalic">
-      {props.error}
-    </Kb.Text>
-  )
-}
+const CoinFlipGenericError = (props: GenericProps) => (
+  <Kb.Text selectable={true} style={styles.error} type="Body">
+    {props.error}
+  </Kb.Text>
+)
 
 type AbsenteeProps = {|
   error: RPCChatTypes.UICoinFlipAbsenteeError,
 |}
 
-const CoinFlipAbsenteeError = (props: AbsenteeProps) => {
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-      <Kb.Text type="Body" style={styles.error}>
-        Some players that committed to the coin flip failed to reveal their secrets in time:
+const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+    <Kb.Text selectable={true} type="Body">
+      Uh oh, a participant disappeared:
+    </Kb.Text>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+        {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
       </Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        {(props.error.absentees || []).map(a => {
-          const text = `${a.user} (device: ${a.device})`
-          return (
-            <Kb.Text key={text} type="BodySemibold" style={styles.error}>
-              {text}
-            </Kb.Text>
-          )
-        })}
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="Body" style={styles.error}>
-          This could mean one of two things:
-        </Kb.Text>
-        <Kb.Text type="Body" style={styles.error}>
-          1. Their client disconnected, or was otherwise incapacitated, and could not reveal their secret.
-        </Kb.Text>
-        <Kb.Text type="Body" style={styles.error}>
-          2. A small chance they disconnected on purpose in order to force a new flip. If you suspect this,
-          then just ask them what happened.
-        </Kb.Text>
-      </Kb.Box2>
     </Kb.Box2>
-  )
-}
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text selectable={true} type="Body">
+        It was likely a network problem, but they could be a jerk.
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
+const CoinFlipTimeoutError = () => (
+  <Kb.Text selectable={true} style={styles.error} type="Body">
+    Flip timed out before a result was obtained.
+  </Kb.Text>
+)
+
+const CoinFlipAbortedError = () => (
+  <Kb.Text selectable={true} style={styles.error} type="Body">
+    Flip aborted before a result was obtained.
+  </Kb.Text>
+)
+
+type DupProps = {|
+  desc: string,
+  offender: RPCChatTypes.UICoinFlipErrorParticipant,
+|}
+
+const CoinFlipDupError = (props: DupProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+    <Kb.Text selectable={true} type="Body">
+      Duplicate {props.desc} received from the following participant:
+    </Kb.Text>
+    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+      {props.offender.user} (device: {props.offender.device})
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+type CommitMismatchProps = {|
+  offender: RPCChatTypes.UICoinFlipErrorParticipant,
+|}
+
+const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+    <Kb.Text selectable={true} type="Body">
+      Commitment mismatch from the following participant:
+    </Kb.Text>
+    <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
+      {props.offender.user} (device: {props.offender.device})
+    </Kb.Text>
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate({
   error: {

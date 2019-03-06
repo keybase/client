@@ -861,6 +861,15 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 	return lr, nil
 }
 
+// SimpleFSListFavorites lists the favorite, new,
+// and ignored folders of the logged in user,
+// getting its data from the KBFS Favorites cache. If the cache is stale,
+// this will trigger a network request.
+func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
+	keybase1.FavoritesResult, error) {
+	return k.config.KBFSOps().GetFavoritesAll(ctx)
+}
+
 func recursiveByteAndFileCount(fs billy.Filesystem) (
 	bytes, files int64, err error) {
 	fileInfos, err := fs.ReadDir("/")
@@ -2235,4 +2244,9 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 
 	_, err = k.config.KBFSOps().SetSyncConfig(ctx, tlfID, arg.Config)
 	return err
+}
+
+// SimpleFSPing implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSPing(ctx context.Context) error {
+	return nil
 }

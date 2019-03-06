@@ -141,7 +141,7 @@ func encrypt(relay stellar1.RelayContents, encryptFor keybase1.TeamApplicationKe
 		return res, err
 	}
 	secbox := secretbox.Seal(
-		nil, clearpack[:], &nonce, (*[32]byte)(&encryptFor.Key))
+		nil, clearpack, &nonce, (*[32]byte)(&encryptFor.Key))
 	return stellar1.EncryptedRelaySecret{
 		V:   1,
 		E:   secbox,

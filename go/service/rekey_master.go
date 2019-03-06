@@ -453,7 +453,7 @@ func (r *rekeyMaster) currentDeviceSolvesProblemSet(me *libkb.User, ps keybase1.
 
 	// We can continue though, so no need to error out
 	if paperKey == nil {
-		m.CDebugf("| No cached paper key")
+		m.Debug("| No cached paper key")
 	}
 	if deviceKey != nil {
 		r.G().Log.Debug("| currentDeviceSolvesProblemSet: checking device key: %s", deviceKey.GetKID())

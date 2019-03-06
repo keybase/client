@@ -6,9 +6,6 @@
     "import {RPCError} from '../util/errors'",
   ],
   "actions": {
-    "setupEngineListeners": {
-      "_description": "TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers"
-    },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
     },
@@ -106,5 +103,13 @@
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
     "updateNow": {},
+    "openAppStore": {
+      "_description": "Open a link to the app store"
+    },
+    "updateCriticalCheckStatus": {
+      "_description": "Save critical check status",
+      "status": "'critical' | 'suggested' | 'ok'",
+      "message": "string",
+    }
   }
 }

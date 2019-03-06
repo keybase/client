@@ -911,8 +911,9 @@ type FolderSyncEncryptedPartialPaths struct {
 // FolderSyncConfig is the on-disk representation for a TLF sync
 // config.
 type FolderSyncConfig struct {
-	Mode  keybase1.FolderSyncMode         `codec:"mode" json:"mode"`
-	Paths FolderSyncEncryptedPartialPaths `codec:"paths" json:"paths"`
+	Mode    keybase1.FolderSyncMode         `codec:"mode" json:"mode"`
+	Paths   FolderSyncEncryptedPartialPaths `codec:"paths" json:"paths"`
+	TlfPath string                          `codec:"tlfpath" json:"tlfpath"`
 }
 
 type syncPathList struct {

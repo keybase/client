@@ -4,15 +4,14 @@ import * as Container from '../../util/container'
 import {branch, renderComponent} from 'recompose'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
-import {getTeamMemberCount, isSubteam, leaveTeamWaitingKey} from '../../constants/teams'
+import {isLastOwner, leaveTeamWaitingKey} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const name = routeProps.get('teamname')
-  const memberCount = getTeamMemberCount(state, name)
-  const _lastOwner = memberCount <= 1 && !isSubteam(name)
+  const _lastOwner = isLastOwner(state, name)
   return {
     _lastOwner,
     _leaving: anyWaiting(state, leaveTeamWaitingKey(name)),
