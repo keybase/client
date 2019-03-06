@@ -82,6 +82,7 @@ type favReq struct {
 	ctx context.Context
 }
 
+// FavoriteData represents the auxiliary data belonging to a KBFS Favorite.
 type FavoriteData struct {
 	Name         string
 	FolderType   keybase1.FolderType
