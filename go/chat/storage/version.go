@@ -18,6 +18,7 @@ type ServerVersions struct {
 }
 
 func NewServerVersions(g *globals.Context) *ServerVersions {
+	initLocksRepoOnce(g)
 	return &ServerVersions{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ServerVersions", false),

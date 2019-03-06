@@ -67,6 +67,7 @@ func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, co
 }
 
 func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
+	initLocksRepoOnce(g)
 	return &Storage{
 		Contextified:     globals.NewContextified(g),
 		engine:           newBlockEngine(g),
@@ -315,8 +316,8 @@ func (h *HoleyResultCollector) Holes() int {
 }
 
 func (s *Storage) Nuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) Error {
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 	return s.maybeNukeLocked(ctx, true /* force */, nil /* error */, convID, uid)
 }
 
@@ -345,15 +346,16 @@ func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, co
 func (s *Storage) SetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgID chat1.MessageID) (err Error) {
 	defer s.Trace(ctx, func() error { return err }, "SetMaxMsgID")()
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
+
 	return s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgID)
 }
 
 func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (maxMsgID chat1.MessageID, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "GetMaxMsgID")()
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 
 	if maxMsgID, err = s.idtracker.getMaxMessageID(ctx, convID, uid); err != nil {
 		return maxMsgID, s.maybeNukeLocked(ctx, false, err, convID, uid)
@@ -392,11 +394,8 @@ func (s *Storage) Expunge(ctx context.Context,
 func (s *Storage) MergeHelper(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "MergeHelper")()
-
-	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functions.
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 
 	s.Debug(ctx, "MergeHelper: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
@@ -821,12 +820,9 @@ func (s *Storage) clearUpthrough(ctx context.Context, convID chat1.ConversationI
 // ClearBefore clears all messages up to (but not including) the upto messageID
 func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	upto chat1.MessageID) (err Error) {
-	defer s.Trace(ctx, func() error { return err }, "ClearBefore")()
-	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functions.
-	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("ClearBefore: convID: %s, uid: %s, msgID: %d", convID, uid, upto))()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 
 	// Abort, we don't want to overflow uint (chat1.MessageID)
 	if upto == 0 {
@@ -837,10 +833,9 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 
 func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err Error) {
 	defer s.Trace(ctx, func() error { return err }, "ClearAll")()
-	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functions.
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
+
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
 		return err
@@ -969,8 +964,8 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	defer s.Trace(ctx, func() error { return err }, "FetchUpToLocalMaxMsgID")()
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
@@ -991,18 +986,18 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	defer s.Trace(ctx, func() error { return err }, "Fetch")()
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), conv.GetConvID().String())
+	defer lock.Release(ctx)
 
-	return s.fetchUpToMsgIDLocked(ctx, rc, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid,
+	return s.fetchUpToMsgIDLocked(ctx, rc, conv.GetConvID(), uid, conv.ReaderInfo.MaxMsgid,
 		query, pagination)
 }
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID) (res []*chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "FetchMessages")()
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 	if err = isAbortedRequest(ctx); err != nil {
 		return res, err
 	}
@@ -1038,8 +1033,8 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, readMsgID chat1.MessageID) (msgID *chat1.MessageID, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "FetchUnreadlineID")()
-	locks.Storage.Lock()
-	defer locks.Storage.Unlock()
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 	if err = isAbortedRequest(ctx); err != nil {
 		return nil, err
 	}

@@ -112,6 +112,7 @@ func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	addHookOnce.Do(func() {
 		g.ExternalG().AddLogoutHook(inboxMemCache)
 	})
+	initLocksRepoOnce(g)
 
 	i := &Inbox{
 		Contextified: globals.NewContextified(g),
