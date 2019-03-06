@@ -19,6 +19,10 @@ import (
 // WalletState's accounts map.
 var ErrAccountNotFound = errors.New("account not found for user")
 
+// ErrRefreshQueueFull is returned when the refresh queue
+// is clogged up.
+var ErrRefreshQueueFull = errors.New("refresh queue is full")
+
 // WalletState holds all the current data for all the accounts
 // for the user.  It is also a remote.Remoter and should be used
 // in place of it so network calls can be avoided.
@@ -206,6 +210,31 @@ func (w *WalletState) Refresh(mctx libkb.MetaContext, accountID stellar1.Account
 		return ErrAccountNotFound
 	}
 	return a.Refresh(mctx, w.G().NotifyRouter, reason)
+}
+
+// RefreshAsync makes a request to refresh an account in the background.
+// It clears the refresh time to ensure that a refresh happens/
+func (w *WalletState) RefreshAsync(mctx libkb.MetaContext, accountID stellar1.AccountID, reason string) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return ErrAccountNotFound
+	}
+
+	// if someone calls this, they need a refresh to happen, so make
+	// sure that the next refresh for this accountID isn't skipped.
+	a.Lock()
+	a.rtime = time.Time{}
+	a.Unlock()
+
+	select {
+	case w.refreshReqs <- accountID:
+	case <-time.After(200 * time.Millisecond):
+		// don't wait for full channel
+		mctx.Debug("refreshReqs channel clogged trying to enqueue %s for %q", accountID, reason)
+		return ErrRefreshQueueFull
+	}
+
+	return nil
 }
 
 // ForceSeqnoRefresh refreshes the seqno for an account.
@@ -412,7 +441,7 @@ func (w *WalletState) MarkAsRead(ctx context.Context, accountID stellar1.Account
 	err := w.Remoter.MarkAsRead(ctx, accountID, mostRecentID)
 	if err == nil {
 		mctx := libkb.NewMetaContext(ctx, w.G())
-		if rerr := w.Refresh(mctx, accountID, "MarkAsRead"); rerr != nil {
+		if rerr := w.RefreshAsync(mctx, accountID, "MarkAsRead"); rerr != nil {
 			mctx.Debug("Refresh after MarkAsRead error: %s", err)
 		}
 	}
