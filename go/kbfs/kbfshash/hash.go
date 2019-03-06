@@ -56,7 +56,7 @@ const (
 	// SHA256HashV2 is the type of a SHA256 hash over V2-encrypted data.
 	SHA256HashV2 HashType = 2
 
-	// MaxHashType is the numerically-largest hash type.
+	// MaxHashType is the highest-supported hash type.
 	MaxHashType HashType = SHA256HashV2
 )
 
