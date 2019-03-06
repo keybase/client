@@ -97,6 +97,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
   onSearch: dispatchProps.onSearch,
   reason: stateProps.reason,
+  showOtherIdentities: stateProps.userIsYou, // TODO: gate on available providers
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
     ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()

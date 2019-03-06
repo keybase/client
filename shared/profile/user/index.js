@@ -31,6 +31,7 @@ export type Props = {|
   onSearch: () => void,
   onEditAvatar: ?() => void,
   reason: string,
+  showOtherIdentities: boolean,
   state: Types.DetailsState,
   suggestionKeys: ?Array<string>,
   userIsYou: boolean,
@@ -202,6 +203,7 @@ export type BioTeamProofsProps = {|
   assertionKeys: ?Array<string>,
   backgroundColorType: BackgroundColorType,
   onEditAvatar: ?() => void,
+  showOtherIdentities: boolean,
   suggestionKeys: ?Array<string>,
   username: string,
   reason: string,
@@ -252,7 +254,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           </Kb.Text>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
-          {flags.proofProviders && (
+          {flags.proofProviders && this.props.showOtherIdentities && (
             <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
               <Kb.Button
                 label="Add other identities"
@@ -338,6 +340,7 @@ class User extends React.Component<Props, State> {
         backgroundColorType={this.props.backgroundColorType}
         username={this.props.username}
         reason={this.props.reason}
+        showOtherIdentities={this.props.showOtherIdentities}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
       />
