@@ -368,6 +368,12 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
   ...(path ? [FsGen.createOpenPathInFilesTab({path})] : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
 ]
 
+const changedFocus = (state, action) =>
+  action.payload.appFocused &&
+  state.fs.sfmi.driverStatus.type === 'disabled' &&
+  state.fs.sfmi.driverStatus.kextPermissionError &&
+  FsGen.createDriverEnable({isRetry: true})
+
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.OpenLocalPathInSystemFileManagerPayload>(
     FsGen.openLocalPathInSystemFileManager,
@@ -399,6 +405,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openSecurityPreferences,
     openSecurityPreferences
   )
+  yield* Saga.chainAction<ConfigGen.ChangedFocusPayload>(ConfigGen.changedFocus, changedFocus)
 }
 
 export default platformSpecificSaga
