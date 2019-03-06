@@ -74,12 +74,12 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 
    Examples:
 
-   To only show messages from "alice,bob,charlie" conversation between users, and from
+   Only show messages from user conversation "alice,bob,charlie", and from
    "all_things_crypto" team channel #core:
 
       keybase chat api-listen --filter-channels '[{"name":"alice,bob,charlie"}, {"name":"all_things_crypto", "topic_name": "core", "members_type": "team"}]'
 
-   To only show messages from "alice,bob" conversation between users:
+   Only show messages from "alice,bob" user conversation:
 
       keybase chat api-listen --filter-channel '{"name":"alice,bob"}'
 `,
