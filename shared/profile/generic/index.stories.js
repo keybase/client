@@ -4,9 +4,13 @@ import * as Sb from '../../stories/storybook'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Success from './success'
+import enterUsername from './enter-username/index.stories'
 import {MastadonIcon, ProofSuccessIcon} from './shared'
 
 const load = () => {
+  // Sub-component stories
+  enterUsername()
+
   Sb.storiesOf('Profile/Generic Proofs', module).add('Success', () => {
     return (
       <Kb.Box style={styles.container}>
