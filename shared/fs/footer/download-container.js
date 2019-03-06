@@ -28,7 +28,7 @@ const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, {downloadKey}
     cancel: () => _canceler(downloadKey),
     completePortion: _download.state.completePortion,
     dismiss: () => _dismisser(downloadKey),
-    error: _download.state.error,
+    error: !!_download.state.error,
     filename: Types.getLocalPathName(_download.meta.localPath),
     isDone: _download.state.isDone,
     open: _download.state.isDone ? () => _opener(_download.meta.localPath) : undefined,

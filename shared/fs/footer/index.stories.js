@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import * as Sb from '../../stories/storybook'
-import {Box, Box2, Text} from '../../common-adapters'
+import {Box2, Text} from '../../common-adapters'
 import Downloads from './downloads'
 import Download from './download'
 import Upload from './upload'
@@ -61,8 +61,7 @@ const load = () =>
       </Box2>
     ))
     .add('Download Cards', () => (
-      <Box>
-        <Box style={{height: 8}} />
+      <Box2 direction="vertical" gap="small" gapStart={true}>
         <Download
           filename="fjweio"
           completePortion={0.42}
@@ -70,7 +69,6 @@ const load = () =>
           isDone={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweio afiojwe fweiojf oweijfweoi fjwoeifj ewoijf oew"
           completePortion={0.42}
@@ -78,7 +76,6 @@ const load = () =>
           isDone={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
           completePortion={0.42}
@@ -86,7 +83,6 @@ const load = () =>
           isDone={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
           completePortion={0.42}
@@ -94,7 +90,6 @@ const load = () =>
           isDone={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
         <Download
           filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
           completePortion={0.42}
@@ -102,8 +97,22 @@ const load = () =>
           isDone={false}
           {...downloadCommonActions}
         />
-        <Box style={{height: 8}} />
-      </Box>
+        <Download
+          filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
+          completePortion={1}
+          progressText="0 s"
+          isDone={true}
+          {...downloadCommonActions}
+        />
+        <Download
+          filename="fjweioafiojwefweiojfoweijfweoifjwoeifjewoijfoew"
+          error={true}
+          completePortion={0.42}
+          progressText="1234 hr"
+          isDone={false}
+          {...downloadCommonActions}
+        />
+      </Box2>
     ))
     .add('UploadBanner', () => (
       <Upload fileName={null} files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />
