@@ -1144,7 +1144,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.isHostMessageInfoMsgID(boxedMsg.GetMessageID()) {
 		return false
 	}
-	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", uid, convID)()
+	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: uid: %s convID: %s", uid, convID)()
 	lock := m.injectLockTab.AcquireOnName(ctx, m.G(), convID.String())
 	defer lock.Release(ctx)
 
