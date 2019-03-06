@@ -67,6 +67,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       dispatch(Tracker2Gen.createGetProofSuggestions())
     }
   },
+  onAddIdentity: () => {}, // TODO
   onBack: () => dispatch(ownProps.navigateUp()),
   onSearch: () => {
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
@@ -90,11 +91,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followThem: stateProps.followThem,
   followersCount: stateProps.followersCount,
   followingCount: stateProps.followingCount,
+  onAddIdentity: dispatchProps.onAddIdentity,
   onBack: dispatchProps.onBack,
   onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
   onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
   onSearch: dispatchProps.onSearch,
   reason: stateProps.reason,
+  showOtherIdentities: stateProps.userIsYou, // TODO: gate on available providers
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
     ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
