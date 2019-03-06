@@ -1159,13 +1159,15 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		return false
 	}
 	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: uid: %s convID: %s", uid, convID)()
-	lock := m.injectLockTab.AcquireOnName(ctx, m.G(), convID.String())
-	defer lock.Release(ctx)
 
 	// Update inbox for this guy
 	if err := m.G().InboxSource.UpdateInboxVersion(ctx, uid, inboxVers); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to update inbox version: %s", err)
 		// charge forward here, we will figure it out
+	}
+	if err := storage.New(m.G(), nil).SetMaxMsgID(ctx, convID, uid, boxedMsg.GetMessageID()); err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to write max msgid: %s", err)
+		// charge forward from this error
 	}
 	// Unbox the message
 	conv, err := utils.GetUnverifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceAll)
@@ -1177,10 +1179,6 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 	if err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox: %s", err)
 		return true
-	}
-	if err := storage.New(m.G(), nil).SetMaxMsgID(ctx, convID, uid, msg.GetMessageID()); err != nil {
-		m.Debug(ctx, "MaybeInjectFlipMessage: failed to write max msgid: %s", err)
-		// charge forward from this error
 	}
 	body := msg.Valid().MessageBody
 	if !body.IsType(chat1.MessageType_FLIP) {
@@ -1196,20 +1194,24 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.gameMsgIDs.Add(body.Flip().GameID.String(), msg.GetMessageID())
 		return true
 	}
-	// Check to see if we are going to participate from this inject
-	hmi, err := m.getHostMessageInfo(ctx, convID)
-	if err != nil {
-		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
-		return true
-	}
-	if m.shouldIgnoreInject(ctx, hmi.ConvID, convID, body.Flip().GameID) {
-		m.Debug(ctx, "MaybeInjectFlipMessage: ignored flip message")
-		return true
-	}
-	// Check to see if the game is unknown, and if so, then rebuild and see what we can do
-	if err := m.updateActiveGame(ctx, uid, convID, hmi.ConvID, msg, body.Flip().GameID); err != nil {
-		m.Debug(ctx, "MaybeInjectFlipMessage: failed to rebuild non-active game: %s", err)
-	}
+	go func(ctx context.Context) {
+		lock := m.injectLockTab.AcquireOnName(ctx, m.G(), convID.String())
+		defer lock.Release(ctx)
+		// Check to see if we are going to participate from this inject
+		hmi, err := m.getHostMessageInfo(ctx, convID)
+		if err != nil {
+			m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
+			return
+		}
+		if m.shouldIgnoreInject(ctx, hmi.ConvID, convID, body.Flip().GameID) {
+			m.Debug(ctx, "MaybeInjectFlipMessage: ignored flip message")
+			return
+		}
+		// Check to see if the game is unknown, and if so, then rebuild and see what we can do
+		if err := m.updateActiveGame(ctx, uid, convID, hmi.ConvID, msg, body.Flip().GameID); err != nil {
+			m.Debug(ctx, "MaybeInjectFlipMessage: failed to rebuild non-active game: %s", err)
+		}
+	}(BackgroundContext(ctx, m.G()))
 	return true
 }
 
