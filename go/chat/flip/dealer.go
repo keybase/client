@@ -67,6 +67,7 @@ type Result struct {
 
 type Game struct {
 	md                     GameMetadata
+	msgID                  int
 	clockSkew              time.Duration
 	start                  time.Time
 	isLeader               bool
@@ -429,7 +430,21 @@ func (g *Game) handleCommitmentComplete(ctx context.Context, sender UserDevice, 
 	return g.maybeReveal(ctx)
 }
 
-func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) error {
+func errToOk(err error) string {
+	if err == nil {
+		return "ok"
+	}
+	return "ERROR: " + err.Error()
+}
+
+func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) (err error) {
+
+	msgID := g.msgID
+	g.msgID++
+
+	g.clogf(ctx, "+ Game#handleMessage: %s@%d <- %+v", g.GameMetadata(), msgID, *msg)
+	defer func() { g.clogf(ctx, "- Game#handleMessage: %s@%d -> %s", g.GameMetadata(), msgID, errToOk(err)) }()
+
 	t, err := msg.Msg.Body.T()
 	if err != nil {
 		return err
