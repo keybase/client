@@ -84,9 +84,9 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 		return tmp, err
 	}
 	cacheArg := keybase1.IdentifyLiteArg{
-		Id : arg.Id,
-		Assertion : arg.Assertion,
-		IdentifyBehavior : arg.IdentifyBehavior,
+		Id:               arg.Id,
+		Assertion:        arg.Assertion,
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.identifyLite", false, cacheArg, retp, loader)
 	return ret, err
@@ -195,7 +195,6 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RIIT")
 	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
-	mctx.Debug("ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
 	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
 	if err != nil {
@@ -211,11 +210,11 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 	resp := &res
 	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, resp, func(mctx libkb.MetaContext) (interface{}, error) {
 		tmp, err := h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
-		if tmp.DisplayName != "" {
-			*resp = tmp
-		}
+		*resp = tmp
 		return tmp, err
 	})
+
+	mctx.Debug("res: {displayName: %s, teamID: %s, folderID: %s}", res.DisplayName, res.TeamID, res.FolderID)
 
 	return res, err
 }
