@@ -1826,6 +1826,21 @@ func (mr *MockKBFSOpsMockRecorder) GetFavorites(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockKBFSOps)(nil).GetFavorites), ctx)
 }
 
+// GetFavoritesAll mocks base method
+func (m *MockKBFSOps) GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavoritesAll", ctx)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavoritesAll indicates an expected call of GetFavoritesAll
+func (mr *MockKBFSOpsMockRecorder) GetFavoritesAll(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesAll", reflect.TypeOf((*MockKBFSOps)(nil).GetFavoritesAll), ctx)
+}
+
 // RefreshCachedFavorites mocks base method
 func (m *MockKBFSOps) RefreshCachedFavorites(ctx context.Context) {
 	m.ctrl.T.Helper()
@@ -1851,17 +1866,17 @@ func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(ctx interface{}) *gomock
 }
 
 // AddFavorite mocks base method
-func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite) error {
+func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav)
+	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddFavorite indicates an expected call of AddFavorite
-func (mr *MockKBFSOpsMockRecorder) AddFavorite(ctx, fav interface{}) *gomock.Call {
+func (mr *MockKBFSOpsMockRecorder) AddFavorite(ctx, fav, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), ctx, fav)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), ctx, fav, data)
 }
 
 // DeleteFavorite mocks base method
@@ -1876,6 +1891,18 @@ func (m *MockKBFSOps) DeleteFavorite(ctx context.Context, fav Favorite) error {
 func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(ctx, fav interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), ctx, fav)
+}
+
+// SetFavoritesHomeTLFInfo mocks base method
+func (m *MockKBFSOps) SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetFavoritesHomeTLFInfo", ctx, info)
+}
+
+// SetFavoritesHomeTLFInfo indicates an expected call of SetFavoritesHomeTLFInfo
+func (mr *MockKBFSOpsMockRecorder) SetFavoritesHomeTLFInfo(ctx, info interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetFavoritesHomeTLFInfo", reflect.TypeOf((*MockKBFSOps)(nil).SetFavoritesHomeTLFInfo), ctx, info)
 }
 
 // RefreshEditHistory mocks base method
@@ -2826,10 +2853,10 @@ func (mr *MockKeybaseServiceMockRecorder) FavoriteDelete(ctx, folder interface{}
 }
 
 // FavoriteList mocks base method
-func (m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
+func (m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", ctx, sessionID)
-	ret0, _ := ret[0].([]keybase1.Folder)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3731,10 +3758,10 @@ func (mr *MockKBPKIMockRecorder) FavoriteDelete(ctx, folder interface{}) *gomock
 }
 
 // FavoriteList mocks base method
-func (m *MockKBPKI) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
+func (m *MockKBPKI) FavoriteList(ctx context.Context) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", ctx)
-	ret0, _ := ret[0].([]keybase1.Folder)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -63,8 +63,8 @@ func (fl *FolderList) reportErr(ctx context.Context,
 func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (err error) {
 	cName := h.GetCanonicalName()
 	fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
-	fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite())
-	return nil
+	return fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite(),
+		h.FavoriteData())
 }
 
 // open tries to open the correct thing. Following aliases and deferring to

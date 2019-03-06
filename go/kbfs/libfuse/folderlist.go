@@ -120,7 +120,7 @@ func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (
 	// favorites.
 	if !fl.isRecentlyRemoved(cName) {
 		fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
-		fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite())
+		fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite(), h.FavoriteData())
 	} else {
 		fl.fs.log.CDebugf(ctx, "recently removed; will skip adding %s to favorites and return ENOENT", cName)
 		return fuse.ENOENT

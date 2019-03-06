@@ -73,6 +73,18 @@ func (s *SimpleFSHandler) SimpleFSListRecursive(ctx context.Context, arg keybase
 	return cli.SimpleFSListRecursive(ctx, arg)
 }
 
+// SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSListFavorites(ctx context.Context) (
+	keybase1.FavoritesResult, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+	return cli.SimpleFSListFavorites(ctx)
+}
+
 // SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at
 // path to a given depth.
 func (s *SimpleFSHandler) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {

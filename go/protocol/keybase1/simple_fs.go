@@ -1340,6 +1340,9 @@ type SimpleFSFolderEditHistoryArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSListFavoritesArg struct {
+}
+
 type SimpleFSGetUserQuotaUsageArg struct {
 }
 
@@ -1454,6 +1457,9 @@ type SimpleFSInterface interface {
 	// The writers are in descending order by the modification time (as
 	// recorded by the server) of their most recent edit.
 	SimpleFSFolderEditHistory(context.Context, Path) (FSFolderEditHistory, error)
+	// simpleFSListFavorites gets the current favorites, ignored folders, and new
+	// folders from the KBFS cache.
+	SimpleFSListFavorites(context.Context) (FavoritesResult, error)
 	// simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
 	// user.  Any usage includes local journal usage as well.
 	SimpleFSGetUserQuotaUsage(context.Context) (SimpleFSQuotaUsage, error)
@@ -1868,6 +1874,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSListFavorites": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSListFavoritesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSListFavorites(ctx)
+					return
+				},
+			},
 			"simpleFSGetUserQuotaUsage": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSGetUserQuotaUsageArg
@@ -2163,6 +2179,13 @@ func (c SimpleFSClient) SimpleFSUserEditHistory(ctx context.Context) (res []FSFo
 func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path) (res FSFolderEditHistory, err error) {
 	__arg := SimpleFSFolderEditHistoryArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderEditHistory", []interface{}{__arg}, &res)
+	return
+}
+
+// simpleFSListFavorites gets the current favorites, ignored folders, and new
+// folders from the KBFS cache.
+func (c SimpleFSClient) SimpleFSListFavorites(ctx context.Context) (res FavoritesResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListFavorites", []interface{}{SimpleFSListFavoritesArg{}}, &res)
 	return
 }
 

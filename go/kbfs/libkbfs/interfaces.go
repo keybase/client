@@ -327,8 +327,13 @@ type Node interface {
 // action.
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
-	// top-level folders.  This is a remote-access operation.
+	// top-level folders.  This is a remote-access operation when the cache
+	// is empty or expired.
 	GetFavorites(ctx context.Context) ([]Favorite, error)
+	// GetFavoritesAll returns the logged-in user's lists of favorite, ignored,
+	// and new top-level folders.  This is a remote-access operation when the
+	// cache is empty or expired.
+	GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error)
 	// RefreshCachedFavorites tells the instances to forget any cached
 	// favorites list and fetch a new list from the server.  The
 	// effects are asychronous; if there's an error refreshing the
@@ -339,11 +344,14 @@ type KBFSOps interface {
 	ClearCachedFavorites(ctx context.Context)
 	// AddFavorite adds the favorite to both the server and
 	// the local cache.
-	AddFavorite(ctx context.Context, fav Favorite) error
+	AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
 	DeleteFavorite(ctx context.Context, fav Favorite) error
+	// SetFavoritesHomeTLFInfo sets the home TLF TeamIDs to initialize the
+	// favorites cache on login.
+	SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo)
 	// RefreshEditHistory asks the FBO for the given favorite to reload its
 	// edit history.
 	RefreshEditHistory(fav Favorite)
@@ -696,7 +704,8 @@ type KeybaseService interface {
 	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
 
 	// FavoriteList returns the current list of favorites.
-	FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error)
+	FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult,
+		error)
 
 	// EncryptFavorites encrypts cached favorites to store on disk.
 	EncryptFavorites(ctx context.Context, dataToEncrypt []byte) ([]byte, error)
@@ -895,7 +904,7 @@ type KBPKI interface {
 
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
-	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
+	FavoriteList(ctx context.Context) (keybase1.FavoritesResult, error)
 
 	// CreateTeamTLF associates the given TLF ID with the team ID in
 	// the team's sigchain.  If the team already has a TLF ID
