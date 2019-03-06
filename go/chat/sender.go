@@ -413,8 +413,8 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 		// bookkeep the reaction used so we can keep track of the user's
 		// popular reactions in the UI
 		go func() {
-			if err := s.G().ReactjiStore.Put(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
-				s.Debug(ctx, "unable to put in ReactjiStore: %v", err)
+			if err := s.G().ReacjiStore.Put(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
+				s.Debug(ctx, "unable to put in ReacjiStore: %v", err)
 			}
 		}()
 	}

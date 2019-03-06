@@ -2587,12 +2587,12 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	return err
 }
 
-func (h *Server) TopReactjis(ctx context.Context) (res []string, err error) {
+func (h *Server) TopReacjis(ctx context.Context) (res []string, err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "TopReactjis")()
+	defer h.Trace(ctx, func() error { return err }, "TopReacjis")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return nil, err
 	}
-	return h.G().ReactjiStore.TopReactjis(ctx, uid), nil
+	return h.G().ReacjiStore.TopReacjis(ctx, uid), nil
 }

@@ -140,16 +140,6 @@ func (n *chatListener) consumeEphemeralPurge(t *testing.T) chat1.EphemeralPurgeN
 	}
 }
 
-func (n *chatListener) consumeThreadsStale(t *testing.T) []chat1.ConversationStaleUpdate {
-	select {
-	case x := <-n.threadsStale:
-		return x
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get threadsStale notification")
-		return nil
-	}
-}
-
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
 	return newConvTripleWithMembersType(ctx, t, tc, username, chat1.ConversationMembersType_IMPTEAMNATIVE)
 }
@@ -287,7 +277,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
-	g.ReactjiStore = storage.NewReactjiStore(g)
+	g.ReacjiStore = storage.NewReacjiStore(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}

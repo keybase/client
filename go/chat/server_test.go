@@ -369,7 +369,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
-	g.ReactjiStore = storage.NewReactjiStore(g)
+	g.ReacjiStore = storage.NewReacjiStore(g)
 
 	h.setTestRemoteClient(ri)
 
@@ -6435,9 +6435,9 @@ func TestChatBulkAddToConv(t *testing.T) {
 	})
 }
 
-func TestReactjiStore(t *testing.T) {
+func TestReacjiStore(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "ReactjiStore", 1)
+		ctc := makeChatTestContext(t, "ReacjiStore", 1)
 		defer ctc.cleanup()
 
 		user := ctc.users()[0]
@@ -6449,29 +6449,29 @@ func TestReactjiStore(t *testing.T) {
 		ctc.as(t, user).h.G().NotifyRouter.AddListener(listener)
 		tc.ChatG.Syncer.(*Syncer).isConnected = true
 		putCh := make(chan struct{})
-		reactjiStore := tc.ChatG.ReactjiStore.(*storage.ReactjiStore)
-		reactjiStore.SetPutCh(putCh)
+		reacjiStore := tc.ChatG.ReacjiStore.(*storage.ReacjiStore)
+		reacjiStore.SetPutCh(putCh)
 
 		consumePut := func() {
 			select {
 			case <-putCh:
 			case <-time.After(20 * time.Second):
-				require.Fail(t, "did not write to reactji store")
+				require.Fail(t, "did not write to reacji store")
 			}
 		}
 
-		assertTopReactjis := func(expected []string, expectedMap map[string]int) {
-			top5, err := ctc.as(t, user).chatLocalHandler().TopReactjis(ctx)
+		assertTopReacjis := func(expected []string, expectedMap map[string]int) {
+			top5, err := ctc.as(t, user).chatLocalHandler().TopReacjis(ctx)
 			require.NoError(t, err)
 			require.Len(t, top5, 5)
 			require.Equal(t, expected, top5)
-			require.Equal(t, expectedMap, reactjiStore.Get(ctx, uid))
+			require.Equal(t, expectedMap, reacjiStore.Get(ctx, uid))
 		}
 
 		expectedMap := make(map[string]int)
 		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
 		// if the user has no history we return the default list
-		assertTopReactjis(storage.DefaultEmoji, expectedMap)
+		assertTopReacjis(storage.DefaultEmoji, expectedMap)
 
 		// post a bunch of reactions, we should end up with these reactions
 		// replacing the defaults sorted alphabetically (since they tie on
@@ -6488,7 +6488,7 @@ func TestReactjiStore(t *testing.T) {
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 			consumePut()
 			expected = append([]string{reaction}, expected...)[:len(storage.DefaultEmoji)]
-			assertTopReactjis(expected, expectedMap)
+			assertTopReacjis(expected, expectedMap)
 		}
 		// bump "a" to the most frequent
 		msg = chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
@@ -6498,6 +6498,6 @@ func TestReactjiStore(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 		consumePut()
 		expectedMap["a"]++
-		assertTopReactjis(expected, expectedMap)
+		assertTopReacjis(expected, expectedMap)
 	})
 }
