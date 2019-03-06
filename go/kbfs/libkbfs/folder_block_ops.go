@@ -3482,12 +3482,15 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 		fbo.updatePointer(kmd, child.BlockPointer,
 			entry.BlockPointer, true)
 		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
-		newPath := fbo.nodeCache.PathFromNode(node)
+		if node == nil {
+			fbo.log.CDebugf(
+				ctx, "Skipping missing node for %s", entry.BlockPointer)
+			continue
+		}
 		if entry.Type == Dir {
-			if node != nil {
-				changes, affectedNodeIDs = children.addDirChange(
-					node, newPath, changes, affectedNodeIDs)
-			}
+			newPath := fbo.nodeCache.PathFromNode(node)
+			changes, affectedNodeIDs = children.addDirChange(
+				node, newPath, changes, affectedNodeIDs)
 
 			childChanges, childAffectedNodeIDs, err :=
 				fbo.fastForwardDirAndChildrenLocked(
@@ -3497,7 +3500,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 			}
 			changes = append(changes, childChanges...)
 			affectedNodeIDs = append(affectedNodeIDs, childAffectedNodeIDs...)
-		} else if node != nil {
+		} else {
 			// File -- invalidate the entire file contents.
 			changes, affectedNodeIDs = children.addFileChange(
 				node, changes, affectedNodeIDs)
