@@ -7,6 +7,13 @@ import (
 	"errors"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
+)
+
+var (
+	modcryptsp   = windows.NewLazySystemDLL("cryptsp.dll")
+	modcryptbase = windows.NewLazySystemDLL("cryptbase.dll")
 )
 
 const loadLibrarySearchSystem32 = 0x800
@@ -31,11 +38,15 @@ func SaferDLLLoading() error {
 		r1, _, e1 = syscall.Syscall(procSetDefaultDllDirectories.Addr(), 1,
 			loadLibrarySearchSystem32, 0, 0)
 		if r1 == 0 {
-			return e1
+			err = e1
 		}
 	} else {
-		return errors.New("SetDefaultDllDirectories not found - please install KB2533623 for safer DLL loading")
+		err = errors.New("SetDefaultDllDirectories not found - please install KB2533623 for safer DLL loading")
 	}
 
-	return nil
+	// Attemt to load these from the system directory to thwart sideloading
+	modcryptbase.Load()
+	modcryptsp.Load()
+
+	return err
 }
