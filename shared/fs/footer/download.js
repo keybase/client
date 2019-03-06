@@ -4,12 +4,13 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
-export type DownloadProps = {
+export type Props = {
   error?: ?boolean,
   filename: string,
   completePortion: number,
   progressText: string,
   isDone: boolean,
+  isFirst: boolean,
   open?: () => void,
   dismiss: () => void,
   cancel: () => void,
@@ -33,7 +34,7 @@ const Progress = props => (
   </Kb.Box2>
 )
 
-const Download = (props: DownloadProps) => (
+const Download = (props: Props) => (
   <Kb.Box2
     direction="horizontal"
     centerChildren={true}
@@ -51,7 +52,7 @@ const Download = (props: DownloadProps) => (
     <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
       <Kb.Text
         type="BodySmallSemibold"
-        onClick={props.open}
+        onClick={isMobile ? undefined : props.open}
         style={styles.filename}
         lineClamp={isMobile ? 1 : undefined}
       >

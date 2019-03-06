@@ -17,7 +17,12 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = ({_downloads}, {openDownloadFolder}) => {
   const downloadKeys = Array.from(_downloads.filter(download => download.meta.intent === 'none'))
-    .sort(([_a, a], [_b, b]) => b.state.startedAt - a.state.startedAt) // newer first
+    .sort(([_a, a], [_b, b]) => {
+      if (a.state.isDone !== b.state.isDone) {
+        return a.state.isDone ? -1 : 1
+      } // completed first
+      return b.state.startedAt - a.state.startedAt // newer first
+    })
     .map(([key, download]) => key)
   return ({
     downloadKeys,

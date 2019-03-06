@@ -7,12 +7,16 @@ import Download from './download'
 import Upload from './upload'
 
 export const footerProvider = {
-  ConnectedDownload: ({downloadKey}: {downloadKey: string}) => ({
+  ConnectedDownload: ({downloadKey, isFirst}: {downloadKey: string, isFirst: boolean}) => ({
     cancel: Sb.action('cancel'),
-    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
+    completePortion:
+      downloadKey === 'completed'
+        ? 1
+        : downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
     dismiss: Sb.action('dismiss'),
     filename: downloadKey,
-    isDone: false,
+    isDone: downloadKey === 'completed',
+    isFirst,
     open: Sb.action('open'),
     progressText: '42 s',
   }),
@@ -58,6 +62,12 @@ const load = () =>
           thereAreMore={true}
           openDownloadFolder={Sb.action('openDownloadFolder')}
         />
+        <Text type="Header">4+ items with completed</Text>
+        <Downloads
+          downloadKeys={['completed', 'file 1', 'blah 2', 'yo 3', 'bla 4', 'blah 5']}
+          thereAreMore={true}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
+        />
       </Box2>
     ))
     .add('Download Cards', () => (
@@ -67,6 +77,7 @@ const load = () =>
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
         <Download
@@ -74,6 +85,7 @@ const load = () =>
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
         <Download
@@ -81,6 +93,7 @@ const load = () =>
           completePortion={0.42}
           progressText="4 s"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
         <Download
@@ -88,6 +101,7 @@ const load = () =>
           completePortion={0.42}
           progressText="59 min"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
         <Download
@@ -95,6 +109,7 @@ const load = () =>
           completePortion={0.42}
           progressText="1234 hr"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
         <Download
@@ -102,6 +117,7 @@ const load = () =>
           completePortion={1}
           progressText="0 s"
           isDone={true}
+          isFirst={false}
           {...downloadCommonActions}
         />
         <Download
@@ -110,6 +126,7 @@ const load = () =>
           completePortion={0.42}
           progressText="1234 hr"
           isDone={false}
+          isFirst={false}
           {...downloadCommonActions}
         />
       </Box2>

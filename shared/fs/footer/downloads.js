@@ -22,8 +22,8 @@ const Mobile = (props: DownloadsProps) =>
           gapStart={true}
           gapEnd={true}
         >
-          {props.downloadKeys.map(key => (
-            <Download downloadKey={key} key={key} />
+          {props.downloadKeys.map((key, index) => (
+            <Download downloadKey={key} key={key} isFirst={index === 0} />
           ))}
         </Kb.Box2>
       </Kb.ScrollView>
@@ -43,8 +43,8 @@ const Desktop = (props: DownloadsProps) =>
         gapEnd={true}
         centerChildren={true}
       >
-        {props.downloadKeys.slice(0, 3).map(key => (
-          <Download downloadKey={key} key={key} />
+        {props.downloadKeys.slice(0, 3).map((key, index) => (
+          <Download downloadKey={key} key={key} isFirst={index === 0} />
         ))}
         {props.downloadKeys.length > 3 && (
           <Kb.WithTooltip text="Open Downloads folder">
