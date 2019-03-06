@@ -35,7 +35,9 @@ class Checkbox extends Component<Props, State> {
   }
 
   shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
+    // Always update if there's a labelComponent, since we can't diff them.
     return (
+      !!this.props.labelComponent ||
       this.props.disabled !== nextProps.disabled ||
       this.props.checked !== nextProps.checked ||
       this.props.label !== nextProps.label
