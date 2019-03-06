@@ -83,6 +83,12 @@ func (o InboxVers) DeepCopy() InboxVers {
 	return o
 }
 
+type LocalConversationVers uint64
+
+func (o LocalConversationVers) DeepCopy() LocalConversationVers {
+	return o
+}
+
 type ConversationVers uint64
 
 func (o ConversationVers) DeepCopy() ConversationVers {
@@ -794,6 +800,7 @@ type ConversationMetadata struct {
 	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
 	Existence      ConversationExistence     `codec:"existence" json:"existence"`
 	Version        ConversationVers          `codec:"version" json:"version"`
+	LocalVersion   LocalConversationVers     `codec:"localVersion" json:"localVersion"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -812,6 +819,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		TeamType:       o.TeamType.DeepCopy(),
 		Existence:      o.Existence.DeepCopy(),
 		Version:        o.Version.DeepCopy(),
+		LocalVersion:   o.LocalVersion.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
