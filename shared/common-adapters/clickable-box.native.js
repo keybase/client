@@ -3,7 +3,7 @@ import * as React from 'react'
 import type {Props} from './clickable-box'
 import Box from './box'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import {collapseStyles, globalColors} from '../styles'
+import {collapseStyles} from '../styles'
 
 class ClickableBox extends React.Component<Props> {
   render() {

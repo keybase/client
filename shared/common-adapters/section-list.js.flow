@@ -14,11 +14,12 @@ export type Section<T> = {
     item: T,
     index: number,
     section: Section<T>,
-    separators: {
-      highlight: () => void,
-      unhighlight: () => void,
-      updateProps: (select: 'leading' | 'trailing', newProps: Object) => void,
-    },
+    // We don't use this so don't emulate this on desktop
+    // separators: {
+    // highlight: () => void,
+    // unhighlight: () => void,
+    // updateProps: (select: 'leading' | 'trailing', newProps: Object) => void,
+    // },
   }) => ?React.Element<any>,
   ItemSeparatorComponent?: ?React.ComponentType<any>,
   keyExtractor?: (item: T) => string,

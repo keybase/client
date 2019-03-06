@@ -19,7 +19,7 @@ type State = {
   currentSectionFlatIndex: number,
 }
 class SectionList<T> extends React.Component<Props<T>, State> {
-  _flat: Array<Section<T>> = []
+  _flat = []
   state = {currentSectionFlatIndex: 0}
   _listRef = React.createRef()
   _mounted = true
