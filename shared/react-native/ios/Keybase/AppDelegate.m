@@ -84,6 +84,7 @@ const BOOL isDebug = NO;
   //
 //   jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+  printf("AAA init js\n");
 #ifdef SYSTRACING
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
                                             launchOptions:launchOptions];
@@ -96,7 +97,8 @@ const BOOL isDebug = NO;
                                                    launchOptions:launchOptions];
   rootView.backgroundColor = [UIColor whiteColor];
 #endif
-
+  printf("AAA DONE js\n");
+  
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;

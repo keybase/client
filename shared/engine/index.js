@@ -37,7 +37,7 @@ class Engine {
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
-  _hasConnected: boolean = isMobile // mobile is always connected
+  _hasConnected: boolean = false // mobile is always connected
   // App tells us when the sagas are done loading so we can start emitting events
   _sagasAreReady: boolean = false
   // So we can dispatch actions

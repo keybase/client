@@ -24,24 +24,33 @@ const RNEmitter: {
 } = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
+  // _connectCB = null
+  _connected = false
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
     // We're connected locally so we never get disconnected
-    this.needsConnect = false
+    this.needsConnect = true
   }
 
-  // We're always connected, so call the callback
   connect(cb: () => void) {
-    cb()
+    // return super.connect(cb)
+    // stash it
+    // this._connectCB = cb
   }
+
+  goConnected() {
+    super._flush_queue()
+  }
+
   is_connected() {
-    return true
+    return this._connected
   } // eslint-disable-line camelcase
 
   // Override and disable some built in stuff in TransportShared
   reset() {}
   close() {}
+
   get_generation() {
     return 1
   } // eslint-disable-line camelcase
@@ -70,11 +79,8 @@ function createClient(
   connectCallback: connectDisconnectCB,
   disconnectCallback: connectDisconnectCB
 ) {
-  const client = sharedCreateClient(
-    new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
-  )
-
-  nativeBridge.start()
+  const nt = new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
+  const client = sharedCreateClient(nt)
 
   let packetizeCount = 0
   // This is how the RN side writes back to us
@@ -91,12 +97,19 @@ function createClient(
     return ret
   })
 
+  console.log('aaa adding evenet listener')
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
+    nt._connected = true
+    nt.goConnected()
     switch (payload) {
       case nativeBridge.metaEventEngineReset:
         connectCallback()
     }
   })
+
+  setTimeout(() => {
+    nativeBridge.start()
+  }, 1)
 
   return client
 }

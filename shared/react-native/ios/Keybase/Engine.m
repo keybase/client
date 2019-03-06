@@ -15,6 +15,8 @@
 
 // singleton so the exported react component can get it
 static Engine * sharedEngine = nil;
+static Boolean goLoaded = NO;
+static Boolean jsLoaded = NO;
 
 @interface Engine ()
 
@@ -36,6 +38,7 @@ static Engine * sharedEngine = nil;
 static NSString *const eventName = @"objc-engine-event";
 static NSString *const metaEventName = @"objc-meta-engine-event";
 static NSString *const metaEventEngineReset = @"engine-reset";
+static NSString *const goConnectEventName = @"go-engine-event";
 
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
@@ -50,12 +53,33 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 
 // Reload Go if we reload the JS
 - (void)onRNReload {
+  printf("AAA onRNReload\n");
+  jsLoaded = NO;
   self.keybaseEngine = nil;
   [self reset];
 }
 
+- (void) checkJSAndGoLoaded {
+  printf("AAA check js and GO %d %d\n", (int)goLoaded, (int)jsLoaded);
+  if (goLoaded && jsLoaded) {
+    [self.keybaseEngine sendEventWithName:metaEventName body:metaEventEngineReset];
+    [self startReadLoop];
+  }
+}
+
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
-  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    printf("AAA before GO init\n");
+    [NSThread sleepForTimeInterval:5.0f];
+    KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+      
+      goLoaded = YES;
+      [self checkJSAndGoLoaded];
+    });
+    printf("AAA after GO init\n");
+  });
 }
 
 - (void)setupQueues {
@@ -88,8 +112,10 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 }
 
 - (void)start:(KeybaseEngine*)emitter {
+  printf("AAA start called from js\n");
   self.keybaseEngine = emitter;
-  [self startReadLoop];
+  jsLoaded = YES;
+  [self checkJSAndGoLoaded];
 }
 
 - (void)runWithData:(NSString *)data {
@@ -103,9 +129,16 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 }
 
 - (void)reset {
+  
   NSError *error = nil;
+  if (!goLoaded) {
+    return;
+  }
+  printf("AAA reset called\n");
   KeybaseReset(&error);
-  [self.keybaseEngine sendEventWithName:metaEventName body:metaEventEngineReset];
+  if (jsLoaded) {
+    [self.keybaseEngine sendEventWithName:metaEventName body:metaEventEngineReset];
+  }
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
