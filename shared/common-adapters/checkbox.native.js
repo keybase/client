@@ -34,14 +34,6 @@ class Checkbox extends Component<Props, State> {
     }
   }
 
-  shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
-    return (
-      this.props.disabled !== nextProps.disabled ||
-      this.props.checked !== nextProps.checked ||
-      this.props.label !== nextProps.label
-    )
-  }
-
   render() {
     const containerStyle = {
       opacity: this.props.disabled ? 0.4 : 1,
