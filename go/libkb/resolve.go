@@ -329,12 +329,11 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 		fields += ",public_keys,pictures"
 	}
 	ha.Add("fields", S{fields})
-	ares, res.err = m.G().API.Get(APIArg{
+	ares, res.err = m.G().API.Get(m, APIArg{
 		Endpoint:        "user/lookup",
 		SessionType:     APISessionTypeNONE,
 		Args:            ha,
 		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
-		MetaContext:     m,
 		RetryCount:      3,
 		InitialTimeout:  4 * time.Second,
 		RetryMultiplier: 1.5,

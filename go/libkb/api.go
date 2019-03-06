@@ -695,7 +695,8 @@ func appStatusToTypedError(ast *AppStatus) error {
 	}
 }
 
-func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
+func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
+	arg.MetaContext = m
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {

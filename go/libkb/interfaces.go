@@ -283,7 +283,7 @@ type ExternalAPIRes struct {
 }
 
 type API interface {
-	Get(APIArg) (*APIRes, error)
+	Get(MetaContext, APIArg) (*APIRes, error)
 	GetDecode(APIArg, APIResponseWrapper) error
 	GetResp(APIArg) (*http.Response, func(), error)
 	Post(APIArg) (*APIRes, error)

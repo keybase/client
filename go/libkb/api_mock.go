@@ -12,7 +12,7 @@ type NullMockAPI struct{}
 
 var _ API = (*NullMockAPI)(nil)
 
-func (n *NullMockAPI) Get(APIArg) (*APIRes, error)                        { return nil, nil }
+func (n *NullMockAPI) Get(MetaContext, APIArg) (*APIRes, error)           { return nil, nil }
 func (n *NullMockAPI) GetResp(APIArg) (*http.Response, func(), error)     { return nil, noopFinisher, nil }
 func (n *NullMockAPI) GetDecode(APIArg, APIResponseWrapper) error         { return nil }
 func (n *NullMockAPI) Post(APIArg) (*APIRes, error)                       { return nil, nil }

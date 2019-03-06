@@ -89,14 +89,14 @@ func (r *retryMerkleAuditMock) GetDecode(arg libkb.APIArg, w libkb.APIResponseWr
 	return r.api.GetDecode(arg, w)
 }
 
-func (r *retryMerkleAuditMock) Get(arg libkb.APIArg) (*libkb.APIRes, error) {
+func (r *retryMerkleAuditMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
 	r.args = append(r.args, arg)
 	if r.getError != nil {
 		r.resps = append(r.resps, nil)
 		return nil, r.getError
 	}
 
-	res, err := r.api.Get(arg)
+	res, err := r.api.Get(mctx, arg)
 	r.resps = append(r.resps, res)
 	if err != nil {
 		return nil, err

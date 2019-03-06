@@ -176,7 +176,8 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 }
 
 func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
-	emails, err := libkb.LoadUserEmails(h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	emails, err := libkb.LoadUserEmails(mctx)
 	if err != nil {
 		return
 	}

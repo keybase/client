@@ -390,10 +390,11 @@ func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams
 }
 
 func (u *userPlusDevice) readInviteEmails(email string) []string {
+	mctx := libkb.NewMetaContextForTest(*u.tc)
 	arg := libkb.NewAPIArg("test/team/get_tokens")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("email", libkb.S{Val: email})
-	res, err := u.tc.G.API.Get(arg)
+	res, err := u.tc.G.API.Get(mctx, arg)
 	if err != nil {
 		u.tc.T.Fatal(err)
 	}

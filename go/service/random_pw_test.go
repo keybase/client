@@ -13,14 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func sessCheck(t *testing.T, g *libkb.GlobalContext) (err error) {
-	arg := libkb.NewRetryAPIArg("sesscheck")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
-	_, err = g.API.Get(arg)
-	t.Logf("sesscheck returned: %q", err)
-	return err
-}
-
 func setPassphraseInTest(tc libkb.TestContext) error {
 	newPassphrase := "okokokok"
 	arg := &keybase1.PassphraseChangeArg{

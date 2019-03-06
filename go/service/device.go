@@ -127,8 +127,9 @@ func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) erro
 	return err
 }
 
-func (h *DeviceHandler) CheckDeviceNameForUser(_ context.Context, arg keybase1.CheckDeviceNameForUserArg) error {
-	_, err := h.G().API.Get(libkb.APIArg{
+func (h *DeviceHandler) CheckDeviceNameForUser(ctx context.Context, arg keybase1.CheckDeviceNameForUserArg) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	_, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:    "device/check_name",
 		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{
