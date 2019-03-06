@@ -16,7 +16,7 @@ export type Props = {
   type: IconType,
   hint?: string,
   onClick?: ?(event: SyntheticEvent<Element>) => void,
-  onPress?: void,
+  onPress?: ?() => void,
   onMouseEnter?: ?() => void,
   onMouseLeave?: ?() => void,
   style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,

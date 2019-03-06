@@ -123,7 +123,7 @@ class Icon extends React.PureComponent<Props> {
       }
 
       icon = (
-        <Text style={iconStyle} type={props.type} fontSize={fontSize}>
+        <Text style={iconStyle} type={props.type} fontSize={fontSize} onPress={props.onPress}>
           {code}
         </Text>
       )

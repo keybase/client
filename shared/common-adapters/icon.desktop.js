@@ -65,14 +65,14 @@ class Icon extends Component<Props, void> {
     if (fontSizeHint && fontSizeHint.fontSize === 16) {
       fontSizeHint = null
     }
-    const onClick = this.props.onClick
+    const onClick = this.props.onClick || this.props.onPress
       ? e => {
           e.stopPropagation()
-          this.props.onClick && this.props.onClick(e)
+          this.props.onClick ? this.props.onClick(e) : this.props.onPress && this.props.onPress()
         }
       : null
 
-    const hasContainer = (this.props.onClick && this.props.style) || isFontIcon
+    const hasContainer = (onClick && this.props.style) || isFontIcon
 
     let iconElement
 
@@ -111,7 +111,7 @@ class Icon extends Component<Props, void> {
           hoverColor: 'inherit',
         }
       } else {
-        const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
+        const hoverColorName = onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
         if (!colorName) {
