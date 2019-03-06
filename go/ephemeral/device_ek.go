@@ -164,15 +164,15 @@ type deviceEKStatementResponse struct {
 }
 
 func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata map[keybase1.DeviceID]keybase1.DeviceEkMetadata, err error) {
-	defer g.CTraceTimed(ctx, "allDeviceEKMetadataMaybeStale", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("allDeviceEKMetadataMaybeStale", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/device_eks",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args:        libkb.HTTPArgs{},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
 	if err != nil {
 		return nil, err
 	}

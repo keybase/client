@@ -114,18 +114,18 @@ type GetLockdownResponse struct {
 }
 
 func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (ret keybase1.GetLockdownResponse, err error) {
-	defer h.G().CTraceTimed(ctx, "GetLockdownMode", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("GetLockdownMode", func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/lockdown",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var response GetLockdownResponse
-	err = h.G().API.GetDecode(apiArg, &response)
+	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
 	if err != nil {
 		return ret, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, h.G())
 	upak, _, err := mctx.G().GetUPAKLoader().Load(
 		libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional().WithUID(mctx.G().ActiveDevice.UID()))
 	if err != nil {

@@ -252,17 +252,17 @@ type teamEKStatementResponse struct {
 // in the wild have EK support, we will make that case an error.
 func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (
 	statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
-	defer g.CTraceTimed(ctx, "fetchTeamEKStatement", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("fetchTeamEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/team_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"team_id": libkb.S{Val: string(teamID)},
 		},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -375,15 +375,15 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext,
 	teamID keybase1.TeamID) (statementMap map[keybase1.UID]*keybase1.UserEkStatement, err error) {
 	defer g.CTraceTimed(ctx, "fetchTeamMemberStatements", func() error { return err })()
 
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/member_eks",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"team_id": libkb.S{Val: string(teamID)},
 		},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
 	if err != nil {
 		return nil, err
 	}

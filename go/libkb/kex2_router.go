@@ -87,12 +87,11 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 			"low":      I{Val: int(low)},
 			"poll":     I{Val: int(poll / time.Millisecond)},
 		},
-		MetaContext: mctx.BackgroundWithLogTags(),
 	}
 	kexAPITimeout(&arg, 2*poll)
 	var j kexResp
 
-	if err = mctx.G().API.GetDecode(arg, &j); err != nil {
+	if err = mctx.G().API.GetDecode(mctx.BackgroundWithLogTags(), arg, &j); err != nil {
 		return nil, err
 	}
 	if j.Status.Code != SCOk {

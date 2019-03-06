@@ -54,7 +54,7 @@ func GetPhoneNumbers(mctx libkb.MetaContext) ([]keybase1.UserPhoneNumber, error)
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var resp phoneNumbersResponse
-	err := mctx.G().API.GetDecode(arg, &resp)
+	err := mctx.G().API.GetDecode(mctx, arg, &resp)
 	if err != nil {
 		return nil, err
 	}

@@ -43,10 +43,10 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 	if includeImplicitTeams {
 		a.Args["include_implicit_teams"] = libkb.B{Val: true}
 	}
-	a.NetContext = ctx
+	mctx := libkb.NewMetaContext(ctx, g)
 	a.SessionType = libkb.APISessionTypeREQUIRED
 	var list statusList
-	if err := g.API.GetDecode(a, &list); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, a, &list); err != nil {
 		return nil, err
 	}
 	return list.Teams, nil

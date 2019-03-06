@@ -17,16 +17,16 @@ type IdentifyUIServer struct {
 
 func NewIdentifyUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{
-		Contextified : libkb.NewContextified(g),
-		ui : g.UI.GetIdentifyUI(),
+		Contextified: libkb.NewContextified(g),
+		ui:           g.UI.GetIdentifyUI(),
 	})
 }
 
 func NewIdentifyTrackUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	ui := g.UI.GetIdentifyTrackUI()
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{
-		Contextified : libkb.NewContextified(g),
-		ui : ui,
+		Contextified: libkb.NewContextified(g),
+		ui:           ui,
 	})
 }
 

@@ -1174,6 +1174,7 @@ func (r *accessRequestList) GetAppStatus() *libkb.AppStatus {
 
 func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) ([]keybase1.TeamJoinRequest, error) {
 	var arg libkb.APIArg
+	mctx := libkb.NewMetaContext(ctx, g)
 	if teamName != nil {
 		arg = apiArg(ctx, "team/access_requests")
 		arg.Args.Add("team", libkb.S{Val: *teamName})
@@ -1182,7 +1183,7 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string)
 	}
 
 	var arList accessRequestList
-	if err := g.API.GetDecode(arg, &arList); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &arList); err != nil {
 		return nil, err
 	}
 
@@ -1210,13 +1211,14 @@ func (r *myAccessRequestsList) GetAppStatus() *libkb.AppStatus {
 }
 
 func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) (res []keybase1.TeamName, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	arg := apiArg(ctx, "team/my_access_requests")
 	if teamName != nil {
 		arg.Args.Add("team", libkb.S{Val: *teamName})
 	}
 
 	var arList myAccessRequestsList
-	if err := g.API.GetDecode(arg, &arList); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &arList); err != nil {
 		return nil, err
 	}
 
@@ -1697,10 +1699,11 @@ func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		return false, err
 	}
 
+	mctx := libkb.NewMetaContext(ctx, g)
 	arg := apiArg(ctx, "team/disable_tars")
 	arg.Args.Add("tid", libkb.S{Val: id.String()})
 	var ret disableTARsRes
-	if err := g.API.GetDecode(arg, &ret); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &ret); err != nil {
 		return false, err
 	}
 
@@ -1746,13 +1749,14 @@ func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username st
 	arg := apiArg(ctx, "team/list_profile_add")
 	arg.Args.Add("uid", libkb.S{Val: uid.String()})
 	var serverRes listProfileAddServerRes
-	if err = g.API.GetDecode(arg, &serverRes); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err = mctx.G().API.GetDecode(mctx, arg, &serverRes); err != nil {
 		return nil, err
 	}
 	for _, entry := range serverRes.Teams {
 		teamName, err := keybase1.TeamNameFromString(entry.FqName)
 		if err != nil {
-			g.Log.CDebugf(ctx, "TeamProfileAddList server returned bad team name %v: %v", entry.FqName, err)
+			mctx.Debug("TeamProfileAddList server returned bad team name %v: %v", entry.FqName, err)
 			continue
 		}
 		disabledReason := ""
