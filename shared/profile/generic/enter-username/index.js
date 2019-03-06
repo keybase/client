@@ -17,12 +17,29 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.inputBox} fullWidth={true}>
-        <Kb.PlainInput
-          flexable={true}
-          textType="BodySemibold"
-          value={this.state.username}
-          onChangeText={this._onChangeUsername}
-        />
+        <Kb.Box2 direction="horizontal" style={styles.inputPlaceholderContainer} fullWidth={true}>
+          <Kb.PlainInput
+            flexable={true}
+            textType="BodySemibold"
+            value={this.state.username}
+            onChangeText={this._onChangeUsername}
+          />
+          <Kb.Text type="BodySemibold" style={styles.invisible}>
+            {/* spacer to keep the input from going this far */}
+            @mastodon.social
+          </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder}>
+            <Kb.Text
+              type="BodySemibold"
+              style={Styles.collapseStyles([styles.placeholder, !!this.state.username && styles.invisible])}
+            >
+              {this.state.username || 'Your username'}
+            </Kb.Text>
+            <Kb.Text type="BodySemibold" style={styles.placeholderService}>
+              @mastodon.social
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -54,6 +71,29 @@ const styles = Styles.styleSheetCreate({
   inputContainer: {
     ...Styles.padding(0, Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium),
     flex: 1,
+  },
+  inputPlaceholder: Styles.platformStyles({
+    common: {
+      left: 1,
+      position: 'absolute',
+      right: 0,
+      top: 1,
+    },
+    isElectron: {
+      pointerEvents: 'none',
+    },
+  }),
+  inputPlaceholderContainer: {
+    position: 'relative',
+  },
+  invisible: {
+    opacity: 0,
+  },
+  placeholder: {
+    color: Styles.globalColors.black_40,
+  },
+  placeholderService: {
+    color: Styles.globalColors.black_20,
   },
 })
 
