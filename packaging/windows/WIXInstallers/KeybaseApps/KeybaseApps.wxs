@@ -34,7 +34,6 @@
       <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
@@ -260,15 +259,6 @@
         oReg.DeleteValue HKCU,strKeyPath,strValueName
       ]]>
     </CustomAction>
-  </Fragment>
-  <Fragment>
-    <!-- Explicitly remove the last shipping bundle. People who haven't upgraded to it may see an additional "Keybase" under add/remove programs,
-    which is harmless. -->
-    <CustomAction Id="RemoveLegacyBundle"
-              Directory="LocalAppDataFolder"
-              ExeCommand="[LocalAppDataFolder]\Package Cache\{2db7fc7d-8c3f-43a3-bfd9-dfa625366b99}\Keybase_2.1.0-20180607152232+f31e011ea5.386.exe /quiet /uninstall"
-              Execute="immediate"
-              Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="LogoutUser"
