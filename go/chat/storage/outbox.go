@@ -88,7 +88,6 @@ func NewMessageNotifier(n OutboxNewMessageNotifierFn) func(*Outbox) {
 }
 
 func NewOutbox(g *globals.Context, uid gregor1.UID, config ...func(*Outbox)) *Outbox {
-	initLocksRepoOnce(g)
 	st := createOutboxStorage(g, uid)
 	o := &Outbox{
 		Contextified:  globals.NewContextified(g),

@@ -67,7 +67,6 @@ func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, co
 }
 
 func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
-	initLocksRepoOnce(g)
 	return &Storage{
 		Contextified:     globals.NewContextified(g),
 		engine:           newBlockEngine(g),
@@ -313,13 +312,6 @@ func (h *HoleyResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
 
 func (h *HoleyResultCollector) Holes() int {
 	return h.holes
-}
-
-func (s *Storage) lockConv(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (func(), Error) {
-	if _, err := locks.StorageLockTab.Acquire(ctx, uid, convID); err != nil {
-		return nil, NewInternalError(ctx, s.DebugLabeler, "Acquire error: %v", err)
-	}
-	return func() { locks.StorageLockTab.Release(ctx, uid, convID) }, nil
 }
 
 func (s *Storage) Nuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) Error {
