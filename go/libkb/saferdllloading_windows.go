@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	modadvapi    = windows.NewLazySystemDLL("advapi32.dll")
 	modcryptsp   = windows.NewLazySystemDLL("cryptsp.dll")
 	modcryptbase = windows.NewLazySystemDLL("cryptbase.dll")
 )
@@ -47,6 +48,7 @@ func SaferDLLLoading() error {
 	// Attemt to load these from the system directory to thwart sideloading
 	modcryptbase.Load()
 	modcryptsp.Load()
+	modadvapi.Load()
 
 	return err
 }
