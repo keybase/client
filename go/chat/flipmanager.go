@@ -241,13 +241,14 @@ func (m *FlipManager) getVisualizer() *FlipVisualizer {
 
 func (m *FlipManager) notifyDirtyGames() {
 	m.gamesMu.Lock()
-	defer m.gamesMu.Unlock()
 	if len(m.dirtyGames) == 0 {
+		m.gamesMu.Unlock()
 		return
 	}
-	defer func() {
-		m.dirtyGames = make(map[string]chat1.FlipGameID)
-	}()
+	dirtyGames := m.dirtyGames
+	m.dirtyGames = make(map[string]chat1.FlipGameID)
+	m.gamesMu.Unlock()
+
 	ctx := m.makeBkgContext()
 	ui, err := m.G().UIRouter.GetChatUI()
 	if err != nil || ui == nil {
@@ -255,7 +256,8 @@ func (m *FlipManager) notifyDirtyGames() {
 		return
 	}
 	var updates []chat1.UICoinFlipStatus
-	for _, dg := range m.dirtyGames {
+	m.Debug(ctx, "notifyDirtyGames: notifying about %d games", len(dirtyGames))
+	for _, dg := range dirtyGames {
 		if game, ok := m.games.Get(dg.String()); ok {
 			status := game.(chat1.UICoinFlipStatus)
 			m.getVisualizer().Visualize(&status)
@@ -264,14 +266,19 @@ func (m *FlipManager) notifyDirtyGames() {
 			updates = append(updates, presentStatus)
 		}
 	}
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 	if err := ui.ChatCoinFlipStatus(ctx, updates); err != nil {
 		m.Debug(ctx, "notifyDirtyGames: failed to notify status: %s", err)
+	} else {
+		m.Debug(ctx, "notifyDirtyGames: UI notified")
 	}
 }
 
 func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 	duration := 50 * time.Millisecond
 	next := m.clock.Now().Add(duration)
+	m.Debug(context.Background(), "notificationLoop: starting")
 	for {
 		select {
 		case <-m.clock.AfterTime(next):
@@ -281,6 +288,7 @@ func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 			m.notifyDirtyGames()
 			next = m.clock.Now().Add(duration)
 		case <-shutdownCh:
+			m.Debug(context.Background(), "notificationLoop: exiting")
 			return
 		}
 	}
@@ -511,12 +519,16 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 	}
 }
 
-func (m *FlipManager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
+func (m *FlipManager) queueDirtyGameID(ctx context.Context, gameID chat1.FlipGameID, force bool) {
 	m.gamesMu.Lock()
 	m.dirtyGames[gameID.String()] = gameID
 	m.gamesMu.Unlock()
 	if force {
-		m.forceCh <- struct{}{}
+		select {
+		case m.forceCh <- struct{}{}:
+		default:
+			m.Debug(ctx, "queueDirtyGameID: failed to write onto forceCh!")
+		}
 	}
 }
 
@@ -564,7 +576,7 @@ func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoi
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
 	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
-	defer m.queueDirtyGameID(gameID, force)
+	defer m.queueDirtyGameID(ctx, gameID, force)
 	if update.Err != nil {
 		var parts []chat1.UICoinFlipParticipant
 		oldGame, ok := m.games.Get(gameID.String())
@@ -606,7 +618,7 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	gameID := update.Metadata.GameID
 	defer func() {
 		if err == nil {
-			m.queueDirtyGameID(gameID, force)
+			m.queueDirtyGameID(ctx, gameID, force)
 		}
 	}()
 	var status chat1.UICoinFlipStatus
@@ -649,11 +661,13 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 }
 
 func (m *FlipManager) updateLoop(shutdownCh chan struct{}) {
+	m.Debug(context.Background(), "updateLoop: starting")
 	for {
 		select {
 		case msg := <-m.dealer.UpdateCh():
 			m.handleUpdate(m.makeBkgContext(), msg, false)
 		case <-shutdownCh:
+			m.Debug(context.Background(), "updateLoop: exiting")
 			return
 		}
 	}
@@ -1313,7 +1327,7 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 		case chat1.UICoinFlipPhase_ERROR:
 			// do nothing here, just replay if we are storing an error
 		default:
-			m.queueDirtyGameID(gameID, true)
+			m.queueDirtyGameID(ctx, gameID, true)
 			return
 		}
 	}

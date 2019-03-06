@@ -67,6 +67,7 @@ type Result struct {
 
 type Game struct {
 	md                     GameMetadata
+	msgID                  int
 	clockSkew              time.Duration
 	start                  time.Time
 	isLeader               bool
@@ -295,7 +296,21 @@ func (g *Game) playerCommitedInTime(ps *GamePlayerState, now time.Time) bool {
 	return diff < g.params.CommitmentWindowWithSlack(true)
 }
 
-func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) error {
+func errToOk(err error) string {
+	if err == nil {
+		return "ok"
+	}
+	return "ERROR: " + err.Error()
+}
+
+func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) (err error) {
+
+	msgID := g.msgID
+	g.msgID++
+
+	g.clogf(ctx, "+ Game#handleMessage: %s@%d <- %+v", g.GameMetadata(), msgID, *msg)
+	defer func() { g.clogf(ctx, "- Game#handleMessage: %s@%d -> %s", g.GameMetadata(), msgID, errToOk(err)) }()
+
 	t, err := msg.Msg.Body.T()
 	if err != nil {
 		return err
