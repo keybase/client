@@ -116,8 +116,13 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	if err = s.doGPG(m); err != nil {
-		return err
+	if err := s.doGPG(m); err != nil {
+		// We don't care if GPG import fails, continue with the signup process
+		// because it's too late anyway. Failing here would leave a signed up
+		// and logged in user in a weird state where their GUI does not know
+		// they are logged in, and also other processes (CreateWallet) will not
+		// run.
+		m.Warning("Importing existing GPG keys failed with: %s", err)
 	}
 
 	m = m.CommitProvisionalLogin()
