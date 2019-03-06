@@ -425,8 +425,9 @@ func (k *KeybaseDaemonLocal) ResolveImplicitTeamByID(
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, _ keybase1.KID) (UserInfo, error) {
+func (k *KeybaseDaemonLocal) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, _ keybase1.KID,
+	_ keybase1.OfflineAvailability) (UserInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return UserInfo{}, err
 	}

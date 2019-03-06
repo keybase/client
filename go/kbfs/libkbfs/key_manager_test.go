@@ -103,7 +103,8 @@ func expectUncachedGetTLFCryptKeyAnyDevice(
 	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
 
 	// get the xor'd key out of the metadata
-	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), uid).
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(
+		gomock.Any(), uid, gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil)
 	config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalfAny(gomock.Any(),
 		gomock.Any(), false).Return(clientHalf, 0, nil)
@@ -133,7 +134,8 @@ func expectRekey(config *ConfigMock, bh tlf.Handle, numDevices int,
 	}
 
 	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
-	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(
+		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(numDevices)
 
 	// make keys for the one device
@@ -564,7 +566,8 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 
 	expectRekey(config, oldHandle.ToBareHandleOrBust(), 1, true, false, tlfCryptKey2)
 	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
-	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(
+		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(3)
 	if done, _, err :=
 		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
@@ -798,7 +801,8 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 
 	expectRekey(config, h.ToBareHandleOrBust(), 1, false, false, tlfCryptKey2)
 	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
-	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(
+		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil)
 	if done, _, err :=
 		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
@@ -868,7 +872,8 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 		kbfscrypto.TLFEphemeralPrivateKey{}, nil)
 
 	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
-	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(
+		gomock.Any(), gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(2)
 	if done, _, err :=
 		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {

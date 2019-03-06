@@ -62,7 +62,8 @@ func (d *daemonKBPKI) GetNormalizedUsername(
 	if err != nil {
 		return kbname.NormalizedUsername(""), err
 	}
-	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, asUser, "")
+	userInfo, err := d.daemon.LoadUserPlusKeys(
+		ctx, asUser, "", keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return kbname.NormalizedUsername(""), err
 	}

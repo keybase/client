@@ -14,7 +14,7 @@ func mdDumpImmutableRMD(ctx context.Context, config libkbfs.Config,
 	replacements replacementMap,
 	irmd libkbfs.ImmutableRootMetadata) error {
 	err := mdDumpFillReplacements(
-		ctx, config.Codec(), config.KeybaseService(), "md dump",
+		ctx, config.Codec(), config.KeybaseService(), config, "md dump",
 		irmd.GetBareRootMetadata(), irmd.Extra(), replacements)
 	if err != nil {
 		printError("md dump", err)

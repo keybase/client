@@ -676,8 +676,9 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 
 // LoadUserPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
+func (k *KeybaseServiceBase) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
+	offline keybase1.OfflineAvailability) (UserInfo, error) {
 	cachedUserInfo := k.getCachedUserInfo(uid)
 	if cachedUserInfo.Name != kbname.NormalizedUsername("") {
 		if pollForKID == keybase1.KID("") {
@@ -703,7 +704,11 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		}
 	}
 
-	arg := keybase1.LoadUserPlusKeysV2Arg{Uid: uid, PollForKID: pollForKID}
+	arg := keybase1.LoadUserPlusKeysV2Arg{
+		Uid:        uid,
+		PollForKID: pollForKID,
+		Oa:         offline,
+	}
 	res, err := k.userClient.LoadUserPlusKeysV2(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err

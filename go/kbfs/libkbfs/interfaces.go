@@ -707,12 +707,20 @@ type KeybaseService interface {
 	// validate an assertion or the identity of a user, use this to
 	// get UserInfo structs as it is much cheaper than Identify.
 	//
-	// pollForKID, if non empty, causes `PollForKID` field to be populated, which
-	// causes the service to poll for the given KID. This is useful during
-	// provisioning where the provisioner needs to get the MD revision that the
-	// provisionee has set the rekey bit on.
-	LoadUserPlusKeys(ctx context.Context,
-		uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error)
+	// pollForKID, if non empty, causes `PollForKID` field to be
+	// populated, which causes the service to poll for the given
+	// KID. This is useful during provisioning where the provisioner
+	// needs to get the MD revision that the provisionee has set the
+	// rekey bit on.
+	//
+	// If the caller knows that the user needs to be loadable while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `LoadUserPlusKeys` might block on a
+	// network call.
+	LoadUserPlusKeys(
+		ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
+		offline keybase1.OfflineAvailability) (UserInfo, error)
 
 	// LoadTeamPlusKeys returns a TeamInfo struct for a team with the
 	// specified TeamID.  The caller can specify `desiredKeyGen` to
@@ -1005,13 +1013,27 @@ type KBPKI interface {
 	// error type `RevokedDeviceVerificationError` is returned, which
 	// includes information the caller can use to verify the key using
 	// the merkle tree.
+	//
+	// If the caller knows that the keys needs to be verified while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `HasVerifyingKey` might block on a
+	// network call.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey kbfscrypto.VerifyingKey,
-		atServerTime time.Time) error
+		atServerTime time.Time, offline keybase1.OfflineAvailability) error
 
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).
-	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
+	//
+	// If the caller knows that the keys needs to be retrieved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetCryptPublicKeys` might block on a
+	// network call.
+	GetCryptPublicKeys(
+		ctx context.Context, uid keybase1.UID,
+		offline keybase1.OfflineAvailability) (
 		[]kbfscrypto.CryptPublicKey, error)
 
 	// TODO: Split the methods below off into a separate
@@ -2368,8 +2390,8 @@ type Clock interface {
 // ConflictRenamer deals with names for conflicting directory entries.
 type ConflictRenamer interface {
 	// ConflictRename returns the appropriately modified filename.
-	ConflictRename(ctx context.Context, op op, original string) (
-		string, error)
+	ConflictRename(
+		ctx context.Context, op op, original string) (string, error)
 }
 
 // Tracer maybe adds traces to contexts.

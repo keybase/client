@@ -2859,18 +2859,18 @@ func (mr *MockKeybaseServiceMockRecorder) GetTeamSettings(ctx, teamID, offline i
 }
 
 // LoadUserPlusKeys mocks base method
-func (m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
+func (m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID, offline keybase1.OfflineAvailability) (UserInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LoadUserPlusKeys", ctx, uid, pollForKID)
+	ret := m.ctrl.Call(m, "LoadUserPlusKeys", ctx, uid, pollForKID, offline)
 	ret0, _ := ret[0].(UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LoadUserPlusKeys indicates an expected call of LoadUserPlusKeys
-func (mr *MockKeybaseServiceMockRecorder) LoadUserPlusKeys(ctx, uid, pollForKID interface{}) *gomock.Call {
+func (mr *MockKeybaseServiceMockRecorder) LoadUserPlusKeys(ctx, uid, pollForKID, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadUserPlusKeys), ctx, uid, pollForKID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadUserPlusKeys), ctx, uid, pollForKID, offline)
 }
 
 // LoadTeamPlusKeys mocks base method
@@ -3780,32 +3780,32 @@ func (mr *MockKBPKIMockRecorder) PutGitMetadata(ctx, folder, repoID, metadata in
 }
 
 // HasVerifyingKey mocks base method
-func (m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) error {
+func (m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time, offline keybase1.OfflineAvailability) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasVerifyingKey", ctx, uid, verifyingKey, atServerTime)
+	ret := m.ctrl.Call(m, "HasVerifyingKey", ctx, uid, verifyingKey, atServerTime, offline)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // HasVerifyingKey indicates an expected call of HasVerifyingKey
-func (mr *MockKBPKIMockRecorder) HasVerifyingKey(ctx, uid, verifyingKey, atServerTime interface{}) *gomock.Call {
+func (mr *MockKBPKIMockRecorder) HasVerifyingKey(ctx, uid, verifyingKey, atServerTime, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasVerifyingKey", reflect.TypeOf((*MockKBPKI)(nil).HasVerifyingKey), ctx, uid, verifyingKey, atServerTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasVerifyingKey", reflect.TypeOf((*MockKBPKI)(nil).HasVerifyingKey), ctx, uid, verifyingKey, atServerTime, offline)
 }
 
 // GetCryptPublicKeys mocks base method
-func (m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) ([]kbfscrypto.CryptPublicKey, error) {
+func (m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID, offline keybase1.OfflineAvailability) ([]kbfscrypto.CryptPublicKey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCryptPublicKeys", ctx, uid)
+	ret := m.ctrl.Call(m, "GetCryptPublicKeys", ctx, uid, offline)
 	ret0, _ := ret[0].([]kbfscrypto.CryptPublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCryptPublicKeys indicates an expected call of GetCryptPublicKeys
-func (mr *MockKBPKIMockRecorder) GetCryptPublicKeys(ctx, uid interface{}) *gomock.Call {
+func (mr *MockKBPKIMockRecorder) GetCryptPublicKeys(ctx, uid, offline interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCryptPublicKeys", reflect.TypeOf((*MockKBPKI)(nil).GetCryptPublicKeys), ctx, uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCryptPublicKeys", reflect.TypeOf((*MockKBPKI)(nil).GetCryptPublicKeys), ctx, uid, offline)
 }
 
 // FavoriteAdd mocks base method

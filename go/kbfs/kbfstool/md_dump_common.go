@@ -51,13 +51,15 @@ func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui libkbfs.
 }
 
 func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
-	service libkbfs.KeybaseService, prefix string,
-	rmd kbfsmd.RootMetadata, extra kbfsmd.ExtraMetadata,
+	service libkbfs.KeybaseService, osg libkbfs.OfflineStatusGetter,
+	prefix string, rmd kbfsmd.RootMetadata, extra kbfsmd.ExtraMetadata,
 	replacements replacementMap) error {
 	writers, readers, err := rmd.GetUserDevicePublicKeys(extra)
 	if err != nil {
 		return err
 	}
+
+	offline := osg.OfflineAvailabilityForID(rmd.TlfID())
 
 	for _, userKeys := range []kbfsmd.UserDevicePublicKeys{writers, readers} {
 		for u := range userKeys {
@@ -80,7 +82,7 @@ func mdDumpFillReplacements(ctx context.Context, codec kbfscodec.Codec,
 				printError(prefix, err)
 			}
 
-			ui, err := service.LoadUserPlusKeys(ctx, u, "")
+			ui, err := service.LoadUserPlusKeys(ctx, u, "", offline)
 			if err != nil {
 				printError(prefix, err)
 				continue
@@ -182,7 +184,7 @@ func mdDumpReadOnlyRMD(ctx context.Context, config libkbfs.Config,
 	prefix string, replacements replacementMap,
 	rmd libkbfs.ReadOnlyRootMetadata) error {
 	err := mdDumpFillReplacements(
-		ctx, config.Codec(), config.KeybaseService(),
+		ctx, config.Codec(), config.KeybaseService(), config,
 		prefix, rmd.GetBareRootMetadata(), rmd.Extra(), replacements)
 	if err != nil {
 		printError(prefix, err)
