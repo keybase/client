@@ -1,5 +1,6 @@
 // @flow strict
 import * as RPCChatTypes from '../rpc-chat-gen'
+import * as RPCTypes from '../rpc-gen'
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
@@ -30,7 +31,7 @@ export type _QuoteInfo = {
 export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
 export type PaymentConfirmInfo = {
-  error?: string,
+  error?: RPCTypes.Status,
   summary?: RPCChatTypes.UIChatPaymentSummary,
 }
 

@@ -272,7 +272,7 @@ protocol chatUi {
   }
   void chatStellarShowConfirm(int sessionID);
   boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
-  boolean chatStellarDataError(int sessionID, string message);
+  boolean chatStellarDataError(int sessionID, keybase1.Status error);
   void chatStellarDone(int sessionID, boolean canceled);
 
  record GiphySearchResult {

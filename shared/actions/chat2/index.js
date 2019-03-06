@@ -1306,12 +1306,12 @@ function* messageSend(state, action) {
       }
     })
   const onDataConfirm = ({summary}, response) => {
-    stellarConfirmWindowResponse = response
+    storeStellarConfirmWindowResponse(false, response)
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
   }
-  const onDataError = ({message}, response) => {
-    stellarConfirmWindowResponse = response
-    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
+  const onDataError = ({error}, response) => {
+    storeStellarConfirmWindowResponse(false, response)
+    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error}))
   }
 
   try {
@@ -1345,14 +1345,17 @@ function* messageSend(state, action) {
   // messages to not send. Do this after creating the objects above to
   // narrow down the places where the action can possibly stop.
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
-  stellarConfirmWindowResponse = null
 }
 
-let stellarConfirmWindowResponse = null
+let _stellarConfirmWindowResponse = null
+
+function storeStellarConfirmWindowResponse(accept: boolean, response) {
+  _stellarConfirmWindowResponse && _stellarConfirmWindowResponse.result(accept)
+  _stellarConfirmWindowResponse = response
+}
 
 const confirmScreenResponse = (_, action) => {
-  stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)
-  stellarConfirmWindowResponse = null
+  storeStellarConfirmWindowResponse(action.payload.accept, null)
 }
 
 function* previewConversationAfterFindExisting(state, action, results, users) {

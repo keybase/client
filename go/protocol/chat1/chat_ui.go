@@ -1879,8 +1879,8 @@ type ChatStellarDataConfirmArg struct {
 }
 
 type ChatStellarDataErrorArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Message   string `codec:"message" json:"message"`
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Error     keybase1.Status `codec:"error" json:"error"`
 }
 
 type ChatStellarDoneArg struct {
