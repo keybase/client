@@ -1104,11 +1104,6 @@ func (m *FlipManager) updateActiveGame(ctx context.Context, uid gregor1.UID, con
 			}
 		}
 	}()
-	if m.isStartMsgID(nextMsg.GetMessageID()) {
-		// if this is a start msg, then just send it in
-		m.Debug(ctx, "updateActiveGame: starting new game: convID: %s gameID: %s", convID, gameID)
-		return nil
-	}
 	m.Debug(ctx, "updateActiveGame: convID: %s gameID: %s nextMsgID: %d", convID, gameID,
 		nextMsg.GetMessageID())
 	// Get current msg ID of the game if we know about it
@@ -1125,6 +1120,11 @@ func (m *FlipManager) updateActiveGame(ctx context.Context, uid gregor1.UID, con
 		m.Debug(ctx, "updateActiveGame: gapped update: storedMsgID: %d", storedMsgID)
 		msgIDStart = storedMsgID
 	} else {
+		if m.isStartMsgID(nextMsg.GetMessageID()) {
+			// if this is a start msg, then just send it in
+			m.Debug(ctx, "updateActiveGame: starting new game: convID: %s gameID: %s", convID, gameID)
+			return nil
+		}
 		m.Debug(ctx, "updateActiveGame: unknown game, setting start to 0")
 	}
 	// Otherwise, grab the thread and inject everything that has happened so far
