@@ -2,7 +2,7 @@
 import keybaseUrl from '../constants/urls'
 
 const linkFuncs = {
-  docs: () => `${keybaseUrl}/docs`,
+  help: () => `${keybaseUrl}/docs`,
   home: () => keybaseUrl,
   user: ({username}) => `${keybaseUrl}/${username || ''}`,
 }
