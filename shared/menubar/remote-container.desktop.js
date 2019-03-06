@@ -56,7 +56,7 @@ const mapDispatchToProps = dispatch => ({
     )
   },
   showHelp: () => {
-    const link = urlHelper('help')
+    const link = urlHelper('docs')
     link && openUrl(link)
     closeWindow()
   },
