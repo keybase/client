@@ -194,6 +194,13 @@ table {
 
 @font-face {
   font-family: 'Keybase';
+  font-weight: 700;
+  font-style: italic;
+  src: url('../../fonts/keybase-bold-italic.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Keybase';
   font-weight: 800;
   src: url('../../fonts/keybase-extrabold.otf') format('opentype');
 }
