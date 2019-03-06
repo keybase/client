@@ -861,6 +861,10 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 	return lr, nil
 }
 
+// SimpleFSListFavorites lists the favorite, new,
+// and ignored folders of the logged in user,
+// getting its data from the KBFS Favorites cache. If the cache is stale,
+// this will trigger a network request.
 func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
 	return k.config.KBFSOps().GetFavoritesAll(ctx)
