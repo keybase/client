@@ -20,7 +20,6 @@ const noErrors = (state: TypedState) =>
   !state.signup.inviteCodeError &&
   !state.signup.nameError &&
   !state.signup.usernameError &&
-  !state.signup.passphraseError.stringValue() &&
   !state.signup.signupError.stringValue()
 
 // Navigation side effects ///////////////////////////////////////////////////////////
@@ -51,9 +50,6 @@ const showInviteSuccessOnNoErrors = (state: TypedState) =>
   RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
 
 const goToLoginRoot = () => RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
-
-const showPassphraseOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupPassphrase']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
@@ -136,17 +132,15 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
     return
   }
 
-  const {email, username, inviteCode, passphrase, devicename} = state.signup
+  const {email, username, inviteCode, devicename} = state.signup
 
-  if (!email || !username || !inviteCode || !passphrase || !passphrase.stringValue() || !devicename) {
+  if (!email || !username || !inviteCode || !devicename) {
     logger.warn(
       'Missing data during signup phase',
       email,
       username,
       inviteCode,
       devicename,
-      !!passphrase,
-      passphrase && !!passphrase.stringValue()
     )
     throw new Error('Missing data for signup')
   }
@@ -208,7 +202,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<SignupGen.CheckedUsernameEmailPayload>(
     SignupGen.checkedUsernameEmail,
-    showPassphraseOnNoErrors
+    showDeviceScreenOnNoErrors
   )
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload>(
     SignupGen.requestedAutoInvite,
@@ -217,10 +211,6 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(
     SignupGen.checkedInviteCode,
     showUserEmailOnNoErrors
-  )
-  yield* Saga.chainAction<SignupGen.CheckPassphrasePayload>(
-    SignupGen.checkPassphrase,
-    showDeviceScreenOnNoErrors
   )
   yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, showErrorOrCleanupAfterSignup)
 
@@ -249,6 +239,5 @@ export const _testing = {
   showErrorOrCleanupAfterSignup,
   showInviteScreen,
   showInviteSuccessOnNoErrors,
-  showPassphraseOnNoErrors,
   showUserEmailOnNoErrors,
 }
