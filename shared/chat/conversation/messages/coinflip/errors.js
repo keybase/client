@@ -53,8 +53,7 @@ type AbsenteeProps = {|
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
     <Kb.Text selectable={true} type="Body">
-      {props.error.absentees && props.error.absentees.length === 1 ? 'One player' : 'Some players'} that
-      committed to the coin flip failed to reveal their secrets in time:
+      Uh oh, a participant disappeared:
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
@@ -62,14 +61,8 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text selectable={true} type="BodySemibold">
-        This could mean one of two things:
-      </Kb.Text>
       <Kb.Text selectable={true} type="Body">
-        • Either their client disconnected and could not reveal their secret, or
-      </Kb.Text>
-      <Kb.Text selectable={true} type="Body">
-        • They're trying to cheat by disconnecting on purpose in order to force a new flip.
+        It was likely a network problem, but they could be a jerk.
       </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
