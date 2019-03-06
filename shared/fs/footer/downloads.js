@@ -1,77 +1,101 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins, globalColors, styleSheetCreate} from '../../styles'
-import {Box2, Box, Icon, ClickableBox, WithTooltip} from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import Download from './download-container'
 
 export type DownloadsProps = {
   downloadKeys: Array<string>,
-  thereAreMore: boolean,
   openDownloadFolder?: () => void,
 }
 
-const Downloads = (props: DownloadsProps) =>
+const Mobile = (props: DownloadsProps) =>
   !!props.downloadKeys.length && (
-    <Box2 direction="horizontal" fullWidth={true} style={styles.box}>
-      <Box style={styles.downloadsBox}>
-        {props.downloadKeys.map(key => (
-          <Download downloadKey={key} key={key} />
-        ))}
-      </Box>
-      <Box style={styles.buttonsBox}>
-        {props.thereAreMore ? (
-          <WithTooltip text="Open Downloads folder">
-            <ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
-              <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_50} />
-            </ClickableBox>
-          </WithTooltip>
-        ) : (
-          <Box /> /* have a box here to make space-between work */
-        )}
-        <WithTooltip text="Open Downloads folder">
-          <ClickableBox style={styles.iconBoxOpenDownload} onClick={props.openDownloadFolder}>
-            <Icon
-              type="iconfont-folder-downloads"
-              hint="Open downloads folder"
-              color={globalColors.black_50}
-            />
-          </ClickableBox>
-        </WithTooltip>
-      </Box>
-    </Box2>
+    <>
+      <Kb.Divider />
+      <Kb.ScrollView horizontal={true} snapToInterval={160 + Styles.globalMargins.xtiny}>
+        <Kb.Box2
+          direction="horizontal"
+          style={styles.box}
+          centerChildren={true}
+          gap="xtiny"
+          gapStart={true}
+          gapEnd={true}
+        >
+          {props.downloadKeys.map(key => (
+            <Download downloadKey={key} key={key} />
+          ))}
+        </Kb.Box2>
+      </Kb.ScrollView>
+    </>
   )
 
-const styles = styleSheetCreate({
-  box: {
-    backgroundColor: globalColors.blue5,
-    borderStyle: 'solid',
-    borderTopColor: globalColors.black_10,
-    borderTopWidth: 1,
-    height: 40,
-  },
-  buttonsBox: {
-    ...globalStyles.flexBoxRow,
-    ...globalStyles.flexGrow,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minWidth: globalMargins.xtiny + 32 + globalMargins.tiny + 32 + globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
-  downloadsBox: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    overflow: 'hidden',
-  },
+const Desktop = (props: DownloadsProps) =>
+  !!props.downloadKeys.length && (
+    <>
+      <Kb.Divider />
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={styles.box}
+        gap="xtiny"
+        gapStart={true}
+        gapEnd={true}
+        centerChildren={true}
+      >
+        {props.downloadKeys.slice(0, 3).map(key => (
+          <Download downloadKey={key} key={key} />
+        ))}
+        {props.downloadKeys.length > 3 && (
+          <Kb.WithTooltip text="Open Downloads folder">
+            <Kb.ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
+              <Kb.Icon
+                type="iconfont-ellipsis"
+                hint="Open downloads folder"
+                color={Styles.globalColors.black_50}
+              />
+            </Kb.ClickableBox>
+          </Kb.WithTooltip>
+        )}
+        <Kb.Box style={styles.space} />
+        <Kb.WithTooltip text="Open Downloads folder">
+          <Kb.ClickableBox style={styles.iconBoxOpenDownload} onClick={props.openDownloadFolder}>
+            <Kb.Icon
+              type="iconfont-folder-downloads"
+              hint="Open downloads folder"
+              color={Styles.globalColors.black_50}
+            />
+          </Kb.ClickableBox>
+        </Kb.WithTooltip>
+      </Kb.Box2>
+    </>
+  )
+
+const styles = Styles.styleSheetCreate({
+  box: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue5,
+      overflow: 'hidden',
+    },
+    isElectron: {
+      height: 40,
+    },
+    isMobile: {
+      height: 48,
+    },
+  }),
   iconBoxEllipsis: {
-    backgroundColor: globalColors.black_10,
+    backgroundColor: Styles.globalColors.black_10,
     borderRadius: 4,
-    marginLeft: globalMargins.xtiny,
-    padding: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.xtiny,
+    padding: Styles.globalMargins.tiny,
   },
   iconBoxOpenDownload: {
-    padding: globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
+  },
+  space: {
+    flex: 1,
   },
 })
 
-export default Downloads
+export default (Styles.isMobile ? Mobile : Desktop)

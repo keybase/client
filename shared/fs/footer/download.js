@@ -74,7 +74,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       backgroundColor: Styles.globalColors.green,
       borderRadius: 4,
-      marginLeft: Styles.globalMargins.xtiny,
     },
     isElectron: {
       height: 32,

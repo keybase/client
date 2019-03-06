@@ -54,7 +54,7 @@ const load = () =>
         />
         <Text type="Header">4+ items</Text>
         <Downloads
-          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          downloadKeys={['file 1', 'blah 2', 'yo 3', 'bla 4', 'blah 5']}
           thereAreMore={true}
           openDownloadFolder={Sb.action('openDownloadFolder')}
         />

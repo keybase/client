@@ -15,16 +15,13 @@ const mapDispatchToProps = dispatch => ({
     : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder})),
 })
 
-const maxNumCards = isMobile ? 1 : 3
-
 const mergeProps = ({_downloads}, {openDownloadFolder}) => {
   const downloadKeys = Array.from(_downloads.filter(download => download.meta.intent === 'none'))
     .sort(([_a, a], [_b, b]) => b.state.startedAt - a.state.startedAt) // newer first
     .map(([key, download]) => key)
   return ({
-    downloadKeys: downloadKeys.slice(0, maxNumCards),
+    downloadKeys,
     openDownloadFolder,
-    thereAreMore: downloadKeys.length > maxNumCards,
   }: DownloadsProps)
 }
 
