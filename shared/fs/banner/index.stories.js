@@ -90,14 +90,14 @@ export default () => {
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup', () => (
       <KextPermissionPopup
-        isEnabling={false}
+        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: false})}
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup - enabling', () => (
       <KextPermissionPopup
-        isEnabling={true}
+        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: true})}
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}
       />

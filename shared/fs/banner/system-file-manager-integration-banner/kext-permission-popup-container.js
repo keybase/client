@@ -6,7 +6,7 @@ import KextPermissionPopup from './kext-permission-popup'
 type OwnProps = RouteProps<{||}, {||}>
 
 const mapStateToProps = state => ({
-  isEnabling: state.fs.sfmi.driverStatus.type === 'disabled' && state.fs.sfmi.driverStatus.isEnabling,
+  driverStatus: state.fs.sfmi.driverStatus,
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -18,7 +18,7 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({
-    isEnabling: s.isEnabling,
+    driverStatus: s.driverStatus,
     onCancel: d.onCancel,
     openSecurityPrefs: d.openSecurityPrefs,
   }),

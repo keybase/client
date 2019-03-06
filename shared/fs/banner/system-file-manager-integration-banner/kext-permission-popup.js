@@ -1,12 +1,12 @@
 // @flow
 import React from 'react'
+import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import TryEnableDriverOnFocus from '../../common/try-enable-driver-on-focus'
 
 type Props = {|
-  isEnabling: boolean,
-  onCancel: () => void,
+  driverStatus: Types.DriverStatus,
+  onCancel: () => void, // must be ownProps.navigateUp() or idempotent in a way
   openSecurityPrefs: () => void,
 |}
 
@@ -36,9 +36,21 @@ const Illustration = () => (
   </Kb.Box>
 )
 
+class CancelWhenEnabled extends React.PureComponent<Props> {
+  componentDidMount() {
+    this.props.driverStatus.type === 'enabled' && this.props.onCancel()
+  }
+  componentDidUpdate() {
+    this.props.driverStatus.type === 'enabled' && this.props.onCancel()
+  }
+  render() {
+    return null
+  }
+}
+
 const InstallSecurityPrefs = (props: Props) => (
   <>
-    <TryEnableDriverOnFocus onEnabled={props.onCancel} />
+    <CancelWhenEnabled {...props} />
     <Kb.Box2 direction="vertical" gap="small" centerChildren={true} style={styles.container}>
       <Kb.Text type="HeaderBig" style={styles.title}>
         You need to change your system security preferences.
@@ -69,7 +81,7 @@ const InstallSecurityPrefs = (props: Props) => (
         Open Security & Privacy Settings
       </Kb.Text>
     </Kb.Box2>
-    {props.isEnabling && (
+    {props.driverStatus.type === 'disabled' && props.driverStatus.isEnabling && (
       <Kb.Box style={styles.enablingContainer}>
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.ProgressIndicator white={true} />
