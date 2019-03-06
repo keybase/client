@@ -270,12 +270,15 @@ func (m *FlipManager) notifyDirtyGames() {
 	defer cancel()
 	if err := ui.ChatCoinFlipStatus(ctx, updates); err != nil {
 		m.Debug(ctx, "notifyDirtyGames: failed to notify status: %s", err)
+	} else {
+		m.Debug(ctx, "notifyDirtyGames: UI notified")
 	}
 }
 
 func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 	duration := 50 * time.Millisecond
 	next := m.clock.Now().Add(duration)
+	m.Debug(context.Background(), "notificationLoop: starting")
 	for {
 		select {
 		case <-m.clock.AfterTime(next):
@@ -285,6 +288,7 @@ func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 			m.notifyDirtyGames()
 			next = m.clock.Now().Add(duration)
 		case <-shutdownCh:
+			m.Debug(context.Background(), "notificationLoop: exiting")
 			return
 		}
 	}
@@ -659,11 +663,13 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 }
 
 func (m *FlipManager) updateLoop(shutdownCh chan struct{}) {
+	m.Debug(context.Background(), "updateLoop: starting")
 	for {
 		select {
 		case msg := <-m.dealer.UpdateCh():
 			m.handleUpdate(m.makeBkgContext(), msg, false)
 		case <-shutdownCh:
+			m.Debug(context.Background(), "updateLoop: exiting")
 			return
 		}
 	}
