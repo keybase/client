@@ -94,14 +94,18 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
-	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		localUsers[0].VerifyingKeys[0], time.Now())
+	err := c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1),
+		localUsers[0].VerifyingKeys[0], time.Now(),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		kbfscrypto.VerifyingKey{}, time.Now())
+	err = c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1),
+		kbfscrypto.VerifyingKey{}, time.Now(),
+		keybase1.OfflineAvailability_NONE)
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -118,15 +122,18 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 	}
 
 	// Something verified before the key was revoked
-	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		revokedKey, revokeTime.Add(-10*time.Second))
+	err := c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1),
+		revokedKey, revokeTime.Add(-10*time.Second),
+		keybase1.OfflineAvailability_NONE)
 	if _, ok := errors.Cause(err).(RevokedDeviceVerificationError); !ok {
 		t.Error(err)
 	}
 
 	// Something verified after the key was revoked
-	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		revokedKey, revokeTime.Add(70*time.Second))
+	err = c.HasVerifyingKey(
+		context.Background(), keybase1.MakeTestUID(1), revokedKey,
+		revokeTime.Add(70*time.Second), keybase1.OfflineAvailability_NONE)
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -151,17 +158,20 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	info1 := UserInfo{
 		VerifyingKeys: []kbfscrypto.VerifyingKey{key1},
 	}
-	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u, gomock.Any()).
-		Return(info1, nil)
+	config.mockKbs.EXPECT().LoadUserPlusKeys(
+		gomock.Any(), u, gomock.Any(), gomock.Any()).Return(info1, nil)
 
 	config.mockKbs.EXPECT().FlushUserFromLocalCache(gomock.Any(), u)
 	info2 := UserInfo{
 		VerifyingKeys: []kbfscrypto.VerifyingKey{key1, key2},
 	}
-	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u, key2.KID()).
+	config.mockKbs.EXPECT().LoadUserPlusKeys(
+		gomock.Any(), u, key2.KID(), gomock.Any()).
 		Return(info2, nil)
 
-	err := c.HasVerifyingKey(context.Background(), u, key2, time.Now())
+	err := c.HasVerifyingKey(
+		context.Background(), u, key2, time.Now(),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Error(err)
 	}
@@ -170,8 +180,9 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
-	cryptPublicKeys, err := c.GetCryptPublicKeys(context.Background(),
-		keybase1.MakeTestUID(1))
+	cryptPublicKeys, err := c.GetCryptPublicKeys(
+		context.Background(), keybase1.MakeTestUID(1),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatal(err)
 	}

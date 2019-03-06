@@ -713,6 +713,7 @@ type writerInfo struct {
 	uid      keybase1.UID
 	key      kbfscrypto.VerifyingKey
 	revision kbfsmd.Revision
+	offline  keybase1.OfflineAvailability
 }
 
 // ErrorModeType indicates what type of operation was being attempted

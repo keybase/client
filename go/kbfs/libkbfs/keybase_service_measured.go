@@ -154,10 +154,12 @@ func (k KeybaseServiceMeasured) ResolveImplicitTeamByID(
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, pollForKID keybase1.KID) (userInfo UserInfo, err error) {
+func (k KeybaseServiceMeasured) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
+	offline keybase1.OfflineAvailability) (userInfo UserInfo, err error) {
 	k.loadUserPlusKeysTimer.Time(func() {
-		userInfo, err = k.delegate.LoadUserPlusKeys(ctx, uid, pollForKID)
+		userInfo, err = k.delegate.LoadUserPlusKeys(
+			ctx, uid, pollForKID, offline)
 	})
 	return userInfo, err
 }

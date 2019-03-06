@@ -545,8 +545,9 @@ func (md *MDOpsStandard) verifyKey(
 	ctx context.Context, rmds *RootMetadataSigned,
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
 	irmd ImmutableRootMetadata) (cacheable bool, err error) {
-	err = md.config.KBPKI().HasVerifyingKey(ctx, uid, verifyingKey,
-		rmds.untrustedServerTimestamp)
+	err = md.config.KBPKI().HasVerifyingKey(
+		ctx, uid, verifyingKey, rmds.untrustedServerTimestamp,
+		md.config.OfflineAvailabilityForID(irmd.TlfID()))
 	var info revokedKeyInfo
 	switch e := errors.Cause(err).(type) {
 	case nil:
