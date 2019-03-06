@@ -75,7 +75,7 @@ func TestNoteLengthLimit(t *testing.T) {
 	require.Equal(t, expect, post)
 
 	// encryption fails for content exceeding max length
-	pre.Note = pre.Note + "!"
+	pre.Note += "!"
 	encNote, err = NoteEncryptB64(libkb.NewMetaContextForTest(tc), pre, &uv2)
 	require.Error(t, err)
 	require.Equal(t, "", encNote)

@@ -1077,8 +1077,10 @@ func TestSendToSelf(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID1, "test")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID2, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID1, "test")
+	require.NoError(t, err)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID2, "test")
+	require.NoError(t, err)
 
 	page, err := tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountID1})
 	require.NoError(t, err)
@@ -1434,8 +1436,10 @@ func TestBuildPaymentLocal(t *testing.T) {
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "20")
 	tcs[0].Backend.Gift(senderSecondaryAccountID, "30")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderSecondaryAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderSecondaryAccountID, "test")
+	require.NoError(t, err)
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From:   senderAccountID,
@@ -1629,7 +1633,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	tcs[0].Backend.Gift(senderAccountID, "30")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("sending in amount composed in USD")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1813,7 +1818,8 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
 	require.NoError(t, err)
@@ -2035,7 +2041,8 @@ func TestReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("u1 proves rooter")
 	_, sigID := proveRooter(tcs[1])
@@ -2097,7 +2104,8 @@ func TestKeybaseFederationReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("u1 proves rooter")
 	_, sigID := proveRooter(tcs[1])
@@ -2156,7 +2164,8 @@ func TestReviewPaymentLocalSBS(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("u0 starts a payment")
 	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
@@ -2195,7 +2204,8 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	send := func(bid stellar1.BuildPaymentID, amount string) (errorString string) {
 		_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
@@ -2421,7 +2431,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 	fakeAccts[0].AdjustAssetBalance(0, keys)
 	fakeAccts[0].AdjustAssetBalance(0, astro)
 
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	require.NoError(t, err)
 
 	// New asset choices should be visible
 	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
@@ -2458,7 +2469,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 	// Open AstroDollars for tcs[1]
 	fakeAccts2[0].AdjustAssetBalance(0, astro)
 
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	require.NoError(t, err)
 
 	choices2, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
 		From: fakeAccts[0].accountID,

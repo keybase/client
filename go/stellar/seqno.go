@@ -35,7 +35,10 @@ func NewSeqnoProvider(mctx libkb.MetaContext, walletState *WalletState) (seqnoPr
 // SequenceForAccount implements build.SequenceProvider.
 func (s *SeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, error) {
 	s.refresh.Do(func() {
-		s.walletState.ForceSeqnoRefresh(s.mctx, stellar1.AccountID(aid))
+		err := s.walletState.ForceSeqnoRefresh(s.mctx, stellar1.AccountID(aid))
+		if err != nil {
+			s.mctx.Debug("SeqnoProvider ws.ForceSeqnoRefresh error: %s", err)
+		}
 	})
 	seqno, err := s.walletState.AccountSeqnoAndBump(s.mctx.Ctx(), stellar1.AccountID(aid))
 	if err != nil {
