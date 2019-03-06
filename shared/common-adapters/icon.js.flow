@@ -15,8 +15,9 @@ type DisallowedStyles = {
 export type Props = {
   type: IconType,
   hint?: string,
+  noClickableBox?: boolean,
   onClick?: ?(event: SyntheticEvent<Element>) => void,
-  onPress?: ?() => void,
+  onPress?: void, // Use onClick, not onPress.
   onMouseEnter?: ?() => void,
   onMouseLeave?: ?() => void,
   style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,

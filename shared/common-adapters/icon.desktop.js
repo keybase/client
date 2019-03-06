@@ -65,10 +65,10 @@ class Icon extends Component<Props, void> {
     if (fontSizeHint && fontSizeHint.fontSize === 16) {
       fontSizeHint = null
     }
-    const onClick = this.props.onClick || this.props.onPress
+    const onClick = this.props.onClick
       ? e => {
           e.stopPropagation()
-          this.props.onClick ? this.props.onClick(e) : this.props.onPress && this.props.onPress()
+          this.props.onClick && this.props.onClick(e)
         }
       : null
 

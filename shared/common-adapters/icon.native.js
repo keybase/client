@@ -123,7 +123,7 @@ class Icon extends React.PureComponent<Props> {
       }
 
       icon = (
-        <Text style={iconStyle} type={props.type} fontSize={fontSize} onPress={props.onPress}>
+        <Text style={iconStyle} type={props.type} fontSize={fontSize} onPress={props.onClick}>
           {code}
         </Text>
       )
@@ -131,7 +131,7 @@ class Icon extends React.PureComponent<Props> {
       icon = <Image source={iconMeta[iconType].require} style={iconStyle} resizeMode="contain" />
     }
 
-    return props.onClick ? (
+    return !props.noClickableBox && props.onClick ? (
       <ClickableBox
         activeOpacity={0.8}
         underlayColor={props.underlayColor || Styles.globalColors.white}
