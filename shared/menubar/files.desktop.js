@@ -18,7 +18,7 @@ type FileUpdatesProps = {|
 |}
 
 export type UserTlfUpdateRowProps = {|
-  tlf: string,
+  onClickAvatar: () => void,
   onSelectPath: () => void,
   path: FsTypes.Path,
   writer: string,
@@ -26,6 +26,7 @@ export type UserTlfUpdateRowProps = {|
   participants: Array<string>,
   teamname: string,
   timestamp: string,
+  tlf: string,
   updates: Array<FileUpdateProps>,
   username: string,
 |}
@@ -119,9 +120,7 @@ const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
-    <Kb.ClickableBox onClick={props.onSelectPath}>
-      <Kb.Avatar size={32} username={props.writer} style={styles.tlfRowAvatar} />
-    </Kb.ClickableBox>
+    <Kb.Avatar size={32} username={props.writer} style={styles.tlfRowAvatar} onClick={props.onClickAvatar} />
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
