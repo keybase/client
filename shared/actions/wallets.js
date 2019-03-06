@@ -850,7 +850,7 @@ const acceptDisclaimer = (state, action) =>
 const checkDisclaimer = state =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
     WalletsGen.createWalletDisclaimerReceived({accepted})
-  )
+  ).catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
 
 const maybeNavToLinkExisting = (state, action) =>
   action.payload.nextScreen === 'linkExisting' &&
