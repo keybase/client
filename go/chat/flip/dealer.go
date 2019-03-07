@@ -238,7 +238,7 @@ func (g *Game) setSecret(ctx context.Context, ps *GamePlayerState, secret Secret
 	if err != nil {
 		return err
 	}
-	if ps.secret != nil {
+	if ps.secret != nil && !ps.ud.Eq(g.dealer.dh.Me()) {
 		return DuplicateRevealError{G: g.md, U: ps.ud}
 	}
 	if !expected.Eq(*ps.commitment) {
@@ -314,7 +314,7 @@ func (g *Game) getPlayerState(ud UserDevice) *GamePlayerState {
 
 func (g *Game) handleCommitment(ctx context.Context, sender UserDevice, now time.Time, com Commitment) (err error) {
 	ps := g.getPlayerState(sender)
-	if ps.commitment != nil {
+	if ps.commitment != nil && !sender.Eq(g.dealer.dh.Me()) {
 		return DuplicateRegistrationError{g.md, sender}
 	}
 	if ps.leaderCommitment != nil && !ps.leaderCommitment.Eq(com) {
