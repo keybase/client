@@ -60,9 +60,12 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
         {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text selectable={true} type="Body">
-        It was likely a network problem, but they could be a jerk.
+        It was likely a network problem, but they could be trying to pull a fast one.
+      </Kb.Text>
+      <Kb.Text type="BodyPrimaryLink" onClickURL="https://keybase.io/coin-flip">
+        Learn More
       </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
