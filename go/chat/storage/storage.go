@@ -67,7 +67,6 @@ func (d DummyAssetDeleter) DeleteAssets(ctx context.Context, uid gregor1.UID, co
 }
 
 func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
-	initLocksRepoOnce(g)
 	return &Storage{
 		Contextified:     globals.NewContextified(g),
 		engine:           newBlockEngine(g),
