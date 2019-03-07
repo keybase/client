@@ -62,7 +62,7 @@ func (a *FakeAPI) GetDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWra
 	return fmt.Errorf("GetDecode is phony")
 }
 
-func (a *FakeAPI) GetResp(APIArg) (*http.Response, func(), error) {
+func (a *FakeAPI) GetResp(MetaContext, APIArg) (*http.Response, func(), error) {
 	return nil, noopFinisher, fmt.Errorf("GetResp is phony")
 }
 

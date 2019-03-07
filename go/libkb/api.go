@@ -707,8 +707,8 @@ func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
 
 // GetResp performs a GET request and returns the http response. The finisher
 // second arg should be called whenever we're done with the response (if it's non-nil).
-func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) {
-	m := arg.GetMetaContext(a.G())
+func (a *InternalAPIEngine) GetResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
+	arg.MetaContext = m
 	m = m.EnsureCtx().WithLogTag("API")
 
 	url1 := a.getURL(arg)
@@ -740,7 +740,7 @@ func (a *InternalAPIEngine) GetDecodeCtx(ctx context.Context, arg APIArg, v APIR
 
 func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
 	arg.MetaContext = m
-	resp, finisher, err := a.GetResp(arg)
+	resp, finisher, err := a.GetResp(m, arg)
 	if err != nil {
 		m.Debug("| API GetDecode, GetResp error: %s", err)
 		return err
