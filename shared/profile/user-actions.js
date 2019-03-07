@@ -5,7 +5,6 @@ import FollowButton from './follow-button'
 import {normal as proofNormal} from '../constants/tracker'
 import * as Styles from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
-import flags from '../util/feature-flags'
 import openUrl from '../util/open-url'
 
 type Props = {|
@@ -106,52 +105,38 @@ const _makeDropdownButtonMenuItems = (props: DropdownProps) => [
     title: 'Add to team...',
   },
 
-  ...(flags.walletsEnabled
-    ? [
-        {
-          onClick: props.onSendLumens,
-          title: 'Send Lumens (XLM)',
-          view: (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-              <Kb.Text
-                center={Styles.isMobile}
-                style={styles.menuItemText}
-                type={Styles.isMobile ? 'BodyBig' : 'Body'}
-              >
-                Send Lumens (XLM)
-              </Kb.Text>
-              <Kb.Meta
-                title="New"
-                size="Small"
-                backgroundColor={Styles.globalColors.blue}
-                style={styles.badge}
-              />
-            </Kb.Box2>
-          ),
-        },
-        {
-          onClick: props.onRequestLumens,
-          title: 'Request Lumens (XLM)',
-          view: (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-              <Kb.Text
-                center={Styles.isMobile}
-                style={styles.menuItemText}
-                type={Styles.isMobile ? 'BodyBig' : 'Body'}
-              >
-                Request Lumens (XLM)
-              </Kb.Text>
-              <Kb.Meta
-                title="New"
-                size="Small"
-                backgroundColor={Styles.globalColors.blue}
-                style={styles.badge}
-              />
-            </Kb.Box2>
-          ),
-        },
-      ]
-    : []),
+  {
+    onClick: props.onSendLumens,
+    title: 'Send Lumens (XLM)',
+    view: (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+        <Kb.Text
+          center={Styles.isMobile}
+          style={styles.menuItemText}
+          type={Styles.isMobile ? 'BodyBig' : 'Body'}
+        >
+          Send Lumens (XLM)
+        </Kb.Text>
+        <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+      </Kb.Box2>
+    ),
+  },
+  {
+    onClick: props.onRequestLumens,
+    title: 'Request Lumens (XLM)',
+    view: (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+        <Kb.Text
+          center={Styles.isMobile}
+          style={styles.menuItemText}
+          type={Styles.isMobile ? 'BodyBig' : 'Body'}
+        >
+          Request Lumens (XLM)
+        </Kb.Text>
+        <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+      </Kb.Box2>
+    ),
+  },
 
   ...(!Styles.isMobile
     ? [

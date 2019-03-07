@@ -24,16 +24,23 @@ type PaymentStatusUpdate struct {
 	Status    stellar1.PaymentStatus
 }
 
+const (
+	maxPayments = 1000
+	maxRequests = 1000
+)
+
 type Loader struct {
 	libkb.Contextified
 
 	payments  map[stellar1.PaymentID]*stellar1.PaymentLocal
 	pmessages map[stellar1.PaymentID]chatMsg
 	pqueue    chan stellar1.PaymentID
+	plist     []stellar1.PaymentID
 
 	requests  map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal
 	rmessages map[stellar1.KeybaseRequestID]chatMsg
 	rqueue    chan stellar1.KeybaseRequestID
+	rlist     []stellar1.KeybaseRequestID
 
 	listeners map[string]chan PaymentStatusUpdate
 
@@ -226,12 +233,14 @@ func (p *Loader) Shutdown() error {
 func (p *Loader) runPayments() {
 	for id := range p.pqueue {
 		p.loadPayment(id)
+		p.cleanPayments(maxPayments)
 	}
 }
 
 func (p *Loader) runRequests() {
 	for id := range p.rqueue {
 		p.loadRequest(id)
+		p.cleanRequests(maxRequests)
 	}
 }
 
@@ -256,9 +265,7 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 		return
 	}
 
-	p.Lock()
-	p.payments[id] = summary
-	p.Unlock()
+	p.storePayment(id, summary)
 
 	p.sendPaymentNotification(mctx, id, summary)
 }
@@ -282,16 +289,9 @@ func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
 		return
 	}
 
-	isUpdate := false
-	p.Lock()
-	existing, ok := p.requests[id]
-	if !ok || local.Status != existing.Status {
-		// must be a newly loaded request or the status changed for
-		// a notification to be sent below
-		isUpdate = true
-	}
-	p.requests[id] = local
-	p.Unlock()
+	// must be a newly loaded request or the status changed for
+	// a notification to be sent below
+	isUpdate := p.storeRequest(id, local)
 
 	if isUpdate {
 		p.sendRequestNotification(m, id, local)
@@ -355,7 +355,10 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 
 	if info.AccountID != nil && summary.StatusSimplified != stellar1.PaymentStatus_PENDING {
 		// let WalletState know
-		p.G().GetStellar().RemovePendingTx(m, *info.AccountID, stellar1.TransactionIDFromPaymentID(id))
+		err := p.G().GetStellar().RemovePendingTx(m, *info.AccountID, stellar1.TransactionIDFromPaymentID(id))
+		if err != nil {
+			m.Debug("ws.RemovePendingTx error: %s", err)
+		}
 		p.Lock()
 		for _, ch := range p.listeners {
 			ch <- PaymentStatusUpdate{AccountID: *info.AccountID, TxID: stellar1.TransactionIDFromPaymentID(id), Status: summary.StatusSimplified}
@@ -409,4 +412,79 @@ func (p *Loader) enqueueRequest(requestID stellar1.KeybaseRequestID) {
 	default:
 		p.G().Log.Debug("stellar.Loader request queue full")
 	}
+}
+
+func (p *Loader) storePayment(id stellar1.PaymentID, payment *stellar1.PaymentLocal) {
+	p.Lock()
+	p.payments[id] = payment
+	p.plist = append(p.plist, id)
+	p.Unlock()
+}
+
+// storeRequest returns true if it updated an existing value.
+func (p *Loader) storeRequest(id stellar1.KeybaseRequestID, request *stellar1.RequestDetailsLocal) (isUpdate bool) {
+	p.Lock()
+	x, ok := p.requests[id]
+	if !ok || x.Status != request.Status {
+		isUpdate = true
+	}
+	p.requests[id] = request
+	p.rlist = append(p.rlist, id)
+	p.Unlock()
+
+	return isUpdate
+}
+
+func (p *Loader) PaymentsLen() int {
+	p.Lock()
+	defer p.Unlock()
+	return len(p.payments)
+}
+
+func (p *Loader) RequestsLen() int {
+	p.Lock()
+	defer p.Unlock()
+	return len(p.requests)
+}
+
+func (p *Loader) cleanPayments(n int) int {
+	p.Lock()
+	defer p.Unlock()
+
+	var deleted int
+	toDelete := len(p.payments) - n
+	if toDelete <= 0 {
+		return 0
+	}
+
+	for i := 0; i < toDelete; i++ {
+		delete(p.payments, p.plist[i])
+		delete(p.pmessages, p.plist[i])
+		deleted++
+	}
+
+	p.plist = p.plist[toDelete:]
+
+	return deleted
+}
+
+func (p *Loader) cleanRequests(n int) int {
+	p.Lock()
+	defer p.Unlock()
+
+	var deleted int
+	toDelete := len(p.requests) - n
+	if toDelete <= 0 {
+		return 0
+	}
+
+	for i := 0; i < toDelete; i++ {
+		delete(p.requests, p.rlist[i])
+		delete(p.rmessages, p.rlist[i])
+		deleted++
+	}
+
+	p.rlist = p.rlist[toDelete:]
+
+	return deleted
 }

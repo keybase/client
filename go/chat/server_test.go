@@ -6009,6 +6009,10 @@ func (m *mockStellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []li
 	return m.specFn(payments)
 }
 
+func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
+	return false, false
+}
+
 type xlmDeclineChatUI struct {
 	*kbtest.ChatUI
 }

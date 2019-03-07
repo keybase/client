@@ -41,6 +41,8 @@ type DiskBlockCacheMetadata struct {
 	Tag string
 }
 
+// PrefetchStatus returns the overall prefetch status corresponding to
+// this metadata.
 func (dbcm DiskBlockCacheMetadata) PrefetchStatus() PrefetchStatus {
 	if dbcm.FinishedPrefetch {
 		return FinishedPrefetch

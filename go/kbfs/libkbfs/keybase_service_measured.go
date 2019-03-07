@@ -98,10 +98,12 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 }
 
 // Resolve implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) Resolve(ctx context.Context, assertion string) (
+func (k KeybaseServiceMeasured) Resolve(
+	ctx context.Context, assertion string,
+	offline keybase1.OfflineAvailability) (
 	name kbname.NormalizedUsername, uid keybase1.UserOrTeamID, err error) {
 	k.resolveTimer.Time(func() {
-		name, uid, err = k.delegate.Resolve(ctx, assertion)
+		name, uid, err = k.delegate.Resolve(ctx, assertion, offline)
 	})
 	return name, uid, err
 }
@@ -161,11 +163,12 @@ func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
 func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 	tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
 	desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
-	desiredRole keybase1.TeamRole) (teamInfo TeamInfo, err error) {
+	desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
+	teamInfo TeamInfo, err error) {
 	k.loadTeamPlusKeysTimer.Time(func() {
 		teamInfo, err = k.delegate.LoadTeamPlusKeys(
 			ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey,
-			desiredRole)
+			desiredRole, offline)
 	})
 	return teamInfo, err
 }
@@ -183,10 +186,11 @@ func (k KeybaseServiceMeasured) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (
 	settings keybase1.KBFSTeamSettings, err error) {
 	k.getTeamSettingsTimer.Time(func() {
-		settings, err = k.delegate.GetTeamSettings(ctx, teamID)
+		settings, err = k.delegate.GetTeamSettings(ctx, teamID, offline)
 	})
 	return settings, err
 }
@@ -243,7 +247,7 @@ func (k KeybaseServiceMeasured) FavoriteDelete(ctx context.Context, folder keyba
 // FavoriteList implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) FavoriteList(ctx context.Context, sessionID int) (
-	favorites []keybase1.Folder, err error) {
+	favorites keybase1.FavoritesResult, err error) {
 	k.favoriteListTimer.Time(func() {
 		favorites, err = k.delegate.FavoriteList(ctx, sessionID)
 	})

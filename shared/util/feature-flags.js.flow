@@ -7,13 +7,12 @@ export type FeatureFlags = {|
   foldersInProfileTab: boolean,
   identify3: boolean,
   moveOrCopy: boolean,
-  newTeamBuildingForChat: boolean,
   // Enables the "Add up to 14 more people. Need more? Make it a team." feature
   newTeamBuildingForChatAllowMakeTeam: boolean,
   outOfDateBanner: boolean,
   plansEnabled: boolean,
+  proofProviders: boolean,
   useNewRouter: boolean,
-  walletsEnabled: boolean,
 |}
 
 declare var ff: FeatureFlags

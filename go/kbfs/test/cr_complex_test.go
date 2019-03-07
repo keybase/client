@@ -1082,3 +1082,33 @@ func TestCrDoubleMergedDeleteAndRecreate(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for KBFS-3915.
+func TestCrSetMtimeOnCreatedDir(t *testing.T) {
+	targetMtime1 := time.Now().Add(1 * time.Minute)
+	targetMtime2 := targetMtime1.Add(1 * time.Minute)
+	test(t, batchSize(1),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkdir("a/b/c"),
+			setmtime("a/b", targetMtime1),
+		),
+		as(bob, noSync(),
+			mkdir("a/b/c"),
+			setmtime("a/b", targetMtime2),
+			reenableUpdates(),
+			mtime("a/b", targetMtime1),
+			mtime(crname("a/b", bob), targetMtime2),
+		),
+		as(alice,
+			mtime("a/b", targetMtime1),
+			mtime(crname("a/b", bob), targetMtime2),
+		),
+	)
+}

@@ -939,6 +939,27 @@ func NetworkOptions(ctx context.Context, g *libkb.GlobalContext) (stellar1.Netwo
 	return apiRes.Options, nil
 }
 
+type detailsPlusPaymentsRes struct {
+	libkb.AppStatusEmbed
+	Result stellar1.DetailsPlusPayments `json:"res"`
+}
+
+func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/details_plus_payments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: libkb.NewMetaContext(ctx, g),
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+		},
+	}
+	var apiRes detailsPlusPaymentsRes
+	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return stellar1.DetailsPlusPayments{}, err
+	}
+	return apiRes.Result, nil
+}
+
 type airdropDetails struct {
 	libkb.AppStatusEmbed
 	Details json.RawMessage `json:"details"`

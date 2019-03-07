@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
@@ -117,7 +116,8 @@ const openPathInSystemFileManager = (state, action) =>
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
             _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
-            state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
+            !['in-group-tlf', 'in-team-tlf'].includes(Constants.parsePath(action.payload.path).kind) ||
+              state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
           )
         )
         .catch(err => {
@@ -189,7 +189,7 @@ function* installFuseSaga() {
   if (kextPermissionError) {
     // Add a small delay here, since on 10.13 the OS will be a little laggy
     // when showing a kext permission error.
-    yield Saga.delay(1e3)
+    yield Saga.delay(1000)
   }
 
   yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
@@ -315,32 +315,11 @@ const openAndUpload = (state, action) =>
   )
 
 const loadUserFileEdits = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits => {
-    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
-    const updateSet = tlfUpdates
-      .reduce(
-        (acc: I.Set<Types.Path>, u) =>
-          Types.getPathElements(u.path).reduce((acc, e, i, a) => {
-            if (i < 2) return acc
-            const path = Types.getPathFromElements(a.slice(0, i + 1))
-            return acc.add(path)
-          }, acc),
-        I.Set()
-      )
-      .toArray()
-    // TODO (songgao): make a new action that accepts an array of updates,
-    // so that we only need to trigger one update through store/rpc/widget
-    // for all these each time.
-    return [
-      ...updateSet.map(path =>
-        FsGen.createFilePreviewLoad({
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          path,
-        })
-      ),
-      FsGen.createUserFileEditsLoaded({tlfUpdates}),
-    ]
-  })
+  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
+    FsGen.createUserFileEditsLoaded({
+      tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
+    })
+  )
 
 const openFilesFromWidget = (state, {payload: {path, type}}) => [
   ConfigGen.createShowMain(),
@@ -356,8 +335,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload | FsGen.FuseStatusPayload>(
-    [ConfigGen.setupEngineListeners, FsGen.fuseStatus],
+  yield* Saga.chainGenerator<FsGen.KbfsDaemonConnectedPayload | FsGen.FuseStatusPayload>(
+    [FsGen.kbfsDaemonConnected, FsGen.fuseStatus],
     fuseStatusSaga
   )
   yield* Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)
@@ -378,6 +357,10 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
       uninstallKBFSConfirm
     )
   }
+  yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
+    FsGen.openSecurityPreferences,
+    openSecurityPreferences
+  )
   yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
     FsGen.openSecurityPreferences,
     openSecurityPreferences

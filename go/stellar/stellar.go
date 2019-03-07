@@ -300,7 +300,7 @@ func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (st
 	case nil:
 		// ok
 	case libkb.AppStatusError:
-		if libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarMissingAccount) {
+		if libkb.IsAppStatusCode(err, keybase1.StatusCode_SCStellarMissingAccount) {
 			mctx.Debug("suppressing error: %v", err)
 			err = err.WithDesc("Sender account not found")
 		}
@@ -662,10 +662,16 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	mctx.Debug("SEQNO SubmitPayment success seqno: %d txID: %s", seqno, rres.StellarID)
 	if !rres.Pending {
 		mctx.Debug("SubmitPayment result wasn't pending, removing from wallet state: %s/%s", senderAccountID, txID)
-		walletState.RemovePendingTx(mctx.Ctx(), senderAccountID, stellar1.TransactionID(txID))
+		err = walletState.RemovePendingTx(mctx.Ctx(), senderAccountID, stellar1.TransactionID(txID))
+		if err != nil {
+			mctx.Debug("SubmitPayment ws.RemovePendingTx error: %s", err)
+		}
 	}
 
-	walletState.Refresh(mctx, senderEntry.AccountID, "SubmitPayment")
+	err = walletState.Refresh(mctx, senderEntry.AccountID, "SubmitPayment")
+	if err != nil {
+		mctx.Debug("SubmitPayment ws.Refresh error: %s", err)
+	}
 
 	if senderEntry.IsPrimary {
 		sendChat := func(mctx libkb.MetaContext) {
@@ -1510,7 +1516,7 @@ func assertAssetIsSane(asset stellar1.Asset) error {
 		return fmt.Errorf("unrecognized asset type: %v", asset.Type)
 	}
 	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
-	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
+	if len(asset.Code) == 0 || len(asset.Code) >= 20 {
 		return fmt.Errorf("invalid asset code: %v", asset.Code)
 	}
 	return nil
@@ -1971,9 +1977,12 @@ func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
 	}
 	g.Log.Debug("RefreshUnreadCount got details for stellar account %s", accountID)
 
-	s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
-
-	g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
+	err = s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
+	if err != nil {
+		g.Log.Debug("RefreshUnreadCount UpdateUnreadCount error: %s", err)
+	} else {
+		g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
+	}
 }
 
 // Get a per-user key.
@@ -2101,7 +2110,10 @@ func AccountDetails(mctx libkb.MetaContext, remoter remote.Remoter, accountID st
 		return details, err
 	}
 
-	mctx.G().GetStellar().UpdateUnreadCount(mctx.Ctx(), accountID, details.UnreadPayments)
+	err = mctx.G().GetStellar().UpdateUnreadCount(mctx.Ctx(), accountID, details.UnreadPayments)
+	if err != nil {
+		mctx.Debug("AccountDetails UpdateUnreadCount error: %s", err)
+	}
 
 	return details, nil
 }

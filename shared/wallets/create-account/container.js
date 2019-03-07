@@ -5,6 +5,7 @@ import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 
@@ -18,14 +19,18 @@ const mapStateToProps = (state, {routeProps}: OwnProps) => ({
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
   onCancel: () => navigateUp && dispatch(navigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
-  onCreateAccount: (name: string) =>
+  onCreateAccount: (name: string) => {
     dispatch(
       WalletsGen.createCreateNewAccount({
         name,
         setBuildingTo: routeProps.get('fromSendForm'),
         showOnCreation: routeProps.get('showOnCreation'),
       })
-    ),
+    )
+    if (flags.useNewRouter) {
+      dispatch(navigateUp())
+    }
+  },
   onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },

@@ -127,8 +127,8 @@ var fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)
 
 func DbKeyParse(s string) (string, DbKey, error) {
 	v := strings.Split(s, ":")
-	if len(v) != 3 {
-		return "", DbKey{}, fmt.Errorf("expected 3 colon-separated fields")
+	if len(v) < 3 {
+		return "", DbKey{}, fmt.Errorf("expected 3 colon-separated fields, found %d", len(v))
 	}
 
 	if !fieldExp.MatchString(v[1]) {
@@ -139,7 +139,11 @@ func DbKeyParse(s string) (string, DbKey, error) {
 	if err != nil {
 		return "", DbKey{}, err
 	}
-	return v[0], DbKey{ObjType(b), v[2]}, nil
+	dbKey := DbKey{
+		Typ: ObjType(b),
+		Key: strings.Join(v[2:], ":"),
+	}
+	return v[0], dbKey, nil
 }
 
 func jsonLocalDbPut(ops LocalDbOps, id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {

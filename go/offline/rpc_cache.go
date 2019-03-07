@@ -123,12 +123,12 @@ func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, 
 
 // Serve an RPC out of the offline cache. The machinery only kicks into gear if the `oa` OfflineAvailability mode is set
 // to BEST_EFFORT. If not, then just use the function `handler` which does the main work of handling the RPC. Note that
-// `handler` already has the argument "baked up", and also, is responsibly for setting a result of the right type in the
-// caller's stack frame. `handler` also returns the return value for the RPC as an inteface, so it can be inserted into
-// the offline cache in the success case. We also pass this function a `version`, which will tell the cache-access
-// machinery to fail if the wrong version of the data is cached. Next, we pass the `rpcName`, the argument, and the pointer
-// to which the result is stored if we hit the cache. This flow is unfortunately complicated, but the issue is that
-// we're trying to maintain runtime type checking, and it's hard to do without generics.
+// `handler` already has the argument "baked in" or "curried in", and also, is responsible for setting a result of the
+// right type in the caller's stack frame. `handler` also returns the return value for the RPC as an inteface, so it
+// can be inserted into the offline cache in the success case. We also pass this function a `version`, which will tell
+// the cache-access machinery to fail if the wrong version of the data is cached. Next, we pass the `rpcName`, the
+// argument, and the pointer to which the result is stored if we hit the cache. This flow is unfortunately complicated,
+// but the issue is that we're trying to maintain runtime type checking, and it's hard to do without generics.
 func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability, version Version, rpcName string, encrypted bool, arg interface{}, res interface{},
 	handler func(mctx libkb.MetaContext) (interface{}, error)) (err error) {
 

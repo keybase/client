@@ -209,14 +209,16 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 }
 
 type MessageFlip struct {
-	Text   string     `codec:"text" json:"text"`
-	GameID FlipGameID `codec:"gameID" json:"gameID"`
+	Text       string         `codec:"text" json:"text"`
+	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
+	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
 }
 
 func (o MessageFlip) DeepCopy() MessageFlip {
 	return MessageFlip{
-		Text:   o.Text,
-		GameID: o.GameID.DeepCopy(),
+		Text:       o.Text,
+		GameID:     o.GameID.DeepCopy(),
+		FlipConvID: o.FlipConvID.DeepCopy(),
 	}
 }
 
@@ -2791,6 +2793,7 @@ type ConversationInfoLocal struct {
 	TeamType     TeamType                       `codec:"teamType" json:"teamType"`
 	Existence    ConversationExistence          `codec:"existence" json:"existence"`
 	Version      ConversationVers               `codec:"version" json:"version"`
+	LocalVersion LocalConversationVers          `codec:"localVersion" json:"localVersion"`
 	Participants []ConversationLocalParticipant `codec:"participants" json:"participants"`
 	FinalizeInfo *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	ResetNames   []string                       `codec:"resetNames" json:"resetNames"`
@@ -2817,6 +2820,7 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 		TeamType:     o.TeamType.DeepCopy(),
 		Existence:    o.Existence.DeepCopy(),
 		Version:      o.Version.DeepCopy(),
+		LocalVersion: o.LocalVersion.DeepCopy(),
 		Participants: (func(x []ConversationLocalParticipant) []ConversationLocalParticipant {
 			if x == nil {
 				return nil

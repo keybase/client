@@ -14,12 +14,11 @@ const ff: FeatureFlags = {
   foldersInProfileTab: false,
   identify3: true,
   moveOrCopy: true,
-  newTeamBuildingForChat: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
+  proofProviders: false,
   useNewRouter: false,
-  walletsEnabled: true,
 }
 
 // load overrides

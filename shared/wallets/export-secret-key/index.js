@@ -55,7 +55,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         />
         {!Styles.isMobile && header}
         <Box2 direction="horizontal" style={styles.warningContainer}>
-          <Text center={true} type="BodySmallSemibold">
+          <Text center={true} type="BodySmallSemibold" style={styles.warningText}>
             Only paste your secret key in 100% safe places. Anyone with this key could steal your
             Stellar&nbsp;account.
           </Text>
@@ -136,5 +136,8 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.medium,
     padding: Styles.globalMargins.xsmall,
     width: '100%',
+  },
+  warningText: {
+    color: Styles.globalColors.brown_75,
   },
 })

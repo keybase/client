@@ -12,7 +12,6 @@ import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
-import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {getFullname} from '../users'
 
@@ -68,6 +67,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     channelname,
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
+    inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
@@ -123,8 +123,12 @@ export const updateMeta = (
     // new is older, keep old
     return oldMeta
   } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {
-    // same version, only take data if untrusted -> trusted
-    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') {
+    // same version, take data if untrusted -> trusted
+    // or if localVersion increased
+    if (
+      (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') ||
+      newMeta.inboxLocalVersion > oldMeta.inboxLocalVersion
+    ) {
       // prettier-ignore
       return newMeta.withMutations(nm => {
         // keep immutable stuff to reduce render thrashing
@@ -134,11 +138,6 @@ export const updateMeta = (
         I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
         I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
       })
-    }
-    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState === 'trusted') {
-      // TODO DESKTOP-9068 check localInboxVersion and take newMeta if it's higher
-      // For now take oldMeta + new snippet in case the last message exploded
-      return oldMeta.set('snippet', newMeta.snippet).set('snippetDecoration', newMeta.snippetDecoration)
     }
     return oldMeta
   }
@@ -261,6 +260,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: i.headline,
+    inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
@@ -293,6 +293,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   commands: {},
   conversationIDKey: noConversationIDKey,
   description: '',
+  inboxLocalVersion: -1,
   inboxVersion: -1,
   isMuted: false,
   maxMsgID: -1,
@@ -378,7 +379,6 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (
-    flags.walletsEnabled &&
     !sendDisabled &&
     meta.teamType === 'adhoc' &&
     meta.participants.filter(u => u !== state.config.username).size === 1

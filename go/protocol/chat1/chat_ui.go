@@ -81,6 +81,7 @@ type UnverifiedInboxUIItem struct {
 	Notifications   *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time            gregor1.Time                   `codec:"time" json:"time"`
 	Version         ConversationVers               `codec:"version" json:"version"`
+	LocalVersion    LocalConversationVers          `codec:"localVersion" json:"localVersion"`
 	ConvRetention   *RetentionPolicy               `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention   *RetentionPolicy               `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	MaxMsgID        MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
@@ -111,8 +112,9 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time:    o.Time.DeepCopy(),
-		Version: o.Version.DeepCopy(),
+		Time:         o.Time.DeepCopy(),
+		Version:      o.Version.DeepCopy(),
+		LocalVersion: o.LocalVersion.DeepCopy(),
 		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
 			if x == nil {
 				return nil
@@ -222,6 +224,7 @@ type InboxUIItem struct {
 	Notifications     *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
+	LocalVersion      LocalConversationVers         `codec:"localVersion" json:"localVersion"`
 	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
 	MaxVisibleMsgID   MessageID                     `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
 	ReadMsgID         MessageID                     `codec:"readMsgID" json:"readMsgID"`
@@ -300,6 +303,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			return &tmp
 		})(o.CreatorInfo),
 		Version:         o.Version.DeepCopy(),
+		LocalVersion:    o.LocalVersion.DeepCopy(),
 		MaxMsgID:        o.MaxMsgID.DeepCopy(),
 		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
 		ReadMsgID:       o.ReadMsgID.DeepCopy(),
@@ -1170,29 +1174,29 @@ func (e UICoinFlipPhase) String() string {
 	return ""
 }
 
-type UICoinFlipAbsentee struct {
+type UICoinFlipErrorParticipant struct {
 	User   string `codec:"user" json:"user"`
 	Device string `codec:"device" json:"device"`
 }
 
-func (o UICoinFlipAbsentee) DeepCopy() UICoinFlipAbsentee {
-	return UICoinFlipAbsentee{
+func (o UICoinFlipErrorParticipant) DeepCopy() UICoinFlipErrorParticipant {
+	return UICoinFlipErrorParticipant{
 		User:   o.User,
 		Device: o.Device,
 	}
 }
 
 type UICoinFlipAbsenteeError struct {
-	Absentees []UICoinFlipAbsentee `codec:"absentees" json:"absentees"`
+	Absentees []UICoinFlipErrorParticipant `codec:"absentees" json:"absentees"`
 }
 
 func (o UICoinFlipAbsenteeError) DeepCopy() UICoinFlipAbsenteeError {
 	return UICoinFlipAbsenteeError{
-		Absentees: (func(x []UICoinFlipAbsentee) []UICoinFlipAbsentee {
+		Absentees: (func(x []UICoinFlipErrorParticipant) []UICoinFlipErrorParticipant {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UICoinFlipAbsentee, len(x))
+			ret := make([]UICoinFlipErrorParticipant, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -1205,20 +1209,38 @@ func (o UICoinFlipAbsenteeError) DeepCopy() UICoinFlipAbsenteeError {
 type UICoinFlipErrorTyp int
 
 const (
-	UICoinFlipErrorTyp_GENERIC  UICoinFlipErrorTyp = 0
-	UICoinFlipErrorTyp_ABSENTEE UICoinFlipErrorTyp = 1
+	UICoinFlipErrorTyp_GENERIC           UICoinFlipErrorTyp = 0
+	UICoinFlipErrorTyp_ABSENTEE          UICoinFlipErrorTyp = 1
+	UICoinFlipErrorTyp_TIMEOUT           UICoinFlipErrorTyp = 2
+	UICoinFlipErrorTyp_ABORTED           UICoinFlipErrorTyp = 3
+	UICoinFlipErrorTyp_DUPREG            UICoinFlipErrorTyp = 4
+	UICoinFlipErrorTyp_DUPCOMMITCOMPLETE UICoinFlipErrorTyp = 5
+	UICoinFlipErrorTyp_DUPREVEAL         UICoinFlipErrorTyp = 6
+	UICoinFlipErrorTyp_COMMITMISMATCH    UICoinFlipErrorTyp = 7
 )
 
 func (o UICoinFlipErrorTyp) DeepCopy() UICoinFlipErrorTyp { return o }
 
 var UICoinFlipErrorTypMap = map[string]UICoinFlipErrorTyp{
-	"GENERIC":  0,
-	"ABSENTEE": 1,
+	"GENERIC":           0,
+	"ABSENTEE":          1,
+	"TIMEOUT":           2,
+	"ABORTED":           3,
+	"DUPREG":            4,
+	"DUPCOMMITCOMPLETE": 5,
+	"DUPREVEAL":         6,
+	"COMMITMISMATCH":    7,
 }
 
 var UICoinFlipErrorTypRevMap = map[UICoinFlipErrorTyp]string{
 	0: "GENERIC",
 	1: "ABSENTEE",
+	2: "TIMEOUT",
+	3: "ABORTED",
+	4: "DUPREG",
+	5: "DUPCOMMITCOMPLETE",
+	6: "DUPREVEAL",
+	7: "COMMITMISMATCH",
 }
 
 func (e UICoinFlipErrorTyp) String() string {
@@ -1229,9 +1251,13 @@ func (e UICoinFlipErrorTyp) String() string {
 }
 
 type UICoinFlipError struct {
-	Typ__      UICoinFlipErrorTyp       `codec:"typ" json:"typ"`
-	Generic__  *string                  `codec:"generic,omitempty" json:"generic,omitempty"`
-	Absentee__ *UICoinFlipAbsenteeError `codec:"absentee,omitempty" json:"absentee,omitempty"`
+	Typ__               UICoinFlipErrorTyp          `codec:"typ" json:"typ"`
+	Generic__           *string                     `codec:"generic,omitempty" json:"generic,omitempty"`
+	Absentee__          *UICoinFlipAbsenteeError    `codec:"absentee,omitempty" json:"absentee,omitempty"`
+	Dupreg__            *UICoinFlipErrorParticipant `codec:"dupreg,omitempty" json:"dupreg,omitempty"`
+	Dupcommitcomplete__ *UICoinFlipErrorParticipant `codec:"dupcommitcomplete,omitempty" json:"dupcommitcomplete,omitempty"`
+	Dupreveal__         *UICoinFlipErrorParticipant `codec:"dupreveal,omitempty" json:"dupreveal,omitempty"`
+	Commitmismatch__    *UICoinFlipErrorParticipant `codec:"commitmismatch,omitempty" json:"commitmismatch,omitempty"`
 }
 
 func (o *UICoinFlipError) Typ() (ret UICoinFlipErrorTyp, err error) {
@@ -1244,6 +1270,26 @@ func (o *UICoinFlipError) Typ() (ret UICoinFlipErrorTyp, err error) {
 	case UICoinFlipErrorTyp_ABSENTEE:
 		if o.Absentee__ == nil {
 			err = errors.New("unexpected nil value for Absentee__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPREG:
+		if o.Dupreg__ == nil {
+			err = errors.New("unexpected nil value for Dupreg__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPCOMMITCOMPLETE:
+		if o.Dupcommitcomplete__ == nil {
+			err = errors.New("unexpected nil value for Dupcommitcomplete__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_DUPREVEAL:
+		if o.Dupreveal__ == nil {
+			err = errors.New("unexpected nil value for Dupreveal__")
+			return ret, err
+		}
+	case UICoinFlipErrorTyp_COMMITMISMATCH:
+		if o.Commitmismatch__ == nil {
+			err = errors.New("unexpected nil value for Commitmismatch__")
 			return ret, err
 		}
 	}
@@ -1270,6 +1316,46 @@ func (o UICoinFlipError) Absentee() (res UICoinFlipAbsenteeError) {
 	return *o.Absentee__
 }
 
+func (o UICoinFlipError) Dupreg() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPREG {
+		panic("wrong case accessed")
+	}
+	if o.Dupreg__ == nil {
+		return
+	}
+	return *o.Dupreg__
+}
+
+func (o UICoinFlipError) Dupcommitcomplete() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPCOMMITCOMPLETE {
+		panic("wrong case accessed")
+	}
+	if o.Dupcommitcomplete__ == nil {
+		return
+	}
+	return *o.Dupcommitcomplete__
+}
+
+func (o UICoinFlipError) Dupreveal() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_DUPREVEAL {
+		panic("wrong case accessed")
+	}
+	if o.Dupreveal__ == nil {
+		return
+	}
+	return *o.Dupreveal__
+}
+
+func (o UICoinFlipError) Commitmismatch() (res UICoinFlipErrorParticipant) {
+	if o.Typ__ != UICoinFlipErrorTyp_COMMITMISMATCH {
+		panic("wrong case accessed")
+	}
+	if o.Commitmismatch__ == nil {
+		return
+	}
+	return *o.Commitmismatch__
+}
+
 func NewUICoinFlipErrorWithGeneric(v string) UICoinFlipError {
 	return UICoinFlipError{
 		Typ__:     UICoinFlipErrorTyp_GENERIC,
@@ -1281,6 +1367,46 @@ func NewUICoinFlipErrorWithAbsentee(v UICoinFlipAbsenteeError) UICoinFlipError {
 	return UICoinFlipError{
 		Typ__:      UICoinFlipErrorTyp_ABSENTEE,
 		Absentee__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithTimeout() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: UICoinFlipErrorTyp_TIMEOUT,
+	}
+}
+
+func NewUICoinFlipErrorWithAborted() UICoinFlipError {
+	return UICoinFlipError{
+		Typ__: UICoinFlipErrorTyp_ABORTED,
+	}
+}
+
+func NewUICoinFlipErrorWithDupreg(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:    UICoinFlipErrorTyp_DUPREG,
+		Dupreg__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithDupcommitcomplete(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:               UICoinFlipErrorTyp_DUPCOMMITCOMPLETE,
+		Dupcommitcomplete__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithDupreveal(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:       UICoinFlipErrorTyp_DUPREVEAL,
+		Dupreveal__: &v,
+	}
+}
+
+func NewUICoinFlipErrorWithCommitmismatch(v UICoinFlipErrorParticipant) UICoinFlipError {
+	return UICoinFlipError{
+		Typ__:            UICoinFlipErrorTyp_COMMITMISMATCH,
+		Commitmismatch__: &v,
 	}
 }
 
@@ -1301,6 +1427,34 @@ func (o UICoinFlipError) DeepCopy() UICoinFlipError {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Absentee__),
+		Dupreg__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupreg__),
+		Dupcommitcomplete__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupcommitcomplete__),
+		Dupreveal__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Dupreveal__),
+		Commitmismatch__: (func(x *UICoinFlipErrorParticipant) *UICoinFlipErrorParticipant {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Commitmismatch__),
 	}
 }
 
@@ -1729,8 +1883,8 @@ type ChatStellarDataConfirmArg struct {
 }
 
 type ChatStellarDataErrorArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Message   string `codec:"message" json:"message"`
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Error     keybase1.Status `codec:"error" json:"error"`
 }
 
 type ChatStellarDoneArg struct {
@@ -1742,6 +1896,12 @@ type ChatGiphySearchResultsArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
 	ConvID    string              `codec:"convID" json:"convID"`
 	Results   []GiphySearchResult `codec:"results" json:"results"`
+}
+
+type ChatGiphyToggleResultWindowArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	ConvID    string `codec:"convID" json:"convID"`
+	Show      bool   `codec:"show" json:"show"`
 }
 
 type ChatShowManageChannelsArg struct {
@@ -1780,6 +1940,7 @@ type ChatUiInterface interface {
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
 	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
+	ChatGiphyToggleResultWindow(context.Context, ChatGiphyToggleResultWindowArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
@@ -2074,6 +2235,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatGiphyToggleResultWindow": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatGiphyToggleResultWindowArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatGiphyToggleResultWindowArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatGiphyToggleResultWindowArg)(nil), args)
+						return
+					}
+					err = i.ChatGiphyToggleResultWindow(ctx, typedArgs[0])
+					return
+				},
+			},
 			"chatShowManageChannels": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatShowManageChannelsArg
@@ -2222,6 +2398,11 @@ func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDone
 
 func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiphySearchResultsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatGiphyToggleResultWindow(ctx context.Context, __arg ChatGiphyToggleResultWindowArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphyToggleResultWindow", []interface{}{__arg}, nil)
 	return
 }
 

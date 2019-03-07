@@ -20,6 +20,7 @@ func TestEditHistorySimple(t *testing.T) {
 			keybase1.FolderType_PRIVATE,
 			"bob",
 			[]string{"/keybase/private/alice,bob/a/b"},
+			nil,
 		},
 	}
 	// Alice writes one file.
@@ -29,6 +30,7 @@ func TestEditHistorySimple(t *testing.T) {
 			keybase1.FolderType_PRIVATE,
 			"alice",
 			[]string{"/keybase/private/alice,bob/a/c"},
+			nil,
 		},
 		expectedEdits1[0],
 	}
@@ -36,6 +38,17 @@ func TestEditHistorySimple(t *testing.T) {
 	expectedEdits3 := []expectedEdit{
 		expectedEdits1[0],
 		expectedEdits2[0],
+	}
+	// Alice deletes the file she wrote.
+	expectedEdits4 := []expectedEdit{
+		expectedEdits3[0],
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			nil,
+			[]string{"/keybase/private/alice,bob/a/c"},
+		},
 	}
 
 	test(t,
@@ -72,6 +85,16 @@ func TestEditHistorySimple(t *testing.T) {
 		as(alice,
 			checkUserEditHistory(expectedEdits3),
 		),
+		as(alice,
+			addTime(1*time.Minute),
+			rm("a/c"),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits4),
+		),
+		as(bob,
+			checkUserEditHistory(expectedEdits4),
+		),
 	)
 }
 
@@ -83,6 +106,7 @@ func TestEditHistoryMultiTlf(t *testing.T) {
 			keybase1.FolderType_PRIVATE,
 			"bob",
 			[]string{"/keybase/private/alice,bob/a"},
+			nil,
 		},
 	}
 	// Alice writes one file to public.
@@ -92,6 +116,7 @@ func TestEditHistoryMultiTlf(t *testing.T) {
 			keybase1.FolderType_PUBLIC,
 			"alice",
 			[]string{"/keybase/public/alice,bob/b"},
+			nil,
 		},
 		expectedEdits1[0],
 	}
@@ -102,6 +127,7 @@ func TestEditHistoryMultiTlf(t *testing.T) {
 			keybase1.FolderType_TEAM,
 			"bob",
 			[]string{"/keybase/team/ab/c"},
+			nil,
 		},
 		expectedEdits2[0],
 		expectedEdits1[0],
@@ -152,6 +178,7 @@ func TestEditHistorySelfClusters(t *testing.T) {
 			keybase1.FolderType_PRIVATE,
 			"bob",
 			[]string{"/keybase/private/alice,bob/a"},
+			nil,
 		},
 	}
 	// Alice writes to ten team TLFs, but bob should still see his own
@@ -165,6 +192,7 @@ func TestEditHistorySelfClusters(t *testing.T) {
 			keybase1.FolderType_TEAM,
 			"alice",
 			[]string{fmt.Sprintf("/keybase/team/%s/a", team)},
+			nil,
 		}
 		expectedEdits2Alice = append(expectedEdits2Alice, e)
 		expectedEdits2Bob = append(expectedEdits2Bob, e)
@@ -259,6 +287,7 @@ func TestEditHistoryUnflushed(t *testing.T) {
 			keybase1.FolderType_PRIVATE,
 			"bob",
 			[]string{"/keybase/private/alice,bob/a/b"},
+			nil,
 		},
 	}
 	// Alice and Bob both write a second file, but alice's is unflushed.
@@ -268,6 +297,7 @@ func TestEditHistoryUnflushed(t *testing.T) {
 			keybase1.FolderType_PRIVATE,
 			"alice",
 			[]string{"/keybase/private/alice,bob/a/c"},
+			nil,
 		},
 		expectedEdits1[0],
 	}
@@ -280,12 +310,27 @@ func TestEditHistoryUnflushed(t *testing.T) {
 				"/keybase/private/alice,bob/a/d",
 				"/keybase/private/alice,bob/a/b",
 			},
+			nil,
 		},
 	}
 	// Alice runs CR and flushes her journal.
 	expectedEdits3 := []expectedEdit{
 		expectedEdits2Alice[0],
 		expectedEdits2Bob[0],
+	}
+
+	expectedEdits4 := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			nil,
+			[]string{
+				"/keybase/private/alice,bob/a/d",
+				"/keybase/private/alice,bob/a/c",
+				"/keybase/private/alice,bob/a/b",
+			},
+		},
 	}
 
 	test(t, journal(),
@@ -355,10 +400,10 @@ func TestEditHistoryUnflushed(t *testing.T) {
 			flushJournal(),
 		),
 		as(alice,
-			checkUserEditHistory([]expectedEdit{}),
+			checkUserEditHistory(expectedEdits4),
 		),
 		as(bob,
-			checkUserEditHistory([]expectedEdit{}),
+			checkUserEditHistory(expectedEdits4),
 		),
 	)
 }
@@ -370,6 +415,17 @@ func TestEditHistoryRenameParent(t *testing.T) {
 			"alice,bob",
 			keybase1.FolderType_PRIVATE,
 			"bob",
+			[]string{"/keybase/private/alice,bob/c/b"},
+			nil,
+		},
+	}
+
+	expectedEdits2 := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			nil,
 			[]string{"/keybase/private/alice,bob/c/b"},
 		},
 	}
@@ -397,10 +453,10 @@ func TestEditHistoryRenameParent(t *testing.T) {
 			rm("c/b"),
 		),
 		as(alice,
-			checkUserEditHistory([]expectedEdit{}),
+			checkUserEditHistory(expectedEdits2),
 		),
 		as(bob,
-			checkUserEditHistory([]expectedEdit{}),
+			checkUserEditHistory(expectedEdits2),
 		),
 	)
 }
@@ -413,6 +469,17 @@ func TestEditHistoryRenameParentAcrossDirs(t *testing.T) {
 			"alice,bob",
 			keybase1.FolderType_PRIVATE,
 			"bob",
+			[]string{"/keybase/private/alice,bob/d/c/b"},
+			nil,
+		},
+	}
+
+	expectedEdits2 := []expectedEdit{
+		{
+			"alice,bob",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			nil,
 			[]string{"/keybase/private/alice,bob/d/c/b"},
 		},
 	}
@@ -441,10 +508,10 @@ func TestEditHistoryRenameParentAcrossDirs(t *testing.T) {
 			rm("d/c/b"),
 		),
 		as(alice,
-			checkUserEditHistory([]expectedEdit{}),
+			checkUserEditHistory(expectedEdits2),
 		),
 		as(bob,
-			checkUserEditHistory([]expectedEdit{}),
+			checkUserEditHistory(expectedEdits2),
 		),
 	)
 }

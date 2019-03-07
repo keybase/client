@@ -34,6 +34,9 @@ static Engine * sharedEngine = nil;
 @implementation Engine
 
 static NSString *const eventName = @"objc-engine-event";
+static NSString *const metaEventName = @"objc-meta-engine-event";
+static NSString *const metaEventEngineReset = @"engine-reset";
+
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
@@ -102,6 +105,7 @@ static NSString *const eventName = @"objc-engine-event";
 - (void)reset {
   NSError *error = nil;
   KeybaseReset(&error);
+  [self.keybaseEngine sendEventWithName:metaEventName body:metaEventEngineReset];
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
@@ -126,7 +130,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[eventName];
+  return @[eventName, metaEventName];
 }
 
 RCT_EXPORT_METHOD(runWithData:(NSString *)data) {
@@ -164,6 +168,8 @@ RCT_EXPORT_METHOD(start) {
   NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
 
   return @{ @"eventName": eventName,
+            @"metaEventName": metaEventName,
+            @"metaEventEngineReset": metaEventEngineReset,
             @"test": testVal,
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,

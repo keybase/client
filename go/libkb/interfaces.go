@@ -403,10 +403,11 @@ type ChatUI interface {
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
-	ChatStellarDataError(context.Context, string) (bool, error)
+	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
 	ChatStellarDone(context.Context, bool) error
 	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 		results []chat1.GiphySearchResult) error
+	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
@@ -725,6 +726,7 @@ type Stellar interface {
 	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
+	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
 }
 
 type DeviceEKStorage interface {

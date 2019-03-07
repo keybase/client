@@ -1,6 +1,9 @@
 // @flow
 import * as React from 'react'
-import type {StylesCrossPlatform} from '../styles'
+import type {StylesCrossPlatformWithSomeDisallowed} from '../styles'
+
+// List2 differs from list in that on desktop it uses react-window.
+// Don't use List2 if you need a list with dynamic item sizes
 
 export type VariableItemHeight<Item> = {
   getItemLayout: (
@@ -18,8 +21,15 @@ export type FixedHeight = {
   type: 'fixed',
 }
 
+// Having flex in the list messes with creating the right size inner container
+// for scroll
+type DisallowedStyles = {
+  flex?: empty,
+  flexDirection?: empty,
+}
+
 export type Props<Item> = {|
-  style?: StylesCrossPlatform,
+  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
 
   indexAsKey?: boolean,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys

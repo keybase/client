@@ -27,7 +27,7 @@ func TestAutogitNodeWrappersNoRepos(t *testing.T) {
 	defer shutdown()
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
 		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
@@ -80,7 +80,7 @@ func TestAutogitRepoNode(t *testing.T) {
 	config.AddRootNodeWrapper(rw.wrap)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
 		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
@@ -182,7 +182,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	config.AddRootNodeWrapper(rw.wrap)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Public)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Public)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
 		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)

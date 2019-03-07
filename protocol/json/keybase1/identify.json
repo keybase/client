@@ -298,6 +298,10 @@
           "name": "forceDisplay",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "IdentifyLiteRes"
@@ -335,6 +339,10 @@
         {
           "name": "identifyBehavior",
           "type": "TLFIdentifyBehavior"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "ResolveIdentifyImplicitTeamRes"

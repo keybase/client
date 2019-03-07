@@ -165,6 +165,10 @@
         {
           "type": "FlipGameID",
           "name": "gameID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "flipConvID"
         }
       ]
     },
@@ -1462,6 +1466,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
         },
         {
           "type": {

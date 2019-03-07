@@ -42,7 +42,7 @@ func TestSignupRandomPWUser(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUserRandomPW("rpw", tc.G)
 	require.NoError(t, err)
 
-	userHandler := NewUserHandler(nil, tc.G, nil)
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
 	ret, err := userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
 	require.NoError(t, err)
 	require.True(t, ret)
@@ -103,7 +103,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	}
 	tc.G.API = fakeAPI
 
-	userHandler := NewUserHandler(nil, tc.G, nil)
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
 
 	// It will fail with an error and Frontend would still send user
 	// to passphrase screen.

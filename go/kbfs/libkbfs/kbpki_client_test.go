@@ -79,7 +79,8 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 	c, _, _, _ := makeTestKBPKIClient(t)
 
 	name, err := c.GetNormalizedUsername(
-		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam())
+		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam(),
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +209,8 @@ func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
 
 	for _, team := range localTeams {
 		keys, keyGen, err := c.GetTeamTLFCryptKeys(
-			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen)
+			context.Background(), team.TID, kbfsmd.UnspecifiedKeyGen,
+			keybase1.OfflineAvailability_NONE)
 		if err != nil {
 			t.Error(err)
 		}

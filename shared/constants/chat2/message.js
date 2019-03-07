@@ -367,6 +367,7 @@ const makeMessageSystemChangeRetention: I.RecordFactory<MessageTypes._MessageSys
 const makeMessageSystemUsersAddedToConversation: I.RecordFactory<MessageTypes._MessageSystemUsersAddedToConversation> = I.Record(
   {
     ...makeMessageMinimum,
+    reactions: I.Map(),
     type: 'systemUsersAddedToConversation',
     usernames: [],
   }
@@ -605,6 +606,7 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
       }
       return makeMessageSystemUsersAddedToConversation({
         ...minimum,
+        reactions,
         usernames: body.bulkaddtoconv.usernames,
       })
     }

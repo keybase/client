@@ -97,6 +97,8 @@ func TestRPCs(t *testing.T) {
 	testConfig(t, tc2.G)
 	stage("testResolve3Offline")
 	testResolve3Offline(t, tc2.G, &fcm)
+	stage("testLoadUserPlusKeysV2Offline")
+	testLoadUserPlusKeysV2Offline(t, tc2.G, &fcm)
 	stage("testGetUpdateInfo2")
 	testGetUpdateInfo2(t, tc2.G)
 
@@ -219,6 +221,47 @@ func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
 			t.Fatalf("unknown key in response: %s", key.KID)
 		}
 	}
+}
+
+func testLoadUserPlusKeysV2Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnectivityMonitor) {
+	cli, err := client.GetUserClient(g)
+	require.NoError(t, err)
+
+	kid := keybase1.KID("012012a40a6b77a9de5e48922262870565900f5689e179761ea8c8debaa586bfd0090a")
+	uid := keybase1.UID("359c7644857203be38bfd3bf79bf1819")
+
+	fetch := func() {
+		arg := keybase1.LoadUserPlusKeysV2Arg{
+			Uid:        uid,
+			PollForKID: kid,
+			Oa:         keybase1.OfflineAvailability_BEST_EFFORT,
+		}
+		frank, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
+		require.NoError(t, err)
+		require.NotNil(t, frank)
+		require.Equal(t, len(frank.PastIncarnations), 0)
+		require.Equal(t, frank.Current.Username, "t_frank")
+		_, found := frank.Current.DeviceKeys[kid]
+		require.True(t, found)
+		require.Nil(t, frank.Current.Reset)
+	}
+	fetchFail := func(expectedError error) {
+		arg := keybase1.LoadUserPlusKeysV2Arg{
+			Uid: "00000000000000000000000000000000",
+			Oa:  keybase1.OfflineAvailability_BEST_EFFORT,
+		}
+		_, err := cli.LoadUserPlusKeysV2(context.TODO(), arg)
+		require.Error(t, err)
+		require.IsType(t, expectedError, err)
+	}
+
+	fetch()
+	fcm.Set(libkb.ConnectivityMonitorNo)
+	fetch()
+	fetchFail(libkb.OfflineError{})
+	fcm.Set(libkb.ConnectivityMonitorYes)
+	fetch()
+	fetchFail(libkb.NotFoundError{})
 }
 
 func testLoadUserPlusKeysV2(t *testing.T, g *libkb.GlobalContext) {
@@ -676,6 +719,78 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 		require.True(t, compareUserVersionSets([]keybase1.UserVersion{alice.userVersion(), bob.userVersion()}, res.Writers))
 		require.Nil(t, res.TrackBreaks, "track breaks")
 	}
+}
+
+// test ResolveIdentifyImplicitTeam in offline mode
+func TestResolveIdentifyImplicitTeamOffline(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("abc")
+	g := tt.users[0].tc.G
+	tt.addUser("wong")
+	wong := tt.users[1]
+	wong.proveRooter()
+
+	// Set the ConnectivityMonitor in our test context
+	fcm := fakeConnectivityMonitor{}
+	fcm.Set(libkb.ConnectivityMonitorYes)
+	g.ConnectivityMonitor = &fcm
+	g.Env.Test.NoGregor = true
+
+	iTeamNameCreate := tt.users[0].username + "#" + strings.Join([]string{"bob@github", wong.username}, ",")
+	iTeamNameLookup := tt.users[0].username + "#" + strings.Join([]string{"bob@github", wong.username + "@rooter"}, ",")
+
+	t.Logf("make an implicit team")
+	iTeam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+	attachIdentifyUI(t, g, newSimpleIdentifyUI())
+
+	fetch := func() {
+		res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+			Assertions:       iTeamNameLookup,
+			Suffix:           "",
+			IsPublic:         false,
+			DoIdentifies:     true,
+			Create:           false,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+			Oa:               keybase1.OfflineAvailability_BEST_EFFORT,
+		})
+		require.NoError(t, err, "%v %v", err, spew.Sdump(res))
+		require.Equal(t, res.DisplayName, iTeamNameCreate)
+		require.Equal(t, res.TeamID, iTeam.ID)
+		require.Equal(t, []keybase1.UserVersion{tt.users[0].userVersion()}, res.Writers)
+		require.Nil(t, res.TrackBreaks, "track breaks")
+	}
+
+	fetchFail := func(expectedError error, matchRegexp string) {
+		_, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+			Assertions:       iTeamNameCreate,
+			Suffix:           "",
+			IsPublic:         true,
+			DoIdentifies:     false,
+			Create:           false,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+			Oa:               keybase1.OfflineAvailability_BEST_EFFORT,
+		})
+		require.Error(t, err)
+		if expectedError != nil {
+			require.IsType(t, expectedError, err)
+		} else {
+			require.Regexp(t, matchRegexp, err.Error())
+		}
+	}
+
+	fetch()
+	fcm.Set(libkb.ConnectivityMonitorNo)
+	fetch()
+	fetchFail(libkb.OfflineError{}, "")
+	fcm.Set(libkb.ConnectivityMonitorYes)
+	fetch()
+	fetchFail(nil, `^Team.*does not exist$`)
 }
 
 func testResolveImplicitTeam(t *testing.T, g *libkb.GlobalContext, id keybase1.TeamID, isPublic bool, gen keybase1.Seqno) {

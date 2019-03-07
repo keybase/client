@@ -106,7 +106,7 @@ func TestGetRevisionByTime(t *testing.T) {
 
 	t.Log("Create revision 1")
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(u1), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(u1), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)

@@ -142,7 +142,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		SessionInfo{}, err)
 	kbfsops.favs.Initialize(ctx)
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
-		Return(nil, nil)
+		Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
@@ -331,7 +331,8 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	config.SetKBPKI(config.mockKbpki)
 
 	// expect one call to favorites, and fail it
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, err)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.
+		FavoritesResult{}, err)
 
 	if _, err2 := config.KBFSOps().GetFavorites(ctx); err2 != err {
 		t.Errorf("Got bad error on favorites: %+v", err2)
@@ -3315,7 +3316,7 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 
 	// Look up bob's public folder.
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "bob", tlf.Public)
+		ctx, config.KBPKI(), config.MDOps(), nil, "bob", tlf.Public)
 	require.NoError(t, err)
 	_, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	if _, ok := err.(WriteAccessError); !ok {
@@ -3450,7 +3451,8 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 
 	t.Log("Look up bob's public folder.")
 	h, err := ParseTlfHandle(
-		ctx, config1.KBPKI(), config1.MDOps(), string(name), tlf.SingleTeam)
+		ctx, config1.KBPKI(), config1.MDOps(), nil, string(name),
+		tlf.SingleTeam)
 	require.NoError(t, err)
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err := kbfsOps1.GetOrCreateRootNode(
@@ -3599,7 +3601,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 
 	t.Log("Create the folder before implicit teams are enabled.")
 	h, err := ParseTlfHandle(
-		ctx, config1.KBPKI(), config1.MDOps(), string(name), ty)
+		ctx, config1.KBPKI(), config1.MDOps(), nil, string(name), ty)
 	require.NoError(t, err)
 	require.False(t, h.IsBackedByTeam())
 	kbfsOps1 := config1.KBFSOps()
@@ -3703,7 +3705,7 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 	t.Log("Create a private folder for the master branch.")
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -3841,7 +3843,7 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -3907,7 +3909,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	t.Log("Create a private folder.")
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -3991,7 +3993,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	t.Log("Create a private, unsynced TLF and make sure updates are committed")
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -4107,7 +4109,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -4213,7 +4215,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
@@ -4297,6 +4299,10 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 		require.True(t, pathsMap[p])
 		delete(pathsMap, p)
 	}
+
+	t.Log("Make sure the TLF path is correctly marked as synced")
+	tlfPath := fmt.Sprintf("/keybase/private/%s", name)
+	require.True(t, config.IsSyncedTlfPath(tlfPath))
 }
 
 func waitForPrefetchInTest(
@@ -4345,7 +4351,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
@@ -4565,7 +4571,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 

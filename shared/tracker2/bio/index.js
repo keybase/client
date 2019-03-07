@@ -91,6 +91,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       wordBreak: 'break-word',
     },
+    isMobile: {
+      lineHeight: 21,
+    },
   }),
 })
 

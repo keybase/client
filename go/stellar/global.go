@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -128,21 +129,33 @@ func (s *Stellar) GetMigrationLock() *sync.Mutex {
 }
 
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
+	s.serverConfLock.Lock()
+	defer s.serverConfLock.Unlock()
 	if s.cachedServerConf.Revision == 0 {
-		s.serverConfLock.Lock()
-		defer s.serverConfLock.Unlock()
-		if s.cachedServerConf.Revision == 0 {
-			// check if still 0, we might have waited for other thread
-			// to finish fetching.
-			if ret, err = remote.FetchServerConfig(ctx, s.G()); err != nil {
-				return ret, err
-			}
-
-			s.cachedServerConf = ret
+		// check if still 0, we might have waited for other thread
+		// to finish fetching.
+		if ret, err = remote.FetchServerConfig(ctx, s.G()); err != nil {
+			return ret, err
 		}
+
+		s.cachedServerConf = ret
 	}
 
 	return s.cachedServerConf, nil
+}
+
+func (s *Stellar) KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool) {
+	code = strings.ToUpper(code)
+	if code == "XLM" {
+		return true, true
+	}
+	s.serverConfLock.Lock()
+	defer s.serverConfLock.Unlock()
+	if s.cachedServerConf.Revision == 0 {
+		return false, false
+	}
+	_, known = s.cachedServerConf.Currencies[stellar1.OutsideCurrencyCode(code)]
+	return known, true
 }
 
 // `trigger` is optional, and is of the gregor message that caused the kick.
@@ -299,7 +312,9 @@ func (s *Stellar) handlePaymentNotification(mctx libkb.MetaContext, obm gregor.O
 }
 
 func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	s.walletState.Refresh(mctx, accountID, "notification received")
+	if err := s.walletState.Refresh(mctx, accountID, "notification received"); err != nil {
+		return err
+	}
 	DefaultLoader(s.G()).UpdatePayment(mctx.Ctx(), paymentID)
 
 	return nil

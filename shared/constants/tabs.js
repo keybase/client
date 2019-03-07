@@ -1,6 +1,5 @@
 // @flow strict
 import {isMobile} from './platform'
-import flags from '../util/feature-flags'
 
 const chatTab = 'tabs.chatTab'
 const devicesTab = 'tabs.devicesTab'
@@ -48,7 +47,7 @@ const desktopTabOrder = [
   chatTab,
   fsTab,
   teamsTab,
-  flags.walletsEnabled ? walletsTab : null,
+  walletsTab,
   gitTab,
   devicesTab,
   settingsTab,

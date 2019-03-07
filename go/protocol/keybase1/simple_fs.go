@@ -1340,6 +1340,9 @@ type SimpleFSFolderEditHistoryArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSListFavoritesArg struct {
+}
+
 type SimpleFSGetUserQuotaUsageArg struct {
 }
 
@@ -1358,6 +1361,9 @@ type SimpleFSFolderSyncConfigAndStatusArg struct {
 type SimpleFSSetFolderSyncConfigArg struct {
 	Path   Path             `codec:"path" json:"path"`
 	Config FolderSyncConfig `codec:"config" json:"config"`
+}
+
+type SimpleFSPingArg struct {
 }
 
 type SimpleFSInterface interface {
@@ -1451,6 +1457,9 @@ type SimpleFSInterface interface {
 	// The writers are in descending order by the modification time (as
 	// recorded by the server) of their most recent edit.
 	SimpleFSFolderEditHistory(context.Context, Path) (FSFolderEditHistory, error)
+	// simpleFSListFavorites gets the current favorites, ignored folders, and new
+	// folders from the KBFS cache.
+	SimpleFSListFavorites(context.Context) (FavoritesResult, error)
 	// simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
 	// user.  Any usage includes local journal usage as well.
 	SimpleFSGetUserQuotaUsage(context.Context) (SimpleFSQuotaUsage, error)
@@ -1463,6 +1472,7 @@ type SimpleFSInterface interface {
 	SimpleFSReset(context.Context, Path) error
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
+	SimpleFSPing(context.Context) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1864,6 +1874,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSListFavorites": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSListFavoritesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSListFavorites(ctx)
+					return
+				},
+			},
 			"simpleFSGetUserQuotaUsage": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSGetUserQuotaUsageArg
@@ -1931,6 +1951,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						return
 					}
 					err = i.SimpleFSSetFolderSyncConfig(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSPing": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSPingArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSPing(ctx)
 					return
 				},
 			},
@@ -2152,6 +2182,13 @@ func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path
 	return
 }
 
+// simpleFSListFavorites gets the current favorites, ignored folders, and new
+// folders from the KBFS cache.
+func (c SimpleFSClient) SimpleFSListFavorites(ctx context.Context) (res FavoritesResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListFavorites", []interface{}{SimpleFSListFavoritesArg{}}, &res)
+	return
+}
+
 // simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
 // user.  Any usage includes local journal usage as well.
 func (c SimpleFSClient) SimpleFSGetUserQuotaUsage(ctx context.Context) (res SimpleFSQuotaUsage, err error) {
@@ -2184,5 +2221,10 @@ func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, p
 
 func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg SimpleFSSetFolderSyncConfigArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSPing(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSPing", []interface{}{SimpleFSPingArg{}}, nil)
 	return
 }

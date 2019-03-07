@@ -1083,6 +1083,11 @@
       "response": "FSFolderEditHistory",
       "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
     },
+    "simpleFSListFavorites": {
+      "request": [],
+      "response": "FavoritesResult",
+      "doc": "simpleFSListFavorites gets the current favorites, ignored folders, and new\n   folders from the KBFS cache."
+    },
     "simpleFSGetUserQuotaUsage": {
       "request": [],
       "response": "SimpleFSQuotaUsage",
@@ -1128,6 +1133,10 @@
           "type": "FolderSyncConfig"
         }
       ],
+      "response": null
+    },
+    "simpleFSPing": {
+      "request": [],
       "response": null
     }
   },

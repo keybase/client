@@ -69,6 +69,7 @@ protocol kbfsCommon {
   record FSFolderWriterEditHistory {
     string writerName;
     array<FSFolderWriterEdit> edits;
+    array<FSFolderWriterEdit> deletes;
   }
 
   record FSFolderEditHistory {

@@ -11,19 +11,22 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
+import KbfsDaemonNotRunning from '../fs/common/kbfs-daemon-not-running'
 import type {DaemonHandshakeState} from '../constants/types/config'
 
 export type Props = {
   daemonHandshakeState: DaemonHandshakeState,
   logIn: () => void,
   loggedIn: boolean,
+  kbfsDaemonConnected: boolean,
+  kbfsEnabled: boolean,
   updateNow: () => void,
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
   outOfDate?: ConfigTypes.OutOfDate,
-  showInFinder: (tab: ?string) => void,
+  showInFinder: () => void,
   quit: () => void,
-  refresh: () => void,
+  refreshUserFileEdits: () => void,
   showBug: () => void,
   showHelp: () => void,
   showUser: (username: ?string) => void,
@@ -42,19 +45,20 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  _refreshIfLoggedIn = () => this.props.loggedIn && this.props.refresh()
+  _refreshUserFileEditsIfPossible = () =>
+    this.props.loggedIn && this.props.kbfsDaemonConnected && this.props.refreshUserFileEdits()
 
   componentDidMount() {
-    this._refreshIfLoggedIn()
+    this._refreshUserFileEditsIfPossible()
     SafeElectron.getRemote()
       .getCurrentWindow()
-      .on('show', this._refreshIfLoggedIn)
+      .on('show', this._refreshUserFileEditsIfPossible)
   }
 
   componentWillUnmount() {
     SafeElectron.getRemote()
       .getCurrentWindow()
-      .removeListener('show', this._refreshIfLoggedIn)
+      .removeListener('show', this._refreshUserFileEditsIfPossible)
   }
 
   render() {
@@ -235,12 +239,9 @@ class MenubarRender extends React.Component<Props, State> {
       : [{onClick: () => this.props.openApp(), title: 'Open main app'}, 'Divider']
 
     const showFinder =
-      startingUp || loggedOut
+      startingUp || loggedOut || !this.props.kbfsEnabled
         ? []
-        : [
-            {onClick: () => this.props.showInFinder('/'), title: `Open folders in ${Styles.fileUIName}`},
-            'Divider',
-          ]
+        : [{onClick: this.props.showInFinder, title: `Open folders in ${Styles.fileUIName}`}, 'Divider']
 
     const webLink = startingUp ? [] : [{onClick: () => this.props.showUser(), title: 'Keybase.io'}]
 
@@ -315,7 +316,13 @@ class MenubarRender extends React.Component<Props, State> {
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
-          <FilesPreview />
+          {this.props.kbfsDaemonConnected ? (
+            <FilesPreview />
+          ) : (
+            <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
+              <KbfsDaemonNotRunning />
+            </Kb.Box2>
+          )}
         </Kb.ScrollView>
         <Kb.Box style={styles.footer}>
           <UploadWithCountdown

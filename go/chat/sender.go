@@ -1193,6 +1193,7 @@ func (e delivererBackgroundTaskError) Error() string {
 
 var errDelivererUploadInProgress = delivererBackgroundTaskError{Typ: "attachment upload"}
 var errDelivererUnfurlInProgress = delivererBackgroundTaskError{Typ: "unfurl"}
+var errDelivererFlipConvCreationInProgress = delivererBackgroundTaskError{Typ: "flip"}
 
 func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsAttachment() {
@@ -1285,12 +1286,50 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 	return obr, nil
 }
 
+type flipPermError struct{}
+
+func (e flipPermError) Error() string {
+	return "flip permanent error"
+}
+
+func (e flipPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
+func (s *Deliverer) processFlip(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+	if !obr.IsChatFlip() {
+		return obr, nil
+	}
+	body := obr.Msg.MessageBody.Flip()
+	flipConvID, status := s.G().CoinFlipManager.IsFlipConversationCreated(ctx, obr.OutboxID)
+	switch status {
+	case types.FlipSendStatusInProgress:
+		return obr, errDelivererFlipConvCreationInProgress
+	case types.FlipSendStatusError:
+		return obr, flipPermError{}
+	case types.FlipSendStatusSent:
+		s.Debug(ctx, "processFlip: sending with convID: %s", flipConvID)
+		obr.Msg.MessageBody = chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:       body.Text,
+			GameID:     body.GameID,
+			FlipConvID: flipConvID,
+		})
+		if _, err := s.outbox.UpdateMessage(ctx, obr); err != nil {
+			return obr, err
+		}
+		return obr, nil
+	}
+	return obr, nil
+}
+
 func (s *Deliverer) processBackgroundTaskMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	switch obr.MessageType() {
 	case chat1.MessageType_ATTACHMENT:
 		return s.processAttachment(ctx, obr)
 	case chat1.MessageType_UNFURL:
 		return s.processUnfurl(ctx, obr)
+	case chat1.MessageType_FLIP:
+		return s.processFlip(ctx, obr)
 	default:
 		return obr, nil
 	}

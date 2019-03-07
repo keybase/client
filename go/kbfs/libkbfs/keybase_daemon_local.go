@@ -217,7 +217,8 @@ func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 }
 
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
+func (k *KeybaseDaemonLocal) Resolve(
+	ctx context.Context, assertion string, _ keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if err := checkContext(ctx); err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
@@ -261,7 +262,7 @@ func (k *KeybaseDaemonLocal) Identify(
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// The local daemon doesn't need to distinguish resolves from
 	// identifies.
-	return k.Resolve(ctx, assertion)
+	return k.Resolve(ctx, assertion, keybase1.OfflineAvailability_NONE)
 }
 
 // NormalizeSocialAssertion implements the KeybaseService interface for
@@ -446,7 +447,7 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
 func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, _ tlf.Type, _ kbfsmd.KeyGen,
 	_ keybase1.UserVersion, _ kbfscrypto.VerifyingKey,
-	_ keybase1.TeamRole) (TeamInfo, error) {
+	_ keybase1.TeamRole, _ keybase1.OfflineAvailability) (TeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return TeamInfo{}, err
 	}
@@ -495,7 +496,8 @@ func (k *KeybaseDaemonLocal) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	_ keybase1.OfflineAvailability) (
 	settings keybase1.KBFSTeamSettings, err error) {
 	if err := checkContext(ctx); err != nil {
 		return keybase1.KBFSTeamSettings{}, err
@@ -890,14 +892,24 @@ func (k *KeybaseDaemonLocal) FavoriteDelete(
 
 // FavoriteList implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteList(
-	ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
+	ctx context.Context, sessionID int) (keybase1.FavoritesResult, error) {
 	if err := checkContext(ctx); err != nil {
-		return nil, err
+		return keybase1.FavoritesResult{}, err
 	}
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	return k.favoriteStore.FavoriteList(k.currentUID)
+
+	// This is only used for testing, so it's okay to only have favorites here.
+	favs, err := k.favoriteStore.FavoriteList(k.currentUID)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+	return keybase1.FavoritesResult{
+		FavoriteFolders: favs,
+		IgnoredFolders:  []keybase1.Folder{},
+		NewFolders:      []keybase1.Folder{},
+	}, nil
 }
 
 // EncryptFavorites implements KeybaseService for KeybaseDaemonLocal

@@ -265,7 +265,7 @@ func (c *KBFSContext) BindToKBFSSocket() (net.Listener, error) {
 	return c.kbfsSocket.BindToSocket()
 }
 
-// GetVDebugLog returns the verbose debug logger.
+// GetVDebugSetting returns the verbose debug logger.
 func (c *KBFSContext) GetVDebugSetting() string {
 	return c.g.Env.GetVDebugSetting()
 }

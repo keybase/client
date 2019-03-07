@@ -1,15 +1,23 @@
 // @flow
 
 // Add pluralization rules as necessary
-export function pluralize(str: string): string {
-  return str.endsWith('s') ? str : `${str}s`
+export function pluralize(str: string, count?: number): string {
+  return count === 1 ? str : str.endsWith('s') ? str : `${str}s`
 }
 
-export function smartPluralize(str: string, amt: number): string {
-  if (amt === 1) {
-    return str
-  }
-  return pluralize(str)
+// Returns a RegExp that matches any string with the given filter
+// string (with special characters removed) as a subsequence.
+export function makeInsertMatcher(filter: string): RegExp {
+  // Clear RegExp special characters: see
+  // https://stackoverflow.com/a/9310752 .
+  return new RegExp(
+    `${filter
+      .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '')
+      .split('')
+      .map(c => `${c}.*?`)
+      .join('')}`,
+    'i'
+  )
 }
 
 export function toStringForLog(a: any): string {

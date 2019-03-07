@@ -16,6 +16,12 @@ export const chatUiMessageUnboxedState = {
 export const chatUiUICoinFlipErrorTyp = {
   generic: 0,
   absentee: 1,
+  timeout: 2,
+  aborted: 3,
+  dupreg: 4,
+  dupcommitcomplete: 5,
+  dupreveal: 6,
+  commitmismatch: 7,
 }
 
 export const chatUiUICoinFlipPhase = {

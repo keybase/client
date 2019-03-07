@@ -947,6 +947,11 @@ func (o OutboxRecord) IsUnfurl() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_UNFURL
 }
 
+func (o OutboxRecord) IsChatFlip() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_FLIP &&
+		o.Msg.ClientHeader.Conv.TopicType == TopicType_CHAT
+}
+
 func (o OutboxRecord) MessageType() MessageType {
 	return o.Msg.ClientHeader.MessageType
 }
@@ -2229,13 +2234,13 @@ func (m MessageSystemChangeRetention) String() string {
 		inheritDescription = " to inherit from the team policy"
 	}
 
-	format := "[%s changed the %s retention policy%s. %s]"
+	format := "%s changed the %s retention policy%s. %s"
 	summary := m.Policy.HumanSummary()
 	return fmt.Sprintf(format, m.User, appliesTo, inheritDescription, summary)
 }
 
 func (m MessageSystemBulkAddToConv) String() string {
-	prefix := "[Added %s to the conversation]"
+	prefix := "Added %s to the conversation"
 	var suffix string
 	switch len(m.Usernames) {
 	case 0:
@@ -2253,39 +2258,39 @@ func (m MessageSystemBulkAddToConv) String() string {
 func (m MessageSystem) String() string {
 	typ, err := m.SystemType()
 	if err != nil {
-		return "<unknown system message>"
+		return ""
 	}
 	switch typ {
 	case MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("[Added @%s to the team]", m.Addedtoteam().Addee)
+		return fmt.Sprintf("Added @%s to the team", m.Addedtoteam().Addee)
 	case MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("[Added %s to the team (invited by @%s)]",
+		return fmt.Sprintf("Added %s to the team (invited by @%s)",
 			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter)
 	case MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf("[Created a new channel in %s]", m.Complexteam().Team)
+		return fmt.Sprintf("Created a new channel in %s", m.Complexteam().Team)
 	case MessageSystemType_CREATETEAM:
-		return fmt.Sprintf("[%s created the team %s]", m.Createteam().Creator, m.Createteam().Team)
+		return fmt.Sprintf("%s created the team %s", m.Createteam().Creator, m.Createteam().Team)
 	case MessageSystemType_GITPUSH:
 		body := m.Gitpush()
 		switch body.PushType {
 		case keybase1.GitPushType_CREATEREPO:
-			return fmt.Sprintf("[git %s created the repo %s]", body.Pusher, body.RepoName)
+			return fmt.Sprintf("git %s created the repo %s", body.Pusher, body.RepoName)
 		case keybase1.GitPushType_RENAMEREPO:
-			return fmt.Sprintf("[git %s changed the name of the repo %s to %s]", body.Pusher, body.PreviousRepoName, body.RepoName)
+			return fmt.Sprintf("git %s changed the name of the repo %s to %s", body.Pusher, body.PreviousRepoName, body.RepoName)
 		default:
 			total := keybase1.TotalNumberOfCommits(body.Refs)
 			names := keybase1.RefNames(body.Refs)
-			return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.RepoName,
+			return fmt.Sprintf("git (%s) %s pushed %d commits to %s", body.RepoName,
 				body.Pusher, total, names)
 		}
 	case MessageSystemType_CHANGEAVATAR:
-		return fmt.Sprintf("[%s changed team avatar]", m.Changeavatar().User)
+		return fmt.Sprintf("%s changed team avatar", m.Changeavatar().User)
 	case MessageSystemType_CHANGERETENTION:
 		return m.Changeretention().String()
 	case MessageSystemType_BULKADDTOCONV:
 		return m.Bulkaddtoconv().String()
 	default:
-		return "<unknown system message>"
+		return ""
 	}
 }
 

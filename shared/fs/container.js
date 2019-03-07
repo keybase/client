@@ -10,9 +10,11 @@ import {isMobile} from '../constants/platform'
 import Folder from './folder/container'
 import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
+import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 
 const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
+  kbfsDaemonConnected: state.fs.kbfsDaemonConnected,
 })
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
@@ -35,6 +37,7 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
   const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   return {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),
+    kbfsDaemonConnected: stateProps.kbfsDaemonConnected,
     loadPathMetadata: () => dispatchProps._loadPathMetadata(path),
     mimeType: !isDefinitelyFolder && pathItem.type === 'file' ? pathItem.mimeType : null,
     path,
@@ -43,14 +46,15 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
   }
 }
 
-type ChooseComponentProps = {
+type ChooseComponentProps = {|
   emitBarePreview: () => void,
+  kbfsDaemonConnected: boolean,
   loadPathMetadata: () => void,
   mimeType: ?Types.Mime,
   path: Types.Path,
   pathType: Types.PathType,
   routePath: I.List<string>,
-}
+|}
 
 const useBare = isMobile
   ? (mimeType: ?Types.Mime) => {
@@ -76,6 +80,9 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     }
   }
   render() {
+    if (!this.props.kbfsDaemonConnected) {
+      return <KbfsDaemonNotRunning />
+    }
     switch (this.props.pathType) {
       case 'folder':
         return <Folder path={this.props.path} routePath={this.props.routePath} />

@@ -119,11 +119,21 @@ type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
 
+// OfflineStatusGetter indicates whether a given TLF needs to be
+// available offline.
+type OfflineStatusGetter interface {
+	OfflineAvailabilityForPath(tlfPath string) keybase1.OfflineAvailability
+	OfflineAvailabilityForID(tlfID tlf.ID) keybase1.OfflineAvailability
+}
+
 type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
+	IsSyncedTlfPath(tlfPath string) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
 	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
 	GetAllSyncedTlfs() []tlf.ID
+
+	OfflineStatusGetter
 }
 
 type blockRetrieverGetter interface {
@@ -326,8 +336,13 @@ type Node interface {
 // action.
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
-	// top-level folders.  This is a remote-access operation.
+	// top-level folders.  This is a remote-access operation when the cache
+	// is empty or expired.
 	GetFavorites(ctx context.Context) ([]Favorite, error)
+	// GetFavoritesAll returns the logged-in user's lists of favorite, ignored,
+	// and new top-level folders.  This is a remote-access operation when the
+	// cache is empty or expired.
+	GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error)
 	// RefreshCachedFavorites tells the instances to forget any cached
 	// favorites list and fetch a new list from the server.  The
 	// effects are asychronous; if there's an error refreshing the
@@ -338,11 +353,14 @@ type KBFSOps interface {
 	ClearCachedFavorites(ctx context.Context)
 	// AddFavorite adds the favorite to both the server and
 	// the local cache.
-	AddFavorite(ctx context.Context, fav Favorite) error
+	AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
 	DeleteFavorite(ctx context.Context, fav Favorite) error
+	// SetFavoritesHomeTLFInfo sets the home TLF TeamIDs to initialize the
+	// favorites cache on login.
+	SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo)
 	// RefreshEditHistory asks the FBO for the given favorite to reload its
 	// edit history.
 	RefreshEditHistory(fav Favorite)
@@ -617,7 +635,13 @@ type KeybaseService interface {
 	// trusted. Otherwise, Identify() needs to be called on the
 	// assertion before the assertion -> (username, UID) mapping
 	// can be trusted.
-	Resolve(ctx context.Context, assertion string) (
+	//
+	// If the caller knows that the assertion needs to be resolvable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `Resolve` might block on a network call.
+	Resolve(ctx context.Context, assertion string,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 
 	// Identify, given an assertion, returns a UserInfo struct
@@ -654,8 +678,15 @@ type KeybaseService interface {
 		ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error
 
 	// GetTeamSettings returns the KBFS settings for the given team.
-	GetTeamSettings(ctx context.Context, teamID keybase1.TeamID) (
-		keybase1.KBFSTeamSettings, error)
+	//
+	// If the caller knows that the settings needs to be readable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetTeamSettings` might block on a
+	// network call.
+	GetTeamSettings(
+		ctx context.Context, teamID keybase1.TeamID,
+		offline keybase1.OfflineAvailability) (keybase1.KBFSTeamSettings, error)
 
 	// LoadUserPlusKeys returns a UserInfo struct for a
 	// user with the specified UID.
@@ -678,10 +709,17 @@ type KeybaseService interface {
 	// `desiredRole` to force a server check if that particular UID
 	// isn't a member of the team yet according to local caches; it
 	// may be set to "" if no server check is required.
+	//
+	// If the caller knows that the team needs to be loadable while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `LoadTeamPlusKeys` might block on a
+	// network call.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
 		tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
 		desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
-		desiredRole keybase1.TeamRole) (TeamInfo, error)
+		desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
+		TeamInfo, error)
 
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
@@ -695,7 +733,8 @@ type KeybaseService interface {
 	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
 
 	// FavoriteList returns the current list of favorites.
-	FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error)
+	FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult,
+		error)
 
 	// EncryptFavorites encrypts cached favorites to store on disk.
 	EncryptFavorites(ctx context.Context, dataToEncrypt []byte) ([]byte, error)
@@ -757,10 +796,17 @@ type resolver interface {
 	// assertion before the assertion -> (username, UserOrTeamID) mapping
 	// can be trusted.
 	//
+	//
+	// If the caller knows that the assertion needs to be resolvable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `Resolve` might block on a network call.
+	//
 	// TODO: some of the above assumptions on cacheability aren't
 	// right for subteams, which can change their name, so this may
 	// need updating.
-	Resolve(ctx context.Context, assertion string) (
+	Resolve(ctx context.Context, assertion string,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 	// ResolveImplicitTeam resolves the given implicit team.
 	ResolveImplicitTeam(
@@ -774,8 +820,15 @@ type resolver interface {
 	// ResolveTeamTLFID returns the TLF ID associated with a given
 	// team ID, or tlf.NullID if no ID is yet associated with that
 	// team.
-	ResolveTeamTLFID(ctx context.Context, teamID keybase1.TeamID) (
-		tlf.ID, error)
+	//
+	// If the caller knows that the ID needs to be resolved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `ResolveTeamTLFID` might block on a
+	// network call.
+	ResolveTeamTLFID(
+		ctx context.Context, teamID keybase1.TeamID,
+		offline keybase1.OfflineAvailability) (tlf.ID, error)
 	// NormalizeSocialAssertion creates a SocialAssertion from its input and
 	// normalizes it.  The service name will be lowercased.  If the service is
 	// case-insensitive, then the username will also be lowercased.  Colon
@@ -802,7 +855,15 @@ type identifier interface {
 type normalizedUsernameGetter interface {
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
-	GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (
+	//
+	// If the caller knows that the assertion needs to be resolvable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetNormalizedUsername` might block on a
+	// network call.
+	GetNormalizedUsername(
+		ctx context.Context, id keybase1.UserOrTeamID,
+		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, error)
 }
 
@@ -819,21 +880,42 @@ type CurrentSessionGetter interface {
 type teamMembershipChecker interface {
 	// IsTeamWriter is a copy of
 	// kbfsmd.TeamMembershipChecker.IsTeamWriter.
-	IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
-		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
+	//
+	// If the caller knows that the writership needs to be checked
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `IsTeamWriter` might block on a network
+	// call.
+	IsTeamWriter(
+		ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+		verifyingKey kbfscrypto.VerifyingKey,
+		offline keybase1.OfflineAvailability) (bool, error)
 	// NoLongerTeamWriter returns the global Merkle root of the
 	// most-recent time the given user (with the given device key,
 	// which implies an eldest seqno) transitioned from being a writer
 	// to not being a writer on the given team.  If the user was never
 	// a writer of the team, it returns an error.
+	//
+	// If the caller knows that the writership needs to be checked
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `NoLongerTeamWriter` might block on a
+	// network call.
 	NoLongerTeamWriter(
 		ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
-		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
-		keybase1.MerkleRootV2, error)
+		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
+		offline keybase1.OfflineAvailability) (keybase1.MerkleRootV2, error)
 	// IsTeamReader is a copy of
 	// kbfsmd.TeamMembershipChecker.IsTeamWriter.
-	IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
-		bool, error)
+	//
+	// If the caller knows that the readership needs to be checked
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `IsTeamReader` might block on a
+	// network call.
+	IsTeamReader(
+		ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+		offline keybase1.OfflineAvailability) (bool, error)
 }
 
 type teamKeysGetter interface {
@@ -842,16 +924,29 @@ type teamKeysGetter interface {
 	// team.  The caller can specify `desiredKeyGen` to force a server
 	// check if that particular key gen isn't yet known; it may be set
 	// to UnspecifiedKeyGen if no server check is required.
+	//
+	// If the caller knows that the keys need to be retrieved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetTeamTLFCryptKeys` might block on a
+	// network call.
 	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID,
-		desiredKeyGen kbfsmd.KeyGen) (
+		desiredKeyGen kbfsmd.KeyGen, offline keybase1.OfflineAvailability) (
 		map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey, kbfsmd.KeyGen, error)
 }
 
 type teamRootIDGetter interface {
 	// GetTeamRootID returns the root team ID for the given (sub)team
 	// ID.
-	GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
-		keybase1.TeamID, error)
+	//
+	// If the caller knows that the root needs to be retrieved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetTeamRootID` might block on a network
+	// call.
+	GetTeamRootID(
+		ctx context.Context, tid keybase1.TeamID,
+		offline keybase1.OfflineAvailability) (keybase1.TeamID, error)
 }
 
 // KBPKI interacts with the Keybase daemon to fetch user info.
@@ -894,7 +989,7 @@ type KBPKI interface {
 
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
-	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
+	FavoriteList(ctx context.Context) (keybase1.FavoritesResult, error)
 
 	// CreateTeamTLF associates the given TLF ID with the team ID in
 	// the team's sigchain.  If the team already has a TLF ID
@@ -936,8 +1031,8 @@ type KeyMetadata interface {
 	// right now.
 	IsWriter(
 		ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-		uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
-		bool, error)
+		osg OfflineStatusGetter, uid keybase1.UID,
+		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
 
 	// HasKeyForUser returns whether or not the given user has
 	// keys for at least one device. Returns an error if the TLF
@@ -2780,4 +2875,14 @@ type fileBlockMap interface {
 		ctx context.Context, parentPtr BlockPointer, childName string) (
 		*FileBlock, error)
 	getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error)
+}
+
+type dirBlockMap interface {
+	putBlock(
+		ctx context.Context, ptr BlockPointer, block *DirBlock) error
+	getBlock(
+		ctx context.Context, ptr BlockPointer) (*DirBlock, error)
+	hasBlock(ctx context.Context, ptr BlockPointer) (bool, error)
+	deleteBlock(ctx context.Context, ptr BlockPointer) error
+	numBlocks() int
 }

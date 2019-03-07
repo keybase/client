@@ -27,7 +27,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// Wrap SID for users.
+// SID wraps syscall.SID for users.
 type SID syscall.SID
 
 const (
@@ -743,7 +743,7 @@ func unmount(path string) error {
 	res := C.kbfsLibdokan_RemoveMountPoint((*C.WCHAR)(stringToUtf16Ptr(path)))
 	if res == C.FALSE {
 		debug("Unmount: Failed!")
-		return errors.New("DokanRemoveMountPoint failed!")
+		return errors.New("kbfsLibdokan_RemoveMountPoint failed")
 	}
 	debug("Unmount: Success!")
 	return nil

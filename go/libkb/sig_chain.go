@@ -231,7 +231,7 @@ func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	}
 }
 
-func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID, full bool) (dirtyTail *MerkleTriple, err error) {
 	m, tbs := m.WithTimeBuckets()
 	low := sc.GetLastLoadedSeqno()
 	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
@@ -249,7 +249,7 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 		Args: HTTPArgs{
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
-			"v2_compressed": B{true},
+			"v2_compressed": B{!full},
 			"read_deleted":  B{readDeleted},
 		},
 		MetaContext: m,
@@ -1010,6 +1010,7 @@ type SigChainLoader struct {
 	ckf                  ComputedKeyFamily
 	dirtyTail            *MerkleTriple
 	currentSubchainStart keybase1.Seqno
+	full                 bool
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -1226,6 +1227,24 @@ func (l *SigChainLoader) CheckFreshness() (current bool, err error) {
 
 //========================================================================
 
+func (sc *SigChain) HasStubs() bool {
+	for _, link := range sc.chainLinks {
+		if link.IsStubbed() {
+			return true
+		}
+	}
+
+	return len(sc.chainLinks) != 0
+}
+
+//========================================================================
+
+func (l *SigChainLoader) HasStubs() bool {
+	return l.chain.HasStubs()
+}
+
+//========================================================================
+
 func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 	if !l.self {
 		return
@@ -1237,7 +1256,7 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
-	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID())
+	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID(), l.full)
 	return
 }
 
@@ -1339,6 +1358,10 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	stage("CheckFreshness")
 	if current, err = l.CheckFreshness(); err != nil {
 		return nil, err
+	}
+	stage("CheckStubsIfFull")
+	if current && l.full {
+		current = l.HasStubs()
 	}
 	if !current {
 		stage("LoadFromServer")

@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.1.0</string>
+	<string>3.2.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -45,6 +45,7 @@
 	<string>Attaching images to chat messages</string>
 	<key>UIAppFonts</key>
 	<array>
+		<string>keybase-bold-italic.otf</string>
 		<string>keybase-bold.otf</string>
 		<string>keybase-extrabold.otf</string>
 		<string>keybase-medium.otf</string>

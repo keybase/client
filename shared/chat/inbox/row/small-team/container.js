@@ -42,15 +42,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
+  const isDecryptingSnippet = (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
+  const hasResetUsers = !stateProps._meta.resetParticipants.isEmpty()
 
   return {
     backgroundColor: styles.backgroundColor,
     hasBadge: stateProps.hasBadge,
-    hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
+    hasBottomLine: stateProps.youAreReset || participantNeedToRekey || isDecryptingSnippet || !!stateProps.snippet || youNeedToRekey || hasResetUsers,
+    hasResetUsers,
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
-    isDecryptingSnippet:
-      (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta),
+    isDecryptingSnippet,
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,

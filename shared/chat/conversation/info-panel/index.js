@@ -29,7 +29,7 @@ const listStyle = {
       }),
 }
 const styleTurnIntoTeam = {
-  margin: globalMargins.small,
+  padding: globalMargins.small,
 }
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
@@ -77,6 +77,7 @@ type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
   teamname: string,
+  isAdmin: boolean,
   isGeneralChannel: boolean,
 }
 
@@ -231,61 +232,14 @@ type Row =
   | TeamHeaderRow
 
 const typeSizeEstimator = (row: Row): number => {
-  // The sizes below are retrieved by using the React DevTools
-  // inspector on the appropriate components, including margins.
-  switch (row.type) {
-    case 'add people':
-      return 48
-
-    case 'participant':
-      return 56
-
-    case 'divider':
-      const style = getDividerStyle(row)
-      return 1 + style.marginTop + style.marginBottom
-
-    case 'spacer':
-      return row.height
-
-    case 'notifications':
-      return 270
-
-    case 'turn into team':
-      return 47
-
-    case 'block this conversation':
-      return 17
-
-    case 'clear entire conversation':
-      return 17
-
-    case 'participant count':
-      return 15
-
-    case 'small team header':
-      return 32
-
-    case 'big team header':
-      // This depends on how long the description is
-      // ballpark estimate between an empty and 1-line description
-      return 57
-
-    case 'join channel':
-      return 47
-
-    case 'leave channel':
-      return 17
-
-    case 'retention':
-      return row.canSetRetention ? 84 : 49
-
-    case 'min writer role':
-      return row.canSetMinWriterRole ? 84 : 35
-
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
-      throw new Error(`Impossible case encountered: ${row.type}`)
+  // Don't bother adding more estimates to this.
+  // Early items in the list get sized as soon as they render anyways.
+  // This estimate is useful mostly for off-screen items (like the participants).
+  if (row.type === 'participant') {
+    return 56
   }
+
+  return 0
 }
 
 class _InfoPanel extends React.Component<InfoPanelProps> {
@@ -295,6 +249,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         return (
           <AddPeople
             key="add people"
+            isAdmin={row.isAdmin}
             isGeneralChannel={row.isGeneralChannel}
             teamname={row.teamname}
             conversationIDKey={this.props.selectedConversationIDKey}
@@ -304,7 +259,13 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         return <Participant key={`participant ${row.key}`} {...row} />
 
       case 'divider':
-        return <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
+        // This wrapper is used here with flex so that the margins
+        // do not collapse and the height can be calculated properly
+        return (
+          <Box style={{display: 'flex'}}>
+            <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
+          </Box>
+        )
 
       case 'spacer':
         return <Spacer height={row.height} key={`spacer ${row.key}`} />
@@ -461,7 +422,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         },
       ]
       let addPeopleRow = false
-      if (props.admin && props.teamname && !props.isPreview) {
+      if (props.teamname && !props.isPreview && (props.admin || channelname !== 'general')) {
+        // admins can add people to the team and to channels
+        // anyone else can only add people to channels
         subHeaderRows.push(
           {
             key: nextKey(),
@@ -470,6 +433,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             type: 'divider',
           },
           {
+            isAdmin: props.admin,
             isGeneralChannel: channelname === 'general',
             key: 'add people',
             teamname: props.teamname,

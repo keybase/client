@@ -551,7 +551,7 @@ func AddTeamKeyForTest(config Config, tid keybase1.TeamID) error {
 	ti, err := kbd.LoadTeamPlusKeys(
 		context.Background(), tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen,
 		keybase1.UserVersion{}, kbfscrypto.VerifyingKey{},
-		keybase1.TeamRole_NONE)
+		keybase1.TeamRole_NONE, keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return err
 	}
@@ -837,7 +837,8 @@ func CheckConfigAndShutdown(
 func GetRootNodeForTest(
 	ctx context.Context, config Config, name string,
 	t tlf.Type) (Node, error) {
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), config.MDOps(), name, t)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, name, t)
 	if err != nil {
 		return nil, err
 	}

@@ -26,11 +26,12 @@
       "public": "I.Map<string, Types.Tlf>",
       "team": "I.Map<string, Types.Tlf>"
     },
-    "filePreviewLoad": {
+    "pathItemLoad": {
       "path": "Types.Path",
-      "identifyBehavior?": "?RPCTypes.TLFIdentifyBehavior"
+      "identifyBehavior?": "?RPCTypes.TLFIdentifyBehavior",
+      "silenceErrors?": "?boolean"
     },
-    "filePreviewLoaded": {
+    "pathItemLoaded": {
       "path": "Types.Path",
       "meta": "Types.PathItem"
     },
@@ -229,6 +230,8 @@
     "setPathItemActionMenuDownloadKey": {
       "key": "?string"
     },
+    "kbfsDaemonConnected": {},
+    "kbfsDaemonDisconnected": {},
 
     "placeholderAction": {}
   }

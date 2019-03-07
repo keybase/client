@@ -11,7 +11,6 @@ import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
-import ff from '../../../util/feature-flags'
 
 type OwnProps = {|
   routeState: I.RecordOf<{
@@ -63,11 +62,9 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
   onNewChat: () =>
     dispatch(
-      ff.newTeamBuildingForChat
-        ? RouteTreeGen.createNavigateAppend({
-            path: [{props: {}, selected: 'chatNewChat'}],
-          })
-        : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {}, selected: 'chatNewChat'}],
+      })
     ),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
