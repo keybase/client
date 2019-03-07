@@ -70,7 +70,8 @@ static NSString *const goConnectEventName = @"go-engine-event";
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     printf("AAA before GO init\n");
-//    [NSThread sleepForTimeInterval:10.0f];
+    NSUInteger t = arc4random_uniform(10) + 1;
+    [NSThread sleepForTimeInterval:t];
     KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
     
     dispatch_async(dispatch_get_main_queue(), ^{

@@ -108,11 +108,12 @@ public class MainActivity extends ReactFragmentActivity {
             @Override
             public void run() {
                 Log.d(TAG, "aaa go delay init");
-//                try {
-//                    Thread.sleep(10 * 1000); // TEMP
-//                } catch (InterruptedException e) {
-//
-//                }
+                try {
+                    final long t = (long)Math.floor(Math.random() * 10 * 1000);
+                    Thread.sleep(t); // TEMP
+                } catch (InterruptedException e) {
+
+                }
 
                 initOnce(homeDir, "", logFile, "prod", false, new DNSNSFetcher(), new VideoHelper());
                 Log.d(TAG, "aaa go delay after");
