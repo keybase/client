@@ -45,7 +45,7 @@ const TeamBox = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.Box2 direction="horizontal" style={styles.search}>
-        {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
+        {Styles.isMobile && <Kb.Icon fontSize={22} type="iconfont-search" style={styles.searchIcon} />}
         <Input
           hasMembers={!!props.teamSoFar.length}
           onChangeText={props.onChangeText}
@@ -63,9 +63,9 @@ const TeamBox = (props: Props) => (
       </Kb.Box2>
       {!!props.teamSoFar.length && !Styles.isMobile && <GoButton onClick={props.onFinishTeamBuilding} />}
     </Kb.Box2>
-    <Kb.Box2 direction="horizontal" fullHeight={false} fullWidth={true} style={styles.bubbles}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bubbles}>
       <Kb.ScrollView horizontal={true}>
-        <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={false} style={styles.floatingBubbles}>
+        <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
           <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
         </Kb.Box2>
       </Kb.ScrollView>

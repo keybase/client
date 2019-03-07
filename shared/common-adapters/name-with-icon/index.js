@@ -93,8 +93,8 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         }
         type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
         containerStyle={Styles.collapseStyles([
-          this.props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle,
-          this.props.size === 'smaller' ? styles.smallerWidthTextContainer : {},
+          !this.props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
+          this.props.size === 'smaller' && styles.smallerWidthTextContainer,
         ])}
         inline={!this.props.horizontal}
         underline={this.props.underline}
@@ -103,7 +103,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorFollowing={this.props.colorFollowing}
         colorYou={this.props.notFollowingColorOverride}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
-        style={this.props.size === 'smaller' ? styles.smallerWidthText : styles.fullWidthText}
+        style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
       />
     ) : (
       <Text
@@ -219,7 +219,6 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
-  smallerWidthText: {},
   smallerWidthTextContainer: Styles.platformStyles({
     isElectron: {
       color: Styles.globalColors.black_50,

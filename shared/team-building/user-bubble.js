@@ -53,7 +53,7 @@ const DesktopBubble = (props: Props) => {
 
 const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
   <Kb.WithTooltip text={prettyName} position={'top center'} containerStyle={styles.remove} className="remove">
-    <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignRight}>
+    <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignCenter}>
       <Kb.Icon
         type={'iconfont-close'}
         color={Styles.globalColors.black_50_on_white}
@@ -154,8 +154,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 
-  removeBubbleTextAlignRight: Styles.platformStyles({
+  removeBubbleTextAlignCenter: Styles.platformStyles({
     isElectron: {
+      margin: 'auto',
       textAlign: 'center',
     },
     isMobile: {
