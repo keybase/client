@@ -37,11 +37,12 @@ const Illustration = () => (
 )
 
 class CancelWhenEnabled extends React.PureComponent<Props> {
+  _cancelOnEnabled = () => this.props.driverStatus.type === 'enabled' && this.props.onCancel()
   componentDidMount() {
-    this.props.driverStatus.type === 'enabled' && this.props.onCancel()
+    this._cancelOnEnabled()
   }
   componentDidUpdate() {
-    this.props.driverStatus.type === 'enabled' && this.props.onCancel()
+    this._cancelOnEnabled()
   }
   render() {
     return null
