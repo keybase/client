@@ -132,7 +132,7 @@ const CoinFlipResultDeck = (props: DeckType) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.cards, !props.hand && styles.commonContainer])}
+    style={Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
   >
     {props.deck && props.deck.map(card => <Card key={card} card={card} hand={props.hand} />)}
   </Kb.Box2>
@@ -165,13 +165,7 @@ const CoinFlipResultHands = (props: HandType) => {
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
           {handsWithCards.map(hand => (
-            <Kb.Box2
-              key={hand.target}
-              alignSelf="flex-start"
-              alignItems="stretch"
-              direction="vertical"
-              // style={styles.commonContainer}
-            >
+            <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical">
               <Kb.Text selectable={true} type="BodyBig">
                 {hand.target}
               </Kb.Text>
@@ -184,15 +178,15 @@ const CoinFlipResultHands = (props: HandType) => {
               key={hand.target}
               direction="vertical"
               alignSelf="flex-start"
-              // style={styles.commonContainer}
+              style={styles.commonContainer}
             >
-              <CoinFlipResultDeck deck={hand.hand} />
+              <CoinFlipResultDeck deck={hand.hand} hand={true} />
             </Kb.Box2>
           ))}
         </Kb.Box2>
       </Kb.Box2>
       {handsWithoutCards.length > 0 && (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.commonContainer}>
           <Kb.Text type="BodySmallSemibold">
             Not enough cards for:{' '}
             <Kb.Text type="BodySmall">{handsWithoutCards.map(hand => hand.target).join(', ')}</Kb.Text>
@@ -308,7 +302,6 @@ const styles = Styles.styleSheetCreate({
     width: 48,
   },
   commonContainer: {
-    backgroundColor: Styles.globalColors.red,
     marginTop: Styles.globalMargins.tiny,
   },
   handContainer: {
@@ -362,6 +355,9 @@ const styles = Styles.styleSheetCreate({
       top: -2,
     },
   }),
+  noMarginTop: {
+    marginTop: 0,
+  },
 })
 
 export default CoinFlipResult
