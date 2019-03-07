@@ -153,7 +153,8 @@ func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (re
 }
 
 func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLockdownModeArg) (err error) {
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetLockdownMode(%v)", arg.Enabled), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("SetLockdownMode(%v)", arg.Enabled), func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/lockdown",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -161,6 +162,6 @@ func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLo
 			"enabled": libkb.B{Val: arg.Enabled},
 		},
 	}
-	_, err = h.G().API.Post(apiArg)
+	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }

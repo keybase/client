@@ -66,10 +66,10 @@ func RequestDowngradeLeaseByKID(ctx context.Context, g *GlobalContext, kids []ke
 }
 
 func CancelDowngradeLease(ctx context.Context, g *GlobalContext, l keybase1.LeaseID) error {
-	_, err := g.API.Post(APIArg{
+	mctx := NewMetaContext(ctx, g)
+	_, err := g.API.Post(mctx, APIArg{
 		Endpoint:    "downgrade/cancel",
 		SessionType: APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: HTTPArgs{
 			"downgrade_lease_id": S{string(l)},
 		},

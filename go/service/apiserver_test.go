@@ -72,7 +72,8 @@ func TestAPIServerPost(t *testing.T) {
 	}
 
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doPost(arg)
+	mctx := libkb.NewMetaContextForTest(tc)
+	res, err := handler.doPost(mctx, arg)
 	if err != nil {
 		t.Fatal(err)
 	}

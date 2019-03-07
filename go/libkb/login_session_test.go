@@ -66,7 +66,7 @@ func (a *FakeAPI) GetResp(MetaContext, APIArg) (*http.Response, func(), error) {
 	return nil, noopFinisher, fmt.Errorf("GetResp is phony")
 }
 
-func (a *FakeAPI) Post(APIArg) (*APIRes, error) {
+func (a *FakeAPI) Post(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("Post is phony")
 }
 

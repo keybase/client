@@ -1348,12 +1348,12 @@ func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/agedevice",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  context.Background(),
 		Args: libkb.HTTPArgs{
 			"device_id": libkb.S{Val: deviceID.String()},
 		},
 	}
-	_, err := g.API.Post(apiArg)
+	mctx := libkb.NewMetaContextBackground(g)
+	_, err := g.API.Post(mctx, apiArg)
 	require.NoError(t, err)
 }
 

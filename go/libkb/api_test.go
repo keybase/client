@@ -59,7 +59,7 @@ func TestProductionCA(t *testing.T) {
 		t.Fatalf("api url: %s, expected %s", url.String(), pingExpected)
 	}
 
-	_, err := tc.G.API.Post(arg)
+	_, err := tc.G.API.Post(mctx, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +101,7 @@ func TestProductionBadCA(t *testing.T) {
 		t.Fatalf("api url: %s, expected %s", iurl.String(), pingExpected)
 	}
 
-	_, err := tc.G.API.Post(arg)
+	_, err := tc.G.API.Post(mctx, arg)
 	if err == nil {
 		t.Errorf("api ping POST worked with unknown CA")
 	} else {

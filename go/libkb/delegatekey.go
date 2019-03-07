@@ -267,13 +267,12 @@ func (d *Delegator) post(m MetaContext) (err error) {
 		Endpoint:    "key/add",
 		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
-		MetaContext: m,
 	}
 	if d.Aggregated {
 		d.postArg = arg
 		return nil
 	}
-	_, err = m.G().API.Post(arg)
+	_, err = m.G().API.Post(m, arg)
 
 	return err
 }

@@ -38,10 +38,10 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 			"seqno":  I{Val: int(seqno)},
 			"msg":    B64Arg(msg),
 		},
-		MetaContext: mctx.BackgroundWithLogTags(),
 	}
+	mctx = mctx.BackgroundWithLogTags()
 	kexAPITimeout(&arg, time.Second*5)
-	_, err = mctx.G().API.Post(arg)
+	_, err = mctx.G().API.Post(mctx, arg)
 
 	return err
 }

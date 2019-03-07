@@ -35,7 +35,8 @@ func (s *TeamEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 
 func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
 	sig string, boxes *[]keybase1.TeamEkBoxMetadata) (err error) {
-	defer g.CTraceTimed(ctx, "postNewTeamEK", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("postNewTeamEK", func() error { return err })()
 
 	boxesJSON, err := json.Marshal(*boxes)
 	if err != nil {
@@ -44,7 +45,6 @@ func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/team_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"team_id":           libkb.S{Val: string(teamID)},
 			"sig":               libkb.S{Val: sig},
@@ -52,7 +52,7 @@ func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			"creator_device_id": libkb.S{Val: string(g.Env.GetDeviceID())},
 		},
 	}
-	_, err = g.GetAPI().Post(apiArg)
+	_, err = g.GetAPI().Post(mctx, apiArg)
 	return err
 }
 

@@ -638,8 +638,9 @@ func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 
 func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
 	currency string) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 
-	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(ctx)
 	if err != nil {
 		return err
 	}
@@ -653,9 +654,8 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 			"account_id": libkb.S{Val: string(accountID)},
 			"currency":   libkb.S{Val: currency},
 		},
-		NetContext: ctx,
 	}
-	_, err = g.API.Post(apiArg)
+	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }
 
@@ -681,12 +681,12 @@ func GetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (ret boo
 }
 
 func SetAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/disclaimer",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 	}
-	_, err := g.API.Post(apiArg)
+	_, err := mctx.G().API.Post(mctx, apiArg)
 	return err
 }
 
@@ -893,15 +893,15 @@ func ServerTimeboundsRecommendation(ctx context.Context, g *libkb.GlobalContext)
 }
 
 func SetInflationDestination(ctx context.Context, g *libkb.GlobalContext, signedTx string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/setinflation",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"sig": libkb.S{Val: signedTx},
 		},
-		MetaContext: libkb.NewMetaContext(ctx, g),
 	}
-	_, err = g.API.Post(apiArg)
+	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }
 
@@ -984,14 +984,13 @@ func AirdropDetails(mctx libkb.MetaContext) (string, error) {
 
 func AirdropRegister(mctx libkb.MetaContext, register bool) error {
 	apiArg := libkb.APIArg{
-		MetaContext: mctx,
 		Endpoint:    "stellar/airdrop/register",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"remove": libkb.B{Val: !register},
 		},
 	}
-	_, err := mctx.G().API.Post(apiArg)
+	_, err := mctx.G().API.Post(mctx, apiArg)
 	return err
 }
 
