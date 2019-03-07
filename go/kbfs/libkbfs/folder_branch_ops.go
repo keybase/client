@@ -8397,6 +8397,69 @@ func (fbo *folderBranchOps) triggerMarkAndSweepLocked() {
 	}
 }
 
+func (fbo *folderBranchOps) reResolveAndIdentify(
+	ctx context.Context, oldHandle *TlfHandle, rev kbfsmd.Revision) {
+	fbo.log.CDebugf(ctx, "Re-resolving handle")
+	defer func() { fbo.log.CDebugf(ctx, "Done") }()
+
+	fbo.config.KeybaseService().ClearCaches(ctx)
+
+	// Once with the iteam-resolver, and once without it, to cache the
+	// individual users of the folder, and once with it.
+	tlfName := string(oldHandle.GetCanonicalName())
+	h, err := ParseTlfHandle(
+		ctx, fbo.config.KBPKI(), fbo.config.MDOps(), fbo.config,
+		tlfName, fbo.id().Type())
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Couldn't parse handle: %+v", err)
+		return
+	}
+
+outer:
+	for {
+		_, err := ParseTlfHandlePreferredQuick(
+			ctx, fbo.config.KBPKI(), fbo.config, tlfName, fbo.id().Type())
+		switch e := errors.Cause(err).(type) {
+		case TlfNameNotCanonical:
+			tlfName = e.NameToTry
+		case nil:
+			break outer
+		default:
+			fbo.log.CDebugf(ctx, "Couldn't parse handle: %+v", err)
+			return
+		}
+	}
+
+	// Also re-download the MD, to make sure the team info is cached,
+	// as well as the writer's keys.
+	_, err = fbo.config.MDOps().GetRange(ctx, fbo.id(), rev, rev, nil)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Couldn't fetch MD revision %d: %+v", rev, err)
+		return
+	}
+
+	// Suppress tracker popups.
+	ctx, err = MakeExtendedIdentify(
+		ctx, keybase1.TLFIdentifyBehavior_KBFS_INIT)
+	if err != nil {
+		fbo.log.CDebugf(
+			ctx, "Couldn't make extended identify: %+v", err)
+		return
+	}
+
+	err = identifyHandle(
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config, h)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Couldn't identify handle: %+v", err)
+	}
+
+	// The popups and errors were suppressed, but any errors would
+	// have been logged.  So just close out the extended identify.  If
+	// the user accesses the TLF directly, another proper identify
+	// should happen that shows errors.
+	_ = getExtendedIdentify(ctx).getTlfBreakAndClose()
+}
+
 // SetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
 func (fbo *folderBranchOps) SetSyncConfig(
 	ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
@@ -8498,6 +8561,17 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	ch, err = fbo.config.SetTlfSyncState(tlfID, newConfig)
 	if err != nil {
 		return nil, err
+	}
+
+	if oldConfig.Mode == keybase1.FolderSyncMode_DISABLED &&
+		newConfig.Mode != keybase1.FolderSyncMode_DISABLED {
+		// Explicitly re-resolve and re-identify the handle, to make
+		// sure the service caches everything it's supposed to.
+		go func() {
+			ctx, cancel := fbo.newCtxWithFBOID()
+			defer cancel()
+			fbo.reResolveAndIdentify(ctx, md.GetTlfHandle(), md.Revision())
+		}()
 	}
 
 	if config.Mode == keybase1.FolderSyncMode_ENABLED {
