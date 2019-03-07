@@ -730,3 +730,86 @@ func TestRemoveFromOpenTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, currentGen, teamObj.Generation())
 }
+
+func TestOpenSweepHandler(t *testing.T) {
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherA.Username))
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherB.Username))
+
+	otherBUV := otherB.User.ToUserVersion()
+
+	// Login as otherB, reset account.
+	tc.G.Logout(context.TODO())
+	require.NoError(t, otherB.Login(tc.G))
+	kbtest.ResetAccount(tc, otherB)
+
+	// Login as owner, try to simulate OPENSWEEP, should fail because it's a
+	// closed team.
+	tc.G.Logout(context.TODO())
+	require.NoError(t, owner.Login(tc.G))
+
+	team, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	// Make sure we have the right UV that we are going to check later if it's
+	// sweeped out.
+	require.True(t, team.IsMember(context.TODO(), otherBUV))
+
+	params := keybase1.TeamOpenSweepMsg{
+		TeamID: team.ID,
+		ResetUsersUntrusted: []keybase1.TeamCLKRResetUser{
+			keybase1.TeamCLKRResetUser{
+				Uid:               otherB.User.GetUID(),
+				UserEldestSeqno:   keybase1.Seqno(0),
+				MemberEldestSeqno: otherBUV.EldestSeqno,
+			}},
+	}
+	err = HandleOpenTeamSweepRequest(context.Background(), tc.G, params)
+	require.Error(t, err)
+
+	// Change settings to open team.
+	err = ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+	require.NoError(t, err)
+
+	// Login as otherA (writer), simulate OPENSWEEP, should fail
+	// because it only works with admins.
+	tc.G.Logout(context.TODO())
+	require.NoError(t, otherA.Login(tc.G))
+
+	err = HandleOpenTeamSweepRequest(context.Background(), tc.G, params)
+	require.Error(t, err)
+
+	// Back to owner, should work now.
+	tc.G.Logout(context.TODO())
+	require.NoError(t, owner.Login(tc.G))
+
+	err = HandleOpenTeamSweepRequest(context.Background(), tc.G, params)
+	require.NoError(t, err)
+
+	team, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+	// Generation should not have advanced after OPENSWEEP.
+	require.EqualValues(t, 1, team.Generation())
+	// OtherB should not be a member anymore.
+	require.False(t, team.IsMember(context.TODO(), otherBUV))
+	// This leaves two remaining members.
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.AllUserVersions(), 2)
+
+	curSeqno := team.CurrentSeqno()
+
+	// Repeating the same request should be a no-op, not post any links, etc.
+	err = HandleOpenTeamSweepRequest(context.Background(), tc.G, params)
+	require.NoError(t, err)
+
+	team, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+	require.Equal(t, curSeqno, team.CurrentSeqno())
+	require.EqualValues(t, 1, team.Generation())
+}

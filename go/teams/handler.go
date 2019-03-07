@@ -101,6 +101,10 @@ func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg
 		return err
 	}
 
+	if !team.IsOpen() {
+		return fmt.Errorf("OpenSweep request for team %s that is not open", team.ID)
+	}
+
 	role, err := team.myRole(ctx)
 	if err != nil {
 		return err
@@ -109,9 +113,6 @@ func HandleOpenTeamSweepRequest(ctx context.Context, g *libkb.GlobalContext, msg
 		return fmt.Errorf("OpenSweep request for team %s but our role is: %s", team.ID, role.String())
 	}
 
-	// CanSkipKeyRotation() should return `true` for open teams, so sweeping
-	// will not rotate. But assume the possibility of OPENSWEEP being sent for
-	// non-open teams.
 	rotate := !team.CanSkipKeyRotation()
 	_, err = sweepOpenTeamResetAndDeletedMembers(ctx, g, team, msg.ResetUsersUntrusted, rotate)
 	return err
