@@ -101,11 +101,6 @@ const getFailureDescriptionAllowCancel = (message, you) => {
       // This is a message still in the outbox, we can retry/edit to fix
       failureDescription = `Failed to send: ${message.errorReason}`
       allowCancelRetry = true
-      // unless its a permanent flip. TODO make this better
-      if (message.errorReason === 'flip permanent error') {
-        failureDescription = 'Failed to submit a flip, maybe your internet is Comcast'
-        allowCancelRetry = false
-      }
     }
   }
   return {allowCancelRetry, failureDescription}
