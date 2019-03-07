@@ -6854,9 +6854,19 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
 		return err
 	}
-	if err := fbo.editActivity.Wait(ctx); err != nil {
-		return err
+
+	// For tests where the service is offline, we can't wait forever
+	// for the edit activity to complete.
+	editCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if err := fbo.editActivity.Wait(editCtx); err != nil {
+		if err == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Couldn't wait for edit activity")
+		} else {
+			return err
+		}
 	}
+
 	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
 		return err
 	}
