@@ -132,7 +132,7 @@ class CoinFlip extends React.Component<Props, State> {
           {this.props.resultInfo && <CoinFlipResult result={this.props.resultInfo} />}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.flipAgainContainer}>
-          {this.props.isSendError || this.props.errorInfo ? (
+          {this.props.isSendError || !!this.props.errorInfo ? (
             <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onFlipAgain} style={styles.error}>
               Try again
             </Kb.Text>
