@@ -11,6 +11,7 @@ import getFilteredRowsAndMetadata from '../inbox/container/filtered'
 
 type OwnProps = {|
   filter?: string,
+  focusFilterOnMount?: ?boolean,
   onDone?: ?() => void,
   onSelect: (conversationIDKey: Types.ConversationIDKey) => void,
   onSetFilter?: (filter: string) => void,
@@ -164,6 +165,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       isLoading: false,
       onSetFilter: ownProps.onSetFilter,
     },
+    focusFilterOnMount: ownProps.focusFilterOnMount,
     onBack: dispatchProps.onBack,
     onEnsureSelection: () => {
       if (selectedIndex === null) {

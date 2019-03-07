@@ -39,6 +39,7 @@ type Props = {|
     filter: string,
     onSetFilter: (filter: string) => void,
   },
+  focusFilterOnMount?: ?boolean,
   onBack: () => void,
   onEnsureSelection: () => void,
   onSelectDown: () => void,
@@ -96,6 +97,7 @@ const ConversationList = (props: Props) => {
           filter={props.filter.filter}
           onSetFilter={props.filter.onSetFilter}
           filterFocusCount={0}
+          focusOnMount={props.focusFilterOnMount}
           noShortcut={true}
           onBlur={() => {}}
           onFocus={() => {}}

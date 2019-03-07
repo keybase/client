@@ -17,6 +17,7 @@ type Props = {|
 const MobileWithHeader = Kb.HeaderHoc(
   ChooseConversationHOC<{
     onDone?: ?() => void,
+    focusFilterOnMount?: ?boolean,
   }>(ConversationList)
 )
 

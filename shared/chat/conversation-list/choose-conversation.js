@@ -28,7 +28,6 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
     return (
       <>
         <Kb.DropdownButton
-          disabled={false}
           selected={<Kb.Text type="BodySemibold">{this.props.selectedText}</Kb.Text>}
           setAttachmentRef={this.props.setAttachmentRef}
           toggleOpen={this._toggleOpen}
@@ -37,7 +36,7 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
         <Kb.Overlay
           attachTo={this.props.getAttachmentRef}
           onHidden={this._toggleOpen}
-          position={'center center'}
+          position="center center"
           style={styles.overlay}
           visible={this.state.expanded}
         >
@@ -45,6 +44,7 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
             onSelect={this.props.onSelect}
             onDone={this._onDone}
             filter={this.props.filter}
+            focusFilterOnMount={true}
             onSetFilter={this.props.onSetFilter}
             selected={this.props.selected}
           />

@@ -8,6 +8,7 @@ import flags from '../util/feature-flags'
 export type Props = {|
   filter: string,
   filterFocusCount: number,
+  focusOnMount?: ?boolean,
   isLoading: boolean,
   onBack: () => void,
   noShortcut: ?boolean,
@@ -70,6 +71,12 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
       this._input && this._input.blur()
       this.props.onEnsureSelection()
     }
+  }
+
+  componentDidMount() {
+    // In choose-conversation, this is inside overlaye and gets unmounted when
+    // the popup hides. So just provide an option to focus on mount.
+    this.props.focusOnMount && this._startEditing()
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {

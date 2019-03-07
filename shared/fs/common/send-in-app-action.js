@@ -17,6 +17,10 @@ type OwnProps = {
   attach?: ?boolean, // TODO: get rid of this and do the menu thing as designed
 }
 
+const mapStateToProps = (state, ownProps) => ({
+  isFile: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'file',
+})
+
 const mapDispatchToProps = (dispatch, {path, routePath, attach}: OwnProps) => ({
   onClickAttachment: () => dispatch(FsGen.createShowSendAttachmentToChat({path, routePath})),
   onClickLink: () => dispatch(FsGen.createShowSendLinkToChat({path, routePath})),
@@ -43,7 +47,7 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(
           position="bottom left"
           items={[
             {onClick: props.onClickLink, title: 'Send link to chat'},
-            ...(flags.sendAttachmentToChat && Types.getPathLevel(props.path) > 3
+            ...(flags.sendAttachmentToChat && Types.getPathLevel(props.path) > 3 && props.isFile
               ? [{onClick: props.onClickAttachment, title: 'Send attachment to chat'}]
               : []),
           ]}
@@ -60,7 +64,7 @@ const styles = Styles.styleSheetCreate({
 
 export default (!isMobile
   ? namedConnect<OwnProps, _, _, _, _>(
-      () => ({}),
+      mapStateToProps,
       mapDispatchToProps,
       (s, d, o) => ({...o, ...s, ...d}),
       'SendInAppAction'
