@@ -65,17 +65,9 @@ const load = () =>
         />
       </Box>
     ))
-    .add('fixed - props change !rerenderItemOnPropUpdateDesktop', () => (
-      <PropsChangeTester rerenderItemOnPropUpdateDesktop={false} />
-    ))
-    .add('fixed - props change rerenderItemOnPropUpdateDesktop', () => (
-      <PropsChangeTester rerenderItemOnPropUpdateDesktop={true} />
-    ))
+    .add('fixed - props change ', () => <PropsChangeTester />)
 
-class PropsChangeTester extends React.PureComponent<
-  {|rerenderItemOnPropUpdateDesktop: boolean|},
-  {|counter: number|}
-> {
+class PropsChangeTester extends React.PureComponent<{||}, {|counter: number|}> {
   state = {
     counter: 0,
   }
@@ -94,7 +86,6 @@ class PropsChangeTester extends React.PureComponent<
         <Box style={styles.listContainer}>
           <List2
             items={[{val: this.state.counter}]}
-            rerenderItemOnPropUpdateDesktop={this.props.rerenderItemOnPropUpdateDesktop}
             bounces={true}
             indexAsKey={true}
             itemHeight={{height: 32, type: 'fixed'}}
