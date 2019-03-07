@@ -789,7 +789,8 @@ func (fbo *folderBlockOps) getChargedToLocked(
 		return fbo.chargedTo, nil
 	}
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config,
+		kmd.GetTlfHandle())
 	if err != nil {
 		return keybase1.UserOrTeamID(""), err
 	}
@@ -817,7 +818,8 @@ func (fbo *folderBlockOps) deepCopyFileLocked(
 	// so only a read lock is needed.
 	fbo.blockLock.AssertRLocked(lState)
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config,
+		kmd.GetTlfHandle())
 	if err != nil {
 		return BlockPointer{}, nil, err
 	}
@@ -1939,7 +1941,7 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 		return nil, err
 	}
 	isWriter, err := kmd.IsWriter(
-		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbo.config.KBPKI(), fbo.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return nil, err
 	}

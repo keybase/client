@@ -42,10 +42,41 @@ func (s *SeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, erro
 	})
 	seqno, err := s.walletState.AccountSeqnoAndBump(s.mctx.Ctx(), stellar1.AccountID(aid))
 	if err != nil {
+		s.mctx.Debug("SeqnoProvider AccountSeqnoAndBump error: %s", err)
 		return 0, err
 	}
 
 	s.mctx.Debug("SeqnoProvider.SequenceForAccount(%s) -> %d", aid, seqno)
+	return xdr.SequenceNumber(seqno), nil
+}
 
+// ClaimSeqnoProvider is a build.SequenceProvider for relay claims.  It should only
+// be used for relay claims.
+//
+// It only uses the network and skips any of the work in WalletState to keep track
+// of in-use seqnos for multiple concurrent payments.
+//
+// It also returns an `unlock` function that must be called after the operation
+// that used this seqno provider has been submitted.
+type ClaimSeqnoProvider struct {
+	mctx        libkb.MetaContext
+	walletState *WalletState
+}
+
+// NewClaimSeqnoProvider creates a ClaimSeqnoProvider for use in relay claims.
+func NewClaimSeqnoProvider(mctx libkb.MetaContext, walletState *WalletState) (seqnoProvider *ClaimSeqnoProvider, unlock func()) {
+	walletState.SeqnoLock()
+	return &ClaimSeqnoProvider{
+		mctx:        mctx,
+		walletState: walletState,
+	}, walletState.SeqnoUnlock
+}
+
+// SequenceForAccount implements build.SequenceProvider.
+func (s *ClaimSeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, error) {
+	seqno, err := s.walletState.Remoter.AccountSeqno(s.mctx.Ctx(), stellar1.AccountID(aid))
+	if err != nil {
+		return 0, err
+	}
 	return xdr.SequenceNumber(seqno), nil
 }

@@ -103,11 +103,7 @@ type CardType = {|
   hand?: boolean,
 |}
 const Card = (props: CardType) => (
-  <Kb.Box2
-    direction="vertical"
-    centerChildren={true}
-    style={Styles.collapseStyles([styles.card, !props.hand && styles.cardStacked])}
-  >
+  <Kb.Box2 direction="vertical" centerChildren={true} style={styles.card}>
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
@@ -136,7 +132,7 @@ const CoinFlipResultDeck = (props: DeckType) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.cards, !props.hand && styles.cardsStacked])}
+    style={Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
   >
     {props.deck && props.deck.map(card => <Card key={card} card={card} hand={props.hand} />)}
   </Kb.Box2>
@@ -146,7 +142,7 @@ type CoinType = {|
   coin: ?boolean,
 |}
 const CoinFlipResultCoin = (props: CoinType) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
       <Kb.Icon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
     </Kb.Box2>
@@ -169,23 +165,28 @@ const CoinFlipResultHands = (props: HandType) => {
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
           {handsWithCards.map(hand => (
-              <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical" style={styles.gap}>
-                <Kb.Text selectable={true} type="BodyBig">
-                  {hand.target}
-                </Kb.Text>
-              </Kb.Box2>
-            ))}
+            <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical">
+              <Kb.Text selectable={true} type="BodyBig">
+                {hand.target}
+              </Kb.Text>
+            </Kb.Box2>
+          ))}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.handContainer}>
-            {handsWithCards.map(hand => (
-              <Kb.Box2 key={hand.target} direction="vertical" alignSelf="flex-start" style={styles.gap}>
-                <CoinFlipResultDeck deck={hand.hand} />
-              </Kb.Box2>
-            ))}
+          {handsWithCards.map(hand => (
+            <Kb.Box2
+              key={hand.target}
+              direction="vertical"
+              alignSelf="flex-start"
+              style={styles.commonContainer}
+            >
+              <CoinFlipResultDeck deck={hand.hand} hand={true} />
+            </Kb.Box2>
+          ))}
         </Kb.Box2>
       </Kb.Box2>
       {handsWithoutCards.length > 0 && (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.commonContainer}>
           <Kb.Text type="BodySmallSemibold">
             Not enough cards for:{' '}
             <Kb.Text type="BodySmall">{handsWithoutCards.map(hand => hand.target).join(', ')}</Kb.Text>
@@ -200,7 +201,7 @@ type NumberType = {|
   number: ?string,
 |}
 const CoinFlipResultNumber = (props: NumberType) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.commonContainer}>
     <Kb.Text selectable={true} type="Header" style={styles.break}>
       {props.number}
     </Kb.Text>
@@ -228,7 +229,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
 )
 
 const CoinFlipResultShuffleItem = props => (
-  <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
+  <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={styles.commonContainer}>
     <Kb.Box2 direction="vertical" centerChildren={true} alignItems="center" style={styles.listOrderContainer}>
       <Kb.Text
         selectable={true}
@@ -269,6 +270,7 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 0,
       height: 44,
       marginRight: -4,
+      marginTop: Styles.globalMargins.tiny,
       width: 28,
     },
     isMobile: {
@@ -277,33 +279,30 @@ const styles = Styles.styleSheetCreate({
       width: 20,
     },
   }),
-  cardStacked: {
-    marginBottom: 8,
-  },
   cardSuit: Styles.platformStyles({
     isMobile: {
       position: 'relative',
       top: -1,
     },
   }),
-  cards: {
-    flexWrap: 'wrap',
-  },
   // compensate for the bottom margin on cards
-  cardsStacked: Styles.platformStyles({
+  cards: Styles.platformStyles({
+    common: {
+      flexWrap: 'wrap',
+    },
     isElectron: {
-      marginBottom: -8,
+      marginTop: -Styles.globalMargins.tiny,
     },
     isMobile: {
-      marginBottom: -4,
+      marginTop: -Styles.globalMargins.xtiny,
     },
   }),
   coin: {
     height: 48,
     width: 48,
   },
-  gap: {
-    paddingBottom: Styles.globalMargins.tiny,
+  commonContainer: {
+    marginTop: Styles.globalMargins.tiny,
   },
   handContainer: {
     flexShrink: 1,
@@ -356,6 +355,9 @@ const styles = Styles.styleSheetCreate({
       top: -2,
     },
   }),
+  noMarginTop: {
+    marginTop: 0,
+  },
 })
 
 export default CoinFlipResult

@@ -125,7 +125,8 @@ func (r *Root) MakeFS(
 	switch r.Type {
 	case KBFSRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), r.TlfNameUnparsed, r.TlfType)
+			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), kbfsConfig,
+			r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
@@ -150,7 +151,7 @@ func (r *Root) MakeFS(
 		return cacheableFS, tlfHandle.TlfID(), cancel, nil
 	case GitRoot:
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
+			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(), kbfsConfig,
 			r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err

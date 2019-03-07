@@ -168,8 +168,8 @@ func (kmd emptyKeyMetadata) GetTlfHandle() *TlfHandle {
 }
 
 func (kmd emptyKeyMetadata) IsWriter(
-	_ context.Context, _ kbfsmd.TeamMembershipChecker, _ keybase1.UID,
-	_ kbfscrypto.VerifyingKey) (bool, error) {
+	_ context.Context, _ kbfsmd.TeamMembershipChecker, _ OfflineStatusGetter,
+	_ keybase1.UID, _ kbfscrypto.VerifyingKey) (bool, error) {
 	return false, nil
 }
 
@@ -439,7 +439,8 @@ func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver kbfsmd.Metad
 
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), constIDGetter{id}, "alice,bob@twitter", tlf.Public)
+		ctx, config.KBPKI(), constIDGetter{id}, nil, "alice,bob@twitter",
+		tlf.Public)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -479,7 +480,7 @@ func testKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T, ver kbfsmd.M
 
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), constIDGetter{id},
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice@twitter,bob,charlie@twitter", tlf.Public)
 	require.NoError(t, err)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
@@ -515,7 +516,7 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 
 	id := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), constIDGetter{id},
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,bob@twitter,dave@twitter#charlie@twitter", tlf.Private)
 	if err != nil {
 		t.Fatal(err)
@@ -605,7 +606,7 @@ func testKeyManagerPromoteReaderSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,bob@twitter#bob", tlf.Private)
 	require.NoError(t, err)
 
@@ -653,7 +654,7 @@ func testKeyManagerPromoteReaderSelf(t *testing.T, ver kbfsmd.MetadataVer) {
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,bob@twitter#bob", tlf.Private)
 	require.NoError(t, err)
 
@@ -703,7 +704,7 @@ func testKeyManagerReaderRekeyShouldNotPromote(t *testing.T, ver kbfsmd.Metadata
 	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,charlie@twitter#bob,charlie", tlf.Private)
 	require.NoError(t, err)
 
@@ -746,7 +747,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 	defer keyManagerShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Private)
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,dave@twitter#bob@twitter,charlie@twitter", tlf.Private)
 	if err != nil {
 		t.Fatal(err)
@@ -779,7 +780,8 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 	daemon.addNewAssertionForTestOrBust("dave", "dave@twitter")
 
-	_, bobID, err := daemon.Resolve(ctx, "bob")
+	_, bobID, err := daemon.Resolve(
+		ctx, "bob", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 	bobUID, err := bobID.AsUser()
 	require.NoError(t, err)
@@ -827,7 +829,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 
 	id := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), constIDGetter{id}, "alice,bob,bob@twitter",
+		ctx, config.KBPKI(), constIDGetter{id}, nil, "alice,bob,bob@twitter",
 		tlf.Private)
 	if err != nil {
 		t.Fatal(err)
@@ -1157,7 +1159,8 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 	config1.SetMetadataVersion(ver)
 
 	// Revoke user 3's device for now, to test the "other" rekey error.
-	_, id3, err := config1.KBPKI().Resolve(ctx, u3.String())
+	_, id3, err := config1.KBPKI().Resolve(
+		ctx, u3.String(), keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		t.Fatalf("Couldn't resolve u3: %+v", err)
 	}
@@ -2416,7 +2419,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config1.MetadataVersion(), config1.Codec(),
 		config1.KeyManager(), config1.KBPKI(), config1.KBPKI(),
-		kbfsmd.FakeID(2), true)
+		config1, kbfsmd.FakeID(2), true)
 	require.NoError(t, err)
 
 	// Both users should see the same new key.
@@ -2456,7 +2459,8 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	}
 
 	_, latestKeyGen, err := config1.KBPKI().GetTeamTLFCryptKeys(
-		ctx, teamID, kbfsmd.UnspecifiedKeyGen)
+		ctx, teamID, kbfsmd.UnspecifiedKeyGen,
+		keybase1.OfflineAvailability_NONE)
 
 	rmd, err := makeInitialRootMetadata(config1.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
@@ -2477,7 +2481,7 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config1.MetadataVersion(), config1.Codec(),
 		config1.KeyManager(), config1.KBPKI(), config1.KBPKI(),
-		kbfsmd.FakeID(2), true)
+		config1, kbfsmd.FakeID(2), true)
 	require.NoError(t, err)
 
 	// Both users should see the same new key.

@@ -244,7 +244,8 @@ func (j *JournalManager) getTLFJournal(
 		// the first write that happens after the user becomes a
 		// writer for the TLF.
 		isWriter, err := IsWriterFromHandle(
-			ctx, h, j.config.KBPKI(), j.currentUID, j.currentVerifyingKey)
+			ctx, h, j.config.KBPKI(), j.config, j.currentUID,
+			j.currentVerifyingKey)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't find writership for %s: %+v",
 				tlfID, err)
@@ -300,7 +301,8 @@ func (j *JournalManager) makeFBOForJournal(
 
 	handle, err := MakeTlfHandle(
 		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
-		j.config.KBPKI(), constIDGetter{tlfID})
+		j.config.KBPKI(), constIDGetter{tlfID},
+		j.config.OfflineAvailabilityForID(tlfID))
 	if err != nil {
 		return err
 	}
@@ -638,7 +640,8 @@ func (j *JournalManager) Enable(ctx context.Context, tlfID tlf.ID,
 		chargedTo = h.FirstResolvedWriter()
 		if tid := chargedTo.AsTeamOrBust(); tid.IsSubTeam() {
 			// We can't charge to subteams; find the root team.
-			rootID, err := j.config.KBPKI().GetTeamRootID(ctx, tid)
+			rootID, err := j.config.KBPKI().GetTeamRootID(
+				ctx, tid, j.config.OfflineAvailabilityForID(tlfID))
 			if err != nil {
 				return err
 			}

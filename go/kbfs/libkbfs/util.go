@@ -134,13 +134,18 @@ func checkContext(ctx context.Context) error {
 }
 
 func chargedToForTLF(ctx context.Context, sessionGetter CurrentSessionGetter,
-	rootIDGetter teamRootIDGetter, handle *TlfHandle) (
+	rootIDGetter teamRootIDGetter, osg OfflineStatusGetter, handle *TlfHandle) (
 	keybase1.UserOrTeamID, error) {
 	if handle.Type() == tlf.SingleTeam {
 		chargedTo := handle.FirstResolvedWriter()
 		if tid := chargedTo.AsTeamOrBust(); tid.IsSubTeam() {
+			offline := keybase1.OfflineAvailability_NONE
+			if osg != nil {
+				offline = osg.OfflineAvailabilityForID(handle.tlfID)
+			}
+
 			// Subteam blocks should be charged to the root team ID.
-			rootID, err := rootIDGetter.GetTeamRootID(ctx, tid)
+			rootID, err := rootIDGetter.GetTeamRootID(ctx, tid, offline)
 			if err != nil {
 				return keybase1.UserOrTeamID(""), err
 			}
@@ -160,10 +165,12 @@ func chargedToForTLF(ctx context.Context, sessionGetter CurrentSessionGetter,
 // GetHandleFromFolderNameAndType returns a TLFHandle given a folder
 // name (e.g., "u1,u2#u3") and a TLF type.
 func GetHandleFromFolderNameAndType(
-	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter, tlfName string,
+	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter,
+	syncGetter syncedTlfGetterSetter, tlfName string,
 	t tlf.Type) (*TlfHandle, error) {
 	for {
-		tlfHandle, err := ParseTlfHandle(ctx, kbpki, idGetter, tlfName, t)
+		tlfHandle, err := ParseTlfHandle(
+			ctx, kbpki, idGetter, syncGetter, tlfName, t)
 		switch e := errors.Cause(err).(type) {
 		case TlfNameNotCanonical:
 			tlfName = e.NameToTry
@@ -178,7 +185,8 @@ func GetHandleFromFolderNameAndType(
 // getHandleFromFolderName returns a TLFHandle given a folder
 // name (e.g., "u1,u2#u3") and a public/private bool.  DEPRECATED.
 func getHandleFromFolderName(
-	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter, tlfName string,
+	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter,
+	syncGetter syncedTlfGetterSetter, tlfName string,
 	public bool) (*TlfHandle, error) {
 	// TODO(KBFS-2185): update the protocol to support requests
 	// for single-team TLFs.
@@ -186,7 +194,8 @@ func getHandleFromFolderName(
 	if public {
 		t = tlf.Public
 	}
-	return GetHandleFromFolderNameAndType(ctx, kbpki, idGetter, tlfName, t)
+	return GetHandleFromFolderNameAndType(
+		ctx, kbpki, idGetter, syncGetter, tlfName, t)
 }
 
 // IsWriterFromHandle checks whether the given UID is a writer for the
@@ -194,8 +203,8 @@ func getHandleFromFolderName(
 // classically-keyed handles.
 func IsWriterFromHandle(
 	ctx context.Context, h *TlfHandle, checker kbfsmd.TeamMembershipChecker,
-	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
-	bool, error) {
+	osg OfflineStatusGetter, uid keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	if h.TypeForKeying() != tlf.TeamKeying {
 		return h.IsWriter(uid), nil
 	}
@@ -207,12 +216,16 @@ func IsWriterFromHandle(
 	if err != nil {
 		return false, err
 	}
-	return checker.IsTeamWriter(ctx, tid, uid, verifyingKey)
+	offline := keybase1.OfflineAvailability_NONE
+	if osg != nil {
+		offline = osg.OfflineAvailabilityForID(h.tlfID)
+	}
+	return checker.IsTeamWriter(ctx, tid, uid, verifyingKey, offline)
 }
 
 func isReaderFromHandle(
 	ctx context.Context, h *TlfHandle, checker kbfsmd.TeamMembershipChecker,
-	uid keybase1.UID) (bool, error) {
+	osg OfflineStatusGetter, uid keybase1.UID) (bool, error) {
 	if h.TypeForKeying() != tlf.TeamKeying {
 		return h.IsReader(uid), nil
 	}
@@ -224,7 +237,11 @@ func isReaderFromHandle(
 	if err != nil {
 		return false, err
 	}
-	return checker.IsTeamReader(ctx, tid, uid)
+	offline := keybase1.OfflineAvailability_NONE
+	if osg != nil {
+		offline = osg.OfflineAvailabilityForID(h.tlfID)
+	}
+	return checker.IsTeamReader(ctx, tid, uid, offline)
 }
 
 func tlfToMerkleTreeID(id tlf.ID) keybase1.MerkleTreeID {

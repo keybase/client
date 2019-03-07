@@ -67,6 +67,7 @@ type Result struct {
 
 type Game struct {
 	md                     GameMetadata
+	msgID                  int
 	clockSkew              time.Duration
 	start                  time.Time
 	isLeader               bool
@@ -169,9 +170,7 @@ func (v GameMessageV1) Encode() (GameMessageEncoded, error) {
 func (d *Dealer) run(ctx context.Context, game *Game) {
 	doneCh := make(chan error)
 	key := game.key
-	go func() {
-		doneCh <- game.run(ctx)
-	}()
+	go game.run(ctx, doneCh)
 	err := <-doneCh
 
 	if err != nil {
@@ -429,7 +428,21 @@ func (g *Game) handleCommitmentComplete(ctx context.Context, sender UserDevice, 
 	return g.maybeReveal(ctx)
 }
 
-func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) error {
+func errToOk(err error) string {
+	if err == nil {
+		return "ok"
+	}
+	return "ERROR: " + err.Error()
+}
+
+func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) (err error) {
+
+	msgID := g.msgID
+	g.msgID++
+
+	g.clogf(ctx, "+ Game#handleMessage: %s@%d <- %+v", g.GameMetadata(), msgID, *msg)
+	defer func() { g.clogf(ctx, "- Game#handleMessage: %s@%d -> %s", g.GameMetadata(), msgID, errToOk(err)) }()
+
 	t, err := msg.Msg.Body.T()
 	if err != nil {
 		return err
@@ -569,7 +582,7 @@ func (g *Game) handleTimerEvent(ctx context.Context) error {
 	return TimeoutError{G: g.md, Stage: g.stageForTimeout}
 }
 
-func (g *Game) run(ctx context.Context) error {
+func (g *Game) runMain(ctx context.Context) error {
 	for {
 		timer := g.getNextTimer()
 		var err error
@@ -595,6 +608,21 @@ func (g *Game) run(ctx context.Context) error {
 			return err
 		}
 	}
+}
+
+func (g *Game) runDrain(ctx context.Context) {
+	i := 0
+	for range g.msgCh {
+		i++
+	}
+	if i > 0 {
+		g.clogf(ctx, "drained %d messages on shutdown in game %s", i, g.md)
+	}
+}
+
+func (g *Game) run(ctx context.Context, doneCh chan error) {
+	doneCh <- g.runMain(ctx)
+	g.runDrain(ctx)
 }
 
 func absDuration(d time.Duration) time.Duration {

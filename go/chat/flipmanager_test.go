@@ -68,6 +68,9 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
 			ctc.as(t, users[2]).h.G().NotifyRouter.AddListener(listener2)
 
+			t.Logf("uid0: %s", users[0].GetUID())
+			t.Logf("uid1: %s", users[1].GetUID())
+			t.Logf("uid2: %s", users[2].GetUID())
 			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 			consumeNewConversation(t, listener0, conv.Id)
@@ -112,7 +115,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
 			res0 = consumeFlipToResult(t, ui0, listener0, numUsers)
 			found := false
-			t.Logf("res0 (range): %s", res0)
+			t.Logf("res0 (limit): %s", res0)
 			for i := 1; i <= 10; i++ {
 				if res0 == fmt.Sprintf("%d", i) {
 					found = true
@@ -135,6 +138,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
 			consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
 			res0 = consumeFlipToResult(t, ui0, listener0, numUsers)
+			t.Logf("res0 (range): %s", res0)
 			found = false
 			for i := 10; i <= 15; i++ {
 				if res0 == fmt.Sprintf("%d", i) {

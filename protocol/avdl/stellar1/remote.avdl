@@ -157,7 +157,7 @@ protocol remote {
     string displayCurrency; // user configurable, defaults to "USD"
     union { null, AccountID } inflationDestination;
   }
-  AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
+  AccountDetails details(keybase1.UserVersion caller, AccountID accountID, boolean includeMulti);
 
   record PaymentsPage {
     array<PaymentSummary> payments;

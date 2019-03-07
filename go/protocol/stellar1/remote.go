@@ -718,8 +718,9 @@ type BalancesArg struct {
 }
 
 type DetailsArg struct {
-	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
 }
 
 type RecentPaymentsArg struct {

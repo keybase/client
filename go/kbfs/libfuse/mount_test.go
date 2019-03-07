@@ -477,8 +477,10 @@ type kbserviceBrokenIdentify struct {
 	libkbfs.KeybaseService
 }
 
-func (k kbserviceBrokenIdentify) Identify(ctx context.Context, assertion,
-	reason string) (kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (k kbserviceBrokenIdentify) Identify(
+	ctx context.Context, assertion, reason string,
+	_ keybase1.OfflineAvailability) (
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 		errors.New("Fake identify error")
 }

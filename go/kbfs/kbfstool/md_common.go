@@ -77,7 +77,8 @@ func mdParseInput(ctx context.Context, config libkbfs.Config,
 }
 
 func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
-	mdOps libkbfs.MDOps, tlfStr string) (*libkbfs.TlfHandle, error) {
+	mdOps libkbfs.MDOps, osg libkbfs.OfflineStatusGetter, tlfStr string) (
+	*libkbfs.TlfHandle, error) {
 	p, err := fsrpc.NewPath(tlfStr)
 	if err != nil {
 		return nil, err
@@ -89,7 +90,7 @@ func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI,
 		return nil, fmt.Errorf(
 			"%q is not the root path of a TLF", tlfStr)
 	}
-	return fsrpc.ParseTlfHandle(ctx, kbpki, mdOps, p.TLFName, p.TLFType)
+	return fsrpc.ParseTlfHandle(ctx, kbpki, mdOps, osg, p.TLFName, p.TLFType)
 }
 
 func getTlfID(
@@ -107,7 +108,8 @@ func getTlfID(
 		return tlf.ID{}, err
 	}
 
-	handle, err := parseTLFPath(ctx, config.KBPKI(), config.MDOps(), tlfStr)
+	handle, err := parseTLFPath(
+		ctx, config.KBPKI(), config.MDOps(), config, tlfStr)
 	if err != nil {
 		return tlf.ID{}, err
 	}
@@ -230,7 +232,8 @@ func mdGet(ctx context.Context, config libkbfs.Config, tlfID tlf.ID,
 
 func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	tlfPath string) (libkbfs.ImmutableRootMetadata, error) {
-	handle, err := parseTLFPath(ctx, config.KBPKI(), config.MDOps(), tlfPath)
+	handle, err := parseTLFPath(
+		ctx, config.KBPKI(), config.MDOps(), config, tlfPath)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, err
 	}
@@ -242,7 +245,7 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 
 	// Make sure we're a writer before doing anything else.
 	isWriter, err := libkbfs.IsWriterFromHandle(
-		ctx, handle, config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, handle, config.KBPKI(), config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return libkbfs.ImmutableRootMetadata{}, err
 	}
