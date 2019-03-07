@@ -104,13 +104,6 @@
             "items": "TextPayment"
           },
           "name": "payments"
-        },
-        {
-          "type": [
-            null,
-            "FlipGameID"
-          ],
-          "name": "flipGameID"
         }
       ]
     },
@@ -162,6 +155,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageFlip",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "FlipGameID",
+          "name": "gameID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "flipConvID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageSystemType",
       "symbols": [
@@ -171,7 +182,8 @@
         "CREATETEAM_3",
         "GITPUSH_4",
         "CHANGEAVATAR_5",
-        "CHANGERETENTION_6"
+        "CHANGERETENTION_6",
+        "BULKADDTOCONV_7"
       ]
     },
     {
@@ -348,6 +360,19 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemBulkAddToConv",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "usernames"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -403,6 +428,13 @@
             "def": false
           },
           "body": "MessageSystemChangeRetention"
+        },
+        {
+          "label": {
+            "name": "BULKADDTOCONV",
+            "def": false
+          },
+          "body": "MessageSystemBulkAddToConv"
         }
       ]
     },
@@ -651,6 +683,13 @@
             "def": false
           },
           "body": "MessageUnfurl"
+        },
+        {
+          "label": {
+            "name": "FLIP",
+            "def": false
+          },
+          "body": "MessageFlip"
         }
       ]
     },
@@ -1427,6 +1466,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
         },
         {
           "type": {
@@ -4214,6 +4257,22 @@
         {
           "name": "collapse",
           "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "bulkAddToConv": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null

@@ -102,6 +102,8 @@ export type _MessageText = {
   id: MessageID,
   inlinePaymentIDs: ?I.List<WalletTypes.PaymentID>,
   inlinePaymentSuccessful: boolean,
+  isDeleteable: boolean,
+  isEditable: boolean,
   flipGameID: ?string,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
@@ -150,7 +152,9 @@ export type _MessageAttachment = {
   hasBeenEdited: boolean,
   id: MessageID, // that of first attachment message, not second attachment-uploaded message
   inlineVideoPlayable: boolean,
+  isEditable: boolean,
   isCollapsed: boolean,
+  isDeleteable: boolean,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   previewHeight: number,
@@ -373,6 +377,18 @@ export type _MessageSystemChangeRetention = {
 }
 export type MessageSystemChangeRetention = I.RecordOf<_MessageSystemChangeRetention>
 
+export type _MessageSystemUsersAddedToConversation = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  reactions: Reactions,
+  timestamp: number,
+  usernames: Array<string>,
+  type: 'systemUsersAddedToConversation',
+}
+export type MessageSystemUsersAddedToConversation = I.RecordOf<_MessageSystemUsersAddedToConversation>
+
 export type DecoratedMessage = MessageAttachment | MessageText | MessageRequestPayment | MessageSendPayment
 
 // If you add a message type here, you'll probably want to check
@@ -392,6 +408,7 @@ export type Message =
   | MessageSystemLeft
   | MessageSystemSimpleToComplex
   | MessageSystemText
+  | MessageSystemUsersAddedToConversation
   | MessageText
   | MessagePlaceholder
 export type MessageType =
@@ -409,5 +426,6 @@ export type MessageType =
   | 'systemLeft'
   | 'systemSimpleToComplex'
   | 'systemText'
+  | 'systemUsersAddedToConversation'
   | 'text'
   | 'placeholder'

@@ -86,6 +86,8 @@ const getUsernameToShow = (message, previous, you, orangeLineAbove) => {
     case 'systemLeft':
     case 'setDescription':
       return message.author
+    case 'systemUsersAddedToConversation':
+      return message.usernames.includes(you) ? '' : message.author
   }
   return ''
 }
@@ -98,7 +100,8 @@ const getFailureDescriptionAllowCancel = (message, you) => {
     if (you && ['pending', 'failed'].includes(message.submitState)) {
       // This is a message still in the outbox, we can retry/edit to fix
       failureDescription = `Failed to send: ${message.errorReason}`
-      allowCancelRetry = true
+      // for flip messages, don't allow retry/cancel
+      allowCancelRetry = message.type === 'attachment' || !message.flipGameID
     }
   }
   return {allowCancelRetry, failureDescription}

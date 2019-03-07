@@ -47,7 +47,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("GetWalletAccountLocal called with an empty account id")
+		mctx.Debug("GetWalletAccountLocal called with an empty account id")
 		return acct, ErrAccountIDMissing
 	}
 
@@ -106,20 +106,21 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	}
 
 	for _, d := range details.Balances {
-		fmtAmount, err := stellar.FormatAmount(mctx, d.Amount, false, stellar.FmtRound)
+		fmtAmount, err := stellar.FormatAmount(mctx, d.Amount, false, stellarnet.Round)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
 			return nil, err
 		}
 
 		if d.Asset.IsNativeXLM() {
-			availableAmount := stellar.SubtractFeeSoft(mctx, details.Available)
+			baseFee := s.walletState.BaseFee(mctx)
+			availableAmount := stellar.SubtractFeeSoft(mctx, details.Available, baseFee)
 			if availableAmount == "" {
 				s.G().Log.CDebugf(ctx, "stellar.SubtractFeeSoft returned empty available amount, setting it to 0")
 				stellar.EmptyAmountStack(mctx)
 				availableAmount = "0"
 			}
-			fmtAvailable, err := stellar.FormatAmount(mctx, availableAmount, false, stellar.FmtRound)
+			fmtAvailable, err := stellar.FormatAmount(mctx, availableAmount, false, stellarnet.Round)
 			if err != nil {
 				return nil, err
 			}
@@ -140,7 +141,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting amount: %v", err)
 				}
-				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellar.FmtRound)
+				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellarnet.Round)
 				if err != nil {
 					return fmt.Errorf("formatting converted amount: %v", err)
 				}
@@ -149,7 +150,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting available amount: %v", err)
 				}
-				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAvailableAmount, rate.Currency, stellar.FmtRound)
+				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAvailableAmount, rate.Currency, stellarnet.Round)
 				if err != nil {
 					return fmt.Errorf("formatting converted available amount: %v", err)
 				}
@@ -255,7 +256,10 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return fmt.Errorf("user wallet not created")
 	}
 
-	s.walletState.RefreshAll(mctx, "AcceptDisclaimer")
+	err = s.walletState.RefreshAll(mctx, "AcceptDisclaimer")
+	if err != nil {
+		mctx.Debug("AcceptDisclaimer RefreshAll error: %s", err)
+	}
 
 	return nil
 }
@@ -281,7 +285,10 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 		return "", err
 	}
 
-	s.walletState.RefreshAll(mctx, "LinkNewWalletAccount")
+	err = s.walletState.RefreshAll(mctx, "LinkNewWalletAccount")
+	if err != nil {
+		mctx.Debug("LinkNewWalletAccountLocal RefreshAll error: %s", err)
+	}
 
 	return accountID, nil
 }
@@ -337,6 +344,11 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetPaymentDetailsLocal", func() error { return err })()
+
+	if arg.AccountID.IsNil() {
+		return payment, errors.New("AccountID required for GetPaymentDetailsLocal")
+	}
+
 	mctx := libkb.NewMetaContext(ctx, s.G())
 	err = s.assertLoggedIn(mctx)
 	if err != nil {
@@ -344,19 +356,67 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	}
 
 	oc := stellar.NewOwnAccountLookupCache(mctx)
-	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
+	details, err := s.remoter.PaymentDetails(ctx, arg.AccountID, stellar1.TransactionIDFromPaymentID(arg.Id).String())
 	if err != nil {
 		return payment, err
 	}
 
-	var summary *stellar1.PaymentLocal
-
-	// AccountID argument is optional.
-	if arg.AccountID != nil {
-		summary, err = stellar.TransformPaymentSummaryAccount(mctx, details.Summary, oc, *arg.AccountID)
-	} else {
-		summary, err = stellar.TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
+	summary, err := stellar.TransformPaymentSummaryAccount(mctx, details.Summary, oc, arg.AccountID)
+	if err != nil {
+		return payment, err
 	}
+
+	payment = stellar1.PaymentDetailsLocal{
+		Id:                  summary.Id,
+		TxID:                stellar1.TransactionIDFromPaymentID(summary.Id),
+		Time:                summary.Time,
+		StatusSimplified:    summary.StatusSimplified,
+		StatusDescription:   summary.StatusDescription,
+		StatusDetail:        summary.StatusDetail,
+		ShowCancel:          summary.ShowCancel,
+		AmountDescription:   summary.AmountDescription,
+		Delta:               summary.Delta,
+		Worth:               summary.Worth,
+		WorthAtSendTime:     summary.WorthAtSendTime,
+		FromType:            summary.FromType,
+		ToType:              summary.ToType,
+		FromAccountID:       summary.FromAccountID,
+		FromAccountName:     summary.FromAccountName,
+		FromUsername:        summary.FromUsername,
+		ToAccountID:         summary.ToAccountID,
+		ToAccountName:       summary.ToAccountName,
+		ToUsername:          summary.ToUsername,
+		ToAssertion:         summary.ToAssertion,
+		OriginalToAssertion: summary.OriginalToAssertion,
+		Note:                summary.Note,
+		NoteErr:             summary.NoteErr,
+		PublicNote:          details.Memo,
+		PublicNoteType:      details.MemoType,
+		IssuerDescription:   summary.IssuerDescription,
+		IssuerAccountID:     summary.IssuerAccountID,
+		ExternalTxURL:       details.ExternalTxURL,
+	}
+
+	return payment, nil
+}
+
+func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1.GetGenericPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetGenericPaymentDetailsLocal", func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	err = s.assertLoggedIn(mctx)
+	if err != nil {
+		return payment, err
+	}
+
+	oc := stellar.NewOwnAccountLookupCache(mctx)
+	details, err := s.remoter.PaymentDetailsGeneric(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
+	if err != nil {
+		return payment, err
+	}
+
+	summary, err := stellar.TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	if err != nil {
 		return payment, err
 	}
@@ -406,7 +466,7 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 		return res, err
 	}
 
-	details, err := s.remoter.PaymentDetails(mctx.Ctx(), stellar1.TransactionIDFromPaymentID(arg.PaymentID).String())
+	details, err := s.remoter.PaymentDetailsGeneric(mctx.Ctx(), stellar1.TransactionIDFromPaymentID(arg.PaymentID).String())
 	if err != nil {
 		return res, err
 	}
@@ -492,7 +552,7 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("ChangeWalletAccountNameLocal called with an empty account id")
+		mctx.Debug("ChangeWalletAccountNameLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -511,7 +571,7 @@ func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("SetWalletAccountAsDefaultLocal called with an empty account id")
+		mctx.Debug("SetWalletAccountAsDefaultLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -534,7 +594,7 @@ func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.Dele
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("DeleteWalletAccountLocal called with an empty account id")
+		mctx.Debug("DeleteWalletAccountLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -851,7 +911,7 @@ func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLoc
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("IsAccountMobileOnlyLocal called with an empty account id")
+		mctx.Debug("IsAccountMobileOnlyLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -876,7 +936,7 @@ func (s *Server) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAc
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("IsAccountMobileOnlyLocal called with an empty account id")
+		mctx.Debug("IsAccountMobileOnlyLocal called with an empty account id")
 		return false, ErrAccountIDMissing
 	}
 
@@ -894,7 +954,7 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("SetAccountMobileOnlyLocal called with an empty account id")
+		mctx.Debug("SetAccountMobileOnlyLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -912,7 +972,7 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("SetAccountAllDevicesLocal called with an empty account id")
+		mctx.Debug("SetAccountAllDevicesLocal called with an empty account id")
 		return ErrAccountIDMissing
 	}
 
@@ -957,7 +1017,7 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	}
 
 	if arg.AccountID.IsNil() {
-		mctx.CDebugf("GetInflationDestinationLocal called with an empty account id")
+		mctx.Debug("GetInflationDestinationLocal called with an empty account id")
 		return res, ErrAccountIDMissing
 	}
 

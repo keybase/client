@@ -128,6 +128,70 @@ func (o Identify3RowMeta) DeepCopy() Identify3RowMeta {
 	}
 }
 
+type Identify3Row struct {
+	GuiID        Identify3GUIID     `codec:"guiID" json:"guiID"`
+	Key          string             `codec:"key" json:"key"`
+	Value        string             `codec:"value" json:"value"`
+	Priority     int                `codec:"priority" json:"priority"`
+	SiteURL      string             `codec:"siteURL" json:"siteURL"`
+	SiteIcon     []SizedImage       `codec:"siteIcon" json:"siteIcon"`
+	SiteIconFull []SizedImage       `codec:"siteIconFull" json:"siteIconFull"`
+	ProofURL     string             `codec:"proofURL" json:"proofURL"`
+	SigID        SigID              `codec:"sigID" json:"sigID"`
+	Ctime        Time               `codec:"ctime" json:"ctime"`
+	State        Identify3RowState  `codec:"state" json:"state"`
+	Metas        []Identify3RowMeta `codec:"metas" json:"metas"`
+	Color        Identify3RowColor  `codec:"color" json:"color"`
+}
+
+func (o Identify3Row) DeepCopy() Identify3Row {
+	return Identify3Row{
+		GuiID:    o.GuiID.DeepCopy(),
+		Key:      o.Key,
+		Value:    o.Value,
+		Priority: o.Priority,
+		SiteURL:  o.SiteURL,
+		SiteIcon: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIcon),
+		SiteIconFull: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconFull),
+		ProofURL: o.ProofURL,
+		SigID:    o.SigID.DeepCopy(),
+		Ctime:    o.Ctime.DeepCopy(),
+		State:    o.State.DeepCopy(),
+		Metas: (func(x []Identify3RowMeta) []Identify3RowMeta {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Identify3RowMeta, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Metas),
+		Color: o.Color.DeepCopy(),
+	}
+}
+
 type Identify3ShowTrackerArg struct {
 	GuiID        Identify3GUIID     `codec:"guiID" json:"guiID"`
 	Assertion    Identify3Assertion `codec:"assertion" json:"assertion"`
@@ -136,17 +200,7 @@ type Identify3ShowTrackerArg struct {
 }
 
 type Identify3UpdateRowArg struct {
-	GuiID    Identify3GUIID     `codec:"guiID" json:"guiID"`
-	Key      string             `codec:"key" json:"key"`
-	Value    string             `codec:"value" json:"value"`
-	Priority int                `codec:"priority" json:"priority"`
-	SiteURL  string             `codec:"siteURL" json:"siteURL"`
-	SiteIcon []SizedImage       `codec:"siteIcon" json:"siteIcon"`
-	ProofURL string             `codec:"proofURL" json:"proofURL"`
-	SigID    SigID              `codec:"sigID" json:"sigID"`
-	State    Identify3RowState  `codec:"state" json:"state"`
-	Metas    []Identify3RowMeta `codec:"metas" json:"metas"`
-	Color    Identify3RowColor  `codec:"color" json:"color"`
+	Row Identify3Row `codec:"row" json:"row"`
 }
 
 type Identify3UserResetArg struct {
@@ -169,7 +223,7 @@ type Identify3ResultArg struct {
 
 type Identify3UiInterface interface {
 	Identify3ShowTracker(context.Context, Identify3ShowTrackerArg) error
-	Identify3UpdateRow(context.Context, Identify3UpdateRowArg) error
+	Identify3UpdateRow(context.Context, Identify3Row) error
 	Identify3UserReset(context.Context, Identify3GUIID) error
 	Identify3UpdateUserCard(context.Context, Identify3UpdateUserCardArg) error
 	Identify3TrackerTimedOut(context.Context, Identify3GUIID) error
@@ -206,7 +260,7 @@ func Identify3UiProtocol(i Identify3UiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]Identify3UpdateRowArg)(nil), args)
 						return
 					}
-					err = i.Identify3UpdateRow(ctx, typedArgs[0])
+					err = i.Identify3UpdateRow(ctx, typedArgs[0].Row)
 					return
 				},
 			},
@@ -283,7 +337,8 @@ func (c Identify3UiClient) Identify3ShowTracker(ctx context.Context, __arg Ident
 	return
 }
 
-func (c Identify3UiClient) Identify3UpdateRow(ctx context.Context, __arg Identify3UpdateRowArg) (err error) {
+func (c Identify3UiClient) Identify3UpdateRow(ctx context.Context, row Identify3Row) (err error) {
+	__arg := Identify3UpdateRowArg{Row: row}
 	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateRow", []interface{}{__arg})
 	return
 }

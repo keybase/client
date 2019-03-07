@@ -55,7 +55,7 @@ func (e *AccountDelete) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	m.CDebugf("account deleted, logging out")
+	m.Debug("account deleted, logging out")
 	m.G().Logout(m.Ctx())
 
 	return nil

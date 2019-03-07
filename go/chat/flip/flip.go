@@ -52,6 +52,7 @@ type Dealer struct {
 	sync.Mutex
 	dh            DealersHelper
 	games         map[GameKey](chan<- *GameMessageWrapped)
+	gameIDs       map[GameIDKey]GameMetadata
 	shutdownMu    sync.Mutex
 	shutdownCh    chan struct{}
 	chatInputCh   chan *GameMessageWrapped
@@ -59,9 +60,14 @@ type Dealer struct {
 	previousGames map[GameIDKey]bool
 }
 
+// ReplayHelper contains hooks needed to replay a flip.
+type ReplayHelper interface {
+	CLogf(ctx context.Context, fmt string, args ...interface{})
+}
+
 // DealersHelper is an interface that calling chat clients need to implement.
 type DealersHelper interface {
-	CLogf(ctx context.Context, fmt string, args ...interface{})
+	ReplayHelper
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
 	SendChat(ctx context.Context, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
@@ -73,6 +79,7 @@ func NewDealer(dh DealersHelper) *Dealer {
 	return &Dealer{
 		dh:            dh,
 		games:         make(map[GameKey](chan<- *GameMessageWrapped)),
+		gameIDs:       make(map[GameIDKey]GameMetadata),
 		chatInputCh:   make(chan *GameMessageWrapped),
 		gameUpdateCh:  make(chan GameStateUpdateMessage, 500),
 		previousGames: make(map[GameIDKey]bool),
@@ -171,32 +178,45 @@ func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice,
 }
 
 // NewStartWithBool makes new start parameters that yield a coinflip game.
-func NewStartWithBool(now time.Time) Start {
-	ret := newStart(now)
+func NewStartWithBool(now time.Time, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithBool()
 	return ret
 }
 
 // NewStartWithInt makes new start parameters that yield a coinflip game that picks an int between
 // 0 and mod.
-func NewStartWithInt(now time.Time, mod int64) Start {
-	ret := newStart(now)
+func NewStartWithInt(now time.Time, mod int64, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithInt(mod)
 	return ret
 }
 
 // NewStartWithBigInt makes new start parameters that yield a coinflip game that picks big int between
 // 0 and mod.
-func NewStartWithBigInt(now time.Time, mod *big.Int) Start {
-	ret := newStart(now)
+func NewStartWithBigInt(now time.Time, mod *big.Int, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithBig(mod.Bytes())
 	return ret
 }
 
 // NewStartWithShuffle makes new start parameters for a coinflip that randomly permutes the numbers
 // between 0 and n, exclusive. This can be used to shuffle an array of names.
-func NewStartWithShuffle(now time.Time, n int64) Start {
-	ret := newStart(now)
+func NewStartWithShuffle(now time.Time, n int64, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithShuffle(n)
 	return ret
+}
+
+func (d *Dealer) IsGameActive(ctx context.Context, conversationID chat1.ConversationID, gameID chat1.FlipGameID) bool {
+	d.Lock()
+	defer d.Unlock()
+	md, found := d.gameIDs[GameIDToKey(gameID)]
+	return found && md.ConversationID.Eq(conversationID)
+}
+
+func (d *Dealer) HasActiveGames(ctx context.Context) bool {
+	d.Lock()
+	defer d.Unlock()
+	return len(d.gameIDs) > 0
 }

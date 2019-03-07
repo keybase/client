@@ -13,6 +13,7 @@ import SystemJoined from '../system-joined/container'
 import SystemLeft from '../system-left/container'
 import SystemSimpleToComplex from '../system-simple-to-complex/container'
 import SystemText from '../system-text/container'
+import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
 import SetDescription from '../set-description/container'
 import SetChannelname from '../set-channelname/container'
 import TextMessage from '../text/container'
@@ -86,6 +87,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _orangeLine = () =>
     this.props.orangeLineAbove && <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
   _onAuthorClick = () => this.props.onAuthorClick()
+  _isExploding = () =>
+    (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
+    this.props.message.exploding
 
   _authorAndContent = children => {
     let result
@@ -187,9 +191,21 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       />
     )
 
-  _coinFlip = () =>
-    // $ForceType
-    !!this.props.message.flipGameID && <CoinFlip key="CoinFlip" flipGameID={this.props.message.flipGameID} />
+  _coinFlip = () => {
+    const message = this.props.message
+    return (
+      message.type === 'text' &&
+      !!message.flipGameID && (
+        <CoinFlip
+          key="CoinFlip"
+          conversationIDKey={this.props.conversationIDKey}
+          flipGameID={message.flipGameID}
+          isSendError={!!message.errorReason}
+          text={message.text}
+        />
+      )
+    )
+  }
 
   _shouldShowReactionsRow = () =>
     // $ForceType
@@ -230,6 +246,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         style: Styles.collapseStyles([
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
+          !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
         ]),
       }
       return this.props.decorate
@@ -307,18 +324,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const showMenuButton = !Styles.isMobile && this.state.showMenuButton
     const message = this.props.message
     let child
-    let exploding = false
     let exploded = false
     let explodedBy = null
     switch (message.type) {
       case 'text':
-        exploding = message.exploding
         exploded = message.exploded
         explodedBy = message.explodedBy
         child = <TextMessage key="text" message={message} />
         break
       case 'attachment':
-        exploding = message.exploding
         exploded = message.exploded
         explodedBy = message.explodedBy
         child = (
@@ -353,6 +367,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'systemChangeRetention':
         child = <SystemChangeRetention key="systemChangeRetention" message={message} />
         break
+      case 'systemUsersAddedToConversation':
+        child = <SystemUsersAddedToConv key="systemUsersAddedToConv" message={message} />
+        break
       case 'systemJoined':
         child = <SystemJoined key="systemJoined" message={message} />
         break
@@ -375,6 +392,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         return null
     }
 
+    const exploding = this._isExploding()
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
         explodedBy={explodedBy}
@@ -514,6 +532,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
+  containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
       paddingBottom: 3,

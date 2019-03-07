@@ -135,9 +135,8 @@ func (o TextPayment) DeepCopy() TextPayment {
 }
 
 type MessageText struct {
-	Body       string        `codec:"body" json:"body"`
-	Payments   []TextPayment `codec:"payments" json:"payments"`
-	FlipGameID *FlipGameID   `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	Body     string        `codec:"body" json:"body"`
+	Payments []TextPayment `codec:"payments" json:"payments"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -154,13 +153,6 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.Payments),
-		FlipGameID: (func(x *FlipGameID) *FlipGameID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.FlipGameID),
 	}
 }
 
@@ -216,6 +208,20 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 	}
 }
 
+type MessageFlip struct {
+	Text       string         `codec:"text" json:"text"`
+	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
+	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
+}
+
+func (o MessageFlip) DeepCopy() MessageFlip {
+	return MessageFlip{
+		Text:       o.Text,
+		GameID:     o.GameID.DeepCopy(),
+		FlipConvID: o.FlipConvID.DeepCopy(),
+	}
+}
+
 type MessageSystemType int
 
 const (
@@ -226,6 +232,7 @@ const (
 	MessageSystemType_GITPUSH           MessageSystemType = 4
 	MessageSystemType_CHANGEAVATAR      MessageSystemType = 5
 	MessageSystemType_CHANGERETENTION   MessageSystemType = 6
+	MessageSystemType_BULKADDTOCONV     MessageSystemType = 7
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -238,6 +245,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"GITPUSH":           4,
 	"CHANGEAVATAR":      5,
 	"CHANGERETENTION":   6,
+	"BULKADDTOCONV":     7,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -248,6 +256,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	4: "GITPUSH",
 	5: "CHANGEAVATAR",
 	6: "CHANGERETENTION",
+	7: "BULKADDTOCONV",
 }
 
 func (e MessageSystemType) String() string {
@@ -421,6 +430,26 @@ func (o MessageSystemChangeRetention) DeepCopy() MessageSystemChangeRetention {
 	}
 }
 
+type MessageSystemBulkAddToConv struct {
+	Usernames []string `codec:"usernames" json:"usernames"`
+}
+
+func (o MessageSystemBulkAddToConv) DeepCopy() MessageSystemBulkAddToConv {
+	return MessageSystemBulkAddToConv{
+		Usernames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Usernames),
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
@@ -430,6 +459,7 @@ type MessageSystem struct {
 	Gitpush__           *MessageSystemGitPush           `codec:"gitpush,omitempty" json:"gitpush,omitempty"`
 	Changeavatar__      *MessageSystemChangeAvatar      `codec:"changeavatar,omitempty" json:"changeavatar,omitempty"`
 	Changeretention__   *MessageSystemChangeRetention   `codec:"changeretention,omitempty" json:"changeretention,omitempty"`
+	Bulkaddtoconv__     *MessageSystemBulkAddToConv     `codec:"bulkaddtoconv,omitempty" json:"bulkaddtoconv,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -467,6 +497,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_CHANGERETENTION:
 		if o.Changeretention__ == nil {
 			err = errors.New("unexpected nil value for Changeretention__")
+			return ret, err
+		}
+	case MessageSystemType_BULKADDTOCONV:
+		if o.Bulkaddtoconv__ == nil {
+			err = errors.New("unexpected nil value for Bulkaddtoconv__")
 			return ret, err
 		}
 	}
@@ -543,6 +578,16 @@ func (o MessageSystem) Changeretention() (res MessageSystemChangeRetention) {
 	return *o.Changeretention__
 }
 
+func (o MessageSystem) Bulkaddtoconv() (res MessageSystemBulkAddToConv) {
+	if o.SystemType__ != MessageSystemType_BULKADDTOCONV {
+		panic("wrong case accessed")
+	}
+	if o.Bulkaddtoconv__ == nil {
+		return
+	}
+	return *o.Bulkaddtoconv__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -589,6 +634,13 @@ func NewMessageSystemWithChangeretention(v MessageSystemChangeRetention) Message
 	return MessageSystem{
 		SystemType__:      MessageSystemType_CHANGERETENTION,
 		Changeretention__: &v,
+	}
+}
+
+func NewMessageSystemWithBulkaddtoconv(v MessageSystemBulkAddToConv) MessageSystem {
+	return MessageSystem{
+		SystemType__:    MessageSystemType_BULKADDTOCONV,
+		Bulkaddtoconv__: &v,
 	}
 }
 
@@ -644,6 +696,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Changeretention__),
+		Bulkaddtoconv__: (func(x *MessageSystemBulkAddToConv) *MessageSystemBulkAddToConv {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Bulkaddtoconv__),
 	}
 }
 
@@ -804,6 +863,7 @@ type MessageBody struct {
 	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
 	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
 	Unfurl__             *MessageUnfurl               `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
+	Flip__               *MessageFlip                 `codec:"flip,omitempty" json:"flip,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -881,6 +941,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_UNFURL:
 		if o.Unfurl__ == nil {
 			err = errors.New("unexpected nil value for Unfurl__")
+			return ret, err
+		}
+	case MessageType_FLIP:
+		if o.Flip__ == nil {
+			err = errors.New("unexpected nil value for Flip__")
 			return ret, err
 		}
 	}
@@ -1037,6 +1102,16 @@ func (o MessageBody) Unfurl() (res MessageUnfurl) {
 	return *o.Unfurl__
 }
 
+func (o MessageBody) Flip() (res MessageFlip) {
+	if o.MessageType__ != MessageType_FLIP {
+		panic("wrong case accessed")
+	}
+	if o.Flip__ == nil {
+		return
+	}
+	return *o.Flip__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1139,6 +1214,13 @@ func NewMessageBodyWithUnfurl(v MessageUnfurl) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_UNFURL,
 		Unfurl__:      &v,
+	}
+}
+
+func NewMessageBodyWithFlip(v MessageFlip) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_FLIP,
+		Flip__:        &v,
 	}
 }
 
@@ -1250,6 +1332,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Unfurl__),
+		Flip__: (func(x *MessageFlip) *MessageFlip {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Flip__),
 	}
 }
 
@@ -2704,6 +2793,7 @@ type ConversationInfoLocal struct {
 	TeamType     TeamType                       `codec:"teamType" json:"teamType"`
 	Existence    ConversationExistence          `codec:"existence" json:"existence"`
 	Version      ConversationVers               `codec:"version" json:"version"`
+	LocalVersion LocalConversationVers          `codec:"localVersion" json:"localVersion"`
 	Participants []ConversationLocalParticipant `codec:"participants" json:"participants"`
 	FinalizeInfo *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	ResetNames   []string                       `codec:"resetNames" json:"resetNames"`
@@ -2730,6 +2820,7 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 		TeamType:     o.TeamType.DeepCopy(),
 		Existence:    o.Existence.DeepCopy(),
 		Version:      o.Version.DeepCopy(),
+		LocalVersion: o.LocalVersion.DeepCopy(),
 		Participants: (func(x []ConversationLocalParticipant) []ConversationLocalParticipant {
 			if x == nil {
 				return nil
@@ -5147,6 +5238,11 @@ type ToggleMessageCollapseArg struct {
 	Collapse bool           `codec:"collapse" json:"collapse"`
 }
 
+type BulkAddToConvArg struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Usernames []string       `codec:"usernames" json:"usernames"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5213,6 +5309,7 @@ type LocalInterface interface {
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
+	BulkAddToConv(context.Context, BulkAddToConvArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6174,6 +6271,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"bulkAddToConv": {
+				MakeArg: func() interface{} {
+					var ret [1]BulkAddToConvArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BulkAddToConvArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BulkAddToConvArg)(nil), args)
+						return
+					}
+					err = i.BulkAddToConv(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -6514,5 +6626,10 @@ func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSet
 
 func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMessageCollapseArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.toggleMessageCollapse", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil)
 	return
 }

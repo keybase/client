@@ -477,8 +477,10 @@ type kbserviceBrokenIdentify struct {
 	libkbfs.KeybaseService
 }
 
-func (k kbserviceBrokenIdentify) Identify(ctx context.Context, assertion,
-	reason string) (kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (k kbserviceBrokenIdentify) Identify(
+	ctx context.Context, assertion, reason string,
+	_ keybase1.OfflineAvailability) (
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 		errors.New("Fake identify error")
 }
@@ -3126,6 +3128,15 @@ func TestStatusFile(t *testing.T) {
 
 	var bufStatus libkbfs.FolderBranchStatus
 	json.Unmarshal(buf, &bufStatus)
+
+	// Use a fuzzy check on the timestamps, since it could include
+	// monotonic clock stuff.
+	if !timeEqualFuzzy(
+		status.LocalTimestamp, bufStatus.LocalTimestamp, time.Millisecond) {
+		t.Fatalf("Local timestamp (%s) didn't match expected timestamp %v",
+			bufStatus.LocalTimestamp, status.LocalTimestamp)
+	}
+	status.LocalTimestamp = bufStatus.LocalTimestamp
 
 	// It's safe to compare the path slices with DeepEqual since they
 	// will all be null for this test (nothing is dirtied).

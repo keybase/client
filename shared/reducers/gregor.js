@@ -16,7 +16,6 @@ export default function(state: Types.State = initialState, action: GregorGen.Act
     case GregorGen.checkReachability:
     case GregorGen.pushOOBM:
     case GregorGen.pushState:
-    case GregorGen.startReachability:
     case GregorGen.updateCategory:
       return state
     default:

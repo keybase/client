@@ -27,7 +27,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
 		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
@@ -36,6 +36,14 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	t.Log("Init a new repo directly into KBFS.")
 	dotgitFS, _, err := GetOrCreateRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
+
+	t.Log("Check that the browser for an uninitialized repo works.")
+	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
+	require.NoError(t, err)
+	fis, err := b.ReadDir("")
+	require.NoError(t, err)
+	require.Len(t, fis, 0)
+
 	err = rootFS.MkdirAll("worktree", 0600)
 	require.NoError(t, err)
 	worktreeFS, err := rootFS.Chroot("worktree")
@@ -46,9 +54,9 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 
 	t.Log("Check that the browser for an empty master branch works.")
-	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
+	b, err = NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
 	require.NoError(t, err)
-	fis, err := b.ReadDir("")
+	fis, err = b.ReadDir("")
 	require.NoError(t, err)
 	require.Len(t, fis, 0)
 

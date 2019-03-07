@@ -15,7 +15,7 @@ type Collapse struct {
 
 func NewCollapse(g *globals.Context) *Collapse {
 	return &Collapse{
-		baseCommand: newBaseCommand(g, "collapse", "", "Collapse all inline previews"),
+		baseCommand: newBaseCommand(g, "collapse", "", "Collapse all inline previews", false),
 	}
 }
 

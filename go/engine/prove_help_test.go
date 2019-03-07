@@ -266,6 +266,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"sig_hash":      libkb.S{Val: sigID.String()},
+				"username":      libkb.S{Val: fu.Username},
 				"kb_username":   libkb.S{Val: fu.Username},
 				"kb_ua":         libkb.S{Val: libkb.UserAgent},
 				"json_redirect": libkb.B{Val: true},

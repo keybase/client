@@ -219,6 +219,17 @@
         {
           "type": "boolean",
           "name": "unread"
+        },
+        {
+          "type": "boolean",
+          "name": "isInflation"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "inflationSource"
         }
       ]
     },
@@ -710,6 +721,27 @@
           "name": "baseFee"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "DetailsPlusPayments",
+      "fields": [
+        {
+          "type": "AccountDetails",
+          "name": "details"
+        },
+        {
+          "type": "PaymentsPage",
+          "name": "recentPayments"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentSummary"
+          },
+          "name": "pendingPayments"
+        }
+      ]
     }
   ],
   "messages": {
@@ -738,6 +770,10 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        },
+        {
+          "name": "includeMulti",
+          "type": "boolean"
         }
       ],
       "response": "AccountDetails"
@@ -765,6 +801,10 @@
         },
         {
           "name": "skipPending",
+          "type": "boolean"
+        },
+        {
+          "name": "includeMulti",
           "type": "boolean"
         }
       ],
@@ -987,6 +1027,19 @@
         }
       ],
       "response": "NetworkOptions"
+    },
+    "detailsPlusPayments": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "DetailsPlusPayments"
     }
   },
   "namespace": "stellar.1"

@@ -11,6 +11,7 @@ import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
 import Loading from './loading'
+import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
@@ -55,6 +56,11 @@ const PathItemActionMenuProps = (props: any) => ({
 export const commonProvider = {
   ConnectedErrs: () => ({
     errs: [],
+  }),
+  ConnectedOpenInSystemFileManager: () => ({
+    installFuse: Sb.action('installFuse'),
+    kbfsEnabled: false,
+    openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
   PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
@@ -145,6 +151,28 @@ const load = () => {
             retry: Sb.action('retry'),
             time: 1534362428795,
           },
+          {
+            dismiss: Sb.action('dismiss'),
+            error:
+              'error details: foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
+            key: '4',
+            msg:
+              'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
+            onFeedback: Sb.action('onFeedback'),
+            retry: Sb.action('retry'),
+            time: 1534362428795,
+          },
+          {
+            dismiss: Sb.action('dismiss'),
+            error:
+              'error details: foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
+            key: '5',
+            msg:
+              'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
+            onFeedback: Sb.action('onFeedback'),
+            retry: Sb.action('retry'),
+            time: 1534362428795,
+          },
         ]}
       />
     ))
@@ -171,6 +199,7 @@ const load = () => {
         <PathItemInfo mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
+    .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
 
   Sb.storiesOf('Files/PathItemIcon', module)
     .add('tlf list', () => (

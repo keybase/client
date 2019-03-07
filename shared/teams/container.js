@@ -13,6 +13,7 @@ import {compose, isMobile, lifecycle, connect, type RouteProps} from '../util/co
 import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
 import {type Teamname} from '../constants/types/teams'
+import {memoize} from '../util/memoize'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -32,12 +33,7 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: 'showNewTeamDialog',
-          },
-        ],
+        path: [{props: {}, selected: 'showNewTeamDialog'}],
       })
     )
   },
@@ -46,7 +42,9 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: ['showJoinTeamDialog']}))
   },
   onManageChat: (teamname: Teamname) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+    ),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(
       FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})
@@ -58,13 +56,20 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
 })
 
+const makeTeamToRequest = memoize(tr =>
+  tr.reduce((map, team) => {
+    map[team] = (map[team] ?? 0) + 1
+    return map
+  }, {})
+)
+
 const mergeProps = (stateProps, dispatchProps) => {
   return {
     loaded: stateProps.loaded,
-    newTeamRequests: stateProps._newTeamRequests.toArray(),
     newTeams: stateProps._newTeams.toArray(),
     sawChatBanner: stateProps.sawChatBanner,
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
+    teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamnames: stateProps.teamnames,
     teamresetusers: stateProps._teamresetusers.toObject(),
@@ -77,39 +82,22 @@ class Reloadable extends React.PureComponent<{
   ...{|_loadTeams: () => void|},
 }> {
   render() {
+    const {_loadTeams, ...rest} = this.props
     return (
       <Kb.Reloadable
         waitingKeys={Constants.teamsLoadedWaitingKey}
         onBack={isMobile ? this.props.onBack : undefined}
-        onReload={this.props._loadTeams}
+        onReload={_loadTeams}
         reloadOnMount={true}
         title={this.props.title}
       >
-        <Teams
-          loaded={this.props.loaded}
-          newTeamRequests={this.props.newTeamRequests}
-          newTeams={this.props.newTeams}
-          sawChatBanner={this.props.sawChatBanner}
-          teamNameToIsOpen={this.props.teamNameToIsOpen}
-          teammembercounts={this.props.teammembercounts}
-          teamnames={this.props.teamnames}
-          teamresetusers={this.props.teamresetusers}
-          title={this.props.title}
-          onBack={this.props.onBack}
-          onCreateTeam={this.props.onCreateTeam}
-          onHideChatBanner={this.props.onHideChatBanner}
-          onJoinTeam={this.props.onJoinTeam}
-          onManageChat={this.props.onManageChat}
-          onOpenFolder={this.props.onOpenFolder}
-          onReadMore={this.props.onReadMore}
-          onViewTeam={this.props.onViewTeam}
-        />
+        <Teams {...rest} />
       </Kb.Reloadable>
     )
   }
 }
 
-export default compose(
+const Connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
@@ -121,3 +109,11 @@ export default compose(
     },
   })
 )(Reloadable)
+
+// $FlowIssue lets fix this
+Connected.navigationOptions = {
+  header: undefined,
+  title: 'Teams',
+}
+
+export default Connected

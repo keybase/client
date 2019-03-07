@@ -63,11 +63,11 @@ const TeamInfo = p => (
               onClick={() => p.onJoinTeam(p.name)}
             />
           )}
-          <Kb.Text type="BodySmall">
+          <Kb.Text center={true} type="BodySmall">
             Public admins:{' '}
             {
               <Kb.ConnectedUsernames
-                type="BodySmall"
+                type="BodySmallSemibold"
                 colorFollowing={true}
                 colorBroken={true}
                 onUsernameClicked="profile"
@@ -153,12 +153,11 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       paddingLeft: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
     },
   }),
   youPublishTeam: {
     alignSelf: 'center',
-    color: Styles.globalColors.black_20,
+    color: Styles.globalColors.black_50,
   },
 })
 

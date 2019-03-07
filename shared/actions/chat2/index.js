@@ -22,10 +22,10 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as Router2Constants from '../../constants/router2'
 import chatTeamBuildingSaga from './team-building'
-import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
+import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import engine from '../../engine'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
@@ -35,12 +35,10 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
 import type {RPCError} from '../../util/errors'
 
-const setupEngineListeners = () => {
-  engine().actionOnConnect('registerChatUI', () => {
-    RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
-      .then(() => console.log('Registered Chat UI'))
-      .catch(error => console.warn('Error in registering Chat UI:', error))
-  })
+const onConnect = () => {
+  RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
+    .then(() => console.log('Registered Chat UI'))
+    .catch(error => console.warn('Error in registering Chat UI:', error))
 }
 
 // Ask the service to refresh the inbox
@@ -674,7 +672,7 @@ const onChatSetConvSettings = (_, action) => {
     conv.convSettings &&
     conv.convSettings.minWriterRoleInfo &&
     conv.convSettings.minWriterRoleInfo.role
-  const role = newRole && teamRoleByEnum[newRole]
+  const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   logger.info(`ChatHandler: got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
   if (role && role !== 'none') {
     return Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})
@@ -755,7 +753,7 @@ const onChatThreadStale = (_, action) => {
 
 const onChatShowManageChannels = (state, action) => {
   const {teamname} = action.payload.params
-  return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})
+  return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
 }
 
 const onNewChatActivity = (state, action) => {
@@ -1288,7 +1286,7 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const routeName = 'paymentsConfirm'
+  const routeName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
@@ -1308,12 +1306,12 @@ function* messageSend(state, action) {
       }
     })
   const onDataConfirm = ({summary}, response) => {
-    stellarConfirmWindowResponse = response
+    storeStellarConfirmWindowResponse(false, response)
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
   }
-  const onDataError = ({message}, response) => {
-    stellarConfirmWindowResponse = response
-    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
+  const onDataError = ({error}, response) => {
+    storeStellarConfirmWindowResponse(false, response)
+    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error}))
   }
 
   try {
@@ -1347,14 +1345,17 @@ function* messageSend(state, action) {
   // messages to not send. Do this after creating the objects above to
   // narrow down the places where the action can possibly stop.
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
-  stellarConfirmWindowResponse = null
 }
 
-let stellarConfirmWindowResponse = null
+let _stellarConfirmWindowResponse = null
+
+function storeStellarConfirmWindowResponse(accept: boolean, response) {
+  _stellarConfirmWindowResponse && _stellarConfirmWindowResponse.result(accept)
+  _stellarConfirmWindowResponse = response
+}
 
 const confirmScreenResponse = (_, action) => {
-  stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)
-  stellarConfirmWindowResponse = null
+  storeStellarConfirmWindowResponse(action.payload.accept, null)
 }
 
 function* previewConversationAfterFindExisting(state, action, results, users) {
@@ -1761,7 +1762,7 @@ const attachmentPreviewSelect = (_, action) => {
       path: [
         {
           props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachmentVideoFullscreen',
+          selected: 'chatAttachmentVideoFullscreen',
         },
       ],
     })
@@ -1772,7 +1773,7 @@ const attachmentPreviewSelect = (_, action) => {
         path: [
           {
             props: {},
-            selected: 'attachmentFullscreen',
+            selected: 'chatAttachmentFullscreen',
           },
         ],
       }),
@@ -1796,7 +1797,7 @@ const attachmentPasted = (_, action) => {
       },
     ]
     return RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
     })
   })
 }
@@ -1941,8 +1942,22 @@ const loadCanUserPerform = (state, action) => {
   if (!teamname) {
     return
   }
-  if (!hasCanPerform(state, teamname)) {
+  if (!TeamsConstants.hasCanPerform(state, teamname)) {
     return TeamsGen.createGetTeamOperations({teamname})
+  }
+}
+
+// Get the full channel names/descs for a team if we don't already have them.
+function* loadChannelInfos(state, action) {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const teamname = meta.teamname
+  if (!teamname) {
+    return
+  }
+  if (!TeamsConstants.hasChannelInfos(state, teamname)) {
+    yield Saga.callUntyped(Saga.delay, 4000)
+    yield Saga.put(TeamsGen.createGetChannels({teamname}))
   }
 }
 
@@ -2002,6 +2017,9 @@ const mobileNavigateOnSelect = (state, action) => {
 }
 
 const mobileChangeSelection = state => {
+  if (flags.useNewRouter) {
+    return
+  }
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
@@ -2125,7 +2143,7 @@ const setConvRetentionPolicy = (_, action) => {
   const convID = Types.keyToConversationID(conversationIDKey)
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
   try {
-    servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
+    servicePolicy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(policy)
     if (servicePolicy) {
       return RPCChatTypes.localSetConvRetentionLocalRpcPromise({
         convID,
@@ -2203,10 +2221,7 @@ const removePendingConversation = function*() {
 // TODO This will break if you try to make 2 new conversations at the same time because there is
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
-function* createConversation2(state, action) {
-  if (!flags.newTeamBuildingForChat) {
-    return
-  }
+function* createConversation(state, action) {
   const username = state.config.username
   if (!username) {
     logger.error('Making a convo while logged out?')
@@ -2245,31 +2260,11 @@ function* createConversation2(state, action) {
   yield removePendingConversation()
 }
 
-const createConversation = (state, action, afterActionCreator) => {
-  if (action.type === Chat2Gen.createConversation && flags.newTeamBuildingForChat) {
-    return
-  }
-
-  let participants
-
-  switch (action.type) {
-    case Chat2Gen.createConversation:
-      participants = action.payload.participants
-      break
-    case Chat2Gen.messageReplyPrivately:
-      {
-        const {sourceConversationIDKey, ordinal} = action.payload
-        const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
-        if (!message) {
-          logger.warn("Can't find message to reply to", ordinal)
-          return
-        }
-        participants = [message.author]
-      }
-      break
-  }
-
-  if (!participants) {
+const messageReplyPrivately = (state, action) => {
+  const {sourceConversationIDKey, ordinal} = action.payload
+  const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
     return
   }
 
@@ -2281,9 +2276,7 @@ const createConversation = (state, action, afterActionCreator) => {
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-      tlfName: I.Set([username])
-        .concat(participants)
-        .join(','),
+      tlfName: I.Set([username, message.author]).join(','),
       tlfVisibility: RPCTypes.commonTLFVisibility.private,
       topicType: RPCChatTypes.commonTopicType.chat,
     },
@@ -2296,23 +2289,14 @@ const createConversation = (state, action, afterActionCreator) => {
         return
       }
 
-      switch (action.type) {
-        case Chat2Gen.createConversation:
-          return [
-            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}),
-            Chat2Gen.createSetPendingMode({noneDestination: 'thread', pendingMode: 'none'}),
-          ]
-        case Chat2Gen.messageReplyPrivately: {
-          return [
-            Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
-            Chat2Gen.createMessageSetQuoting({
-              ordinal: action.payload.ordinal,
-              sourceConversationIDKey: action.payload.sourceConversationIDKey,
-              targetConversationIDKey: conversationIDKey,
-            }),
-          ]
-        }
-      }
+      return [
+        Chat2Gen.createSelectConversation({conversationIDKey, reason: 'createdMessagePrivately'}),
+        Chat2Gen.createMessageSetQuoting({
+          ordinal: action.payload.ordinal,
+          sourceConversationIDKey: action.payload.sourceConversationIDKey,
+          targetConversationIDKey: conversationIDKey,
+        }),
+      ]
     })
     .catch(() => Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
 }
@@ -2545,6 +2529,27 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
+const toggleInfoPanel = (state, action) => {
+  if (flags.useNewRouter) {
+    const visible = Router2Constants.getVisiblePath()
+    if (visible[visible.length - 1]?.routeName === 'chatInfoPanel') {
+      return RouteTreeGen.createNavigateUp()
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  } else {
+    if (Constants.isInfoPanelOpen(state)) {
+      return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: ['chatConversation']})
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  }
+}
+
 const unsentTextChanged = (state, action) => {
   const {conversationIDKey, text} = action.payload
   return RPCChatTypes.localUpdateUnsentTextRpcPromise({
@@ -2561,6 +2566,14 @@ const onGiphyResults = (state, action) => {
   })
 }
 
+const onGiphyToggleWindow = (state, action) => {
+  const {convID, show} = action.payload.params
+  return Chat2Gen.createGiphyToggleWindow({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    show,
+  })
+}
+
 const giphySend = (state, action) => {
   const {conversationIDKey, url} = action.payload
   return Chat2Gen.createMessageSend({conversationIDKey, text: url})
@@ -2569,6 +2582,14 @@ const giphySend = (state, action) => {
 const onChatCoinFlipStatus = (status, action) => {
   const {statuses} = action.payload.params
   return Chat2Gen.createUpdateCoinFlipStatus({statuses: statuses || []})
+}
+
+const onChatCommandMarkdown = (status, action) => {
+  const {convID, md} = action.payload.params
+  return Chat2Gen.createSetCommandMarkdown({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    md,
+  })
 }
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
@@ -2650,6 +2671,19 @@ const prepareFulfillRequestForm = (state, action) => {
     secretNote: message.note,
     to: message.author,
   })
+}
+
+const addUsersToChannel = (_, action) => {
+  const {conversationIDKey, usernames} = action.payload
+  return RPCChatTypes.localBulkAddToConvRpcPromise(
+    {convID: Types.keyToConversationID(conversationIDKey), usernames},
+    Constants.waitingKeyAddUsersToChannel
+  )
+    .then(() => [
+      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      Chat2Gen.createNavigateToThread(),
+    ])
+    .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -2885,17 +2919,18 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainGenerator<Chat2Gen.CreateConversationPayload>(
     Chat2Gen.createConversation,
-    createConversation2
-  )
-  yield* Saga.chainAction<Chat2Gen.CreateConversationPayload | Chat2Gen.MessageReplyPrivatelyPayload>(
-    [Chat2Gen.messageReplyPrivately, Chat2Gen.createConversation],
     createConversation
+  )
+  yield* Saga.chainAction<Chat2Gen.MessageReplyPrivatelyPayload>(
+    Chat2Gen.messageReplyPrivately,
+    messageReplyPrivately
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
     [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
     changePendingMode
   )
   yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
+  yield* Saga.chainAction<Chat2Gen.ToggleInfoPanelPayload>(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
 
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
@@ -2921,6 +2956,13 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.prepareFulfillRequestForm,
     prepareFulfillRequestForm
   )
+
+  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
+    Chat2Gen.selectConversation,
+    loadChannelInfos
+  )
+
+  yield* Saga.chainAction<Chat2Gen.AddUsersToChannelPayload>(Chat2Gen.addUsersToChannel, addUsersToChannel)
 
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPromptUnfurlPayload>(
     EngineGen.chat1NotifyChatChatPromptUnfurl,
@@ -2986,6 +3028,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatGiphySearchResults,
     onGiphyResults
   )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload>(
+    EngineGen.chat1ChatUiChatGiphyToggleResultWindow,
+    onGiphyToggleWindow
+  )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatShowManageChannelsPayload>(
     EngineGen.chat1ChatUiChatShowManageChannels,
     onChatShowManageChannels
@@ -2994,11 +3040,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCoinFlipStatus,
     onChatCoinFlipStatus
   )
-
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandMarkdownPayload>(
+    EngineGen.chat1ChatUiChatCommandMarkdown,
+    onChatCommandMarkdown
   )
+
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 
   yield Saga.spawn(chatTeamBuildingSaga)
 }

@@ -63,6 +63,14 @@ export const getGlobalShortcut = () => {
   return globalShortcut
 }
 
+export const getPowerMonitor = () => {
+  const powerMonitor = Electron.powerMonitor || getRemote().powerMonitor
+  if (!powerMonitor) {
+    throw new Error('Should be impossible')
+  }
+  return powerMonitor
+}
+
 // Render thread only
 export const getIpcRenderer = () => {
   const ipcRenderer = Electron.ipcRenderer

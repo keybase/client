@@ -199,8 +199,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   errors: I.Map(),
   flags: makeFlags(),
   fuseStatus: null,
+  kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
-  localHTTPServerInfo: null,
+  localHTTPServerInfo: makeLocalHTTPServer(),
   moveOrCopy: makeMoveOrCopy(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
@@ -482,23 +483,33 @@ export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
 export const isMedia = (pathItem: Types.PathItem): boolean =>
   pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
 
+const encodePathForURL = (path: Types.Path) =>
+  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength))
+    .replace(
+      // We need to do this because otherwise encodeURIComponent would encode
+      // "/"s.  If we get a relative redirect (e.g. when requested resource is
+      // index.html, we get redirected to "./"), we'd end up redirect to a wrong
+      // resource.
+      /%2F/g,
+      '/'
+    )
+    // Additional characters that encodeURIComponent doesn't escape
+    .replace(
+      /[-_.!~*'()]/g,
+      old =>
+        `%${old
+          .charCodeAt(0)
+          .toString(16)
+          .toUpperCase()}`
+    )
+
 const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (
-  path: Types.Path,
-  localHTTPServerInfo: ?$ReadOnly<Types._LocalHTTPServer>
-): string => {
-  if (localHTTPServerInfo === null) {
+export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.LocalHTTPServer): string => {
+  const {address, token} = localHTTPServerInfo
+  if (!address || !token) {
     return 'about:blank'
   }
-  const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
-  // We need to do this because otherwise encodeURIComponent would encode "/"s.
-  // If we get a relative redirect (e.g. when requested resource is index.html,
-  // we get redirected to "./"), we'd end up redirect to a wrong resource.
-  const encoded = encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength)).replace(
-    /%2F/g,
-    '/'
-  )
-
+  const encoded = encodePathForURL(path)
   return `http://${address}/files/${encoded}?token=${token}`
 }
 
@@ -651,6 +662,20 @@ export const kbfsUninstallString = (state: TypedState) => {
     }
   }
   return ''
+}
+
+export const shouldShowFileUIBanner = (state: TypedState) =>
+  !isMobile && !kbfsEnabled(state) && state.fs.flags.showBanner
+
+export const resetBannerType = (state: TypedState, path: Types.Path): Types.ResetBannerType => {
+  const resetParticipants = getTlfFromPath(state.fs.tlfs, path).resetParticipants
+  if (resetParticipants.size === 0) {
+    return 'none'
+  }
+  if (resetParticipants.findIndex(i => i.username === state.config.username) >= 0) {
+    return 'self'
+  }
+  return resetParticipants.size
 }
 
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
@@ -835,52 +860,55 @@ const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   }
 }
 
-export const erroredActionToMessage = (action: FsGen.Actions, error?: any): string => {
+export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
+  const errorIsTimeout = error.includes('context deadline exceeded')
+  const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
+  const suffix = errorIsTimeout ? ` ${timeoutExplain}` : ''
   switch (action.type) {
-    case FsGen.favoritesLoad:
-      return 'Failed to load TLF lists.'
-    case FsGen.filePreviewLoad:
-      return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.`
-    case FsGen.folderListLoad:
-      return `Failed to list folder: ${Types.getPathName(action.payload.path)}.`
-    case FsGen.download:
-      return `Failed to download: ${Types.getPathName(action.payload.path)}.`
-    case FsGen.shareNative:
-      return `Failed to share: ${Types.getPathName(action.payload.path)}.`
-    case FsGen.saveMedia:
-      return `Failed to save: ${Types.getPathName(action.payload.path)}.`
-    case FsGen.upload:
-      return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.`
     case FsGen.notifySyncActivity:
-      return `Failed to gather information about KBFS uploading activities.`
-    case FsGen.refreshLocalHTTPServerInfo:
-      return 'Failed to get information about internal HTTP server.'
-    case FsGen.mimeTypeLoad:
-      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.`
-    case FsGen.favoriteIgnore:
-      return `Failed to ignore: ${Types.pathToString(action.payload.path)}.`
-    case FsGen.openPathInSystemFileManager:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
-    case FsGen.openLocalPathInSystemFileManager:
-      return `Failed to open path: ${action.payload.localPath}.`
-    case FsGen.deleteFile:
-      return `Failed to delete file: ${Types.pathToString(action.payload.path)}.`
+      return 'Failed to gather information about KBFS uploading activities.' + suffix
     case FsGen.move:
-      return `Failed to move file(s).`
+      return 'Failed to move file(s).' + suffix
     case FsGen.copy:
-      return `Failed to copy file(s).`
+      return 'Failed to copy file(s).' + suffix
+    case FsGen.favoritesLoad:
+      return 'Failed to load TLF lists.' + suffix
+    case FsGen.refreshLocalHTTPServerInfo:
+      return 'Failed to get information about internal HTTP server.' + suffix
+    case FsGen.pathItemLoad:
+      return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
+    case FsGen.folderListLoad:
+      return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
+    case FsGen.download:
+      return `Failed to download: ${Types.getPathName(action.payload.path)}.` + suffix
+    case FsGen.shareNative:
+      return `Failed to share: ${Types.getPathName(action.payload.path)}.` + suffix
+    case FsGen.saveMedia:
+      return `Failed to save: ${Types.getPathName(action.payload.path)}.` + suffix
+    case FsGen.upload:
+      return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.` + suffix
+    case FsGen.mimeTypeLoad:
+      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.` + suffix
+    case FsGen.favoriteIgnore:
+      return `Failed to ignore: ${Types.pathToString(action.payload.path)}.` + suffix
+    case FsGen.openPathInSystemFileManager:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
+    case FsGen.openLocalPathInSystemFileManager:
+      return `Failed to open path: ${action.payload.localPath}.` + suffix
+    case FsGen.deleteFile:
+      return `Failed to delete file: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.openPathItem:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.openPathInFilesTab:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.downloadSuccess:
       return (
-        `Failed to ${humanizeDownloadIntent(action.payload.intent)}` +
-        (error ? `: ${error.toString()}.` : '.')
+        `Failed to ${humanizeDownloadIntent(action.payload.intent)}. ` +
+        (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
       )
     case FsGen.pickAndUpload:
-      return 'Failed to upload' + (error ? `: ${error.toString()}.` : '.')
+      return 'Failed to upload. ' + (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
     default:
-      return 'An unexplainable error has occurred.'
+      return errorIsTimeout ? timeoutExplain : 'An unexplainable error has occurred.'
   }
 }

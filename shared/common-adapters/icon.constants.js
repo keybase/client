@@ -56,6 +56,26 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-addon-lock-hover-16.png'),
   },
+  'icon-airdrop-star-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-16.png'),
+  },
+  'icon-airdrop-star-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-32.png'),
+  },
+  'icon-airdrop-star-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-48.png'),
+  },
+  'icon-airdrop-star-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-64.png'),
+  },
   'icon-bitcoin-logo-48': {
     extension: 'png',
     isFont: false,
@@ -65,6 +85,16 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
+  },
+  'icon-coin-heads-48-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-coin-heads-48-48.png'),
+  },
+  'icon-coin-tails-48-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-coin-tails-48-48.png'),
   },
   'icon-computer-32': {
     extension: 'png',
@@ -165,6 +195,41 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-facebook-visibility-static.png'),
+  },
+  'icon-fancy-airdrop-friends-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-friends-120.png'),
+  },
+  'icon-fancy-airdrop-star-faded-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-faded-120.png'),
+  },
+  'icon-fancy-airdrop-star-faded-loading-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-faded-loading-120.png'),
+  },
+  'icon-fancy-airdrop-star-faded-sad-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-faded-sad-120.png'),
+  },
+  'icon-fancy-airdrop-star-shining-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-120.png'),
+  },
+  'icon-fancy-airdrop-star-shining-80': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-80.png'),
+  },
+  'icon-fancy-airdrop-star-shining-happy-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-happy-120.png'),
   },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
@@ -300,6 +365,21 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png'),
+  },
+  'icon-fancy-user-card-desktop-80-99': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-user-card-desktop-80-99.png'),
+  },
+  'icon-fancy-user-card-desktop-star-80-99': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-user-card-desktop-star-80-99.png'),
+  },
+  'icon-fancy-user-card-mobile-120-149': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-user-card-mobile-120-149.png'),
   },
   'icon-file-24': {
     extension: 'png',
@@ -1926,6 +2006,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-circle': {
+    charCode: 0xe974,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-clipboard': {
     charCode: 0xe910,
     gridSize: 16,
@@ -1938,6 +2023,26 @@ const iconMeta_ = {
   },
   'iconfont-close': {
     charCode: 0xe912,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-cloud': {
+    charCode: 0xe973,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-club': {
+    charCode: 0xe976,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-coin': {
+    charCode: 0xe971,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-coin-stack': {
+    charCode: 0xe972,
     gridSize: 16,
     isFont: true,
   },
@@ -1963,6 +2068,11 @@ const iconMeta_ = {
   },
   'iconfont-crown-owner': {
     charCode: 0xe915,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-diamond': {
+    charCode: 0xe977,
     gridSize: 16,
     isFont: true,
   },
@@ -1998,6 +2108,11 @@ const iconMeta_ = {
   },
   'iconfont-exclamation': {
     charCode: 0xe91c,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-file': {
+    charCode: 0xe975,
     gridSize: 16,
     isFont: true,
   },
@@ -2071,6 +2186,16 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-heads': {
+    charCode: 0xe97a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-heart': {
+    charCode: 0xe978,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-identity-bitcoin': {
     charCode: 0xe92c,
     gridSize: 16,
@@ -2093,6 +2218,11 @@ const iconMeta_ = {
   },
   'iconfont-identity-hn': {
     charCode: 0xe930,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-identity-mastodon': {
+    charCode: 0xe970,
     gridSize: 16,
     isFont: true,
   },
@@ -2306,6 +2436,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-spade': {
+    charCode: 0xe979,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-star': {
     charCode: 0xe95a,
     gridSize: 16,
@@ -2323,6 +2458,11 @@ const iconMeta_ = {
   },
   'iconfont-success': {
     charCode: 0xe95c,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-tails': {
+    charCode: 0xe97b,
     gridSize: 16,
     isFont: true,
   },

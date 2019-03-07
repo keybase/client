@@ -216,6 +216,9 @@ type TestParameters struct {
 	// easiest to skip the audit in those cases.
 	TeamSkipAudit bool
 
+	// NoGregor is on if we want to test the service without any gregor conection
+	NoGregor bool
+
 	// TeamAuditParams can be customized if we want to control the behavior
 	// of audits deep in a test
 	TeamAuditParams *TeamAuditParams
@@ -223,6 +226,13 @@ type TestParameters struct {
 
 func (tp TestParameters) GetDebug() (bool, bool) {
 	if tp.Debug {
+		return true, true
+	}
+	return false, false
+}
+
+func (tp TestParameters) GetNoGregor() (bool, bool) {
+	if tp.NoGregor {
 		return true, true
 	}
 	return false, false
@@ -344,19 +354,20 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 	e := Env{cmd: cmd, config: config, Test: &TestParameters{}}
 
 	e.HomeFinder = NewHomeFinder("keybase",
-		func() string { return e.getHomeFromCmdOrConfig() },
+		func() string { return e.getHomeFromTestOrCmd() },
+		func() string { return e.GetConfig().GetHome() },
 		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
 		osname,
 		func() RunMode { return e.GetRunMode() },
-		getLog)
+		getLog,
+		os.Getenv)
 	return &e
 }
 
-func (e *Env) getHomeFromCmdOrConfig() string {
+func (e *Env) getHomeFromTestOrCmd() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
 		func() string { return e.cmd.GetHome() },
-		func() string { return e.GetConfig().GetHome() },
 	)
 }
 
@@ -840,6 +851,7 @@ func (e *Env) GetGregorSaveInterval() time.Duration {
 
 func (e *Env) GetGregorDisabled() bool {
 	return e.GetBool(false,
+		func() (bool, bool) { return e.Test.GetNoGregor() },
 		func() (bool, bool) { return e.cmd.GetGregorDisabled() },
 		func() (bool, bool) { return getEnvBool("KEYBASE_PUSH_DISABLED") },
 		func() (bool, bool) { return e.GetConfig().GetGregorDisabled() },

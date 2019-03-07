@@ -8,6 +8,7 @@ import {rpcLog} from './index.platform'
 import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
+import {isArray} from 'lodash-es'
 
 type WaitingKey = string | Array<string>
 
@@ -193,7 +194,12 @@ class Session {
     const waitingHandler = this._makeWaitingHandler(false, method, response && response.seqid)
     const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
     this._incomingRequests.push(incomingRequest)
-    incomingRequest.handle()
+    const actions = incomingRequest.handle()
+
+    const arr = isArray(actions) ? actions : [actions]
+    // $FlowIssue private api
+    const dispatch = getEngine().deprecatedGetDispatch()
+    arr.forEach(a => !!a && dispatch(a))
 
     return true
   }

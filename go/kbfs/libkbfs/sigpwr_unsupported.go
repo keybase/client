@@ -7,4 +7,5 @@
 
 package libkbfs
 
+// SIGPWR isn't supported outside of Linux.
 const SIGPWR = NonexistentSignal

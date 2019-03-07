@@ -18,11 +18,10 @@ const mapDispatchToProps = (dispatch, {path: parentPath, routePath}) => ({
   newFolderRow: () => dispatch(FsGen.createNewFolderRow({parentPath})),
 })
 
-const mergeProps = ({_pathItem}, {newFolderRow, _openAndUpload, _pickAndUpload}, {path, style}) => {
+const mergeProps = ({_pathItem}, {newFolderRow, _openAndUpload, _pickAndUpload}, {path}) => {
   const pathElements = Types.getPathElements(path)
   return {
     pathElements,
-    style,
     ...(pathElements.length > 2 && _pathItem.writable
       ? {
           ...(isMobile

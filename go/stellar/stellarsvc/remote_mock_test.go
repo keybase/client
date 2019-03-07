@@ -463,8 +463,12 @@ func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stella
 	return r.Backend.PendingPayments(ctx, r.Tc, accountID, limit)
 }
 
-func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
-	return r.Backend.PaymentDetails(ctx, r.Tc, txID)
+func (r *RemoteClientMock) PaymentDetails(ctx context.Context, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	return r.Backend.PaymentDetails(ctx, r.Tc, accountID, txID)
+}
+
+func (r *RemoteClientMock) PaymentDetailsGeneric(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return r.Backend.PaymentDetailsGeneric(ctx, r.Tc, txID)
 }
 
 func (r *RemoteClientMock) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
@@ -521,6 +525,29 @@ func (r *RemoteClientMock) GetInflationDestinations(ctx context.Context) (ret []
 
 func (r *RemoteClientMock) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error) {
 	return stellar1.NetworkOptions{BaseFee: 100}, nil
+}
+
+func (r *RemoteClientMock) DetailsPlusPayments(ctx context.Context, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
+	details, err := r.Backend.Details(ctx, r.Tc, accountID)
+	if err != nil {
+		return stellar1.DetailsPlusPayments{}, err
+	}
+
+	recent, err := r.Backend.RecentPayments(ctx, r.Tc, accountID, nil, 50, true)
+	if err != nil {
+		return stellar1.DetailsPlusPayments{}, err
+	}
+
+	pending, err := r.Backend.PendingPayments(ctx, r.Tc, accountID, 25)
+	if err != nil {
+		return stellar1.DetailsPlusPayments{}, err
+	}
+
+	return stellar1.DetailsPlusPayments{
+		Details:         details,
+		RecentPayments:  recent,
+		PendingPayments: pending,
+	}, nil
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -895,8 +922,22 @@ func (r *BackendMock) PendingPayments(ctx context.Context, tc *TestContext, acco
 	return res, nil
 }
 
-func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
+func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
 	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetails", func() error { return err })()
+	if accountID.IsNil() {
+		return res, errors.New("PaymentDetails requires AccountID")
+	}
+	r.Lock()
+	defer r.Unlock()
+	p := r.txLog.Find(txID)
+	if p == nil {
+		return res, fmt.Errorf("BackendMock: tx not found: '%v'", txID)
+	}
+	return *p, nil
+}
+
+func (r *BackendMock) PaymentDetailsGeneric(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
+	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetailsGeneric", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
 	p := r.txLog.Find(txID)
@@ -924,6 +965,7 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 	// Fetch the currency display preference for this account first,
 	// users are allowed to have currency preferences even for accounts
 	// that do not exist on the network yet.
+	var displayCurrency string
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -934,11 +976,9 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 	}
 	var apiRes accountCurrencyResult
 	err = tc.G.API.GetDecode(apiArg, &apiRes)
-	if err != nil {
-		return res, err
+	if err == nil {
+		displayCurrency = apiRes.CurrencyDisplayPreference
 	}
-
-	displayCurrency := apiRes.CurrencyDisplayPreference
 
 	a, ok := r.accounts[accountID]
 	if !ok {
@@ -953,9 +993,11 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		}, nil
 	}
 	var balances []stellar1.Balance
+	// this is different than how BackendMock.Balances works:
 	if a.balance.Amount != "" {
 		balances = []stellar1.Balance{a.balance}
 	}
+	balances = append(balances, a.otherBalances...)
 
 	var inflationDest *stellar1.AccountID
 	if a.inflationDest != "" {
@@ -1028,7 +1070,7 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 
 func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
 	mctx := tc.MetaContext()
-	defer mctx.CTraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
+	defer mctx.TraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
 	bundle, err := fetchWholeBundleForTesting(mctx)
 	require.NoError(r.T, err)
@@ -1042,7 +1084,8 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 	}
 	r.Unlock()
 
-	tc.Srv.walletState.RefreshAll(mctx, "test")
+	err = tc.Srv.walletState.RefreshAll(mctx, "test")
+	require.NoError(r.T, err)
 
 	return res
 }

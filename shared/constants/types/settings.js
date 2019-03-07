@@ -96,23 +96,22 @@ export type State = {
   chat: ChatState,
 }
 
-type AboutTab = 'settingsTabs:aboutTab'
-type AdvancedTab = 'settingsTabs:advancedTab'
-type ChatTab = 'settingsTabs:chatTab'
-type DeleteMeTab = 'settingsTabs:deleteMeTab'
-type DevMenuTab = 'settingsTabs:devMenuTab'
-type DevicesTab = 'settingsTabs:devicesTab'
-type FeedbackTab = 'settingsTabs:feedbackTab'
-type FoldersTab = 'settingsTabs:foldersTab'
-type FsTab = 'settingsTabs:fsTab'
-type GitTab = 'settingsTabs:gitTab'
-type InvitationsTab = 'settingsTabs:invitationsTab'
-type LandingTab = 'settingsTabs:landingTab'
-type NotificationsTab = 'settingsTabs:notificationsTab'
-type PassphraseTab = 'settingsTabs:passphrase'
-type ScreenprotectorTab = 'settingsTabs:screenprotector'
-type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
-type WalletsTab = 'settingsTabs:walletsTab'
+type AboutTab = 'settingsTabs.aboutTab'
+type AdvancedTab = 'settingsTabs.advancedTab'
+type ChatTab = 'settingsTabs.chatTab'
+type DeleteMeTab = 'settingsTabs.deleteMeTab'
+type DevicesTab = 'settingsTabs.devicesTab'
+type FeedbackTab = 'settingsTabs.feedbackTab'
+type FoldersTab = 'settingsTabs.foldersTab'
+type FsTab = 'settingsTabs.fsTab'
+type GitTab = 'settingsTabs.gitTab'
+type InvitationsTab = 'settingsTabs.invitationsTab'
+type LandingTab = 'settingsTabs.landingTab'
+type NotificationsTab = 'settingsTabs.notificationsTab'
+type PassphraseTab = 'settingsTabs.passphrase'
+type ScreenprotectorTab = 'settingsTabs.screenprotector'
+type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
+type WalletsTab = 'settingsTabs.walletsTab'
 
 export type Tab =
   | LandingTab
@@ -121,7 +120,6 @@ export type Tab =
   | NotificationsTab
   | AdvancedTab
   | DeleteMeTab
-  | DevMenuTab
   | FeedbackTab
   | AboutTab
   | DevicesTab

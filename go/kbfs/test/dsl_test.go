@@ -1038,10 +1038,11 @@ func checkPrevRevisions(filepath string, counts []uint8) fileOp {
 }
 
 type expectedEdit struct {
-	tlfName string
-	tlfType keybase1.FolderType
-	writer  string
-	files   []string
+	tlfName      string
+	tlfType      keybase1.FolderType
+	writer       string
+	files        []string
+	deletedFiles []string
 }
 
 func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
@@ -1063,6 +1064,10 @@ func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
 			hEdits[i].writer = h.History[0].WriterName
 			for _, we := range h.History[0].Edits {
 				hEdits[i].files = append(hEdits[i].files, we.Filename)
+			}
+			for _, we := range h.History[0].Deletes {
+				hEdits[i].deletedFiles = append(
+					hEdits[i].deletedFiles, we.Filename)
 			}
 		}
 

@@ -93,7 +93,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
             ) : (
               <Icon type={proofStatusIconType} fontSize={26} color={shared.proofColor(proof, true)} />
             ))}
-          {hasMenu && <Icon type="iconfont-caret-down" />}
+          {hasMenu && <Icon type="iconfont-caret-down" sizeType="Tiny" />}
         </Box>
       </ClickableBox>
     </Box>

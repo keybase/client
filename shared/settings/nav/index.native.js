@@ -49,14 +49,10 @@ function SettingsNav(props: Props) {
               text: 'Devices',
             },
             {
-              ...(flags.walletsEnabled
-                ? {
-                    badgeNumber: props.badgeNumbers[TabConstants.walletsTab],
-                    icon: 'iconfont-nav-wallets',
-                    onClick: () => props.onTabChange(Constants.walletsTab),
-                    text: 'Wallet',
-                  }
-                : {}),
+              badgeNumber: props.badgeNumbers[TabConstants.walletsTab],
+              icon: 'iconfont-nav-wallets',
+              onClick: () => props.onTabChange(Constants.walletsTab),
+              text: 'Wallet',
             },
           ],
           title: '',
@@ -118,4 +114,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default HeaderHoc(SettingsNav)
+export default (flags.useNewRouter ? SettingsNav : HeaderHoc(SettingsNav))

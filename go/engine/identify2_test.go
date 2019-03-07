@@ -113,7 +113,7 @@ func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHin
 	if i.checkStatusHook != nil {
 		return nil, i.checkStatusHook(h, pcm)
 	}
-	m.CDebugf("Check status rubber stamp: %+v", h)
+	m.Debug("Check status rubber stamp: %+v", h)
 	return nil, nil
 }
 
@@ -121,64 +121,64 @@ func (i *Identify2WithUIDTester) GetTorError() libkb.ProofError {
 	return nil
 }
 
-func (i *Identify2WithUIDTester) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+func (i *Identify2WithUIDTester) FinishSocialProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) Confirm(*keybase1.IdentifyOutcome) (res keybase1.ConfirmResult, err error) {
+func (i *Identify2WithUIDTester) Confirm(libkb.MetaContext, *keybase1.IdentifyOutcome) (res keybase1.ConfirmResult, err error) {
 	return
 }
-func (i *Identify2WithUIDTester) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+func (i *Identify2WithUIDTester) FinishWebProofCheck(libkb.MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+func (i *Identify2WithUIDTester) DisplayCryptocurrency(libkb.MetaContext, keybase1.Cryptocurrency) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayStellarAccount(keybase1.StellarAccount) error {
+func (i *Identify2WithUIDTester) DisplayStellarAccount(libkb.MetaContext, keybase1.StellarAccount) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayKey(keybase1.IdentifyKey) error {
+func (i *Identify2WithUIDTester) DisplayKey(libkb.MetaContext, keybase1.IdentifyKey) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) ReportLastTrack(*keybase1.TrackSummary) error {
+func (i *Identify2WithUIDTester) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error {
+func (i *Identify2WithUIDTester) LaunchNetworkChecks(libkb.MetaContext, *keybase1.Identity, *keybase1.User) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayTrackStatement(string) error {
+func (i *Identify2WithUIDTester) DisplayTrackStatement(libkb.MetaContext, string) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) ReportTrackToken(keybase1.TrackToken) (err error) {
+func (i *Identify2WithUIDTester) ReportTrackToken(libkb.MetaContext, keybase1.TrackToken) (err error) {
 	return nil
 }
 func (i *Identify2WithUIDTester) SetStrict(b bool) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayUserCard(card keybase1.UserCard) error {
+func (i *Identify2WithUIDTester) DisplayUserCard(_ libkb.MetaContext, card keybase1.UserCard) error {
 	i.Lock()
 	defer i.Unlock()
 	i.card = card
 	return nil
 }
 
-func (i *Identify2WithUIDTester) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
+func (i *Identify2WithUIDTester) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Cancel() error {
+func (i *Identify2WithUIDTester) Cancel(libkb.MetaContext) error {
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Finish() error {
+func (i *Identify2WithUIDTester) Finish(libkb.MetaContext) error {
 	i.finishCh <- struct{}{}
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Dismiss(_ string, _ keybase1.DismissReason) error {
+func (i *Identify2WithUIDTester) Dismiss(_ libkb.MetaContext, _ string, _ keybase1.DismissReason) error {
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason, bool) error {
+func (i *Identify2WithUIDTester) Start(libkb.MetaContext, string, keybase1.IdentifyReason, bool) error {
 	i.startCh <- struct{}{}
 	return nil
 }
@@ -479,7 +479,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		err := eng.Run(m)
 		// Since we threw away the test UI, we have to manually complete the UI here,
 		// otherwise the waiter() will block indefinitely.
-		origUI.Finish()
+		origUI.Finish(m)
 		waiter()
 		if err != nil {
 			t.Fatalf("expected no ID2 error; got %v", err)

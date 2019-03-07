@@ -5,7 +5,6 @@ import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
-import Giphy from '../giphy/container'
 import logger from '../../../logger'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
@@ -117,7 +116,6 @@ class Conversation extends React.PureComponent<Props, State> {
         <HeaderArea
           isPending={this.props.isPending}
           onToggleInfoPanel={this.props.onToggleInfoPanel}
-          infoPanelOpen={this.props.infoPanelOpen}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
@@ -128,7 +126,6 @@ class Conversation extends React.PureComponent<Props, State> {
           scrollListUpCounter={this.props.scrollListUpCounter}
           conversationIDKey={this.props.conversationIDKey}
         />
-        {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
           isPending={this.props.isPending}

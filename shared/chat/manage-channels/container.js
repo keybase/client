@@ -115,13 +115,13 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: routePath.butLast(),
-          path: [{props: {teamname}, selected: 'createChannel'}],
+          path: [{props: {teamname}, selected: 'chatCreateChannel'}],
         })
       ),
     onEdit: conversationIDKey =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, teamname}, selected: 'editChannel'}],
+          path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
         })
       ),
   }

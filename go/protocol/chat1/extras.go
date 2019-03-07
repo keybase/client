@@ -164,10 +164,19 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
 }
 
 func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
+}
+
+var editableMessageTypesByEdit = []MessageType{
+	MessageType_TEXT,
+}
+
+func EditableMessageTypesByEdit() []MessageType {
+	return editableMessageTypesByEdit
 }
 
 func IsEphemeralSupersederType(typ MessageType) bool {
@@ -185,7 +194,8 @@ func IsEphemeralSupersederType(typ MessageType) bool {
 func IsEphemeralNonSupersederType(typ MessageType) bool {
 	switch typ {
 	case MessageType_TEXT,
-		MessageType_ATTACHMENT:
+		MessageType_ATTACHMENT,
+		MessageType_FLIP:
 		return true
 	default:
 		return false
@@ -937,6 +947,11 @@ func (o OutboxRecord) IsUnfurl() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_UNFURL
 }
 
+func (o OutboxRecord) IsChatFlip() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_FLIP &&
+		o.Msg.ClientHeader.Conv.TopicType == TopicType_CHAT
+}
+
 func (o OutboxRecord) MessageType() MessageType {
 	return o.Msg.ClientHeader.MessageType
 }
@@ -1245,8 +1260,12 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 }
 
 func (c Conversation) IsUnread() bool {
+	return c.IsUnreadFromMsgID(c.ReaderInfo.ReadMsgid)
+}
+
+func (c Conversation) IsUnreadFromMsgID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+	return maxMsgID > 0 && maxMsgID > readMsgID
 }
 
 func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
@@ -1972,6 +1991,13 @@ func (i EphemeralPurgeInfo) String() string {
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
 }
 
+func (i EphemeralPurgeInfo) Eq(o EphemeralPurgeInfo) bool {
+	return (i.IsActive == o.IsActive &&
+		i.MinUnexplodedID == o.MinUnexplodedID &&
+		i.NextPurgeTime == o.NextPurgeTime &&
+		i.ConvID.Eq(o.ConvID))
+}
+
 func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found bool, reactionMsgID MessageID) {
 	reactions, ok := r.Reactions[reactionText]
 	if !ok {
@@ -2191,43 +2217,6 @@ func (g GlobalAppNotificationSetting) FlagName() string {
 	}
 }
 
-func (m MessageSystem) String() string {
-	typ, err := m.SystemType()
-	if err != nil {
-		return "<unknown system message>"
-	}
-	switch typ {
-	case MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("[Added @%s to the team]", m.Addedtoteam().Addee)
-	case MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("[Added %s to the team (invited by @%s)]",
-			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter)
-	case MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf("[Created a new channel in %s]", m.Complexteam().Team)
-	case MessageSystemType_CREATETEAM:
-		return fmt.Sprintf("[%s created the team %s]", m.Createteam().Creator, m.Createteam().Team)
-	case MessageSystemType_GITPUSH:
-		body := m.Gitpush()
-		switch body.PushType {
-		case keybase1.GitPushType_CREATEREPO:
-			return fmt.Sprintf("[git %s created the repo %s]", body.Pusher, body.RepoName)
-		case keybase1.GitPushType_RENAMEREPO:
-			return fmt.Sprintf("[git %s changed the name of the repo %s to %s]", body.Pusher, body.PreviousRepoName, body.RepoName)
-		default:
-			total := keybase1.TotalNumberOfCommits(body.Refs)
-			names := keybase1.RefNames(body.Refs)
-			return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.RepoName,
-				body.Pusher, total, names)
-		}
-	case MessageSystemType_CHANGEAVATAR:
-		return fmt.Sprintf("[%s changed team avatar]", m.Changeavatar().User)
-	case MessageSystemType_CHANGERETENTION:
-		return m.Changeretention().String()
-	default:
-		return "<unknown system message>"
-	}
-}
-
 func (m MessageSystemChangeRetention) String() string {
 	var appliesTo string
 	switch m.MembersType {
@@ -2245,9 +2234,64 @@ func (m MessageSystemChangeRetention) String() string {
 		inheritDescription = " to inherit from the team policy"
 	}
 
-	format := "[%s changed the %s retention policy%s. %s]"
+	format := "%s changed the %s retention policy%s. %s"
 	summary := m.Policy.HumanSummary()
 	return fmt.Sprintf(format, m.User, appliesTo, inheritDescription, summary)
+}
+
+func (m MessageSystemBulkAddToConv) String() string {
+	prefix := "Added %s to the conversation"
+	var suffix string
+	switch len(m.Usernames) {
+	case 0:
+		return ""
+	case 1:
+		suffix = m.Usernames[0]
+	case 2:
+		suffix = fmt.Sprintf("%s and %s", m.Usernames[0], m.Usernames[1])
+	default:
+		suffix = fmt.Sprintf("%s and %d others", m.Usernames[0], len(m.Usernames)-1)
+	}
+	return fmt.Sprintf(prefix, suffix)
+}
+
+func (m MessageSystem) String() string {
+	typ, err := m.SystemType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case MessageSystemType_ADDEDTOTEAM:
+		return fmt.Sprintf("Added @%s to the team", m.Addedtoteam().Addee)
+	case MessageSystemType_INVITEADDEDTOTEAM:
+		return fmt.Sprintf("Added %s to the team (invited by @%s)",
+			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter)
+	case MessageSystemType_COMPLEXTEAM:
+		return fmt.Sprintf("Created a new channel in %s", m.Complexteam().Team)
+	case MessageSystemType_CREATETEAM:
+		return fmt.Sprintf("%s created the team %s", m.Createteam().Creator, m.Createteam().Team)
+	case MessageSystemType_GITPUSH:
+		body := m.Gitpush()
+		switch body.PushType {
+		case keybase1.GitPushType_CREATEREPO:
+			return fmt.Sprintf("git %s created the repo %s", body.Pusher, body.RepoName)
+		case keybase1.GitPushType_RENAMEREPO:
+			return fmt.Sprintf("git %s changed the name of the repo %s to %s", body.Pusher, body.PreviousRepoName, body.RepoName)
+		default:
+			total := keybase1.TotalNumberOfCommits(body.Refs)
+			names := keybase1.RefNames(body.Refs)
+			return fmt.Sprintf("git (%s) %s pushed %d commits to %s", body.RepoName,
+				body.Pusher, total, names)
+		}
+	case MessageSystemType_CHANGEAVATAR:
+		return fmt.Sprintf("%s changed team avatar", m.Changeavatar().User)
+	case MessageSystemType_CHANGERETENTION:
+		return m.Changeretention().String()
+	case MessageSystemType_BULKADDTOCONV:
+		return m.Bulkaddtoconv().String()
+	default:
+		return ""
+	}
 }
 
 func isZero(v []byte) bool {

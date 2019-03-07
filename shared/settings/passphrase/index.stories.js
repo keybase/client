@@ -7,6 +7,7 @@ const props = {
   canSave: true,
   errorMessage: null,
   hasPGPKeyOnServer: false,
+  heading: '',
   newPassphrase: 'open sesame',
   newPassphraseConfirm: 'open sesame',
   newPassphraseConfirmError: null,

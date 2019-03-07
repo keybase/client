@@ -2,12 +2,12 @@
 import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
-import * as ConfigGen from '../actions/config-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import flags from '../util/feature-flags'
 import {get} from 'lodash-es'
-import engine from '../engine'
+import {getEngine} from '../engine/require'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
 import {isMobile} from '../constants/platform'
@@ -285,7 +285,8 @@ function _serverCallMap(
 
         // cleanup bookkeeping
         delete sessionIDToUsername[sessionID]
-        engine().cancelSession(sessionID)
+        // $FlowIssue exist but this is the only thing that uses it and this is going away
+        getEngine().cancelSession(sessionID)
       })
 
       // if we're pending we still want to call onFinish
@@ -569,78 +570,65 @@ function* _openProofUrl(_, action: TrackerGen.OpenProofUrlPayload) {
   openUrl(proof.humanUrl)
 }
 
-function* _userChanged(state, action: {payload: {uid: string}}) {
-  const {uid} = action.payload
-  const actions = [Saga.put(TrackerGen.createCacheIdentify({goodTill: 0, uid}))]
+const onUserChanged = (state, action) => {
+  const {uid} = action.payload.params
+  const actions = [TrackerGen.createCacheIdentify({goodTill: 0, uid})]
   const username = _getUsername(state, uid)
   if (username) {
-    actions.push(Saga.put(TrackerGen.createGetProfile({username})))
+    actions.push(TrackerGen.createGetProfile({username}))
   }
-  yield Saga.all(actions)
+  return actions
 }
 
-const setupEngineListeners = () => {
-  // TODO remove this
-  const dispatch = engine().deprecatedGetDispatch()
-  const getState = engine().deprecatedGetGetState()
+const onConnect = () => {
+  RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
+    .then(response => {
+      logger.info('Registered identify ui')
+    })
+    .catch(error => {
+      logger.warn('error in registering identify ui: ', error)
+    })
+}
 
-  engine().actionOnConnect('registerIdentifyUi', () => {
-    RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
-      .then(response => {
-        logger.info('Registered identify ui')
-      })
-      .catch(error => {
-        logger.warn('error in registering identify ui: ', error)
-      })
+const onDelegateUI = (state, action) => {
+  // $FlowIssue private api
+  const dispatch = getEngine().deprecatedGetDispatch()
+  // $FlowIssue private api
+  const getState = getEngine().deprecatedGetGetState()
+
+  // If we don't finish the session by our timeout, we'll display an error
+  const trackerTimeout = 1e3 * 60 * 5
+  let trackerTimeoutError = null
+  const onStart = username => {
+    // Don't do this on mobile
+    if (isMobile) {
+      return
+    }
+    trackerTimeoutError = setTimeout(() => {
+      dispatch(TrackerGen.createIdentifyFinishedError({error: 'Identify timed out', username}))
+    }, trackerTimeout)
+  }
+  const onFinish = () => {
+    session.end()
+    trackerTimeoutError && clearTimeout(trackerTimeoutError)
+  }
+  const cancelHandler = session => {
+    const username = sessionIDToUsername[session.getId()]
+    if (username) {
+      dispatch(
+        TrackerGen.createIdentifyFinishedError({
+          error: 'Identify timed out',
+          username,
+        })
+      )
+    }
+  }
+  const session = getEngine().createSession({
+    cancelHandler,
+    incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
   })
-
-  engine().setCustomResponseIncomingCallMap({
-    'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
-      // If we don't finish the session by our timeout, we'll display an error
-      const trackerTimeout = 1e3 * 60 * 5
-      let trackerTimeoutError = null
-
-      const onStart = username => {
-        // Don't do this on mobile
-        if (isMobile) {
-          return
-        }
-        trackerTimeoutError = setTimeout(() => {
-          dispatch(TrackerGen.createIdentifyFinishedError({error: 'Identify timed out', username}))
-        }, trackerTimeout)
-      }
-
-      const onFinish = () => {
-        session.end()
-        trackerTimeoutError && clearTimeout(trackerTimeoutError)
-      }
-
-      const cancelHandler = session => {
-        const username = sessionIDToUsername[session.getId()]
-
-        if (username) {
-          dispatch(
-            TrackerGen.createIdentifyFinishedError({
-              error: 'Identify timed out',
-              username,
-            })
-          )
-        }
-      }
-
-      const session = engine().createSession({
-        cancelHandler,
-        incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
-      })
-
-      response && response.result(session.getId())
-    },
-  })
-  engine().setIncomingCallMap({
-    'keybase.1.NotifyUsers.userChanged': ({uid}) =>
-      // $FlowIssue remove this soon
-      Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'}),
-  })
+  const response = action.payload.response
+  response && response.result(session.getId())
 }
 
 function* trackerSaga(): Saga.SagaGenerator<any, any> {
@@ -657,17 +645,22 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<TrackerGen.GetProfilePayload>(TrackerGen.getProfile, _getProfile)
   yield* Saga.chainGenerator<TrackerGen.GetMyProfilePayload>(TrackerGen.getMyProfile, _getMyProfile)
   yield* Saga.chainGenerator<TrackerGen.OpenProofUrlPayload>(TrackerGen.openProofUrl, _openProofUrl)
-  yield* Saga.chainGenerator<any>('tracker:_userChanged', _userChanged)
 
   // We don't have open trackers in mobile
   if (!isMobile) {
     yield Saga.spawn(_trackerTimer)
   }
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  getEngine().registerCustomResponse('keybase.1.identifyUi.delegateIdentifyUI')
+  yield* Saga.chainAction<EngineGen.Keybase1IdentifyUiDelegateIdentifyUIPayload>(
+    EngineGen.keybase1IdentifyUiDelegateIdentifyUI,
+    onDelegateUI
   )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersUserChangedPayload>(
+    EngineGen.keybase1NotifyUsersUserChanged,
+    onUserChanged
+  )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 }
 
 export default trackerSaga

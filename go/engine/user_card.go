@@ -32,16 +32,16 @@ func (c *card) GetAppStatus() *libkb.AppStatus {
 }
 
 func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
-	defer m.CTrace("getUserCard", func() error { return err })()
+	defer m.Trace("getUserCard", func() error { return err })()
 
 	cached, err := m.G().CardCache().Get(uid, useSession)
 	if err != nil {
-		m.CDebugf("CardCache.Get error: %s", err)
+		m.Debug("CardCache.Get error: %s", err)
 	} else if cached != nil {
-		m.CDebugf("CardCache.Get hit for %s", uid)
+		m.Debug("CardCache.Get hit for %s", uid)
 		return cached, nil
 	}
-	m.CDebugf("CardCache.Get miss for %s", uid)
+	m.Debug("CardCache.Get miss for %s", uid)
 
 	sessionType := libkb.APISessionTypeNONE
 	if useSession {
@@ -57,7 +57,7 @@ func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *k
 	var card card
 
 	if err = m.G().API.GetDecode(arg, &card); err != nil {
-		m.CWarningf("error getting user/card for %s: %s\n", uid, err)
+		m.Warning("error getting user/card for %s: %s\n", uid, err)
 		return nil, err
 	}
 
@@ -77,7 +77,7 @@ func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *k
 	}
 
 	if err := m.G().CardCache().Set(ret, useSession); err != nil {
-		m.CDebugf("CardCache.Set error: %s", err)
+		m.Debug("CardCache.Set error: %s", err)
 	}
 
 	return ret, nil
@@ -92,7 +92,7 @@ func displayUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) err
 		return nil
 	}
 
-	return m.UIs().IdentifyUI.DisplayUserCard(*card)
+	return m.UIs().IdentifyUI.DisplayUserCard(m, *card)
 }
 
 func displayUserCardAsync(m libkb.MetaContext, uid keybase1.UID, useSession bool) <-chan error {

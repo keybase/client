@@ -9,7 +9,7 @@ const YouRekey = ({onRekey}: Props) => {
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
         <Text
-          backgroundMode="Terminal"
+          negative={true}
           style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
           type="BodySemibold"
         >

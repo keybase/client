@@ -1467,7 +1467,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 }
 
 func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (ret keybase1.Seqno, err error) {
-	defer mctx.CTrace("TeamLoader#getHeadMerkleSeqno", func() error { return err })()
+	defer mctx.Trace("TeamLoader#getHeadMerkleSeqno", func() error { return err })()
 
 	if state.HeadMerkle != nil {
 		return state.HeadMerkle.Seqno, nil
@@ -1515,7 +1515,7 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	if l.G().Env.Test.TeamSkipAudit {
-		mctx.CDebugf("skipping audit in test due to flag")
+		mctx.Debug("skipping audit in test due to flag")
 		return nil
 	}
 

@@ -3,10 +3,10 @@ import * as Styles from '../styles'
 import * as React from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '../util/open-url'
-import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
+import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import shallowEqual from 'shallowequal'
 
-import type {Props, TextType, Background} from './text'
+import type {Props, TextType} from './text'
 
 class Text extends React.Component<Props> {
   _spanRef = React.createRef()
@@ -39,7 +39,7 @@ class Text extends React.Component<Props> {
     return Styles.classNames(`text_${props.type}`, props.className, {
       underline: props.underline,
       // eslint-disable-next-line sort-keys
-      'hover-underline': meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal'),
+      'hover-underline': meta.isLink && !props.negative,
       text_center: props.center,
     })
   }
@@ -60,7 +60,7 @@ class Text extends React.Component<Props> {
     const style = Styles.collapseStyles([
       fastGetStyle(
         this.props.type,
-        this.props.backgroundMode,
+        this.props.negative,
         this.props.lineClamp,
         !!this.props.onClick,
         this.props.selectable
@@ -85,20 +85,14 @@ class Text extends React.Component<Props> {
 // Only used by this file, other things (input etc) refer to this. TODO likely discuss and change how this works
 function fastGetStyle(
   type: TextType,
-  backgroundMode?: Background = 'Normal',
+  negative?: boolean,
   lineClampNum?: ?number,
   clickable?: ?boolean,
   selectable: ?boolean
 ) {
   const meta = metaData[type]
-  const colorStyle =
-    backgroundMode === 'Normal'
-      ? null
-      : {
-          color:
-            (meta.colorForBackgroundMode && meta.colorForBackgroundMode[backgroundMode]) ||
-            defaultColor(backgroundMode),
-        }
+  // positive color is in css
+  const colorStyle = negative ? {color: Styles.globalColors.white} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
   const selectableStyle = selectable
@@ -107,7 +101,7 @@ function fastGetStyle(
         userSelect: 'text',
       }
     : null
-  const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
+  const textDecoration = meta.isLink && negative ? {textDecoration: 'underline'} : null
 
   return {
     ...colorStyle,
@@ -121,14 +115,15 @@ function fastGetStyle(
 // Only used by external components
 function externalGetStyle(
   type: TextType,
-  backgroundMode?: Background = 'Normal',
+  negative?: boolean,
   lineClampNum?: ?number,
   clickable?: ?boolean,
   selectable: ?boolean
 ) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
-  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
+  // pipe positive color through because caller probably isn't using class
+  const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
@@ -138,7 +133,7 @@ function externalGetStyle(
         userSelect: 'text',
       }
     : null
-  const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
+  const textDecoration = meta.isLink && negative ? {textDecoration: 'underline'} : null
 
   return {
     ...sizeStyle,

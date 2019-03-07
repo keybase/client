@@ -12,9 +12,9 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -97,7 +97,7 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 	return res.Buf, serverHalf, prefetchStatus, nil
 }
 
-// GetPefetchStatus implements the DiskBlockCache interface for
+// GetPrefetchStatus implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) GetPrefetchStatus(
 	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,

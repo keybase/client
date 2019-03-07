@@ -507,7 +507,7 @@ func (a AppStatusError) WithDesc(desc string) AppStatusError {
 	return a
 }
 
-func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
+func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 	switch err := err.(type) {
 	case AppStatusError:
 		return err.Code == int(code)
@@ -2601,6 +2601,19 @@ func NewUserReverifyNeededError(s string) error {
 
 func (e UserReverifyNeededError) Error() string {
 	return fmt.Sprintf("User green link error: %s", e.msg)
+}
+
+//=============================================================================
+
+type OfflineError struct {
+}
+
+func NewOfflineError() error {
+	return OfflineError{}
+}
+
+func (e OfflineError) Error() string {
+	return "Offline, and no cached results found"
 }
 
 //=============================================================================

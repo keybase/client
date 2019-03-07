@@ -243,8 +243,9 @@ func (j *JournalManager) getTLFJournal(
 		// every put of a TLF, we will be able to create a journal on
 		// the first write that happens after the user becomes a
 		// writer for the TLF.
-		isWriter, err := isWriterFromHandle(
-			ctx, h, j.config.KBPKI(), j.currentUID, j.currentVerifyingKey)
+		isWriter, err := IsWriterFromHandle(
+			ctx, h, j.config.KBPKI(), j.config, j.currentUID,
+			j.currentVerifyingKey)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't find writership for %s: %+v",
 				tlfID, err)
@@ -300,16 +301,12 @@ func (j *JournalManager) makeFBOForJournal(
 
 	handle, err := MakeTlfHandle(
 		ctx, headBareHandle, tlfID.Type(), j.config.KBPKI(),
-		j.config.KBPKI(), constIDGetter{tlfID})
+		j.config.KBPKI(), constIDGetter{tlfID},
+		j.config.OfflineAvailabilityForID(tlfID))
 	if err != nil {
 		return err
 	}
 
-	// TODO: since we're likely just initializing this TLF to get the
-	// unflushed edit history, it would be better to do it in a way
-	// that doesn't force an identify (which might lead to unexpected
-	// tracker popups).  But this situation is so rare, it's probably
-	// not worth all the plumbing that would take.
 	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, MasterBranch)
 	return err
 }
@@ -332,16 +329,32 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 		tlfID := tlfID
 		tj := tj
 		go func() {
+			ctx := CtxWithRandomIDReplayable(
+				context.Background(), CtxFBOIDKey, CtxFBOOpID, j.log)
+
+			// Turn off tracker popups.
+			ctx, err := MakeExtendedIdentify(
+				ctx, keybase1.TLFIdentifyBehavior_KBFS_INIT)
+			if err != nil {
+				j.log.CWarningf(ctx, "Error making extended identify: %+v", err)
+			}
+
 			defer wg.Done()
 			j.log.CDebugf(ctx,
 				"Initializing FBO for non-empty journal: %s", tlfID)
 
-			err := j.makeFBOForJournal(ctx, tj, tlfID)
+			err = j.makeFBOForJournal(ctx, tj, tlfID)
 			if err != nil {
 				j.log.CWarningf(ctx,
 					"Error when making FBO for existing journal for %s: "+
 						"%+v", tlfID, err)
 			}
+
+			// The popups and errors were suppressed, but any errors would
+			// have been logged.  So just close out the extended identify.  If
+			// the user accesses the TLF directly, another proper identify
+			// should happen that shows errors.
+			_ = getExtendedIdentify(ctx).getTlfBreakAndClose()
 		}()
 	}
 	return &wg
@@ -627,7 +640,8 @@ func (j *JournalManager) Enable(ctx context.Context, tlfID tlf.ID,
 		chargedTo = h.FirstResolvedWriter()
 		if tid := chargedTo.AsTeamOrBust(); tid.IsSubTeam() {
 			// We can't charge to subteams; find the root team.
-			rootID, err := j.config.KBPKI().GetTeamRootID(ctx, tid)
+			rootID, err := j.config.KBPKI().GetTeamRootID(
+				ctx, tid, j.config.OfflineAvailabilityForID(tlfID))
 			if err != nil {
 				return err
 			}

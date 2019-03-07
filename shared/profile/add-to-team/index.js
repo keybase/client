@@ -1,230 +1,251 @@
 // @flow
 import * as React from 'react'
-import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
-import {
-  Avatar,
-  Box2,
-  Button,
-  ButtonBar,
-  Checkbox,
-  ClickableBox,
-  DropdownButton,
-  Divider,
-  Meta,
-  PopupDialog,
-  ProgressIndicator,
-  ScrollView,
-  Text,
-} from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/teams'
 import {ROLE_PICKER_ZINDEX} from '../../constants/profile'
 import type {RowProps, Props} from './index'
 
 const TeamRow = (props: RowProps) => (
-  <ClickableBox onClick={props.canAddThem ? props.onCheck : null}>
-    <Box2 direction="horizontal" style={styleTeamRow}>
-      <Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
-      <Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
-        <Avatar
+  <Kb.ClickableBox onClick={props.canAddThem ? props.onCheck : null}>
+    <Kb.Box2 direction="horizontal" style={styles.teamRow}>
+      <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
+      <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
+        <Kb.Avatar
           isTeam={true}
-          size={isMobile ? 48 : 32}
-          style={{marginRight: globalMargins.tiny}}
+          size={Styles.isMobile ? 48 : 32}
+          style={{marginRight: Styles.globalMargins.tiny}}
           teamname={props.name}
         />
-      </Box2>
-      <Box2 direction="vertical">
-        <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-          <Text
-            style={{color: props.canAddThem ? globalColors.black : globalColors.black_50}}
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+          <Kb.Text
+            style={{color: props.canAddThem ? Styles.globalColors.black : Styles.globalColors.black_50}}
             type="BodySemibold"
           >
             {props.name}
-          </Text>
-          {props.isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
-        </Box2>
-        <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-          <Text type="BodySmall">{props.disabledReason}</Text>
-        </Box2>
-      </Box2>
-    </Box2>
-    {!isMobile && <Divider style={styles.divider} />}
-  </ClickableBox>
+          </Kb.Text>
+          {props.isOpen && (
+            <Kb.Meta title="open" style={styles.meta} backgroundColor={Styles.globalColors.green} />
+          )}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+          <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
+    {!Styles.isMobile && <Kb.Divider style={styles.divider} />}
+  </Kb.ClickableBox>
 )
 
 const DropdownItem = (item: string) => (
-  <Box2
+  <Kb.Box2
     direction="horizontal"
     key={item}
     style={{
       alignItems: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     }}
   >
-    <Text type="BodySmallSemibold">{item}</Text>
-  </Box2>
+    <Kb.Text type="BodySmallSemibold">{item}</Kb.Text>
+  </Kb.Box2>
 )
 
-const AddToTeam = (props: Props) => {
-  const selectedTeamCount = Object.values(props.selectedTeams).filter(b => b).length
-  return (
-    <Box2 direction="vertical" style={styleContainer}>
-      {!isMobile && (
-        <Box2 direction="horizontal" style={{paddingBottom: globalMargins.large}}>
-          <Text type="Header">Add</Text>
-          <Avatar
-            isTeam={false}
-            size={16}
-            style={{marginLeft: globalMargins.tiny, marginRight: 2}}
-            username={props.them}
-          />
-          <Text type="Header">{props.them} to...</Text>
-        </Box2>
-      )}
+class AddToTeam extends React.Component<Props> {
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.addUserToTeamsState !== 'succeeded' && this.props.addUserToTeamsState === 'succeeded') {
+      // If we succeeded, close the modal
+      this.props.onBack()
+    } else if (prevProps.addUserToTeamsState !== 'failed' && this.props.addUserToTeamsState === 'failed') {
+      // If we failed, reload the team list -- some teams might have succeeded
+      // and should be updated.
+      this.props.loadTeamList()
+    }
+  }
 
-      <ScrollView style={{width: '100%'}}>
-        <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
-          {!props.waiting ? (
-            props.teamProfileAddList.length > 0 ? (
-              props.teamProfileAddList.map(team => (
-                <TeamRow
-                  canAddThem={!team.disabledReason}
-                  checked={props.selectedTeams[team.teamName]}
-                  disabledReason={team.disabledReason}
-                  key={team.teamName}
-                  name={team.teamName}
-                  isOpen={team.open}
-                  onCheck={() => props.onToggle(team.teamName)}
-                  them={props.them}
-                />
-              ))
+  render() {
+    const selectedTeamCount = Object.values(this.props.selectedTeams).filter(b => b).length
+    return (
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        {this.props.addUserToTeamsState === 'failed' && (
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            noShrink={true}
+            style={styles.addUserToTeamsResultsBox}
+          >
+            <Kb.Text style={styles.addUserToTeamsResultsText} type="BodySemibold" negative={true}>
+              {this.props.addUserToTeamsResults}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+        {!Styles.isMobile && (
+          <Kb.Box2 direction="horizontal" style={{paddingBottom: Styles.globalMargins.large}}>
+            <Kb.Text type="Header">Add</Kb.Text>
+            <Kb.Avatar
+              isTeam={false}
+              size={16}
+              style={{marginLeft: Styles.globalMargins.tiny, marginRight: 2}}
+              username={this.props.them}
+            />
+            <Kb.Text type="Header">{this.props.them} to...</Kb.Text>
+          </Kb.Box2>
+        )}
+
+        <Kb.ScrollView style={{width: '100%'}}>
+          <Kb.Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
+            {!this.props.waiting ? (
+              this.props.teamProfileAddList.length > 0 ? (
+                this.props.teamProfileAddList.map(team => (
+                  <TeamRow
+                    canAddThem={!team.disabledReason}
+                    checked={this.props.selectedTeams[team.teamName]}
+                    disabledReason={team.disabledReason}
+                    key={team.teamName}
+                    name={team.teamName}
+                    isOpen={team.open}
+                    onCheck={() => this.props.onToggle(team.teamName)}
+                    them={this.props.them}
+                  />
+                ))
+              ) : (
+                <Kb.Box2 direction="vertical" centerChildren={true}>
+                  <Kb.Text center={true} type="Body">
+                    Looks like you haven't joined any teams yet yourself!
+                  </Kb.Text>
+                  <Kb.Text center={true} type="Body">
+                    You can join teams over in the Teams tab.
+                  </Kb.Text>
+                </Kb.Box2>
+              )
             ) : (
-              <Box2 direction="vertical" centerChildren={true}>
-                <Text center={true} type="Body">
-                  Looks like you haven't joined any teams yet yourself!
-                </Text>
-                <Text center={true} type="Body">
-                  You can join teams over in the Teams tab.
-                </Text>
-              </Box2>
-            )
-          ) : (
-            <Box2 direction="vertical" centerChildren={true}>
-              <ProgressIndicator style={{width: 64}} />
-            </Box2>
-          )}
-        </Box2>
-      </ScrollView>
-      <Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={addToTeam}>
-        <Text style={addToTeamTitle} type="BodySmall">
-          {props.them} will be added as a
-        </Text>
-        <DropdownButton
-          toggleOpen={() =>
-            props.onOpenRolePicker(props.role, selectedRole => props.onRoleChange(selectedRole))
-          }
-          selected={DropdownItem(props.role)}
-          style={{width: isMobile ? '100%' : 100}}
-        />
-      </Box2>
-      <ButtonBar fullWidth={true} style={buttonBar}>
-        {!isMobile && <Button type="Secondary" onClick={props.onBack} label="Cancel" />}
-        <Button
-          disabled={selectedTeamCount === 0}
-          fullWidth={isMobile}
-          style={addButton}
-          type="Primary"
-          onClick={() => props.onSave(props.role, props.selectedTeams)}
-          label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-        />
-      </ButtonBar>
-    </Box2>
-  )
+              <Kb.Box2 direction="vertical" centerChildren={true}>
+                <Kb.ProgressIndicator style={{width: 64}} />
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+        </Kb.ScrollView>
+        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} style={styles.addToTeam}>
+          <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
+            {this.props.them} will be added as a
+          </Kb.Text>
+          <Kb.DropdownButton
+            toggleOpen={() =>
+              this.props.onOpenRolePicker(
+                this.props.role,
+                selectedRole => this.props.onRoleChange(selectedRole),
+                this.props.selectedTeams
+              )
+            }
+            selected={DropdownItem(this.props.role)}
+            style={{width: Styles.isMobile ? '100%' : 100}}
+          />
+        </Kb.Box2>
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          {!Styles.isMobile && <Kb.Button type="Secondary" onClick={this.props.onBack} label="Cancel" />}
+          <Kb.WaitingButton
+            disabled={selectedTeamCount === 0}
+            fullWidth={Styles.isMobile}
+            style={styles.addButton}
+            type="Primary"
+            onClick={() => this.props.onSave(this.props.role, this.props.selectedTeams)}
+            label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+            waitingKey={Constants.addUserToTeamsWaitingKey(this.props.them)}
+          />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    )
+  }
 }
 
-const styleContainer = platformStyles({
-  common: {
-    alignItems: 'center',
-    flex: 1,
-    marginTop: 35,
+const styles = Styles.styleSheetCreate({
+  addButton: Styles.platformStyles({
+    isMobile: {
+      width: '100%',
+    },
+  }),
+  addToTeam: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
+  addToTeamTitle: Styles.platformStyles({
+    isElectron: {
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.tiny,
+      marginTop: Styles.globalMargins.tiny,
+    },
+  }),
+  addUserToTeamsResultsBox: {
+    backgroundColor: Styles.globalColors.red,
+    marginBottom: Styles.globalMargins.small,
   },
-  isElectron: {
-    marginBottom: globalMargins.tiny,
-    width: 500,
-  },
-  isMobile: {
-    marginBottom: globalMargins.xtiny,
-    marginTop: 0,
+  addUserToTeamsResultsText: {
+    margin: Styles.globalMargins.tiny,
+    textAlign: 'center',
     width: '100%',
   },
-})
-
-const styleMeta = {
-  alignSelf: 'center',
-  marginLeft: globalMargins.xtiny,
-  marginTop: 2,
-}
-
-const styleTeamRow = platformStyles({
-  common: {
-    alignItems: 'center',
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
-    width: '100%',
-  },
-  isElectron: {
-    minHeight: 48,
-    paddingLeft: globalMargins.tiny,
-  },
-  isMobile: {
-    minHeight: 64,
-    paddingLeft: globalMargins.xsmall,
-    paddingRight: globalMargins.tiny,
-  },
-})
-
-const addToTeam = platformStyles({
-  common: {
-    alignItems: 'center',
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
-  },
-  isElectron: {
-    marginTop: globalMargins.small,
-  },
-})
-
-const addToTeamTitle = platformStyles({
-  isElectron: {
-    marginRight: globalMargins.tiny,
-  },
-  isMobile: {
-    marginBottom: globalMargins.tiny,
-    marginTop: globalMargins.tiny,
-  },
-})
-
-const buttonBar = platformStyles({
-  isMobile: {
-    paddingLeft: globalMargins.xsmall,
-    paddingRight: globalMargins.xsmall,
-  },
-})
-
-const addButton = platformStyles({
-  isMobile: {
-    width: '100%',
-  },
-})
-
-const styles = styleSheetCreate({
+  buttonBar: Styles.platformStyles({
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+  }),
+  container: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      flex: 1,
+      marginTop: 35,
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.tiny,
+      width: 500,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.xtiny,
+      marginTop: 0,
+      width: '100%',
+    },
+  }),
   divider: {
     marginLeft: 69,
   },
+  meta: {
+    alignSelf: 'center',
+    marginLeft: Styles.globalMargins.xtiny,
+    marginTop: 2,
+  },
+  teamRow: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+    isElectron: {
+      minHeight: 48,
+      paddingLeft: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      minHeight: 64,
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
 })
 
 const PopupWrapped = (props: Props) => (
-  <PopupDialog styleCover={{zIndex: ROLE_PICKER_ZINDEX}} onClose={props.onBack}>
+  <Kb.PopupDialog styleCover={{zIndex: ROLE_PICKER_ZINDEX}} onClose={props.onBack}>
     <AddToTeam {...props} />
-  </PopupDialog>
+  </Kb.PopupDialog>
 )
-export default (isMobile ? AddToTeam : PopupWrapped)
+export default (Styles.isMobile ? AddToTeam : PopupWrapped)

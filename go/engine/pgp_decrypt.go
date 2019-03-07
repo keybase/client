@@ -60,20 +60,20 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PGPDecrypt#Run", func() error { return err })()
+	defer m.Trace("PGPDecrypt#Run", func() error { return err })()
 
-	m.CDebugf("| ScanKeys")
+	m.Debug("| ScanKeys")
 	sk, err := NewScanKeys(m)
 	if err != nil {
 		return err
 	}
-	m.CDebugf("| PGPDecrypt")
+	m.Debug("| PGPDecrypt")
 	e.signStatus, err = libkb.PGPDecrypt(m.G(), e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
 		return err
 	}
 
-	m.CDebugf("| Sink Close")
+	m.Debug("| Sink Close")
 	if err = e.arg.Sink.Close(); err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 	} else {
 		if e.signer == nil {
 			// signer isn't a keybase user
-			m.CDebugf("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
+			m.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
 			return OutputSignatureSuccessNonKeybase(m, e.signStatus.KeyID, e.signStatus.SignatureTime)
 		}
 

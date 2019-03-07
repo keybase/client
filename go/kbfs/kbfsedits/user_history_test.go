@@ -47,6 +47,11 @@ func TestUserHistorySimple(t *testing.T) {
 		privSharedAlice = append(privSharedAlice, privSharedNN.encode(t))
 	}
 	privSharedTimeAlice := keybase1.ToTime(now)
+	// Alice deletes something from private shared TLF (it shouldn't
+	// affect the overall server time for the TLF).
+	now = now.Add(1 * time.Minute)
+	_ = privSharedNN.make("a", NotificationDelete, aliceUID, nil, now)
+	privSharedAlice = append(privSharedAlice, privSharedNN.encode(t))
 
 	// Alice writes to public TLF.
 	var publicAlice []string
@@ -78,15 +83,15 @@ func TestUserHistorySimple(t *testing.T) {
 	}
 	privHomeTime := keybase1.ToTime(now)
 
-	err = privSharedTH.AddNotifications(bobName, privSharedBob)
+	_, err = privSharedTH.AddNotifications(bobName, privSharedBob)
 	require.NoError(t, err)
-	err = privSharedTH.AddNotifications(aliceName, privSharedAlice)
-	require.NoError(t, err)
-
-	err = privHomeTH.AddNotifications(aliceName, privHomeAlice)
+	_, err = privSharedTH.AddNotifications(aliceName, privSharedAlice)
 	require.NoError(t, err)
 
-	err = publicTH.AddNotifications(aliceName, publicAlice)
+	_, err = privHomeTH.AddNotifications(aliceName, privHomeAlice)
+	require.NoError(t, err)
+
+	_, err = publicTH.AddNotifications(aliceName, publicAlice)
 	require.NoError(t, err)
 
 	uh := NewUserHistory(logger.New("UH"))
@@ -100,27 +105,28 @@ func TestUserHistorySimple(t *testing.T) {
 		serverTime keybase1.Time
 		writer     string
 		num        int
+		numDeletes int
 	}
 	expected := []expectInfo{
 		// private home alice
 		{
 			string(privHomeName), keybase1.FolderType_PRIVATE,
-			privHomeTime, aliceName, 3,
+			privHomeTime, aliceName, 3, 0,
 		},
 		// private shared bob
 		{
 			string(privSharedName), keybase1.FolderType_PRIVATE,
-			privSharedTimeBob, bobName, 3,
+			privSharedTimeBob, bobName, 3, 0,
 		},
 		// public alice
 		{
 			string(publicName), keybase1.FolderType_PUBLIC,
-			publicTime, aliceName, 3,
+			publicTime, aliceName, 3, 0,
 		},
 		// private shared alice
 		{
 			string(privSharedName), keybase1.FolderType_PRIVATE,
-			privSharedTimeAlice, aliceName, 3,
+			privSharedTimeAlice, aliceName, 3, 1,
 		},
 	}
 
@@ -141,7 +147,7 @@ func TestUserHistorySimple(t *testing.T) {
 	// Alice writes one more thing to the private shared folder.
 	now = now.Add(1 * time.Minute)
 	_ = privSharedNN.make("7", NotificationCreate, aliceUID, nil, now)
-	err = privSharedTH.AddNotifications(
+	_, err = privSharedTH.AddNotifications(
 		aliceName, []string{privSharedNN.encode(t)})
 	require.NoError(t, err)
 	uh.UpdateHistory(privSharedName, tlf.Private, privSharedTH, aliceName)

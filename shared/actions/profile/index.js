@@ -42,13 +42,27 @@ const editProfile = (state, action) =>
   })
 
 const uploadAvatar = (_, action) =>
-  RPCTypes.userUploadUserAvatarRpcPromise({
-    crop: action.payload.crop,
-    filename: action.payload.filename,
-  }).then(() => RouteTreeGen.createNavigateUp())
+  RPCTypes.userUploadUserAvatarRpcPromise(
+    {
+      crop: action.payload.crop,
+      filename: action.payload.filename,
+    },
+    Constants.uploadAvatarWaitingKey
+  )
+    .then(() => RouteTreeGen.createNavigateUp())
+    .catch(e => {
+      // error displayed in component
+      logger.warn(`Error uploading user avatar: ${e.message}`)
+    })
 
-const finishRevoking = () => [
+const finishRevoking = state => [
   TrackerGen.createGetMyProfile({ignoreCache: true}),
+  Tracker2Gen.createLoad({
+    assertion: state.config.username,
+    guiID: TrackerConstants.generateGUIID(),
+    inTracker: false,
+    reason: 'justRevoked',
+  }),
   ProfileGen.createRevokeFinish(),
   RouteTreeGen.createNavigateUp(),
 ]

@@ -18,7 +18,8 @@ type Remoter interface {
 	NextAutoClaim(context.Context) (*stellar1.AutoClaim, error)
 	RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error)
 	PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error)
-	PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error)
+	PaymentDetails(ctx context.Context, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error)
+	PaymentDetailsGeneric(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error)
 	GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error)
 	ExchangeRate(ctx context.Context, currency string) (stellar1.OutsideExchangeRate, error)
 	SubmitRequest(ctx context.Context, post stellar1.RequestPost) (stellar1.KeybaseRequestID, error)
@@ -32,4 +33,5 @@ type Remoter interface {
 	SetInflationDestination(ctx context.Context, signedTx string) error
 	GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error)
 	NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error)
+	DetailsPlusPayments(ctx context.Context, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error)
 }

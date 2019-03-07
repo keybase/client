@@ -79,12 +79,14 @@ const MessagePopupHeader = (props: {
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box style={styles.headerDetailsContainer}>
-        <Kb.Text type="BodySmall">
+        <Kb.Text center={true} type="BodySmall">
           from device&nbsp;
           <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Text>
       </Kb.Box>
-      <Kb.Text type="BodySmall">{formatTimeForPopup(timestamp)}</Kb.Text>
+      <Kb.Text center={true} type="BodySmall">
+        {formatTimeForPopup(timestamp)}
+      </Kb.Text>
       {!!deviceRevokedAt && (
         <Kb.Box2
           gap="small"

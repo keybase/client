@@ -26,7 +26,7 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 			// Not expected.
 			return res, fmt.Errorf("the payment to send was not found")
 		}
-		mctx.CDebugf("got state readyToReview:%v readyToSend:%v set:%v",
+		mctx.Debug("got state readyToReview:%v readyToSend:%v set:%v",
 			data.ReadyToReview, data.ReadyToSend, data.Frozen != nil)
 		if arg.BypassReview {
 			// Pretend that a review occurred and succeeded.
@@ -49,7 +49,7 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 		toAccountID, err := libkb.ParseStellarAccountID(arg.To)
 		if err != nil {
 			if verr, ok := err.(libkb.VerboseError); ok {
-				mctx.CDebugf(verr.Verbose())
+				mctx.Debug(verr.Verbose())
 			}
 			return res, fmt.Errorf("recipient: %v", err)
 		}

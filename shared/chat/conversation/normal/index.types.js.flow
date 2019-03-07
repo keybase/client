@@ -4,7 +4,6 @@ export type Props = {
   isPending: boolean,
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
-  infoPanelOpen: boolean,
   isSearching: boolean,
   scrollListDownCounter: number,
   scrollListUpCounter: number,
@@ -18,5 +17,4 @@ export type Props = {
   onShowTracker: (username: string) => void,
   onToggleInfoPanel: () => void,
   threadLoadedOffline: boolean,
-  showGiphySearch: boolean,
 }

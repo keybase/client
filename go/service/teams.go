@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -20,18 +21,18 @@ import (
 type TeamsHandler struct {
 	*BaseHandler
 	globals.Contextified
-	gregor *gregorHandler
-	connID libkb.ConnectionID
+	connID  libkb.ConnectionID
+	service *Service
 }
 
 var _ keybase1.TeamsInterface = (*TeamsHandler)(nil)
 
-func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Context, gregor *gregorHandler) *TeamsHandler {
+func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Context, service *Service) *TeamsHandler {
 	return &TeamsHandler{
 		BaseHandler:  NewBaseHandler(g.ExternalG(), xp),
 		Contextified: globals.NewContextified(g),
-		gregor:       gregor,
 		connID:       id,
+		service:      service,
 	}
 }
 
@@ -278,7 +279,17 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	}
 
 	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.Name, arg.Users)
-	if err != nil {
+	switch err := err.(type) {
+	case nil:
+	case teams.AddMembersError:
+		switch err := err.Err.(type) {
+		case libkb.IdentifySummaryError:
+			// Return the IdentifySummaryError, which is exportable.
+			// Frontend presents this error specifically.
+			return err
+		}
+		return err
+	default:
 		return err
 	}
 	if arg.SendChatNotification {
@@ -459,8 +470,28 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keyb
 	ctx = libkb.WithLogTag(ctx, "TM")
 	ctx = libkb.WithLogTag(ctx, "LTPAK")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), func() error { return err })()
-	return teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers,
-		arg.IncludeKBFSKeys)
+
+	resp := &res
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+		tmp, err := teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers,
+			arg.IncludeKBFSKeys)
+		if err == nil {
+			*resp = tmp
+		}
+		return tmp, err
+	}
+
+	// argKey is a copy of arg that's going to be used for a cache key, so clear out
+	// refreshers and sessionID, since they don't affect the cache key value.
+	argKey := arg
+	argKey.Refreshers = keybase1.TeamRefreshers{}
+	argKey.SessionID = 0
+	argKey.IncludeKBFSKeys = false
+
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "teams.loadTeamPlusApplicationKeys", true, argKey, resp, loader)
+	return res, err
+
 }
 
 func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.TeamCreateSeitanTokenArg) (token keybase1.SeitanIKey, err error) {

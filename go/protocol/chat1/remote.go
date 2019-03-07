@@ -851,11 +851,12 @@ type GetPublicConversationsArg struct {
 }
 
 type PostRemoteArg struct {
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	MessageBoxed   MessageBoxed    `codec:"messageBoxed" json:"messageBoxed"`
-	AtMentions     []gregor1.UID   `codec:"atMentions" json:"atMentions"`
-	ChannelMention ChannelMention  `codec:"channelMention" json:"channelMention"`
-	TopicNameState *TopicNameState `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
+	MessageBoxed   MessageBoxed              `codec:"messageBoxed" json:"messageBoxed"`
+	AtMentions     []gregor1.UID             `codec:"atMentions" json:"atMentions"`
+	ChannelMention ChannelMention            `codec:"channelMention" json:"channelMention"`
+	TopicNameState *TopicNameState           `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	JoinMentionsAs *ConversationMemberStatus `codec:"joinMentionsAs,omitempty" json:"joinMentionsAs,omitempty"`
 }
 
 type NewConversationRemoteArg struct {
@@ -863,10 +864,11 @@ type NewConversationRemoteArg struct {
 }
 
 type NewConversationRemote2Arg struct {
-	IdTriple       ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
-	TLFMessage     MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
-	MembersType    ConversationMembersType `codec:"membersType" json:"membersType"`
-	TopicNameState *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	IdTriple         ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
+	TLFMessage       MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
+	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
+	TopicNameState   *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	MemberSourceConv *ConversationID         `codec:"memberSourceConv,omitempty" json:"memberSourceConv,omitempty"`
 }
 
 type GetMessagesRemoteArg struct {

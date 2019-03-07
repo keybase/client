@@ -11,7 +11,6 @@ import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
-import ff from '../../../util/feature-flags'
 
 type OwnProps = {|
   routeState: I.RecordOf<{
@@ -63,11 +62,9 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
   onNewChat: () =>
     dispatch(
-      ff.newTeamBuildingForChat
-        ? RouteTreeGen.createNavigateAppend({
-            path: [{props: {}, selected: 'newChat'}],
-          })
-        : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {}, selected: 'chatNewChat'}],
+      })
     ),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
@@ -88,6 +85,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   allowShowFloatingButton: stateProps.allowShowFloatingButton,
   filter: stateProps.filter,
   neverLoaded: stateProps.neverLoaded,
+  onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
   onEnsureSelection: () => {
     // $ForceType
     if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
@@ -180,6 +178,11 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Inbox')(
-  InboxWrapper
-)
+const Connected = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'Inbox'
+)(InboxWrapper)
+
+export default Connected

@@ -9,7 +9,7 @@ const assertion = {
   color: 'blue',
   metas: [],
   proofURL: '',
-  siteIcon: '',
+  siteIcon: [],
   siteURL: '',
   state: 'valid',
 }
@@ -17,14 +17,12 @@ const assertion = {
 const github = {
   ...assertion,
   assertion: 'github:githubuser',
-  siteIcon: 'iconfont-identity-github',
   type: 'github',
 }
 const twitter = {
   ...assertion,
   assertion: 'twitter:twitteruser',
   color: 'gray',
-  siteIcon: 'iconfont-identity-twitter',
   state: 'checking',
   type: 'twitter',
 }
@@ -32,7 +30,6 @@ const facebook = {
   ...assertion,
   assertion: 'facebook:facebookuser',
   color: 'red',
-  siteIcon: 'iconfont-identity-facebook',
   state: 'error',
   type: 'facebook',
 }
@@ -40,7 +37,6 @@ const hackernews = {
   ...assertion,
   assertion: 'hackernews:hackernewsuser',
   color: 'yellow',
-  siteIcon: 'iconfont-identity-hn',
   state: 'warning',
   type: 'hackernews',
 }
@@ -48,28 +44,24 @@ const reddit = {
   ...assertion,
   assertion: 'reddit:reddituser',
   color: 'red',
-  siteIcon: 'iconfont-identity-reddit',
   state: 'revoked',
   type: 'reddit',
 }
-const pgp = {...assertion, assertion: 'pgp:DEADBEEFFEEBDAED', siteIcon: 'iconfont-identity-pgp', type: 'pgp'}
+const pgp = {...assertion, assertion: 'pgp:DEADBEEFFEEBDAED', type: 'pgp'}
 const https = {
   ...assertion,
   assertion: 'https:httpsuser',
-  siteIcon: 'iconfont-identity-website',
   type: 'https',
 }
 const rooter = {
   ...assertion,
   assertion: 'rooter:rooteruser',
-  siteIcon: 'iconfont-thunderbolt',
   type: 'rooter',
 }
-const dns = {...assertion, assertion: 'dns:dnsuser', siteIcon: 'iconfont-identity-website', type: 'dns'}
+const dns = {...assertion, assertion: 'dns:dnsuser', type: 'dns'}
 const btc = {
   ...assertion,
   assertion: 'btc:fakebitcoinaddress',
-  siteIcon: 'iconfont-identity-bitcoin',
   type: 'btc',
 }
 
@@ -83,7 +75,6 @@ const shorter = a => ({
 const web1 = {
   ...assertion,
   assertion: 'https:thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
-  siteIcon: 'iconfont-identity-website',
   type: 'https',
 }
 const web2 = shorter(web1)

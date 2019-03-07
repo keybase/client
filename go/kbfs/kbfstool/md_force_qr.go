@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -11,30 +13,48 @@ import (
 
 func mdForceQROne(
 	ctx context.Context, config libkbfs.Config,
-	replacements replacementMap, tlfPath string, dryRun bool) error {
+	replacements replacementMap, input string, dryRun bool) error {
+	tlfStr, branchStr, startStr, stopStr, err := mdSplitInput(input)
+	if err != nil {
+		return err
+	}
+
+	_, branchID, start, stop, err :=
+		mdParseInput(ctx, config, tlfStr, branchStr, startStr, stopStr)
+	if err != nil {
+		return err
+	}
+
+	if branchID != kbfsmd.NullBranchID {
+		return errors.New("force-qr doesn't support branch IDs")
+	}
+	if start != stop {
+		return errors.New("force-qr doesn't support revision ranges")
+	}
+
 	// Get the latest head, and add a QR record up to that point.
-	irmd, err := mdGetMergedHeadForWriter(ctx, config, tlfPath)
+	irmd, err := mdGetMergedHeadForWriter(ctx, config, tlfStr)
 	if err != nil {
 		return err
 	}
 
 	rmdNext, err := irmd.MakeSuccessor(ctx, config.MetadataVersion(),
 		config.Codec(), config.KeyManager(),
-		config.KBPKI(), config.KBPKI(), irmd.MdID(), true)
+		config.KBPKI(), config.KBPKI(), config, irmd.MdID(), true)
 	if err != nil {
 		return err
 	}
 
 	// Pretend like we've done quota reclamation up through the
-	// current head.
+	// specified revision.
 	gco := &libkbfs.GCOp{
-		LatestRev: irmd.Revision(),
+		LatestRev: start,
 	}
 	rmdNext.AddOp(gco)
-	rmdNext.SetLastGCRevision(irmd.Revision())
+	rmdNext.SetLastGCRevision(start)
 
 	fmt.Printf(
-		"Will put a forced QR op up to revision %d:\n", irmd.Revision())
+		"Will put a forced QR op up to revision %d:\n", start)
 	err = mdDumpReadOnlyRMD(ctx, config, "md forceQR", replacements, rmdNext.ReadOnly())
 	if err != nil {
 		return err

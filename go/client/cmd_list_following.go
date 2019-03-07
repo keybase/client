@@ -135,7 +135,7 @@ func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	return cli.Command{
 		Name:         "list-following",
 		ArgumentHelp: "<username>",
-		Usage:        "List who you or the given user is following",
+		Usage:        "List who you or the given user is publicly following",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdListTracking{Contextified: libkb.NewContextified(g)}, "following", c)
 		},

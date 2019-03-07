@@ -38,7 +38,7 @@ const DeviceRow = (props: Props) => {
       onClick={props.showExistingDevicePage}
       icon={<Kb.Icon type={icon} style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)} />}
       body={
-        <Kb.Box2 direction="vertical" style={{justifyContent: 'center', minHeight: 48}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center'}}>
           <Kb.Text style={props.isRevoked ? styles.text : null} type="BodySemibold">
             {props.name}
           </Kb.Text>
@@ -63,7 +63,6 @@ const styles = Styles.styleSheetCreate({
 
 const _metaStyle = {
   alignSelf: 'flex-start',
-  marginLeft: 6,
 }
 
 export default DeviceRow

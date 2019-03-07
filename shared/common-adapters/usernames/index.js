@@ -4,6 +4,7 @@ import Text from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import type {TextType, Background} from '../text'
+import {backgroundModeIsNegative} from '../text.shared'
 
 export type UserListItem = {
   username: string,
@@ -29,6 +30,7 @@ export type BaseUsernamesProps = {|
   onUsernameClicked?: (username: string) => void,
   prefix?: ?string,
   redColor?: string,
+  selectable?: boolean,
   showAnd?: boolean,
   style?: Styles.StylesCrossPlatform,
   suffix?: ?string,
@@ -81,14 +83,19 @@ function UsernameText(props: Props) {
         return (
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
-              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+              <Text
+                type={props.type}
+                negative={backgroundModeIsNegative(props.backgroundMode)}
+                style={derivedJoinerStyle}
+              >
                 {'and '}
               </Text>
             )}
             <Text
               type={props.type}
-              backgroundMode={props.backgroundMode}
+              negative={backgroundModeIsNegative(props.backgroundMode)}
               className={Styles.classNames({'hover-underline': props.underline})}
+              selectable={props.selectable}
               onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
               style={userStyle}
             >
@@ -96,7 +103,11 @@ function UsernameText(props: Props) {
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
-              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+              <Text
+                type={props.type}
+                negative={backgroundModeIsNegative(props.backgroundMode)}
+                style={derivedJoinerStyle}
+              >
                 ,
               </Text>
             )}
@@ -110,6 +121,7 @@ function UsernameText(props: Props) {
 UsernameText.defaultProps = {
   colorBroken: true,
   inlineGrammar: false,
+  selectable: undefined,
   showAnd: false,
   underline: true,
 }
@@ -134,14 +146,18 @@ class Usernames extends React.Component<Props> {
     return (
       <Text
         type={this.props.type}
-        backgroundMode={this.props.backgroundMode}
+        negative={backgroundModeIsNegative(this.props.backgroundMode)}
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         ellipsizeMode="tail"
         {...(this.props.inline ? inlineProps : {})}
       >
         {!!this.props.prefix && (
-          <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>
+          <Text
+            type={this.props.type}
+            negative={backgroundModeIsNegative(this.props.backgroundMode)}
+            style={this.props.style}
+          >
             {this.props.prefix}
           </Text>
         )}
@@ -149,7 +165,7 @@ class Usernames extends React.Component<Props> {
         {!!readers.length && (
           <Text
             type={this.props.type}
-            backgroundMode={this.props.backgroundMode}
+            negative={backgroundModeIsNegative(this.props.backgroundMode)}
             style={Styles.collapseStyles([this.props.style, {marginRight: 1}])}
           >
             #
@@ -157,7 +173,11 @@ class Usernames extends React.Component<Props> {
         )}
         <UsernameText {...this.props} users={readers} />
         {!!this.props.suffix && (
-          <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>
+          <Text
+            type={this.props.type}
+            negative={backgroundModeIsNegative(this.props.backgroundMode)}
+            style={this.props.style}
+          >
             {this.props.suffix}
           </Text>
         )}
@@ -185,7 +205,7 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
     return (
       <Text
         type={this.props.type}
-        backgroundMode={this.props.backgroundMode}
+        negative={backgroundModeIsNegative(this.props.backgroundMode)}
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         {...inlineProps}

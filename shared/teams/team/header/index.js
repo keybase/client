@@ -35,7 +35,6 @@ const _TeamHeader = (props: Props) => (
           You are not a member of this team.
         </Kb.Text>
         <Kb.Text
-          backgroundMode="Information"
           type="BodySemiboldLink"
           center={true}
           style={styles.addYourselfBannerText}

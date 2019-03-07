@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Types from '../../constants/types/fs'
+import {isMobile} from '../../constants/platform'
 import {Box} from '../../common-adapters'
 import {WrapRow} from './rows'
 import ConnectedStillRow from './still-container'
@@ -13,33 +14,63 @@ import EditingRow from './editing'
 import PlaceholderRow from './placeholder'
 import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
+import {asRows as sortBarAsRows} from '../sortbar/container'
 
 export const rowsProvider = {
   ConnectedOpenHOC: (ownProps: any) => ({
     ...ownProps,
     onOpen: Sb.action('onOpen'),
   }),
-  ConnectedOpenInSystemFileManager: () => ({
-    installFuse: Sb.action('installFuse'),
-    kbfsEnabled: false,
-    openInSystemFileManager: Sb.action('openInSystemFileManager'),
-  }),
   ConnectedRows: (o: any) => ({
     destinationPickerIndex: o.destinationPickerIndex,
-    ifEmpty: o.ifEmpty,
     items: [
-      {name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
-      {name: 'me,abc', path: Types.stringToPath('/keybase/private/me,empty'), rowType: 'still'},
-      {name: 'me,abc,def', path: Types.stringToPath('/keybase/private/me,abc,def'), rowType: 'still'},
+      ...(o.headerRows || []),
+      ...sortBarAsRows(o.path),
+      {key: 'me', name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
       {
+        key: 'me,abc',
+        name: 'me,abc',
+        path: Types.stringToPath('/keybase/private/me,empty'),
+        rowType: 'still',
+      },
+      {
+        key: 'me,abc,def',
+        name: 'me,abc,def',
+        path: Types.stringToPath('/keybase/private/me,abc,def'),
+        rowType: 'still',
+      },
+      {
+        key: 'me,abc,def,ghi',
         name: 'me,abc,def,ghi',
         path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
         rowType: 'still',
       },
-      {name: 'me,def', path: Types.stringToPath('/keybase/private/me,def'), rowType: 'still'},
-      {name: 'me,def,ghi', path: Types.stringToPath('/keybase/private/me,def,ghi'), rowType: 'still'},
-      {name: 'me,ghi', path: Types.stringToPath('/keybase/private/me,ghi'), rowType: 'still'},
-      {name: 'me,abc,ghi', path: Types.stringToPath('/keybase/private/me,abc,ghi'), rowType: 'still'},
+      {key: 'me,def', name: 'me,def', path: Types.stringToPath('/keybase/private/me,def'), rowType: 'still'},
+      {
+        key: 'me,def,ghi',
+        name: 'me,def,ghi',
+        path: Types.stringToPath('/keybase/private/me,def,ghi'),
+        rowType: 'still',
+      },
+      {key: 'me,ghi', name: 'me,ghi', path: Types.stringToPath('/keybase/private/me,ghi'), rowType: 'still'},
+      {
+        key: 'me,abc,ghi',
+        name: 'me,abc,ghi',
+        path: Types.stringToPath('/keybase/private/me,abc,ghi'),
+        rowType: 'still',
+      },
+      {key: '1', name: '1', path: Types.stringToPath('/keybase/private/1'), rowType: 'still'},
+      {key: '2', name: '2', path: Types.stringToPath('/keybase/private/2'), rowType: 'still'},
+      {key: '3', name: '3', path: Types.stringToPath('/keybase/private/3'), rowType: 'still'},
+      {key: '4', name: '4', path: Types.stringToPath('/keybase/private/4'), rowType: 'still'},
+      {key: '5', name: '5', path: Types.stringToPath('/keybase/private/5'), rowType: 'still'},
+      {key: '6', name: '6', path: Types.stringToPath('/keybase/private/6'), rowType: 'still'},
+      {key: '7', name: '7', path: Types.stringToPath('/keybase/private/7'), rowType: 'still'},
+      {key: '8', name: '8', path: Types.stringToPath('/keybase/private/8'), rowType: 'still'},
+      {key: '9', name: '9', path: Types.stringToPath('/keybase/private/9'), rowType: 'still'},
+      ...(!isMobile && typeof o.destinationPickerIndex === 'number'
+        ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
+        : []),
     ],
     routePath: I.List(),
   }),

@@ -334,6 +334,7 @@ export default function(
         followsYou: userCard.theyFollowYou,
         fullname: userCard.fullName,
         location: userCard.location,
+        registeredForAirdrop: userCard.registeredForAirdrop,
         showcasedTeams: (userCard.teamShowcase || []).sort(sortByTeamName),
         uid: userCard.uid,
       }

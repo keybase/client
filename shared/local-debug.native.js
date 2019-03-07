@@ -66,7 +66,7 @@ if (__DEV__) {
   config.printRPC = true
   config.printRPCStats = true
   config.reduxSagaLoggerMasked = false
-  config.userTimings = true
+  config.userTimings = false
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
   // MessageQueue.spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))
@@ -98,14 +98,14 @@ if (nativeBridge.serverConfig) {
     const serverConfig = JSON.parse(nativeBridge.serverConfig)
     if (serverConfig.lastLoggedInUser) {
       const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
-      if (userConfig.walletsEnabled) {
-        config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',walletsEnabled'
-      }
       if (userConfig.printRPCStats) {
         config.printRPCStats = true
       }
       if (userConfig.chatIndexProfilingEnabled) {
         config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',chatIndexProfilingEnabled'
+      }
+      if (userConfig.dbCleanEnabled) {
+        config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',dbCleanEnabled'
       }
     }
   } catch (e) {}

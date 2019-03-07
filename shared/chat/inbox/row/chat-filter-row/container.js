@@ -5,7 +5,6 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {isDarwin, isMobile} from '../../../../constants/platform'
 import {namedConnect, compose, withProps} from '../../../../util/container'
 import ConversationFilterInput from '../../../conversation-filter-input'
-import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
   filterFocusCount: number,
@@ -28,16 +27,15 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(
-        flags.newTeamBuildingForChat
-          ? RouteTreeGen.createNavigateAppend({
-              path: [{props: {}, selected: 'newChat'}],
-            })
-          : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {}, selected: 'chatNewChat'}],
+        })
       )
     } else {
       focusFilter()
     }
   },
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onBlur: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: null})),
   onFocus: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: 'filter'})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
@@ -49,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
+  onBack: dispatchProps.onBack,
   onBlur: dispatchProps.onBlur,
   onEnsureSelection: ownProps.onEnsureSelection,
   onFocus: dispatchProps.onFocus,

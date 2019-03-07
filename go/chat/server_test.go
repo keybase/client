@@ -1326,6 +1326,23 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")
 		}
+
+		// Test that flip messages do the right thing
+		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text: fmt.Sprintf("/flip @%s", users[1].Username),
+		}))
+		select {
+		case info := <-listener.newMessageRemote:
+			require.True(t, info.Message.IsValid())
+			require.Equal(t, chat1.MessageType_FLIP, info.Message.GetMessageType())
+			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
+			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
+			require.Equal(t, chat1.ChannelMention_NONE, info.Message.Valid().ChannelMention)
+			require.True(t, info.DisplayDesktopNotification)
+			require.NotEqual(t, "", info.DesktopNotificationSnippet)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
 	})
 }
 
@@ -3182,10 +3199,20 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 		assertUnreadline(ctx2, g2, users[1], 1, msgID2)
 
 		// user2 will have no unread id since the only visible message was now deleted
-		mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID2)
+		msgID3 := mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
 		assertUnreadline(ctx2, g2, users[1], 1, 0)
+
+		// if we are fully read, there is no line and we don't go to the server
+		g1.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+			return chat1.RemoteClient{Cli: errorClient{}}
+		})
+		assertUnreadline(ctx1, g1, users[0], msgID3, 0)
+		g2.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+			return chat1.RemoteClient{Cli: errorClient{}}
+		})
+		assertUnreadline(ctx2, g2, users[1], msgID3, 0)
 	})
 }
 
@@ -4377,6 +4404,22 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 
 }
 
+func randSweepChannel() uint64 {
+	for {
+		buf := make([]byte, 8)
+		_, err := rand.Read(buf)
+		if err != nil {
+			panic(err)
+		}
+		x := binary.LittleEndian.Uint64(buf)
+		// sql driver doesn't support all the bits
+		// https://golang.org/src/database/sql/driver/types.go#L265
+		if x < 1<<63 {
+			return x
+		}
+	}
+}
+
 func TestChatSrvRetentionSweepConv(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
@@ -4423,15 +4466,19 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 				badLifetime := *ephemeralLifetime + 1
 				_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 				require.Error(t, err)
-				aerr, ok := err.(libkb.AppStatusError)
-				require.True(t, ok)
-				require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
+				require.IsType(t, libkb.ChatEphemeralRetentionPolicyViolatedError{}, err)
 
 				mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
 					chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
 			}
 		})
 	})
+}
+
+func tlfIDToTeamIDForce(t *testing.T, tlfID chat1.TLFID) keybase1.TeamID {
+	res, err := keybase1.TeamIDFromString(tlfID.String())
+	require.NoError(t, err)
+	return res
 }
 
 func TestChatSrvRetentionSweepTeam(t *testing.T) {
@@ -4541,9 +4588,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 					badLifetime := *ephemeralLifetime + 1
 					_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 					require.Error(t, err)
-					aerr, ok := err.(libkb.AppStatusError)
-					require.True(t, ok)
-					require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
+					require.IsType(t, libkb.ChatEphemeralRetentionPolicyViolatedError{}, err)
 
 					mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
 						chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
@@ -5964,6 +6009,10 @@ func (m *mockStellar) SpecMiniChatPayments(mctx libkb.MetaContext, payments []li
 	return m.specFn(payments)
 }
 
+func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
+	return false, false
+}
+
 type xlmDeclineChatUI struct {
 	*kbtest.ChatUI
 }
@@ -6285,24 +6334,101 @@ func TestChatSrvStellarMessages(t *testing.T) {
 	})
 }
 
-func randSweepChannel() uint64 {
-	for {
-		buf := make([]byte, 8)
-		_, err := rand.Read(buf)
-		if err != nil {
-			panic(err)
+func TestChatBulkAddToConv(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
 		}
-		x := binary.LittleEndian.Uint64(buf)
-		// sql driver doesn't support all the bits
-		// https://golang.org/src/database/sql/driver/types.go#L265
-		if x < 1<<63 {
-			return x
-		}
-	}
-}
 
-func tlfIDToTeamIDForce(t *testing.T, tlfID chat1.TLFID) keybase1.TeamID {
-	res, err := keybase1.TeamIDFromString(tlfID.String())
-	require.NoError(t, err)
-	return res
+		ctc := makeChatTestContext(t, "BulkAddToConv", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		t.Logf("uid1: %v, uid2: %v", users[0].User.GetUID(), users[1].User.GetUID())
+
+		tc1 := ctc.world.Tcs[users[0].Username]
+		tc2 := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		tc1.ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		tc2.ChatG.Syncer.(*Syncer).isConnected = true
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		// create a channel and bulk add user1 to it
+		topicName := "bulk"
+		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel.Conv.GetConvID(), err)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+
+		usernames := []string{users[1].Username}
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: usernames,
+				ConvID:    channel.Conv.GetConvID(),
+			})
+		require.NoError(t, err)
+
+		assertSysMsg := func(expectedMentions, expectedBody []string, listener *serverChatListener) {
+			msg := consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+			body := msg.Valid().MessageBody
+			typ, err := body.MessageType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageType_SYSTEM, typ)
+			sysMsg := body.System()
+			sysTyp, err := sysMsg.SystemType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
+			retMsg := sysMsg.Bulkaddtoconv()
+			require.Equal(t, expectedBody, retMsg.Usernames)
+			require.True(t, msg.IsValid())
+			require.Equal(t, expectedMentions, msg.Valid().AtMentions)
+		}
+		assertSysMsg(usernames, usernames, listener0)
+		assertSysMsg(usernames, usernames, listener1)
+		consumeMembersUpdate(t, listener0)
+		consumeJoinConv(t, listener1)
+		// u1 can now send
+		mustPostLocalForTest(t, ctc, users[1], channel.Conv.Info,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+
+		// some users required
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: nil,
+				ConvID:    channel.Conv.GetConvID(),
+			})
+		require.Error(t, err)
+
+		usernames = []string{"foo"}
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+			chat1.BulkAddToConvArg{
+				Usernames: usernames,
+				ConvID:    channel.Conv.GetConvID(),
+			})
+		require.NoError(t, err)
+		assertSysMsg(nil, usernames, listener0)
+		assertSysMsg(nil, usernames, listener1)
+	})
 }

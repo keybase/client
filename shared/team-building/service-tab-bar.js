@@ -2,7 +2,12 @@
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor} from './shared'
+import {
+  serviceIdToIconFont,
+  serviceIdToAccentColor,
+  serviceIdToLabel,
+  inactiveServiceAccentColor,
+} from './shared'
 import * as Constants from '../constants/team-building'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
@@ -25,17 +30,25 @@ type IconProps = {
   isActive: boolean,
 }
 
+const HoverIcon = Styles.styled(Kb.Icon)(props => ({
+  '&:hover': {
+    color: serviceIdToAccentColor(props.service),
+  },
+  color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor,
+}))
+
 const ServiceIconDesktop = (props: IconProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
-      <Kb.Icon
-        fontSize={18}
-        type={serviceIdToIconFont(props.service)}
-        style={Styles.collapseStyles([
-          styles.serviceIcon,
-          {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
-        ])}
-      />
+      <Kb.WithTooltip text={serviceIdToLabel(props.service)}>
+        <HoverIcon
+          isActive={props.isActive}
+          service={props.service}
+          fontSize={18}
+          type={serviceIdToIconFont(props.service)}
+          style={styles.serviceIcon}
+        />
+      </Kb.WithTooltip>
       {!!props.showCount &&
         (Number.isInteger(props.count) ? (
           <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>

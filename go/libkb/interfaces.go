@@ -124,13 +124,6 @@ type CommandLine interface {
 type Server interface {
 }
 
-type ObjType byte
-
-type DbKey struct {
-	Typ ObjType
-	Key string
-}
-
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error
@@ -151,6 +144,7 @@ type LocalDb interface {
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)
+	Clean(force bool) error
 	OpenTransaction() (LocalDbTransaction, error)
 }
 
@@ -308,22 +302,22 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason, bool) error
-	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
-	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
-	DisplayCryptocurrency(keybase1.Cryptocurrency) error
-	DisplayStellarAccount(keybase1.StellarAccount) error
-	DisplayKey(keybase1.IdentifyKey) error
-	ReportLastTrack(*keybase1.TrackSummary) error
-	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error
-	DisplayTrackStatement(string) error
-	DisplayUserCard(keybase1.UserCard) error
-	ReportTrackToken(keybase1.TrackToken) error
-	Cancel() error
-	Finish() error
-	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
-	Dismiss(string, keybase1.DismissReason) error
+	Start(MetaContext, string, keybase1.IdentifyReason, bool) error
+	FinishWebProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	FinishSocialProofCheck(MetaContext, keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	Confirm(MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
+	DisplayCryptocurrency(MetaContext, keybase1.Cryptocurrency) error
+	DisplayStellarAccount(MetaContext, keybase1.StellarAccount) error
+	DisplayKey(MetaContext, keybase1.IdentifyKey) error
+	ReportLastTrack(MetaContext, *keybase1.TrackSummary) error
+	LaunchNetworkChecks(MetaContext, *keybase1.Identity, *keybase1.User) error
+	DisplayTrackStatement(MetaContext, string) error
+	DisplayUserCard(MetaContext, keybase1.UserCard) error
+	ReportTrackToken(MetaContext, keybase1.TrackToken) error
+	Cancel(MetaContext) error
+	Finish(MetaContext) error
+	DisplayTLFCreateWithInvite(MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error
+	Dismiss(MetaContext, string, keybase1.DismissReason) error
 }
 
 type Checker struct {
@@ -409,12 +403,14 @@ type ChatUI interface {
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
-	ChatStellarDataError(context.Context, string) (bool, error)
+	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
 	ChatStellarDone(context.Context, bool) error
 	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 		results []chat1.GiphySearchResult) error
+	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
+	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 }
 
 type PromptDefault int
@@ -610,7 +606,7 @@ type ServiceType interface {
 	PickerSubtext() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
 	FormatProofText(mctx MetaContext, ppr *PostProofRes,
-		kbUsername string, sigID keybase1.SigID) (string, error)
+		kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -730,6 +726,7 @@ type Stellar interface {
 	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
+	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
 }
 
 type DeviceEKStorage interface {
@@ -876,12 +873,21 @@ type UIDMapper interface {
 	// of busting. Will return true if the cached value was up-to-date, and false
 	// otherwise.
 	InformOfEldestSeqno(context.Context, UIDMapperContext, keybase1.UserVersion) (bool, error)
+
+	// MapUIDsToUsernamePackagesOffline maps given set of UIDs to username packages
+	// from the cache only. No network calls will be made. Results might contains
+	// unresolved usernames (caller should check with `IsNil()`).
+	MapUIDsToUsernamePackagesOffline(ctx context.Context, g UIDMapperContext,
+		uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error)
 }
 
 type ChatHelper interface {
 	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
+	NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error)
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, text string) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,

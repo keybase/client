@@ -1,5 +1,6 @@
 // @flow strict
 import * as RPCChatTypes from '../rpc-chat-gen'
+import * as RPCTypes from '../rpc-gen'
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
@@ -30,7 +31,7 @@ export type _QuoteInfo = {
 export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
 export type PaymentConfirmInfo = {
-  error?: string,
+  error?: RPCTypes.Status,
   summary?: RPCChatTypes.UIChatPaymentSummary,
 }
 
@@ -78,7 +79,8 @@ export type _State = {
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: ConversationCountMap, // how many unread messages there are
   unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>,
-  giphyResultMap: I.Map<Common.ConversationIDKey, Array<RPCChatTypes.GiphySearchResult>>,
+  giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>,
+  giphyResultMap: I.Map<Common.ConversationIDKey, ?Array<RPCChatTypes.GiphySearchResult>>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
@@ -87,6 +89,7 @@ export type _State = {
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
   unsentTextMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>,
+  commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>
@@ -128,6 +131,7 @@ export type {
   MessageSystemLeft,
   MessageSystemSimpleToComplex,
   MessageSystemText,
+  MessageSystemUsersAddedToConversation,
   MessageText,
   MessageType,
   Ordinal,

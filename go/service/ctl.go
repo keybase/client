@@ -40,6 +40,17 @@ func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	return c.G().ConfigReload()
 }
 
+func (c *CtlHandler) DbClean(ctx context.Context, arg keybase1.DbCleanArg) error {
+	switch arg.DbType {
+	case keybase1.DbType_MAIN:
+		return c.G().LocalDb.Clean(arg.Force)
+	case keybase1.DbType_CHAT:
+		return c.G().LocalChatDb.Clean(arg.Force)
+	default:
+		return libkb.NewDBError("no such DB type")
+	}
+}
+
 func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 	logui := c.getLogUI(sessionID)
 
@@ -57,9 +68,11 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 	}
 	logui.Warning("Nuking chat database %s", fn)
 
-	teamLoader := c.G().GetTeamLoader()
-	if teamLoader != nil {
+	if teamLoader := c.G().GetTeamLoader(); teamLoader != nil {
 		teamLoader.ClearMem()
+	}
+	if ekLib := c.G().GetEKLib(); ekLib != nil {
+		ekLib.ClearCaches()
 	}
 	// Now drop caches, since we had the DB's state in-memory too.
 	c.G().FlushCaches()

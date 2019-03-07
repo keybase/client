@@ -124,7 +124,7 @@ var specTests = []specTest{
 				},
 				{
 					Username: libkb.NewNormalizedUsername("bob"),
-					Error:    errors.New("FormatCurrency error: cannot find curency code \"XXX\""),
+					Error:    errors.New("FormatCurrencyWithCodeSuffix error: cannot find curency code \"XXX\""),
 				},
 			},
 			XLMTotal:     "3.1414139 XLM",

@@ -43,6 +43,9 @@
     "navigateToTeamRepo": {
       "repoID": "string",
       "teamname": "string"
+    },
+    "clearBadges": {
+      "_description": "clears badges in the rows",
     }
   }
 }

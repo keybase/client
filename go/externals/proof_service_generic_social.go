@@ -72,6 +72,9 @@ func (c *GenericSocialProofConfig) validatePrefillURL() error {
 	if !strings.Contains(c.PrefillUrl, kbUsernameKey) {
 		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, kbUsernameKey)
 	}
+	if !strings.Contains(c.PrefillUrl, remoteUsernameKey) {
+		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, remoteUsernameKey)
+	}
 	if !strings.Contains(c.PrefillUrl, sigHashKey) {
 		return fmt.Errorf("invalid PrefillUrl: %s, missing: %s", c.PrefillUrl, sigHashKey)
 	}
@@ -96,10 +99,14 @@ func (c *GenericSocialProofConfig) profileURLWithValues(remoteUsername string) (
 	return url, nil
 }
 
-func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername string, sigID keybase1.SigID) (string, error) {
+func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
 	url := strings.Replace(c.PrefillUrl, kbUsernameKey, kbUsername, 1)
 	if !strings.Contains(url, kbUsername) {
 		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUsername: %s", url, kbUsername)
+	}
+	url = strings.Replace(url, remoteUsernameKey, remoteUsername, 1)
+	if !strings.Contains(url, remoteUsername) {
+		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing remoteUsername: %s", url, remoteUsername)
 	}
 	url = strings.Replace(url, sigHashKey, sigID.String(), 1)
 	if !strings.Contains(url, sigID.String()) {
@@ -127,7 +134,7 @@ func (c *GenericSocialProofConfig) validateRemoteUsername(remoteUsername string)
 	} else if len(remoteUsername) > uc.Max {
 		return fmt.Errorf("username can be at most %d characters, was %d", c.UsernameConfig.Max, len(remoteUsername))
 	} else if !c.usernameRe.MatchString(remoteUsername) {
-		return fmt.Errorf("username did not match expected format: %s", c.UsernameConfig.Re)
+		return libkb.NewBadUsernameError(remoteUsername)
 	}
 	return nil
 }
@@ -187,7 +194,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 	}
 
 	// We expect a single result to match which contains an array of proofs.
-	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf, libkb.NewInvalidPVLSelectorError)
+	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.Debug, libkb.NewInvalidPVLSelectorError)
 	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
 		return nil, perrInner
 	}
@@ -222,7 +229,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 
 	humanURL, err := rc.config.profileURLWithValues(remoteUsername)
 	if err != nil {
-		mctx.CDebugf("Unable to generate humanURL for verifiedSigHint: %v", err)
+		mctx.Debug("Unable to generate humanURL for verifiedSigHint: %v", err)
 		humanURL = ""
 	}
 	verifiedSigHint := libkb.NewVerifiedSigHint(sigID, "" /* remoteID */, apiURL, humanURL, "" /* checkText */)
@@ -291,8 +298,8 @@ func (t *GenericSocialProofServiceType) CheckProofText(text string, id keybase1.
 }
 
 func (t *GenericSocialProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes,
-	kbUsername string, sigID keybase1.SigID) (string, error) {
-	return t.config.prefillURLWithValues(kbUsername, sigID)
+	kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
+	return t.config.prefillURLWithValues(kbUsername, remoteUsername, sigID)
 }
 
 func (t *GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {

@@ -525,6 +525,56 @@
           "name": "followers"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UpdateInfoStatus2",
+      "symbols": [
+        "OK_0",
+        "SUGGESTED_1",
+        "CRITICAL_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateDetails",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UpdateInfo2",
+      "switch": {
+        "type": "UpdateInfoStatus2",
+        "name": "status"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "OK",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "SUGGESTED",
+            "def": false
+          },
+          "body": "UpdateDetails"
+        },
+        {
+          "label": {
+            "name": "CRITICAL",
+            "def": false
+          },
+          "body": "UpdateDetails"
+        }
+      ]
     }
   ],
   "messages": {
@@ -545,6 +595,18 @@
         }
       ],
       "response": "ExtendedStatus"
+    },
+    "getClientStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ClientStatus"
+      }
     },
     "getAllProvisionedUsernames": {
       "request": [
@@ -696,6 +758,26 @@
         }
       ],
       "response": null
+    },
+    "getUpdateInfo2": {
+      "request": [
+        {
+          "name": "platform",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "version",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": "UpdateInfo2",
+      "doc": "getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if\n   you are critically out of date."
     }
   },
   "namespace": "keybase.1"

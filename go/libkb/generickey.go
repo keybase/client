@@ -71,7 +71,7 @@ func CanEncrypt(key GenericKey) bool {
 }
 
 func skbPushAndSave(m MetaContext, skb *SKB) (err error) {
-	defer m.CTrace("skbPushAndSave", func() error { return err })()
+	defer m.Trace("skbPushAndSave", func() error { return err })()
 	ring, err := m.Keyring()
 	if err != nil {
 		return err

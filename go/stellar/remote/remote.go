@@ -65,14 +65,14 @@ func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.Use
 	if !stellarAccount.IsPrimary {
 		return nil, errors.New("initial stellar account is not primary")
 	}
-	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", b.Revision, stellarAccount.AccountID, pukGen)
+	m.Debug("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", b.Revision, stellarAccount.AccountID, pukGen)
 
 	boxed, err := bundle.BoxAndEncode(&b, pukGen, pukSeed)
 	if err != nil {
 		return nil, err
 	}
 
-	m.CDebugf("Stellar.PostWithChainLink: make sigs")
+	m.Debug("Stellar.PostWithChainLink: make sigs")
 
 	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccountBundle.Signers[0], deviceSigKey)
 	if err != nil {
@@ -96,13 +96,13 @@ func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.Use
 
 // Post a bundle to the server with a chainlink.
 func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
-	defer mctx.CTraceTimed("Stellar.PostWithChainlink", func() error { return err })()
+	defer mctx.TraceTimed("Stellar.PostWithChainlink", func() error { return err })()
 
 	uid := mctx.G().ActiveDevice.UID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
-	mctx.CDebugf("Stellar.PostWithChainLink: load self")
+	mctx.Debug("Stellar.PostWithChainLink: load self")
 	loadMeArg := libkb.NewLoadUserArg(mctx.G()).
 		WithNetContext(mctx.Ctx()).
 		WithUID(uid).
@@ -128,7 +128,7 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 		return err
 	}
 
-	mctx.CDebugf("Stellar.PostWithChainLink: post")
+	mctx.Debug("Stellar.PostWithChainLink: post")
 	_, err = mctx.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -145,7 +145,7 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 
 // Post a bundle to the server.
 func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
-	defer mctx.CTraceTimed("Stellar.Post", func() error { return err })()
+	defer mctx.TraceTimed("Stellar.Post", func() error { return err })()
 
 	err = clearBundle.CheckInvariants()
 	if err != nil {
@@ -177,7 +177,7 @@ func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
 
 func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID) (
 	b *stellar1.Bundle, bv stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error) {
-	defer mctx.CTraceTimed("Stellar.fetchBundleForAccount", func() error { return err })()
+	defer mctx.TraceTimed("Stellar.fetchBundleForAccount", func() error { return err })()
 
 	fetchArgs := libkb.HTTPArgs{}
 	if accountID != nil {
@@ -205,7 +205,7 @@ func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID
 // This method is safe to be called by any of a user's devices even if one or more of
 // the accounts is marked as mobile only.
 func FetchSecretlessBundle(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err error) {
-	defer mctx.CTraceTimed("Stellar.FetchSecretlessBundle", func() error { return err })()
+	defer mctx.TraceTimed("Stellar.FetchSecretlessBundle", func() error { return err })()
 
 	bundle, _, _, _, err = fetchBundleForAccount(mctx, nil)
 	return bundle, err
@@ -217,7 +217,7 @@ func FetchSecretlessBundle(mctx libkb.MetaContext) (bundle *stellar1.Bundle, err
 // an account that is mobile only. If you don't need the secrets, use
 // FetchSecretlessBundle instead.
 func FetchAccountBundle(mctx libkb.MetaContext, accountID stellar1.AccountID) (bundle *stellar1.Bundle, err error) {
-	defer mctx.CTraceTimed("Stellar.FetchAccountBundle", func() error { return err })()
+	defer mctx.TraceTimed("Stellar.FetchAccountBundle", func() error { return err })()
 
 	bundle, _, _, _, err = fetchBundleForAccount(mctx, &accountID)
 	return bundle, err
@@ -231,7 +231,7 @@ func FetchAccountBundle(mctx libkb.MetaContext, accountID stellar1.AccountID) (b
 // AccountPukGens map. FetchBundleWithGens is only for very specific usecases.
 // FetchAccountBundle and FetchSecretlessBundle are the preferred ways to pull a bundle.
 func FetchBundleWithGens(mctx libkb.MetaContext) (b *stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, accountGens bundle.AccountPukGens, err error) {
-	defer mctx.CTraceTimed("Stellar.FetchBundleWithGens", func() error { return err })()
+	defer mctx.TraceTimed("Stellar.FetchBundleWithGens", func() error { return err })()
 
 	b, _, pukGen, _, err = fetchBundleForAccount(mctx, nil) // this bundle no account secrets
 	if err != nil {
@@ -243,7 +243,7 @@ func FetchBundleWithGens(mctx libkb.MetaContext) (b *stellar1.Bundle, pukGen key
 		singleBundle, _, _, singleAccountGens, err := fetchBundleForAccount(mctx, &acct.AccountID)
 		if err != nil {
 			// expected errors include SCStellarDeviceNotMobile, SCStellarMobileOnlyPurgatory
-			mctx.CDebugf("unable to pull secrets for account %v which is not necessarily a problem %v", acct.AccountID, err)
+			mctx.Debug("unable to pull secrets for account %v which is not necessarily a problem %v", acct.AccountID, err)
 			continue
 		}
 		accBundle := singleBundle.AccountBundles[acct.AccountID]
@@ -352,9 +352,12 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 	}
 
 	apiArg := libkb.APIArg{
-		Endpoint:        "stellar/details",
-		SessionType:     libkb.APISessionTypeREQUIRED,
-		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		Endpoint:    "stellar/details",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id":    libkb.S{Val: string(accountID)},
+			"include_multi": libkb.B{Val: true},
+		},
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
@@ -488,9 +491,10 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":   libkb.S{Val: accountID.String()},
-			"limit":        libkb.I{Val: limit},
-			"skip_pending": libkb.B{Val: skipPending},
+			"account_id":    libkb.S{Val: accountID.String()},
+			"limit":         libkb.I{Val: limit},
+			"skip_pending":  libkb.B{Val: skipPending},
+			"include_multi": libkb.B{Val: true},
 		},
 		NetContext:      ctx,
 		RetryCount:      3,
@@ -538,7 +542,25 @@ type paymentDetailResult struct {
 	Result stellar1.PaymentDetails `json:"res"`
 }
 
-func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
+func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/paymentdetail",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+			"txID":       libkb.S{Val: txID},
+		},
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  10 * time.Second,
+	}
+	var apiRes paymentDetailResult
+	err = g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.Result, err
+}
+
+func PaymentDetailsGeneric(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/paymentdetail",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -776,7 +798,7 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 	}
 	nextBundle := bundle.AdvanceAccounts(*b, []stellar1.AccountID{accountID})
 	if err := Post(mctx, nextBundle); err != nil {
-		mctx.CDebugf("SetAccountMobileOnly Post error: %s", err)
+		mctx.Debug("SetAccountMobileOnly Post error: %s", err)
 		return err
 	}
 
@@ -802,7 +824,7 @@ func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountI
 	}
 	nextBundle := bundle.AdvanceAccounts(*b, []stellar1.AccountID{accountID})
 	if err := Post(mctx, nextBundle); err != nil {
-		mctx.CDebugf("MakeAccountAllDevices Post error: %s", err)
+		mctx.Debug("MakeAccountAllDevices Post error: %s", err)
 		return err
 	}
 
@@ -918,6 +940,27 @@ func NetworkOptions(ctx context.Context, g *libkb.GlobalContext) (stellar1.Netwo
 		return stellar1.NetworkOptions{}, err
 	}
 	return apiRes.Options, nil
+}
+
+type detailsPlusPaymentsRes struct {
+	libkb.AppStatusEmbed
+	Result stellar1.DetailsPlusPayments `json:"res"`
+}
+
+func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/details_plus_payments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: libkb.NewMetaContext(ctx, g),
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+		},
+	}
+	var apiRes detailsPlusPaymentsRes
+	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return stellar1.DetailsPlusPayments{}, err
+	}
+	return apiRes.Result, nil
 }
 
 type airdropDetails struct {

@@ -68,11 +68,7 @@ const YouInviteAddedToTeamNotice = (props: Props) => {
       onClickAvatar={props.onViewTeam}
     >
       <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
-      <Kb.Text
-        type="BodySmallSemibold"
-        backgroundMode="Announcements"
-        style={{color: Styles.globalColors.black_50}}
-      >
+      <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
         {formatTimeForMessages(timestamp)}
       </Kb.Text>
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>{copy}</Kb.Box>

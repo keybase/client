@@ -217,12 +217,14 @@ func (o UserSummary2Set) DeepCopy() UserSummary2Set {
 type InterestingPerson struct {
 	Uid      UID    `codec:"uid" json:"uid"`
 	Username string `codec:"username" json:"username"`
+	Fullname string `codec:"fullname" json:"fullname"`
 }
 
 func (o InterestingPerson) DeepCopy() InterestingPerson {
 	return InterestingPerson{
 		Uid:      o.Uid.DeepCopy(),
 		Username: o.Username,
+		Fullname: o.Fullname,
 	}
 }
 
@@ -319,14 +321,16 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 }
 
 type CanLogoutRes struct {
-	CanLogout bool   `codec:"canLogout" json:"canLogout"`
-	Reason    string `codec:"reason" json:"reason"`
+	CanLogout     bool   `codec:"canLogout" json:"canLogout"`
+	Reason        string `codec:"reason" json:"reason"`
+	SetPassphrase bool   `codec:"setPassphrase" json:"setPassphrase"`
 }
 
 func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	return CanLogoutRes{
-		CanLogout: o.CanLogout,
-		Reason:    o.Reason,
+		CanLogout:     o.CanLogout,
+		Reason:        o.Reason,
+		SetPassphrase: o.SetPassphrase,
 	}
 }
 
@@ -366,9 +370,10 @@ type LoadUserPlusKeysArg struct {
 }
 
 type LoadUserPlusKeysV2Arg struct {
-	SessionID  int `codec:"sessionID" json:"sessionID"`
-	Uid        UID `codec:"uid" json:"uid"`
-	PollForKID KID `codec:"pollForKID" json:"pollForKID"`
+	SessionID  int                 `codec:"sessionID" json:"sessionID"`
+	Uid        UID                 `codec:"uid" json:"uid"`
+	PollForKID KID                 `codec:"pollForKID" json:"pollForKID"`
+	Oa         OfflineAvailability `codec:"oa" json:"oa"`
 }
 
 type LoadPublicKeysArg struct {

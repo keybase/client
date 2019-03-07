@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +18,10 @@ import (
 // ErrAccountNotFound is returned when the account is not in
 // WalletState's accounts map.
 var ErrAccountNotFound = errors.New("account not found for user")
+
+// ErrRefreshQueueFull is returned when the refresh queue
+// is clogged up.
+var ErrRefreshQueueFull = errors.New("refresh queue is full")
 
 // WalletState holds all the current data for all the accounts
 // for the user.  It is also a remote.Remoter and should be used
@@ -63,18 +68,18 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 func (w *WalletState) Shutdown() error {
 	w.shutdownOnce.Do(func() {
 		mctx := libkb.NewMetaContextBackground(w.G())
-		mctx.CDebugf("WalletState shutting down")
+		mctx.Debug("WalletState shutting down")
 		w.Lock()
 		w.resetWithLock(mctx)
 		close(w.refreshReqs)
-		mctx.CDebugf("waiting for background refresh requests to finish")
+		mctx.Debug("waiting for background refresh requests to finish")
 		select {
 		case <-w.backgroundDone:
 		case <-time.After(5 * time.Second):
-			mctx.CDebugf("timed out waiting for background refresh requests to finish")
+			mctx.Debug("timed out waiting for background refresh requests to finish")
 		}
 		w.Unlock()
-		mctx.CDebugf("WalletState shut down complete")
+		mctx.Debug("WalletState shut down complete")
 	})
 	return nil
 }
@@ -146,7 +151,7 @@ func (w *WalletState) accountStateRefresh(ctx context.Context, accountID stellar
 	a = newAccountState(accountID, w.Remoter, w.refreshReqs)
 	mctx := libkb.NewMetaContext(ctx, w.G())
 	if err := a.Refresh(mctx, w.G().NotifyRouter, reason); err != nil {
-		mctx.CDebugf("error refreshing account %s: %s", accountID, err)
+		mctx.Debug("error refreshing account %s: %s", accountID, err)
 		return nil, err
 	}
 	w.accounts[accountID] = a
@@ -171,7 +176,7 @@ func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 }
 
 func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err error) {
-	defer mctx.CTraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
 	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
@@ -182,12 +187,12 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 		a, _ := w.accountStateBuild(account.AccountID)
 		a.updateEntry(account)
 		if err := a.Refresh(mctx, w.G().NotifyRouter, reason); err != nil {
-			mctx.CDebugf("error refreshing account %s: %s", account.AccountID, err)
+			mctx.Debug("error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
 		}
 	}
 	if lastErr != nil {
-		mctx.CDebugf("RefreshAll last error: %s", lastErr)
+		mctx.Debug("RefreshAll last error: %s", lastErr)
 		return lastErr
 	}
 
@@ -205,6 +210,31 @@ func (w *WalletState) Refresh(mctx libkb.MetaContext, accountID stellar1.Account
 		return ErrAccountNotFound
 	}
 	return a.Refresh(mctx, w.G().NotifyRouter, reason)
+}
+
+// RefreshAsync makes a request to refresh an account in the background.
+// It clears the refresh time to ensure that a refresh happens/
+func (w *WalletState) RefreshAsync(mctx libkb.MetaContext, accountID stellar1.AccountID, reason string) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return ErrAccountNotFound
+	}
+
+	// if someone calls this, they need a refresh to happen, so make
+	// sure that the next refresh for this accountID isn't skipped.
+	a.Lock()
+	a.rtime = time.Time{}
+	a.Unlock()
+
+	select {
+	case w.refreshReqs <- accountID:
+	case <-time.After(200 * time.Millisecond):
+		// don't wait for full channel
+		mctx.Debug("refreshReqs channel clogged trying to enqueue %s for %q", accountID, reason)
+		return ErrRefreshQueueFull
+	}
+
+	return nil
 }
 
 // ForceSeqnoRefresh refreshes the seqno for an account.
@@ -231,13 +261,13 @@ func (w *WalletState) backgroundRefresh() {
 		a.RUnlock()
 
 		mctx := libkb.NewMetaContextBackground(w.G()).WithLogTag("WABR")
-		if time.Since(rt) < 10*time.Second {
-			mctx.CDebugf("WalletState.backgroundRefresh skipping for %s due to recent refresh", accountID)
+		if time.Since(rt) < 120*time.Second {
+			mctx.Debug("WalletState.backgroundRefresh skipping for %s due to recent refresh", accountID)
 			continue
 		}
 
 		if err := a.Refresh(mctx, w.G().NotifyRouter, "background"); err != nil {
-			mctx.CDebugf("WalletState.backgroundRefresh error for %s: %s", accountID, err)
+			mctx.Debug("WalletState.backgroundRefresh error for %s: %s", accountID, err)
 		}
 	}
 	close(w.backgroundDone)
@@ -398,7 +428,9 @@ func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayC
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
 	if err == nil {
 		mctx := libkb.NewMetaContext(ctx, w.G())
-		w.RefreshAll(mctx, "SubmitRelayClaim")
+		if rerr := w.RefreshAll(mctx, "SubmitRelayClaim"); rerr != nil {
+			mctx.Debug("RefreshAll after SubmitRelayClaim error: %s", rerr)
+		}
 	}
 	return result, err
 
@@ -407,8 +439,12 @@ func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayC
 // MarkAsRead is an override of remoter's MarkAsRead.
 func (w *WalletState) MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	err := w.Remoter.MarkAsRead(ctx, accountID, mostRecentID)
-	mctx := libkb.NewMetaContext(ctx, w.G())
-	w.Refresh(mctx, accountID, "MarkAsRead")
+	if err == nil {
+		mctx := libkb.NewMetaContext(ctx, w.G())
+		if rerr := w.RefreshAsync(mctx, accountID, "MarkAsRead"); rerr != nil {
+			mctx.Debug("Refresh after MarkAsRead error: %s", err)
+		}
+	}
 	return err
 }
 
@@ -457,7 +493,7 @@ func (w *WalletState) ExchangeRate(ctx context.Context, currency string) (stella
 
 // DumpToLog outputs a summary of WalletState to the debug log.
 func (w *WalletState) DumpToLog(mctx libkb.MetaContext) {
-	mctx.CDebugf(w.String())
+	mctx.Debug(w.String())
 }
 
 // String returns a string representation of WalletState suitable for debug
@@ -542,81 +578,81 @@ func (a *AccountState) Refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 }
 
 func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string) (err error) {
-	defer mctx.CTraceTimed(fmt.Sprintf("WalletState.Refresh(%s) [%s]", a.accountID, reason), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("WalletState.Refresh(%s) [%s]", a.accountID, reason), func() error { return err })()
 
-	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		if seqno > a.seqno {
-			a.seqno = seqno
-		}
-		a.Unlock()
+	dpp, err := a.remoter.DetailsPlusPayments(mctx.Ctx(), a.accountID)
+	if err != nil {
+		mctx.Debug("refresh DetailsPlusPayments error: %s", err)
+		return err
 	}
 
-	balances, err := a.remoter.Balances(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		a.balances = balances
-		a.Unlock()
-	}
-
-	details, err := a.remoter.Details(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		notify := detailsChanged(a.details, &details)
-		a.details = &details
-		// get these while locked
-		isPrimary := a.isPrimary
-		name := a.name
-		accountMode := a.accountMode
-		a.Unlock()
-
-		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, details, isPrimary, name, accountMode)
-			if err == nil {
-				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
-			}
-		}
-		if notify {
-			getGlobal(mctx.G()).UpdateUnreadCount(mctx.Ctx(), a.accountID, details.UnreadPayments)
-		}
-	}
-
-	pending, err := a.remoter.PendingPayments(mctx.Ctx(), a.accountID, 25)
-	if err == nil {
-		a.Lock()
-		notify := pendingChanged(a.pending, pending)
-		a.pending = pending
-		a.Unlock()
-
-		if notify && router != nil {
-			local, err := RemotePendingToLocal(mctx, a.remoter, a.accountID, pending)
-			if err == nil {
-				router.HandleWalletPendingPaymentsUpdate(mctx.Ctx(), a.accountID, local)
-			}
-		}
-	}
-
-	recent, err := a.remoter.RecentPayments(mctx.Ctx(), a.accountID, nil, 50, true)
-	if err == nil {
-		a.Lock()
-		notify := recentChanged(a.recent, &recent)
-		a.recent = &recent
-		a.Unlock()
-
-		if notify && router != nil {
-			localPage, err := RemoteRecentPaymentsToPage(mctx, a.remoter, a.accountID, recent)
-			if err == nil {
-				router.HandleWalletRecentPaymentsUpdate(mctx.Ctx(), a.accountID, localPage)
-			}
+	var seqno uint64
+	if dpp.Details.Seqno != "" {
+		seqno, err = strconv.ParseUint(dpp.Details.Seqno, 10, 64)
+		if err != nil {
+			return err
 		}
 	}
 
 	a.Lock()
+	if seqno > a.seqno {
+		a.seqno = seqno
+	}
+
+	a.balances = dpp.Details.Balances
+
+	notifyDetails := detailsChanged(a.details, &dpp.Details)
+	a.details = &dpp.Details
+
+	notifyPending := pendingChanged(a.pending, dpp.PendingPayments)
+	a.pending = dpp.PendingPayments
+
+	notifyRecent := recentChanged(a.recent, &dpp.RecentPayments)
+	a.recent = &dpp.RecentPayments
+
+	// get these while locked
+	isPrimary := a.isPrimary
+	name := a.name
+	accountMode := a.accountMode
+
 	a.rtime = time.Now()
+
 	a.Unlock()
 
-	return err
+	if notifyDetails && router != nil {
+		accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, dpp.Details, isPrimary, name, accountMode)
+		if err == nil {
+			router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
+		} else {
+			mctx.Debug("AccountDetailsToWalletAccountLocal error: %s", err)
+		}
+	}
+	if notifyDetails {
+		err = getGlobal(mctx.G()).UpdateUnreadCount(mctx.Ctx(), a.accountID, dpp.Details.UnreadPayments)
+		if err != nil {
+			mctx.Debug("UpdateUnreadCount error: %s", err)
+		}
+	}
+
+	if notifyPending && router != nil {
+		local, err := RemotePendingToLocal(mctx, a.remoter, a.accountID, dpp.PendingPayments)
+		if err == nil {
+			router.HandleWalletPendingPaymentsUpdate(mctx.Ctx(), a.accountID, local)
+		} else {
+			mctx.Debug("RemotePendingToLocal error: %s", err)
+		}
+	}
+
+	if notifyRecent && router != nil {
+		localPage, err := RemoteRecentPaymentsToPage(mctx, a.remoter, a.accountID, dpp.RecentPayments)
+		if err == nil {
+			router.HandleWalletRecentPaymentsUpdate(mctx.Ctx(), a.accountID, localPage)
+		} else {
+			mctx.Debug("RemoteRecentPaymentsToPage error: %s", err)
+		}
+	}
+
+	return nil
 }
 
 // ForceSeqnoRefresh refreshes the seqno for an account.
@@ -630,13 +666,13 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	defer a.Unlock()
 
 	if seqno == a.seqno {
-		mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
+		mctx.Debug("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
 		return nil
 	}
 
 	if seqno > a.seqno {
 		// if network is greater than cached, then update
-		mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+		mctx.Debug("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 		a.seqno = seqno
 		return nil
 	}
@@ -645,7 +681,7 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	for k, v := range a.pendingTxs {
 		age := time.Since(v.ctime)
 		if age > 30*time.Second {
-			mctx.CDebugf("ForceSeqnoRefresh removing pending tx %s due to old age (%s)", k, age)
+			mctx.Debug("ForceSeqnoRefresh removing pending tx %s due to old age (%s)", k, age)
 			delete(a.pendingTxs, k)
 		}
 	}
@@ -653,24 +689,24 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	// delete any stale inuse seqnos (in case missed notification somehow)
 	for k, v := range a.inuseSeqnos {
 		if seqno > k {
-			mctx.CDebugf("ForceSeqnoRefresh removing inuse seqno %d due to network seqno > to it (%s)", k, seqno)
+			mctx.Debug("ForceSeqnoRefresh removing inuse seqno %d due to network seqno > to it (%s)", k, seqno)
 			delete(a.inuseSeqnos, k)
 		}
 		age := time.Since(v.ctime)
 		if age > 30*time.Second {
-			mctx.CDebugf("ForceSeqnoRefresh removing inuse seqno %d due to old age (%s)", k, age)
+			mctx.Debug("ForceSeqnoRefresh removing inuse seqno %d due to old age (%s)", k, age)
 			delete(a.inuseSeqnos, k)
 		}
 	}
 
 	if len(a.pendingTxs) == 0 && len(a.inuseSeqnos) == 0 {
 		// if no pending tx or inuse seqnos, then network should be correct
-		mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+		mctx.Debug("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 		a.seqno = seqno
 		return nil
 	}
 
-	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx/seqnos (existing: %d, remote: %d, pending txs: %d, inuse seqnos: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs), len(a.inuseSeqnos))
+	mctx.Debug("ForceSeqnoRefresh did not update AccountState for %s due to pending tx/seqnos (existing: %d, remote: %d, pending txs: %d, inuse seqnos: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs), len(a.inuseSeqnos))
 
 	return nil
 }
@@ -741,7 +777,7 @@ func (a *AccountState) Details(ctx context.Context) (stellar1.AccountDetails, er
 	defer a.RUnlock()
 	a.enqueueRefreshReq()
 	if a.details == nil {
-		return stellar1.AccountDetails{}, nil
+		return stellar1.AccountDetails{AccountID: a.accountID}, nil
 	}
 	return *a.details, nil
 }

@@ -1,6 +1,7 @@
 // @flow
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
+import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
 import {type RemoteTlfUpdates} from '../fs/remote-container'
@@ -18,6 +19,8 @@ const mapStateToProps = (state: State) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  _onClickAvatar: (username: string) =>
+    dispatch(ProfileGen.createShowUserProfile({username})),
   _onSelectPath: (path: FsTypes.Path, type: FsTypes.PathType) =>
     dispatch(FsGen.createOpenFilesFromWidget({path, type})),
 })
@@ -28,6 +31,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
     const tlfType = FsTypes.getPathVisibility(c.tlf) || 'private'
     return {
+      onClickAvatar: () => dispatchProps._onClickAvatar(c.writer),
       onSelectPath: () => dispatchProps._onSelectPath(c.tlf, 'folder'),
       participants: participants || [],
       path: c.tlf,

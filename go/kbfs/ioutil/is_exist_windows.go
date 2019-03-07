@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const _ERROR_DIR_NOT_EMPTY = syscall.Errno(145)
+const error_DIR_NOT_EMPTY = syscall.Errno(145)
 
 // IsExist wraps os.IsExist to work around
 // https://github.com/golang/go/issues/17164 .
@@ -30,5 +30,5 @@ func IsExist(err error) bool {
 	case *os.SyscallError:
 		err = pe.Err
 	}
-	return err == _ERROR_DIR_NOT_EMPTY
+	return err == error_DIR_NOT_EMPTY
 }

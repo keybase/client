@@ -118,6 +118,10 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	return libkb.GetExtendedStatus(libkb.NewMetaContext(ctx, h.G()))
 }
 
+func (h ConfigHandler) GetClientStatus(ctx context.Context, sessionID int) (res []keybase1.ClientStatus, err error) {
+	return libkb.GetClientStatus(libkb.NewMetaContext(ctx, h.G())), nil
+}
+
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
 	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()))
 	if err != nil {
@@ -324,7 +328,7 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 		return err
 	}
 	if remember == arg.Remember {
-		m.CDebugf("SetRememberPassphrase: no change necessary (remember = %v)", remember)
+		m.Debug("SetRememberPassphrase: no change necessary (remember = %v)", remember)
 		return nil
 	}
 
@@ -337,11 +341,49 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 
 	// replace the secret store
 	if err := h.G().ReplaceSecretStore(ctx); err != nil {
-		m.CDebugf("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
+		m.Debug("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
 		return err
 	}
 
-	m.CDebugf("SetRememberPassphrase(%v) success", arg.Remember)
+	m.Debug("SetRememberPassphrase(%v) success", arg.Remember)
 
 	return nil
+}
+
+type rawGetPkgCheck struct {
+	Status libkb.AppStatus      `json:"status"`
+	Res    keybase1.UpdateInfo2 `json:"res"`
+}
+
+func (r *rawGetPkgCheck) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdateInfo2Arg) (res keybase1.UpdateInfo2, err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+
+	var version string
+	var platform string
+
+	if arg.Platform != nil {
+		platform = *arg.Platform
+	} else {
+		platform = libkb.GetPlatformString()
+	}
+	if arg.Version != nil {
+		version = *arg.Version
+	} else {
+		version = libkb.VersionString()
+	}
+
+	apiArg := libkb.NewAPIArgWithMetaContext(m, "pkg/check")
+	apiArg.Args = libkb.HTTPArgs{
+		"version":  libkb.S{Val: version},
+		"platform": libkb.S{Val: platform},
+	}
+	var raw rawGetPkgCheck
+	if err = m.G().API.GetDecode(apiArg, &raw); err != nil {
+		return res, err
+	}
+	return raw.Res, nil
 }

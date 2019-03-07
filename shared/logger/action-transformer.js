@@ -12,6 +12,7 @@ import * as WaitingGen from '../actions/waiting-gen'
 import * as EntitiesGen from '../actions/entities-gen'
 import {getPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
+import flags from '../util/feature-flags'
 
 // If you use nullTransform it'll not be logged at all
 const nullTransform = action => {
@@ -19,6 +20,13 @@ const nullTransform = action => {
 }
 
 const pathActionTransformer = (action, oldState) => {
+  if (flags.useNewRouter) {
+    const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
+    return {
+      payload: {path},
+      type: action.type,
+    }
+  }
   const prevPath = oldState.routeTree ? getPath(oldState.routeTree.routeState) : I.List()
   const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
   const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)

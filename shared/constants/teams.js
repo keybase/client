@@ -7,6 +7,7 @@ import * as RPCChatTypes from './types/rpc-chat-gen'
 import {invert} from 'lodash-es'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
+import {memoize} from '../util/memoize'
 
 import type {Service} from './types/search'
 import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
@@ -21,9 +22,12 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamname}`
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
 
+export const addUserToTeamsWaitingKey = (username: string) => `addUserToTeams:${username}`
+export const addPeopleToTeamWaitingKey = (teamname: Types.Teamname) => `teamAddPeople:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
@@ -100,6 +104,7 @@ export const makeRetentionPolicy: I.RecordFactory<_RetentionPolicy> = I.Record({
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
+  addUserToTeamsState: 'notStarted',
   channelCreationError: '',
   emailInviteError: makeEmailInviteError(),
   newTeamRequests: I.List(),
@@ -254,8 +259,26 @@ const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.Te
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameToCanPerform', teamname])
 
+const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
+  state.teams.hasIn(['teamNameToChannelInfos', teamname])
+
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.teams.getIn(['teammembercounts', teamname], 0)
+
+const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
+  isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
+
+const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
+  let countOfOwners = 0
+  const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map())
+  const moreThanOneOwner = allTeamMembers.some(tm => {
+    if (isOwner(tm.type)) {
+      countOfOwners++
+    }
+    return countOfOwners > 1
+  })
+  return moreThanOneOwner
+}
 
 const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
   state.teams.getIn(['teamNameToID', teamname], '')
@@ -357,11 +380,8 @@ function sortTeamnames(a: string, b: string) {
   }
 }
 
-const getSortedTeamnames = (state: TypedState): Types.Teamname[] => {
-  let teamnames = state.teams.teamnames.toArray()
-  teamnames.sort(sortTeamnames)
-  return teamnames
-}
+const _memoizedSorted = memoize(names => names.toArray().sort(sortTeamnames))
+const getSortedTeamnames = (state: TypedState): Types.Teamname[] => _memoizedSorted(state.teams.teamnames)
 
 const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
@@ -455,8 +475,10 @@ export {
   getRole,
   getCanPerform,
   hasCanPerform,
+  hasChannelInfos,
   getEmailInviteError,
   getTeamMemberCount,
+  isLastOwner,
   userIsActiveInTeamHelper,
   getTeamChannelInfos,
   getChannelInfoFromConvID,

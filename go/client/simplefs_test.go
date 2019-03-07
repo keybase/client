@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 package client
@@ -212,8 +212,20 @@ func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSListFavorites(_ context.Context) (
+	keybase1.FavoritesResult, error) {
+	return keybase1.FavoritesResult{}, nil
+}
+
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetUserQuotaUsage(ctx context.Context) (
+	keybase1.SimpleFSQuotaUsage, error) {
+	return keybase1.SimpleFSQuotaUsage{}, nil
+}
+
+// SimpleFSGetTeamQuotaUsage implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSGetTeamQuotaUsage(
+	_ context.Context, _ keybase1.TeamName) (
 	keybase1.SimpleFSQuotaUsage, error) {
 	return keybase1.SimpleFSQuotaUsage{}, nil
 }
@@ -228,6 +240,11 @@ func (s SimpleFSMock) SimpleFSFolderSyncConfigAndStatus(
 // SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
 	_ context.Context, _ keybase1.SimpleFSSetFolderSyncConfigArg) error {
+	return nil
+}
+
+// SimpleFSPing implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSPing(_ context.Context) error {
 	return nil
 }
 

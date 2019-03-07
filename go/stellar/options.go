@@ -33,9 +33,9 @@ func (o *Options) NetworkOptions(mctx libkb.MetaContext, r remote.Remoter) stell
 
 	options, err := r.NetworkOptions(mctx.Ctx())
 	if err != nil {
-		mctx.CDebugf("error calling NetworkOptions: %s", err)
+		mctx.Debug("error calling NetworkOptions: %s", err)
 	} else {
-		mctx.CDebugf("updating NetworkOptions: %+v", options)
+		mctx.Debug("updating NetworkOptions: %+v", options)
 		o.network = options
 		o.mtime = time.Now()
 	}

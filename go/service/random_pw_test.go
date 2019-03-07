@@ -42,7 +42,7 @@ func TestSignupRandomPWUser(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUserRandomPW("rpw", tc.G)
 	require.NoError(t, err)
 
-	userHandler := NewUserHandler(nil, tc.G, nil)
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
 	ret, err := userHandler.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
 	require.NoError(t, err)
 	require.True(t, ret)
@@ -103,14 +103,14 @@ func TestCanLogoutTimeout(t *testing.T) {
 	}
 	tc.G.API = fakeAPI
 
-	userHandler := NewUserHandler(nil, tc.G, nil)
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
 
 	// It will fail with an error and Frontend would still send user
 	// to passphrase screen.
 	ret2, err := userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
-	require.Contains(t, ret2.Reason, "Cannot check user state")
+	require.Contains(t, ret2.Reason, "We couldn't ensure that your account has a passphrase")
 	require.Equal(t, 1, fakeAPI.callCount)
 
 	// Switch off the timeouting for one call

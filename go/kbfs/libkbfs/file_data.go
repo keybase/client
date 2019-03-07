@@ -487,7 +487,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 			// the hole and shift everything else over.
 			if needFillHole {
 				newDirtyPtrs, newUnrefs, bytes, err :=
-					fd.tree.shiftBlocksToFillHole(ctx, topBlock, rightParents)
+					fd.tree.shiftBlocksToFillHole(ctx, rightParents)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 				}
@@ -1253,19 +1253,6 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 	if len(pfr) == 0 {
 		return nil, fmt.Errorf(
 			"Indirect file %v had no indirect blocks", fd.rootBlockPointer())
-	}
-
-	// If the number of leaf blocks (len(pfr)) is likely to represent
-	// a file greater than 2 GB, abort conflict resolution.  Until
-	// disk caching is ready, we'll have to help people deal with this
-	// on a case-by-case basis.  // TODO: once the disk-backed cache
-	// is ready, make sure we use it here for both the dirty block
-	// cache and blockPutState (via some sort of "ready" block cache),
-	// so we avoid memory explosion in the case of journaling and
-	// multiple devices modifying the same large file or set of files.
-	// And then remove this check.
-	if len(pfr) > (2*1024*1024*1024)/MaxBlockSizeBytesDefault {
-		return nil, FileTooBigForCRError{fd.tree.file}
 	}
 
 	// Append the leaf block to each path, since readyHelper expects it.

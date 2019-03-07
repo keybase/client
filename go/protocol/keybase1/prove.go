@@ -52,10 +52,17 @@ type CheckProofArg struct {
 type ListProofServicesArg struct {
 }
 
+type ValidateUsernameArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Service    string `codec:"service" json:"service"`
+	Remotename string `codec:"remotename" json:"remotename"`
+}
+
 type ProveInterface interface {
 	StartProof(context.Context, StartProofArg) (StartProofResult, error)
 	CheckProof(context.Context, CheckProofArg) (CheckProofStatus, error)
 	ListProofServices(context.Context) ([]string, error)
+	ValidateUsername(context.Context, ValidateUsernameArg) error
 }
 
 func ProveProtocol(i ProveInterface) rpc.Protocol {
@@ -102,6 +109,21 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 					return
 				},
 			},
+			"validateUsername": {
+				MakeArg: func() interface{} {
+					var ret [1]ValidateUsernameArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ValidateUsernameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ValidateUsernameArg)(nil), args)
+						return
+					}
+					err = i.ValidateUsername(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -122,5 +144,10 @@ func (c ProveClient) CheckProof(ctx context.Context, __arg CheckProofArg) (res C
 
 func (c ProveClient) ListProofServices(ctx context.Context) (res []string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.prove.listProofServices", []interface{}{ListProofServicesArg{}}, &res)
+	return
+}
+
+func (c ProveClient) ValidateUsername(ctx context.Context, __arg ValidateUsernameArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.prove.validateUsername", []interface{}{__arg}, nil)
 	return
 }

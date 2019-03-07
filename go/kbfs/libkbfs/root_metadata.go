@@ -230,8 +230,8 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer kbfsmd.MetadataVer, codec kbfscodec.Codec,
 	keyManager KeyManager, merkleGetter merkleRootGetter,
-	teamKeyer teamKeysGetter, mdID kbfsmd.ID, isWriter bool) (
-	*RootMetadata, error) {
+	teamKeyer teamKeysGetter, osg OfflineStatusGetter, mdID kbfsmd.ID,
+	isWriter bool) (*RootMetadata, error) {
 	if mdID == (kbfsmd.ID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
 	}
@@ -266,8 +266,14 @@ func (md *RootMetadata) MakeSuccessor(
 			if err != nil {
 				return nil, err
 			}
+
+			offline := keybase1.OfflineAvailability_NONE
+			if osg != nil {
+				offline = osg.OfflineAvailabilityForID(md.TlfID())
+			}
+
 			_, keyGen, err := teamKeyer.GetTeamTLFCryptKeys(
-				ctx, tid, kbfsmd.UnspecifiedKeyGen)
+				ctx, tid, kbfsmd.UnspecifiedKeyGen, offline)
 			if err != nil {
 				return nil, err
 			}
@@ -295,8 +301,8 @@ func (md *RootMetadata) MakeSuccessor(
 func (md *RootMetadata) MakeSuccessorWithNewHandle(
 	ctx context.Context, newHandle *TlfHandle, latestMDVer kbfsmd.MetadataVer,
 	codec kbfscodec.Codec, keyManager KeyManager, merkleGetter merkleRootGetter,
-	teamKeyer teamKeysGetter, mdID kbfsmd.ID, isWriter bool) (
-	*RootMetadata, error) {
+	teamKeyer teamKeysGetter, osg OfflineStatusGetter, mdID kbfsmd.ID,
+	isWriter bool) (*RootMetadata, error) {
 	mdCopy, err := md.deepCopy(codec)
 	if err != nil {
 		return nil, err
@@ -313,8 +319,8 @@ func (md *RootMetadata) MakeSuccessorWithNewHandle(
 	mdCopy.bareMd.ClearForV4Migration()
 
 	return mdCopy.MakeSuccessor(
-		ctx, latestMDVer, codec, keyManager, merkleGetter, teamKeyer, mdID,
-		isWriter)
+		ctx, latestMDVer, codec, keyManager, merkleGetter, teamKeyer, osg,
+		mdID, isWriter)
 }
 
 // GetTlfHandle returns the TlfHandle for this RootMetadata.
@@ -900,19 +906,19 @@ func (md *RootMetadata) GetHistoricTLFCryptKey(
 // right now.  Implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) IsWriter(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
-	bool, error) {
+	osg OfflineStatusGetter, uid keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	h := md.GetTlfHandle()
-	return isWriterFromHandle(ctx, h, checker, uid, verifyingKey)
+	return IsWriterFromHandle(ctx, h, checker, osg, uid, verifyingKey)
 }
 
 // IsReader checks that the given user is a valid reader of the TLF
 // right now.
 func (md *RootMetadata) IsReader(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-	uid keybase1.UID) (bool, error) {
+	osg OfflineStatusGetter, uid keybase1.UID) (bool, error) {
 	h := md.GetTlfHandle()
-	return isReaderFromHandle(ctx, h, checker, uid)
+	return isReaderFromHandle(ctx, h, checker, osg, uid)
 }
 
 // A ReadOnlyRootMetadata is a thin wrapper around a

@@ -17,10 +17,10 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
@@ -911,8 +911,9 @@ type FolderSyncEncryptedPartialPaths struct {
 // FolderSyncConfig is the on-disk representation for a TLF sync
 // config.
 type FolderSyncConfig struct {
-	Mode  keybase1.FolderSyncMode         `codec:"mode" json:"mode"`
-	Paths FolderSyncEncryptedPartialPaths `codec:"paths" json:"paths"`
+	Mode    keybase1.FolderSyncMode         `codec:"mode" json:"mode"`
+	Paths   FolderSyncEncryptedPartialPaths `codec:"paths" json:"paths"`
+	TlfPath string                          `codec:"tlfpath" json:"tlfpath"`
 }
 
 type syncPathList struct {

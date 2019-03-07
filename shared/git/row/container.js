@@ -36,7 +36,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(
       RouteTreeGen.createNavigateAppend({
         parentPath: isMobile ? [settingsTab, settingsGitTab] : [gitTab],
-        path: [{props: {repoID, selected, teamname}, selected: 'selectChannel'}],
+        path: [{props: {repoID, selected, teamname}, selected: 'gitSelectChannel'}],
       })
     ),
   _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
@@ -70,11 +70,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     lastEditUser: git.lastEditUser,
     lastEditUserFollowing: stateProps.lastEditUserFollowing,
     name: git.name,
-    onBrowseGitRepo: () => dispatchProps._onBrowseGitRepo(
-      FsTypes.stringToPath(
-        git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
-      )
-    ),
+    onBrowseGitRepo: () =>
+      dispatchProps._onBrowseGitRepo(
+        FsTypes.stringToPath(
+          git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
+        )
+      ),
     onClickDevice: () => {
       git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
     },

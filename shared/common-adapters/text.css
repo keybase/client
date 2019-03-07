@@ -179,7 +179,7 @@
 
 .text_BodySmall {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -189,7 +189,7 @@
 
 .text_BodySmallBold {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

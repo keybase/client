@@ -2,6 +2,7 @@
 import globalColors from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
+import type {Background} from '../common-adapters/text'
 
 /* eslint-disable sort-keys */
 export const globalMargins = {
@@ -25,6 +26,19 @@ export const backgroundModeToColor = {
   Normal: globalColors.white,
   Success: globalColors.green,
   Terminal: globalColors.darkBlue3,
+}
+
+export const backgroundModeToTextColor = (backgroundMode: Background): $Values<typeof globalColors> => {
+  switch (backgroundMode) {
+    case 'Information':
+      return globalColors.brown_75
+    case 'Normal':
+      return globalColors.black
+    case 'Terminal':
+      return globalColors.blue3
+    default:
+      return globalColors.white
+  }
 }
 
 export const util = ({flexCommon}: {flexCommon?: ?Object}) => ({
@@ -64,8 +78,8 @@ export const platformStyles = (options: {|
 /* eslint-disable sort-keys */
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
   paddingTop: top,
-  paddingRight: right || top,
-  paddingBottom: bottom || top,
-  paddingLeft: left || right || top,
+  paddingRight: right ?? top,
+  paddingBottom: bottom ?? top,
+  paddingLeft: left ?? right ?? top,
 })
 /* eslint-enable sort-keys */

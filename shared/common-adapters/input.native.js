@@ -364,6 +364,7 @@ class Input extends Component<Props, State> {
         >
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
+        {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!this.props.small && (
           <Text
             center={true}

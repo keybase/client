@@ -72,7 +72,12 @@ protocol user {
     Load a user + device keys from the server.
     */
   UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, KID pollForKID);
-  UserPlusKeysV2AllIncarnations loadUserPlusKeysV2(int sessionID, UID uid, KID pollForKID);
+  UserPlusKeysV2AllIncarnations loadUserPlusKeysV2(
+    int sessionID,
+    UID uid,
+    KID pollForKID,
+    OfflineAvailability oa
+  );
 
   /**
     Load public keys for a user.
@@ -126,6 +131,7 @@ protocol user {
   record InterestingPerson {
     UID uid;
     string username;
+    string fullname;
   }
   array<InterestingPerson> interestingPeople(int maxUsers);
 
@@ -185,7 +191,8 @@ protocol user {
 
   record CanLogoutRes {
     boolean canLogout;
-    string reason;
+    string reason; // CLI prints this string.
+    boolean setPassphrase; // GUI is driven by this boolean.
   }
   CanLogoutRes canLogout(int sessionID);
 }

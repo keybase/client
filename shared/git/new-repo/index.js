@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
 
 type Props = {
   error: ?Error,
@@ -125,7 +126,7 @@ class NewRepo extends React.Component<Props, State> {
                 padding: Styles.globalMargins.tiny,
               }}
             >
-              <Kb.Text type="Body" backgroundMode="Terminal">
+              <Kb.Text type="Body" negative={true}>
                 {this.props.error.message}
               </Kb.Text>
             </Kb.Box>
@@ -201,4 +202,4 @@ const _addIconStyle = {
   marginBottom: 27,
 }
 
-export default NewRepo
+export default (flags.useNewRouter ? Kb.HeaderOrPopup(NewRepo) : NewRepo)

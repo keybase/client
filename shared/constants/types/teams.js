@@ -103,7 +103,10 @@ export type _EmailInviteError = {
 }
 export type EmailInviteError = I.RecordOf<_EmailInviteError>
 
+export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
+
 export type _State = {
+  addUserToTeamsState: AddUserToTeamsState,
   addUserToTeamsResults: string,
   channelCreationError: string,
   emailInviteError: EmailInviteError,

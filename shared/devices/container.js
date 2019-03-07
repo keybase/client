@@ -19,7 +19,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   loadDevices: () => dispatch(DevicesGen.createLoad()),
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) =>
-    dispatch(navigateAppend([{props: {highlight}, selected: 'addDevice'}])),
+    dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}])),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 

@@ -34,4 +34,6 @@ Rename a subteam:
 Leave a team:
     {"method": "leave-team", "params": {"options": {"team": "phoenix.humans", "permanent": true}}}
 
+List requests to join a team:
+    {"method": "list-requests", "params": {"options": {"team": "phoenix"}}}
 `

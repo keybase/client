@@ -1,6 +1,7 @@
 // @flow
 import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as EngineGen from '../engine-gen-gen'
 import * as GregorGen from '../gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
@@ -214,56 +215,56 @@ function* setupReachabilityWatcher() {
   }
 }
 
-const setupEngineListeners = () => {
-  getEngine().setCustomResponseIncomingCallMap({
-    'keybase.1.logsend.prepareLogsend': (_, response) => {
-      dumpLogs().then(() => {
-        response && response.result()
-      })
-    },
-  })
-  getEngine().setIncomingCallMap({
-    'keybase.1.NotifyApp.exit': () => {
-      console.log('App exit requested')
-      SafeElectron.getApp().exit(0)
-    },
-    'keybase.1.NotifyFS.FSActivity': ({notification}) =>
-      Saga.callUntyped(function*() {
-        const state = yield* Saga.selectState()
-        kbfsNotification(notification, NotifyPopup, state)
-      }),
-    'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
-      RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-        console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-      })
-    },
-    'keybase.1.NotifyService.shutdown': request => {
-      if (isWindows && request.code !== RPCTypes.ctlExitCode.restart) {
-        console.log('Quitting due to service shutdown with code: ', request.code)
-        // Quit just the app, not the service
-        SafeElectron.getApp().quit()
-      }
-    },
-    'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
-      const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-      NotifyPopup('Client out of date!', {body}, 60 * 60)
-      // This is from the API server. Consider notifications from API server
-      // always critical.
-      return Saga.put(ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg}))
-    },
-  })
+const onExit = () => {
+  console.log('App exit requested')
+  SafeElectron.getApp().exit(0)
 }
 
-function* loadStartupDetails() {
-  yield Saga.put(
-    ConfigGen.createSetStartupDetails({
-      startupConversation: null,
-      startupFollowUser: '',
-      startupLink: '',
-      startupTab: null,
-      startupWasFromPush: false,
-    })
-  )
+const onFSActivity = (state, action) => {
+  kbfsNotification(action.payload.params.notification, NotifyPopup, state)
+}
+
+const onPgpgKeySecret = () =>
+  RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+    console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+  })
+
+const onShutdown = (_, action) => {
+  const {code} = action.payload.params
+  if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
+    console.log('Quitting due to service shutdown with code: ', code)
+    // Quit just the app, not the service
+    SafeElectron.getApp().quit()
+  }
+}
+
+const onConnected = () => {
+  // Introduce ourselves to the service
+  RPCTypes.configHelloIAmRpcPromise({
+    details: {
+      argv: process.argv,
+      clientType: RPCTypes.commonClientType.guiMain,
+      desc: 'Main Renderer',
+      pid: process.pid,
+      version: __VERSION__, // eslint-disable-line no-undef
+    },
+  }).catch(_ => {})
+}
+
+const onOutOfDate = (_, action) => {
+  const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
+  const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+  NotifyPopup('Client out of date!', {body}, 60 * 60)
+  // This is from the API server. Consider notifications from API server
+  // always critical.
+  return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
+}
+
+const prepareLogSend = (_, action) => {
+  const response = action.payload.response
+  dumpLogs().then(() => {
+    response && response.result()
+  })
 }
 
 const copyToClipboard = (_, action) => {
@@ -317,6 +318,23 @@ const updateNow = () =>
     ConfigGen.createCheckForUpdate()
   )
 
+function* startPowerMonitor() {
+  const channel = Saga.eventChannel(emitter => {
+    const pm = SafeElectron.getPowerMonitor()
+    pm.on('suspend', () => emitter('suspend'))
+    pm.on('resume', () => emitter('resume'))
+    pm.on('shutdown', () => emitter('shutdown'))
+    pm.on('lock-screen', () => emitter('lock-screen'))
+    pm.on('unlock-screen', () => emitter('unlock-screen'))
+    return () => {}
+  }, Saga.buffers.expanding(1))
+  while (true) {
+    const type = yield Saga.take(channel)
+    logger.info('Got power change: ', type)
+    // RPCTypes.configSomethingSomethingTODOCORE()
+  }
+}
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
     ConfigGen.setOpenAtLogin,
@@ -328,18 +346,47 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<ConfigGen.ShowMainPayload>(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction<ConfigGen.DumpLogsPayload>(ConfigGen.dumpLogs, dumpLogs)
-  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupReachabilityWatcher
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
+    EngineGen.keybase1NotifyFSFSActivity,
+    onFSActivity
   )
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload>(
+    EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile,
+    onPgpgKeySecret
   )
-  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    startOutOfDateCheckLoop
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceShutdownPayload>(
+    EngineGen.keybase1NotifyServiceShutdown,
+    onShutdown
   )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionClientOutOfDatePayload>(
+    EngineGen.keybase1NotifySessionClientOutOfDate,
+    onOutOfDate
+  )
+  getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
+  yield* Saga.chainAction<EngineGen.Keybase1LogsendPrepareLogsendPayload>(
+    EngineGen.keybase1LogsendPrepareLogsend,
+    prepareLogSend
+  )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
+    EngineGen.keybase1NotifyFSFSActivity,
+    onFSActivity
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload>(
+    EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile,
+    onPgpgKeySecret
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceShutdownPayload>(
+    EngineGen.keybase1NotifyServiceShutdown,
+    onShutdown
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionClientOutOfDatePayload>(
+    EngineGen.keybase1NotifySessionClientOutOfDate,
+    onOutOfDate
+  )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)
@@ -355,6 +402,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
   yield Saga.spawn(initializeAppSettingsState)
-  // Start this immediately
-  yield Saga.spawn(loadStartupDetails)
+  yield Saga.spawn(setupReachabilityWatcher)
+  yield Saga.spawn(startOutOfDateCheckLoop)
+  yield Saga.spawn(startPowerMonitor)
 }

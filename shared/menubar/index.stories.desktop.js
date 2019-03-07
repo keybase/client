@@ -10,12 +10,12 @@ import {FileUpdate} from './files.desktop'
 
 const props = {
   badgeInfo: {
-    'tabs:chatTab': 0,
-    'tabs:folderTab': 0,
-    'tabs:fsTab': 0,
-    'tabs:gitTab': 0,
-    'tabs:peopleTab': 0,
-    'tabs:teamsTab': 0,
+    'tabs.chatTab': 0,
+    'tabs.folderTab': 0,
+    'tabs.fsTab': 0,
+    'tabs.gitTab': 0,
+    'tabs.peopleTab': 0,
+    'tabs.teamsTab': 0,
   },
   config: {
     avatars: {},
@@ -29,6 +29,8 @@ const props = {
   fileName: null,
   files: 0,
   folderProps: null,
+  kbfsDaemonConnected: true,
+  kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),
@@ -36,7 +38,7 @@ const props = {
   onSelectConversation: () => {},
   openApp: Storybook.action('openApp'),
   quit: Storybook.action('quit'),
-  refresh: Storybook.action('refresh'),
+  refreshUserFileEdits: Storybook.action('refreshUserFileEdits'),
   showBug: Storybook.action('showBug'),
   showHelp: Storybook.action('showHelp'),
   showInFinder: Storybook.action('showInFinder'),
@@ -71,7 +73,7 @@ const load = () => {
         {...props}
         badgeInfo={{
           ...props.badgeInfo,
-          'tabs:fsTab': 2,
+          'tabs.fsTab': 2,
         }}
       />
     ))
@@ -80,7 +82,7 @@ const load = () => {
         {...props}
         badgeInfo={{
           ...props.badgeInfo,
-          'tabs:peopleTab': 3,
+          'tabs.peopleTab': 3,
         }}
       />
     ))
@@ -89,7 +91,7 @@ const load = () => {
         {...props}
         badgeInfo={{
           ...props.badgeInfo,
-          'tabs:chatTab': 6,
+          'tabs.chatTab': 6,
         }}
       />
     ))
@@ -136,6 +138,15 @@ const load = () => {
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/poo')}
           name="poo"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={false}
+        />
+        <FileUpdate
+          path={Types.stringToPath(
+            '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
+          )}
+          name="poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={false}

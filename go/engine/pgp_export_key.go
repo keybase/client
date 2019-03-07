@@ -231,7 +231,7 @@ func (e *PGPKeyExportEngine) loadMe(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyExportEngine) Run(m libkb.MetaContext) (err error) {
-	defer m.CTrace("PGPKeyExportEngine::Run", func() error { return err })()
+	defer m.Trace("PGPKeyExportEngine::Run", func() error { return err })()
 
 	if e.qtype == unset {
 		return fmt.Errorf("PGPKeyExportEngine: query type not set")

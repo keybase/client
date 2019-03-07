@@ -24,6 +24,8 @@ type CommonProps = {|
   onRequestScrollDown: () => void,
   onRequestScrollUp: () => void,
   onSubmit: (text: string) => void,
+  showCommandMarkdown: boolean,
+  showGiphySearch: boolean,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
   editText: string,

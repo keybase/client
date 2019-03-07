@@ -1179,46 +1179,47 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli
 
 func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cli gregor1.IncomingInterface,
 	item gregor.Item) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
 
-	h.G().Log.Debug("handleShowTrackerPopupDismiss: %+v", item)
+	mctx.Debug("handleShowTrackerPopupDismiss: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
 	}
 	body, err := jsonw.Unmarshal(item.Body().Bytes())
 	if err != nil {
-		h.G().Log.Debug("body failed to unmarshal", err)
+		mctx.Debug("body failed to unmarshal", err)
 		return err
 	}
 	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
-		h.G().Log.Debug("failed to extract uid", err)
+		mctx.Debug("failed to extract uid", err)
 		return err
 	}
 	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		h.G().Log.Debug("failed to convert UID from string", err)
+		mctx.Debug("failed to convert UID from string", err)
 		return err
 	}
 	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(ctx, h.G(), uid))
 	if err != nil {
-		h.G().Log.Debug("failed to load user from UID", err)
+		mctx.Debug("failed to load user from UID", err)
 		return err
 	}
 
 	identifyUI, err := h.G().UIRouter.GetIdentifyUI()
 	if err != nil {
-		h.G().Log.Debug("failed to get IdentifyUI", err)
+		mctx.Debug("failed to get IdentifyUI", err)
 		return err
 	}
 	if identifyUI == nil {
-		h.G().Log.Debug("got nil IdentifyUI")
+		mctx.Debug("got nil IdentifyUI")
 		return errors.New("got nil IdentifyUI")
 	}
 
 	reason := keybase1.DismissReason{
 		Type: keybase1.DismissReasonType_HANDLED_ELSEWHERE,
 	}
-	identifyUI.Dismiss(user.GetName(), reason)
+	identifyUI.Dismiss(mctx, user.GetName(), reason)
 
 	return nil
 }

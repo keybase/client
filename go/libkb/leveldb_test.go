@@ -12,6 +12,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 type teardowner struct {
@@ -94,35 +96,68 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "simple", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-simple", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				key, err := testLevelDbPut(db)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
-				if err = db.Delete(key); err != nil {
-					t.Fatal(err)
-				}
+				err = db.Delete(key)
+				require.NoError(t, err)
+
 				_, found, err := db.Get(key)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if found {
-					t.Fatalf("delete did not delete object")
-				}
+				require.NoError(t, err)
+				require.False(t, found)
+			},
+		},
+		{
+			name: "cleaner", testBody: func(t *testing.T) {
+				tc := SetupTest(t, "LevelDb-cleaner", 0)
+				defer tc.Cleanup()
+				db, err := createTempLevelDbForTest(&tc, &td)
+				require.NoError(t, err)
+
+				key := DbKey{Key: "test-key", Typ: 0}
+				v, err := RandBytes(1024 * 1024)
+				require.NoError(t, err)
+				err = db.Put(key, nil, v)
+				require.NoError(t, err)
+
+				// this key will not be deleted since it is in the permanent
+				// table.
+				require.True(t, IsPermDbKey(DBDiskLRUEntries))
+				permKey := DbKey{Key: "test-key", Typ: DBDiskLRUEntries}
+				err = db.Put(permKey, nil, v)
+				require.NoError(t, err)
+
+				// cleaner will not clean the key since it was recently used
+				err = db.cleaner.clean(true /* force */)
+				require.NoError(t, err)
+				_, found, err := db.Get(key)
+				require.NoError(t, err)
+				require.True(t, found)
+				_, found, err = db.Get(permKey)
+				require.NoError(t, err)
+				require.True(t, found)
+
+				db.cleaner.clearCache()
+				err = db.cleaner.clean(true /* force */)
+				require.NoError(t, err)
+				_, found, err = db.Get(key)
+				require.NoError(t, err)
+				require.False(t, found)
+				_, found, err = db.Get(permKey)
+				require.NoError(t, err)
+				require.True(t, found)
 			},
 		},
 		{
 			name: "concurrent", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-concurrent", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				var wg sync.WaitGroup
 				wg.Add(2)
@@ -133,7 +168,7 @@ func TestLevelDb(t *testing.T) {
 					defer wg.Done()
 					select {
 					case <-time.After(8 * time.Second):
-						t.Fatalf("doWhileOpenAndNukeIfCorrupted is not concurrent")
+						t.Error("doWhileOpenAndNukeIfCorrupted is not concurrent")
 					case <-ch:
 					}
 					return nil
@@ -142,7 +177,7 @@ func TestLevelDb(t *testing.T) {
 					defer wg.Done()
 					select {
 					case <-time.After(8 * time.Second):
-						t.Fatalf("doWhileOpenAndNukeIfCorrupted does not support concurrent ops")
+						t.Error("doWhileOpenAndNukeIfCorrupted does not support concurrent ops")
 					case ch <- struct{}{}:
 					}
 					return nil
@@ -153,70 +188,56 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "nuke", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-nuke", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				key, err := testLevelDbPut(db)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
-				if _, err := db.Nuke(); err != nil {
-					t.Fatal(err)
-				}
-				if _, found, err := db.Get(key); err != nil {
-					t.Fatal(err)
-				} else if found {
-					t.Fatalf("nuking failed")
-				}
+				_, err = db.Nuke()
+				require.NoError(t, err)
+
+				_, found, err := db.Get(key)
+				require.NoError(t, err)
+				require.False(t, found)
 
 				// make sure db still works after nuking
-				if _, err = testLevelDbPut(db); err != nil {
-					t.Fatal(err)
-				}
+				_, err = testLevelDbPut(db)
+				require.NoError(t, err)
 			},
 		},
 		{
 			name: "use-after-close", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-use-after-close", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				// not closed yet; should be good
-				if _, err = testLevelDbPut(db); err != nil {
-					t.Fatal(err)
-				}
+				_, err = testLevelDbPut(db)
+				require.NoError(t, err)
 
-				if err = db.Close(); err != nil {
-					t.Fatal(err)
-				}
+				err = db.Close()
+				require.NoError(t, err)
 
-				if _, err = testLevelDbPut(db); err == nil {
-					t.Fatalf("use after close did not error")
-				}
+				_, err = testLevelDbPut(db)
+				require.Error(t, err)
 
-				if err = db.ForceOpen(); err != nil {
-					t.Fatalf("ForceOpen after close did not work")
-				}
+				err = db.ForceOpen()
+				require.NoError(t, err)
 			},
 		},
 		{
 			name: "transactions", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-transactions", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				// have something in the DB
 				key, err := testLevelDbPut(db)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				var wg sync.WaitGroup
 				wg.Add(2)
@@ -230,18 +251,17 @@ func TestLevelDb(t *testing.T) {
 
 					tr, err := db.OpenTransaction()
 					if err != nil {
-						fmt.Println(err)
-						t.Fatal(err)
+						t.Error(err)
 					}
 
 					select {
 					case <-time.After(8 * time.Second):
-						t.Fatalf("timeout")
+						t.Errorf("timeout")
 					case chOpen <- struct{}{}:
 					}
 
 					if err = tr.Put(key, nil, []byte{41}); err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 
 					// We do some IO here to give Go's runtime a chance to schedule
@@ -252,7 +272,7 @@ func TestLevelDb(t *testing.T) {
 					//		that does not block until this transaction finishes, the broken
 					//		OpenTransaction() would have has returned
 					if err = doSomeIO(); err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 
 					// we send to a buffered channel right before Commit() to make sure
@@ -260,7 +280,7 @@ func TestLevelDb(t *testing.T) {
 					chCommitted <- struct{}{}
 
 					if err = tr.Commit(); err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 
 				}()
@@ -271,7 +291,7 @@ func TestLevelDb(t *testing.T) {
 					// wait until the other transaction has opened
 					select {
 					case <-time.After(8 * time.Second):
-						t.Fatalf("timeout")
+						t.Error("timeout")
 					case <-chOpen:
 					}
 
@@ -280,72 +300,57 @@ func TestLevelDb(t *testing.T) {
 					case <-chCommitted:
 						// fine
 					default:
-						t.Fatalf("second transaction did not block until first one finished")
+						t.Error("second transaction did not block until first one finished")
 					}
 					if err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 
 					d, found, err := tr.Get(key)
 					if err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 					if !found {
-						t.Fatalf("key %v is not found", found)
+						t.Errorf("key %v is not found", found)
 					}
 
 					if err = tr.Put(key, nil, []byte{d[0] + 1}); err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 					if err = tr.Commit(); err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 				}()
 
 				wg.Wait()
 
 				data, found, err := db.Get(key)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if !found {
-					t.Fatalf("key %v is not found", found)
-				}
-				if len(data) != 1 || data[0] != 42 {
-					t.Fatalf("incorrect data after transaction. expected 42, got %d", data[0])
-				}
+				require.NoError(t, err)
+				require.True(t, found)
+				require.Len(t, data, 1)
+				require.EqualValues(t, 42, data[0])
 			},
 		},
 		{
 			name: "transaction-discard", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-transaction-discard", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				// have something in the DB
 				key, err := testLevelDbPut(db)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 
 				tr, err := db.OpenTransaction()
-				if err != nil {
-					t.Fatal(err)
-				}
-				if err = tr.Delete(key); err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
+				err = tr.Delete(key)
+				require.NoError(t, err)
 				tr.Discard()
 
 				_, found, err := db.Get(key)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if !found {
-					t.Fatalf("discarded transaction was committed?")
-				}
+				require.NoError(t, err)
+				require.True(t, found)
 			},
 		},
 	}

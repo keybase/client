@@ -353,8 +353,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	}
 
 	// Ignore error
-	err = client.WarnOutdatedKBFS(g, cl)
-	if err != nil {
+	if err = client.WarnOutdatedKBFS(g, cl); err != nil {
 		g.Log.Debug("| Could not do kbfs versioncheck: %s", err)
 	}
 

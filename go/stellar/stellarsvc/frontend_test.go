@@ -604,7 +604,7 @@ func TestAcceptDisclaimer(t *testing.T) {
 	mctx := tcs[0].MetaContext()
 	_, err = stellar.CreateWallet(mctx)
 	require.Error(t, err)
-	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
+	require.True(t, libkb.IsAppStatusCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
 	accepted, err = tcs[0].Srv.HasAcceptedDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
@@ -923,14 +923,14 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,
-		AccountID: &accountIDSender,
+		AccountID: accountIDSender,
 	})
 	require.NoError(t, err)
 	checkPaymentDetails(details, true)
 
 	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        recipPayments[0].Payment.Id,
-		AccountID: &accountIDRecip,
+		AccountID: accountIDRecip,
 	})
 	require.NoError(t, err)
 	checkPaymentDetails(details, false)
@@ -1077,8 +1077,10 @@ func TestSendToSelf(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID1, "test")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID2, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID1, "test")
+	require.NoError(t, err)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), accountID2, "test")
+	require.NoError(t, err)
 
 	page, err := tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountID1})
 	require.NoError(t, err)
@@ -1126,7 +1128,7 @@ func TestSendToSelf(t *testing.T) {
 
 	pd, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[2].Payment.Id,
-		AccountID: &accountID1,
+		AccountID: accountID1,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "100 XLM", pd.AmountDescription)
@@ -1143,7 +1145,7 @@ func TestSendToSelf(t *testing.T) {
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[1].Payment.Id,
-		AccountID: &accountID1,
+		AccountID: accountID1,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "200 XLM", pd.AmountDescription)
@@ -1160,7 +1162,7 @@ func TestSendToSelf(t *testing.T) {
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[0].Payment.Id,
-		AccountID: &accountID2,
+		AccountID: accountID2,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "300 XLM", pd.AmountDescription)
@@ -1212,12 +1214,11 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	// Imagine this is the receiver reading chat.
 	paymentID := senderMsgs[0].Body.Sendpayment().PaymentID
 
-	detailsRes, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
-		// Chat uses nil AccountID because it does not know it. It
-		// derives delta and formatting (whether it's a debit or
+	detailsRes, err := tcs[0].Srv.GetGenericPaymentDetailsLocal(context.Background(), stellar1.GetGenericPaymentDetailsLocalArg{
+		// Chat/Loader does not know account IDs, just payment IDs.
+		// It derives delta and formatting (whether it's a debit or
 		// credit) by checking chat message sender and receiver.
-		AccountID: nil,
-		Id:        paymentID,
+		Id: paymentID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Delta)
@@ -1435,8 +1436,10 @@ func TestBuildPaymentLocal(t *testing.T) {
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "20")
 	tcs[0].Backend.Gift(senderSecondaryAccountID, "30")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderSecondaryAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderSecondaryAccountID, "test")
+	require.NoError(t, err)
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From:   senderAccountID,
@@ -1630,7 +1633,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	tcs[0].Backend.Gift(senderAccountID, "30")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("sending in amount composed in USD")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1814,7 +1818,8 @@ func testBuildPaymentLocalBidHappy(t *testing.T, bypassReview bool) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
 	require.NoError(t, err)
@@ -2036,7 +2041,8 @@ func TestReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("u1 proves rooter")
 	_, sigID := proveRooter(tcs[1])
@@ -2098,7 +2104,8 @@ func TestKeybaseFederationReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("u1 proves rooter")
 	_, sigID := proveRooter(tcs[1])
@@ -2157,7 +2164,8 @@ func TestReviewPaymentLocalSBS(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	t.Logf("u0 starts a payment")
 	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
@@ -2196,7 +2204,8 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
 
 	send := func(bid stellar1.BuildPaymentID, amount string) (errorString string) {
 		_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
@@ -2422,7 +2431,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 	fakeAccts[0].AdjustAssetBalance(0, keys)
 	fakeAccts[0].AdjustAssetBalance(0, astro)
 
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	require.NoError(t, err)
 
 	// New asset choices should be visible
 	choices, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
@@ -2459,7 +2469,8 @@ func TestGetSendAssetChoices(t *testing.T) {
 	// Open AstroDollars for tcs[1]
 	fakeAccts2[0].AdjustAssetBalance(0, astro)
 
-	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	require.NoError(t, err)
 
 	choices2, err = tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
 		From: fakeAccts[0].accountID,

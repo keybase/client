@@ -380,6 +380,7 @@ class Input extends React.PureComponent<Props, State> {
           </Text>
         )}
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
+        {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!!this.props.errorText && !this.props.small && (
           <Text
             center={true}

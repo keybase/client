@@ -53,9 +53,9 @@ class UpdateEmail extends Component<Props, State> {
 
         {!!this.props.onResendConfirmationCode && (
           <Text
-            center={true} style={{marginTop: globalMargins.large}}
+            center={true}
+            style={{marginTop: globalMargins.large}}
             onClick={this.props.onResendConfirmationCode}
-            link={true}
             type="BodyPrimaryLink"
           >
             Resend confirmation code

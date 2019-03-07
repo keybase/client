@@ -1022,7 +1022,12 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	fbm.setReclamationCancel(cancel)
 	defer fbm.cancelReclamation()
 	nextPeriod := fbm.config.Mode().QuotaReclamationPeriod()
-	defer timer.Reset(nextPeriod)
+	defer func() {
+		// `nextPeriod` may be changed by later code in this function,
+		// to speed up the next QR cycle when we couldn't reclaim a
+		// complete set of blocks during this run.
+		timer.Reset(nextPeriod)
+	}()
 	defer fbm.reclamationGroup.Done()
 
 	// Don't set a context deadline.  For users that have written a
@@ -1037,7 +1042,8 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
-	} else if err := isReadableOrError(ctx, fbm.config.KBPKI(), head.ReadOnly()); err != nil {
+	} else if err := isReadableOrError(
+		ctx, fbm.config.KBPKI(), fbm.config, head.ReadOnly()); err != nil {
 		return err
 	} else if head.MergedStatus() != kbfsmd.Merged {
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
@@ -1051,7 +1057,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	isWriter, err := head.IsWriter(
-		ctx, fbm.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbm.config.KBPKI(), fbm.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return err
 	}
@@ -1378,6 +1384,30 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 		// Include unrefs from `gcOp`s here, as a double-check against
 		// archive races (see comment below).
 		ptrs := getUnrefPointersFromMD(rmd, true)
+
+		// Cancel any prefetches for these blocks that might be in
+		// flight, to make sure they don't get put into the cache
+		// after we're done cleaning it.  Ideally we would cancel them
+		// in a particular order (the lowest level ones first, up to
+		// the root), but since we already do one round of
+		// prefetch-canceling as part of applying the MD and updating
+		// the pointers, doing a second round here should be good
+		// enough to catch any weird relationships between the
+		// pointers where one non-yet-canceled prefetch can revive the
+		// prefetch of an already-canceled child block.
+		for _, ptr := range ptrs {
+			fbm.config.BlockOps().Prefetcher().CancelPrefetch(ptr)
+			c, err := fbm.config.BlockOps().Prefetcher().
+				WaitChannelForBlockPrefetch(ctx, ptr)
+			if err != nil {
+				return err
+			}
+			select {
+			case <-c:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
 
 		var ids []kbfsblock.ID
 		if cacheType == DiskBlockSyncCache {

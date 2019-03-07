@@ -31,6 +31,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   return {
     _canAdminDelete,
     _canDeleteHistory,
+    _isDeleteable: message.isDeleteable,
+    _isEditable: message.isEditable,
     _participantsCount,
     _you: state.config.username,
   }
@@ -43,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
         path: [
           {
             props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-            selected: 'chooseEmoji',
+            selected: 'chatChooseEmoji',
           },
         ],
       })
@@ -65,7 +67,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'deleteHistoryWarning'}],
+        path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
       })
     )
   },
@@ -104,7 +106,8 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = ownProps.message
   const yourMessage = message.author === stateProps._you
-  const isDeleteable = yourMessage || stateProps._canAdminDelete
+  const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
+  const isEditable = stateProps._isEditable && yourMessage
   return {
     attachTo: ownProps.attachTo,
     author: message.author,
@@ -112,6 +115,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
     isDeleteable,
+    isEditable,
     onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onCopy: () => dispatchProps._onCopy(message),
     onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,

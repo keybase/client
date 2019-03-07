@@ -30,7 +30,6 @@ protocol local {
   record MessageText {
     string body;
     array<TextPayment> payments;
-    union { null, FlipGameID } flipGameID; // for flip messages
   }
 
   record MessageConversationMetadata {
@@ -50,6 +49,12 @@ protocol local {
     string headline;
   }
 
+  record MessageFlip {
+    string text;
+    FlipGameID gameID;
+    ConversationID flipConvID;
+  }
+
   enum MessageSystemType {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
@@ -57,7 +62,8 @@ protocol local {
     CREATETEAM_3,
     GITPUSH_4,
     CHANGEAVATAR_5,
-    CHANGERETENTION_6
+    CHANGERETENTION_6,
+    BULKADDTOCONV_7
   }
 
   record MessageSystemAddedToTeam {
@@ -110,6 +116,10 @@ protocol local {
     string user;
   }
 
+  record MessageSystemBulkAddToConv {
+    array<string> usernames;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -118,6 +128,7 @@ protocol local {
     case GITPUSH: MessageSystemGitPush;
     case CHANGEAVATAR: MessageSystemChangeAvatar;
     case CHANGERETENTION: MessageSystemChangeRetention;
+    case BULKADDTOCONV: MessageSystemBulkAddToConv;
   }
 
   record MessageDeleteHistory {
@@ -181,6 +192,7 @@ protocol local {
     case SENDPAYMENT: MessageSendPayment;
     case REQUESTPAYMENT: MessageRequestPayment;
     case UNFURL: MessageUnfurl;
+    case FLIP: MessageFlip;
   }
 
   enum OutboxStateType {
@@ -466,6 +478,7 @@ protocol local {
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
+    LocalConversationVers localVersion;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<ConversationLocalParticipant> participants;
@@ -983,4 +996,6 @@ protocol local {
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
 
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
+
+  void bulkAddToConv(ConversationID convID, array<string> usernames);
 }

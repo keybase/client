@@ -22,6 +22,7 @@ type Props = {
 
 const Meta = (props: Props) => (
   <Box
+    pointerEvents="none"
     style={collapseStyles([
       styles.container,
       props.backgroundColor && {backgroundColor: props.backgroundColor},

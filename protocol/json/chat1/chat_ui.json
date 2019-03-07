@@ -144,6 +144,10 @@
           "name": "version"
         },
         {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
+        },
+        {
           "type": [
             null,
             "RetentionPolicy"
@@ -330,6 +334,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
         },
         {
           "type": "MessageID",
@@ -754,6 +762,14 @@
             "string"
           ],
           "name": "flipGameID"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleteable"
+        },
+        {
+          "type": "boolean",
+          "name": "isEditable"
         }
       ]
     },
@@ -1019,6 +1035,195 @@
     },
     {
       "type": "record",
+      "name": "UICoinFlipErrorParticipant",
+      "fields": [
+        {
+          "type": "string",
+          "name": "user"
+        },
+        {
+          "type": "string",
+          "name": "device"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipAbsenteeError",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UICoinFlipErrorParticipant"
+          },
+          "name": "absentees"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UICoinFlipErrorTyp",
+      "symbols": [
+        "GENERIC_0",
+        "ABSENTEE_1",
+        "TIMEOUT_2",
+        "ABORTED_3",
+        "DUPREG_4",
+        "DUPCOMMITCOMPLETE_5",
+        "DUPREVEAL_6",
+        "COMMITMISMATCH_7"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UICoinFlipError",
+      "switch": {
+        "type": "UICoinFlipErrorTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "ABSENTEE",
+            "def": false
+          },
+          "body": "UICoinFlipAbsenteeError"
+        },
+        {
+          "label": {
+            "name": "TIMEOUT",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "ABORTED",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "DUPREG",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
+        },
+        {
+          "label": {
+            "name": "DUPCOMMITCOMPLETE",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
+        },
+        {
+          "label": {
+            "name": "DUPREVEAL",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
+        },
+        {
+          "label": {
+            "name": "COMMITMISMATCH",
+            "def": false
+          },
+          "body": "UICoinFlipErrorParticipant"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UICoinFlipResultTyp",
+      "symbols": [
+        "NUMBER_0",
+        "SHUFFLE_1",
+        "DECK_2",
+        "HANDS_3",
+        "COIN_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipHand",
+      "fields": [
+        {
+          "type": "string",
+          "name": "target"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "int"
+          },
+          "name": "hand"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UICoinFlipResult",
+      "switch": {
+        "type": "UICoinFlipResultTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "NUMBER",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "SHUFFLE",
+            "def": false
+          },
+          "body": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "label": {
+            "name": "DECK",
+            "def": false
+          },
+          "body": {
+            "type": "array",
+            "items": "int"
+          }
+        },
+        {
+          "label": {
+            "name": "HANDS",
+            "def": false
+          },
+          "body": {
+            "type": "array",
+            "items": "UICoinFlipHand"
+          }
+        },
+        {
+          "label": {
+            "name": "COIN",
+            "def": false
+          },
+          "body": "bool"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UICoinFlipParticipant",
       "fields": [
         {
@@ -1071,11 +1276,50 @@
           "name": "resultText"
         },
         {
+          "type": "string",
+          "name": "commitmentVisualization"
+        },
+        {
+          "type": "string",
+          "name": "revealVisualization"
+        },
+        {
           "type": {
             "type": "array",
             "items": "UICoinFlipParticipant"
           },
           "name": "participants"
+        },
+        {
+          "type": [
+            null,
+            "UICoinFlipError"
+          ],
+          "name": "errorInfo"
+        },
+        {
+          "type": [
+            null,
+            "UICoinFlipResult"
+          ],
+          "name": "resultInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICommandMarkdown",
+      "fields": [
+        {
+          "type": "string",
+          "name": "body"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "title"
         }
       ]
     }
@@ -1298,8 +1542,8 @@
           "type": "int"
         },
         {
-          "name": "message",
-          "type": "string"
+          "name": "error",
+          "type": "keybase1.Status"
         }
       ],
       "response": "boolean"
@@ -1337,6 +1581,23 @@
       ],
       "response": null
     },
+    "chatGiphyToggleResultWindow": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "show",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
     "chatShowManageChannels": {
       "request": [
         {
@@ -1362,6 +1623,26 @@
             "type": "array",
             "items": "UICoinFlipStatus"
           }
+        }
+      ],
+      "response": null
+    },
+    "chatCommandMarkdown": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "md",
+          "type": [
+            null,
+            "UICommandMarkdown"
+          ]
         }
       ],
       "response": null

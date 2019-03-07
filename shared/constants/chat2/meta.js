@@ -12,7 +12,6 @@ import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
-import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {getFullname} from '../users'
 
@@ -68,6 +67,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     channelname,
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
+    inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
@@ -123,8 +123,12 @@ export const updateMeta = (
     // new is older, keep old
     return oldMeta
   } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {
-    // same version, only take data if untrusted -> trusted
-    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') {
+    // same version, take data if untrusted -> trusted
+    // or if localVersion increased
+    if (
+      (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') ||
+      newMeta.inboxLocalVersion > oldMeta.inboxLocalVersion
+    ) {
       // prettier-ignore
       return newMeta.withMutations(nm => {
         // keep immutable stuff to reduce render thrashing
@@ -256,6 +260,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: i.headline,
+    inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
@@ -288,6 +293,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   commands: {},
   conversationIDKey: noConversationIDKey,
   description: '',
+  inboxLocalVersion: -1,
   inboxVersion: -1,
   isMuted: false,
   maxMsgID: -1,
@@ -330,13 +336,31 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   return suggestions
 }
 
-export const getChannelSuggestions = (state: TypedState, teamname: string) =>
-  teamname
-    ? state.chat2.metaMap
-        .filter(v => v.teamname === teamname)
-        .map(v => v.channelname)
-        .toList()
-    : I.List()
+export const getChannelSuggestions = (state: TypedState, teamname: string) => {
+  if (!teamname) {
+    return I.List()
+  }
+  // First try channelinfos (all channels in a team), then try inbox (the
+  // partial list of channels that you have joined).
+  const convs = state.teams.getIn(['teamNameToChannelInfos', teamname])
+  if (convs) {
+    return convs
+      .toIndexedSeq()
+      .toList()
+      .map(conv => conv.channelname)
+  }
+  return state.chat2.metaMap
+    .filter(v => v.teamname === teamname)
+    .map(v => v.channelname)
+    .toList()
+}
+
+export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
+  state.chat2.metaMap.find(
+    m => m.teamname === teamname && m.channelname === channelname,
+    undefined,
+    emptyMeta
+  )
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
@@ -355,7 +379,6 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (
-    flags.walletsEnabled &&
     !sendDisabled &&
     meta.teamType === 'adhoc' &&
     meta.participants.filter(u => u !== state.config.username).size === 1

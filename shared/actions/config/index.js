@@ -5,55 +5,51 @@ import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
 import * as ChatGen from '../chat2-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
+import * as SettingsConstants from '../../constants/settings'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
+import * as Router2 from '../../constants/router2'
 import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
-import {getEngine} from '../../engine'
+import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import flags from '../../util/feature-flags'
 
-const setupEngineListeners = () => {
-  getEngine().actionOnDisconnect('daemonError', () => {
-    logger.flush()
-    return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
-  })
-  getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
+const onLoggedIn = (state, action) => {
+  logger.info('keybase.1.NotifySession.loggedIn')
+  // only send this if we think we're not logged in
+  if (!state.config.loggedIn) {
+    return ConfigGen.createLoggedIn({causedByStartup: false})
+  }
+}
 
-  getEngine().setIncomingCallMap({
-    'keybase.1.NotifySession.loggedIn': ({username}) =>
-      Saga.callUntyped(function*() {
-        logger.info('keybase.1.NotifySession.loggedIn')
-        const state = yield* Saga.selectState()
-        // only send this if we think we're not logged in
-        if (!state.config.loggedIn) {
-          yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
-        }
-      }),
-    'keybase.1.NotifySession.loggedOut': () =>
-      Saga.callUntyped(function*() {
-        logger.info('keybase.1.NotifySession.loggedOut')
-        const state = yield* Saga.selectState()
-        // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-        if (state.config.loggedIn) {
-          yield Saga.put(ConfigGen.createLoggedOut())
-        }
-      }),
-    'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
-      Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
-    'keybase.1.logUi.log': param => {
-      log(param)
-    },
-  })
+const onLoggedOut = (state, action) => {
+  logger.info('keybase.1.NotifySession.loggedOut')
+  // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+  if (state.config.loggedIn) {
+    return ConfigGen.createLoggedOut()
+  }
+}
+
+const onLog = (_, action) => {
+  log(action.payload.params)
+}
+
+const onConnected = () => ConfigGen.createStartHandshake()
+const onDisconnected = () => {
+  logger.flush()
+  return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
 function* loadDaemonBootstrapStatus(state, action) {
@@ -111,9 +107,8 @@ function* loadDaemonBootstrapStatus(state, action) {
       )
       break
     case GregorGen.updateReachable:
-      if (!action.payload.reachable)
-        break
-      // else fall through
+      if (!action.payload.reachable) break
+    // else fall through
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
       yield* makeCall()
@@ -121,15 +116,6 @@ function* loadDaemonBootstrapStatus(state, action) {
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
-}
-
-let dispatchSetupEngineListenersOnce = false
-const dispatchSetupEngineListeners = () => {
-  if (dispatchSetupEngineListenersOnce) {
-    return
-  }
-  dispatchSetupEngineListenersOnce = true
-  return ConfigGen.createSetupEngineListeners()
 }
 
 let _firstTimeConnecting = true
@@ -250,6 +236,30 @@ const switchRouteDef = (state, action) => {
 
 const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
 
+// Figure out whether we can log out using CanLogout, if so,
+// startLogoutHandshake, else do what's needed - right now only
+// redirect to set passphrase screen.
+const startLogoutHandshakeIfAllowed = state =>
+  RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
+    if (canLogoutRes.canLogout) {
+      return startLogoutHandshake(state)
+    } else {
+      const heading = canLogoutRes.reason
+      if (isMobile) {
+        return RouteTreeGen.createNavigateTo({
+          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passphraseTab}],
+        })
+      } else {
+        return [
+          RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab]}),
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {heading}, selected: 'changePassphrase'}],
+          }),
+        ]
+      }
+    }
+  })
+
 const startLogoutHandshake = state =>
   ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
 
@@ -262,6 +272,23 @@ function* maybeDoneWithLogoutHandshake(state) {
 }
 
 let routeToInitialScreenOnce = false
+
+const routeToInitialScreen2 = state => {
+  if (!flags.useNewRouter) {
+    return
+  }
+
+  // bail if we don't have a navigator and loaded
+  if (!Router2._getNavigator()) {
+    return
+  }
+  if (!state.config.startupDetailsLoaded) {
+    return
+  }
+
+  return routeToInitialScreen(state)
+}
+
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = state => {
   if (routeToInitialScreenOnce) {
@@ -373,6 +400,7 @@ const updateServerConfig = (state: TypedState) =>
 
       const serverConfig = {
         chatIndexProfilingEnabled: !!features.admin,
+        dbCleanEnabled: !!features.admin,
         printRPCStats: !!features.admin,
       }
 
@@ -383,9 +411,46 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
+const setNavigator = (state, action) => {
+  const navigator = action.payload.navigator
+  Router2._setNavigator(navigator)
+}
+
+const newNavigation = (_, action) => {
+  const n = Router2._getNavigator()
+  n && n.dispatchOldAction(action)
+}
+
+function* criticalOutOfDateCheck() {
+  // check every hour
+  while (true) {
+    try {
+      const s = yield* Saga.callPromise(RPCTypes.configGetUpdateInfo2RpcPromise, {})
+      let status = 'ok'
+      let message = ''
+      switch (s.status) {
+        case RPCTypes.configUpdateInfoStatus2.ok:
+          break
+        case RPCTypes.configUpdateInfoStatus2.suggested:
+          status = 'suggested'
+          message = s.suggested?.message
+          break
+        case RPCTypes.configUpdateInfoStatus2.critical:
+          status = 'critical'
+          message = s.critical?.message
+          break
+        default:
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s.status)
+      }
+      yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
+    } catch (e) {
+      logger.error("Can't call critical check", e)
+    }
+    yield Saga.delay(3600 * 1000) // 1 hr
+  }
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
-  // Tell all other sagas to register for incoming engine calls
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(ConfigGen.installerRan, dispatchSetupEngineListeners)
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
   yield* Saga.chainAction<ConfigGen.RestartHandshakePayload | ConfigGen.StartHandshakePayload>(
@@ -399,8 +464,14 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
   // Re-get info about our account if you log in/out/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
-    ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
-  >([ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
+    | ConfigGen.LoggedInPayload
+    | ConfigGen.LoggedOutPayload
+    | ConfigGen.DaemonHandshakePayload
+    | GregorGen.UpdateReachablePayload
+  >(
+    [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake, GregorGen.updateReachable],
+    loadDaemonBootstrapStatus
+  )
   // Load the known accounts if you revoke / handshake / logout
   yield* Saga.chainGenerator<
     DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
@@ -410,11 +481,40 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     [ConfigGen.loggedIn, ConfigGen.loggedOut],
     switchRouteDef
   )
-  // Go to the correct starting screen
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
-    ConfigGen.daemonHandshakeDone,
-    routeToInitialScreen
-  )
+  if (flags.useNewRouter) {
+    // MUST go above routeToInitialScreen2 so we set the nav correctly
+    yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
+    // Go to the correct starting screen
+    yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload>(
+      [ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator],
+      routeToInitialScreen2
+    )
+
+    yield* Saga.chainAction<
+      | RouteTreeGen.NavigateAppendPayload
+      | RouteTreeGen.NavigateToPayload
+      | RouteTreeGen.NavigateUpPayload
+      | RouteTreeGen.SwitchToPayload
+      | RouteTreeGen.SwitchRouteDefPayload
+      | RouteTreeGen.ClearModalsPayload
+    >(
+      [
+        RouteTreeGen.navigateAppend,
+        RouteTreeGen.navigateTo,
+        RouteTreeGen.navigateUp,
+        RouteTreeGen.switchTo,
+        RouteTreeGen.switchRouteDef,
+        RouteTreeGen.clearModals,
+      ],
+      newNavigation
+    )
+  } else {
+    // Go to the correct starting screen
+    yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+      ConfigGen.daemonHandshakeDone,
+      routeToInitialScreen
+    )
+  }
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,
@@ -422,7 +522,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshake)
+  yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakeWaitPayload>(
@@ -436,16 +536,23 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<ConfigGen.SetDeletedSelfPayload>(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionLoggedInPayload>(
+    EngineGen.keybase1NotifySessionLoggedIn,
+    onLoggedIn
   )
-
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionLoggedOutPayload>(
+    EngineGen.keybase1NotifySessionLoggedOut,
+    onLoggedOut
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1LogUiLogPayload>(EngineGen.keybase1LogUiLog, onLog)
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
+  yield* Saga.chainAction<EngineGen.DisconnectedPayload>(EngineGen.disconnected, onDisconnected)
   yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(avatarSaga)
+  yield Saga.spawn(criticalOutOfDateCheck)
 }
 
 export default configSaga

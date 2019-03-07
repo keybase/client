@@ -255,14 +255,16 @@ func (o PaymentSummary) DeepCopy() PaymentSummary {
 }
 
 type PaymentSummaryStellar struct {
-	TxID        TransactionID `codec:"txID" json:"txID"`
-	From        AccountID     `codec:"from" json:"from"`
-	To          AccountID     `codec:"to" json:"to"`
-	Amount      string        `codec:"amount" json:"amount"`
-	Asset       Asset         `codec:"asset" json:"asset"`
-	Ctime       TimeMs        `codec:"ctime" json:"ctime"`
-	CursorToken string        `codec:"cursorToken" json:"cursorToken"`
-	Unread      bool          `codec:"unread" json:"unread"`
+	TxID            TransactionID `codec:"txID" json:"txID"`
+	From            AccountID     `codec:"from" json:"from"`
+	To              AccountID     `codec:"to" json:"to"`
+	Amount          string        `codec:"amount" json:"amount"`
+	Asset           Asset         `codec:"asset" json:"asset"`
+	Ctime           TimeMs        `codec:"ctime" json:"ctime"`
+	CursorToken     string        `codec:"cursorToken" json:"cursorToken"`
+	Unread          bool          `codec:"unread" json:"unread"`
+	IsInflation     bool          `codec:"isInflation" json:"isInflation"`
+	InflationSource *string       `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -275,6 +277,14 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 		Ctime:       o.Ctime.DeepCopy(),
 		CursorToken: o.CursorToken,
 		Unread:      o.Unread,
+		IsInflation: o.IsInflation,
+		InflationSource: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.InflationSource),
 	}
 }
 
@@ -678,22 +688,48 @@ func (o NetworkOptions) DeepCopy() NetworkOptions {
 	}
 }
 
+type DetailsPlusPayments struct {
+	Details         AccountDetails   `codec:"details" json:"details"`
+	RecentPayments  PaymentsPage     `codec:"recentPayments" json:"recentPayments"`
+	PendingPayments []PaymentSummary `codec:"pendingPayments" json:"pendingPayments"`
+}
+
+func (o DetailsPlusPayments) DeepCopy() DetailsPlusPayments {
+	return DetailsPlusPayments{
+		Details:        o.Details.DeepCopy(),
+		RecentPayments: o.RecentPayments.DeepCopy(),
+		PendingPayments: (func(x []PaymentSummary) []PaymentSummary {
+			if x == nil {
+				return nil
+			}
+			ret := make([]PaymentSummary, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PendingPayments),
+	}
+}
+
 type BalancesArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
 }
 
 type DetailsArg struct {
-	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
 }
 
 type RecentPaymentsArg struct {
-	Caller      keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID   AccountID            `codec:"accountID" json:"accountID"`
-	Cursor      *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit       int                  `codec:"limit" json:"limit"`
-	SkipPending bool                 `codec:"skipPending" json:"skipPending"`
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	Cursor       *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit        int                  `codec:"limit" json:"limit"`
+	SkipPending  bool                 `codec:"skipPending" json:"skipPending"`
+	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
 }
 
 type PendingPaymentsArg struct {
@@ -779,6 +815,11 @@ type NetworkOptionsArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 }
 
+type DetailsPlusPaymentsArg struct {
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+}
+
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
@@ -800,6 +841,7 @@ type RemoteInterface interface {
 	SetInflationDestination(context.Context, SetInflationDestinationArg) error
 	Ping(context.Context) (string, error)
 	NetworkOptions(context.Context, keybase1.UserVersion) (NetworkOptions, error)
+	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1101,6 +1143,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"detailsPlusPayments": {
+				MakeArg: func() interface{} {
+					var ret [1]DetailsPlusPaymentsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DetailsPlusPaymentsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DetailsPlusPaymentsArg)(nil), args)
+						return
+					}
+					ret, err = i.DetailsPlusPayments(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1209,5 +1266,10 @@ func (c RemoteClient) Ping(ctx context.Context) (res string, err error) {
 func (c RemoteClient) NetworkOptions(ctx context.Context, caller keybase1.UserVersion) (res NetworkOptions, err error) {
 	__arg := NetworkOptionsArg{Caller: caller}
 	err = c.Cli.Call(ctx, "stellar.1.remote.networkOptions", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) DetailsPlusPayments(ctx context.Context, __arg DetailsPlusPaymentsArg) (res DetailsPlusPayments, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []interface{}{__arg}, &res)
 	return
 }

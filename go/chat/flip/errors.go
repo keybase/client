@@ -77,6 +77,12 @@ type TimeoutError struct {
 	Stage Stage
 }
 
+type GameAbortedError struct{}
+
+func (g GameAbortedError) Error() string {
+	return "game was aborted before it yielded a result or any reveals"
+}
+
 func (t TimeoutError) Error() string {
 	return fmt.Sprintf("Game %s timed out in stage: %d", t.G, t.Stage)
 }
@@ -112,16 +118,16 @@ type DuplicateRegistrationError struct {
 }
 
 func (d DuplicateRegistrationError) Error() string {
-	return fmt.Sprintf("User %s registered more than once in game %s", d.G, d.U.ToKey())
+	return fmt.Sprintf("User %s registered more than once in game %s", d.U.ToKey(), d.G)
 }
 
-type UnregisteredUserError struct {
+type DuplicateCommitmentCompleteError struct {
 	G GameMetadata
 	U UserDevice
 }
 
-func (u UnregisteredUserError) Error() string {
-	return fmt.Sprintf("Initiator announced an unexpected user %s in game %s", u.G, u.U.ToKey())
+func (d DuplicateCommitmentCompleteError) Error() string {
+	return fmt.Sprintf("Initiator announced a duplicate commitment user %s in game %s", d.U.ToKey(), d.G)
 }
 
 type WrongSenderError struct {
@@ -216,7 +222,7 @@ type UnforwardableMessageError struct {
 }
 
 func (u UnforwardableMessageError) Error() string {
-	return fmt.Sprintf("Refusing to forwarda mesasge that isn't forwardable (%s)", u.G)
+	return fmt.Sprintf("Refusing to forward a mesasge that isn't forwardable (%s)", u.G)
 }
 
 type BadMessageError struct {

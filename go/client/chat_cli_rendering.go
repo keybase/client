@@ -429,7 +429,11 @@ type messageView struct {
 }
 
 func formatSystemMessage(body chat1.MessageSystem) string {
-	return body.String()
+	m := body.String()
+	if m == "" {
+		return "<unknown system message>"
+	}
+	return fmt.Sprintf("[%s]", m)
 }
 
 func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPayment) string {

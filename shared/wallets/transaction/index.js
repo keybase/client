@@ -48,8 +48,8 @@ type CounterpartyTextProps = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
-  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold',
-  textTypeSemiboldItalic: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
+  textType: 'Body' | 'BodySmall',
+  textTypeItalic: 'BodyItalic' | 'BodySmallItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
@@ -61,7 +61,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={props.textTypeSemibold}
+          type={props.textType}
           underline={true}
           usernames={[props.counterparty]}
         />
@@ -69,12 +69,12 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
     case 'stellarPublicKey':
       const key = props.counterparty
       return (
-        <Text type={props.textTypeSemibold} selectable={false} title={key}>
+        <Text type={props.textType} selectable={false} title={key}>
           {key.substr(0, 6) + '...' + key.substr(-5)}
         </Text>
       )
     case 'otherAccount':
-      return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
+      return <Text type={props.textTypeItalic}>{props.counterparty}</Text>
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       break
@@ -100,8 +100,8 @@ type DetailProps = {|
 |}
 
 const Detail = (props: DetailProps) => {
-  const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
-  const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
+  const textType = props.large ? 'Body' : 'BodySmall'
+  const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
@@ -114,7 +114,7 @@ const Detail = (props: DetailProps) => {
         <Text selectable={props.selectableText} type={textTypeExtrabold}>
           {props.amountUser}
         </Text>{' '}
-        <Text selectable={props.selectableText} type={textTypeSemibold}>
+        <Text selectable={props.selectableText} type={textType}>
           ({props.issuerDescription})
         </Text>
       </React.Fragment>
@@ -145,12 +145,12 @@ const Detail = (props: DetailProps) => {
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
       onShowProfile={props.onShowProfile}
-      textTypeSemibold={textTypeSemibold}
-      textTypeSemiboldItalic={textTypeSemiboldItalic}
+      textType={textType}
+      textTypeItalic={textTypeItalic}
     />
   )
   const approxWorth = props.approxWorth ? (
-    <Text type={textTypeSemibold}>
+    <Text type={textType}>
       {' '}
       (approximately <Text type={textTypeExtrabold}>{props.approxWorth}</Text>)
     </Text>
@@ -165,7 +165,7 @@ const Detail = (props: DetailProps) => {
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textTypeSemibold} style={textStyle}>
+          <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}
             {approxWorth}
             {textSentenceEnd}
@@ -174,7 +174,7 @@ const Detail = (props: DetailProps) => {
       } else {
         const verbPhrase = props.pending || props.canceled ? 'Sending' : 'You sent'
         return (
-          <Text type={textTypeSemibold} style={textStyle}>
+          <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}
             {approxWorth}
             {textSentenceEnd}
@@ -185,7 +185,7 @@ const Detail = (props: DetailProps) => {
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textTypeSemibold} style={textStyle}>
+          <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from {counterparty()} to this account{approxWorth}
             {textSentenceEnd}
           </Text>
@@ -193,7 +193,7 @@ const Detail = (props: DetailProps) => {
       } else {
         const verbPhrase = props.pending || props.canceled ? 'sending' : 'sent you'
         return (
-          <Text type={textTypeSemibold} style={textStyle}>
+          <Text type={textType} style={textStyle}>
             {counterparty()} {verbPhrase} {amount}
             {approxWorth}
             {textSentenceEnd}
@@ -203,7 +203,7 @@ const Detail = (props: DetailProps) => {
     case 'senderAndReceiver':
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
-        <Text type={textTypeSemibold} style={textStyle}>
+        <Text type={textType} style={textStyle}>
           {verbPhrase} {amount} from this account to itself{approxWorth}
           {textSentenceEnd}
         </Text>

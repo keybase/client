@@ -72,16 +72,13 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
 		cmds[cmdFlip],
+		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
-	}
-	// Giphy only on for admins for now
-	if s.isAdmin() {
-		common = append(common, cmds[cmdGiphy])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
@@ -167,7 +164,8 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	return false, nil
 }
 
-func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
+func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	text string) {
 	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
 	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
@@ -188,11 +186,13 @@ func (s *Source) isAdmin() bool {
 var admins = map[string]bool{
 	"mikem":        true,
 	"max":          true,
+	"candrencil64": true,
 	"chris":        true,
 	"chrisnojima":  true,
 	"mlsteele":     true,
 	"xgess":        true,
 	"karenm":       true,
+	"kb_monbot":    true,
 	"joshblum":     true,
 	"cjb":          true,
 	"jzila":        true,

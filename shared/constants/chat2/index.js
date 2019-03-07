@@ -17,17 +17,21 @@ import {
 } from '../types/chat2/common'
 import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
+import * as Router2 from '../router2'
+import flags from '../../util/feature-flags'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
+  commandMarkdownMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
   flipStatusMap: I.Map(),
   focus: null,
   giphyResultMap: I.Map(),
+  giphyWindowMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,
@@ -126,13 +130,19 @@ export const isUserActivelyLookingAtThisThread = (
 ) => {
   const selectedConversationIDKey = getSelectedConversation(state)
 
-  const routePath = getPath(state.routeTree.routeState)
   let chatThreadSelected = false
-  if (isMobile) {
+  if (flags.useNewRouter) {
+    const routePath = Router2.getVisiblePath()
     chatThreadSelected =
-      routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
+      routePath[routePath.length - 1]?.routeName === isMobile ? 'chatConversation' : 'tabs.chatTab'
   } else {
-    chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
+    const routePath = getPath(state.routeTree.routeState)
+    if (isMobile) {
+      chatThreadSelected =
+        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'chatConversation'
+    } else {
+      chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
+    }
   }
 
   return (
@@ -148,7 +158,7 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
 }
 export const isInfoPanelOpen = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState, [chatTab])
-  return routePath.size === 3 && routePath.get(2) === 'infoPanel'
+  return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
 }
 
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -167,6 +177,7 @@ export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey)
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
@@ -230,13 +241,27 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
 }
 
 export const threadRoute = isMobile
-  ? [chatTab, 'conversation']
+  ? [chatTab, 'chatConversation']
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
+export const flipPhaseToString = (phase: number) => {
+  switch (phase) {
+    case RPCChatTypes.chatUiUICoinFlipPhase.commitment:
+      return 'commitments'
+    case RPCChatTypes.chatUiUICoinFlipPhase.reveals:
+      return 'secrets'
+    case RPCChatTypes.chatUiUICoinFlipPhase.complete:
+      return 'complete'
+    default:
+      return 'loading'
+  }
+}
+
 export {
+  getChannelForTeam,
   getChannelSuggestions,
   getCommands,
   getConversationIDKeyMetasToLoad,

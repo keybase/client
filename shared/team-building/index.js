@@ -99,7 +99,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             style={styles.emptyContainer}
           >
             <Kb.Icon
-              fontSize={64}
+              fontSize={Styles.isMobile ? 48 : 64}
               type={serviceIdToIconFont(props.selectedService)}
               style={Styles.collapseStyles([
                 !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
@@ -162,7 +162,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       maxWidth: '80%',
-      paddingBottom: 150,
     },
   }),
   list: Styles.platformStyles({

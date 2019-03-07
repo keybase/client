@@ -13,13 +13,19 @@ type GameMessageReplayed struct {
 
 type GameHistory []GameMessageReplayed
 
+type GameHistoryPlayer struct {
+	Device     UserDevice
+	Commitment Commitment
+	Reveal     *Secret
+}
+
 type GameSummary struct {
 	Err     error
-	Players []UserDevice
+	Players []GameHistoryPlayer
 	Result  Result
 }
 
-func (g GameHistory) start() (game *Game, rest GameHistory, err error) {
+func (g GameHistory) start(rh ReplayHelper) (game *Game, rest GameHistory, err error) {
 	if len(g) == 0 {
 		return nil, nil, NewReplayError("cannot reply 0-length game")
 	}
@@ -43,6 +49,10 @@ func (g GameHistory) start() (game *Game, rest GameHistory, err error) {
 		return nil, nil, NewReplayError("bad initiator; didn't match sender")
 	}
 
+	if !first.FirstInConversation {
+		return nil, nil, GameReplayError{md.GameID}
+	}
+
 	_, err = computeClockSkew(md, first.Time, start.StartTime.Time(), first.Time)
 	if err != nil {
 		return nil, nil, err
@@ -57,6 +67,7 @@ func (g GameHistory) start() (game *Game, rest GameHistory, err error) {
 		gameUpdateCh: make(chan GameStateUpdateMessage),
 		players:      make(map[UserDeviceKey]*GamePlayerState),
 		stage:        Stage_ROUND1,
+		clogf:        rh.CLogf,
 	}
 
 	return game, rest, nil
@@ -79,19 +90,19 @@ func runReplayLoop(ctx context.Context, game *Game, gh GameHistory) (err error) 
 	return nil
 }
 
-func extractUserDevices(v []UserDeviceCommitment) []UserDevice {
-	ret := make([]UserDevice, len(v))
-	for i, e := range v {
-		ret[i] = e.Ud
+func Replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary, error) {
+	ret, err := replay(ctx, rh, gh)
+	if err != nil {
+		rh.CLogf(ctx, "Replay failure (%s); game dump: %+v", err, gh)
 	}
-	return ret
+	return ret, err
 }
 
-func Replay(ctx context.Context, gh GameHistory) (*GameSummary, error) {
+func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary, error) {
 
 	var game *Game
 	var err error
-	game, gh, err = gh.start()
+	game, gh, err = gh.start(rh)
 	if err != nil {
 		return nil, err
 	}
@@ -107,29 +118,43 @@ func Replay(ctx context.Context, gh GameHistory) (*GameSummary, error) {
 	go func() {
 		var ret GameSummary
 		found := false
-		players := make(map[UserDeviceKey]UserDevice)
+		players := make(map[UserDeviceKey]*GameHistoryPlayer)
 		for msg := range game.gameUpdateCh {
 			switch {
 			case msg.Err != nil:
 				ret.Err = msg.Err
 			case msg.CommitmentComplete != nil:
-				ret.Players = extractUserDevices(msg.CommitmentComplete.Players)
-				for _, p := range ret.Players {
-					players[p.ToKey()] = p
+				for _, p := range msg.CommitmentComplete.Players {
+					ret.Players = append(ret.Players, GameHistoryPlayer{
+						Device:     p.Ud,
+						Commitment: p.C,
+					})
+				}
+				for index, p := range ret.Players {
+					players[p.Device.ToKey()] = &ret.Players[index]
 				}
 			case msg.Reveal != nil:
-				delete(players, msg.Reveal.User.ToKey())
+				if p, ok := players[msg.Reveal.User.ToKey()]; ok {
+					p.Reveal = &msg.Reveal.Reveal
+					delete(players, msg.Reveal.User.ToKey())
+				}
 			case msg.Result != nil:
 				ret.Result = *msg.Result
 				found = true
 			}
 		}
 		if !found && ret.Err == nil {
-			var ea AbsenteesError
+			var absentees []UserDevice
 			for _, v := range players {
-				ea.Absentees = append(ea.Absentees, v)
+				absentees = append(absentees, v.Device)
 			}
-			ret.Err = ea
+			var err error
+			if len(absentees) > 0 {
+				err = AbsenteesError{Absentees: absentees}
+			} else {
+				err = GameAbortedError{}
+			}
+			ret.Err = err
 		}
 		summaryCh <- ret
 	}()

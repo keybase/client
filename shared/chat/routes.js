@@ -25,68 +25,85 @@ const routeTree = () => {
   const RetentionWarning = require('../teams/team/settings-tab/retention/warning/container').default
   const ChooseEmoji = require('./conversation/messages/react-button/emoji-picker/container').default
   const PaymentsConfirm = require('./payments/confirm/container').default
+  const AddToChannel = require('./conversation/info-panel/add-to-channel/container').default
 
   const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
   const chatChildren = {
-    attachmentFullscreen: {
+    chatAddToChannel: {
+      children: key => makeRouteDefNode(chatChildren[key]),
+      component: AddToChannel,
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
+    },
+    chatAttachmentFullscreen: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: AttachmentFullscreen,
       tags: makeLeafTags(
         isMobile ? {fullscreen: true, hideStatusBar: true, underNotch: true} : {layerOnTop: true}
       ),
     },
-    attachmentGetTitles: {
+    chatAttachmentGetTitles: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: AttachmentGetTitles,
       tags: makeLeafTags(isMobile ? {} : {layerOnTop: true}),
     },
-    attachmentVideoFullscreen: {
+    chatAttachmentVideoFullscreen: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: AttachmentVideoFullscreen,
       tags: makeLeafTags(isMobile ? {fullscreen: true} : {layerOnTop: true}),
     },
-    chooseEmoji: {
+    chatChooseEmoji: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: ChooseEmoji,
       tags: makeLeafTags({layerOnTop: false}),
     },
-    createChannel: {
+    chatCreateChannel: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: CreateChannel,
       tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
     },
-    deleteHistoryWarning: {
+    chatDeleteHistoryWarning: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: DeleteHistoryWarning,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    editChannel: {
+    chatEditChannel: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: MaybePopupHoc(isMobile)(EditChannel),
       tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
     },
-    enterPaperkey: {
+    chatEnterPaperkey: {
+      // TODO dead route?
       component: EnterPaperkey,
     },
-    infoPanel: {
+    chatInfoPanel: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: InfoPanel,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    manageChannels: {
+    chatManageChannels: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: ManageChannels,
       tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
     },
-    newChat: {
+    chatNewChat: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: TeamBuilding,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    paymentsConfirm: {
+    chatPaymentsConfirm: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: PaymentsConfirm,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    chatShowBlockConversationDialog: {
+      children: key => makeRouteDefNode(chatChildren[key]),
+      component: BlockConversationWarning,
+      tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+    },
+    chatShowNewTeamDialog: {
+      children: key => makeRouteDefNode(chatChildren[key]),
+      component: NewTeamDialogFromChat,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     reallyLeaveTeam: {
@@ -99,16 +116,6 @@ const routeTree = () => {
       component: RetentionWarning,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    showBlockConversationDialog: {
-      children: key => makeRouteDefNode(chatChildren[key]),
-      component: BlockConversationWarning,
-      tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
-    },
-    showNewTeamDialog: {
-      children: key => makeRouteDefNode(chatChildren[key]),
-      component: NewTeamDialogFromChat,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
     [WalletConstants.sendRequestFormRouteKey]: SendRequestFormRoutes,
   }
 
@@ -119,7 +126,7 @@ const routeTree = () => {
   return isMobile
     ? makeRouteDefNode({
         children: key => {
-          if (key !== 'conversation') {
+          if (key !== 'chatConversation') {
             return makeRouteDefNode(chatChildren[key])
           }
           return conversationRoute
@@ -134,6 +141,41 @@ const routeTree = () => {
         initialState: {smallTeamsExpanded: false},
         tags: makeLeafTags({persistChildren: true}),
       })
+}
+
+export const newRoutes = {
+  chatChooseEmoji: {
+    getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
+  },
+  chatConversation: {getScreen: () => require('./conversation/container').default},
+  chatCreateChannel: {getScreen: () => require('./create-channel/container').default},
+  chatDeleteHistoryWarning: {getScreen: () => require('./delete-history-warning/container').default},
+  chatEditChannel: {getScreen: () => require('./manage-channels/edit-channel-container').default},
+  chatEnterPaperkey: {getScreen: () => require('./conversation/rekey/enter-paper-key').default},
+  chatManageChannels: {getScreen: () => require('./manage-channels/container').default},
+  chatNewChat: {getScreen: () => require('../team-building/container').default},
+  chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},
+  chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
+  'tabs.chatTab': {
+    getScreen: () =>
+      isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
+  },
+}
+
+export const newModalRoutes = {
+  chatAttachmentFullscreen: {
+    getScreen: () => require('./conversation/attachment-fullscreen/container').default,
+  },
+  chatAttachmentGetTitles: {
+    getScreen: () => require('./conversation/attachment-get-titles/container').default,
+  },
+  chatAttachmentVideoFullscreen: {
+    getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
+  },
+  chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default},
+  chatShowBlockConversationDialog: {
+    getScreen: () => require('./conversation/block-conversation-warning/container').default,
+  },
 }
 
 export default routeTree

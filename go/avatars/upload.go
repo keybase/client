@@ -37,7 +37,7 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	mpart := multipart.NewWriter(&body)
 
 	if err := addFile(mpart, "avatar", filename); err != nil {
-		mctx.CDebugf("addFile error: %s", err)
+		mctx.Debug("addFile error: %s", err)
 		return err
 	}
 
@@ -53,7 +53,7 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 	}
 
 	if crop != nil {
-		mctx.CDebugf("Adding crop fields: %+v", crop)
+		mctx.Debug("Adding crop fields: %+v", crop)
 		mpart.WriteField("x0", fmt.Sprintf("%d", crop.X0))
 		mpart.WriteField("y0", fmt.Sprintf("%d", crop.Y0))
 		mpart.WriteField("x1", fmt.Sprintf("%d", crop.X1))
@@ -71,7 +71,7 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 		endpoint = "image/upload_user_avatar"
 	}
 
-	mctx.CDebugf("Running POST to %s", endpoint)
+	mctx.Debug("Running POST to %s", endpoint)
 
 	arg := libkb.APIArg{
 		Endpoint:       endpoint,
@@ -82,7 +82,7 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 
 	_, err = mctx.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
 	if err != nil {
-		mctx.CDebugf("post error: %s", err)
+		mctx.Debug("post error: %s", err)
 		return err
 	}
 

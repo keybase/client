@@ -48,7 +48,7 @@ func NewIdentify3Session(mctx MetaContext) (*Identify3Session, error) {
 		created: mctx.G().GetClock().Now(),
 		id:      id,
 	}
-	mctx.CDebugf("generated new identify3 session: %s", id)
+	mctx.Debug("generated new identify3 session: %s", id)
 	return ret, nil
 }
 
@@ -189,11 +189,11 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
 		select {
 		case _, ok := <-ch:
 			if !ok {
-				mctx.CDebugf("identify3State#runExpireThread: exiting on shutdown")
+				mctx.Debug("identify3State#runExpireThread: exiting on shutdown")
 				return
 			}
 		case <-mctx.G().Clock().AfterTime(wakeupTime):
-			mctx.CDebugf("identify3State#runExpireThread: wakeup after %v timeout (at %v)", wait, wakeupTime)
+			mctx.Debug("identify3State#runExpireThread: wakeup after %v timeout (at %v)", wait, wakeupTime)
 
 		}
 
@@ -216,16 +216,16 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
 func (s *Identify3Session) expire(mctx MetaContext) {
 	cli, err := mctx.G().UIRouter.GetIdentify3UI(mctx)
 	if err != nil {
-		mctx.CWarningf("failed to get an electron UI to expire %s: %s", s.id, err)
+		mctx.Warning("failed to get an electron UI to expire %s: %s", s.id, err)
 		return
 	}
 	if cli == nil {
-		mctx.CWarningf("failed to get an electron UI to expire %s: got nil", s.id)
+		mctx.Warning("failed to get an electron UI to expire %s: got nil", s.id)
 		return
 	}
 	err = cli.Identify3TrackerTimedOut(mctx.Ctx(), s.id)
 	if err != nil {
-		mctx.CWarningf("error timing ID3 session %s: %s", s.id, err)
+		mctx.Warning("error timing ID3 session %s: %s", s.id, err)
 	}
 }
 

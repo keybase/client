@@ -8,16 +8,17 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
+  airdrop: true,
   chatIndexProfilingEnabled: false,
+  dbCleanEnabled: false,
   foldersInProfileTab: true,
   identify3: true,
   moveOrCopy: true,
-  newTeamBuildingForChat: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: true,
   plansEnabled: false,
+  proofProviders: true,
   useNewRouter: false,
-  walletsEnabled: true,
 }
 
 console.warn('feature flag mock in effect')

@@ -54,35 +54,31 @@ const getPopupItems = sortSettingToAction =>
 const SortBar = (props: SortBarProps & OverlayParentProps) => {
   const {sortSettingIconType, sortSettingText} = Types.sortSettingToIconTypeAndText(props.sortSetting)
   return (
-    <Box>
-      <Box style={styles.sortBar}>
-        <ClickableBox
-          onClick={props.toggleShowingMenu}
-          style={styles.sortSetting}
-          ref={props.setAttachmentRef}
-        >
-          <Box>
-            <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
-          </Box>
-          <Text type="BodySmallSemibold">{sortSettingText}</Text>
-        </ClickableBox>
-        <FloatingMenu
-          attachTo={props.getAttachmentRef}
-          visible={props.showingMenu}
-          onHidden={props.toggleShowingMenu}
-          position="bottom left"
-          closeOnSelect={true}
-          items={getPopupItems(props.sortSettingToAction)}
-        />
-        {props.folderIsPending ? (
-          <Box style={styles.loading}>
-            <Text type="BodySmall"> Loading ... </Text>
-          </Box>
-        ) : null}
-      </Box>
+    <Box style={styles.sortBar}>
+      <ClickableBox onClick={props.toggleShowingMenu} style={styles.sortSetting} ref={props.setAttachmentRef}>
+        <Box>
+          <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
+        </Box>
+        <Text type="BodySmallSemibold">{sortSettingText}</Text>
+      </ClickableBox>
+      <FloatingMenu
+        attachTo={props.getAttachmentRef}
+        visible={props.showingMenu}
+        onHidden={props.toggleShowingMenu}
+        position="bottom left"
+        closeOnSelect={true}
+        items={getPopupItems(props.sortSettingToAction)}
+      />
+      {props.folderIsPending ? (
+        <Box style={styles.loading}>
+          <Text type="BodySmall"> Loading ... </Text>
+        </Box>
+      ) : null}
     </Box>
   )
 }
+
+export const height = Styles.isMobile ? 32 : 24
 
 const styles = Styles.styleSheetCreate({
   icon: {
@@ -97,13 +93,15 @@ const styles = Styles.styleSheetCreate({
   sortBar: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue5,
+    height,
     paddingLeft: 16,
   },
   sortSetting: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
+    height,
     justifyContent: 'flex-start',
-    minHeight: Styles.isMobile ? 32 : 24,
+    minHeight: height,
   },
   text: Styles.platformStyles({
     isMobile: {

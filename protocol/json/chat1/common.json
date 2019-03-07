@@ -66,6 +66,13 @@
     },
     {
       "type": "record",
+      "name": "LocalConversationVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "ConversationVers",
       "fields": [],
       "typedef": "uint64",
@@ -152,7 +159,8 @@
         "REACTION_13",
         "SENDPAYMENT_14",
         "REQUESTPAYMENT_15",
-        "UNFURL_16"
+        "UNFURL_16",
+        "FLIP_17"
       ],
       "go": "nostring"
     },
@@ -547,6 +555,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
         },
         {
           "type": [

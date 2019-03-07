@@ -28,20 +28,20 @@ type ActiveDevice struct {
 }
 
 func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
-	m.CDebugf("%sActiveDevice: %p", prefix, a)
-	m.CDebugf("%sUserVersion: %+v", prefix, a.uv)
-	m.CDebugf("%sUsername (via env): %s", prefix, a.Username(m))
-	m.CDebugf("%sDeviceID: %s", prefix, a.deviceID)
-	m.CDebugf("%sDeviceName: %s", prefix, a.deviceName)
-	m.CDebugf("%sDeviceCtime: %s", prefix, a.deviceCtime)
+	m.Debug("%sActiveDevice: %p", prefix, a)
+	m.Debug("%sUserVersion: %+v", prefix, a.uv)
+	m.Debug("%sUsername (via env): %s", prefix, a.Username(m))
+	m.Debug("%sDeviceID: %s", prefix, a.deviceID)
+	m.Debug("%sDeviceName: %s", prefix, a.deviceName)
+	m.Debug("%sDeviceCtime: %s", prefix, a.deviceCtime)
 	if a.signingKey != nil {
-		m.CDebugf("%sSigKey: %s", prefix, a.signingKey.GetKID())
+		m.Debug("%sSigKey: %s", prefix, a.signingKey.GetKID())
 	}
 	if a.encryptionKey != nil {
-		m.CDebugf("%sEncKey: %s", prefix, a.encryptionKey.GetKID())
+		m.Debug("%sEncKey: %s", prefix, a.encryptionKey.GetKID())
 	}
-	m.CDebugf("%sPassphraseCache: cacheObj=%v; valid=%v", prefix, (a.passphrase != nil), (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
-	m.CDebugf("%sProvisioningKeyCache: %v", prefix, (a.provisioningKey != nil && a.provisioningKey.DeviceWithKeys() != nil))
+	m.Debug("%sPassphraseCache: cacheObj=%v; valid=%v", prefix, (a.passphrase != nil), (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
+	m.Debug("%sProvisioningKeyCache: %v", prefix, (a.provisioningKey != nil && a.provisioningKey.DeviceWithKeys() != nil))
 }
 
 // NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in
@@ -272,7 +272,7 @@ func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 
 func (a *ActiveDevice) DeviceType(mctx MetaContext) (string, error) {
 	if a.secretSyncer.keys == nil {
-		mctx.CDebugf("keys are not synced with the server for this ActiveDevice. lets do that right now")
+		mctx.Debug("keys are not synced with the server for this ActiveDevice. lets do that right now")
 		a.SyncSecretsForce(mctx)
 	}
 	devices, err := a.secretSyncer.Devices()
@@ -423,7 +423,7 @@ func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, err
 }
 
 func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
-	defer m.CTrace("ActiveDevice#SyncSecretsForUID", func() error { return err })()
+	defer m.Trace("ActiveDevice#SyncSecretsForUID", func() error { return err })()
 
 	a.RLock()
 	s := a.secretSyncer
@@ -446,13 +446,13 @@ func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bo
 }
 
 func (a *ActiveDevice) SyncSecrets(m MetaContext) (ret *SecretSyncer, err error) {
-	defer m.CTrace("ActiveDevice#SyncSecrets", func() error { return err })()
+	defer m.Trace("ActiveDevice#SyncSecrets", func() error { return err })()
 	var zed keybase1.UID
 	return a.SyncSecretsForUID(m, zed, false /* force */)
 }
 
 func (a *ActiveDevice) SyncSecretsForce(m MetaContext) (ret *SecretSyncer, err error) {
-	defer m.CTrace("ActiveDevice#SyncSecretsForce", func() error { return err })()
+	defer m.Trace("ActiveDevice#SyncSecretsForce", func() error { return err })()
 	var zed keybase1.UID
 	return a.SyncSecretsForUID(m, zed, true /* force */)
 }
@@ -545,12 +545,12 @@ func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {
 }
 
 func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
-	defer m.CTrace("ActiveDevice#Keyring", func() error { return err })()
+	defer m.Trace("ActiveDevice#Keyring", func() error { return err })()
 	un := a.Username(m)
 	if un.IsNil() {
 		return nil, NewNoUsernameError()
 	}
-	m.CDebugf("Account: loading keyring for %s", un)
+	m.Debug("Account: loading keyring for %s", un)
 	ret, err = LoadSKBKeyring(un, m.G())
 	if err != nil {
 		return nil, err
@@ -559,14 +559,14 @@ func (a *ActiveDevice) Keyring(m MetaContext) (ret *SKBKeyringFile, err error) {
 }
 
 func (a *ActiveDevice) CopyCacheToLoginContextIfForUserVersion(m MetaContext, lc LoginContext, uv keybase1.UserVersion) (err error) {
-	defer m.CTrace("ActiveDevice#CopyCacheToLoginContextIfForUID", func() error { return err })()
+	defer m.Trace("ActiveDevice#CopyCacheToLoginContextIfForUID", func() error { return err })()
 	a.RLock()
 	defer a.RUnlock()
 	if !a.uv.Eq(uv) {
 		return NewUIDMismatchError(fmt.Sprintf("%s v %s", a.uv, uv))
 	}
 	if a.passphrase != nil {
-		m.CDebugf("| copying non-nil passphrase cache")
+		m.Debug("| copying non-nil passphrase cache")
 		lc.SetStreamCache(a.passphrase)
 	}
 	return nil

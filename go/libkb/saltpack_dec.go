@@ -59,7 +59,7 @@ func SaltpackDecrypt(m MetaContext, source io.Reader, sink io.WriteCloser,
 		}
 	}
 
-	m.CDebugf("Decrypt: read %d bytes", n)
+	m.Debug("Decrypt: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
 		return mki, DecryptionError{Cause: err}

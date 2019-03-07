@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	version                = windows.NewLazyDLL("version.dll")
+	version                = windows.NewLazySystemDLL("version.dll")
 	getFileVersionInfoSize = version.NewProc("GetFileVersionInfoSizeW")
 	getFileVersionInfo     = version.NewProc("GetFileVersionInfoW")
 	verQueryValue          = version.NewProc("VerQueryValueW")

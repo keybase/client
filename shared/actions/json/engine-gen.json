@@ -6,488 +6,496 @@
         "import * as stellar1Types from '../constants/types/rpc-stellar-gen'"
     ],
     "actions": {
+        "disconnected": {},
+        "connected": {},
         "chat1ChatUiChatAttachmentDownloadStart": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatAttachmentDownloadProgress": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatAttachmentDownloadDone": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatInboxUnverified": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatInboxConversation": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatInboxFailed": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatThreadCached": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatThreadFull": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatSearchHit": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatSearchDone": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatSearchInboxHit": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatSearchInboxDone": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatSearchIndexStatus": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatConfirmChannelDelete": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatStellarShowConfirm": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatStellarDataConfirm": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatStellarDataError": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatStellarDone": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatGiphySearchResults": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'outParam'>) => void}"
+        },
+        "chat1ChatUiChatGiphyToggleResultWindow": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphyToggleResultWindow'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphyToggleResultWindow'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatShowManageChannels": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'outParam'>) => void}"
         },
         "chat1ChatUiChatCoinFlipStatus": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'outParam'>) => void}"
+        },
+        "chat1ChatUiChatCommandMarkdown": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatCommandMarkdown'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatCommandMarkdown'>, 'outParam'>) => void}"
         },
         "chat1NotifyChatNewChatActivity": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatIdentifyUpdate": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatTLFFinalize": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatTLFResolve": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFResolve'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFResolve'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatInboxStale": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxStale'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxStale'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatThreadsStale": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatThreadsStale'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatThreadsStale'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatTypingUpdate": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTypingUpdate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTypingUpdate'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatJoinedConversation": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatJoinedConversation'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatJoinedConversation'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatLeftConversation": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatLeftConversation'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatLeftConversation'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatResetConversation": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatResetConversation'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatResetConversation'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatInboxSyncStarted": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSyncStarted'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSyncStarted'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatInboxSynced": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSynced'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSynced'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatSetConvRetention": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvRetention'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvRetention'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatSetTeamRetention": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetTeamRetention'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetTeamRetention'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatSetConvSettings": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvSettings'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvSettings'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatSubteamRename": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSubteamRename'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSubteamRename'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatKBFSToImpteamUpgrade": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatAttachmentUploadStart": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadStart'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadStart'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatAttachmentUploadProgress": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatPaymentInfo": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPaymentInfo'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPaymentInfo'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatRequestInfo": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatRequestInfo'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatRequestInfo'>, 'inParam'>> & {|sessionID: number|}"
         },
         "chat1NotifyChatChatPromptUnfurl": {
-            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPromptUnfurl'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPromptUnfurl'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1GpgUiWantToAddGPGKey": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'outParam'>) => void}"
         },
         "keybase1GpgUiConfirmDuplicateKeyChosen": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'outParam'>) => void}"
         },
         "keybase1GpgUiConfirmImportSecretToExistingKey": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'outParam'>) => void}"
         },
         "keybase1GpgUiSelectKeyAndPushOption": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'outParam'>) => void}"
         },
         "keybase1GpgUiSelectKey": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'outParam'>) => void}"
         },
         "keybase1GpgUiSign": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.sign'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.sign'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.sign'>, 'outParam'>) => void}"
         },
         "keybase1GpgUiGetTTY": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'outParam'>) => void}"
         },
         "keybase1GregorUIPushState": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushState'>, 'outParam'>) => void}"
         },
         "keybase1GregorUIPushOutOfBandMessages": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'outParam'>) => void}"
         },
         "keybase1HomeUIHomeUIRefresh": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'outParam'>) => void}"
         },
         "keybase1Identify3UiIdentify3ShowTracker": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>, 'outParam'>) => void}"
         },
         "keybase1Identify3UiIdentify3UpdateRow": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'outParam'>) => void}"
         },
         "keybase1Identify3UiIdentify3UserReset": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'outParam'>) => void}"
         },
         "keybase1Identify3UiIdentify3UpdateUserCard": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>, 'outParam'>) => void}"
         },
         "keybase1Identify3UiIdentify3TrackerTimedOut": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>, 'outParam'>) => void}"
         },
         "keybase1Identify3UiIdentify3Result": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDisplayTLFCreateWithInvite": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDelegateIdentifyUI": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiStart": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.start'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.start'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.start'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDisplayKey": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiReportLastTrack": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiLaunchNetworkChecks": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDisplayTrackStatement": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiFinishWebProofCheck": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiFinishSocialProofCheck": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDisplayCryptocurrency": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDisplayStellarAccount": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiReportTrackToken": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDisplayUserCard": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiConfirm": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiCancel": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiFinish": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finish'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finish'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finish'>, 'outParam'>) => void}"
         },
         "keybase1IdentifyUiDismiss": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'outParam'>) => void}"
         },
         "keybase1LogUiLog": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'outParam'>) => void}"
         },
         "keybase1LoginUiGetEmailOrUsername": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'outParam'>) => void}"
         },
         "keybase1LoginUiPromptRevokePaperKeys": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}"
         },
         "keybase1LoginUiDisplayPaperKeyPhrase": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'outParam'>) => void}"
         },
         "keybase1LoginUiDisplayPrimaryPaperKey": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>) => void}"
         },
         "keybase1LogsendPrepareLogsend": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}"
         },
         "keybase1NotifyAppExit": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'outParam'>) => void}"
         },
         "keybase1NotifyAuditRootAuditError": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.rootAuditError'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.rootAuditError'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyBadgesBadgeState": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyCanUserPerformCanUserPerformChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyDeviceCloneDeviceCloneCountChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyEphemeralNewTeamEk": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyFavoritesFavoritesChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFavorites.favoritesChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFavorites.favoritesChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyFSFSActivity": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyFSFSPathUpdated": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyFSFSSyncActivity": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'outParam'>) => void}"
         },
         "keybase1NotifyFSFSEditListResponse": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}"
         },
         "keybase1NotifyFSFSSyncStatusResponse": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}"
         },
         "keybase1NotifyKeyfamilyKeyfamilyChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'outParam'>) => void}"
         },
         "keybase1NotifyPaperKeyPaperKeyCached": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'outParam'>) => void}"
         },
         "keybase1NotifyPGPPgpKeyInSecretStoreFile": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'outParam'>) => void}"
         },
         "keybase1NotifyPhoneNumberPhoneNumberAdded": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberAdded'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberAdded'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberAdded'>, 'outParam'>) => void}"
         },
         "keybase1NotifyPhoneNumberPhoneNumberVerified": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberVerified'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberVerified'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberVerified'>, 'outParam'>) => void}"
         },
         "keybase1NotifyPhoneNumberPhoneNumberSuperseded": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'>, 'outParam'>) => void}"
         },
         "keybase1NotifyServiceShutdown": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'outParam'>) => void}"
         },
         "keybase1NotifySessionLoggedOut": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedOut'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedOut'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifySessionLoggedIn": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'outParam'>) => void}"
         },
         "keybase1NotifySessionClientOutOfDate": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTeamTeamChangedByID": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTeamTeamChangedByName": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTeamTeamDeleted": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTeamTeamAbandoned": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTeamTeamExit": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTeamNewlyAddedToTeam": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTeamAvatarUpdated": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'outParam'>) => void}"
         },
         "keybase1NotifyTrackingTrackingChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTracking.trackingChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTracking.trackingChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyUsersUserChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1NotifyUsersPasswordChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>, 'outParam'>) => void}"
         },
         "keybase1PgpUiOutputSignatureSuccess": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'outParam'>) => void}"
         },
         "keybase1PgpUiOutputSignatureSuccessNonKeybase": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'outParam'>) => void}"
         },
         "keybase1PgpUiKeyGenerated": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'outParam'>) => void}"
         },
         "keybase1PgpUiShouldPushPrivate": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'outParam'>) => void}"
         },
         "keybase1PgpUiFinished": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.finished'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiPromptOverwrite": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiPromptUsername": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiOutputPrechecks": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiPreProofWarning": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiOutputInstructions": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiOkToCheck": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiChecking": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'outParam'>) => void}"
         },
         "keybase1ProveUiDisplayRecheckWarning": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiChooseProvisioningMethod": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiChooseGPGMethod": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiSwitchToGPGSignOK": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiChooseDevice": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiChooseDeviceType": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiDisplayAndPromptSecret": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiDisplaySecretExchanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiPromptNewDeviceName": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiProvisioneeSuccess": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'outParam'>) => void}"
         },
         "keybase1ProvisionUiProvisionerSuccess": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'outParam'>) => void}"
         },
         "keybase1ReachabilityReachabilityChanged": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.reachability.reachabilityChanged'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.reachability.reachabilityChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
         "keybase1RekeyUIDelegateRekeyUI": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'outParam'>) => void}"
         },
         "keybase1RekeyUIRefresh": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'outParam'>) => void}"
         },
         "keybase1RekeyUIRekeySendEvent": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'outParam'>) => void}"
         },
         "keybase1SaltpackUiSaltpackPromptForDecrypt": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'outParam'>) => void}"
         },
         "keybase1SaltpackUiSaltpackVerifySuccess": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'outParam'>) => void}"
         },
         "keybase1SaltpackUiSaltpackVerifyBadSender": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'outParam'>) => void}"
         },
         "keybase1SecretUiGetPassphrase": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'outParam'>) => void}"
         },
         "keybase1StreamUiClose": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.close'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.close'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.close'>, 'outParam'>) => void}"
         },
         "keybase1StreamUiRead": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.read'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.read'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.read'>, 'outParam'>) => void}"
         },
         "keybase1StreamUiReset": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.reset'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.reset'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.reset'>, 'outParam'>) => void}"
         },
         "keybase1StreamUiWrite": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.write'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.write'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.write'>, 'outParam'>) => void}"
         },
         "keybase1TeamsUiConfirmRootTeamDelete": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'outParam'>) => void}"
         },
         "keybase1TeamsUiConfirmSubteamDelete": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'outParam'>) => void}"
         },
         "keybase1UiPromptYesNo": {
-            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.ui.promptYesNo'>, 'outParam'>) => void}"
         },
         "stellar1NotifyPaymentNotification": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>> & {|sessionID: number|}"
         },
         "stellar1NotifyPaymentStatusNotification": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>> & {|sessionID: number|}"
         },
         "stellar1NotifyRequestStatusNotification": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'>> & {|sessionID: number|}"
         },
         "stellar1NotifyAccountDetailsUpdate": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>> & {|sessionID: number|}"
         },
         "stellar1NotifyAccountsUpdate": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountsUpdate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountsUpdate'>, 'inParam'>> & {|sessionID: number|}"
         },
         "stellar1NotifyPendingPaymentsUpdate": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>> & {|sessionID: number|}"
         },
         "stellar1NotifyRecentPaymentsUpdate": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.recentPaymentsUpdate'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.recentPaymentsUpdate'>, 'inParam'>> & {|sessionID: number|}"
         },
         "stellar1UiPaymentReviewed": {
-            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'inParam'>>"
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'inParam'>> & {|sessionID: number|}, response: {error: stellar1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'outParam'>) => void}"
         }
     }
 }

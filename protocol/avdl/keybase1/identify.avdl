@@ -9,7 +9,7 @@ protocol identify {
     Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
    */
   @lint("ignore")
-  UserOrTeamLite Resolve3(string assertion);
+  UserOrTeamLite Resolve3(string assertion, OfflineAvailability oa);
 
   record IdentifyProofBreak {
     RemoteProof remoteProof;
@@ -77,7 +77,8 @@ protocol identify {
     boolean noSkipSelf=true,
     boolean canSuppressUI=false,
     TLFIdentifyBehavior identifyBehavior=0,
-    boolean forceDisplay=false
+    boolean forceDisplay=false,
+    OfflineAvailability oa
   );
 
   /*
@@ -92,7 +93,8 @@ protocol identify {
     boolean doIdentifies,  // Whether core runs identifies on all the people or assertions
     boolean create,        // Whether to create the team if none exists
     IdentifyReason reason, // Displayed in the header of the tracker popup
-    TLFIdentifyBehavior identifyBehavior
+    TLFIdentifyBehavior identifyBehavior,
+    OfflineAvailability oa
   );
   record ResolveIdentifyImplicitTeamRes {
     // Display name possibly updated by resolutions and conflicts.

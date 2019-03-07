@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -28,7 +29,7 @@ import (
 func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
 	ctx = libkb.WithLogTag(ctx, "DG")
 	m := libkb.NewMetaContext(ctx, t.G())
-	defer m.CTraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
+	defer m.TraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
 	args := arg.Args
 	log := func(format string, args ...interface{}) {
 		t.G().Log.CInfof(ctx, format, args...)
@@ -259,6 +260,28 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		}
 		log("%v", spew.Sdump(ret))
 		return "", nil
+	case "execute-invite":
+		teamID, err := keybase1.TeamIDFromString("978d0d88131e85123a142f87e8769d24")
+		if err != nil {
+			return "", err
+		}
+		err = teams.HandleSBSRequest(ctx, m.G(), keybase1.TeamSBSMsg{
+			TeamID: teamID,
+			Invitees: []keybase1.TeamInvitee{{
+				InviteID:    "828cb94d4c2b07b694ce578b2944ae27",
+				Uid:         "7080d7d007b46805c33e66b267e1e819",
+				EldestSeqno: 30,
+				Role:        keybase1.TeamRole_OWNER,
+			}},
+		})
+		return "", err
+	case "re-add":
+		teamID, err := keybase1.TeamIDFromString("fa6da9bceb6df00c5c6afd724a889d24")
+		if err != nil {
+			return "", err
+		}
+		err = teams.ReAddMemberAfterReset(ctx, m.G(), teamID, "ireset1")
+		return "", err
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

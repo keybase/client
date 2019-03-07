@@ -46,7 +46,7 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 			Body: "hi",
 		}),
 	}
-	_, boxed, err := sender.Send(ctx, convID, pt, 0, nil)
+	_, boxed, err := sender.Send(ctx, convID, pt, 0, nil, nil)
 	require.NoError(t, err)
 
 	ibox := storage.NewInbox(tc.Context())
@@ -87,6 +87,7 @@ func TestPushOrdering(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
 	handler.SetClock(world.Fc)
+	timeout := 2 * time.Second
 
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
@@ -94,7 +95,7 @@ func TestPushOrdering(t *testing.T) {
 
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 
@@ -110,12 +111,12 @@ func TestPushOrdering(t *testing.T) {
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 	handler.orderer.Lock()
@@ -131,10 +132,16 @@ func TestPushOrdering(t *testing.T) {
 	}
 
 	t.Logf("advancing clock")
-	world.Fc.Advance(time.Hour)
+	world.Fc.Advance(time.Second)
 	select {
 	case <-list.incomingRemote:
-	case <-time.After(20 * time.Second):
+		require.Fail(t, "not notification expected")
+	default:
+	}
+	world.Fc.Advance(time.Second)
+	select {
+	case <-list.incomingRemote:
+	case <-time.After(timeout):
 		require.Fail(t, "no notification received")
 	}
 	handler.orderer.Lock()

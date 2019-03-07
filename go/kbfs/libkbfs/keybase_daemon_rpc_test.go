@@ -31,7 +31,8 @@ func TestKeybaseDaemonRPCIdentifyCanceled(t *testing.T) {
 		logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
-		_, _, err := daemon.Identify(ctx, "", "")
+		_, _, err := daemon.Identify(
+			ctx, "", "", keybase1.OfflineAvailability_NONE)
 		return err
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
@@ -228,7 +229,8 @@ func testIdentify(
 	client.identifyCalled = false
 
 	ctx := context.Background()
-	name, _, err := c.Identify(ctx, "uid:"+string(uid), "")
+	name, _, err := c.Identify(
+		ctx, "uid:"+string(uid), "", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, name)
@@ -403,6 +405,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(second),
 				}},
+				Deletes: []keybase1.FSFolderWriterEdit{},
 			},
 			{
 				WriterName: "u1",
@@ -411,6 +414,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(first),
 				}},
+				Deletes: []keybase1.FSFolderWriterEdit{},
 			},
 		},
 	}

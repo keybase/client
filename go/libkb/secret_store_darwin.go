@@ -21,25 +21,33 @@ func (k KeychainSecretStore) serviceName(m MetaContext) string {
 	return m.G().GetStoredSecretServiceName()
 }
 
-func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
-	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
-	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
-	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", []byte(encodedSecret), k.accessGroup(m))
+func (k KeychainSecretStore) makeKeychainItem(m MetaContext, accountName NormalizedUsername, encodedSecret []byte) keychain.Item {
+	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", encodedSecret, k.accessGroup(m))
 	item.SetSynchronizable(k.synchronizable())
 	item.SetAccessible(k.accessible())
-	m.CDebugf("KeychainSecretStore.StoreSecret(%s): deleting item before adding new one", accountName)
+	return item
+}
+
+func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
+
+	item := k.makeKeychainItem(m, accountName, nil)
+	m.Debug("KeychainSecretStore.StoreSecret(%s): deleting item before adding new one", accountName)
 	err = keychain.DeleteItem(item)
 	if err != nil {
 		// error probably ok here?
-		m.CDebugf("KeychainSecretStore.StoreSecret(%s): DeleteItem error: %s", accountName, err)
+		m.Debug("KeychainSecretStore.StoreSecret(%s): DeleteItem error: %s", accountName, err)
 	}
-	m.CDebugf("KeychainSecretStore.StoreSecret(%s): adding item", accountName)
+
+	m.Debug("KeychainSecretStore.StoreSecret(%s): adding item", accountName)
+	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
+	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
+	item = k.makeKeychainItem(m, accountName, []byte(encodedSecret))
 	err = keychain.AddItem(item)
 	if err != nil {
-		m.CWarningf("KeychainSecretStore.StoreSecret(%s): AddItem error: %s", accountName, err)
+		m.Warning("KeychainSecretStore.StoreSecret(%s): AddItem error: %s", accountName, err)
 		return err
 	}
-	m.CDebugf("KeychainSecretStore.StoreSecret(%s): AddItem success", accountName)
+	m.Debug("KeychainSecretStore.StoreSecret(%s): AddItem success", accountName)
 
 	return nil
 }
@@ -53,7 +61,7 @@ func (k KeychainSecretStore) updateAccessibility(m MetaContext, accountName stri
 	updateItem := keychain.NewItem()
 	updateItem.SetAccessible(k.accessible())
 	if err := keychain.UpdateItem(query, updateItem); err != nil {
-		m.CDebugf("KeychainSecretStore.updateAccessibility: failed: %s", err)
+		m.Debug("KeychainSecretStore.updateAccessibility: failed: %s", err)
 	}
 }
 
@@ -72,44 +80,44 @@ func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(m MetaContext, 
 }
 
 func (k KeychainSecretStore) RetrieveSecret(m MetaContext, accountName NormalizedUsername) (LKSecFullSecret, error) {
-	m.CDebugf("KeychainSecretStore.RetrieveSecret(%s)", accountName)
+	m.Debug("KeychainSecretStore.RetrieveSecret(%s)", accountName)
 	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(m), string(accountName), "", "")
 	if err != nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) error: %s", accountName, err)
+		m.Debug("KeychainSecretStore.RetrieveSecret(%s) error: %s", accountName, err)
 		k.mobileKeychainPermissionDeniedCheck(m, err)
 		return LKSecFullSecret{}, err
 	}
 	if encodedSecret == nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) nil encodedSecret", accountName)
-		return LKSecFullSecret{}, SecretStoreError{Msg: "No secret for " + string(accountName)}
+		m.Debug("KeychainSecretStore.RetrieveSecret(%s) nil encodedSecret", accountName)
+		return LKSecFullSecret{}, NewErrSecretForUserNotFound(accountName)
 	}
 
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))
 	if err != nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) base64.Decode error: %s", accountName, err)
+		m.Debug("KeychainSecretStore.RetrieveSecret(%s) base64.Decode error: %s", accountName, err)
 		return LKSecFullSecret{}, err
 	}
 
-	m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) got secret, creating lksec", accountName)
+	m.Debug("KeychainSecretStore.RetrieveSecret(%s) got secret, creating lksec", accountName)
 
 	lk, err := newLKSecFullSecretFromBytes(secret)
 	if err != nil {
-		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) error creating lksec: %s", accountName, err)
+		m.Debug("KeychainSecretStore.RetrieveSecret(%s) error creating lksec: %s", accountName, err)
 		return LKSecFullSecret{}, err
 	}
 
 	// Update accessibility
 	k.updateAccessibility(m, accountName.String())
 
-	m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) success", accountName)
+	m.Debug("KeychainSecretStore.RetrieveSecret(%s) success", accountName)
 
 	return lk, nil
 }
 
 func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUsername) error {
-	m.CDebugf("KeychainSecretStore#ClearSecret(%s)", accountName)
+	m.Debug("KeychainSecretStore#ClearSecret(%s)", accountName)
 	if accountName.IsNil() {
-		m.CDebugf("NOOPing KeychainSecretStore#ClearSecret for empty username")
+		m.Debug("NOOPing KeychainSecretStore#ClearSecret for empty username")
 		return nil
 	}
 	var query keychain.Item
@@ -121,14 +129,14 @@ func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUs
 	}
 	err := keychain.DeleteItem(query)
 	if err == keychain.ErrorItemNotFound {
-		m.CDebugf("KeychainSecretStore#ClearSecret(%s), item not found", accountName)
+		m.Debug("KeychainSecretStore#ClearSecret(%s), item not found", accountName)
 		return nil
 	}
 	if err != nil {
-		m.CDebugf("KeychainSecretStore#ClearSecret(%s), DeleteItem error: %s", accountName, err)
+		m.Debug("KeychainSecretStore#ClearSecret(%s), DeleteItem error: %s", accountName, err)
 	}
 
-	m.CDebugf("KeychainSecretStore#ClearSecret(%s) success", accountName)
+	m.Debug("KeychainSecretStore#ClearSecret(%s) success", accountName)
 
 	return err
 }
@@ -149,10 +157,10 @@ func HasSecretStore() bool {
 func (k KeychainSecretStore) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
 	users, err := keychain.GetAccountsForService(k.serviceName(m))
 	if err != nil {
-		m.CDebugf("KeychainSecretStore.GetUsersWithStoredSecrets() error: %s", err)
+		m.Debug("KeychainSecretStore.GetUsersWithStoredSecrets() error: %s", err)
 		return nil, err
 	}
 
-	m.CDebugf("KeychainSecretStore.GetUsersWithStoredSecrets() -> %d users", len(users))
+	m.Debug("KeychainSecretStore.GetUsersWithStoredSecrets() -> %d users", len(users))
 	return users, nil
 }

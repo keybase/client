@@ -67,6 +67,8 @@ protocol remote {
     TimeMs ctime; // time on the network
     string cursorToken;
     boolean unread;
+    boolean isInflation;
+    union { null, string } inflationSource;
   }
 
   record PaymentSummaryDirect {
@@ -155,14 +157,17 @@ protocol remote {
     string displayCurrency; // user configurable, defaults to "USD"
     union { null, AccountID } inflationDestination;
   }
-  AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
+  AccountDetails details(keybase1.UserVersion caller, AccountID accountID, boolean includeMulti);
 
   record PaymentsPage {
     array<PaymentSummary> payments;
     union { null, PageCursor } cursor;
     union { null, TransactionID } oldestUnread;
   }
-  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending);
+
+  // skipPending: don't include pending payments in the result
+  // includeMulti: include payments from multi-operation txs when possible
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending, boolean includeMulti);
 
   array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 
@@ -253,4 +258,11 @@ protocol remote {
     uint64 baseFee; 
   }
   NetworkOptions networkOptions(keybase1.UserVersion caller);
+
+  record DetailsPlusPayments {
+    AccountDetails details;
+    PaymentsPage recentPayments;
+    array<PaymentSummary> pendingPayments;
+  }
+  DetailsPlusPayments detailsPlusPayments(keybase1.UserVersion caller, AccountID accountID);
 }

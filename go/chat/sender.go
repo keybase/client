@@ -590,6 +590,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// find @ mentions
 	var atMentions []gregor1.UID
 	chanMention := chat1.ChannelMention_NONE
+
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
@@ -597,6 +598,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
+	case chat1.MessageType_FLIP:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, err
+		}
+		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
+				plaintext.MessageBody.Flip().Text, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		}
 	case chat1.MessageType_EDIT:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, err
@@ -609,13 +618,6 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
 			s.G().GetUPAKLoader())
-	}
-
-	if len(atMentions) > 0 {
-		s.Debug(ctx, "atMentions: %v", atMentions)
-	}
-	if chanMention != chat1.ChannelMention_NONE {
-		s.Debug(ctx, "channel mention: %v", chanMention)
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
@@ -702,7 +704,8 @@ func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID,
+	outboxID *chat1.OutboxID, joinMentionsAs *chat1.ConversationMemberStatus) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
@@ -803,6 +806,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			AtMentions:     prepareRes.AtMentions,
 			ChannelMention: prepareRes.ChannelMention,
 			TopicNameState: prepareRes.TopicNameState,
+			JoinMentionsAs: joinMentionsAs,
 		}
 		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
@@ -816,6 +820,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					s.G().InboxSource.Clear(ctx, sender)
 					clearedCache = true
 				}
+				continue
+			case libkb.ChatEphemeralRetentionPolicyViolatedError:
+				s.Debug(ctx, "Send: failed because of invalid ephemeral policy, trying the whole thing again")
+				rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceRemoteOnly)
+				if err != nil {
+					return nil, nil, err
+				}
+				conv = rc.Conv
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
@@ -1181,6 +1193,7 @@ func (e delivererBackgroundTaskError) Error() string {
 
 var errDelivererUploadInProgress = delivererBackgroundTaskError{Typ: "attachment upload"}
 var errDelivererUnfurlInProgress = delivererBackgroundTaskError{Typ: "unfurl"}
+var errDelivererFlipConvCreationInProgress = delivererBackgroundTaskError{Typ: "flip"}
 
 func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsAttachment() {
@@ -1273,12 +1286,50 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 	return obr, nil
 }
 
+type flipPermError struct{}
+
+func (e flipPermError) Error() string {
+	return "unable to start flip"
+}
+
+func (e flipPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
+func (s *Deliverer) processFlip(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+	if !obr.IsChatFlip() {
+		return obr, nil
+	}
+	body := obr.Msg.MessageBody.Flip()
+	flipConvID, status := s.G().CoinFlipManager.IsFlipConversationCreated(ctx, obr.OutboxID)
+	switch status {
+	case types.FlipSendStatusInProgress:
+		return obr, errDelivererFlipConvCreationInProgress
+	case types.FlipSendStatusError:
+		return obr, flipPermError{}
+	case types.FlipSendStatusSent:
+		s.Debug(ctx, "processFlip: sending with convID: %s", flipConvID)
+		obr.Msg.MessageBody = chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:       body.Text,
+			GameID:     body.GameID,
+			FlipConvID: flipConvID,
+		})
+		if _, err := s.outbox.UpdateMessage(ctx, obr); err != nil {
+			return obr, err
+		}
+		return obr, nil
+	}
+	return obr, nil
+}
+
 func (s *Deliverer) processBackgroundTaskMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	switch obr.MessageType() {
 	case chat1.MessageType_ATTACHMENT:
 		return s.processAttachment(ctx, obr)
 	case chat1.MessageType_UNFURL:
 		return s.processUnfurl(ctx, obr)
+	case chat1.MessageType_FLIP:
+		return s.processFlip(ctx, obr)
 	default:
 		return obr, nil
 	}
@@ -1415,7 +1466,7 @@ func (s *Deliverer) deliverLoop() {
 					continue
 				}
 				if err == nil {
-					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
+					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil, nil)
 				}
 			}
 			if err != nil {
@@ -1479,7 +1530,11 @@ func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaint
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
+	joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	if joinMentionsAs != nil { // joinMentionsAs is not stored in the outbox, only supported by the BlockingSender
+		return nil, nil, fmt.Errorf("Unable to post joinMentionsAs with a nonblock message")
+	}
 	if clientPrev == 0 {
 		uid, err := utils.AssertLoggedInUID(ctx, s.G())
 		if err != nil {
@@ -1509,6 +1564,6 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 
 func (s *NonblockingSender) SendUnfurlNonblock(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID chat1.OutboxID) (chat1.OutboxID, error) {
-	res, _, err := s.Send(ctx, convID, msg, clientPrev, &outboxID)
+	res, _, err := s.Send(ctx, convID, msg, clientPrev, &outboxID, nil)
 	return res, err
 }

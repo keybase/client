@@ -232,6 +232,10 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullname"
         }
       ]
     },
@@ -323,6 +327,10 @@
         {
           "type": "string",
           "name": "reason"
+        },
+        {
+          "type": "boolean",
+          "name": "setPassphrase"
         }
       ]
     }
@@ -450,6 +458,10 @@
         {
           "name": "pollForKID",
           "type": "KID"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "UserPlusKeysV2AllIncarnations"

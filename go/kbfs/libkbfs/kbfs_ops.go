@@ -259,6 +259,16 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	return fs.favs.Get(ctx)
 }
 
+// GetFavoritesAll implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (keybase1.
+	FavoritesResult, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	return fs.favs.GetAll(ctx)
+}
+
 // RefreshCachedFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
@@ -279,7 +289,7 @@ func (fs *KBFSOpsStandard) ClearCachedFavorites(ctx context.Context) {
 
 // AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
-	fav Favorite) error {
+	fav Favorite, data FavoriteData) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -288,13 +298,20 @@ func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	isLoggedIn := err == nil
 
 	if isLoggedIn {
-		err := fs.favs.Add(ctx, favToAdd{Favorite: fav, created: false})
+		err := fs.favs.Add(ctx, favToAdd{Favorite: fav,
+			Data: data, created: false})
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// SetFavoritesHomeTLFInfo implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) SetFavoritesHomeTLFInfo(ctx context.Context,
+	info homeTLFInfo) {
+	fs.favs.setHomeTLFInfo(ctx, info)
 }
 
 func (fs *KBFSOpsStandard) getOpsByFav(fav Favorite) *folderBranchOps {
@@ -523,7 +540,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 			// We are not running identify for existing TLFs in
 			// KBFS. This makes sure if requested, identify runs even
 			// for existing TLFs.
-			err = identifyHandle(ctx, kbpki, kbpki, h)
+			err = identifyHandle(ctx, kbpki, kbpki, fs.config, h)
 		}
 	}()
 
@@ -777,7 +794,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		}
 		if !create && md == (ImmutableRootMetadata{}) {
 			kbpki := fs.config.KBPKI()
-			err := identifyHandle(ctx, kbpki, kbpki, h)
+			err := identifyHandle(ctx, kbpki, kbpki, fs.config, h)
 			if err != nil {
 				return nil, EntryInfo{}, err
 			}
@@ -789,7 +806,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 
 	// we might not be able to read the metadata if we aren't in the
 	// key group yet.
-	if err := isReadableOrError(ctx, fs.config.KBPKI(), md.ReadOnly()); err != nil {
+	if err := isReadableOrError(ctx, fs.config.KBPKI(), fs.config, md.ReadOnly()); err != nil {
 		fs.opsLock.Lock()
 		defer fs.opsLock.Unlock()
 		// If we already have an FBO for this ID, trigger a rekey

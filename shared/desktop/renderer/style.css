@@ -194,6 +194,13 @@ table {
 
 @font-face {
   font-family: 'Keybase';
+  font-weight: 700;
+  font-style: italic;
+  src: url('../../fonts/keybase-bold-italic.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Keybase';
   font-weight: 800;
   src: url('../../fonts/keybase-extrabold.otf') format('opentype');
 }
@@ -266,22 +273,47 @@ body {
 
 .fade-anim-enter {
   opacity: 0;
+  pointer-events: none;
 }
 
 .fade-anim-enter.fade-anim-enter-active {
   opacity: 1;
+  pointer-events: auto;
   transition: opacity 250ms ease-in-out;
 }
 
 .fade-anim-exit {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .fade-anim-exit.fade-anim-exit-active {
   opacity: 0;
+  pointer-events: none;
   transition: opacity 250ms ease-in-out;
+}
+
+/* These overrides are so the 'invisible' native emoji (so we can copy and paste) doesn't affect the sizing */
+.emoji-mart-emoji .emoji-mart-emoji-native {
+  line-height: 0;
+  width: 0;
+  height: 0;
+  display: inline-block;
 }
 
 .emoji-mart-emoji {
   vertical-align: middle;
+  display: inline;
+}
+
+.growFadeInSmall {
+  max-height: 0px;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 1250ms ease-in-out;
+  transition: opacity 250ms ease-in-out;
+}
+.growFadeInBig {
+  max-height: 999px;
+  opacity: 1;
 }

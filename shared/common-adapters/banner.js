@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2} from './box'
+import Box, {Box2} from './box'
 import Icon, {castPlatformStyles as iconCastPlatformStyles} from './icon'
 import Text from './text'
 import * as Styles from '../styles'
@@ -16,6 +16,7 @@ type Props = {
   inline?: boolean,
   onClose?: () => void,
   text: string,
+  style?: ?Styles.StylesCrossPlatform,
 }
 
 const Banner = (props: Props) => (
@@ -26,6 +27,7 @@ const Banner = (props: Props) => (
       styles.container,
       colorToBackgroundColorStyles[props.color],
       props.inline && styles.containerInline,
+      props.style,
     ])}
   >
     <Box2 key="textBox" direction="horizontal" style={styles.textContainer} centerChildren={true}>
@@ -56,7 +58,7 @@ const Banner = (props: Props) => (
       </Text>
     </Box2>
     {!!props.onClose && (
-      <Box2 key="iconBox" direction="vertical" style={styles.iconContainer} centerChildren={true}>
+      <Box key="iconBox" style={styles.iconContainer}>
         <Icon
           fontSize={Styles.isMobile ? undefined : Styles.globalMargins.xsmall}
           type="iconfont-close"
@@ -65,7 +67,7 @@ const Banner = (props: Props) => (
           hoverColor={Styles.globalColors.white}
           onClick={props.onClose}
         />
-      </Box2>
+      </Box>
     )}
   </Box2>
 )
@@ -81,15 +83,24 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
   },
   iconContainer: {
-    alignSelf: 'flex-start',
-    height: Styles.globalMargins.large,
+    padding: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny + Styles.globalMargins.tiny,
+    position: 'absolute',
+    right: 0,
   },
-  text: {
-    textAlign: 'center',
-  },
+  text: Styles.platformStyles({
+    common: {
+      maxWidth: '100%',
+      textAlign: 'center',
+    },
+    isElectron: {
+      overflowWrap: 'break-word',
+    },
+  }),
   textContainer: Styles.platformStyles({
     common: {
       flex: 1,
+      maxWidth: '100%',
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },

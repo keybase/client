@@ -365,13 +365,25 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 	return
 }
 
-func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
-	for _, mt := range chat1.VisibleChatMessageTypes() {
+func checkMessageTypeQual(messageType chat1.MessageType, l []chat1.MessageType) bool {
+	for _, mt := range l {
 		if messageType == mt {
 			return true
 		}
 	}
 	return false
+}
+
+func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
+}
+
+func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
+}
+
+func IsDeleteableByDeleteMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.DeletableMessageTypesByDelete())
 }
 
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
@@ -669,7 +681,7 @@ type SystemMessageUIDSource interface {
 func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
 	typ, err := body.SystemType()
 	if err != nil {
-		return atMentions, chanMention
+		return nil, 0
 	}
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
@@ -688,6 +700,13 @@ func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak S
 		}
 	case chat1.MessageSystemType_COMPLEXTEAM:
 		chanMention = chat1.ChannelMention_ALL
+	case chat1.MessageSystemType_BULKADDTOCONV:
+		for _, username := range body.Bulkaddtoconv().Usernames {
+			uid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(username))
+			if err == nil {
+				atMentions = append(atMentions, uid.ToBytes())
+			}
+		}
 	}
 	sort.Sort(chat1.ByUID(atMentions))
 	return atMentions, chanMention
@@ -839,27 +858,6 @@ func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (ch
 	return chat1.MessageSummary{}, errors.New("not found")
 }
 
-func systemMessageSnippet(msg chat1.MessageSystem) string {
-	typ, err := msg.SystemType()
-	if err != nil {
-		return ""
-	}
-	switch typ {
-	case chat1.MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("%s added to team", msg.Addedtoteam().Addee)
-	case chat1.MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf("%s converted to big team", msg.Complexteam().Team)
-	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("%s added to team", msg.Inviteaddedtoteam().Invitee)
-	case chat1.MessageSystemType_GITPUSH:
-		return fmt.Sprintf("%s pushed to %s", msg.Gitpush().Pusher, msg.Gitpush().RepoName)
-	case chat1.MessageSystemType_CHANGEAVATAR:
-		return fmt.Sprintf("%s changed team avatar", msg.Changeavatar().User)
-	default:
-		return ""
-	}
-}
-
 func showSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal) (showPrefix bool) {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
@@ -908,6 +906,8 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
+	case chat1.MessageType_FLIP:
+		return senderPrefix + msg.Valid().MessageBody.Flip().Text, decoration
 	case chat1.MessageType_ATTACHMENT:
 		obj := msg.Valid().MessageBody.Attachment().Object
 		title := obj.Title
@@ -927,7 +927,7 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		}
 		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
-		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
+		return msg.Valid().MessageBody.System().String(), decoration
 	case chat1.MessageType_REQUESTPAYMENT:
 		return "🚀 payment request", ""
 	case chat1.MessageType_SENDPAYMENT:
@@ -1007,6 +1007,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
+	res.LocalVersion = rawConv.Metadata.LocalVersion
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
@@ -1081,6 +1082,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.CreatorInfo = rawConv.CreatorInfo
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
+	res.LocalVersion = rawConv.Info.LocalVersion
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
@@ -1303,11 +1305,20 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
-	if err != nil || typ != chat1.MessageType_TEXT {
+	if err != nil {
 		return nil
 	}
-	body := msgBody.Text().Body
-	payments := msgBody.Text().Payments
+	var body string
+	var payments []chat1.TextPayment
+	switch typ {
+	case chat1.MessageType_TEXT:
+		body = msgBody.Text().Body
+		payments = msgBody.Text().Payments
+	case chat1.MessageType_FLIP:
+		body = msgBody.Flip().Text
+	default:
+		return nil
+	}
 
 	// escape before applying xforms
 	body = EscapeForDecorate(ctx, body)
@@ -1336,14 +1347,15 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	default:
 		return nil
 	}
-	if !body.IsType(chat1.MessageType_TEXT) {
+	if !body.IsType(chat1.MessageType_FLIP) {
 		return nil
 	}
-	if body.Text().FlipGameID == nil {
-		return nil
+	if msg.GetTopicType() == chat1.TopicType_CHAT && !msg.IsOutbox() {
+		// only queue up a flip load for the flip messages in chat channels
+		g.CoinFlipManager.LoadFlip(ctx, uid, convID, msg.GetMessageID(), body.Flip().FlipConvID,
+			body.Flip().GameID)
 	}
-	g.CoinFlipManager.LoadFlip(ctx, uid, convID, *body.Text().FlipGameID)
-	ret := body.Text().FlipGameID.String()
+	ret := body.Flip().GameID.String()
 	return &ret
 }
 
@@ -1409,6 +1421,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
+			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
+			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
 		})
@@ -1420,6 +1434,10 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
+			decoratedBody = new(string)
+			*decoratedBody = EscapeShrugs(ctx, body)
+		case chat1.MessageType_FLIP:
+			body = rawMsg.Outbox().Msg.MessageBody.Flip().Text
 			decoratedBody = new(string)
 			*decoratedBody = EscapeShrugs(ctx, body)
 		case chat1.MessageType_EDIT:
@@ -1674,16 +1692,36 @@ func AddUserToTLFName(g *globals.Context, tlfName string, vis keybase1.TLFVisibi
 	switch membersType {
 	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE,
 		chat1.ConversationMembersType_KBFS:
-		username := g.Env.GetUsername().String()
-		if vis != keybase1.TLFVisibility_PUBLIC {
-			if len(tlfName) == 0 {
-				tlfName = username
-			} else {
-				tlfName += "," + username
-			}
+		if vis == keybase1.TLFVisibility_PUBLIC {
+			return tlfName
 		}
+
+		username := g.Env.GetUsername().String()
+		if len(tlfName) == 0 {
+			return username
+		}
+
+		// KBFS creates TLFs with suffixes (e.g., folder names that
+		// conflict after an assertion has been resolved) and readers,
+		// so we need to handle those types of TLF names here so that
+		// edit history works correctly.
+		split1 := strings.SplitN(tlfName, " ", 2) // split off suffix
+		split2 := strings.Split(split1[0], "#")   // split off readers
+		// Add the name to the writers list (assume the current user
+		// is a writer).
+		tlfName = split2[0] + "," + username
+		if len(split2) > 1 {
+			// Re-append any readers.
+			tlfName += "#" + split2[1]
+		}
+		if len(split1) > 1 {
+			// Re-append any suffix.
+			tlfName += " " + split1[1]
+		}
+		return tlfName
+	default:
+		return tlfName
 	}
-	return tlfName
 }
 
 func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []keybase1.UID) error {

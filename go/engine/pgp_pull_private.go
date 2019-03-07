@@ -51,7 +51,7 @@ func (e *PGPPullPrivate) read(m libkb.MetaContext, fs *keybase1.SimpleFSClient, 
 	bufsize := 64 * 1024
 	var data []byte
 	for {
-		m.CDebugf("SimpleFS: Reading at %d", offset)
+		m.Debug("SimpleFS: Reading at %d", offset)
 
 		content, err := fs.SimpleFSRead(m.Ctx(), keybase1.SimpleFSReadArg{
 			OpID:   opid,
@@ -61,7 +61,7 @@ func (e *PGPPullPrivate) read(m libkb.MetaContext, fs *keybase1.SimpleFSClient, 
 		if err != nil {
 			return "", err
 		}
-		m.CDebugf("SimpleFS: Read %d", len(content.Data))
+		m.Debug("SimpleFS: Read %d", len(content.Data))
 
 		if len(content.Data) > 0 {
 			offset += int64(len(content.Data))
@@ -96,7 +96,7 @@ func (e *PGPPullPrivate) pull(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 
 func (e *PGPPullPrivate) Run(m libkb.MetaContext) (err error) {
 
-	defer m.CTrace("PGPPullPrivate#Run", func() error { return err })()
+	defer m.Trace("PGPPullPrivate#Run", func() error { return err })()
 
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {

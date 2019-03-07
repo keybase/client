@@ -789,7 +789,8 @@ func (fbo *folderBlockOps) getChargedToLocked(
 		return fbo.chargedTo, nil
 	}
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config,
+		kmd.GetTlfHandle())
 	if err != nil {
 		return keybase1.UserOrTeamID(""), err
 	}
@@ -817,7 +818,8 @@ func (fbo *folderBlockOps) deepCopyFileLocked(
 	// so only a read lock is needed.
 	fbo.blockLock.AssertRLocked(lState)
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config,
+		kmd.GetTlfHandle())
 	if err != nil {
 		return BlockPointer{}, nil, err
 	}
@@ -975,20 +977,27 @@ func (fbo *folderBlockOps) newDirDataLocked(lState *lockState,
 		}, fbo.log)
 }
 
-// newDirDataWithLBCLocked creates a new `dirData` that reads from and
-// puts into a local block cache.  If it reads a block out from
-// anything but the `lbc`, it makes a copy of it before inserting it
-// into the `lbc`.
-func (fbo *folderBlockOps) newDirDataWithLBCLocked(lState *lockState,
+// newDirDataWithDBMLocked creates a new `dirData` that reads from and
+// puts into a local dir block cache.  If it reads a block out from
+// anything but the `dbm`, it makes a copy of it before inserting it
+// into the `dbm`.
+func (fbo *folderBlockOps) newDirDataWithDBMLocked(lState *lockState,
 	dir path, chargedTo keybase1.UserOrTeamID, kmd KeyMetadata,
-	lbc localBcache) *dirData {
+	dbm dirBlockMap) *dirData {
 	fbo.blockLock.AssertRLocked(lState)
 	return newDirData(dir, chargedTo, fbo.config.Crypto(),
 		fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
 			dir path, rtype blockReqType) (*DirBlock, bool, error) {
-			block, ok := lbc[ptr]
-			if ok {
+			hasBlock, err := dbm.hasBlock(ctx, ptr)
+			if err != nil {
+				return nil, false, err
+			}
+			if hasBlock {
+				block, err := dbm.getBlock(ctx, ptr)
+				if err != nil {
+					return nil, false, err
+				}
 				return block, true, nil
 			}
 
@@ -1010,27 +1019,29 @@ func (fbo *folderBlockOps) newDirDataWithLBCLocked(lState *lockState,
 			if rtype == blockWrite {
 				// Make a copy before we stick it in the local block cache.
 				block = block.DeepCopy()
-				lbc[ptr] = block
+				err = dbm.putBlock(ctx, ptr, block)
+				if err != nil {
+					return nil, false, err
+				}
 			}
 			return block, wasDirty, nil
 		},
-		func(_ context.Context, ptr BlockPointer, block Block) error {
-			lbc[ptr] = block.(*DirBlock)
-			return nil
+		func(ctx context.Context, ptr BlockPointer, block Block) error {
+			return dbm.putBlock(ctx, ptr, block.(*DirBlock))
 		}, fbo.log)
 }
 
-// newDirDataWithLBC is like `newDirDataWithLBCLocked`, but it must be
+// newDirDataWithDBM is like `newDirDataWithDBMLocked`, but it must be
 // called with `blockLock` unlocked, and the returned function must be
 // called when the returned `dirData` is no longer in use.
-func (fbo *folderBlockOps) newDirDataWithLBC(
+func (fbo *folderBlockOps) newDirDataWithDBM(
 	lState *lockState, dir path, chargedTo keybase1.UserOrTeamID,
-	kmd KeyMetadata, lbc localBcache) (*dirData, func()) {
+	kmd KeyMetadata, dbm dirBlockMap) (*dirData, func()) {
 	// Lock and fetch for reading only, we want any dirty
-	// blocks to go into the lbc.
+	// blocks to go into the dbm.
 	fbo.blockLock.RLock(lState)
 	cleanupFn := func() { fbo.blockLock.RUnlock(lState) }
-	return fbo.newDirDataWithLBCLocked(lState, dir, chargedTo, kmd, lbc),
+	return fbo.newDirDataWithDBMLocked(lState, dir, chargedTo, kmd, dbm),
 		cleanupFn
 }
 
@@ -1930,7 +1941,7 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 		return nil, err
 	}
 	isWriter, err := kmd.IsWriter(
-		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbo.config.KBPKI(), fbo.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -2716,16 +2727,16 @@ func prepDirtyEntryForSync(md *RootMetadata, si *syncInfo, dirtyDe *DirEntry) {
 	}
 }
 
-// mergeDirtyEntryWithLBC sets the entry for a file into a directory,
-// storing all the affected blocks into `lbc` rather than the dirty
+// mergeDirtyEntryWithDBM sets the entry for a file into a directory,
+// storing all the affected blocks into `dbm` rather than the dirty
 // block cache.  It must only be called with an entry that's already
 // been written to the dirty block cache, such that no new blocks are
 // dirtied.
-func (fbo *folderBlockOps) mergeDirtyEntryWithLBC(
+func (fbo *folderBlockOps) mergeDirtyEntryWithDBM(
 	ctx context.Context, lState *lockState, file path, md KeyMetadata,
-	lbc localBcache, dirtyDe DirEntry) error {
+	dbm dirBlockMap, dirtyDe DirEntry) error {
 	// Lock and fetch for reading only, any dirty blocks will go into
-	// the lbc.
+	// the dbm.
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
@@ -2734,8 +2745,8 @@ func (fbo *folderBlockOps) mergeDirtyEntryWithLBC(
 		return err
 	}
 
-	dd := fbo.newDirDataWithLBCLocked(
-		lState, *file.parentPath(), chargedTo, md, lbc)
+	dd := fbo.newDirDataWithDBMLocked(
+		lState, *file.parentPath(), chargedTo, md, dbm)
 	unrefs, err := dd.setEntry(ctx, file.tailName(), dirtyDe)
 	if err != nil {
 		return err
@@ -2752,7 +2763,7 @@ func (fbo *folderBlockOps) mergeDirtyEntryWithLBC(
 // writes since the last sync. Must be used with CleanupSyncState()
 // and UpdatePointers/FinishSyncLocked() like so:
 //
-// 	fblock, bps, lbc, syncState, err :=
+// 	fblock, bps, dirtyDe, syncState, err :=
 //		...fbo.StartSync(ctx, lState, md, uid, file)
 //	defer func() {
 //		...fbo.CleanupSyncState(
@@ -3381,6 +3392,11 @@ func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState,
 		if updatedNode != nil {
 			affectedNodeIDs = append(affectedNodeIDs, updatedNode)
 		}
+	}
+
+	// Cancel any prefetches for all unreferenced block pointers.
+	for _, unref := range op.Unrefs() {
+		fbo.config.BlockOps().Prefetcher().CancelPrefetch(unref)
 	}
 
 	if afterUpdateFn == nil {

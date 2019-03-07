@@ -83,6 +83,12 @@ func (o InboxVers) DeepCopy() InboxVers {
 	return o
 }
 
+type LocalConversationVers uint64
+
+func (o LocalConversationVers) DeepCopy() LocalConversationVers {
+	return o
+}
+
 type ConversationVers uint64
 
 func (o ConversationVers) DeepCopy() ConversationVers {
@@ -247,6 +253,7 @@ const (
 	MessageType_SENDPAYMENT        MessageType = 14
 	MessageType_REQUESTPAYMENT     MessageType = 15
 	MessageType_UNFURL             MessageType = 16
+	MessageType_FLIP               MessageType = 17
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -269,6 +276,7 @@ var MessageTypeMap = map[string]MessageType{
 	"SENDPAYMENT":        14,
 	"REQUESTPAYMENT":     15,
 	"UNFURL":             16,
+	"FLIP":               17,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -289,6 +297,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	14: "SENDPAYMENT",
 	15: "REQUESTPAYMENT",
 	16: "UNFURL",
+	17: "FLIP",
 }
 
 type TopicType int
@@ -791,6 +800,7 @@ type ConversationMetadata struct {
 	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
 	Existence      ConversationExistence     `codec:"existence" json:"existence"`
 	Version        ConversationVers          `codec:"version" json:"version"`
+	LocalVersion   LocalConversationVers     `codec:"localVersion" json:"localVersion"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -809,6 +819,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		TeamType:       o.TeamType.DeepCopy(),
 		Existence:      o.Existence.DeepCopy(),
 		Version:        o.Version.DeepCopy(),
+		LocalVersion:   o.LocalVersion.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

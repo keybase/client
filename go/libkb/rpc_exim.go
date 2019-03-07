@@ -264,6 +264,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return NoSessionError{}
 	case SCKeyCorrupted:
 		return KeyCorruptedError{s.Desc}
+	case SCOffline:
+		return OfflineError{}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -467,6 +469,19 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return ChatInternalError{}
 	case SCChatStalePreviousState:
 		return ChatStalePreviousStateError{}
+	case SCChatEphemeralRetentionPolicyViolatedError:
+		var maxAge gregor1.DurationSec
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "MaxAge":
+				dur, err := time.ParseDuration(field.Value)
+				if err == nil {
+					maxAge = gregor1.ToDurationSec(dur)
+				}
+				break
+			}
+		}
+		return ChatEphemeralRetentionPolicyViolatedError{maxAge}
 	case SCChatConvExists:
 		var convID chat1.ConversationID
 		for _, field := range s.Fields {
@@ -989,6 +1004,14 @@ func (c KeyCorruptedError) ToStatus() (s keybase1.Status) {
 		s.Desc = c.Msg
 	}
 	return
+}
+
+//=============================================================================
+
+func (e OfflineError) ToStatus() (s keybase1.Status) {
+	s.Code = SCOffline
+	s.Name = "OFFLINE"
+	return s
 }
 
 //=============================================================================
@@ -1990,10 +2013,15 @@ func (e ChatStalePreviousStateError) ToStatus() keybase1.Status {
 }
 
 func (e ChatEphemeralRetentionPolicyViolatedError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "MaxAge",
+		Value: e.MaxAge.ToDuration().String(),
+	}
 	return keybase1.Status{
-		Code: SCChatEphemeralRetentionPolicyViolatedError,
-		Name: "SC_CHAT_EPHEMERAL_RETENTION_POLICY_VIOLATED",
-		Desc: e.Error(),
+		Code:   SCChatEphemeralRetentionPolicyViolatedError,
+		Name:   "SC_CHAT_EPHEMERAL_RETENTION_POLICY_VIOLATED",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }
 

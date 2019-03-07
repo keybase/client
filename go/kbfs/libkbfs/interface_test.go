@@ -89,6 +89,15 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
 	return t.syncedTlfs[tlfID].Mode == keybase1.FolderSyncMode_ENABLED
 }
 
+func (t *testSyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
+	for _, config := range t.syncedTlfs {
+		if config.TlfPath == tlfPath {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
 	config FolderSyncConfig) (<-chan error, error) {
 	t.syncedTlfs[tlfID] = config
@@ -101,6 +110,22 @@ func (t *testSyncedTlfGetterSetter) GetAllSyncedTlfs() []tlf.ID {
 		tlfs = append(tlfs, tlf)
 	}
 	return tlfs
+}
+
+func (t *testSyncedTlfGetterSetter) OfflineAvailabilityForPath(
+	tlfPath string) keybase1.OfflineAvailability {
+	if t.IsSyncedTlfPath(tlfPath) {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
+}
+
+func (t *testSyncedTlfGetterSetter) OfflineAvailabilityForID(
+	tlfID tlf.ID) keybase1.OfflineAvailability {
+	if t.IsSyncedTlf(tlfID) {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
 }
 
 type testInitModeGetter struct {

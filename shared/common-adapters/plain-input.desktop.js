@@ -274,15 +274,15 @@ class PlainInput extends React.PureComponent<InternalProps> {
 }
 
 const StyledTextArea = styled.textarea(props => ({
-  '&::-webkit-inner-spin-button': {'-webkit-appearance': 'none', margin: 0},
+  '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
   '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
-  '&::-webkit-outer-spin-button': {'-webkit-appearance': 'none', margin: 0},
+  '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
 const StyledInput = styled.input(props => ({
-  '&::-webkit-inner-spin-button': {'-webkit-appearance': 'none', margin: 0},
+  '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
   '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
-  '&::-webkit-outer-spin-button': {'-webkit-appearance': 'none', margin: 0},
+  '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
 const styles = styleSheetCreate({

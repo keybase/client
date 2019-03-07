@@ -63,7 +63,7 @@ const BioConnector = connect<TodoOwnProps, _, _, _, _>(
     _onConfirm: (username: string) => {
       // make sure we have tracker state & profile is up to date
       dispatch(createGetMyProfile({}))
-      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['editProfile']}))
+      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['editProfile2']}))
     },
     onDismiss: () => {},
   }),
@@ -121,7 +121,7 @@ const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
     onConfirm: () => {
       if (!isMobile) {
         dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.devicesTab]}))
-        dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.devicesTab], path: ['addDevice']}))
+        dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.devicesTab], path: ['deviceAdd']}))
       } else {
         dispatch(
           RouteTreeGen.createNavigateTo({
@@ -178,7 +178,7 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [Tabs.gitTab],
-          path: [{props: {isTeam: false}, selected: 'newRepo'}],
+          path: [{props: {isTeam: false}, selected: 'gitNewRepo'}],
         })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.gitTab]}))

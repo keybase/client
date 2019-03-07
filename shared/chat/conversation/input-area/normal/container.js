@@ -38,6 +38,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
   const isExploding = explodingModeSeconds !== 0
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
+  const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
+  const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
   return {
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
@@ -50,6 +52,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isExploding,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
+    showCommandMarkdown,
+    showGiphySearch,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
@@ -70,7 +74,7 @@ const mapDispatchToProps = dispatch => ({
     }))
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
       })
     )
   },
@@ -147,6 +151,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     }
     setUnsentText(stateProps.conversationIDKey, text)
   },
+  showCommandMarkdown: stateProps.showCommandMarkdown,
+  showGiphySearch: stateProps.showGiphySearch,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,

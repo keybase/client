@@ -99,7 +99,8 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	bCtx := kbfsblock.MakeFirstContext(
 		uid1.AsUserOrTeam(), keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	// Put a block.

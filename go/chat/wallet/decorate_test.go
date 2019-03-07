@@ -60,7 +60,7 @@ func TestStellarDecorate(t *testing.T) {
 			result: "HIHIH ```+5xlm@patrick``` $>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJwYXRyaWNrIiwicGF5bWVudFRleHQiOiIrNVhMTUBwYXRyaWNrIiwicmVzdWx0Ijp7InJlc3VsdFR5cCI6MCwic2VudCI6InN0ZWxsYXJpZCJ9fX0=$<kb$ `+1xlm` $>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzFYTE0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$ other test",
 		},
 		decorateTest{
-			body: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `+124.005XLM@mikem``    ",
+			body: "   ```   `+124.004XLM@max```  my life to yours, my breath become yours  ```   ` +124.005XLM@mikem ``    ",
 			payments: []chat1.TextPayment{
 				chat1.TextPayment{
 					Username:    "mikem",
@@ -69,11 +69,11 @@ func TestStellarDecorate(t *testing.T) {
 				},
 			},
 			// {"typ":0,"payment":{"username":"mikem","paymentText":"+124.005XLM@mikem","result":{"resultTyp":0,"sent":"stellarid"}}}
-			result: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `$>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzEyNC4wMDVYTE1AbWlrZW0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$``    ",
+			result: "   ```   `+124.004XLM@max```  my life to yours, my breath become yours  ```   ` $>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzEyNC4wMDVYTE1AbWlrZW0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$ ``    ",
 		},
 	}
-	for _, c := range cases {
+	for i, c := range cases {
 		res := DecorateWithPayments(context.TODO(), c.body, c.payments)
-		require.Equal(t, c.result, res)
+		require.Equal(t, c.result, res, "unit %v", i)
 	}
 }

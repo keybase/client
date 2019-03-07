@@ -37,8 +37,8 @@ class LoginRender extends Component<Props> {
       <Kb.NativeScrollView>
         <Kb.Box style={styles.container}>
           {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
-            <Kb.Box style={deviceNotSecureStyle}>
-              <Kb.Text center={true} type="Body" backgroundMode="Information" style={{flex: 1}}>
+            <Kb.Box style={styles.deviceNotSecureContainer}>
+              <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
                 Since you don't have a lock screen, you'll have to type your passphrase everytime.
               </Kb.Text>
             </Kb.Box>
@@ -59,16 +59,16 @@ class LoginRender extends Component<Props> {
             <Kb.WaitingButton
               disabled={!this.props.passphrase}
               waitingKey={Constants.waitingKey}
-              style={{marginTop: 0}}
+              style={{marginTop: 0, width: '100%'}}
               fullWidth={true}
               type="Primary"
               label="Log in"
               onClick={this.props.onSubmit}
             />
             <Kb.Text
-              link={true}
               type="BodySmallSecondaryLink"
-              center={true} onClick={this.props.onForgotPassphrase}
+              center={true}
+              onClick={this.props.onForgotPassphrase}
               style={{marginTop: Styles.globalMargins.medium}}
             >
               Forgot passphrase?
@@ -109,13 +109,15 @@ const styles = {
     backgroundColor: Styles.globalColors.white,
     flex: 1,
   },
-}
-
-const deviceNotSecureStyle = {
-  alignSelf: 'stretch',
-  backgroundColor: Styles.globalColors.yellow,
-  paddingBottom: Styles.globalMargins.tiny,
-  paddingTop: Styles.globalMargins.tiny,
+  deviceNotSecureContainer: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.yellow,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  deviceNotSecureText: {
+    color: Styles.globalColors.brown_75,
+  },
 }
 
 export default LoginRender

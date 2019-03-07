@@ -128,7 +128,9 @@ func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.Incomi
 	if err := r.G().UIDMapper.ClearUIDAtEldestSeqno(ctx, r.G(), msg.ResetUser.Uid, msg.ResetUser.EldestSeqno); err != nil {
 		return err
 	}
-
+	// Favorites is misused to let people know when there are reset team
+	// members. This busts the relevant cache.
+	r.G().NotifyRouter.HandleFavoritesChanged(r.G().GetMyUID())
 	r.G().Log.CDebugf(ctx, "%s: cleared UIDMap cache for %s%%%d", nm, msg.ResetUser.Uid, msg.ResetUser.EldestSeqno)
 	return nil
 }

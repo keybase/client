@@ -103,7 +103,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         applicationId "io.keybase.ossifrage"
         versionCode timestamp()
-        versionName "3.1.0"
+        versionName "3.2.0"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -196,5 +196,7 @@ dependencies {
     implementation project(':react-native-contacts')
     implementation project(':react-native-fast-image')
     implementation project(':lottie-react-native')
+    implementation project(':react-native-gesture-handler')
+    implementation project(':react-native-screens')
     implementation 'com.evernote:android-job:1.2.6'
 }

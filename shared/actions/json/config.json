@@ -6,9 +6,6 @@
     "import {RPCError} from '../util/errors'",
   ],
   "actions": {
-    "setupEngineListeners": {
-      "_description": "TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers"
-    },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
     },
@@ -79,10 +76,6 @@
       "usernames": "Array<string>"
     },
     "globalError": {"globalError": "null | Error | RPCError"},
-    "updateFollowing": {
-      "username": "string",
-      "isTracking": "boolean"
-    },
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
@@ -101,12 +94,22 @@
     },
     "setDeletedSelf": {"deletedUsername": "string"},
     "swapRouter": {"useNewRouter": "boolean"},
+    "persistRoute": {"path": "Array<any>"},
+    "setNavigator": {"navigator": "any"},
     "loggedOut": {},
     "loggedIn": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
-    "updateNow": {}
+    "updateNow": {},
+    "openAppStore": {
+      "_description": "Open a link to the app store"
+    },
+    "updateCriticalCheckStatus": {
+      "_description": "Save critical check status",
+      "status": "'critical' | 'suggested' | 'ok'",
+      "message": "string",
+    }
   }
 }

@@ -51,7 +51,7 @@ type BaseIdentifyUI struct {
 	username        string
 }
 
-func (ui *BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+func (ui *BaseIdentifyUI) DisplayUserCard(libkb.MetaContext, keybase1.UserCard) error {
 	return nil
 }
 
@@ -59,7 +59,7 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui *BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason, forceDisplay bool) error {
+func (ui *BaseIdentifyUI) Start(_ libkb.MetaContext, username string, reason keybase1.IdentifyReason, forceDisplay bool) error {
 	msg := "Identifying "
 	switch reason.Type {
 	case keybase1.IdentifyReasonType_TRACK:
@@ -72,30 +72,30 @@ func (ui *BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason,
 	return nil
 }
 
-func (ui *BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
+func (ui *BaseIdentifyUI) DisplayTrackStatement(_ libkb.MetaContext, stmt string) error {
 	return ui.parent.Output(stmt)
 }
 
-func (ui *BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
+func (ui *BaseIdentifyUI) ReportTrackToken(_ libkb.MetaContext, _ keybase1.TrackToken) error {
 	return nil
 }
 
-func (ui *BaseIdentifyUI) Cancel() error {
+func (ui *BaseIdentifyUI) Cancel(_ libkb.MetaContext) error {
 	return nil
 }
 
-func (ui *BaseIdentifyUI) Finish() error {
+func (ui *BaseIdentifyUI) Finish(_ libkb.MetaContext) error {
 	if !ui.displayedProofs {
 		ui.ReportHook(ColorString(ui.G(), "bold", ui.username) + " hasn't proven their identity yet.")
 	}
 	return nil
 }
 
-func (ui *BaseIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+func (ui *BaseIdentifyUI) Dismiss(_ libkb.MetaContext, _ string, _ keybase1.DismissReason) error {
 	return nil
 }
 
-func (ui *BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (ui *BaseIdentifyUI) Confirm(_ libkb.MetaContext, o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
@@ -113,7 +113,7 @@ func (ui *BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.Confirm
 	return keybase1.ConfirmResult{IdentityConfirmed: false, RemoteConfirmed: false}, nil
 }
 
-func (ui *BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) error {
+func (ui *BaseIdentifyUI) LaunchNetworkChecks(_ libkb.MetaContext, i *keybase1.Identity, u *keybase1.User) error {
 	return nil
 }
 
@@ -128,7 +128,7 @@ func (ui *BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
 	ui.displayedProofs = true
 }
 
-func (ui *BaseIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+func (ui *BaseIdentifyUI) DisplayTLFCreateWithInvite(_ libkb.MetaContext, arg keybase1.DisplayTLFCreateWithInviteArg) error {
 	ui.displayedProofs = true // hacky, but we don't want to show the message about no proofs in this flow.
 
 	// this will only happen via `keybase favorite add` w/ no gui running:
@@ -195,7 +195,7 @@ func (ui *IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome)
 	return
 }
 
-func (ui *IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
+func (ui *IdentifyTrackUI) Confirm(_ libkb.MetaContext, o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	var prompt string
 	username := o.Username
 
@@ -404,7 +404,7 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 	return msg
 }
 
-func (ui *BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (ui *BaseIdentifyUI) FinishSocialProofCheck(_ libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -466,7 +466,7 @@ func (ui *BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) s
 	return ColorString(ui.G(), "orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (ui *BaseIdentifyUI) FinishWebProofCheck(_ libkb.MetaContext, p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -520,19 +520,19 @@ func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1
 	return nil
 }
 
-func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
+func (ui *BaseIdentifyUI) DisplayCryptocurrency(_ libkb.MetaContext, l keybase1.Cryptocurrency) error {
 	msg := fmt.Sprintf("%s  %s %s", BTC, l.Family, ColorString(ui.G(), "green", l.Address))
 	ui.ReportHook(msg)
 	return nil
 }
 
-func (ui *BaseIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
+func (ui *BaseIdentifyUI) DisplayStellarAccount(_ libkb.MetaContext, l keybase1.StellarAccount) error {
 	msg := fmt.Sprintf("%s  Stellar %s (%s)", XLM, ColorString(ui.G(), "green", l.AccountID), l.FederationAddress)
 	ui.ReportHook(msg)
 	return nil
 }
 
-func (ui *BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
+func (ui *BaseIdentifyUI) DisplayKey(_ libkb.MetaContext, key keybase1.IdentifyKey) error {
 	var fpq string
 	if fp := libkb.ImportPGPFingerprintSlice(key.PGPFingerprint); fp != nil {
 		fpq = fp.ToQuads()
@@ -556,7 +556,7 @@ func (ui *BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
 	return nil
 }
 
-func (ui *BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
+func (ui *BaseIdentifyUI) ReportLastTrack(_ libkb.MetaContext, tl *keybase1.TrackSummary) error {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {

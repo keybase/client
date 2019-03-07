@@ -39,7 +39,15 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
-	return NewConversation(ctx, h.G(), uid, tlfName, topicName, topicType, membersType, vis, h.ri)
+	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
+		topicType, membersType, vis, h.ri)
+}
+
+func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
+	return NewConversationWithMemberSourceConv(ctx, h.G(), uid, tlfName, topicName,
+		topicType, membersType, vis, h.ri, memberSourceConv)
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
@@ -60,7 +68,7 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, t
 		},
 		MessageBody: body,
 	}
-	_, _, err := sender.Send(ctx, convID, msg, 0, nil)
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil)
 	return err
 }
 
@@ -83,7 +91,7 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 		},
 		MessageBody: body,
 	}
-	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID)
+	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil)
 	return outboxID, err
 }
 
@@ -344,7 +352,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	return s.sender.Send(ctx, s.convID, msg, 0, outboxID)
+	return s.sender.Send(ctx, s.convID, msg, 0, outboxID, nil)
 }
 
 func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
@@ -714,7 +722,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 
 	// Send with a blocking sender
 	sender := NewBlockingSender(g, NewBoxer(g), ri)
-	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil)
+	_, _, err = sender.Send(ctx, convID, plaintext, 0, nil, nil)
 	return err
 }
 
@@ -854,8 +862,14 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
+	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, nil)
+}
+
+func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
 	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
-	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
+	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri, memberSourceConv)
 	return helper.create(ctx)
 }
 
@@ -863,28 +877,30 @@ type newConversationHelper struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	uid         gregor1.UID
-	tlfName     string
-	topicName   *string
-	topicType   chat1.TopicType
-	membersType chat1.ConversationMembersType
-	vis         keybase1.TLFVisibility
-	ri          func() chat1.RemoteInterface
+	uid              gregor1.UID
+	tlfName          string
+	topicName        *string
+	topicType        chat1.TopicType
+	membersType      chat1.ConversationMembersType
+	memberSourceConv *chat1.ConversationID
+	vis              keybase1.TLFVisibility
+	ri               func() chat1.RemoteInterface
 }
 
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
-	ri func() chat1.RemoteInterface) *newConversationHelper {
+	ri func() chat1.RemoteInterface, memberSourceConv *chat1.ConversationID) *newConversationHelper {
 	return &newConversationHelper{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
-		uid:          uid,
-		tlfName:      utils.AddUserToTLFName(g, tlfName, vis, membersType),
-		topicName:    topicName,
-		topicType:    topicType,
-		membersType:  membersType,
-		vis:          vis,
-		ri:           ri,
+		Contextified:     globals.NewContextified(g),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
+		uid:              uid,
+		tlfName:          utils.AddUserToTLFName(g, tlfName, vis, membersType),
+		topicName:        topicName,
+		topicType:        topicType,
+		membersType:      membersType,
+		memberSourceConv: memberSourceConv,
+		vis:              vis,
+		ri:               ri,
 	}
 }
 
@@ -1024,10 +1040,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 		var ncrres chat1.NewConversationRemoteRes
 		ncrres, reserr = n.ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
-			IdTriple:       triple,
-			TLFMessage:     *firstMessageBoxed,
-			MembersType:    n.membersType,
-			TopicNameState: topicNameState,
+			IdTriple:         triple,
+			TLFMessage:       *firstMessageBoxed,
+			MembersType:      n.membersType,
+			TopicNameState:   topicNameState,
+			MemberSourceConv: n.memberSourceConv,
 		})
 		convID := ncrres.ConvID
 		if reserr != nil {

@@ -35,10 +35,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClose: (guiID: string) => {
+    dispatch(Tracker2Gen.createCloseTracker({guiID}))
     // close immediately
     const w = SafeElectron.getCurrentWindowFromRemote()
     w && w.close()
-    dispatch(Tracker2Gen.createCloseTracker({guiID}))
   },
   _onFollow: (guiID: string) => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})),
   _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),

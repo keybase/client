@@ -141,12 +141,15 @@ const Tracker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-        <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
-      </Kb.Box2>
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
+      {/* The header box must go after the reason text, so that the
+       * close button's draggingClickable style goes on top of the
+       * reason's draggable style, which matters on Linux. */}
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+        <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
+      </Kb.Box2>
       <Kb.ScrollView style={styles.scrollView} hideVerticalScroll={true}>
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
@@ -158,6 +161,8 @@ const Tracker = (props: Props) => {
               <Kb.ConnectedNameWithIcon
                 onClick="profile"
                 username={props.username}
+                underline={false}
+                selectable={true}
                 colorFollowing={true}
                 notFollowingColorOverride={Styles.globalColors.orange}
               />
@@ -230,14 +235,16 @@ const styles = Styles.styleSheetCreate({
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  close: {padding: Styles.globalMargins.tiny},
-  container: Styles.platformStyles({
+  close: Styles.platformStyles({
+    common: {padding: Styles.globalMargins.tiny},
     isElectron: {
-      ...Styles.desktopStyles.windowDragging,
-      backgroundColor: Styles.globalColors.white,
-      position: 'relative',
+      ...Styles.desktopStyles.windowDraggingClickable,
     },
   }),
+  container: {
+    backgroundColor: Styles.globalColors.white,
+    position: 'relative',
+  },
   header: {
     justifyContent: 'flex-end',
     paddingBottom: Styles.globalMargins.tiny,
@@ -246,12 +253,17 @@ const styles = Styles.styleSheetCreate({
     zIndex: 9,
   },
   nameWithIconContainer: {alignSelf: 'center'},
-  reason: {
-    ...reason,
-    ...Styles.globalStyles.fillAbsolute,
-    bottom: undefined,
-    paddingBottom: reason.paddingBottom + avatarSize / 2,
-  },
+  reason: Styles.platformStyles({
+    common: {
+      ...reason,
+      ...Styles.globalStyles.fillAbsolute,
+      bottom: undefined,
+      paddingBottom: reason.paddingBottom + avatarSize / 2,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.windowDragging,
+    },
+  }),
   reasonInvisible: {
     ...reason,
     opacity: 0,

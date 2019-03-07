@@ -973,11 +973,13 @@ type ChatUI struct {
 	InboxSearchDoneCb  chan chat1.ChatSearchInboxDoneArg
 	StellarShowConfirm chan struct{}
 	StellarDataConfirm chan chat1.UIChatPaymentSummary
-	StellarDataError   chan string
+	StellarDataError   chan keybase1.Status
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
 	GiphyResults       chan []chat1.GiphySearchResult
+	GiphyWindow        chan bool
 	CoinFlipUpdates    chan []chat1.UICoinFlipStatus
+	CommandMarkdown    chan *chat1.UICommandMarkdown
 }
 
 func NewChatUI() *ChatUI {
@@ -990,11 +992,13 @@ func NewChatUI() *ChatUI {
 		InboxSearchDoneCb:  make(chan chat1.ChatSearchInboxDoneArg, 50),
 		StellarShowConfirm: make(chan struct{}, 10),
 		StellarDataConfirm: make(chan chat1.UIChatPaymentSummary, 10),
-		StellarDataError:   make(chan string, 10),
+		StellarDataError:   make(chan keybase1.Status, 10),
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
+		GiphyWindow:        make(chan bool, 10),
 		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
+		CommandMarkdown:    make(chan *chat1.UICommandMarkdown, 10),
 	}
 }
 
@@ -1109,8 +1113,8 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UICha
 	return true, nil
 }
 
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, error) {
-	c.StellarDataError <- msg
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, err keybase1.Status) (bool, error) {
+	c.StellarDataError <- err
 	return false, nil
 }
 
@@ -1130,8 +1134,20 @@ func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.Conver
 	return nil
 }
 
+func (c *ChatUI) ChatGiphyToggleResultWindow(ctx context.Context,
+	convID chat1.ConversationID, show bool) error {
+	c.GiphyWindow <- show
+	return nil
+}
+
 func (c *ChatUI) ChatCoinFlipStatus(ctx context.Context, updates []chat1.UICoinFlipStatus) error {
 	c.CoinFlipUpdates <- updates
+	return nil
+}
+
+func (c *ChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.ConversationID,
+	md *chat1.UICommandMarkdown) error {
+	c.CommandMarkdown <- md
 	return nil
 }
 
@@ -1296,6 +1312,12 @@ func (m *MockChatHelper) GetMessage(ctx context.Context, uid gregor1.UID, convID
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return chat1.ConversationLocal{}, nil
+}
+
+func (m *MockChatHelper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
 	return chat1.ConversationLocal{}, nil
 }
 
