@@ -10,6 +10,8 @@ import CoinFlipResult from './results'
 
 export type Props = {|
   commitmentVis: string,
+  isSendError: boolean,
+  onFlipAgain: () => void,
   revealVis: string,
   resultText: string,
   errorInfo?: ?RPCChatTypes.UICoinFlipError,
@@ -92,7 +94,7 @@ class CoinFlip extends React.Component<Props, State> {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {this.props.errorInfo ? (
           <CoinFlipError error={this.props.errorInfo} />
         ) : (
@@ -125,6 +127,19 @@ class CoinFlip extends React.Component<Props, State> {
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {this.props.resultInfo && <CoinFlipResult result={this.props.resultInfo} />}
         </Kb.Box2>
+        <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.flipAgainContainer}>
+          {this.props.isSendError || this.props.errorInfo ? (
+            <Kb.Text type="BodySmallError" onClick={this.props.onFlipAgain}>
+              Try again
+            </Kb.Text>
+          ) : (
+            this.props.phase === 'complete' && (
+              <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onFlipAgain}>
+                Flip again
+              </Kb.Text>
+            )
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -141,6 +156,9 @@ const styles = Styles.styleSheetCreate({
   },
   error: {
     color: Styles.globalColors.red,
+  },
+  flipAgainContainer: {
+    paddingTop: Styles.globalMargins.tiny,
   },
   placeholder: {
     backgroundColor: Styles.globalColors.lightGrey,
