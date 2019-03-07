@@ -8,15 +8,11 @@ import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../const
 import type {Props} from '.'
 
 class LoginRender extends Component<Props> {
-  _inputRef: ?Kb.Input
-
-  _setInputRef = ref => {
-    this._inputRef = ref
-  }
+  _inputRef = React.createRef<Kb.Input>()
 
   _focusInput = () => {
-    if (this._inputRef) {
-      this._inputRef.focus()
+    if (this._inputRef.current) {
+      this._inputRef.current.focus()
     }
   }
 
@@ -35,7 +31,7 @@ class LoginRender extends Component<Props> {
       key: this.props.inputKey,
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       onEnterKeyDown: () => this.props.onSubmit(),
-      ref: this._setInputRef,
+      ref: this._inputRef,
       style: {marginBottom: 0},
       type: this.props.showTyping ? 'passwordVisible' : 'password',
       // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
