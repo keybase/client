@@ -131,7 +131,7 @@ class Icon extends React.PureComponent<Props> {
       icon = <Image source={iconMeta[iconType].require} style={iconStyle} resizeMode="contain" />
     }
 
-    return !props.noClickableBox && props.onClick ? (
+    return !props.noContainer && props.onClick ? (
       <ClickableBox
         activeOpacity={0.8}
         underlayColor={props.underlayColor || Styles.globalColors.white}
