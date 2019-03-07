@@ -28,6 +28,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
+import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
@@ -69,8 +70,9 @@ public class MainActivity extends ReactFragmentActivity {
         }
 
         createDummyFile();
-        initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher(), new VideoHelper());
+
+        final String homeDir = this.getFilesDir().getPath();
+        final String logFile = this.getFileStreamPath("service.log").getAbsolutePath();
 
         super.onCreate(savedInstanceState);
 
@@ -101,6 +103,39 @@ public class MainActivity extends ReactFragmentActivity {
                 mainWindow.setBackgroundDrawableResource(R.color.white);
             }
         }, 300);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "aaa go delay init");
+                try {
+                    Thread.sleep(1 * 1000); // TEMP
+                } catch (InterruptedException e) {
+
+                }
+
+                initOnce(homeDir, "", logFile, "prod", false, new DNSNSFetcher(), new VideoHelper());
+                Log.d(TAG, "aaa go delay after");
+                KeybaseEngine.singleton.startGo();
+//                ReactInstanceManager instanceManager = getReactInstanceManager();
+//                if (instanceManager != null) {
+//                    ReactContext currentContext = instanceManager.getCurrentReactContext();
+//                    if (currentContext != null) {
+//                        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext
+//                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+//                        if (emitter != null) {
+//                            emitter.emit("ENGINE_RESET", "");
+//                        }
+//                    }
+//                }
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.d(TAG, "aaa go delay after in main thread");
+//                    }
+//                });
+            }
+        }).start();
     }
 
     @Override

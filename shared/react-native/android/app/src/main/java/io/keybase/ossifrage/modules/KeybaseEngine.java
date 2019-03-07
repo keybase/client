@@ -31,13 +31,14 @@ import static keybase.Keybase.writeB64;
 import static keybase.Keybase.version;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
-
+    public static KeybaseEngine singleton;
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
     private static final String RPC_META_EVENT_NAME = "META_RPC";
     private static final String RPC_META_EVENT_ENGINE_RESET = "ENGINE_RESET";
     private ExecutorService executor;
-    private Boolean started = false;
+    private Boolean jsStarted = false;
+    private static Boolean goStarted = false;
     private ReactApplicationContext reactContext;
 
     private static void relayReset(ReactApplicationContext reactContext) {
@@ -83,21 +84,16 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     public KeybaseEngine(final ReactApplicationContext reactContext) {
         super(reactContext);
+        KeybaseEngine.singleton = this;
         NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
-            public void onHostResume() {
-                if (started && executor == null) {
-                    executor = Executors.newSingleThreadExecutor();
-                    executor.execute(new ReadFromKBLib(reactContext));
-                }
-            }
+            public void onHostResume() { startReadLoop(); }
 
             @Override
-            public void onHostPause() {
-            }
+            public void onHostPause() { }
 
             @Override
             public void onHostDestroy() {
@@ -205,17 +201,30 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
       }
     }
 
-    @ReactMethod
-    public void start() {
-        NativeLogger.info("KeybaseEngine started");
+    private void startReadLoop() {
         try {
-            started = true;
-            if (executor == null) {
+            if (jsStarted && goStarted && executor == null) {
+                reactContext
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                        .emit(KeybaseEngine.RPC_META_EVENT_NAME, KeybaseEngine.RPC_META_EVENT_ENGINE_RESET);
                 executor = Executors.newSingleThreadExecutor();
                 executor.execute(new ReadFromKBLib(this.reactContext));
             }
         } catch (Exception e) {
             NativeLogger.error("Exception in KeybaseEngine.start", e);
         }
+    }
+
+    @ReactMethod
+    public void start() {
+        NativeLogger.info("KeybaseEngine js started");
+        jsStarted = true;
+        startReadLoop();
+    }
+
+    public void startGo() {
+        NativeLogger.info("KeybaseEngine go started");
+        goStarted = true;
+        startReadLoop();
     }
 }
