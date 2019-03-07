@@ -747,6 +747,10 @@ func parseTlfHandleLoose(
 		}
 		offline = osg.OfflineAvailabilityForPath(
 			buildCanonicalPathForTlfName(t, tlf.CanonicalName(normalizedName)))
+
+		// Make sure we always pass the normalized name to the
+		// service, so it can use its cache effectively.
+		name = normalizedName
 	}
 
 	// First try resolving this full name as an implicit team.  If
