@@ -1031,7 +1031,11 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 		}()
 	}
 
-	// Kick off amark-and-sweep if one doesn't exist yet.
+	if syncConfig.Mode != keybase1.FolderSyncMode_PARTIAL {
+		return
+	}
+
+	// Kick off a mark-and-sweep for synced TLFs if one doesn't exist yet.
 	fbo.syncLock.Lock(lState)
 	defer fbo.syncLock.Unlock(lState)
 	if fbo.markAndSweepTrigger == nil {
