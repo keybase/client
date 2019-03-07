@@ -599,10 +599,9 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		libkb.AppStatusEmbed
 		RandomPW bool `json:"random_pw"`
 	}
-	err = h.G().API.GetDecode(libkb.APIArg{
+	err = m.G().API.GetDecode(m, libkb.APIArg{
 		Endpoint:       "user/has_random_pw",
 		SessionType:    libkb.APISessionTypeREQUIRED,
-		NetContext:     ctx,
 		InitialTimeout: initialTimeout,
 	}, &ret)
 	if err != nil {

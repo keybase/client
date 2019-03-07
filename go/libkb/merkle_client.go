@@ -991,11 +991,10 @@ func (r *firstSkipRaw) GetAppStatus() *AppStatus {
 func (mc *MerkleClient) getFirstSkipFromServer(m MetaContext) *keybase1.Seqno {
 
 	var raw firstSkipRaw
-	err := m.G().API.GetDecode(APIArg{
+	err := m.G().API.GetDecode(m, APIArg{
 		Endpoint:       "merkle/first_root_with_skips",
 		SessionType:    APISessionTypeNONE,
 		AppStatusCodes: []int{SCOk},
-		MetaContext:    m,
 	}, &raw)
 
 	if err != nil {

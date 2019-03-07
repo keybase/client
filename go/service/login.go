@@ -36,10 +36,9 @@ type canLogoutRet struct {
 
 // canLogout asks API server whether we should allow logging out or not.
 func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
-	err = mctx.G().API.GetDecode(libkb.APIArg{
+	err = mctx.G().API.GetDecode(mctx, libkb.APIArg{
 		Endpoint:    "user/can_logout",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		MetaContext: mctx,
 	}, &res)
 	return res, err
 }

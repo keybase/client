@@ -284,7 +284,8 @@ type ExternalAPIRes struct {
 
 type API interface {
 	Get(MetaContext, APIArg) (*APIRes, error)
-	GetDecode(APIArg, APIResponseWrapper) error
+	GetDecode(MetaContext, APIArg, APIResponseWrapper) error
+	GetDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
 	GetResp(APIArg) (*http.Response, func(), error)
 	Post(APIArg) (*APIRes, error)
 	PostJSON(APIArg) (*APIRes, error)

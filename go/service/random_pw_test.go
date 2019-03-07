@@ -71,14 +71,14 @@ type errorAPIMock struct {
 	shouldTimeout bool
 }
 
-func (r *errorAPIMock) GetDecode(arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	if arg.Endpoint == "user/has_random_pw" {
 		r.callCount++
 		if r.shouldTimeout {
 			return errors.New("timeout or something")
 		}
 	}
-	return r.realAPI.GetDecode(arg, w)
+	return r.realAPI.GetDecode(mctx, arg, w)
 }
 
 func TestCanLogoutTimeout(t *testing.T) {

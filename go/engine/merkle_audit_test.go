@@ -80,13 +80,13 @@ func newRetryMerkleAuditMock(tc libkb.TestContext) *retryMerkleAuditMock {
 	}
 }
 
-func (r *retryMerkleAuditMock) GetDecode(arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+func (r *retryMerkleAuditMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	r.args = append(r.args, arg)
 	if r.getError != nil {
 		return nil
 	}
 
-	return r.api.GetDecode(arg, w)
+	return r.api.GetDecode(mctx, arg, w)
 }
 
 func (r *retryMerkleAuditMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {

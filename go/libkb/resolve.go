@@ -408,7 +408,7 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 		return res
 	}
 
-	arg := NewAPIArgWithMetaContext(m, "team/get")
+	arg := NewAPIArg("team/get")
 	arg.SessionType = APISessionTypeREQUIRED
 	arg.Args = make(HTTPArgs)
 	arg.Args[key] = S{Val: val}
@@ -418,7 +418,7 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 	}
 
 	var lookup teamLookup
-	if err := m.G().API.GetDecode(arg, &lookup); err != nil {
+	if err := m.G().API.GetDecode(m, arg, &lookup); err != nil {
 		res.err = err
 		return res
 	}
@@ -455,10 +455,10 @@ func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionUR
 	var arg APIArg
 	switch key {
 	case "phone":
-		arg = NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
+		arg = NewAPIArg("user/phone_numbers_search")
 		arg.Args = map[string]HTTPValue{"phone_number": S{Val: val}}
 	case "email":
-		arg = NewAPIArgWithMetaContext(m, "email/search")
+		arg = NewAPIArg("email/search")
 		arg.Args = map[string]HTTPValue{"email": S{Val: val}}
 	default:
 		res.err = ResolutionError{Input: input, Msg: fmt.Sprintf("Unexpected assertion: %q for server trust lookup", key), Kind: ResolutionErrorInvalidInput}
@@ -469,7 +469,7 @@ func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionUR
 	arg.AppStatusCodes = []int{SCOk}
 
 	var lookup serverTrustUserLookup
-	if err := m.G().API.GetDecode(arg, &lookup); err != nil {
+	if err := m.G().API.GetDecode(m, arg, &lookup); err != nil {
 		if appErr, ok := err.(AppStatusError); ok {
 			switch appErr.Code {
 			case SCInputError:

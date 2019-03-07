@@ -376,13 +376,13 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 		version = libkb.VersionString()
 	}
 
-	apiArg := libkb.NewAPIArgWithMetaContext(m, "pkg/check")
+	apiArg := libkb.NewAPIArg("pkg/check")
 	apiArg.Args = libkb.HTTPArgs{
 		"version":  libkb.S{Val: version},
 		"platform": libkb.S{Val: platform},
 	}
 	var raw rawGetPkgCheck
-	if err = m.G().API.GetDecode(apiArg, &raw); err != nil {
+	if err = m.G().API.GetDecode(m, apiArg, &raw); err != nil {
 		return res, err
 	}
 	return raw.Res, nil

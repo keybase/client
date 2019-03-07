@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -53,7 +54,11 @@ func (a *FakeAPI) Get(mctx MetaContext, arg APIArg) (*APIRes, error) {
 
 }
 
-func (a *FakeAPI) GetDecode(arg APIArg, v APIResponseWrapper) error {
+func (a *FakeAPI) GetDecode(mctx MetaContext, arg APIArg, v APIResponseWrapper) error {
+	return fmt.Errorf("GetDecode is phony")
+}
+
+func (a *FakeAPI) GetDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
 }
 
