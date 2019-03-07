@@ -1,10 +1,17 @@
 // @flow
 import CoinFlip from '.'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import {namedConnect} from '../../../../util/container'
+import HiddenString from '../../../../util/hidden-string'
 
-type OwnProps = {|flipGameID: string|}
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  flipGameID: string,
+  text: HiddenString,
+|}
 
 const noParticipants = []
 
@@ -13,6 +20,7 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
   return !status
     ? {
         commitmentVis: '',
+        isSendError: false,
         participants: noParticipants,
         progressText: '',
         resultText: '',
@@ -22,9 +30,7 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
     : {
         commitmentVis: status.commitmentVisualization,
         errorInfo: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error ? status.errorInfo : null,
-        isError: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error,
         isSendError: false,
-        onFlipAgain: console.log('again'),
         participants: status.participants || [],
         phase: Constants.flipPhaseToString(status.phase),
         progressText: status.progressText,
@@ -35,9 +41,13 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
       }
 }
 
+const mapDispatchToProps = (dispatch, {conversationIDKey, text}: OwnProps) => ({
+  onFlipAgain: () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
+})
+
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
-  (d, o) => ({}),
-  (s, d, o) => ({...s}),
+  mapDispatchToProps,
+  (s, d, o) => ({...s, ...d}),
   'CoinFlip'
 )(CoinFlip)
