@@ -36,7 +36,6 @@ export type Props<Item> = {|
 
   items: Array<Item>,
   renderItem: (index: number, item: Item) => React.Node,
-  rerenderItemOnPropUpdateDesktop?: ?boolean, // mobile already does that
   itemHeight: VariableItemHeight<Item> | FixedHeight,
   estimatedItemHeight?: number,
 
