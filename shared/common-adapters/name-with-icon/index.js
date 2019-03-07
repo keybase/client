@@ -85,8 +85,8 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         />
       )
     }
-    const usernameOrTitle = this.props.username ? (
-      // $FlowIssue username is tested before we make an array out of it
+    const username = this.props.username || ''
+    const usernameOrTitle = username ? (
       <ConnectedUsernames
         onUsernameClicked={
           this.props.clickType === 'tracker' || this.props.clickType === 'profile' ? undefined : 'profile'
@@ -98,7 +98,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         ])}
         inline={!this.props.horizontal}
         underline={this.props.underline}
-        usernames={[this.props.username]}
+        usernames={[username]}
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
         colorYou={this.props.notFollowingColorOverride}
