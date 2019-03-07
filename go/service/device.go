@@ -87,7 +87,7 @@ type _deviceChange struct {
 	DeviceID string `json:"device_id"`
 }
 
-func LoopAndDismissForDeviceChangeNotifications(c context.Context, dismisser libkb.GregorState,
+func LoopAndDismissForDeviceChangeNotifications(mctx libkb.MetaContext, dismisser libkb.GregorState,
 	gregorState gregor.State, exceptedDeviceID string) (err error) {
 
 	items, err := gregorState.Items()
@@ -106,13 +106,17 @@ func LoopAndDismissForDeviceChangeNotifications(c context.Context, dismisser lib
 		}
 		itemID := item.Metadata().MsgID()
 		if body.DeviceID != string(exceptedDeviceID) {
-			dismisser.DismissItem(c, nil, itemID)
+			mctx.Debug("dismissing device notification %s for %s", category, body.DeviceID)
+			dismisser.DismissItem(mctx.Ctx(), nil, itemID)
 		}
 	}
 	return nil
 }
 
-func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) error {
+func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) (err error) {
+	mctx := libkb.NewMetaContext(c, h.G())
+	defer mctx.TraceTimed("DismissDeviceChangeNotifications", func() error { return err })()
+
 	gcli, err := h.gregor.getGregorCli()
 	if err != nil {
 		return err
@@ -123,7 +127,7 @@ func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) erro
 	}
 	activeDeviceID := h.G().ActiveDevice.DeviceID().String()
 	dismisser := h.G().GregorState
-	err = LoopAndDismissForDeviceChangeNotifications(c, dismisser, state, activeDeviceID)
+	err = LoopAndDismissForDeviceChangeNotifications(mctx, dismisser, state, activeDeviceID)
 	return err
 }
 
