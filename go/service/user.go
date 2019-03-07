@@ -138,14 +138,16 @@ func (h *UserHandler) LoadUserPlusKeysV2(ctx context.Context, arg keybase1.LoadU
 	}
 
 	retp := &ret
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "user.loadUserPlusKeysV2", false, cacheArg, &retp, func(mctx libkb.MetaContext) (interface{}, error) {
-		tmp, err := h.G().GetUPAKLoader().LoadV2WithKID(mctx.Ctx(), arg.Uid, arg.PollForKID)
-		if tmp != nil {
-			*retp = *tmp
-		}
-		return tmp, err
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "user.loadUserPlusKeysV2", false, cacheArg, &retp, func(mctx libkb.MetaContext) (interface{}, error) {
+		return h.G().GetUPAKLoader().LoadV2WithKID(mctx.Ctx(), arg.Uid, arg.PollForKID)
 	})
-
+	if s, ok := servedRet.(*keybase1.UserPlusKeysV2AllIncarnations); ok && s != nil {
+		// Even if err != nil, the caller might still be expecting
+		// data, so use the return value if there is one.
+		ret = *s
+	} else if err != nil {
+		ret = keybase1.UserPlusKeysV2AllIncarnations{}
+	}
 	return ret, err
 }
 
