@@ -1484,13 +1484,13 @@ func TestParseTlfHandleOfflineAvailability(t *testing.T) {
 	require.NoError(t, err)
 	_, err = ParseTlfHandle(ctx, kbpki, nil, osg, "u1,u2,u3", tlf.Private)
 	require.NoError(t, err)
-	// The iteam has a best-effort count of 2, because the earlier
-	// lookup of 'u1,u2,u2' already tried to find an implicit team
-	// once with best-effort, but there wasn't yet a TLF ID associated
-	// with the implicit team.  The per-user counts won't change now
-	// that the existence of the TLF ID for the iteam short-circuits
-	// those lookups.
-	require.Equal(t, 2, kbpki.bestEffortOfflineCounts["iteam:u1,u2,u3 "])
+	// The iteam has a best-effort count of 3, because the earlier
+	// lookup of 'u1,u2,u3' and 'u3,u1,u2' already tried to find an
+	// implicit team once with best-effort, but there wasn't yet a TLF
+	// ID associated with the implicit team.  The per-user counts
+	// won't change now that the existence of the TLF ID for the iteam
+	// short-circuits those lookups.
+	require.Equal(t, 3, kbpki.bestEffortOfflineCounts["iteam:u1,u2,u3 "])
 	require.Equal(t, 7, kbpki.bestEffortOfflineCounts["u1"])
 	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u2"])
 	require.Equal(t, 6, kbpki.bestEffortOfflineCounts["u3"])
