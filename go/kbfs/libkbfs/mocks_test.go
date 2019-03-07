@@ -3031,6 +3031,18 @@ func (mr *MockKeybaseServiceMockRecorder) FlushUserFromLocalCache(ctx, uid inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlushUserFromLocalCache", reflect.TypeOf((*MockKeybaseService)(nil).FlushUserFromLocalCache), ctx, uid)
 }
 
+// ClearCaches mocks base method
+func (m *MockKeybaseService) ClearCaches(ctx context.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ClearCaches", ctx)
+}
+
+// ClearCaches indicates an expected call of ClearCaches
+func (mr *MockKeybaseServiceMockRecorder) ClearCaches(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCaches", reflect.TypeOf((*MockKeybaseService)(nil).ClearCaches), ctx)
+}
+
 // EstablishMountDir mocks base method
 func (m *MockKeybaseService) EstablishMountDir(ctx context.Context) (string, error) {
 	m.ctrl.T.Helper()

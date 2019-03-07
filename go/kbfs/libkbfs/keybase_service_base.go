@@ -310,7 +310,11 @@ func (k *KeybaseServiceBase) setCachedTeamInfo(
 	}
 }
 
-func (k *KeybaseServiceBase) clearCaches() {
+// ClearCaches implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
+	k.log.CDebugf(ctx, "Clearing KBFS-side user and team caches")
+
 	k.setCachedCurrentSession(SessionInfo{})
 	func() {
 		k.userCacheLock.Lock()
@@ -1049,7 +1053,7 @@ func (k *KeybaseServiceBase) getCurrentSession(
 	// Loop until either we have the session info, or until we are the
 	// sole goroutine that needs to make the RPC.  Avoid holding the
 	// session cache lock during the RPC, since that can result in a
-	// deadlock if the RPC results in a call to `clearCaches()`.
+	// deadlock if the RPC results in a call to `ClearCaches()`.
 	for !doRPC {
 		cachedCurrentSession, inProgressCh, doRPC =
 			k.getCachedCurrentSessionOrInProgressCh()

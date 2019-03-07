@@ -348,7 +348,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		res[len(res)-1].Name = string(pname)
 		res[len(res)-1].DirentType = deTy2Ty(libkbfs.Dir)
 
-		handle, err := libfs.ParseTlfHandlePreferredQuick(
+		handle, err := libkbfs.ParseTlfHandlePreferredQuick(
 			ctx, k.config.KBPKI(), k.config, string(pname), t)
 		if err != nil {
 			k.log.Errorf("ParseTlfHandlePreferredQuick: %s %q %v", t, pname, err)

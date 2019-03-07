@@ -781,6 +781,10 @@ type KeybaseService interface {
 	// the daemon itself, rather than being served from the cache.
 	FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID)
 
+	// ClearCaches flushes all user and team info from KBFS-side
+	// caches.
+	ClearCaches(ctx context.Context)
+
 	// TODO: Add CryptoClient methods, too.
 
 	// EstablishMountDir asks the service for the current mount path
