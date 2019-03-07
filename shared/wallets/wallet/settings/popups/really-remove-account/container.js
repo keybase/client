@@ -2,6 +2,7 @@
 import {namedConnect, type RouteProps} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
@@ -36,7 +37,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
       })
     )
     if (flags.useNewRouter) {
-      dispatch(navigateUp())
+      dispatch(RouteTreeGen.createClearModals())
     }
   },
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
