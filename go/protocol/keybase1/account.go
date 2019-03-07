@@ -91,6 +91,10 @@ type SetLockdownModeArg struct {
 	Enabled   bool `codec:"enabled" json:"enabled"`
 }
 
+type TestPassphraseArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AccountInterface interface {
 	// Change the passphrase from old to new. If old isn't set, and force is false,
 	// then prompt at the UI for it. If old isn't set and force is true, then we'll
@@ -107,6 +111,7 @@ type AccountInterface interface {
 	ResetAccount(context.Context, ResetAccountArg) error
 	GetLockdownMode(context.Context, int) (GetLockdownResponse, error)
 	SetLockdownMode(context.Context, SetLockdownModeArg) error
+	TestPassphrase(context.Context, int) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -218,6 +223,21 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
+			"testPassphrase": {
+				MakeArg: func() interface{} {
+					var ret [1]TestPassphraseArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TestPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TestPassphraseArg)(nil), args)
+						return
+					}
+					err = i.TestPassphrase(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -268,5 +288,11 @@ func (c AccountClient) GetLockdownMode(ctx context.Context, sessionID int) (res 
 
 func (c AccountClient) SetLockdownMode(ctx context.Context, __arg SetLockdownModeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.setLockdownMode", []interface{}{__arg}, nil)
+	return
+}
+
+func (c AccountClient) TestPassphrase(ctx context.Context, sessionID int) (err error) {
+	__arg := TestPassphraseArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.account.testPassphrase", []interface{}{__arg}, nil)
 	return
 }

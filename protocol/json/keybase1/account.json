@@ -155,6 +155,15 @@
         }
       ],
       "response": null
+    },
+    "testPassphrase": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

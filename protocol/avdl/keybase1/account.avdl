@@ -49,4 +49,6 @@ protocol account {
   
   GetLockdownResponse getLockdownMode(int sessionID);
   void setLockdownMode(int sessionID, boolean enabled);
+
+  void testPassphrase(int sessionID);
 }

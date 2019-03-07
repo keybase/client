@@ -165,3 +165,19 @@ func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLo
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }
+
+func (h *AccountHandler) TestPassphrase(ctx context.Context, sessionID int) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("TestPassphrase", func() error { return err })()
+
+	username := h.G().GetEnv().GetUsername().String()
+
+	arg := libkb.DefaultPassphrasePromptArg(mctx, username)
+	secretUI := h.getSecretUI(sessionID, h.G())
+	res, err := secretUI.GetPassphrase(arg, nil)
+	if err != nil {
+		return err
+	}
+	_, err = libkb.VerifyPassphraseForLoggedInUser(mctx, res.Passphrase)
+	return err
+}
