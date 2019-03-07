@@ -582,6 +582,7 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 
 	dpp, err := a.remoter.DetailsPlusPayments(mctx.Ctx(), a.accountID)
 	if err != nil {
+		mctx.Debug("refresh DetailsPlusPayments error: %s", err)
 		return err
 	}
 
