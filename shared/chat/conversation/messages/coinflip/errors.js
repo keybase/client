@@ -6,13 +6,14 @@ import * as Styles from '../../../../styles'
 
 type Props = {|
   error: RPCChatTypes.UICoinFlipError,
+  onLearnMore: () => void,
 |}
 
 const CoinFlipError = (props: Props) => {
   if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.generic && props.error.generic) {
     return <CoinFlipGenericError error={props.error.generic} />
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.absentee && props.error.absentee) {
-    return <CoinFlipAbsenteeError error={props.error.absentee} />
+    return <CoinFlipAbsenteeError error={props.error.absentee} onLearnMore={props.onLearnMore} />
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.timeout) {
     return <CoinFlipTimeoutError />
   } else if (props.error.typ === RPCChatTypes.chatUiUICoinFlipErrorTyp.aborted) {
@@ -48,6 +49,7 @@ const CoinFlipGenericError = (props: GenericProps) => (
 
 type AbsenteeProps = {|
   error: RPCChatTypes.UICoinFlipAbsenteeError,
+  onLearnMore: () => void,
 |}
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
@@ -62,7 +64,10 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text selectable={true} type="Body">
-        It was likely a network problem, but they could be a jerk.
+        It was likely a network problem, but they could be trying to manipulate the result.
+      </Kb.Text>
+      <Kb.Text type="BodySmallSemiboldPrimaryLink" onClick={props.onLearnMore}>
+        Learn more
       </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>

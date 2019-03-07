@@ -3,6 +3,7 @@ import CoinFlip from '.'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import {namedConnect} from '../../../../util/container'
+import openURL from '../../../../util/open-url'
 
 type OwnProps = {|flipGameID: string|}
 
@@ -33,9 +34,19 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
       }
 }
 
+const mapDispatchToProps = (dispatch) => ({
+  onReadMore: () => {
+    openURL('https://keybase.io/blog/cryptographic-coin-flipping#what-if-someone-loses-network-before-the-secret-stage-')
+  },
+})
+
+const mergeProps = (stateProps, dispatchProps) => {
+  return {...stateProps, ...dispatchProps}
+}
+
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
-  (d, o) => ({}),
-  (s, d, o) => ({...s}),
+  mapDispatchToProps,
+  mergeProps,
   'CoinFlip'
 )(CoinFlip)
