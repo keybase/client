@@ -41,7 +41,7 @@ type GenericProps = {|
 |}
 
 const CoinFlipGenericError = (props: GenericProps) => (
-  <Kb.Text selectable={true} style={styles.error} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
     {props.error}
   </Kb.Text>
 )
@@ -51,7 +51,7 @@ type AbsenteeProps = {|
 |}
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
     <Kb.Text selectable={true} type="Body">
       Uh oh, a participant disappeared:
     </Kb.Text>
@@ -69,13 +69,13 @@ const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
 )
 
 const CoinFlipTimeoutError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
     Flip timed out before a result was obtained.
   </Kb.Text>
 )
 
 const CoinFlipAbortedError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
     Flip aborted before a result was obtained.
   </Kb.Text>
 )
@@ -86,7 +86,7 @@ type DupProps = {|
 |}
 
 const CoinFlipDupError = (props: DupProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
     <Kb.Text selectable={true} type="Body">
       Duplicate {props.desc} received from the following participant:
     </Kb.Text>
@@ -101,7 +101,7 @@ type CommitMismatchProps = {|
 |}
 
 const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
     <Kb.Text selectable={true} type="Body">
       Commitment mismatch from the following participant:
     </Kb.Text>
@@ -112,6 +112,12 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  bordered: {
+    borderColor: Styles.globalColors.lightGrey,
+    borderLeftWidth: 4,
+    borderStyle: 'solid',
+    paddingLeft: Styles.globalMargins.tiny,
+  },
   error: {
     color: Styles.globalColors.red,
   },
