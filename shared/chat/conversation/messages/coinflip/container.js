@@ -9,18 +9,19 @@ import HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
+  isSendError: boolean,
   flipGameID: string,
   text: HiddenString,
 |}
 
 const noParticipants = []
 
-const mapStateToProps = (state, {flipGameID}: OwnProps) => {
+const mapStateToProps = (state, {flipGameID, isSendError}: OwnProps) => {
   const status = state.chat2.getIn(['flipStatusMap', flipGameID])
   return !status
     ? {
         commitmentVis: '',
-        isSendError: false,
+        isSendError,
         participants: noParticipants,
         progressText: '',
         resultText: '',
@@ -30,7 +31,7 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
     : {
         commitmentVis: status.commitmentVisualization,
         errorInfo: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error ? status.errorInfo : null,
-        isSendError: false,
+        isSendError,
         participants: status.participants || [],
         phase: Constants.flipPhaseToString(status.phase),
         progressText: status.progressText,

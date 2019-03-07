@@ -191,16 +191,21 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       />
     )
 
-  _coinFlip = () =>
-    this.props.message.type === 'text' &&
-    !!this.props.message.flipGameID && (
-      <CoinFlip
-        key="CoinFlip"
-        conversationIDKey={this.props.conversationIDKey}
-        flipGameID={this.props.message.flipGameID}
-        text={this.props.message.text}
-      />
+  _coinFlip = () => {
+    const message = this.props.message
+    return (
+      message.type === 'text' &&
+      !!message.flipGameID && (
+        <CoinFlip
+          key="CoinFlip"
+          conversationIDKey={this.props.conversationIDKey}
+          flipGameID={message.flipGameID}
+          isSendError={!!message.errorReason}
+          text={message.text}
+        />
+      )
     )
+  }
 
   _shouldShowReactionsRow = () =>
     // $ForceType
