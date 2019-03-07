@@ -14,6 +14,7 @@ import {
   metaPending,
   metaUnreachable,
 } from '../constants/tracker'
+import proofsList from './user/proofs/index.stories'
 import {BioTeamProofs} from './user/index'
 
 const followers = [
@@ -254,6 +255,8 @@ const bioProps = {
 }
 
 const load = () => {
+  proofsList()
+
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(provider)
     .add('Your Profile', () => <Profile {...props} bioEditFns={bioEditFns} isYou={true} />)
