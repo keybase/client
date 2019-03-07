@@ -163,9 +163,7 @@ func (v GameMessageV1) Encode() (GameMessageEncoded, error) {
 func (d *Dealer) run(ctx context.Context, game *Game) {
 	doneCh := make(chan error)
 	key := game.key
-	go func() {
-		doneCh <- game.run(ctx)
-	}()
+	go game.run(ctx, doneCh)
 	err := <-doneCh
 
 	if err != nil {
@@ -512,7 +510,7 @@ func (g *Game) handleTimerEvent(ctx context.Context) error {
 	return TimeoutError{G: g.md, Stage: g.stageForTimeout}
 }
 
-func (g *Game) run(ctx context.Context) error {
+func (g *Game) runMain(ctx context.Context) error {
 	for {
 		timer := g.getNextTimer()
 		var err error
@@ -538,6 +536,21 @@ func (g *Game) run(ctx context.Context) error {
 			return err
 		}
 	}
+}
+
+func (g *Game) runDrain(ctx context.Context) {
+	i := 0
+	for range g.msgCh {
+		i++
+	}
+	if i > 0 {
+		g.clogf(ctx, "drained %d messages on shutdown in game %s", i, g.md)
+	}
+}
+
+func (g *Game) run(ctx context.Context, doneCh chan error) {
+	doneCh <- g.runMain(ctx)
+	g.runDrain(ctx)
 }
 
 func absDuration(d time.Duration) time.Duration {
