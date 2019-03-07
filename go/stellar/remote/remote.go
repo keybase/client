@@ -352,9 +352,12 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 	}
 
 	apiArg := libkb.APIArg{
-		Endpoint:        "stellar/details",
-		SessionType:     libkb.APISessionTypeREQUIRED,
-		Args:            libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		Endpoint:    "stellar/details",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id":    libkb.S{Val: string(accountID)},
+			"include_multi": libkb.B{Val: true},
+		},
 		NetContext:      ctx,
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
