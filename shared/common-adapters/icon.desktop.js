@@ -72,7 +72,8 @@ class Icon extends Component<Props, void> {
         }
       : null
 
-    const hasContainer = (onClick && this.props.style) || isFontIcon
+    const hasContainer =
+      !this.props.noClickableBox && ((this.props.onClick && this.props.style) || isFontIcon)
 
     let iconElement
 
@@ -111,7 +112,7 @@ class Icon extends Component<Props, void> {
           hoverColor: 'inherit',
         }
       } else {
-        const hoverColorName = onClick ? invertedColors[hoverColor] : null
+        const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
         if (!colorName) {
