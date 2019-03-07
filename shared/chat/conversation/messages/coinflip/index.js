@@ -56,12 +56,7 @@ class CoinFlip extends React.Component<Props, State> {
             Secured by{' '}
           </Kb.Text>
         )}
-        <Kb.Text
-          selectable={true}
-          type="BodySmallPrimaryLink"
-          style={styles.participantsLabel}
-          onClick={this._showPopup}
-        >
+        <Kb.Text selectable={true} type="BodySmallPrimaryLink" onClick={this._showPopup}>
           {`${this.props.participants.length} ${pluralize('participant', this.props.participants.length)}`}
         </Kb.Text>
         <CoinFlipParticipants
@@ -107,14 +102,20 @@ class CoinFlip extends React.Component<Props, State> {
                 {this.props.commitmentVis.length > 0 ? (
                   <Kb.Image src={commitSrc} style={styles.progressVis} />
                 ) : (
-                  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.placeholder, styles.progressVis])} />
+                  <Kb.Box2
+                    direction="vertical"
+                    style={Styles.collapseStyles([styles.placeholder, styles.progressVis])}
+                  />
                 )}
               </Kb.Box2>
               <Kb.Box2 direction="vertical">
                 {this.props.revealVis.length > 0 && this.props.phase !== 'commitments' ? (
                   <Kb.Image src={revealSrc} style={styles.progressVis} />
                 ) : (
-                  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.placeholder, styles.progressVis])} />
+                  <Kb.Box2
+                    direction="vertical"
+                    style={Styles.collapseStyles([styles.placeholder, styles.progressVis])}
+                  />
                 )}
               </Kb.Box2>
               <Kb.Box2 direction="vertical">{this._renderStatusText()}</Kb.Box2>
@@ -141,11 +142,6 @@ const styles = Styles.styleSheetCreate({
   error: {
     color: Styles.globalColors.red,
   },
-  participantsLabel: Styles.platformStyles({
-    isElectron: {
-      lineHeight: 16,
-    },
-  }),
   placeholder: {
     backgroundColor: Styles.globalColors.lightGrey,
   },
