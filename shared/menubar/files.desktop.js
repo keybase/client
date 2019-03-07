@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
-import PathItemIcon from '../fs/common/path-item-icon'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
@@ -19,7 +18,7 @@ type FileUpdatesProps = {|
 |}
 
 export type UserTlfUpdateRowProps = {|
-  tlf: string,
+  onClickAvatar: () => void,
   onSelectPath: () => void,
   path: FsTypes.Path,
   writer: string,
@@ -27,6 +26,7 @@ export type UserTlfUpdateRowProps = {|
   participants: Array<string>,
   teamname: string,
   timestamp: string,
+  tlf: string,
   updates: Array<FileUpdateProps>,
   username: string,
 |}
@@ -120,15 +120,7 @@ const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
-    <Kb.ClickableBox onClick={props.onSelectPath}>
-      <PathItemIcon
-        path={props.path}
-        size={32}
-        type="folder"
-        username={props.username}
-        style={styles.tlfRowAvatar}
-      />
-    </Kb.ClickableBox>
+    <Kb.Avatar size={32} username={props.writer} style={styles.tlfRowAvatar} onClick={props.onClickAvatar} />
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
