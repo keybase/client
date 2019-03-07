@@ -917,12 +917,11 @@ func (m *FlipManager) setStartFlipSendStatus(ctx context.Context, outboxID chat1
 	m.G().MessageDeliverer.ForceDeliverLoop(ctx)
 }
 
-// StartFlip implements the types.CoinFlipManager interface
-func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
+func (m *FlipManager) startFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	tlfName, text string, inOutboxID *chat1.OutboxID) (err error) {
-	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
+	defer m.Trace(ctx, func() error { return err }, "startFlip: convID: %s", hostConvID)()
 	gameID := flip.GenerateGameID()
-	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
+	m.Debug(ctx, "startFlip: using gameID: %s", gameID)
 
 	// Get host conv using local storage, just bail out if we don't have it
 	hostConv, err := utils.GetUnverifiedConv(ctx, m.G(), uid, hostConvID,
@@ -957,24 +956,27 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	listener := newSentMessageListener(m.G(), outboxID)
 	nid := m.G().NotifyRouter.AddListener(listener)
-	sender := NewNonblockingSender(m.G(), NewBlockingSender(m.G(), NewBoxer(m.G()), m.ri))
-	if _, _, err := sender.Send(ctx, hostConvID, chat1.MessagePlaintext{
-		MessageBody: chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
-			Text:   text,
-			GameID: gameID,
-		}),
-		ClientHeader: chat1.MessageClientHeader{
-			TlfName:     tlfName,
-			MessageType: chat1.MessageType_FLIP,
-			Conv: chat1.ConversationIDTriple{
-				TopicType: chat1.TopicType_CHAT,
+	if inOutboxID == nil {
+		// If this is a new flip, then try to make a new message, otherwise wait for current one to be sent
+		sender := NewNonblockingSender(m.G(), NewBlockingSender(m.G(), NewBoxer(m.G()), m.ri))
+		if _, _, err := sender.Send(ctx, hostConvID, chat1.MessagePlaintext{
+			MessageBody: chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+				Text:   text,
+				GameID: gameID,
+			}),
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     tlfName,
+				MessageType: chat1.MessageType_FLIP,
+				Conv: chat1.ConversationIDTriple{
+					TopicType: chat1.TopicType_CHAT,
+				},
 			},
-		},
-	}, 0, &outboxID, nil); err != nil {
-		m.Debug(ctx, "StartFlip: failed to send flip message: %s", err)
-		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
-		m.G().NotifyRouter.RemoveListener(nid)
-		return err
+		}, 0, &outboxID, nil); err != nil {
+			m.Debug(ctx, "startFlip: failed to send flip message: %s", err)
+			m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
+			m.G().NotifyRouter.RemoveListener(nid)
+			return err
+		}
 	}
 	if err := <-convCreatedCh; err != nil {
 		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
@@ -982,7 +984,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return err
 	}
 	flipConvID := conv.GetConvID()
-	m.Debug(ctx, "StartFlip: flip conv created: %s", flipConvID)
+	m.Debug(ctx, "startFlip: flip conv created: %s", flipConvID)
 	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusSent, &flipConvID)
 	sendRes := <-listener.listenCh
 	m.G().NotifyRouter.RemoveListener(nid)
@@ -993,10 +995,10 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	// Preserve the ephemeral lifetime from the conv/message to the game
 	// conversation.
 	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv.Conv); err != nil {
-		m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
+		m.Debug(ctx, "startFlip: failed to get ephemeral lifetime from conv: %s", err)
 		return err
 	} else if elf != nil {
-		m.Debug(ctx, "StartFlip: setting ephemeral retention for conv: %v", *elf)
+		m.Debug(ctx, "startFlip: setting ephemeral retention for conv: %v", *elf)
 		if m.ri().SetConvRetention(ctx, chat1.SetConvRetentionArg{
 			ConvID: conv.GetConvID(),
 			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf}),
@@ -1006,7 +1008,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Record metadata of the host message into the game thread as the first message
-	m.Debug(ctx, "StartFlip: generating parameters for %d players", len(hostConv.Conv.Metadata.AllList))
+	m.Debug(ctx, "startFlip: generating parameters for %d players", len(hostConv.Conv.Metadata.AllList))
 	start, metadata := m.startFromText(text, hostConv.Conv.Metadata.AllList)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		flipTextMetadata: metadata,
@@ -1026,6 +1028,20 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	// Start the game
 	return m.dealer.StartFlipWithGameID(ctx, start, flipConvID, gameID)
+}
+
+// StartFlip implements the types.CoinFlipManager interface
+func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
+	tlfName, text string) (err error) {
+	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
+	return m.startFlip(ctx, uid, hostConvID, tlfName, text, nil)
+}
+
+func (m *FlipManager) ResumeFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
+	tlfName, text string, outboxID chat1.OutboxID) {
+	defer m.Trace(ctx, func() error { return nil }, "ResumeFlip: %s", outboxID)()
+	m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusInProgress, nil)
+	go m.startFlip(ctx, uid, hostConvID, tlfName, text, &outboxID)
 }
 
 func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipConvID chat1.ConversationID,

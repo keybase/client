@@ -1679,8 +1679,20 @@ func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err err
 		return err
 	}
 
-	// Mark as retry in the outbox
 	outbox := storage.NewOutbox(h.G(), uid)
+	existingObr, err := outbox.GetRecord(ctx, arg.OutboxID)
+	if err != nil {
+		return err
+	}
+
+	// Need to start flips before we retry so it doesn't insta fail again
+	if existingObr.IsChatFlip() {
+		h.G().CoinFlipManager.ResumeFlip(ctx, uid, existingObr.ConvID,
+			existingObr.Msg.ClientHeader.TlfName,
+			existingObr.Msg.MessageBody.Flip().Text, arg.OutboxID)
+	}
+
+	// Mark as retry in the outbox
 	obr, err := outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior)
 	if err != nil {
 		return err

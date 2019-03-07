@@ -439,8 +439,9 @@ type ConversationCommandsSource interface {
 
 type CoinFlipManager interface {
 	Resumable
-	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string,
-		outboxID *chat1.OutboxID) error
+	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error
+	ResumeFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
+		tlfName, text string, outboxID chat1.OutboxID)
 	MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed, inboxVers chat1.InboxVers,
 		uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool
 	LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, hostMsgID chat1.MessageID,

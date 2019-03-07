@@ -1289,7 +1289,7 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 type flipPermError struct{}
 
 func (e flipPermError) Error() string {
-	return "flip permanent error"
+	return "unable to start flip"
 }
 
 func (e flipPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {

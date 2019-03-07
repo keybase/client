@@ -437,7 +437,7 @@ func (d DummyCoinFlipManager) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
 	return nil
 }
-func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string, outboxID *chat1.OutboxID) error {
+func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error {
 	return nil
 }
 func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
@@ -457,4 +457,8 @@ func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
 
 func (d DummyCoinFlipManager) IsFlipConversationCreated(ctx context.Context, outboxID chat1.OutboxID) (chat1.ConversationID, FlipSendStatus) {
 	return nil, FlipSendStatusError
+}
+
+func (d DummyCoinFlipManager) ResumeFlip(ctx context.Context, uid gregor1.UID,
+	hostConvID chat1.ConversationID, tlfName, text string, outboxID chat1.OutboxID) {
 }
