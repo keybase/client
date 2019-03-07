@@ -30,7 +30,7 @@ const UserRow = ({user}) => (
 )
 
 class Login extends React.Component<Props, State> {
-  _inputRef: ?Kb.Input
+  _inputRef = React.createRef<Kb.Input>()
 
   state = {
     open: false,
@@ -40,10 +40,6 @@ class Login extends React.Component<Props, State> {
     this.setState(prevState => ({open: !prevState.open}))
   }
 
-  _setInputRef = ref => {
-    this._inputRef = ref
-  }
-
   _onClickUser = (selected: React.Element<typeof UserRow>) => {
     if (selected.props.user === other) {
       this._toggleOpen()
@@ -51,8 +47,8 @@ class Login extends React.Component<Props, State> {
     } else {
       this._toggleOpen()
       this.props.selectedUserChange(selected.props.user)
-      if (this._inputRef) {
-        this._inputRef.focus()
+      if (this._inputRef.current) {
+        this._inputRef.current.focus()
       }
     }
   }
@@ -66,7 +62,7 @@ class Login extends React.Component<Props, State> {
       key: this.props.inputKey,
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       onEnterKeyDown: () => this.props.onSubmit(),
-      ref: this._setInputRef,
+      ref: this._inputRef,
       type: this.props.showTyping ? 'passwordVisible' : 'password',
       uncontrolled: true,
     }
