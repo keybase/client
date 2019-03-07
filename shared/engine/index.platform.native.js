@@ -24,7 +24,6 @@ const RNEmitter: {
 } = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
-  // _connectCB = null
   _connected = false
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
@@ -33,17 +32,18 @@ class NativeTransport extends TransportShared {
     this.needsConnect = true
   }
 
+  // do nothing, we handle the event from native below
   connect(cb: () => void) {
-    // return super.connect(cb)
-    // stash it
-    // this._connectCB = cb
+    console.log('aaa connect called')
   }
 
   goConnected() {
+    console.log('aaa goConnect called')
     super._flush_queue()
   }
 
   is_connected() {
+    console.log('aaa is_connected called', this._connected)
     return this._connected
   } // eslint-disable-line camelcase
 
@@ -99,6 +99,7 @@ function createClient(
 
   console.log('aaa adding evenet listener')
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {
+    console.log('aaa evenet listener called')
     nt._connected = true
     nt.goConnected()
     switch (payload) {
@@ -108,6 +109,7 @@ function createClient(
   })
 
   setTimeout(() => {
+    console.log('aaa calling native bridge start')
     nativeBridge.start()
   }, 1)
 
@@ -115,6 +117,7 @@ function createClient(
 }
 
 function resetClient(client: createClientType) {
+  console.log('aaa calling reset')
   // Tell the RN bridge to reset itself
   nativeBridge.reset()
 }

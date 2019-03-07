@@ -70,7 +70,7 @@ static NSString *const goConnectEventName = @"go-engine-event";
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     printf("AAA before GO init\n");
-    [NSThread sleepForTimeInterval:5.0f];
+//    [NSThread sleepForTimeInterval:10.0f];
     KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
     
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -88,21 +88,25 @@ static NSString *const goConnectEventName = @"go-engine-event";
 }
 
 - (void)startReadLoop {
+  printf("AAA start read loop\n");
   dispatch_async(self.readQueue, ^{
     while (true) {
       NSError *error = nil;
       NSString * data = KeybaseReadB64(&error);
 
       if (error) {
+        printf("AAA read loop error\n");
         NSLog(@"Error reading data: %@", error);
       }
       if (data) {
         if (!self.keybaseEngine) {
           NSLog(@"NO ENGINE");
+          printf("AAA  read loop no engine\n");
         }
         if (self.keybaseEngine.bridge) {
           [self.keybaseEngine sendEventWithName:eventName body:data];
         } else {
+          printf("AAA END read loop\n");
           // dead
           break;
         }
