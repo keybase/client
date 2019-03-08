@@ -783,8 +783,8 @@ func (a *InternalAPIEngine) Post(m MetaContext, arg APIArg) (*APIRes, error) {
 
 // PostJSON does _not_ actually enforce the use of JSON.
 // That is now determined by APIArg's fields.
-func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
-	return a.Post(arg.MetaContext, arg)
+func (a *InternalAPIEngine) PostJSON(m MetaContext, arg APIArg) (*APIRes, error) {
+	return a.Post(m, arg)
 }
 
 // postResp performs a POST request and returns the http response.
@@ -805,8 +805,13 @@ func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response,
 	return resp, finisher, nil
 }
 
-func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
-	m := arg.GetMetaContext(a.G())
+func (a *InternalAPIEngine) PostDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
+	m = m.EnsureCtx().WithLogTag("API")
+	return a.postDecode(m, arg, v)
+}
+
+func (a *InternalAPIEngine) PostDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWrapper) error {
+	m := NewMetaContext(ctx, a.G())
 	m = m.EnsureCtx().WithLogTag("API")
 	return a.postDecode(m, arg, v)
 }

@@ -63,9 +63,8 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	apiArg.uArgs = nil
 	apiArg.Endpoint = "key/multi"
 	apiArg.JSONPayload = payload
-	apiArg.MetaContext = m
 
-	_, err = m.G().API.PostJSON(apiArg)
+	_, err = m.G().API.PostJSON(m, apiArg)
 	return err
 }
 

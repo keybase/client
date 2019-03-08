@@ -19,7 +19,7 @@ func AddEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, visibility ke
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -33,7 +33,7 @@ func DeleteEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -47,7 +47,7 @@ func SetPrimaryEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) error 
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -61,7 +61,7 @@ func SendVerificationEmail(mctx libkb.MetaContext, email keybase1.EmailAddress) 
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -76,7 +76,7 @@ func SetVisibilityEmail(mctx libkb.MetaContext, email keybase1.EmailAddress, vis
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -91,7 +91,7 @@ func SetVisibilityAllEmail(mctx libkb.MetaContext, visibility keybase1.IdentityV
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -114,7 +114,7 @@ func BulkLookupEmails(mctx libkb.MetaContext, contactEmails []string) ([]keybase
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var resp emailLookupAPIResult
-	err := mctx.G().API.PostDecode(arg, &resp)
+	err := mctx.G().API.PostDecode(mctx, arg, &resp)
 	if err != nil {
 		return nil, err
 	}

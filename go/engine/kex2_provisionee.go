@@ -496,14 +496,14 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs,
 
 	libkb.AddUserEKReBoxServerArg(payload, reboxArg)
 
+	mctx := e.mctx.WithAPITokener(e)
 	arg := libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		MetaContext: e.mctx.WithAPITokener(e),
 	}
 
-	_, err := e.G().API.PostJSON(arg)
+	_, err := e.G().API.PostJSON(mctx, arg)
 	return err
 }
 

@@ -70,7 +70,7 @@ func (a *FakeAPI) Post(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("Post is phony")
 }
 
-func (a *FakeAPI) PostJSON(APIArg) (*APIRes, error) {
+func (a *FakeAPI) PostJSON(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("PostJSON is phony")
 }
 
@@ -78,9 +78,14 @@ func (a *FakeAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) {
 	return nil, fmt.Errorf("PostRaw is phony")
 }
 
-func (a *FakeAPI) PostDecode(APIArg, APIResponseWrapper) error {
+func (a *FakeAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
 }
+
+func (a *FakeAPI) PostDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWrapper) error {
+	return fmt.Errorf("GetDecode is phony")
+}
+
 func (a *FakeAPI) Delete(APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("Delete is phony")
 }
