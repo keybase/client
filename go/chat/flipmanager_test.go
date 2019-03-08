@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -449,6 +450,10 @@ func TestFlipManagerRateLimit(t *testing.T) {
 	flipmgr.testingServerClock = clock
 	flipmgr1.testingServerClock = clock
 	flipmgr.maxConvParticipations = 1
+	<-flipmgr.Stop(context.TODO())
+	<-flipmgr1.Stop(context.TODO())
+	flipmgr.Start(context.TODO(), gregor1.UID(users[0].GetUID().ToBytes()))
+	flipmgr1.Start(context.TODO(), gregor1.UID(users[1].GetUID().ToBytes()))
 	simRealClock := func(stopCh chan struct{}) {
 		t := time.NewTicker(100 * time.Millisecond)
 		for {
