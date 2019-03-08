@@ -82,16 +82,14 @@ type ShowAllProps = FileUpdatesHocProps & {|
 
 const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonContainer}>
-    <Kb.Button
-      label={
-        props.isShowingAll
-          ? 'Collapse'
-          : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`
-      }
-      onClick={props.onShowAll}
-      small={true}
-      type="Secondary"
-    />
+    {!props.isShowingAll && (
+      <Kb.Button
+        label={`+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
+        onClick={props.onShowAll}
+        small={true}
+        type="Secondary"
+      />
+    )}
   </Kb.Box2>
 )
 
@@ -170,7 +168,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 
 const styles = Styles.styleSheetCreate({
   buttonContainer: {
-    marginTop: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   fileUpdateName: Styles.platformStyles({
     isElectron: {
@@ -219,7 +217,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
   },
   tlfSectionHeader: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueGrey,
     color: Styles.globalColors.black_50,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
