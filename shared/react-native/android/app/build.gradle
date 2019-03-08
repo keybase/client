@@ -103,7 +103,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         applicationId "io.keybase.ossifrage"
         versionCode timestamp()
-        versionName "3.1.0"
+        versionName "3.1.1"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
