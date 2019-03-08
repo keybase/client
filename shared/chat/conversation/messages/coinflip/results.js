@@ -212,7 +212,7 @@ type ShuffleType = {|
   shuffle: ?Array<string>,
 |}
 const CoinFlipResultShuffle = (props: ShuffleType) => (
-  <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny">
+  <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.listContainer}>
     {props.shuffle &&
       props.shuffle.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
@@ -229,7 +229,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
 )
 
 const CoinFlipResultShuffleItem = props => (
-  <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={styles.commonContainer}>
+  <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
     <Kb.Box2 direction="vertical" centerChildren={true} alignItems="center" style={styles.listOrderContainer}>
       <Kb.Text
         selectable={true}
@@ -312,6 +312,9 @@ const styles = Styles.styleSheetCreate({
     height: 'auto',
     justifyContent: 'space-around',
     paddingRight: Styles.globalMargins.tiny,
+  },
+  listContainer: {
+    marginTop: Styles.globalMargins.xsmall,
   },
   listFull: Styles.platformStyles({
     common: {
