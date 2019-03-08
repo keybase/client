@@ -1519,7 +1519,8 @@ func (fbo *folderBranchOps) commitFlushedMD(
 
 func (fbo *folderBranchOps) setHeadLocked(
 	ctx context.Context, lState *lockState,
-	md ImmutableRootMetadata, headStatus headTrustStatus) error {
+	md ImmutableRootMetadata, headStatus headTrustStatus,
+	ct mdCommitType) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
@@ -1645,7 +1646,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 		}
 	}
 
-	if md.putToServer {
+	if ct == mdCommit {
 		go fbo.commitFlushedMD(md, fbo.latestMergedUpdated)
 	}
 
@@ -1690,6 +1691,13 @@ func (fbo *folderBranchOps) setHeadLocked(
 	return nil
 }
 
+func mdToCommitType(md ImmutableRootMetadata) mdCommitType {
+	if md.putToServer {
+		return mdCommit
+	}
+	return mdNoCommit
+}
+
 // setNewInitialHeadLocked is for when we're creating a brand-new TLF.
 // This is trusted.
 func (fbo *folderBranchOps) setNewInitialHeadLocked(ctx context.Context,
@@ -1702,20 +1710,20 @@ func (fbo *folderBranchOps) setNewInitialHeadLocked(ctx context.Context,
 	if md.Revision() != kbfsmd.RevisionInitial {
 		return errors.Errorf("setNewInitialHeadLocked unexpectedly called with revision %d", md.Revision())
 	}
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md, headTrusted, mdToCommitType(md))
 }
 
 // setInitialHeadTrustedLocked is for when the given RootMetadata
 // was fetched due to a user action, and will be checked against the
 // TLF name.
 func (fbo *folderBranchOps) setInitialHeadTrustedLocked(ctx context.Context,
-	lState *lockState, md ImmutableRootMetadata) error {
+	lState *lockState, md ImmutableRootMetadata, ct mdCommitType) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 	if fbo.head != (ImmutableRootMetadata{}) {
 		return errors.New("Unexpected non-nil head in setInitialHeadTrustedLocked")
 	}
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md, headTrusted, ct)
 }
 
 // setHeadSuccessorLocked is for when we're applying updates from the
@@ -1726,7 +1734,8 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	fbo.headLock.AssertLocked(lState)
 	if fbo.head == (ImmutableRootMetadata{}) {
 		// This can happen in tests via SyncFromServer().
-		return fbo.setInitialHeadTrustedLocked(ctx, lState, md)
+		return fbo.setInitialHeadTrustedLocked(
+			ctx, lState, md, mdToCommitType(md))
 	}
 
 	if !rebased {
@@ -1766,7 +1775,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 		}
 	}
 
-	err = fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	err = fbo.setHeadLocked(ctx, lState, md, headTrusted, mdToCommitType(md))
 	if err != nil {
 		return err
 	}
@@ -1827,7 +1836,7 @@ func (fbo *folderBranchOps) setHeadPredecessorLocked(ctx context.Context,
 			oldHandle, newHandle)
 	}
 
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md, headTrusted, mdToCommitType(md))
 }
 
 // setHeadConflictResolvedLocked is for when we're setting the merged
@@ -1843,7 +1852,7 @@ func (fbo *folderBranchOps) setHeadConflictResolvedLocked(ctx context.Context,
 		return errors.New("Unexpected unmerged update in setHeadConflictResolvedLocked")
 	}
 
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md, headTrusted, mdToCommitType(md))
 }
 
 func (fbo *folderBranchOps) identifyOnce(
@@ -1984,7 +1993,8 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 		}
 		headStatus = headUntrusted
 	}
-	err = fbo.setHeadLocked(ctx, lState, md, headStatus)
+
+	err = fbo.setHeadLocked(ctx, lState, md, headStatus, mdToCommitType(md))
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -2588,10 +2598,13 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			}()
 		}
 
+		ct := mdToCommitType(md)
 		if latestRootBlockFetch != nil {
 			err := fbo.waitForRootBlockFetch(ctx, md, latestRootBlockFetch)
 			if err != nil {
-				return err
+				fbo.log.CDebugf(ctx,
+					"Couldn't fetch root block, so not commiting MD: %+v", err)
+				ct = mdNoCommit
 			}
 		}
 
@@ -2603,7 +2616,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		// background update processor.
 		if fbo.head == (ImmutableRootMetadata{}) {
 			setHead = true
-			err = fbo.setInitialHeadTrustedLocked(ctx, lState, md)
+			err = fbo.setInitialHeadTrustedLocked(ctx, lState, md, ct)
 			if err != nil {
 				return err
 			}
