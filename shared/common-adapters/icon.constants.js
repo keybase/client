@@ -436,6 +436,26 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-film-64.png'),
   },
+  'icon-folder-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-16.png'),
+  },
+  'icon-folder-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-32.png'),
+  },
+  'icon-folder-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-48.png'),
+  },
+  'icon-folder-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-64.png'),
+  },
   'icon-folder-copy-32': {
     extension: 'png',
     isFont: false,
