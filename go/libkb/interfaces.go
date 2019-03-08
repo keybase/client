@@ -289,7 +289,8 @@ type API interface {
 	GetResp(MetaContext, APIArg) (*http.Response, func(), error)
 	Post(MetaContext, APIArg) (*APIRes, error)
 	PostJSON(MetaContext, APIArg) (*APIRes, error)
-	PostDecode(APIArg, APIResponseWrapper) error
+	PostDecode(MetaContext, APIArg, APIResponseWrapper) error
+	PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
 	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
 	Delete(APIArg) (*APIRes, error)
 }

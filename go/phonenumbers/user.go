@@ -122,7 +122,7 @@ func BulkLookupPhoneNumbers(mctx libkb.MetaContext, phoneNumberContacts []keybas
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var resp phoneLookupAPIResult
-	err := mctx.G().API.PostDecode(arg, &resp)
+	err := mctx.G().API.PostDecode(mctx, arg, &resp)
 	if err != nil {
 		return nil, err
 	}

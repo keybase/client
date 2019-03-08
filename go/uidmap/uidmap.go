@@ -220,7 +220,7 @@ func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperCon
 		arg.RetryCount = 0
 	}
 	var r apiReply
-	err := g.GetAPI().PostDecode(arg, &r)
+	err := g.GetAPI().PostDecodeCtx(ctx, arg, &r)
 	if err != nil {
 		return nil, err
 	}

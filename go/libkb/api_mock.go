@@ -19,11 +19,12 @@ func (n *NullMockAPI) GetDecodeCtx(context.Context, APIArg, APIResponseWrapper) 
 func (n *NullMockAPI) GetResp(MetaContext, APIArg) (*http.Response, func(), error) {
 	return nil, noopFinisher, nil
 }
-func (n *NullMockAPI) Post(MetaContext, APIArg) (*APIRes, error)          { return nil, nil }
-func (n *NullMockAPI) PostJSON(MetaContext, APIArg) (*APIRes, error)      { return nil, nil }
-func (n *NullMockAPI) PostDecode(APIArg, APIResponseWrapper) error        { return nil }
-func (n *NullMockAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) { return nil, nil }
-func (n *NullMockAPI) Delete(APIArg) (*APIRes, error)                     { return nil, nil }
+func (n *NullMockAPI) Post(MetaContext, APIArg) (*APIRes, error)                       { return nil, nil }
+func (n *NullMockAPI) PostJSON(MetaContext, APIArg) (*APIRes, error)                   { return nil, nil }
+func (n *NullMockAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error        { return nil }
+func (n *NullMockAPI) PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error { return nil }
+func (n *NullMockAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error)              { return nil, nil }
+func (n *NullMockAPI) Delete(APIArg) (*APIRes, error)                                  { return nil, nil }
 
 type APIArgRecorder struct {
 	*NullMockAPI

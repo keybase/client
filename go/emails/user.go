@@ -114,7 +114,7 @@ func BulkLookupEmails(mctx libkb.MetaContext, contactEmails []string) ([]keybase
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var resp emailLookupAPIResult
-	err := mctx.G().API.PostDecode(arg, &resp)
+	err := mctx.G().API.PostDecode(mctx, arg, &resp)
 	if err != nil {
 		return nil, err
 	}
