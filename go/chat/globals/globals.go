@@ -13,7 +13,6 @@ type ChatContext struct {
 	ServerCacheVersions types.ServerCacheVersions // server side versions for chat caches
 	RegexpSearcher      types.RegexpSearcher      // For searching chat messages in a conversation via regexp
 	Indexer             types.Indexer             // For searching chat messages in the entire inbox
-	ReacjiStore         types.ReacjiStore         // Stores the user's favorite reactions on this device
 	Syncer              types.Syncer              // For syncing inbox with server
 	FetchRetrier        types.FetchRetrier        // For retrying failed fetch requests
 	ConvLoader          types.ConvLoader          // background conversation loader

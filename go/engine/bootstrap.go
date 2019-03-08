@@ -100,6 +100,8 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 		}
 	}
 
+	e.status.TopReacjis = e.G().ChatHelper.TopReacjis(m.Ctx(), e.status.Uid.ToBytes())
+
 	return nil
 }
 

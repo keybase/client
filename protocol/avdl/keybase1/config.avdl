@@ -194,6 +194,7 @@ protocol config {
     string deviceName;      // current logged in user's device name
     array<string> following;    // who current logged in user is following
     array<string> followers;    // who follows current logged in user
+    array<string> topReacjis; // top 5 reacjis for current logged in user
   }
   BootstrapStatus getBootstrapStatus(int sessionID);
 

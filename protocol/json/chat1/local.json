@@ -4276,13 +4276,6 @@
         }
       ],
       "response": null
-    },
-    "topReacjis": {
-      "request": [],
-      "response": {
-        "type": "array",
-        "items": "string"
-      }
     }
   },
   "namespace": "chat.1"
