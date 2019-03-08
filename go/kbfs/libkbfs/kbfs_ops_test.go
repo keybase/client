@@ -3170,6 +3170,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	require.NoError(t, err)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -3180,10 +3181,10 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	// Shutdown the mdserver explicitly before the state checker tries to run
 	defer config2.MDServer().Shutdown()
 
-	_, err = GetRootNodeForTest(ctx, config2, "test_user", tlf.Private)
-	if _, ok := errors.Cause(err).(kbfshash.HashMismatchError); !ok {
-		t.Fatalf("Could unexpectedly lookup the file: %+v", err)
-	}
+	rootNode2, err := GetRootNodeForTest(ctx, config2, "test_user", tlf.Private)
+	require.NoError(t, err)
+	_, err = config2.KBFSOps().GetDirChildren(ctx, rootNode2)
+	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
 }
 
 // Test that the size of a single empty block doesn't change.  If this
