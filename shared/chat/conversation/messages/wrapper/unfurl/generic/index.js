@@ -67,7 +67,7 @@ class UnfurlGeneric extends React.Component<Props> {
                   {' '}
                   <Kb.Icon
                     boxStyle={styles.collapseBox}
-                    noClickableBox={true}
+                    noContainer={Styles.isMobile}
                     onClick={this.props.onCollapse}
                     sizeType="Tiny"
                     type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
