@@ -13,17 +13,7 @@ export type Props = {
   onRemove: () => void,
 }
 
-const KeybaseUserBubble = (props: Props) => (
-  <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
-    <Kb.ConnectedNameWithIcon
-      colorFollowing={true}
-      horizontal={false}
-      icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
-      size="smaller"
-      username={props.username}
-    />
-  </Kb.Box2>
-)
+const KeybaseUserBubbleMobile = (props: Props) => <Kb.Avatar size={bubbleSize} username={props.username} />
 
 const GeneralServiceBubble = (props: Props) => (
   <Kb.Icon
@@ -43,7 +33,15 @@ const DesktopBubble = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" className="hoverContainer">
       <DesktopStyle style={realCSS} />
-      <KeybaseUserBubble {...props} />
+      <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
+        <Kb.ConnectedNameWithIcon
+          colorFollowing={true}
+          horizontal={false}
+          icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
+          size="smaller"
+          username={props.username}
+        />
+      </Kb.Box2>
       <Kb.Box2 direction="horizontal" className="hoverComponent">
         <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
       </Kb.Box2>
@@ -56,7 +54,7 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName:
     <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignCenter}>
       <Kb.Icon
         type={'iconfont-close'}
-        color={Styles.globalColors.black_50_on_white}
+        color={Styles.isMobile ? Styles.globalColors.white : Styles.globalColors.black_50_on_white}
         fontSize={16}
         style={Kb.iconCastPlatformStyles(styles.removeIcon)}
       />
@@ -110,7 +108,7 @@ function SwapOnClickHoc<A>(
 
 const UserBubble = (props: Props) => {
   const NormalComponent = () =>
-    props.service === 'keybase' ? <KeybaseUserBubble {...props} /> : <GeneralServiceBubble {...props} />
+    props.service === 'keybase' ? <KeybaseUserBubbleMobile {...props} /> : <GeneralServiceBubble {...props} />
   const AlternateComponent = () => <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
   const Component = SwapOnClickHoc(NormalComponent, AlternateComponent)
 
@@ -128,6 +126,10 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.tiny,
       marginRight: Styles.globalMargins.tiny,
     },
+    isMobile: {
+      height: bubbleSize,
+      width: bubbleSize,
+    },
   }),
   container: Styles.platformStyles({
     common: {
@@ -144,13 +146,18 @@ const styles = Styles.styleSheetCreate({
 
   remove: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
       borderRadius: 100,
       height: removeSize,
       width: removeSize,
     },
     isElectron: {
+      backgroundColor: Styles.globalColors.white,
       cursor: 'pointer',
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.red,
+      height: bubbleSize,
+      width: bubbleSize,
     },
   }),
 
@@ -170,7 +177,7 @@ const styles = Styles.styleSheetCreate({
       lineHeight: '16px',
     },
     isMobile: {
-      lineHeight: removeSize,
+      lineHeight: 34,
     },
   }),
 })

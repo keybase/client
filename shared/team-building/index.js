@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import GoButton from './go-button'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import TeamBox from './team-box'
@@ -54,17 +55,37 @@ class TeamBuilding extends React.PureComponent<Props, void> {
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        <TeamBox
-          onChangeText={props.onChangeText}
-          onDownArrowKeyDown={props.onDownArrowKeyDown}
-          onUpArrowKeyDown={props.onUpArrowKeyDown}
-          onEnterKeyDown={props.onEnterKeyDown}
-          onFinishTeamBuilding={props.onFinishTeamBuilding}
-          onRemove={props.onRemove}
-          teamSoFar={props.teamSoFar}
-          onBackspace={props.onBackspace}
-          searchString={props.searchString}
-        />
+        {Styles.isMobile && (
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <TeamBox
+              onChangeText={props.onChangeText}
+              onDownArrowKeyDown={props.onDownArrowKeyDown}
+              onUpArrowKeyDown={props.onUpArrowKeyDown}
+              onEnterKeyDown={props.onEnterKeyDown}
+              onFinishTeamBuilding={() => {}}
+              onRemove={props.onRemove}
+              teamSoFar={props.teamSoFar}
+              onBackspace={props.onBackspace}
+              searchString={props.searchString}
+            />
+            {!!props.teamSoFar.length && !Styles.isMobile && (
+              <GoButton onClick={props.onFinishTeamBuilding} />
+            )}
+          </Kb.Box2>
+        )}
+        {!Styles.isMobile && (
+          <TeamBox
+            onChangeText={props.onChangeText}
+            onDownArrowKeyDown={props.onDownArrowKeyDown}
+            onUpArrowKeyDown={props.onUpArrowKeyDown}
+            onEnterKeyDown={props.onEnterKeyDown}
+            onFinishTeamBuilding={props.onFinishTeamBuilding}
+            onRemove={props.onRemove}
+            teamSoFar={props.teamSoFar}
+            onBackspace={props.onBackspace}
+            searchString={props.searchString}
+          />
+        )}
         {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?

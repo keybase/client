@@ -41,37 +41,47 @@ class UserBubbleCollection extends React.PureComponent<{
   }
 }
 
-const TeamBox = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" style={styles.search}>
-        {Styles.isMobile && <Kb.Icon fontSize={22} type="iconfont-search" style={styles.searchIcon} />}
-        <Input
-          hasMembers={!!props.teamSoFar.length}
-          onChangeText={props.onChangeText}
-          onEnterKeyDown={props.onEnterKeyDown}
-          onDownArrowKeyDown={props.onDownArrowKeyDown}
-          onUpArrowKeyDown={props.onUpArrowKeyDown}
-          onBackspace={props.onBackspace}
-          placeholder={
-            props.teamSoFar.length
-              ? 'Add another username or enter to chat'
-              : 'Enter any phone number, email address, or username'
-          }
-          searchString={props.searchString}
-        />
-      </Kb.Box2>
-      {!!props.teamSoFar.length && !Styles.isMobile && <GoButton onClick={props.onFinishTeamBuilding} />}
-    </Kb.Box2>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bubbles}>
-      <Kb.ScrollView horizontal={true}>
-        <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
-          <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </Kb.Box2>
-  </Kb.Box2>
+const TeamInput = (props: Props) => (
+  <Input
+    hasMembers={!!props.teamSoFar.length}
+    onChangeText={props.onChangeText}
+    onEnterKeyDown={props.onEnterKeyDown}
+    onDownArrowKeyDown={props.onDownArrowKeyDown}
+    onUpArrowKeyDown={props.onUpArrowKeyDown}
+    onBackspace={props.onBackspace}
+    placeholder={
+      props.teamSoFar.length
+        ? 'Add another username or enter to chat'
+        : 'Enter any phone number, email address, or username'
+    }
+    searchString={props.searchString}
+  />
 )
+
+const TeamBox = (props: Props) =>
+  (Styles.isMobile && (
+    <Kb.Box2 direction="horizontal" style={styles.container}>
+      <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />
+      <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+      <TeamInput {...props} />
+    </Kb.Box2>
+  )) || (
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" style={styles.search}>
+          <TeamInput {...props} />
+        </Kb.Box2>
+        {!!props.teamSoFar.length && <GoButton onClick={props.onFinishTeamBuilding} />}
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bubbles}>
+        <Kb.ScrollView horizontal={true}>
+          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
+            <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+          </Kb.Box2>
+        </Kb.ScrollView>
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 
 const styles = Styles.styleSheetCreate({
   bubbles: Styles.platformStyles({
@@ -90,6 +100,13 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
+    },
+    isMobile: {
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
+      flex: 1,
+      minHeight: 45,
     },
   }),
   floatingBubbles: Styles.platformStyles({
