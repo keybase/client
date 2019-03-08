@@ -644,94 +644,110 @@ let loadedMap = {}
 // temp to just plumb the next plage loading in a hacky way
 let _nextPageLoading = false
 
-const Thread = (props: Props) => {
-  const hasNextPage = true // TODO plumb
-  const isNextPageLoading = (_nextPageLoading = false) // TODo plumb
-  const items = props.messageOrdinals
-  const loadNextPage = props.loadMoreMessages
-
-  // If there are more items to be loaded then add an extra row to hold a loading indicator.
-  // const itemCount = hasNextPage ? items.size + 1 : items.size
-  const itemCount = items.last()
-  const itemMap = items.reduce((map, item) => {
-    map[String(item)] = item
-    return map
-  }, {})
-
-  // Only load 1 page of items at a time.
-  // Pass an empty callback to InfiniteLoader in case it asks us to load more than once.
-  const loadMoreItems = isNextPageLoading
-    ? () => {}
-    : () => {
-        _nextPageLoading = true
-        loadNextPage()
+class Thread extends React.Component<Props> {
+  _ref = null
+  componentDidUpdate() {
+    if (this._ref) {
+      const list = this._ref
+      if (list) {
+        list.scrollTop = list.scrollHeight - list.clientHeight
       }
-
-  // Every row is loaded except for our loading indicator row.
-  // const isItemLoaded = index => !hasNextPage || index < items.size
-  const isItemLoaded = index => itemMap[index] !== undefined
-
-  const {conversationIDKey} = props
-  // Render an item or a loading indicator.
-  const Row = React.forwardRef((props: any, ref: any) => {
-    const {style, index} = props
-
-    if (index === 0) {
-      return <TopItem ref={ref} style={style} key="topItem" conversationIDKey={conversationIDKey} />
     }
+  }
 
-    if (!isItemLoaded(index)) {
-      // return null
+  render() {
+    const props = this.props
+    const hasNextPage = true // TODO plumb
+    const isNextPageLoading = (_nextPageLoading = false) // TODo plumb
+    const items = props.messageOrdinals
+    const loadNextPage = props.loadMoreMessages
+
+    // If there are more items to be loaded then add an extra row to hold a loading indicator.
+    // const itemCount = hasNextPage ? items.size + 1 : items.size
+    const itemCount = items.last()
+    const itemMap = items.reduce((map, item) => {
+      map[String(item)] = item
+      return map
+    }, {})
+
+    // Only load 1 page of items at a time.
+    // Pass an empty callback to InfiniteLoader in case it asks us to load more than once.
+    const loadMoreItems = isNextPageLoading
+      ? () => {}
+      : () => {
+          _nextPageLoading = true
+          loadNextPage()
+        }
+
+    // Every row is loaded except for our loading indicator row.
+    // const isItemLoaded = index => !hasNextPage || index < items.size
+    const isItemLoaded = index => itemMap[index] !== undefined
+
+    const {conversationIDKey} = props
+    // Render an item or a loading indicator.
+    const Row = React.forwardRef((props: any, ref: any) => {
+      const {style, index} = props
+
+      // if (index === 0) {
+      // return null //  <TopItem ref={ref} style={style} key="topItem" conversationIDKey={conversationIDKey} />
+      // }
+
+      if (!isItemLoaded(index)) {
+        // return null
+        return (
+          <div ref={ref} style={style}>
+            <div style={{height: 20, width: '100%', backgroundColor: index % 2 ? 'pink' : 'grey'}} />
+          </div>
+        )
+      }
       return (
-        <div
-          ref={ref}
-          style={{...style, height: 20, width: '100%', backgroundColor: index % 2 ? 'pink' : 'grey'}}
-        />
+        <div ref={ref} style={style}>
+          {itemMap[index]}
+          {index % 20
+            ? ''
+            : 'jlaskdfj lka jflksaj flkdsaj flsadj flj sdaflj sdflj sdalkfj sdalfj dslaj flsj flsdaj flsj flsaj flsdj aflj sdaflj asdlfkjd slfj sadlfj dsalkj flksadj flksdaj flkasdj flksdaj flkjsda lfkj sdalfkj sdlkf jsaldkj flk jaflkj sdflkj sdalkfjasdlkfj dslkjf lksjflkj dsalkjf dslkfjdljf dslkfj lafj ljds ljasd lfsj al fjsdalf jdlk jfdaslkfdj lfa j'}
+        </div>
       )
-    }
+    })
+    //
+    // const Item = ({index, style}) => {
+    // let content
+    // if (!isItemLoaded(index)) {
+    // content = 'Loading...'
+    // } else {
+    // content = items.get(index).ordinal
+    // }
+
+    // return <div style={style}>{content}</div>
+    // }
+
     return (
-      <div ref={ref} style={style}>
-        {itemMap[index]}
-        {index % 20
-          ? ''
-          : 'jlaskdfj lka jflksaj flkdsaj flsadj flj sdaflj sdflj sdalkfj sdalfj dslaj flsj flsdaj flsj flsaj flsdj aflj sdaflj asdlfkjd slfj sadlfj dsalkj flksadj flksdaj flkasdj flksdaj flkjsda lfkj sdalfkj sdlkf jsaldkj flk jaflkj sdflkj sdalkfjasdlkfj dslkjf lksjflkj dsalkjf dslkfjdljf dslkfj lafj ljds ljasd lfsj al fjsdalf jdlk jfdaslkfdj lfa j'}
+      <div style={{flex: 1}}>
+        <AutoSizer>
+          {({height, width}) => (
+            <InfiniteLoader isItemLoaded={isItemLoaded} itemCount={itemCount} loadMoreItems={loadMoreItems}>
+              {({onItemsRendered, ref}) => {
+                return (
+                  <List
+                    height={height}
+                    width={width}
+                    itemCount={itemCount}
+                    ref={r => {
+                      ref(r)
+                      this._ref = r
+                    }}
+                    onItemsRendered={onItemsRendered}
+                  >
+                    {Row}
+                  </List>
+                )
+              }}
+            </InfiniteLoader>
+          )}
+        </AutoSizer>
       </div>
     )
-  })
-
-  //
-  // const Item = ({index, style}) => {
-  // let content
-  // if (!isItemLoaded(index)) {
-  // content = 'Loading...'
-  // } else {
-  // content = items.get(index).ordinal
-  // }
-
-  // return <div style={style}>{content}</div>
-  // }
-
-  return (
-    <div style={{flex: 1}}>
-      <AutoSizer>
-        {({height, width}) => (
-          <InfiniteLoader isItemLoaded={isItemLoaded} itemCount={itemCount} loadMoreItems={loadMoreItems}>
-            {({onItemsRendered, ref}) => (
-              <List
-                height={height}
-                width={width}
-                itemCount={itemCount}
-                ref={ref}
-                onItemsRendered={onItemsRendered}
-              >
-                {Row}
-              </List>
-            )}
-          </InfiniteLoader>
-        )}
-      </AutoSizer>
-    </div>
-  )
+  }
 }
 
 export default Thread
