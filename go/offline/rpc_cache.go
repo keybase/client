@@ -137,10 +137,7 @@ func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, 
 // success case. We also pass this function a `version`, which will
 // tell the cache-access machinery to fail if the wrong version of the
 // data is cached. Next, we pass the `rpcName`, the argument, and the
-// pointer to which the result is stored if we hit the cache. This
-// flow is unfortunately complicated, but the issue is that we're
-// trying to maintain runtime type checking, and it's hard to do
-// without generics.
+// pointer to which the result is stored if we hit the cache.
 //
 // If this function doesn't return an error, and the returned `res` is
 // nil, then `resPtr` will have been filled in already by the cache.
@@ -176,10 +173,9 @@ func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability
 	resCh := make(chan handlerRes, 1)
 
 	// New goroutine needs a new metacontext, in case the original
-	// gets canceled after the timeout below.
-	newMctx := libkb.NewMetaContextBackground(mctx.G())
-	newMctx = newMctx.WithLogTag("OFLN")
-	mctx.Debug("RPCCache#Serve: Launching background best-effort handler with debug tags %s", libkb.LogTagsToString(newMctx.Ctx()))
+	// gets canceled after the timeout below.  Preserve the log tags
+	// though.
+	newMctx := mctx.BackgroundWithLogTags()
 
 	// Launch a background goroutine to try to invoke the handler.
 	// Even if we hit a timeout below and return the cached value,
