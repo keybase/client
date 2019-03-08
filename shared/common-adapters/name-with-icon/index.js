@@ -248,7 +248,7 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
         iconSize: 48,
         metaMargin: 6,
         metaOneType: 'BodySmall',
-        titleType: 'BodySemibold',
+        titleType: 'BodyTinySemibold',
       }
     case 'small':
       return {
