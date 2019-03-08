@@ -176,7 +176,8 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 }
 
 func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
-	emails, err := libkb.LoadUserEmails(h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	emails, err := libkb.LoadUserEmails(mctx)
 	if err != nil {
 		return
 	}
@@ -598,10 +599,9 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		libkb.AppStatusEmbed
 		RandomPW bool `json:"random_pw"`
 	}
-	err = h.G().API.GetDecode(libkb.APIArg{
+	err = m.G().API.GetDecode(m, libkb.APIArg{
 		Endpoint:       "user/has_random_pw",
 		SessionType:    libkb.APISessionTypeREQUIRED,
-		NetContext:     ctx,
 		InitialTimeout: initialTimeout,
 	}, &ret)
 	if err != nil {

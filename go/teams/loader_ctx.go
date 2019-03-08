@@ -118,7 +118,8 @@ func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
 	teamID keybase1.TeamID, lows *getLinksLows, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
+	mctx := libkb.NewMetaContext(ctx, l.G())
+	arg := libkb.NewAPIArg("team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	if teamID.IsPublic() {
 		arg.SessionType = libkb.APISessionTypeOPTIONAL
@@ -142,7 +143,7 @@ func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
 	}
 
 	var rt rawTeam
-	if err := l.G().API.GetDecode(arg, &rt); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &rt); err != nil {
 		return nil, err
 	}
 	if !rt.ID.Eq(teamID) {

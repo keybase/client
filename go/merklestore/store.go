@@ -213,10 +213,9 @@ func (r *merkleStoreServerRes) GetAppStatus() *libkb.AppStatus {
 func (s *MerkleStoreImpl) fetch(m libkb.MetaContext, hash keybase1.MerkleStoreKitHash) (keybase1.MerkleStoreKit, error) {
 	m.Debug("MerkleStore: fetching from server: %s", hash)
 	var res merkleStoreServerRes
-	err := m.G().API.GetDecode(libkb.APIArg{
+	err := m.G().API.GetDecode(m, libkb.APIArg{
 		Endpoint:    s.endpoint,
 		SessionType: libkb.APISessionTypeNONE,
-		MetaContext: m,
 		Args: libkb.HTTPArgs{
 			"hash": libkb.S{Val: string(hash)},
 		},

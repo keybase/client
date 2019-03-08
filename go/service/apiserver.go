@@ -25,12 +25,14 @@ func NewAPIServerHandler(xp rpc.Transporter, g *libkb.GlobalContext) *APIServerH
 	}
 }
 
-func (a *APIServerHandler) Get(_ context.Context, arg keybase1.GetArg) (keybase1.APIRes, error) {
-	return a.doGet(arg, false)
+func (a *APIServerHandler) Get(ctx context.Context, arg keybase1.GetArg) (keybase1.APIRes, error) {
+	mctx := libkb.NewMetaContext(ctx, a.G())
+	return a.doGet(mctx, arg, false)
 }
 
-func (a *APIServerHandler) GetWithSession(_ context.Context, arg keybase1.GetWithSessionArg) (keybase1.APIRes, error) {
-	return a.doGet(arg, true)
+func (a *APIServerHandler) GetWithSession(ctx context.Context, arg keybase1.GetWithSessionArg) (keybase1.APIRes, error) {
+	mctx := libkb.NewMetaContext(ctx, a.G())
+	return a.doGet(mctx, arg, true)
 }
 
 func (a *APIServerHandler) Post(_ context.Context, arg keybase1.PostArg) (keybase1.APIRes, error) {
@@ -83,15 +85,15 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 	return kbarg
 }
 
-func (a *APIServerHandler) doGet(arg GenericArg, sessionRequired bool) (res keybase1.APIRes, err error) {
-	defer a.G().Trace("APIServerHandler::Get", func() error { return err })()
+func (a *APIServerHandler) doGet(mctx libkb.MetaContext, arg GenericArg, sessionRequired bool) (res keybase1.APIRes, err error) {
+	defer mctx.Trace("APIServerHandler::Get", func() error { return err })()
 	// turn off session requirement if not needed
 	kbarg := a.setupArg(arg)
 	if !sessionRequired {
 		kbarg.SessionType = libkb.APISessionTypeNONE
 	}
 	var ires *libkb.APIRes
-	ires, err = a.G().API.Get(kbarg)
+	ires, err = mctx.G().API.Get(mctx, kbarg)
 	if err != nil {
 		return res, err
 	}

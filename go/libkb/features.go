@@ -126,12 +126,12 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 		return slot.on, nil
 	}
 	var raw rawFeatures
-	arg := NewAPIArgWithMetaContext(m, "user/features")
+	arg := NewAPIArg("user/features")
 	arg.SessionType = APISessionTypeREQUIRED
 	arg.Args = HTTPArgs{
 		"features": S{Val: string(f)},
 	}
-	err = m.G().API.GetDecode(arg, &raw)
+	err = m.G().API.GetDecode(m, arg, &raw)
 	if err != nil {
 		return false, err
 	}

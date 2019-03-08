@@ -409,7 +409,7 @@ func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 		},
 	}
 	var resp getCodeResponse
-	err = mctx.G().API.GetDecode(arg, &resp)
+	err = mctx.G().API.GetDecode(mctx, arg, &resp)
 	if err != nil {
 		return "", err
 	}

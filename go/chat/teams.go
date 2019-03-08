@@ -207,6 +207,7 @@ func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, pu
 func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 	tlfName string, membersType chat1.ConversationMembersType, public bool,
 	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
+	mctx := libkb.NewMetaContext(ctx, t.G())
 	defer t.Trace(ctx, func() error { return err }, "loadTeam(%s,%s,%v)", tlfName, tlfID, membersType)()
 
 	// Set up load team argument construction, possibly controlled by the caller
@@ -240,7 +241,7 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 		}
 		return team, nil
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		teamID, err := tlfIDToTeamID.Lookup(ctx, tlfID, t.G().API)
+		teamID, err := tlfIDToTeamID.Lookup(mctx, tlfID, t.G().API)
 		if err != nil {
 			return team, err
 		}
@@ -259,10 +260,10 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 			return nil
 		}
 		if err = loadAttempt(false); err != nil {
-			t.Debug(ctx, "loadTeam: failed to load the team: err: %s", err)
+			mctx.Debug("loadTeam: failed to load the team: err: %s", err)
 			if IsOfflineError(err) == OfflineErrorKindOnline {
 				// try again on bad team, might have had an old team cached
-				t.Debug(ctx, "loadTeam: non-offline error, trying again: %s", err)
+				mctx.Debug("loadTeam: non-offline error, trying again: %s", err)
 				if err = loadAttempt(true); err != nil {
 					return team, err
 				}
@@ -757,15 +758,15 @@ func newTlfIDToTeamIDMap() *tlfIDToTeamIDMap {
 }
 
 // Lookup gives the server trust mapping between tlfID and teamID
-func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api libkb.API) (res keybase1.TeamID, err error) {
+func (t *tlfIDToTeamIDMap) Lookup(mctx libkb.MetaContext, tlfID chat1.TLFID, api libkb.API) (res keybase1.TeamID, err error) {
 	if iTeamID, ok := t.storage.Get(tlfID.String()); ok {
 		return iTeamID.(keybase1.TeamID), nil
 	}
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/id")
+	arg := libkb.NewAPIArgWithMetaContext(mctx, "team/id")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
 	arg.SessionType = libkb.APISessionTypeREQUIRED
-	apiRes, err := api.Get(arg)
+	apiRes, err := api.Get(mctx, arg)
 	if err != nil {
 		return res, err
 	}
@@ -781,15 +782,15 @@ func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api li
 	return teamID, nil
 }
 
-func (t *tlfIDToTeamIDMap) LookupTLFID(ctx context.Context, teamID keybase1.TeamID, api libkb.API) (res chat1.TLFID, err error) {
+func (t *tlfIDToTeamIDMap) LookupTLFID(mctx libkb.MetaContext, teamID keybase1.TeamID, api libkb.API) (res chat1.TLFID, err error) {
 	if iTLFID, ok := t.storage.Get(teamID.String()); ok {
 		return iTLFID.(chat1.TLFID), nil
 	}
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/tlfid")
+	arg := libkb.NewAPIArgWithMetaContext(mctx, "team/tlfid")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("team_id", libkb.S{Val: teamID.String()})
 	arg.SessionType = libkb.APISessionTypeREQUIRED
-	apiRes, err := api.Get(arg)
+	apiRes, err := api.Get(mctx, arg)
 	if err != nil {
 		return res, err
 	}

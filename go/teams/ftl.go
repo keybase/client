@@ -650,14 +650,14 @@ func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg
 
 // makeHTTPRequest hits the HTTP GET endpoint for the team data.
 func (f *FastTeamChainLoader) makeHTTPRequest(m libkb.MetaContext, args libkb.HTTPArgs, isPublic bool) (t rawTeam, err error) {
-	apiArg := libkb.NewAPIArgWithMetaContext(m, "team/get")
+	apiArg := libkb.NewAPIArg("team/get")
 	apiArg.Args = args
 	if isPublic {
 		apiArg.SessionType = libkb.APISessionTypeOPTIONAL
 	} else {
 		apiArg.SessionType = libkb.APISessionTypeREQUIRED
 	}
-	err = m.G().API.GetDecode(apiArg, &t)
+	err = m.G().API.GetDecode(m, apiArg, &t)
 	if err != nil {
 		return t, err
 	}

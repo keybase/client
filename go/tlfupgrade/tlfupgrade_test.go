@@ -18,7 +18,7 @@ type testAPIServer struct {
 	responseFn func() getUpgradeRes
 }
 
-func (t *testAPIServer) GetDecode(arg libkb.APIArg, resp libkb.APIResponseWrapper) error {
+func (t *testAPIServer) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, resp libkb.APIResponseWrapper) error {
 	*(resp.(*getUpgradeRes)) = t.responseFn()
 	return nil
 }

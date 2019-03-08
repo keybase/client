@@ -28,9 +28,9 @@ func TestAPIServerGet(t *testing.T) {
 		Endpoint: "user/lookup",
 		Args:     harg,
 	}
-
+	mctx := libkb.NewMetaContextForTest(tc)
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doGet(arg, false)
+	res, err := handler.doGet(mctx, arg, false)
 	if err != nil {
 		t.Fatal(err)
 	}

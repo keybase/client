@@ -96,7 +96,7 @@ func SetVisibilityAllEmail(mctx libkb.MetaContext, visibility keybase1.IdentityV
 }
 
 func GetEmails(mctx libkb.MetaContext) ([]keybase1.Email, error) {
-	return libkb.LoadUserEmails(mctx.G())
+	return libkb.LoadUserEmails(mctx)
 }
 
 type emailLookupAPIResult struct {

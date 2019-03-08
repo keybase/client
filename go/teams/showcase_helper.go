@@ -19,7 +19,8 @@ func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
 
 	var rt rawTeam
-	if err := g.API.GetDecode(arg, &rt); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := mctx.G().API.GetDecode(mctx, arg, &rt); err != nil {
 		return ret, err
 	}
 	return rt.Showcase, nil
@@ -49,7 +50,8 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
 
 	var teamRet rawTeam
-	if err := g.API.GetDecode(arg, &teamRet); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := mctx.G().API.GetDecode(mctx, arg, &teamRet); err != nil {
 		return ret, err
 	}
 	ret.TeamShowcase = teamRet.Showcase
@@ -62,7 +64,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 		arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 
 		var memberRet memberShowcaseRes
-		if err := g.API.GetDecode(arg, &memberRet); err != nil {
+		if err := mctx.G().API.GetDecode(mctx, arg, &memberRet); err != nil {
 			if appErr, ok := err.(libkb.AppStatusError); ok &&
 				appErr.Code == int(keybase1.StatusCode_SCTeamShowcasePermDenied) {
 				// It is possible that we were still a member when
@@ -72,7 +74,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 				// checks before calling it - but if we have outdated team
 				// information, we might still end up here not being allowed
 				// to call it and getting this error.
-				g.Log.CDebugf(ctx, "GetTeamAndMemberShowcase hit a race with team %q", teamname)
+				mctx.Debug("GetTeamAndMemberShowcase hit a race with team %q", teamname)
 				return ret, nil
 			}
 

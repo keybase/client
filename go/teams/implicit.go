@@ -91,13 +91,14 @@ func loadImpteam(ctx context.Context, g *libkb.GlobalContext, displayName string
 }
 
 func loadImpteamFromServer(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (imp implicitTeam, err error) {
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
+	mctx := libkb.NewMetaContext(ctx, g)
+	arg := libkb.NewAPIArg("team/implicit")
 	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	arg.Args = libkb.HTTPArgs{
 		"display_name": libkb.S{Val: displayName},
 		"public":       libkb.B{Val: public},
 	}
-	if err = g.API.GetDecode(arg, &imp); err != nil {
+	if err = mctx.G().API.GetDecode(mctx, arg, &imp); err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok {
 			code := keybase1.StatusCode(aerr.Code)
 			switch code {
