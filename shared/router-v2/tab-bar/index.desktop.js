@@ -38,17 +38,23 @@ const TabBar = KeyHandler(
       <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
         <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
         <Kb.ClickableBox onClick={p.onProfileClick}>
-          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.nameContainer}>
+          <Kb.Box2
+            direction="horizontal"
+            gap="tiny"
+            fullWidth={true}
+            style={styles.nameContainer}
+            alignItems="center"
+          >
             <Kb.Avatar
               size={16}
               borderColor={Styles.globalColors.blue}
               username={p.username}
               style={styles.avatar}
             />
-            <Kb.Text className="username" type="BodySemibold" style={styles.username}>
+            <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
               Hi {p.username}
             </Kb.Text>
-            <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} />
+            <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} fontSize={12} />
           </Kb.Box2>
         </Kb.ClickableBox>
         <Kb.Divider style={styles.divider} />
@@ -88,7 +94,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: 20,
     marginTop: Styles.globalMargins.tiny,
   },
-  nameContainer: {height: 20},
+  nameContainer: {height: 24},
   osButtons: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
