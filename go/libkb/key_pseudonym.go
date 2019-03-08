@@ -183,8 +183,7 @@ func MakeAndPostKeyPseudonyms(m MetaContext, pnymInfos *[]KeyPseudonymInfo) (err
 	payload := make(JSONPayload)
 	payload["key_pseudonyms"] = pnymReqs
 
-	_, err = m.G().API.PostJSON(APIArg{
-		MetaContext: m,
+	_, err = m.G().API.PostJSON(m, APIArg{
 		Endpoint:    "team/key_pseudonym",
 		JSONPayload: payload,
 		SessionType: APISessionTypeREQUIRED,

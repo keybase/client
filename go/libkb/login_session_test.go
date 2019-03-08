@@ -70,7 +70,7 @@ func (a *FakeAPI) Post(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("Post is phony")
 }
 
-func (a *FakeAPI) PostJSON(APIArg) (*APIRes, error) {
+func (a *FakeAPI) PostJSON(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("PostJSON is phony")
 }
 

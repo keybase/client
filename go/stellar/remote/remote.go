@@ -130,11 +130,10 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 	}
 
 	mctx.Debug("Stellar.PostWithChainLink: post")
-	_, err = mctx.G().API.PostJSON(libkb.APIArg{
+	_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: *payload,
-		MetaContext: mctx,
 	})
 	if err != nil {
 		return err
@@ -168,7 +167,7 @@ func Post(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err error) {
 	section["version_parent"] = boxed.FormatVersionParent
 	section["account_bundles"] = boxed.AcctBundles
 	payload["stellar"] = section
-	_, err = mctx.G().API.PostJSON(libkb.APIArg{
+	_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
