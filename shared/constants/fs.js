@@ -166,16 +166,23 @@ export const makeError = (record?: {
   })
 }
 
-export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
-  destinationParentPath: I.List(),
-  sourceItemPath: Types.stringToPath(''),
+export const makeMoveOrCopySource: I.RecordFactory<Types._MoveOrCopySource> = I.Record({
+  path: Types.stringToPath(''),
   type: 'move-or-copy',
 })
 
-export const makeIncomingShare: I.RecordFactory<Types._IncomingShare> = I.Record({
-  destinationParentPath: I.List(),
-  sourceItemLocalPath: Types.stringToLocalPath(''),
+export const makeIncomingShareSource: I.RecordFactory<Types._IncomingShareSource> = I.Record({
+  localPath: Types.stringToLocalPath(''),
   type: 'incoming-share',
+})
+
+export const makeNoSource: I.RecordFactory<Types._NoSource> = I.Record({
+  type: 'none',
+})
+
+export const makeDestinationPicker: I.RecordFactory<Types._DestinationPicker> = I.Record({
+  destinationParentPath: I.List(),
+  source: makeNoSource(),
 })
 
 export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
@@ -219,7 +226,7 @@ export const makeSystemFileManagerIntegration: I.RecordFactory<Types._SystemFile
 )
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  destinationPicker: makeMoveOrCopy(),
+  destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
@@ -858,7 +865,13 @@ const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   }
 }
 
-export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string => picker.type === 'move-or-copy' ? Types.getPathName(picker.sourceItemPath) : Types.getLocalPathName(picker.sourceItemLocalPath)
+export const getDestinationPickerPathName =
+  (picker: Types.DestinationPicker): string =>
+    picker.source.type === 'move-or-copy'
+    ? Types.getPathName(picker.source.path)
+    : picker.source.type === 'incoming-share'
+      ? Types.getLocalPathName(picker.source.localPath)
+      : ''
 
 export const splitFileNameAndExtension = (fileName: string) => ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
 

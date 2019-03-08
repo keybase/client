@@ -286,31 +286,25 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
       return state.update('destinationPicker', dp =>
-        (dp.type === 'move-or-copy' ? dp : Constants.makeMoveOrCopy())
+        dp.set('source', (dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource()))
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
       return state.update('destinationPicker', dp =>
-        (dp.type === 'move-or-copy' ? dp : Constants.makeMoveOrCopy())
-          .set('sourceItemPath', action.payload.path))
-    case FsGen.setMoveOrCopyDestinationParentPath:
+        dp.set('source', Constants.makeMoveOrCopySource({path: action.payload.path}))
+      )
+    case FsGen.setDestinationPickerParentPath:
       return state.update('destinationPicker', dp =>
-        (dp.type === 'move-or-copy' ? dp : Constants.makeMoveOrCopy())
-          .update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+        dp.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
       )
     case FsGen.showIncomingShare:
       return state.update('destinationPicker', dp =>
-        (dp.type === 'incoming-share' ? dp : Constants.makeIncomingShare())
+        dp.set('source', (dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()))
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setIncomingShareLocalPath:
       return state.update('destinationPicker', dp =>
-        (dp.type === 'incoming-share' ? dp : Constants.makeIncomingShare())
-          .set('sourceItemLocalPath', action.payload.localPath))
-    case FsGen.setIncomingShareDestinationPath:
-      return state.update('destinationPicker', dp =>
-        (dp.type === 'incoming-share' ? dp : Constants.makeIncomingShare())
-          .update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+        dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
       )
     case FsGen.showSendLinkToChat:
       return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))

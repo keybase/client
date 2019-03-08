@@ -710,23 +710,31 @@ const moveOrCopy = (state, action) => {
       kbfs: Constants.fsPathToRpcPathString(
         Types.pathConcat(
           action.payload.destinationParentPath,
-          state.fs.destinationPicker.type === 'move-or-copy'
-            ? Types.getPathName(state.fs.destinationPicker.sourceItemPath)
-            : Types.getLocalPathName(state.fs.destinationPicker.sourceItemLocalPath),
+          state.fs.destinationPicker.source.type === 'move-or-copy'
+            ? Types.getPathName(state.fs.destinationPicker.source.path)
+            : state.fs.destinationPicker.source.type === 'incoming-share'
+              ? Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
+              : ''
             // We use the local path name here since we only care about file name.
         )
       ),
     },
     opID: Constants.makeUUID(),
-    src: state.fs.destinationPicker.type === 'move-or-copy'
+    src: state.fs.destinationPicker.source.type === 'move-or-copy'
       ? {
         PathType: RPCTypes.simpleFSPathType.kbfs,
-        kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.sourceItemPath),
+        kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
       }
-      : {
-        PathType: RPCTypes.simpleFSPathType.local,
-        local: Types.localPathToString(state.fs.destinationPicker.sourceItemLocalPath),
-      },
+      : state.fs.destinationPicker.source.type === 'incoming-share'
+        ? {
+          PathType: RPCTypes.simpleFSPathType.local,
+          local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
+        }
+        // This case isn't possible but must be handled for Flow to be happy.
+        : {
+          PathType: RPCTypes.simpleFSPathType.kbfs,
+          kbfs: null,
+        },
   }
   return (
     (action.type === FsGen.move
@@ -742,7 +750,7 @@ const moveOrCopy = (state, action) => {
 }
 
 const moveOrCopyOpen = (state, action) => [
-  FsGen.createSetMoveOrCopyDestinationParentPath({
+  FsGen.createSetDestinationPickerParentPath({
     index: action.payload.currentIndex + 1,
     path: action.payload.path,
   }),
@@ -755,7 +763,7 @@ const moveOrCopyOpen = (state, action) => [
 ]
 
 const incomingShareOpen = (state, action) => [
-  FsGen.createSetIncomingShareDestinationPath({
+  FsGen.createSetDestinationPickerParentPath({
     index: action.payload.currentIndex + 1,
     path: action.payload.path,
   }),

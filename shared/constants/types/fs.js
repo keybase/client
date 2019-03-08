@@ -271,23 +271,36 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
-export type _MoveOrCopy = {
+export type _MoveOrCopySource = {
   type: 'move-or-copy',
-  sourceItemPath: Path,
+  path: Path,
+}
+export type MoveOrCopySource = I.RecordOf<_MoveOrCopySource>
+
+export type _IncomingShareSource = {
+  type: 'incoming-share',
+  localPath: LocalPath,
+}
+
+export type IncomingShareSource = I.RecordOf<_IncomingShareSource>
+
+export type _NoSource = {
+  type: 'none',
+}
+
+export type NoSource = I.RecordOf<_NoSource>
+
+export type _DestinationPicker = {
   // id -> Path mapping. This is useful for mobile when we have multiple layers
   // stacked on top of each other, and we need to keep track of them for the
   // back button. We don't put this in routeProps directly as that'd
   // complicate stuff for desktop because we don't have something like a
   // routeToSibling.
   destinationParentPath: I.List<Path>,
+  source: MoveOrCopySource | IncomingShareSource | NoSource,
 }
 
-export type _IncomingShare = {
-  type: 'incoming-share',
-  sourceItemLocalPath: LocalPath,
-  destinationParentPath: I.List<Path>,
-}
-export type DestinationPicker = I.RecordOf<_IncomingShare> | I.RecordOf<_MoveOrCopy>
+export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
 export type _SendLinkToChat = {
   path: Path,
@@ -458,7 +471,11 @@ export const stringToPathType = (s: string): PathType => {
 }
 export const pathTypeToString = (p: PathType): string => p
 export const pathConcat = (p: Path, s: string): Path =>
-  p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
+  s === ''
+    ? p
+    : p === '/'
+      ? stringToPath('/' + s)
+      : stringToPath(pathToString(p) + '/' + s)
 export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'
