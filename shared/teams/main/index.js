@@ -88,9 +88,11 @@ type State = {
 }
 class Teams extends React.PureComponent<Props, State> {
   state = {sawChatBanner: false}
-  _teamsAndExtras = memoize(teamnames => {
-    return [...teamnames.map(t => ({key: t, team: t, type: 'team'})), {key: '_note', type: '_note'}]
-  })
+  _teamsAndExtras = memoize((sawChatBanner, teamnames) => [
+    {key: '_banner', type: '_banner'},
+    ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
+    {key: '_note', type: '_note'},
+  ])
 
   _onHideChatBanner = () => {
     this.setState({sawChatBanner: true})
@@ -101,8 +103,11 @@ class Teams extends React.PureComponent<Props, State> {
   _onViewTeam = name => this.props.onViewTeam(name)
 
   _renderItem = (index, item) => {
-    console.warn('in renderItem', index, item, item.type)
     switch (item.type) {
+      case '_banner':
+        return this.state.sawChatBanner ? null : (
+          <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
+        )
       case '_note':
         return <BetaNote onReadMore={this.props.onReadMore} />
       case 'team':
@@ -128,6 +133,13 @@ class Teams extends React.PureComponent<Props, State> {
     }
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // Don't need to worry about the true->false direction.
+    if (!prevProps.sawChatBanner && this.props.sawChatBanner) {
+      this.setState({sawChatBanner: true})
+    }
+  }
+
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -136,10 +148,10 @@ class Teams extends React.PureComponent<Props, State> {
           onCreateTeam={this.props.onCreateTeam}
           onJoinTeam={this.props.onJoinTeam}
         />
-        {this.state.sawChatBanner || this.props.sawChatBanner ? null : (
-          <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
-        )}
-        <Kb.List items={this._teamsAndExtras(this.props.teamnames)} renderItem={this._renderItem} />
+        <Kb.List
+          items={this._teamsAndExtras(this.state.sawChatBanner, this.props.teamnames)}
+          renderItem={this._renderItem}
+        />
       </Kb.Box2>
     )
   }
