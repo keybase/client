@@ -651,7 +651,12 @@ const Thread = (props: Props) => {
   const loadNextPage = props.loadMoreMessages
 
   // If there are more items to be loaded then add an extra row to hold a loading indicator.
-  const itemCount = hasNextPage ? items.size + 1 : items.size
+  // const itemCount = hasNextPage ? items.size + 1 : items.size
+  const itemCount = items.last()
+  const itemMap = items.reduce((map, item) => {
+    map[String(item)] = item
+    return map
+  }, {})
 
   // Only load 1 page of items at a time.
   // Pass an empty callback to InfiniteLoader in case it asks us to load more than once.
@@ -663,34 +668,36 @@ const Thread = (props: Props) => {
       }
 
   // Every row is loaded except for our loading indicator row.
-  const isItemLoaded = index => !hasNextPage || index < items.size
+  // const isItemLoaded = index => !hasNextPage || index < items.size
+  const isItemLoaded = index => itemMap[index] !== undefined
 
   const {conversationIDKey} = props
   // Render an item or a loading indicator.
-  class Row extends React.PureComponent<any> {
-    render() {
-      const {data, style, index} = this.props
+  const Row = React.forwardRef((props: any, ref: any) => {
+    const {style, index} = props
 
-      if (index === 0) {
-        return <TopItem key="topItem" conversationIDKey={conversationIDKey} />
-      }
+    if (index === 0) {
+      return <TopItem ref={ref} style={style} key="topItem" conversationIDKey={conversationIDKey} />
+    }
 
-      if (!isItemLoaded(index)) {
-        return (
-          <div style={{...style, height: 20, width: '100%', backgroundColor: index % 2 ? 'pink' : 'grey'}} />
-        )
-      }
+    if (!isItemLoaded(index)) {
+      // return null
       return (
-        <div style={style}>
-          {data[index]}
-          {index % 20
-            ? index + ''
-            : index +
-              'jlaskdfj lka jflksaj flkdsaj flsadj flj sdaflj sdflj sdalkfj sdalfj dslaj flsj flsdaj flsj flsaj flsdj aflj sdaflj asdlfkjd slfj sadlfj dsalkj flksadj flksdaj flkasdj flksdaj flkjsda lfkj sdalfkj sdlkf jsaldkj flk jaflkj sdflkj sdalkfjasdlkfj dslkjf lksjflkj dsalkjf dslkfjdljf dslkfj lafj ljds ljasd lfsj al fjsdalf jdlk jfdaslkfdj lfa j'}
-        </div>
+        <div
+          ref={ref}
+          style={{...style, height: 20, width: '100%', backgroundColor: index % 2 ? 'pink' : 'grey'}}
+        />
       )
     }
-  }
+    return (
+      <div ref={ref} style={style}>
+        {itemMap[index]}
+        {index % 20
+          ? ''
+          : 'jlaskdfj lka jflksaj flkdsaj flsadj flj sdaflj sdflj sdalkfj sdalfj dslaj flsj flsdaj flsj flsaj flsdj aflj sdaflj asdlfkjd slfj sadlfj dsalkj flksadj flksdaj flkasdj flksdaj flkjsda lfkj sdalfkj sdlkf jsaldkj flk jaflkj sdflkj sdalkfjasdlkfj dslkjf lksjflkj dsalkjf dslkfjdljf dslkfj lafj ljds ljasd lfsj al fjsdalf jdlk jfdaslkfdj lfa j'}
+      </div>
+    )
+  })
 
   //
   // const Item = ({index, style}) => {
@@ -714,7 +721,6 @@ const Thread = (props: Props) => {
                 height={height}
                 width={width}
                 itemCount={itemCount}
-                itemData={items}
                 ref={ref}
                 onItemsRendered={onItemsRendered}
               >
