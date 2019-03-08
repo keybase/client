@@ -291,8 +291,8 @@ type API interface {
 	PostJSON(MetaContext, APIArg) (*APIRes, error)
 	PostDecode(MetaContext, APIArg, APIResponseWrapper) error
 	PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
-	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
-	Delete(APIArg) (*APIRes, error)
+	PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error)
+	Delete(MetaContext, APIArg) (*APIRes, error)
 }
 
 type ExternalAPI interface {

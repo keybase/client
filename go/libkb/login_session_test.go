@@ -74,7 +74,7 @@ func (a *FakeAPI) PostJSON(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("PostJSON is phony")
 }
 
-func (a *FakeAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) {
+func (a *FakeAPI) PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error) {
 	return nil, fmt.Errorf("PostRaw is phony")
 }
 
@@ -86,7 +86,7 @@ func (a *FakeAPI) PostDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWr
 	return fmt.Errorf("GetDecode is phony")
 }
 
-func (a *FakeAPI) Delete(APIArg) (*APIRes, error) {
+func (a *FakeAPI) Delete(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("Delete is phony")
 }
 

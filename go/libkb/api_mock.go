@@ -23,8 +23,10 @@ func (n *NullMockAPI) Post(MetaContext, APIArg) (*APIRes, error)                
 func (n *NullMockAPI) PostJSON(MetaContext, APIArg) (*APIRes, error)                   { return nil, nil }
 func (n *NullMockAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error        { return nil }
 func (n *NullMockAPI) PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error { return nil }
-func (n *NullMockAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error)              { return nil, nil }
-func (n *NullMockAPI) Delete(APIArg) (*APIRes, error)                                  { return nil, nil }
+func (n *NullMockAPI) PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error) {
+	return nil, nil
+}
+func (n *NullMockAPI) Delete(MetaContext, APIArg) (*APIRes, error) { return nil, nil }
 
 type APIArgRecorder struct {
 	*NullMockAPI

@@ -829,8 +829,9 @@ func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseW
 	return a.checkAppStatus(arg, v.GetAppStatus())
 }
 
-func (a *InternalAPIEngine) PostRaw(arg APIArg, ctype string, r io.Reader) (*APIRes, error) {
+func (a *InternalAPIEngine) PostRaw(m MetaContext, arg APIArg, ctype string, r io.Reader) (*APIRes, error) {
 	url1 := a.getURL(arg)
+	arg.MetaContext = m
 	req, err := http.NewRequest("POST", url1.String(), r)
 	if len(ctype) > 0 {
 		req.Header.Set("Content-Type", ctype)
@@ -841,8 +842,9 @@ func (a *InternalAPIEngine) PostRaw(arg APIArg, ctype string, r io.Reader) (*API
 	return a.DoRequest(arg, req)
 }
 
-func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
+func (a *InternalAPIEngine) Delete(m MetaContext, arg APIArg) (*APIRes, error) {
 	url1 := a.getURL(arg)
+	arg.MetaContext = m
 	req, err := a.PrepareMethodWithBody("DELETE", url1, arg)
 	if err != nil {
 		return nil, err

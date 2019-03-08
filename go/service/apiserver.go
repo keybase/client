@@ -45,8 +45,9 @@ func (a *APIServerHandler) PostJSON(ctx context.Context, arg keybase1.PostJSONAr
 	return a.doPostJSON(mctx, arg)
 }
 
-func (a *APIServerHandler) Delete(_ context.Context, arg keybase1.DeleteArg) (keybase1.APIRes, error) {
-	return a.doDelete(arg)
+func (a *APIServerHandler) Delete(ctx context.Context, arg keybase1.DeleteArg) (keybase1.APIRes, error) {
+	mctx := libkb.NewMetaContext(ctx, a.G())
+	return a.doDelete(mctx, arg)
 }
 
 type GenericArg interface {
@@ -139,10 +140,10 @@ func (a *APIServerHandler) doPostJSON(mctx libkb.MetaContext, rawarg keybase1.Po
 	return a.convertRes(ires), nil
 }
 
-func (a *APIServerHandler) doDelete(arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
+func (a *APIServerHandler) doDelete(mctx libkb.MetaContext, arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
 	a.G().Trace("APIServerHandler::Delete", func() error { return err })()
 	var ires *libkb.APIRes
-	ires, err = a.G().API.Delete(a.setupArg(arg))
+	ires, err = a.G().API.Delete(mctx, a.setupArg(arg))
 	if err != nil {
 		return res, err
 	}
