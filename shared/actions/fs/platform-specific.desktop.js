@@ -383,7 +383,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload | FsGen.RefreshDriverStatusPayload>(
+  yield* Saga.chainAction<FsGen.KbfsDaemonConnectedPayload | FsGen.RefreshDriverStatusPayload>(
     [FsGen.kbfsDaemonConnected, FsGen.refreshDriverStatus],
     refreshDriverStatus
   )
