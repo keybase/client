@@ -71,7 +71,7 @@ func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber)
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.Delete(arg)
+	_, err := mctx.G().API.Delete(mctx, arg)
 	return err
 }
 
