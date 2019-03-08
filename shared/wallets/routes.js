@@ -133,15 +133,6 @@ export default routeTree
 const sharedRoutes = {
   airdrop: {getScreen: () => require('./airdrop/container').default},
   airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default},
-  createNewAccount: {getScreen: () => require('./create-account/container').default},
-  exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
-  linkExisting: {getScreen: () => require('./link-existing/container').default},
-  reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
-  receive: {getScreen: () => require('./receive-modal/container').default},
-  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
-  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
-  setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
-  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
   settings: {getScreen: () => require('./wallet/settings/container').default},
   transactionDetails: {getScreen: () => require('./transaction-details/container').default},
 }
@@ -200,4 +191,13 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
+  createNewAccount: {getScreen: () => require('./create-account/container').default},
+  exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
+  linkExisting: {getScreen: () => require('./link-existing/container').default},
+  reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
+  receive: {getScreen: () => require('./receive-modal/container').default},
+  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
+  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
+  setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
+  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
 }
