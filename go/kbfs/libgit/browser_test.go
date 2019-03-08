@@ -27,7 +27,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
 		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)

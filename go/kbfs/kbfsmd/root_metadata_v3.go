@@ -438,7 +438,8 @@ func (md *RootMetadataV3) isNonTeamWriter(
 func (md *RootMetadataV3) IsWriter(
 	ctx context.Context, user keybase1.UID,
 	cryptKey kbfscrypto.CryptPublicKey, verifyingKey kbfscrypto.VerifyingKey,
-	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
+	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
+	offline keybase1.OfflineAvailability) (bool, error) {
 	switch md.TypeForKeying() {
 	case tlf.TeamKeying:
 		err := md.checkNonPrivateExtra(extra)
@@ -454,7 +455,7 @@ func (md *RootMetadataV3) IsWriter(
 		// TODO: Eventually this will have to use a Merkle sequence
 		// number to check historic versions.
 		isWriter, err := teamMemChecker.IsTeamWriter(
-			ctx, tid, user, verifyingKey)
+			ctx, tid, user, verifyingKey, offline)
 		if err != nil {
 			return false, err
 		}
@@ -468,7 +469,7 @@ func (md *RootMetadataV3) IsWriter(
 func (md *RootMetadataV3) IsReader(
 	ctx context.Context, user keybase1.UID,
 	cryptKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
-	extra ExtraMetadata) (bool, error) {
+	extra ExtraMetadata, offline keybase1.OfflineAvailability) (bool, error) {
 	switch md.TypeForKeying() {
 	case tlf.PublicKeying:
 		err := md.checkNonPrivateExtra(extra)
@@ -508,7 +509,7 @@ func (md *RootMetadataV3) IsReader(
 
 		// TODO: Eventually this will have to use a Merkle sequence
 		// number to check historic versions.
-		isReader, err := teamMemChecker.IsTeamReader(ctx, tid, user)
+		isReader, err := teamMemChecker.IsTeamReader(ctx, tid, user, offline)
 		if err != nil {
 			return false, err
 		}
@@ -905,7 +906,8 @@ func CheckRKBID(codec kbfscodec.Codec,
 func (md *RootMetadataV3) IsValidAndSigned(
 	ctx context.Context, codec kbfscodec.Codec,
 	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
-	writerVerifyingKey kbfscrypto.VerifyingKey) error {
+	writerVerifyingKey kbfscrypto.VerifyingKey,
+	offline keybase1.OfflineAvailability) error {
 	if md.TypeForKeying() == tlf.PrivateKeying {
 		wkb, rkb, err := md.getTLFKeyBundles(extra)
 		if err != nil {
@@ -983,12 +985,12 @@ func (md *RootMetadataV3) IsValidAndSigned(
 		}
 
 		isWriter, err = teamMemChecker.IsTeamWriter(
-			ctx, tid, writer, writerVerifyingKey)
+			ctx, tid, writer, writerVerifyingKey, offline)
 		if err != nil {
 			return err
 		}
 
-		isReader, err = teamMemChecker.IsTeamReader(ctx, tid, user)
+		isReader, err = teamMemChecker.IsTeamReader(ctx, tid, user, offline)
 		if err != nil {
 			return err
 		}

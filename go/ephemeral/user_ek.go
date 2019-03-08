@@ -261,17 +261,18 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 // new userEK.
 func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (
 	statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
-	defer g.CTraceTimed(ctx, "fetchUserEKStatement", func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("fetchUserEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"uids": libkb.S{Val: libkb.UidsToString([]keybase1.UID{uid})},
 		},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}

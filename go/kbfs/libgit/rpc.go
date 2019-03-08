@@ -117,7 +117,7 @@ func (rh *RPCHandler) getHandleAndConfig(
 	// Use `gitConfig`, rather than `rh.config`, to make sure the
 	// journal is created under the right journal server.
 	tlfHandle, err = libkbfs.GetHandleFromFolderNameAndType(
-		ctx, gitConfig.KBPKI(), gitConfig.MDOps(), folder.Name,
+		ctx, gitConfig.KBPKI(), gitConfig.MDOps(), gitConfig, folder.Name,
 		tlf.TypeFromFolderType(folder.FolderType))
 	if err != nil {
 		return nil, nil, nil, "", err

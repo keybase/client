@@ -27,7 +27,7 @@ func makeFSWithBranch(t *testing.T, branch libkbfs.BranchName, subdir string) (
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFS(
 		ctx, config, h, branch, subdir, "", keybase1.MDPriorityNormal)
@@ -65,7 +65,7 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 	}
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFS(
 		ctx, config, h, libkbfs.MasterBranch, subdir, "",
@@ -275,7 +275,7 @@ func TestStat(t *testing.T) {
 	config2.SetClock(clock)
 
 	h2, err := libkbfs.ParseTlfHandle(
-		ctx, config2.KBPKI(), config2.MDOps(), "user2#user1", tlf.Private)
+		ctx, config2.KBPKI(), config2.MDOps(), nil, "user2#user1", tlf.Private)
 	require.NoError(t, err)
 	fs2U2, err := NewFS(
 		ctx, config2, h2, libkbfs.MasterBranch, "", "",
@@ -708,7 +708,7 @@ func TestEmptyFS(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFSIfExists(
 		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)

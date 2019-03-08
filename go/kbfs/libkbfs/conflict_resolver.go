@@ -2491,7 +2491,8 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCacheSimple) error {
 	mergedMD := mergedChains.mostRecentChainMDInfo
 	chargedTo, err := chargedToForTLF(
-		ctx, cr.config.KBPKI(), cr.config.KBPKI(), mergedMD.GetTlfHandle())
+		ctx, cr.config.KBPKI(), cr.config.KBPKI(), cr.config,
+		mergedMD.GetTlfHandle())
 	if err != nil {
 		return err
 	}
@@ -2686,7 +2687,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	newMD, err := mostRecentMergedMD.MakeSuccessor(
 		ctx, cr.config.MetadataVersion(), cr.config.Codec(),
 		cr.config.KeyManager(), cr.config.KBPKI(),
-		cr.config.KBPKI(), mostRecentMergedMD.MdID(), true)
+		cr.config.KBPKI(), cr.config, mostRecentMergedMD.MdID(), true)
 	if err != nil {
 		return nil, err
 	}

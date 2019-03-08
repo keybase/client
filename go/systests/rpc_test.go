@@ -441,7 +441,9 @@ func buildGregorItem(category, deviceID, msgID string) gregor.Item {
 }
 
 func TestDismissDeviceChangeNotifications(t *testing.T) {
-	c := context.TODO()
+	tc := setupTest(t, "ddcn")
+	mctx := libkb.NewMetaContextForTest(*tc)
+
 	dismisser := &libkb.FakeGregorState{}
 	exceptedDeviceID := "active-device-id"
 	state := &FakeGregorState{
@@ -457,7 +459,7 @@ func TestDismissDeviceChangeNotifications(t *testing.T) {
 		gregor1.MsgID("dismissable-2"),
 	}
 	require.Equal(t, []gregor.MsgID(nil), dismisser.PeekDismissedIDs())
-	err := service.LoopAndDismissForDeviceChangeNotifications(c, dismisser,
+	err := service.LoopAndDismissForDeviceChangeNotifications(mctx, dismisser,
 		state, exceptedDeviceID)
 	require.NoError(t, err)
 	require.Equal(t, expectedDismissedIDs, dismisser.PeekDismissedIDs())

@@ -257,9 +257,10 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	eng := NewProve(g, &arg)
 
 	// Post the proof to the gubble network and verify the sig hash
-	outputInstructionsHook := func(_ context.Context, _ keybase1.OutputInstructionsArg) error {
+	outputInstructionsHook := func(ctx context.Context, _ keybase1.OutputInstructionsArg) error {
 		sigID := eng.sigID
 		require.False(tc.T, sigID.IsNil())
+		mctx := libkb.NewMetaContext(ctx, g)
 
 		apiArg := libkb.APIArg{
 			Endpoint:    fmt.Sprintf("gubble_universe/%s", endpoint),
@@ -279,8 +280,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 			Endpoint:    fmt.Sprintf("gubble_universe/%s/%s/proofs", endpoint, fu.Username),
 			SessionType: libkb.APISessionTypeNONE,
 		}
-
-		res, err := g.GetAPI().Get(apiArg)
+		res, err := g.GetAPI().Get(mctx, apiArg)
 		require.NoError(tc.T, err)
 		objects, err := jsonhelpers.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
 			keybase1.SelectorEntry{

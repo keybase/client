@@ -104,12 +104,12 @@ func folderFromTeamIDImplicit(ctx context.Context, g *libkb.GlobalContext, teamI
 
 // If folder is nil, get for all folders.
 func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keybase1.Folder) ([]keybase1.GitRepoResult, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	teamer := NewTeamer(g)
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "kbfs/git/team/get",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args:        libkb.HTTPArgs{}, // a limit parameter exists, default 100, and we don't currently set it
 	}
 
@@ -122,7 +122,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		apiArg.Args["team_id"] = libkb.S{Val: string(teamIDVis.TeamID)}
 	}
 	var serverResponse ServerResponse
-	err := g.GetAPI().GetDecode(apiArg, &serverResponse)
+	err := mctx.G().GetAPI().GetDecode(mctx, apiArg, &serverResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			if firstErr == nil {
 				firstErr = err
 			}
-			g.Log.CDebugf(ctx, "git.getMetadataInner error (team:%v, repo:%v): %v", responseRepo.TeamID, responseRepo.RepoID, err)
+			mctx.Debug("git.getMetadataInner error (team:%v, repo:%v): %v", responseRepo.TeamID, responseRepo.RepoID, err)
 			resultList = append(resultList, keybase1.NewGitRepoResultWithErr(err.Error()))
 		} else {
 			if !skip {

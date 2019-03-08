@@ -256,7 +256,7 @@ func (s *ScanKeys) scan(m libkb.MetaContext, id uint64) (openpgp.EntityList, err
 // apiLookup gets the username and uid from the api server for the
 // key id.
 func (s *ScanKeys) apiLookup(m libkb.MetaContext, id uint64) (username string, uid keybase1.UID, err error) {
-	return libkb.PGPLookup(m.G(), id)
+	return libkb.PGPLookup(m, id)
 }
 
 func (s *ScanKeys) publicByID(m libkb.MetaContext, id uint64) openpgp.EntityList {

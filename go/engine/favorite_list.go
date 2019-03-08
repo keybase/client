@@ -76,8 +76,7 @@ func (e *FavoriteList) cacheFolders(m libkb.MetaContext, folders []keybase1.Fold
 func (e *FavoriteList) Run(m libkb.MetaContext) error {
 	arg := libkb.NewRetryAPIArg("kbfs/favorite/list")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
-	arg.NetContext = m.Ctx()
-	err := m.G().API.GetDecode(arg, &e.result)
+	err := m.G().API.GetDecode(m, arg, &e.result)
 	if err != nil {
 		return err
 	}

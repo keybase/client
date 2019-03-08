@@ -3,7 +3,6 @@
 import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import * as EngineGen from './engine-gen-gen'
-import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {getEngine} from '../engine/require'
@@ -32,7 +31,6 @@ const closePopup = () => {
 
 const refresh = (_, action) => {
   const {problemSetDevices} = action.payload.params
-  // $ForceType may or may not be here, unclear and this flow is very rare so really hard to test
   const sessionID = action.payload.params.sessionID
   logger.info('Asked for rekey')
   return UnlockFoldersGen.createNewRekeyPopup({
@@ -52,31 +50,23 @@ const registerRekeyUI = () =>
       logger.debug('error in registering rekey ui: ', error)
     })
 
-const setupEngineListeners = () => {
-  const dispatch = getEngine().deprecatedGetDispatch()
-
-  // we get this with sessionID == 0 if we call openDialog
-  getEngine().setCustomResponseIncomingCallMap({
-    'keybase.1.rekeyUI.delegateRekeyUI': (_, response) => {
-      // Dangling, never gets closed
-      const session = getEngine().createSession({
-        dangling: true,
-        incomingCallMap: {
-          'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
-            dispatch(
-              UnlockFoldersGen.createNewRekeyPopup({
-                devices: problemSetDevices.devices || [],
-                problemSet: problemSetDevices.problemSet,
-                sessionID,
-              })
-            )
-          },
-          'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
-        },
-      })
-      response && response.result(session.id)
+// we get this with sessionID == 0 if we call openDialog
+const delegateRekeyUI = (_, action) => {
+  // Dangling, never gets closed
+  const session = getEngine().createSession({
+    dangling: true,
+    incomingCallMap: {
+      'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) =>
+        UnlockFoldersGen.createNewRekeyPopup({
+          devices: problemSetDevices.devices || [],
+          problemSet: problemSetDevices.problemSet,
+          sessionID,
+        }),
+      'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
     },
   })
+  const response = action.payload.response
+  response && response.result(session.id)
 }
 
 function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
@@ -86,11 +76,12 @@ function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<UnlockFoldersGen.ClosePopupPayload>(UnlockFoldersGen.closePopup, closePopup)
   yield* Saga.chainAction<UnlockFoldersGen.OpenPopupPayload>(UnlockFoldersGen.openPopup, openPopup)
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
-  )
   yield* Saga.chainAction<EngineGen.Keybase1RekeyUIRefreshPayload>(EngineGen.keybase1RekeyUIRefresh, refresh)
+  getEngine().registerCustomResponse('keybase.1.rekeyUI.delegateRekeyUI')
+  yield* Saga.chainAction<EngineGen.Keybase1RekeyUIDelegateRekeyUIPayload>(
+    EngineGen.keybase1RekeyUIDelegateRekeyUI,
+    delegateRekeyUI
+  )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, registerRekeyUI)
 }
 

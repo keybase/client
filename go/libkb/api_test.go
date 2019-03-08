@@ -37,6 +37,7 @@ const (
 func TestProductionCA(t *testing.T) {
 	tc := SetupTest(t, "prod_ca", 1)
 	defer tc.Cleanup()
+	mctx := NewMetaContextForTest(tc)
 
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
@@ -63,7 +64,7 @@ func TestProductionCA(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = tc.G.API.Get(arg)
+	_, err = tc.G.API.Get(mctx, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,6 +73,7 @@ func TestProductionCA(t *testing.T) {
 func TestProductionBadCA(t *testing.T) {
 	tc := SetupTest(t, "prod_ca", 1)
 	defer tc.Cleanup()
+	mctx := NewMetaContextForTest(tc)
 
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
@@ -106,7 +108,7 @@ func TestProductionBadCA(t *testing.T) {
 		checkX509Err(t, err)
 	}
 
-	_, err = tc.G.API.Get(arg)
+	_, err = tc.G.API.Get(mctx, arg)
 	if err == nil {
 		t.Errorf("api ping GET worked with unknown CA")
 	} else {
@@ -193,6 +195,7 @@ func (r *DummyUpdaterConfigReader) GetInstallID() InstallID {
 func TestInstallIDHeaders(t *testing.T) {
 	tc := SetupTest(t, "test", 1)
 	defer tc.Cleanup()
+	mctx := NewMetaContextForTest(tc)
 
 	// Hack in the device ID and install ID with dummy readers.
 	tc.G.Env.config = &DummyConfigReader{}
@@ -202,7 +205,7 @@ func TestInstallIDHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	res, err := api.Get(APIArg{
+	res, err := api.Get(mctx, APIArg{
 		Endpoint:    "pkg/show",
 		SessionType: APISessionTypeNONE,
 		Args:        HTTPArgs{},

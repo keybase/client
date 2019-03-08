@@ -15,20 +15,13 @@ import {
 } from '../../common-adapters'
 import {fileUIName} from '../../constants/platform'
 
-type OpenInSystemFileManagerProps = {
+type Props = {|
+  driverEnabled: boolean,
+  enableDriver: () => void,
   openInSystemFileManager: () => void,
-}
+|}
 
-type FinderPopupProps = {
-  installFuse: () => void,
-}
-
-type Props = {
-  kbfsEnabled: boolean,
-} & OpenInSystemFileManagerProps &
-  FinderPopupProps
-
-const OpenInSystemFileManager = ({openInSystemFileManager}: OpenInSystemFileManagerProps) => (
+const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
   <WithTooltip text={`Show in ${fileUIName}`}>
     <Icon
       type="iconfont-finder"
@@ -40,7 +33,7 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: OpenInSystemFileMana
   </WithTooltip>
 )
 
-const FinderPopup = OverlayParentHOC((props: FinderPopupProps & OverlayParentProps) => (
+const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
   <Box>
     <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
       <Icon
@@ -67,12 +60,15 @@ const FinderPopup = OverlayParentHOC((props: FinderPopupProps & OverlayParentPro
           and secure.
         </Text>
         <Box style={styles.buttonBox}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={props.installFuse} />
+          <Button type="PrimaryGreen" label="Yes, enable" onClick={props.enableDriver} />
         </Box>
       </Box>
     </Overlay>
   </Box>
 ))
+
+export default (props: Props) =>
+  props.driverEnabled ? <OpenInSystemFileManager {...props} /> : <FinderPopup {...props} />
 
 const styles = Styles.styleSheetCreate({
   buttonBox: {
@@ -89,6 +85,7 @@ const styles = Styles.styleSheetCreate({
   header: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
+    paddingBottom: Styles.globalMargins.small,
     width: '100%',
   },
   pathItemActionIcon: {
@@ -106,10 +103,3 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
   },
 })
-
-export default (props: Props) =>
-  props.kbfsEnabled ? (
-    <OpenInSystemFileManager openInSystemFileManager={props.openInSystemFileManager} />
-  ) : (
-    <FinderPopup installFuse={props.installFuse} />
-  )

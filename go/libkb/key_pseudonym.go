@@ -206,9 +206,8 @@ func GetKeyPseudonyms(m MetaContext, pnyms []KeyPseudonym) ([]KeyPseudonymOrErro
 	}
 
 	var res getKeyPseudonymsRes
-	err := m.G().API.GetDecode(
+	err := m.G().API.GetDecode(m,
 		APIArg{
-			MetaContext: m,
 			Endpoint:    "team/key_pseudonym",
 			SessionType: APISessionTypeREQUIRED,
 			Args: HTTPArgs{

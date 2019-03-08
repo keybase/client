@@ -6,7 +6,7 @@ import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
 import * as Flow from '../util/flow'
 import {type TypedState} from '../util/container'
-import {isLinux, isWindows, isMobile} from './platform'
+import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
@@ -121,16 +121,6 @@ export const makeDownload: I.RecordFactory<Types._Download> = I.Record({
   state: makeDownloadState(),
 })
 
-export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
-  fuseInstalling: false,
-  kbfsInstalling: false,
-  kbfsOpening: false,
-  kextPermissionError: false,
-  securityPrefsPrompted: false,
-  showBanner: true,
-  syncing: false,
-})
-
 export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Record({
   address: '',
   token: '',
@@ -193,12 +183,38 @@ export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> 
   view: 'root',
 })
 
+export const makeDriverStatusUnknown: I.RecordFactory<Types._DriverStatusUnknown> = I.Record({
+  type: 'unknown',
+})
+
+export const makeDriverStatusEnabled: I.RecordFactory<Types._DriverStatusEnabled> = I.Record({
+  dokanOutdated: false,
+  dokanUninstallExecPath: null,
+  isDisabling: false,
+  isNew: false,
+  type: 'enabled',
+})
+
+export const makeDriverStatusDisabled: I.RecordFactory<Types._DriverStatusDisabled> = I.Record({
+  isDismissed: false,
+  isEnabling: false,
+  kextPermissionError: false,
+  type: 'disabled',
+})
+
+export const defaultDriverStatus = isLinux ? makeDriverStatusEnabled() : makeDriverStatusUnknown()
+
+export const makeSystemFileManagerIntegration: I.RecordFactory<Types._SystemFileManagerIntegration> = I.Record(
+  {
+    driverStatus: defaultDriverStatus,
+    showingBanner: false,
+  }
+)
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
-  flags: makeFlags(),
-  fuseStatus: null,
   kbfsDaemonConnected: false,
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
@@ -207,6 +223,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   sendLinkToChat: makeSendLinkToChat(),
+  sfmi: makeSystemFileManagerIntegration(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),
@@ -641,32 +658,6 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
 export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Types.Path =>
   Types.stringToPath(`/keybase/${tlfType}/${name}`)
 
-export const kbfsEnabled = (state: TypedState) =>
-  !isMobile &&
-  (isLinux ||
-    (!!state.fs.fuseStatus &&
-      state.fs.fuseStatus.kextStarted &&
-      // on Windows, check that the driver is up to date too
-      !(isWindows && state.fs.fuseStatus.installAction === 2)))
-
-export const kbfsOutdated = (state: TypedState) =>
-  isWindows && state.fs.fuseStatus && state.fs.fuseStatus.installAction === 2
-
-export const kbfsUninstallString = (state: TypedState) => {
-  if (state.fs.fuseStatus && state.fs.fuseStatus.status && state.fs.fuseStatus.status.fields) {
-    const field = state.fs.fuseStatus.status.fields.find(element => {
-      return element.key === 'uninstallString'
-    })
-    if (field) {
-      return field.value
-    }
-  }
-  return ''
-}
-
-export const shouldShowFileUIBanner = (state: TypedState) =>
-  !isMobile && !kbfsEnabled(state) && state.fs.flags.showBanner
-
 export const resetBannerType = (state: TypedState, path: Types.Path): Types.ResetBannerType => {
   const resetParticipants = getTlfFromPath(state.fs.tlfs, path).resetParticipants
   if (resetParticipants.size === 0) {
@@ -908,6 +899,8 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       )
     case FsGen.pickAndUpload:
       return 'Failed to upload. ' + (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
+    case FsGen.driverEnable:
+      return 'Failed to enable driver.'
     default:
       return errorIsTimeout ? timeoutExplain : 'An unexplainable error has occurred.'
   }

@@ -401,8 +401,14 @@ function writeActions() {
               .split('.')
               .map((p, idx) => (idx ? capitalize(p) : p))
               .join('')
+
+            let response = ''
+            if (projects[p].customResponseIncomingMaps[method]) {
+              response = `, response: {error: ${p}Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<${p}Types.MessageTypes, ${method}>, 'outParam'>) => void}`
+            }
+
             map[name] = {
-              params: `$Exact<$PropertyType<$PropertyType<${p}Types.MessageTypes, ${method}>, 'inParam'>>`,
+              params: `$Exact<$PropertyType<$PropertyType<${p}Types.MessageTypes, ${method}>, 'inParam'>> & {|sessionID: number|}${response}`,
             }
             return map
           }, map)
@@ -471,7 +477,7 @@ export type String = string
 export type Uint = number
 export type Uint64 = number
 type WaitingKey = string | Array<string>
-type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+export type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])

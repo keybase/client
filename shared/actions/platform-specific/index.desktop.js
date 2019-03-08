@@ -260,13 +260,10 @@ const onOutOfDate = (_, action) => {
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const setupEngineListeners = () => {
-  getEngine().setCustomResponseIncomingCallMap({
-    'keybase.1.logsend.prepareLogsend': (_, response) => {
-      dumpLogs().then(() => {
-        response && response.result()
-      })
-    },
+const prepareLogSend = (_, action) => {
+  const response = action.payload.response
+  dumpLogs().then(() => {
+    response && response.result()
   })
 }
 
@@ -321,6 +318,23 @@ const updateNow = () =>
     ConfigGen.createCheckForUpdate()
   )
 
+function* startPowerMonitor() {
+  const channel = Saga.eventChannel(emitter => {
+    const pm = SafeElectron.getPowerMonitor()
+    pm.on('suspend', () => emitter('suspend'))
+    pm.on('resume', () => emitter('resume'))
+    pm.on('shutdown', () => emitter('shutdown'))
+    pm.on('lock-screen', () => emitter('lock-screen'))
+    pm.on('unlock-screen', () => emitter('unlock-screen'))
+    return () => {}
+  }, Saga.buffers.expanding(1))
+  while (true) {
+    const type = yield Saga.take(channel)
+    logger.info('Got power change: ', type)
+    // RPCTypes.configSomethingSomethingTODOCORE()
+  }
+}
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
     ConfigGen.setOpenAtLogin,
@@ -332,18 +346,29 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<ConfigGen.ShowMainPayload>(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction<ConfigGen.DumpLogsPayload>(ConfigGen.dumpLogs, dumpLogs)
-  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupReachabilityWatcher
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
+    EngineGen.keybase1NotifyFSFSActivity,
+    onFSActivity
   )
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload>(
+    EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile,
+    onPgpgKeySecret
   )
-  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    startOutOfDateCheckLoop
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceShutdownPayload>(
+    EngineGen.keybase1NotifyServiceShutdown,
+    onShutdown
   )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionClientOutOfDatePayload>(
+    EngineGen.keybase1NotifySessionClientOutOfDate,
+    onOutOfDate
+  )
+  getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
+  yield* Saga.chainAction<EngineGen.Keybase1LogsendPrepareLogsendPayload>(
+    EngineGen.keybase1LogsendPrepareLogsend,
+    prepareLogSend
+  )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
     EngineGen.keybase1NotifyFSFSActivity,
@@ -377,4 +402,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
   yield Saga.spawn(initializeAppSettingsState)
+  yield Saga.spawn(setupReachabilityWatcher)
+  yield Saga.spawn(startOutOfDateCheckLoop)
+  yield Saga.spawn(startPowerMonitor)
 }

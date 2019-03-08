@@ -128,7 +128,6 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
 			res.ToErrMsg = "Recipient not found."
-			skipRecipient = true
 		} else {
 			bannerThey := "they"
 			bannerTheir := "their"
@@ -641,7 +640,6 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
 			res.ToErrMsg = "Recipient not found."
-			skipRecipient = true
 		} else {
 			readyChecklist.to = true
 		}

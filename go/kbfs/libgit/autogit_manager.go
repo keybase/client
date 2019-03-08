@@ -184,7 +184,7 @@ func (am *AutogitManager) removeSelfCheckouts() {
 
 	h, err := libkbfs.GetHandleFromFolderNameAndType(
 		ctx, am.config.KBPKI(), am.config.MDOps(),
-		string(session.Name), tlf.Private)
+		am.config, string(session.Name), tlf.Private)
 	if err != nil {
 		am.log.CDebugf(ctx,
 			"Unable to get private handle; ignoring self-autogit delete: +%v",

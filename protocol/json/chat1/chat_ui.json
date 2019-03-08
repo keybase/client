@@ -144,6 +144,10 @@
           "name": "version"
         },
         {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
+        },
+        {
           "type": [
             null,
             "RetentionPolicy"
@@ -330,6 +334,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
         },
         {
           "type": "MessageID",

@@ -148,15 +148,16 @@ func (b *BackgroundTLFUpdater) deadline(d time.Duration) time.Time {
 }
 
 func (b *BackgroundTLFUpdater) getTLFToUpgrade(ctx context.Context, appType keybase1.TeamApplication) (*GetTLFForUpgradeAvailableRes, time.Time) {
+	mctx := libkb.NewMetaContext(ctx, b.G())
 	if !b.G().ActiveDevice.HaveKeys() {
 		return nil, time.Now().Add(time.Minute)
 	}
-	arg := libkb.NewAPIArgWithNetContext(ctx, "kbfs/upgrade")
+	arg := libkb.NewAPIArg("kbfs/upgrade")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args.Add("app_type", libkb.I{Val: int(appType)})
 	var res getUpgradeRes
-	if err := b.api().GetDecode(arg, &res); err != nil {
+	if err := b.api().GetDecode(mctx, arg, &res); err != nil {
 		b.debug(ctx, "getTLFToUpgrade: API fail: %s", err)
 		return nil, b.deadline(b.errWait)
 	}
