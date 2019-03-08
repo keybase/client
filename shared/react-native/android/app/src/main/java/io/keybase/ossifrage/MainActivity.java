@@ -275,5 +275,4 @@ public class MainActivity extends ReactFragmentActivity {
     protected String getMainComponentName() {
         return "Keybase";
     }
-
 }

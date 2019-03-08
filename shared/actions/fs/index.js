@@ -704,6 +704,9 @@ const deleteFile = (state, action) => {
 }
 
 const moveOrCopy = (state, action) => {
+  if (state.fs.destinationPicker.source.type === 'none') {
+    return
+  }
   const params = {
     dest: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
@@ -712,9 +715,7 @@ const moveOrCopy = (state, action) => {
           action.payload.destinationParentPath,
           state.fs.destinationPicker.source.type === 'move-or-copy'
             ? Types.getPathName(state.fs.destinationPicker.source.path)
-            : state.fs.destinationPicker.source.type === 'incoming-share'
-              ? Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
-              : ''
+            : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
             // We use the local path name here since we only care about file name.
         )
       ),
