@@ -16,7 +16,7 @@ import (
 const reacjiDiskVersion = 1
 
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
-var DefaultEmoji = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses:"}
+var DefaultTopReacjis = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses:"}
 
 var addReacjiMemCacheHookOnce sync.Once
 
@@ -169,7 +169,7 @@ func (s *ReacjiStore) Get(ctx context.Context, uid gregor1.UID) ReacjiMap {
 }
 
 // TopReacjis returns the user's most frequently used 5 reacjis falling back
-// to `DefaultEmoji` if there is not enough history. Results are ordered by
+// to `DefaultTopReacjis` if there is not enough history. Results are ordered by
 // frequency and then alphabetically.
 func (s *ReacjiStore) TopReacjis(ctx context.Context, uid gregor1.UID) (res []string) {
 	s.Lock()
@@ -190,12 +190,12 @@ func (s *ReacjiStore) TopReacjis(ctx context.Context, uid gregor1.UID) (res []st
 
 	for _, p := range pairs {
 		res = append(res, p.name)
-		if len(res) >= len(DefaultEmoji) {
+		if len(res) >= len(DefaultTopReacjis) {
 			break
 		}
 	}
-	if len(res) < len(DefaultEmoji) {
-		res = append(res, DefaultEmoji[:len(DefaultEmoji)-len(res)]...)
+	if len(res) < len(DefaultTopReacjis) {
+		res = append(res, DefaultTopReacjis[:len(DefaultTopReacjis)-len(res)]...)
 	}
 	return res
 }

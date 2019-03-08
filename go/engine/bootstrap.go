@@ -99,8 +99,9 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 			e.status.Following = append(e.status.Following, u.Username)
 		}
 	}
-
-	e.status.TopReacjis = e.G().ChatHelper.TopReacjis(m.Ctx(), e.status.Uid.ToBytes())
+	if chatHelper := e.G().ChatHelper; chatHelper != nil {
+		e.status.TopReacjis = chatHelper.TopReacjis(m.Ctx(), e.status.Uid.ToBytes())
+	}
 
 	return nil
 }

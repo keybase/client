@@ -6459,14 +6459,14 @@ func TestReacjiStore(t *testing.T) {
 		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
 		// if the user has no history we return the default list
 		top5 := tc.G.ChatHelper.TopReacjis(ctx, uid)
-		assertTopReacjis(top5, storage.DefaultEmoji, expectedMap)
+		assertTopReacjis(top5, storage.DefaultTopReacjis, expectedMap)
 
 		// post a bunch of reactions, we should end up with these reactions
 		// replacing the defaults sorted alphabetically (since they tie on
 		// being used once each)
 		reactionKeys := []string{"e", "d", "c", "b", "a"}
-		expected := make([]string, len(storage.DefaultEmoji))
-		copy(expected, storage.DefaultEmoji)
+		expected := make([]string, len(storage.DefaultTopReacjis))
+		copy(expected, storage.DefaultTopReacjis)
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
@@ -6474,7 +6474,7 @@ func TestReacjiStore(t *testing.T) {
 			expectedMap[reaction]++
 			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction)
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
-			expected = append([]string{reaction}, expected...)[:len(storage.DefaultEmoji)]
+			expected = append([]string{reaction}, expected...)[:len(storage.DefaultTopReacjis)]
 			info := consumeReactionUpdate(t, listener)
 			assertTopReacjis(info.TopReacjis, expected, expectedMap)
 		}
