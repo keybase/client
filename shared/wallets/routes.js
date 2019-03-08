@@ -132,7 +132,6 @@ export default routeTree
 
 const sharedRoutes = {
   airdrop: {getScreen: () => require('./airdrop/container').default},
-  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default},
   settings: {getScreen: () => require('./wallet/settings/container').default},
   transactionDetails: {getScreen: () => require('./transaction-details/container').default},
 }
@@ -191,6 +190,7 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
+  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default},
   createNewAccount: {getScreen: () => require('./create-account/container').default},
   exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
   linkExisting: {getScreen: () => require('./link-existing/container').default},
