@@ -25,6 +25,7 @@ func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatLi
 		select {
 		case updates := <-ui.CoinFlipUpdates:
 			require.Equal(t, 1, len(updates))
+			t.Logf("update: %v gameID: %s", updates[0].Phase, updates[0].GameID)
 			if updates[0].Phase == chat1.UICoinFlipPhase_COMPLETE {
 				if updates[0].GameID != gameID {
 					// it is possible for a game to produce more than one complete update
@@ -421,7 +422,6 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 }
 
 func TestFlipManagerRateLimit(t *testing.T) {
-	t.Skip()
 	ctc := makeChatTestContext(t, "TestFlipManagerRateLimit", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -500,10 +500,9 @@ func TestFlipManagerRateLimit(t *testing.T) {
 	t.Logf("gameID: %s", gameID)
 	stopCh = make(chan struct{})
 	go simRealClock(stopCh)
-	res = consumeFlipToResult(t, ui0, listener0, gameID, 1)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP) // get host msg
+	res = consumeFlipToResult(t, ui1, listener1, gameID, 1)
 	require.True(t, res == "HEADS" || res == "TAILS")
-	res1 = consumeFlipToResult(t, ui1, listener1, gameID, 1)
-	require.Equal(t, res, res1)
 	close(stopCh)
 
 	clock.Advance(10 * time.Minute)
