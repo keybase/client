@@ -199,30 +199,30 @@ func (p *peopleCache) isValid(ctx context.Context, g *libkb.GlobalContext, numPe
 }
 
 func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#skipTodoType", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("Home#skipTodoType", func() error { return err })()
 
-	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"type": libkb.I{Val: int(typ)},
 		},
-		NetContext: ctx,
 	}))
 
 	return err
 }
 
 func (h *Home) DismissAnnouncement(ctx context.Context, id keybase1.HomeScreenAnnouncementID) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#DismissAnnouncement", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("Home#DismissAnnouncement", func() error { return err })()
 
-	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"announcement": libkb.I{Val: int(id)},
 		},
-		NetContext: ctx,
 	}))
 
 	return err
@@ -297,15 +297,15 @@ func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
 }
 
 func (h *Home) markViewedAPICall(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#markViewedAPICall", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("Home#markViewedAPICall", func() error { return err })()
 
-	if _, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	if _, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/visit",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
-		NetContext:  ctx,
 	})); err != nil {
-		h.G().Log.CWarningf(ctx, "Unable to home#markViewedAPICall: %v", err)
+		mctx.Warning("Unable to home#markViewedAPICall: %v", err)
 	}
 	return nil
 }

@@ -5624,13 +5624,14 @@ func TestChatSrvDeleteConversationUnconfirmed(t *testing.T) {
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	mctx := libkb.NewMetaContextBackground(g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/accelerate_team_rekeyd",
 		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := g.API.Post(apiArg)
+	_, err := g.API.Post(mctx, apiArg)
 	if err != nil {
 		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
 	}

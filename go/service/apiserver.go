@@ -35,8 +35,9 @@ func (a *APIServerHandler) GetWithSession(ctx context.Context, arg keybase1.GetW
 	return a.doGet(mctx, arg, true)
 }
 
-func (a *APIServerHandler) Post(_ context.Context, arg keybase1.PostArg) (keybase1.APIRes, error) {
-	return a.doPost(arg)
+func (a *APIServerHandler) Post(ctx context.Context, arg keybase1.PostArg) (keybase1.APIRes, error) {
+	mctx := libkb.NewMetaContext(ctx, a.G())
+	return a.doPost(mctx, arg)
 }
 
 func (a *APIServerHandler) PostJSON(_ context.Context, arg keybase1.PostJSONArg) (keybase1.APIRes, error) {
@@ -100,10 +101,10 @@ func (a *APIServerHandler) doGet(mctx libkb.MetaContext, arg GenericArg, session
 	return a.convertRes(ires), nil
 }
 
-func (a *APIServerHandler) doPost(arg keybase1.PostArg) (res keybase1.APIRes, err error) {
-	defer a.G().Trace("APIServerHandler::Post", func() error { return err })()
+func (a *APIServerHandler) doPost(mctx libkb.MetaContext, arg keybase1.PostArg) (res keybase1.APIRes, err error) {
+	defer mctx.Trace("APIServerHandler::Post", func() error { return err })()
 	var ires *libkb.APIRes
-	ires, err = a.G().API.Post(a.setupArg(arg))
+	ires, err = mctx.G().API.Post(mctx, a.setupArg(arg))
 	if err != nil {
 		return res, err
 	}

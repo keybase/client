@@ -31,7 +31,7 @@ func (v *CmdPing) Run() error {
 
 	mctx := libkb.NewMetaContextBackground(v.G())
 
-	_, err := v.G().API.Post(libkb.APIArg{Endpoint: "ping"})
+	_, err := v.G().API.Post(mctx, libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}

@@ -177,6 +177,7 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 
 func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	mctx := libkb.NewMetaContext(ctx, b.G().ExternalG())
 	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
 	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
 		ConversationID: convID,
@@ -205,7 +206,7 @@ func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid g
 	}
 	args := libkb.NewHTTPArgs()
 	args.Add("tlfname", libkb.S{Val: tlfname})
-	_, err = b.G().API.Post(libkb.APIArg{
+	_, err = b.G().API.Post(mctx, libkb.APIArg{
 		Endpoint:    "report/conversation",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,

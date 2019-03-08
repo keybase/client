@@ -533,6 +533,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 	if err != nil {
 		d.t.Fatalf("error marshalling: %s", err)
 	}
+	mctx := libkb.NewMetaContextTODO(g)
 	apiArg := libkb.APIArg{
 		Endpoint: "test/fake_generic_tlf",
 		Args: libkb.HTTPArgs{
@@ -540,7 +541,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 		},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
-	_, err = g.API.Post(apiArg)
+	_, err = g.API.Post(mctx, apiArg)
 	if err != nil {
 		d.t.Fatalf("post error: %s", err)
 	}

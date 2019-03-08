@@ -1048,15 +1048,14 @@ func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
 	}
 
 	arg := APIArg{
-		MetaContext: mctx,
-		Endpoint:    "selfcheck",
+		Endpoint: "selfcheck",
 		Args: HTTPArgs{
 			"uid":       S{Val: uid.String()},
 			"device_id": S{Val: deviceID.String()},
 		},
 		SessionType: APISessionTypeREQUIRED,
 	}
-	res, err := g.API.Post(arg)
+	res, err := g.API.Post(mctx, arg)
 	if err != nil {
 		return err
 	}

@@ -112,7 +112,8 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	if anyMemberShowcase != nil {
 		arg.Args.Add("any_member_showcase", libkb.B{Val: *anyMemberShowcase})
 	}
-	if _, err := g.API.Post(arg); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 		return err
 	}
 	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
@@ -125,10 +126,11 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 		return err
 	}
 
+	mctx := libkb.NewMetaContext(ctx, g)
 	arg := apiArg(ctx, "team/member_showcase")
 	arg.Args.Add("tid", libkb.S{Val: string(t.ID)})
 	arg.Args.Add("is_showcased", libkb.B{Val: isShowcased})
-	_, err = g.API.Post(arg)
+	_, err = mctx.G().API.Post(mctx, arg)
 	if err != nil {
 		return err
 	}
@@ -136,9 +138,9 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 	// Clear usercard cache so when user goes to People tab,
 	// fresh card will be loaded.
 	u := g.ActiveDevice.UID()
-	g.Log.CDebugf(ctx, "Clearing Card cache for %s", u)
+	mctx.Debug("Clearing Card cache for %s", u)
 	if err := g.CardCache().Delete(u); err != nil {
-		g.Log.CDebugf(ctx, "Error in CardCache.Delete: %s", err)
+		mctx.Debug("Error in CardCache.Delete: %s", err)
 	}
 	g.UserChanged(u)
 	return nil

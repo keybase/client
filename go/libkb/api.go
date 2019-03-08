@@ -771,7 +771,8 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 	return nil
 }
 
-func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
+func (a *InternalAPIEngine) Post(m MetaContext, arg APIArg) (*APIRes, error) {
+	arg.MetaContext = m
 	url1 := a.getURL(arg)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
@@ -783,7 +784,7 @@ func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 // PostJSON does _not_ actually enforce the use of JSON.
 // That is now determined by APIArg's fields.
 func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
-	return a.Post(arg)
+	return a.Post(arg.MetaContext, arg)
 }
 
 // postResp performs a POST request and returns the http response.

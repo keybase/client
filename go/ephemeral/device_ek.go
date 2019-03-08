@@ -25,18 +25,18 @@ func (s *DeviceEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 }
 
 func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) (err error) {
-	defer g.CTraceTimed(ctx, "postNewDeviceEK", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("postNewDeviceEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/device_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"sig":       libkb.S{Val: sig},
 			"device_id": libkb.S{Val: string(g.Env.GetDeviceID())},
 		},
 	}
-	_, err = g.GetAPI().Post(apiArg)
+	_, err = g.GetAPI().Post(mctx, apiArg)
 	return err
 }
 
