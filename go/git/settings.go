@@ -119,7 +119,6 @@ func settingsArg(ctx context.Context, g *libkb.GlobalContext,
 	apiArg = &libkb.APIArg{
 		Endpoint:    "kbfs/git/team/settings",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"team_id": libkb.S{Val: string(teamIDVis.TeamID)},
 			"repo_id": libkb.S{Val: string(repoID)},

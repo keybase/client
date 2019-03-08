@@ -296,11 +296,11 @@ type API interface {
 }
 
 type ExternalAPI interface {
-	Get(APIArg) (*ExternalAPIRes, error)
-	Post(APIArg) (*ExternalAPIRes, error)
-	GetHTML(APIArg) (*ExternalHTMLRes, error)
-	GetText(APIArg) (*ExternalTextRes, error)
-	PostHTML(APIArg) (*ExternalHTMLRes, error)
+	Get(MetaContext, APIArg) (*ExternalAPIRes, error)
+	Post(MetaContext, APIArg) (*ExternalAPIRes, error)
+	GetHTML(MetaContext, APIArg) (*ExternalHTMLRes, error)
+	GetText(MetaContext, APIArg) (*ExternalTextRes, error)
+	PostHTML(MetaContext, APIArg) (*ExternalHTMLRes, error)
 }
 
 type IdentifyUI interface {
