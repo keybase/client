@@ -805,8 +805,13 @@ func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response,
 	return resp, finisher, nil
 }
 
-func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
-	m := arg.GetMetaContext(a.G())
+func (a *InternalAPIEngine) PostDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
+	m = m.EnsureCtx().WithLogTag("API")
+	return a.postDecode(m, arg, v)
+}
+
+func (a *InternalAPIEngine) PostDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWrapper) error {
+	m := NewMetaContext(ctx, a.G())
 	m = m.EnsureCtx().WithLogTag("API")
 	return a.postDecode(m, arg, v)
 }

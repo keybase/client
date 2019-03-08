@@ -164,12 +164,12 @@ func GetTlfPseudonyms(ctx context.Context, g *GlobalContext, pnyms []TlfPseudony
 	payload["tlf_pseudonyms"] = pnymStrings
 
 	var res getTlfPseudonymsRes
-	err := g.API.PostDecode(
+	mctx := NewMetaContext(ctx, g)
+	err := g.API.PostDecode(mctx,
 		APIArg{
 			Endpoint:    "kbfs/pseudonym/get",
 			SessionType: APISessionTypeREQUIRED,
 			JSONPayload: payload,
-			NetContext:  ctx,
 		},
 		&res)
 	if err != nil {
