@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import flags from '../../util/feature-flags'
 
 export type TlfProps = {
   openInFilesTab: () => void,
@@ -62,20 +61,13 @@ class Folders extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  itemContainer: flags.identify3
-    ? {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
-        paddingBottom: 4,
-        paddingLeft: 8,
-        paddingTop: 4,
-      }
-    : {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'flex-start',
-        paddingBottom: 8,
-        paddingTop: 8,
-      },
+  itemContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    paddingBottom: 4,
+    paddingLeft: 8,
+    paddingTop: 4,
+  },
   itemText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_50,
