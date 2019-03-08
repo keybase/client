@@ -36,28 +36,35 @@ const TabBar = KeyHandler(
   (p: Props) =>
     !!p.username && (
       <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
-        <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
-        <Kb.ClickableBox onClick={p.onProfileClick}>
-          <Kb.Box2
-            direction="horizontal"
-            gap="tiny"
-            fullWidth={true}
-            style={styles.nameContainer}
-            alignItems="center"
-          >
-            <Kb.Avatar
-              size={16}
-              borderColor={Styles.globalColors.blue}
-              username={p.username}
-              style={styles.avatar}
-            />
-            <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
-              Hi {p.username}
-            </Kb.Text>
-            <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} fontSize={12} />
-          </Kb.Box2>
-        </Kb.ClickableBox>
-        <Kb.Divider style={styles.divider} />
+        <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
+          <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
+          <Kb.ClickableBox onClick={p.onProfileClick}>
+            <Kb.Box2
+              direction="horizontal"
+              gap="tiny"
+              fullWidth={true}
+              style={styles.nameContainer}
+              alignItems="center"
+            >
+              <Kb.Avatar
+                size={24}
+                borderColor={Styles.globalColors.blue}
+                username={p.username}
+                style={styles.avatar}
+              />
+              <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
+                Hi {p.username}!
+              </Kb.Text>
+              <Kb.Icon
+                type="iconfont-arrow-down"
+                color={Styles.globalColors.blue3}
+                fontSize={12}
+                style={styles.caret}
+              />
+            </Kb.Box2>
+          </Kb.ClickableBox>
+          <Kb.Divider style={styles.divider} />
+        </Kb.Box2>
         {tabs.map(t => (
           <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
             <Kb.WithTooltip text={data[t].label} toastClassName="tab-tooltip">
@@ -90,15 +97,14 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     top: 3,
   },
-  divider: {
-    marginBottom: 20,
-    marginTop: Styles.globalMargins.tiny,
-  },
+  caret: {marginRight: 12},
+  divider: {marginTop: Styles.globalMargins.tiny},
+  header: {height: 80},
   nameContainer: {height: 24},
   osButtons: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
-      height: 36,
+      flexGrow: 1,
     },
   }),
   tab: {
@@ -106,7 +112,7 @@ const styles = Styles.styleSheetCreate({
     height: 40,
     position: 'relative',
   },
-  username: {color: Styles.globalColors.blue3},
+  username: {color: Styles.globalColors.blue3, flexGrow: 1},
 })
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {

@@ -99,7 +99,6 @@ export const newRoutes = {
   addToTeam: {getScreen: () => require('./add-to-team/container').default},
   confirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
   editAvatar: {getScreen: () => require('./edit-avatar/container').default},
-  editProfile2: {getScreen: () => require('./edit-profile2/container').default},
   nonUserProfile: {getScreen: () => require('./non-user-profile/container').default},
   postProof: {getScreen: () => require('./post-proof/container').default},
   profile: {getScreen: () => require('./user/container').default, upgraded: true},
@@ -111,6 +110,7 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
+  editProfile2: {getScreen: () => require('./edit-profile2/container').default},
   search: {getScreen: () => require('./search/container').default},
 }
 

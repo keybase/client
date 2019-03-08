@@ -92,10 +92,10 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.clickable,
       height: 24,
-      marginLeft: Styles.globalMargins.small,
+      marginLeft: flags.useNewRouter ? 'auto' : Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
       marginTop: flags.useNewRouter ? 0 : Styles.globalMargins.xsmall,
-      width: flags.useNewRouter ? '100%' : 240,
+      width: 240,
     },
     isMobile: {
       height: 32,

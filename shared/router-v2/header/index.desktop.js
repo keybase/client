@@ -39,16 +39,15 @@ class Header extends React.PureComponent<Props> {
         gap="xtiny"
         gapEnd={true}
       >
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack}>
-          <LeftAction
-            badgeNumber={0}
-            leftAction="back"
-            hideBackLabel={true}
-            onLeftAction={this.props.onPop}
-            disabled={!this.props.allowBack}
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
+          <Kb.Icon
+            type="iconfont-arrow-left"
+            style={this.props.allowBack ? styles.icon : styles.disabledIcon}
+            color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
+            onClick={this.props.onPop}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
           {title}
         </Kb.Box2>
       </Kb.Box2>
@@ -57,18 +56,36 @@ class Header extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  bottom: {
+    minHeight: 40,
+    padding: 12,
+  },
+  disabledIcon: Styles.platformStyles({
+    isElectron: {
+      cursor: 'default',
+      marginRight: 6,
+    },
+  }),
   headerBack: Styles.platformStyles({
     isElectron: {
       alignItems: 'center',
-      minHeight: 36,
+      height: 40,
+      padding: 12,
     },
   }),
   headerContainer: Styles.platformStyles({
     isElectron: {
-      alignItems: 'center',
       ...Styles.desktopStyles.windowDragging,
+      alignItems: 'center',
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
+      minHeight: 80,
     },
   }),
+  icon: {
+    marginRight: 6,
+  },
 })
 
 export default Header

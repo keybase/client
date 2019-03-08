@@ -9,20 +9,23 @@ import flags from '../util/feature-flags'
 export const Header = (props: Props) => (
   <Kb.HeaderHocHeader
     headerStyle={styles.header}
-    borderless={true}
-    rightActions={[
-      {
-        custom: (
-          <Kb.Avatar
-            key="avatar"
-            username={props.myUsername}
-            onClick={() => props.onClickUser(props.myUsername)}
-            size={32}
-          />
-        ),
-        label: 'Avatar',
-      },
-    ]}
+    rightActions={
+      flags.useNewRouter
+        ? []
+        : [
+            {
+              custom: (
+                <Kb.Avatar
+                  key="avatar"
+                  username={props.myUsername}
+                  onClick={() => props.onClickUser(props.myUsername)}
+                  size={32}
+                />
+              ),
+              label: 'Avatar',
+            },
+          ]
+    }
     titleComponent={<PeoplePageSearchBar {...props} />}
   />
 )
