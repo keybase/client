@@ -91,8 +91,9 @@ type SetLockdownModeArg struct {
 	Enabled   bool `codec:"enabled" json:"enabled"`
 }
 
-type TestPassphraseArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+type CheckPassphraseArg struct {
+	SessionID  int     `codec:"sessionID" json:"sessionID"`
+	Passphrase *string `codec:"passphrase,omitempty" json:"passphrase,omitempty"`
 }
 
 type AccountInterface interface {
@@ -111,7 +112,7 @@ type AccountInterface interface {
 	ResetAccount(context.Context, ResetAccountArg) error
 	GetLockdownMode(context.Context, int) (GetLockdownResponse, error)
 	SetLockdownMode(context.Context, SetLockdownModeArg) error
-	TestPassphrase(context.Context, int) error
+	CheckPassphrase(context.Context, CheckPassphraseArg) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -223,18 +224,18 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
-			"testPassphrase": {
+			"checkPassphrase": {
 				MakeArg: func() interface{} {
-					var ret [1]TestPassphraseArg
+					var ret [1]CheckPassphraseArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]TestPassphraseArg)
+					typedArgs, ok := args.(*[1]CheckPassphraseArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]TestPassphraseArg)(nil), args)
+						err = rpc.NewTypeError((*[1]CheckPassphraseArg)(nil), args)
 						return
 					}
-					err = i.TestPassphrase(ctx, typedArgs[0].SessionID)
+					err = i.CheckPassphrase(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -291,8 +292,7 @@ func (c AccountClient) SetLockdownMode(ctx context.Context, __arg SetLockdownMod
 	return
 }
 
-func (c AccountClient) TestPassphrase(ctx context.Context, sessionID int) (err error) {
-	__arg := TestPassphraseArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.testPassphrase", []interface{}{__arg}, nil)
+func (c AccountClient) CheckPassphrase(ctx context.Context, __arg CheckPassphraseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.checkPassphrase", []interface{}{__arg}, nil)
 	return
 }

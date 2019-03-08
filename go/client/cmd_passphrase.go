@@ -16,7 +16,7 @@ func NewCmdPassphrase(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Subcommands: []cli.Command{
 			NewCmdPassphraseChange(cl, g),
 			NewCmdPassphraseRecover(cl, g),
-			NewCmdPassphraseTest(cl, g),
+			NewCmdPassphraseCheck(cl, g),
 		},
 	}
 }

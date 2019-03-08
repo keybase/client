@@ -50,5 +50,5 @@ protocol account {
   GetLockdownResponse getLockdownMode(int sessionID);
   void setLockdownMode(int sessionID, boolean enabled);
 
-  void testPassphrase(int sessionID);
+  void checkPassphrase(int sessionID, union { null, string } passphrase );
 }
