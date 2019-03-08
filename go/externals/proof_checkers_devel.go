@@ -10,7 +10,5 @@ import libkb "github.com/keybase/client/go/libkb"
 const useDevelProofCheckers = false
 
 func getBuildSpecificStaticProofServices() []libkb.ServiceType {
-	return []libkb.ServiceType{
-		&RooterServiceType{},
-	}
+	return []libkb.ServiceType{}
 }
