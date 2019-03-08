@@ -1023,7 +1023,6 @@ type AirdropStatusAPI struct {
 
 func AirdropStatus(mctx libkb.MetaContext) (AirdropStatusAPI, error) {
 	apiArg := libkb.APIArg{
-		MetaContext: mctx,
 		Endpoint:    "stellar/airdrop/status_check",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}

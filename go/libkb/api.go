@@ -696,19 +696,17 @@ func appStatusToTypedError(ast *AppStatus) error {
 }
 
 func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
-	arg.MetaContext = m
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
 		return nil, err
 	}
-	return a.DoRequest(arg, req)
+	return a.DoRequest(m, arg, req)
 }
 
 // GetResp performs a GET request and returns the http response. The finisher
 // second arg should be called whenever we're done with the response (if it's non-nil).
 func (a *InternalAPIEngine) GetResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
-	arg.MetaContext = m
 	m = m.EnsureCtx().WithLogTag("API")
 
 	url1 := a.getURL(arg)
@@ -728,7 +726,6 @@ func (a *InternalAPIEngine) GetResp(m MetaContext, arg APIArg) (*http.Response, 
 // GetDecode performs a GET request and decodes the response via
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
-	arg.MetaContext = m
 	m = m.EnsureCtx().WithLogTag("API")
 	return a.getDecode(m, arg, v)
 }
@@ -739,7 +736,6 @@ func (a *InternalAPIEngine) GetDecodeCtx(ctx context.Context, arg APIArg, v APIR
 }
 
 func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
-	arg.MetaContext = m
 	resp, finisher, err := a.GetResp(m, arg)
 	if err != nil {
 		m.Debug("| API GetDecode, GetResp error: %s", err)
@@ -772,13 +768,12 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 }
 
 func (a *InternalAPIEngine) Post(m MetaContext, arg APIArg) (*APIRes, error) {
-	arg.MetaContext = m
 	url1 := a.getURL(arg)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, err
 	}
-	return a.DoRequest(arg, req)
+	return a.DoRequest(m, arg, req)
 }
 
 // PostJSON does _not_ actually enforce the use of JSON.
@@ -831,7 +826,6 @@ func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseW
 
 func (a *InternalAPIEngine) PostRaw(m MetaContext, arg APIArg, ctype string, r io.Reader) (*APIRes, error) {
 	url1 := a.getURL(arg)
-	arg.MetaContext = m
 	req, err := http.NewRequest("POST", url1.String(), r)
 	if len(ctype) > 0 {
 		req.Header.Set("Content-Type", ctype)
@@ -839,21 +833,19 @@ func (a *InternalAPIEngine) PostRaw(m MetaContext, arg APIArg, ctype string, r i
 	if err != nil {
 		return nil, err
 	}
-	return a.DoRequest(arg, req)
+	return a.DoRequest(m, arg, req)
 }
 
 func (a *InternalAPIEngine) Delete(m MetaContext, arg APIArg) (*APIRes, error) {
 	url1 := a.getURL(arg)
-	arg.MetaContext = m
 	req, err := a.PrepareMethodWithBody("DELETE", url1, arg)
 	if err != nil {
 		return nil, err
 	}
-	return a.DoRequest(arg, req)
+	return a.DoRequest(m, arg, req)
 }
 
-func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
-	m := arg.GetMetaContext(a.G())
+func (a *InternalAPIEngine) DoRequest(m MetaContext, arg APIArg, req *http.Request) (*APIRes, error) {
 	m = m.EnsureCtx().WithLogTag("API")
 	res, err := a.doRequest(m, arg, req)
 	return res, err
@@ -935,11 +927,10 @@ func (api *ExternalAPIEngine) consumeHeaders(m MetaContext, resp *http.Response,
 
 func (api *ExternalAPIEngine) isExternal() bool { return true }
 
-func (api *ExternalAPIEngine) DoRequest(
+func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 	arg APIArg, req *http.Request, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
-	m := arg.GetMetaContext(api.G())
 	m = m.EnsureCtx().WithLogTag("API")
 
 	var resp *http.Response
@@ -973,7 +964,7 @@ func (api *ExternalAPIEngine) DoRequest(
 	return
 }
 
-func (api *ExternalAPIEngine) getCommon(arg APIArg, restype XAPIResType) (
+func (api *ExternalAPIEngine) getCommon(m MetaContext, arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
 	url1, err := url.Parse(arg.Endpoint)
@@ -999,25 +990,25 @@ func (api *ExternalAPIEngine) getCommon(arg APIArg, restype XAPIResType) (
 		return nil, nil, nil, err
 	}
 
-	return api.DoRequest(arg, req, restype)
+	return api.DoRequest(m, arg, req, restype)
 }
 
-func (api *ExternalAPIEngine) Get(arg APIArg) (res *ExternalAPIRes, err error) {
-	res, _, _, err = api.getCommon(arg, XAPIResJSON)
+func (api *ExternalAPIEngine) Get(m MetaContext, arg APIArg) (res *ExternalAPIRes, err error) {
+	res, _, _, err = api.getCommon(m, arg, XAPIResJSON)
 	return
 }
 
-func (api *ExternalAPIEngine) GetHTML(arg APIArg) (res *ExternalHTMLRes, err error) {
-	_, res, _, err = api.getCommon(arg, XAPIResHTML)
+func (api *ExternalAPIEngine) GetHTML(m MetaContext, arg APIArg) (res *ExternalHTMLRes, err error) {
+	_, res, _, err = api.getCommon(m, arg, XAPIResHTML)
 	return
 }
 
-func (api *ExternalAPIEngine) GetText(arg APIArg) (res *ExternalTextRes, err error) {
-	_, _, res, err = api.getCommon(arg, XAPIResText)
+func (api *ExternalAPIEngine) GetText(m MetaContext, arg APIArg) (res *ExternalTextRes, err error) {
+	_, _, res, err = api.getCommon(m, arg, XAPIResText)
 	return
 }
 
-func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
+func (api *ExternalAPIEngine) postCommon(m MetaContext, arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, err error) {
 
 	var url1 *url.URL
@@ -1032,17 +1023,17 @@ func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
 		return
 	}
 
-	ar, hr, _, err = api.DoRequest(arg, req, restype)
+	ar, hr, _, err = api.DoRequest(m, arg, req, restype)
 	return
 }
 
-func (api *ExternalAPIEngine) Post(arg APIArg) (res *ExternalAPIRes, err error) {
-	res, _, err = api.postCommon(arg, XAPIResJSON)
+func (api *ExternalAPIEngine) Post(m MetaContext, arg APIArg) (res *ExternalAPIRes, err error) {
+	res, _, err = api.postCommon(m, arg, XAPIResJSON)
 	return
 }
 
-func (api *ExternalAPIEngine) PostHTML(arg APIArg) (res *ExternalHTMLRes, err error) {
-	_, res, err = api.postCommon(arg, XAPIResHTML)
+func (api *ExternalAPIEngine) PostHTML(m MetaContext, arg APIArg) (res *ExternalHTMLRes, err error) {
+	_, res, err = api.postCommon(m, arg, XAPIResHTML)
 	return
 }
 

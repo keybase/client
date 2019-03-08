@@ -204,7 +204,6 @@ func (u *UIDMap) refreshersForUIDs(uids []keybase1.UID) string {
 func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, networkTimeBudget time.Duration) ([]libkb.UsernamePackage, error) {
 	noCache := u.testNoCachingMode
 	arg := libkb.NewRetryAPIArg("user/names")
-	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeNONE
 	refreshers := u.refreshersForUIDs(uids)
 	if len(refreshers) > 0 {

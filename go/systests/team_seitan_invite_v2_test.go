@@ -144,7 +144,7 @@ func TestTeamInviteSeitanV2Failures(t *testing.T) {
 
 	ctx := context.Background()
 
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/seitan_v2")
+	arg := libkb.NewAPIArg("team/seitan_v2")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args.Add("sig", libkb.S{Val: maliciousPayload})
