@@ -619,6 +619,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 
 func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
 	gameID := update.Metadata.GameID
+	defer m.Trace(ctx, func() error { return err }, "handleUpdate: gameID: %s", gameID)()
 	defer func() {
 		if err == nil {
 			m.queueDirtyGameID(ctx, gameID, force)
