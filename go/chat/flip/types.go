@@ -83,7 +83,7 @@ func (m GameMessageBody) String() string {
 	case MessageType_COMMITMENT_COMPLETE:
 		return fmt.Sprintf("COMMITMENT COMPLETE: %+v", m.CommitmentComplete())
 	case MessageType_REVEAL:
-		return fmt.Sprintf("REVEAL: %+v", m.Reveal())
+		return "REVEAL"
 	case MessageType_END:
 		return "END"
 	default:
