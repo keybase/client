@@ -2791,14 +2791,31 @@ func (fbo *folderBranchOps) getDirChildren(ctx context.Context, dir Node) (
 }
 
 func (fbo *folderBranchOps) transformReadError(
-	ctx context.Context, err error) error {
-	if errors.Cause(err) != context.DeadlineExceeded {
+	ctx context.Context, node Node, err error) error {
+	_, isBlockNonExistent :=
+		errors.Cause(err).(kbfsblock.ServerErrorBlockNonExistent)
+	if errors.Cause(err) != context.DeadlineExceeded && !isBlockNonExistent {
 		return err
 	}
 
 	if fbo.config.IsSyncedTlf(fbo.id()) {
-		fbo.log.CWarningf(ctx, "Got a read timeout on a synced TLF: %+v", err)
+		fbo.log.CWarningf(ctx,
+			"Got unexpected read error on a synced TLF: %+v", err)
 		return err
+	}
+
+	if isBlockNonExistent {
+		p := fbo.nodeCache.PathFromNode(node)
+		if p.hasValidParent() {
+			// Surface the block error for everything but the root
+			// block, so we don't hide serious unexpected errors.
+			return err
+		}
+		// Hopefully, this just means that we're using an out-of-date,
+		// cached MD that's pointing us to GC'd blocks.
+		fbo.log.CWarningf(ctx,
+			"Transforming missing root block error for an unsynced TLF: %+v",
+			err)
 	}
 
 	// For unsynced TLFs, return a specific error to let the system
@@ -2816,7 +2833,7 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "GetDirChildren %s", getNodeIDStr(dir))
 	defer func() {
-		err = fbo.transformReadError(ctx, err)
+		err = fbo.transformReadError(ctx, dir, err)
 		fbo.deferLog.CDebugf(ctx, "GetDirChildren %s done, %d entries: %+v",
 			getNodeIDStr(dir), len(children), err)
 	}()
@@ -3031,7 +3048,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Lookup %s %s", getNodeIDStr(dir), name)
 	defer func() {
-		err = fbo.transformReadError(ctx, err)
+		err = fbo.transformReadError(ctx, dir, err)
 		fbo.deferLog.CDebugf(ctx, "Lookup %s %s done: %v %+v",
 			getNodeIDStr(dir), name, getNodeIDStr(node), err)
 	}()
@@ -3082,7 +3099,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 	de DirEntry, err error) {
 	defer func() {
-		err = fbo.transformReadError(ctx, err)
+		err = fbo.transformReadError(ctx, node, err)
 	}()
 	err = fbo.checkNodeForRead(ctx, node)
 	if err != nil {
@@ -4792,7 +4809,7 @@ func (fbo *folderBranchOps) Read(
 	fbo.log.CDebugf(ctx, "Read %s %d %d", getNodeIDStr(file),
 		len(dest), off)
 	defer func() {
-		err = fbo.transformReadError(ctx, err)
+		err = fbo.transformReadError(ctx, file, err)
 		fbo.deferLog.CDebugf(ctx, "Read %s %d %d (n=%d) done: %+v",
 			getNodeIDStr(file), len(dest), off, n, err)
 	}()
