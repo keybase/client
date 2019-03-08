@@ -183,6 +183,7 @@ const styles = Styles.styleSheetCreate({
   fileUpdateRow: {
     alignItems: 'center',
     marginTop: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
   fullWidth: {
     // needed to avoid icon being pinched
@@ -200,6 +201,8 @@ const styles = Styles.styleSheetCreate({
     zIndex: 100,
   },
   iconStyle: {
+    alignSelf: 'flex-start',
+    flexShrink: 0,
     height: 16,
     marginRight: Styles.globalMargins.xtiny,
     width: 16,
