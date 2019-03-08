@@ -647,12 +647,10 @@ let _nextPageLoading = false
 class Thread extends React.Component<Props> {
   _ref = null
   componentDidUpdate() {
-    if (this._ref) {
-      const list = this._ref
-      if (list) {
-        list.scrollTop = list.scrollHeight - list.clientHeight
-      }
-    }
+    this._ref && this._ref.scrollToItem(this.props.messageOrdinals.size - 1)
+  }
+  componentDidMount() {
+    this._ref && this._ref.scrollToItem(this.props.messageOrdinals.size - 1)
   }
 
   render() {
@@ -685,30 +683,32 @@ class Thread extends React.Component<Props> {
 
     const {conversationIDKey} = props
     // Render an item or a loading indicator.
-    const Row = React.forwardRef((props: any, ref: any) => {
-      const {style, index} = props
+    const Row = React.memo(
+      React.forwardRef((props: any, ref: any) => {
+        const {style, index} = props
 
-      // if (index === 0) {
-      // return null //  <TopItem ref={ref} style={style} key="topItem" conversationIDKey={conversationIDKey} />
-      // }
+        // if (index === 0) {
+        // return null //  <TopItem ref={ref} style={style} key="topItem" conversationIDKey={conversationIDKey} />
+        // }
 
-      if (!isItemLoaded(index)) {
-        // return null
+        if (!isItemLoaded(index)) {
+          // return null
+          return (
+            <div ref={ref} style={style}>
+              <div style={{height: 20, width: '100%', backgroundColor: index % 2 ? 'pink' : 'grey'}} />
+            </div>
+          )
+        }
         return (
           <div ref={ref} style={style}>
-            <div style={{height: 20, width: '100%', backgroundColor: index % 2 ? 'pink' : 'grey'}} />
+            {itemMap[index]}
+            {index % 20
+              ? ''
+              : 'jlaskdfj lka jflksaj flkdsaj flsadj flj sdaflj sdflj sdalkfj sdalfj dslaj flsj flsdaj flsj flsaj flsdj aflj sdaflj asdlfkjd slfj sadlfj dsalkj flksadj flksdaj flkasdj flksdaj flkjsda lfkj sdalfkj sdlkf jsaldkj flk jaflkj sdflkj sdalkfjasdlkfj dslkjf lksjflkj dsalkjf dslkfjdljf dslkfj lafj ljds ljasd lfsj al fjsdalf jdlk jfdaslkfdj lfa j'}
           </div>
         )
-      }
-      return (
-        <div ref={ref} style={style}>
-          {itemMap[index]}
-          {index % 20
-            ? ''
-            : 'jlaskdfj lka jflksaj flkdsaj flsadj flj sdaflj sdflj sdalkfj sdalfj dslaj flsj flsdaj flsj flsaj flsdj aflj sdaflj asdlfkjd slfj sadlfj dsalkj flksadj flksdaj flkasdj flksdaj flkjsda lfkj sdalfkj sdlkf jsaldkj flk jaflkj sdflkj sdalkfjasdlkfj dslkjf lksjflkj dsalkjf dslkfjdljf dslkfj lafj ljds ljasd lfsj al fjsdalf jdlk jfdaslkfdj lfa j'}
-        </div>
-      )
-    })
+      })
+    )
     //
     // const Item = ({index, style}) => {
     // let content
