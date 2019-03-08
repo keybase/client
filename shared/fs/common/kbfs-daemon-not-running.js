@@ -7,7 +7,7 @@ type Props = {||}
 export default (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true} gap="medium">
     <Kb.ProgressIndicator style={styles.progressIndicator} />
-    <Kb.Text type="BodySmall">Waiting for KBFS service to start ...</Kb.Text>
+    <Kb.Text type="BodySmall">Loading...</Kb.Text>
   </Kb.Box2>
 )
 

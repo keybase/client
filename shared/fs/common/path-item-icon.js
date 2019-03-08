@@ -45,16 +45,16 @@ const UnknownIcon = (props: Props) => (
 const icons = {
   file: {
     private: {
-      '16': 'icon-file-private-16',
-      '32': 'icon-file-private-32',
-      '48': 'icon-file-private-48',
-      '64': 'icon-file-private-64',
+      '16': 'icon-file-16',
+      '32': 'icon-file-32',
+      '48': 'icon-file-48',
+      '64': 'icon-file-64',
     },
     public: {
-      '16': 'icon-file-public-16',
-      '32': 'icon-file-public-32',
-      '48': 'icon-file-public-48',
-      '64': 'icon-file-public-64',
+      '16': 'icon-file-16',
+      '32': 'icon-file-32',
+      '48': 'icon-file-48',
+      '64': 'icon-file-64',
     },
   },
   folder: {

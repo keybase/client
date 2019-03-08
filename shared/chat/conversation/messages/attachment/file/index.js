@@ -15,7 +15,7 @@ type Props = {
 
 class FileAttachment extends React.PureComponent<Props> {
   render() {
-    const iconType = 'icon-file-24' // TODO other states
+    const iconType = 'icon-file-32'
     return (
       <Kb.ClickableBox onClick={this.props.onDownload} style={styles.fullWidth}>
         <Kb.Box style={styles.containerStyle}>
@@ -71,7 +71,7 @@ const styles = Styles.styleSheetCreate({
   },
   fullWidth: {width: '100%'},
   iconStyle: {
-    height: 24,
+    height: 32,
     marginRight: Styles.globalMargins.tiny,
   },
   linkStyle: {

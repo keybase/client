@@ -38,10 +38,7 @@ type FilesPreviewProps = {|
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
-      <Kb.Icon
-        type={props.tlfType === 'public' ? 'icon-file-public-16' : 'icon-file-private-16'}
-        style={Kb.iconCastPlatformStyles(styles.iconStyle)}
-      />
+      <Kb.Icon type="icon-file-16" style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
       {props.uploading && (
         <Kb.Box style={styles.iconBadgeBox}>
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
