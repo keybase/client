@@ -62,11 +62,12 @@ class UnfurlGeneric extends React.Component<Props> {
           {!!this.props.description && (
             <Kb.Text type="Body" lineClamp={5}>
               {this.props.description}
-              {!Styles.isMobile && showBottomImage && (
+              {showBottomImage && (
                 <>
                   {' '}
                   <Kb.Icon
                     boxStyle={styles.collapseBox}
+                    noClickableBox={true}
                     onClick={this.props.onCollapse}
                     sizeType="Tiny"
                     type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}

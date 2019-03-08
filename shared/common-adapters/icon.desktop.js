@@ -72,7 +72,7 @@ class Icon extends Component<Props, void> {
         }
       : null
 
-    const hasContainer = (this.props.onClick && this.props.style) || isFontIcon
+    const hasContainer = !this.props.noContainer && ((this.props.onClick && this.props.style) || isFontIcon)
 
     let iconElement
 
