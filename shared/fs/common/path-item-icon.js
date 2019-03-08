@@ -56,6 +56,12 @@ const icons = {
       '48': 'icon-file-48',
       '64': 'icon-file-64',
     },
+    team: {
+      '16': 'icon-file-16',
+      '32': 'icon-file-32',
+      '48': 'icon-file-48',
+      '64': 'icon-file-64',
+    },
   },
   folder: {
     private: {
@@ -113,7 +119,7 @@ const IconOnly = (props: Props) => {
       const iconTlfType = parsedPath.tlfType === 'public' ? 'public' : 'private'
       return <Kb.Icon type={icons[iconPathType][iconTlfType][getIconSizeString(props.size)]} />
     case 'in-team-tlf':
-      return <Kb.Icon type={icons[iconPathType].private[getIconSizeString(props.size)]} />
+      return <Kb.Icon type={icons[iconPathType].team[getIconSizeString(props.size)]} />
     default:
       return <UnknownIcon {...props} />
   }

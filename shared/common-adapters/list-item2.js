@@ -73,7 +73,7 @@ const ListItem = (props: Props) => (
   </Kb.ClickableBox>
 )
 
-const smallHeight = Styles.isMobile ? 48 : 40
+const smallHeight = Styles.isMobile ? 56 : 48
 const largeHeight = Styles.isMobile ? 64 : 56
 const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72

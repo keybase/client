@@ -138,4 +138,4 @@ export const StillCommon = (
   </HoverBox>
 )
 
-export const normalRowHeight = Styles.isMobile ? 64 : 48
+export const normalRowHeight = Styles.isMobile ? 56 : 48
