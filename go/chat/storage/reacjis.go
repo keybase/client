@@ -18,6 +18,44 @@ const reacjiDiskVersion = 1
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultEmoji = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses:"}
 
+var addReacjiMemCacheHookOnce sync.Once
+
+type reacjiMemCache struct {
+	sync.RWMutex
+
+	datMap map[string]int
+}
+
+func newReacjiMemCache() *reacjiMemCache {
+	return &reacjiMemCache{
+		datMap: make(map[string]int),
+	}
+}
+
+func (i *reacjiMemCache) Get(reacji string) int {
+	i.RLock()
+	defer i.RUnlock()
+	if ibox, ok := i.datMap[reacji]; ok {
+		return ibox
+	}
+	return nil
+}
+
+func (i *reacjiMemCache) Increment(reacji string) {
+	i.Lock()
+	defer i.Unlock()
+	i.datMap[reacji]++
+}
+
+func (i *reacjiMemCache) OnLogout(m libkb.MetaContext) error {
+	i.Lock()
+	defer i.Unlock()
+	i.datMap = make(map[string]int)
+	return nil
+}
+
+var reacjiMemCache = newReacjiMemCache()
+
 type reacjiPair struct {
 	name string
 	freq int
@@ -34,11 +72,6 @@ type ReacjiStore struct {
 	globals.Contextified
 	utils.DebugLabeler
 	encryptedDB *encrypteddb.EncryptedDB
-	cache       map[string]int
-	uid         gregor1.UID
-
-	// for testing
-	putCh chan struct{}
 }
 
 // Keeps map counting emoji used in reactions for each user. Used to populate
@@ -56,18 +89,15 @@ func NewReacjiStore(g *globals.Context) *ReacjiStore {
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
 	}
+	// add a logout hook to clear the in-memory inbox cache, but only add it once:
+	addReacjiMemCacheHookOnce.Do(func() {
+		g.ExternalG().AddLogoutHook(reacjiMemCache)
+	})
 	return &ReacjiStore{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReacjiStore", false),
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
-		cache:        make(map[string]int),
 	}
-}
-
-func (s *ReacjiStore) SetPutCh(ch chan struct{}) {
-	s.Lock()
-	defer s.Unlock()
-	s.putCh = ch
 }
 
 func (s *ReacjiStore) dbKey(uid gregor1.UID) libkb.DbKey {
@@ -103,14 +133,8 @@ func (s *ReacjiStore) getCacheLocked(ctx context.Context, uid gregor1.UID) (ret 
 func (s *ReacjiStore) Put(ctx context.Context, uid gregor1.UID, reacji string) error {
 	s.Lock()
 	defer s.Unlock()
-	defer func() {
-		if s.putCh != nil {
-			s.putCh <- struct{}{}
-		}
-	}()
 
-	cache := s.getCacheLocked(ctx, uid)
-	cache[reacji]++
+	reacjiMemCache.Increment(reacji)
 	dbKey := s.dbKey(uid)
 	return s.encryptedDB.Put(ctx, dbKey, reacjiMap{
 		Version: reacjiDiskVersion,
