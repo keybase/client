@@ -42,7 +42,12 @@ const isFolder = (stateProps, ownProps: OwnProps) =>
   stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'folder'
 
 const canOpenInDestinationPicker = (stateProps, ownProps) =>
-  isFolder(stateProps, ownProps) && (stateProps._destinationPicker.type === 'incoming-share' || stateProps._destinationPicker.sourceItemPath !== ownProps.path)
+  isFolder(stateProps, ownProps) && (
+    stateProps._destinationPicker.source.type === 'incoming-share' || (
+      stateProps._destinationPicker.source.type === 'move-or-copy' &&
+      stateProps._destinationPicker.source.path !== ownProps.path
+    )
+  )
 
 type MergedProps = OwnProps & {
   onOpen: ?() => void,
@@ -52,9 +57,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps 
   onOpen:
     typeof ownProps.destinationPickerIndex === 'number'
       ? canOpenInDestinationPicker(stateProps, ownProps)
-        ? stateProps._destinationPicker.type === 'move-or-copy'
+        ? stateProps._destinationPicker.source.type === 'move-or-copy'
           ? dispatchProps._destinationPickerMoveOrCopyGoTo
-          : dispatchProps._destinationPickerIncomingShareGoTo
+          : stateProps._destinationPicker.source.type === 'incoming-share'
+            ? dispatchProps._destinationPickerIncomingShareGoTo
+            : null
         : null
       : dispatchProps._open,
   // We need the inexact spread here because this is a HOC. As such, it must

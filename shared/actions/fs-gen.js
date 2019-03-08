@@ -65,10 +65,9 @@ export const placeholderAction = 'fs:placeholderAction'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
+export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDriverStatus = 'fs:setDriverStatus'
-export const setIncomingShareDestinationPath = 'fs:setIncomingShareDestinationPath'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
-export const setMoveOrCopyDestinationParentPath = 'fs:setMoveOrCopyDestinationParentPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
@@ -143,10 +142,9 @@ type _PlaceholderActionPayload = void
 type _RefreshDriverStatusPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = $ReadOnly<{|path: Types.Path, key: string|}>
+type _SetDestinationPickerParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetDriverStatusPayload = $ReadOnly<{|driverStatus: Types.DriverStatus|}>
-type _SetIncomingShareDestinationPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetIncomingShareLocalPathPayload = $ReadOnly<{|localPath: Types.LocalPath|}>
-type _SetMoveOrCopyDestinationParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _SetPathItemActionMenuDownloadKeyPayload = $ReadOnly<{|key: ?string|}>
 type _SetPathItemActionMenuViewPayload = $ReadOnly<{|view: Types.PathItemActionMenuView|}>
@@ -221,10 +219,9 @@ export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => (
 export const createRefreshDriverStatus = (payload: _RefreshDriverStatusPayload) => ({payload, type: refreshDriverStatus})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({payload, type: refreshLocalHTTPServerInfo})
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: saveMedia})
+export const createSetDestinationPickerParentPath = (payload: _SetDestinationPickerParentPathPayload) => ({payload, type: setDestinationPickerParentPath})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload) => ({payload, type: setDriverStatus})
-export const createSetIncomingShareDestinationPath = (payload: _SetIncomingShareDestinationPathPayload) => ({payload, type: setIncomingShareDestinationPath})
 export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({payload, type: setIncomingShareLocalPath})
-export const createSetMoveOrCopyDestinationParentPath = (payload: _SetMoveOrCopyDestinationParentPathPayload) => ({payload, type: setMoveOrCopyDestinationParentPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
 export const createSetPathItemActionMenuView = (payload: _SetPathItemActionMenuViewPayload) => ({payload, type: setPathItemActionMenuView})
@@ -299,10 +296,9 @@ export type PlaceholderActionPayload = {|+payload: _PlaceholderActionPayload, +t
 export type RefreshDriverStatusPayload = {|+payload: _RefreshDriverStatusPayload, +type: 'fs:refreshDriverStatus'|}
 export type RefreshLocalHTTPServerInfoPayload = {|+payload: _RefreshLocalHTTPServerInfoPayload, +type: 'fs:refreshLocalHTTPServerInfo'|}
 export type SaveMediaPayload = {|+payload: _SaveMediaPayload, +type: 'fs:saveMedia'|}
+export type SetDestinationPickerParentPathPayload = {|+payload: _SetDestinationPickerParentPathPayload, +type: 'fs:setDestinationPickerParentPath'|}
 export type SetDriverStatusPayload = {|+payload: _SetDriverStatusPayload, +type: 'fs:setDriverStatus'|}
-export type SetIncomingShareDestinationPathPayload = {|+payload: _SetIncomingShareDestinationPathPayload, +type: 'fs:setIncomingShareDestinationPath'|}
 export type SetIncomingShareLocalPathPayload = {|+payload: _SetIncomingShareLocalPathPayload, +type: 'fs:setIncomingShareLocalPath'|}
-export type SetMoveOrCopyDestinationParentPathPayload = {|+payload: _SetMoveOrCopyDestinationParentPathPayload, +type: 'fs:setMoveOrCopyDestinationParentPath'|}
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
 export type SetPathItemActionMenuDownloadKeyPayload = {|+payload: _SetPathItemActionMenuDownloadKeyPayload, +type: 'fs:setPathItemActionMenuDownloadKey'|}
 export type SetPathItemActionMenuViewPayload = {|+payload: _SetPathItemActionMenuViewPayload, +type: 'fs:setPathItemActionMenuView'|}
@@ -379,10 +375,9 @@ export type Actions =
   | RefreshDriverStatusPayload
   | RefreshLocalHTTPServerInfoPayload
   | SaveMediaPayload
+  | SetDestinationPickerParentPathPayload
   | SetDriverStatusPayload
-  | SetIncomingShareDestinationPathPayload
   | SetIncomingShareLocalPathPayload
-  | SetMoveOrCopyDestinationParentPathPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
   | SetPathItemActionMenuViewPayload

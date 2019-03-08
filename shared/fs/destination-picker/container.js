@@ -22,8 +22,8 @@ const mapStateToProps = state => ({
 const getDestinationParentPath = memoize((stateProps, ownProps: OwnProps) =>
   stateProps._destinationPicker.destinationParentPath.get(
     ownProps.routeProps.get('index', 0),
-    stateProps._destinationPicker.type === 'move-or-copy'
-      ? Types.getPathParent(stateProps._destinationPicker.sourceItemPath)
+    stateProps._destinationPicker.source.type === 'move-or-copy'
+      ? Types.getPathParent(stateProps._destinationPicker.source.path)
       : Types.stringToPath('/keybase')
   )
 )
@@ -67,19 +67,21 @@ const canWrite = memoize(
 
 const canCopy = memoize(
   (stateProps, ownProps: OwnProps) =>
-    canWrite(stateProps, ownProps) &&
-    (stateProps._destinationPicker.type === 'incoming-share' ||
-      getDestinationParentPath(stateProps, ownProps) !==
-        // $FlowIssue ¯\_(ツ)_/¯
-        Types.getPathParent(stateProps._destinationPicker.sourceItemPath))
+    canWrite(stateProps, ownProps) && (
+      stateProps._destinationPicker.source.type === 'incoming-share' || (
+        stateProps._destinationPicker.source.type === 'move-or-copy' &&
+        // $FlowIssue can't figure out that we're in a MoveOrCopySource here, for whatever reason.
+        getDestinationParentPath(stateProps, ownProps) !== Types.getPathParent(stateProps._destinationPicker.source.path)
+      )
+    )
 )
 
 const canMove = memoize(
   (stateProps, ownProps: OwnProps) =>
     canCopy(stateProps, ownProps) &&
-    stateProps._destinationPicker.type === 'move-or-copy' &&
+    stateProps._destinationPicker.source.type === 'move-or-copy' &&
     Constants.pathsInSameTlf(
-      stateProps._destinationPicker.sourceItemPath,
+      stateProps._destinationPicker.source.path,
       getDestinationParentPath(stateProps, ownProps)
     )
 )
@@ -98,9 +100,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     index: getIndex(ownProps),
     onBackUp: canBackUp(stateProps, ownProps)
-      ? stateProps._destinationPicker.type === 'move-or-copy'
+      ? stateProps._destinationPicker.source.type === 'move-or-copy'
         ? () => dispatchProps._onBackUpMoveOrCopy(getDestinationParentPath(stateProps, ownProps))
-        : () => dispatchProps._onBackUpIncomingShare(getDestinationParentPath(stateProps, ownProps))
+        : stateProps._destinationPicker.source.type === 'incoming-share'
+          ? () => dispatchProps._onBackUpIncomingShare(getDestinationParentPath(stateProps, ownProps))
+          : null
       : null,
     onCancel: dispatchProps.onCancel,
     onCopyHere: canCopy(stateProps, ownProps)
