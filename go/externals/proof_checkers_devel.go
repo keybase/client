@@ -7,7 +7,7 @@ package externals
 
 import libkb "github.com/keybase/client/go/libkb"
 
-const useDevelProofCheckers = true
+const useDevelProofCheckers = false
 
 func getBuildSpecificStaticProofServices() []libkb.ServiceType {
 	return []libkb.ServiceType{
