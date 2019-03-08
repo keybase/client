@@ -997,7 +997,7 @@ func NewChatUI() *ChatUI {
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
 		GiphyWindow:        make(chan bool, 10),
-		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 50),
+		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 100),
 		CommandMarkdown:    make(chan *chat1.UICommandMarkdown, 10),
 	}
 }
