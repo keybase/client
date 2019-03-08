@@ -12,6 +12,8 @@ protocol account {
 
   GetPassphraseRes passphrasePrompt(int sessionID, GUIEntryArg guiArg);
 
+  void passphraseCheck(int sessionID, string passphrase );
+
   /**
    * change email to the new given email by signing a statement.
    */
@@ -49,6 +51,4 @@ protocol account {
   
   GetLockdownResponse getLockdownMode(int sessionID);
   void setLockdownMode(int sessionID, boolean enabled);
-
-  void checkPassphrase(int sessionID, union { null, string } passphrase );
 }

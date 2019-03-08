@@ -62,9 +62,9 @@ func (c *CmdPassphraseCheck) Run() error {
 		return nil
 	}
 
-	var arg keybase1.CheckPassphraseArg
+	var arg keybase1.PassphraseCheckArg
 	if c.passphrase != "" {
-		arg.Passphrase = &c.passphrase
+		arg.Passphrase = c.passphrase
 	} else {
 		protocols := []rpc.Protocol{
 			NewSecretUIProtocol(c.G()),
@@ -74,7 +74,7 @@ func (c *CmdPassphraseCheck) Run() error {
 		}
 	}
 
-	if err := cli.CheckPassphrase(context.TODO(), arg); err != nil {
+	if err := cli.PassphraseCheck(context.TODO(), arg); err != nil {
 		return err
 	}
 
