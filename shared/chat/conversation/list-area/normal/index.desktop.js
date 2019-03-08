@@ -7,6 +7,9 @@
 
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import {DynamicSizeList as List} from 'react-window'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import InfiniteLoader from 'react-window-infinite-loader'
 import Measure from 'react-measure'
 import Waypoint from 'react-waypoint'
 import Message from '../../messages'
@@ -26,7 +29,7 @@ if (module.hot) {
   module.hot.decline()
 }
 
-const ordinalsInAWaypoint = 10
+// const ordinalsInAWaypoint = 10
 // pixels away from top/bottom to load/be locked
 const listEdgeSlop = 10
 
@@ -38,7 +41,7 @@ type Snapshot = ?number
 
 const debug = __STORYBOOK__
 
-class Thread extends React.PureComponent<Props, State> {
+class ThreadOLD extends React.PureComponent<Props, State> {
   state = {isLockedToBottom: true}
   _listRef = React.createRef()
   // so we can turn pointer events on / off
@@ -630,6 +633,99 @@ const listStyle = {
   paddingBottom: globalMargins.small,
   // get our own layer so we can scroll faster
   willChange: 'transform',
+}
+
+const LOADING = 1
+const LOADED = 2
+
+// all the eaxmples have this outside so lets just keep it like that
+let loadedMap = {}
+
+// temp to just plumb the next plage loading in a hacky way
+let _nextPageLoading = false
+
+const Thread = (props: Props) => {
+  const hasNextPage = true // TODO plumb
+  const isNextPageLoading = (_nextPageLoading = false) // TODo plumb
+  const items = props.messageOrdinals
+  const loadNextPage = props.loadMoreMessages
+
+  // If there are more items to be loaded then add an extra row to hold a loading indicator.
+  const itemCount = hasNextPage ? items.size + 1 : items.size
+
+  // Only load 1 page of items at a time.
+  // Pass an empty callback to InfiniteLoader in case it asks us to load more than once.
+  const loadMoreItems = isNextPageLoading
+    ? () => {}
+    : () => {
+        _nextPageLoading = true
+        loadNextPage()
+      }
+
+  // Every row is loaded except for our loading indicator row.
+  const isItemLoaded = index => !hasNextPage || index < items.size
+
+  const {conversationIDKey} = props
+  // Render an item or a loading indicator.
+  class Row extends React.PureComponent<any> {
+    render() {
+      const {data, style, index} = this.props
+
+      if (index === 0) {
+        return <TopItem key="topItem" conversationIDKey={conversationIDKey} />
+      }
+
+      if (!isItemLoaded(index)) {
+        return (
+          <div style={{...style, height: 20, width: '100%', backgroundColor: index % 2 ? 'pink' : 'grey'}} />
+        )
+      }
+      return (
+        <div style={style}>
+          {data[index]}
+          {index % 20
+            ? index + ''
+            : index +
+              'jlaskdfj lka jflksaj flkdsaj flsadj flj sdaflj sdflj sdalkfj sdalfj dslaj flsj flsdaj flsj flsaj flsdj aflj sdaflj asdlfkjd slfj sadlfj dsalkj flksadj flksdaj flkasdj flksdaj flkjsda lfkj sdalfkj sdlkf jsaldkj flk jaflkj sdflkj sdalkfjasdlkfj dslkjf lksjflkj dsalkjf dslkfjdljf dslkfj lafj ljds ljasd lfsj al fjsdalf jdlk jfdaslkfdj lfa j'}
+        </div>
+      )
+    }
+  }
+
+  //
+  // const Item = ({index, style}) => {
+  // let content
+  // if (!isItemLoaded(index)) {
+  // content = 'Loading...'
+  // } else {
+  // content = items.get(index).ordinal
+  // }
+
+  // return <div style={style}>{content}</div>
+  // }
+
+  return (
+    <div style={{flex: 1}}>
+      <AutoSizer>
+        {({height, width}) => (
+          <InfiniteLoader isItemLoaded={isItemLoaded} itemCount={itemCount} loadMoreItems={loadMoreItems}>
+            {({onItemsRendered, ref}) => (
+              <List
+                height={height}
+                width={width}
+                itemCount={itemCount}
+                itemData={items}
+                ref={ref}
+                onItemsRendered={onItemsRendered}
+              >
+                {Row}
+              </List>
+            )}
+          </InfiniteLoader>
+        )}
+      </AutoSizer>
+    </div>
+  )
 }
 
 export default Thread

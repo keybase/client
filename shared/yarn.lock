@@ -11922,10 +11922,15 @@ react-waypoint@8.1.0:
     prop-types "^15.0.0"
     react-is "^16.6.3"
 
-react-window@1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/react-window/-/react-window-1.5.0.tgz#3e56b720b97666bce38a9e932bdd238d56e258f1"
-  integrity sha512-55WeZKjMNF5JdCuKghc/H65DBecoeGgH8MOX3CgT7BJ66xb4ITRuXPUlz0qU6r50wetdF/oLhorYBRvKD4Z1IQ==
+react-window-infinite-loader@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/react-window-infinite-loader/-/react-window-infinite-loader-1.0.3.tgz#6bc39ac4fc7472f4d57f1558b3375177db0615a9"
+  integrity sha512-aVLM8eN4n/RFVADUpUYdQgZK5SM+BM4JNJdh0PeDVJC5ZZUPjQslHDl0NI3FmYt7ETLQXC1ImBRjievRz2dv1w==
+
+react-window@1.6.0-alpha.1:
+  version "1.6.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/react-window/-/react-window-1.6.0-alpha.1.tgz#6ffbf8168a1325512fe0127582ee2672ecadb67a"
+  integrity sha512-Q4Yg/rnVHTSjHdqVuTnZFTD3cwEzXFxFMyEZ5ihK3qu/NLiiFA67M1WM/Q558VmGUQumtJAW5oxKoo5JcdqoOQ==
   dependencies:
     "@babel/runtime" "^7.0.0"
     memoize-one "^3.1.1"
