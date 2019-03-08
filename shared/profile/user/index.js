@@ -415,7 +415,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = Styles.isMobile ? 48 : 72
+const headerHeight = Styles.isMobile ? 48 : 80
 
 const styles = Styles.styleSheetCreate({
   addIdentityButton: {

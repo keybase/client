@@ -50,7 +50,7 @@ class AppView extends React.PureComponent<any> {
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
-          <Header options={descriptor.options} onPop={childNav.pop} allowBack={index !== 0} />
+          <Header options={descriptor.options} onPop={() => childNav.pop()} allowBack={index !== 0} />
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}

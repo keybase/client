@@ -30,14 +30,17 @@ class Header extends React.PureComponent<Props> {
       style = {position: 'absolute', zIndex: 9999}
     }
 
+    let showDivider = true
+    if (opt.headerHideBorder) {
+      showDivider = false
+    }
+
     return (
       <Kb.Box2
         noShrink={true}
         direction="vertical"
         fullWidth={true}
-        style={Styles.collapseStyles([styles.headerContainer, style])}
-        gap="xtiny"
-        gapEnd={true}
+        style={Styles.collapseStyles([styles.headerContainer, showDivider && styles.headerBorder, style])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
           <Kb.Icon
@@ -56,10 +59,7 @@ class Header extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  bottom: {
-    minHeight: 40,
-    padding: 12,
-  },
+  bottom: {minHeight: 40 - 1}, // for border
   disabledIcon: Styles.platformStyles({
     isElectron: {
       cursor: 'default',
@@ -73,14 +73,15 @@ const styles = Styles.styleSheetCreate({
       padding: 12,
     },
   }),
+  headerBorder: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+  },
   headerContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
       alignItems: 'center',
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      minHeight: 80,
     },
   }),
   icon: {

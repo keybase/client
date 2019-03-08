@@ -127,6 +127,7 @@ connected.navigationOptions = {
     right: 20,
   },
   headerTransparent: true,
+  headerHideBorder: true,
   underNotch: true,
 }
 

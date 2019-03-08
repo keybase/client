@@ -93,7 +93,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.clickable,
       height: 24,
       marginLeft: flags.useNewRouter ? 'auto' : Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
+      marginRight: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
       marginTop: flags.useNewRouter ? 0 : Styles.globalMargins.xsmall,
       width: 240,
     },

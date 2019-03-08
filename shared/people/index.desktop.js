@@ -6,29 +6,36 @@ import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import flags from '../util/feature-flags'
 
-export const Header = (props: Props) => (
-  <Kb.HeaderHocHeader
-    headerStyle={styles.header}
-    rightActions={
-      flags.useNewRouter
-        ? []
-        : [
-            {
-              custom: (
-                <Kb.Avatar
-                  key="avatar"
-                  username={props.myUsername}
-                  onClick={() => props.onClickUser(props.myUsername)}
-                  size={32}
-                />
-              ),
-              label: 'Avatar',
-            },
-          ]
-    }
-    titleComponent={<PeoplePageSearchBar {...props} />}
-  />
-)
+export const Header = flags.useNewRouter
+  ? (props: Props) => (
+      <Kb.Box2 direction="horizontal" style={styles.header}>
+        <Kb.Text type="Header">People</Kb.Text>
+        <PeoplePageSearchBar {...props} />
+      </Kb.Box2>
+    )
+  : (props: Props) => (
+      <Kb.HeaderHocHeader
+        headerStyle={styles.header}
+        rightActions={
+          flags.useNewRouter
+            ? []
+            : [
+                {
+                  custom: (
+                    <Kb.Avatar
+                      key="avatar"
+                      username={props.myUsername}
+                      onClick={() => props.onClickUser(props.myUsername)}
+                      size={32}
+                    />
+                  ),
+                  label: 'Avatar',
+                },
+              ]
+        }
+        titleComponent={<PeoplePageSearchBar {...props} />}
+      />
+    )
 const People = (props: Props) => (
   <Kb.ScrollView style={styles.container}>
     {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
@@ -45,9 +52,14 @@ const styles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.fullHeight,
   },
-  header: {
-    flexGrow: 1,
-  },
+  header: flags.useNewRouter
+    ? {
+        flexGrow: 1,
+        marginLeft: Styles.globalMargins.xsmall,
+      }
+    : {
+        flexGrow: 1,
+      },
   progress: {
     height: 32,
     left: 96,
