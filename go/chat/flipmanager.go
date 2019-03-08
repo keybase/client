@@ -704,10 +704,14 @@ func (m *FlipManager) parseMultiDie(arg string, nPlayersApprox int) (start flip.
 	return flip.NewStartWithBigInt(m.clock.Now(), val, nPlayersApprox), nil
 }
 
+const shuffleSeparaters = ",，"
+
 func (m *FlipManager) parseShuffle(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
-	if strings.Contains(arg, ",") {
+	if strings.ContainsAny(arg, shuffleSeparaters) {
 		var shuffleItems []string
-		for _, tok := range strings.Split(arg, ",") {
+		for _, tok := range strings.FieldsFunc(arg, func(c rune) bool {
+			return strings.ContainsRune(shuffleSeparaters, c)
+		}) {
 			shuffleItems = append(shuffleItems, strings.Trim(tok, " "))
 		}
 		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems)), nPlayersApprox),
