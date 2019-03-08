@@ -3,6 +3,7 @@ package flip
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"io"
 	"math"
 	"math/big"
@@ -259,6 +260,7 @@ func (g *Game) finishGame(ctx context.Context) error {
 		}
 		xor.XOR(*ps.secret)
 	}
+	g.clogf(ctx, "Game#finishGame: %s -> %s", g.md, hex.EncodeToString(xor[:]))
 	prng := NewPRNG(xor)
 	err := g.doFlip(ctx, prng)
 	g.sendOutgoingChat(ctx, NewGameMessageBodyWithEnd())
