@@ -240,17 +240,6 @@ export type Uploads = I.RecordOf<_Uploads>
 export type OpenDialogType = 'file' | 'directory' | 'both'
 export type MobilePickType = 'photo' | 'video' | 'mixed'
 
-export type _Flags = {
-  kbfsOpening: boolean,
-  kbfsInstalling: boolean,
-  fuseInstalling: boolean,
-  kextPermissionError: boolean,
-  securityPrefsPrompted: boolean,
-  showBanner: boolean,
-}
-
-export type Flags = I.RecordOf<_Flags>
-
 export type _LocalHTTPServer = {
   address: string,
   token: string,
@@ -312,24 +301,57 @@ export type _PathItemActionMenu = {
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
-export type _State = {
-  pathItems: PathItems,
-  tlfs: Tlfs,
-  edits: Edits,
-  pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Map<Path, I.Set<string>>,
-  downloads: Downloads,
-  uploads: Uploads,
-  fuseStatus: ?RPCTypes.FuseStatus,
-  flags: Flags,
-  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
-  localHTTPServerInfo: LocalHTTPServer,
-  errors: I.Map<string, FsError>,
-  tlfUpdates: UserTlfUpdates,
-  moveOrCopy: MoveOrCopy,
-  sendLinkToChat: SendLinkToChat,
-  pathItemActionMenu: PathItemActionMenu,
+export type _DriverStatusUnknown = {
+  type: 'unknown',
 }
+export type DriverStatusUnknown = I.RecordOf<_DriverStatusUnknown>
+
+export type _DriverStatusDisabled = {
+  type: 'disabled',
+  isEnabling: boolean,
+  isDismissed: boolean,
+  // macOS only
+  kextPermissionError: boolean,
+}
+export type DriverStatusDisabled = I.RecordOf<_DriverStatusDisabled>
+
+export type _DriverStatusEnabled = {
+  type: 'enabled',
+  isDisabling: boolean,
+  isNew: boolean,
+  // windows only
+  dokanOutdated: boolean,
+  dokanUninstallExecPath?: ?string,
+}
+export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
+
+export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
+
+export type _SystemFileManagerIntegration = {
+  driverStatus: DriverStatus,
+  // This only controls if system-file-manager-integration-banner is shown in
+  // Folders view. The banner always shows in Settings/Files screen.
+  showingBanner: boolean,
+}
+export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
+
+export type _State = {|
+  downloads: Downloads,
+  edits: Edits,
+  errors: I.Map<string, FsError>,
+  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
+  loadingPaths: I.Map<Path, I.Set<string>>,
+  localHTTPServerInfo: LocalHTTPServer,
+  moveOrCopy: MoveOrCopy,
+  pathItemActionMenu: PathItemActionMenu,
+  pathItems: PathItems,
+  pathUserSettings: I.Map<Path, PathUserSetting>,
+  sendLinkToChat: SendLinkToChat,
+  sfmi: SystemFileManagerIntegration,
+  tlfUpdates: UserTlfUpdates,
+  tlfs: Tlfs,
+  uploads: Uploads,
+|}
 export type State = I.RecordOf<_State>
 
 export type Visibility = TlfType | null

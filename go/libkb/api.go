@@ -695,7 +695,8 @@ func appStatusToTypedError(ast *AppStatus) error {
 	}
 }
 
-func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
+func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
+	arg.MetaContext = m
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
@@ -706,8 +707,8 @@ func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
 
 // GetResp performs a GET request and returns the http response. The finisher
 // second arg should be called whenever we're done with the response (if it's non-nil).
-func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) {
-	m := arg.GetMetaContext(a.G())
+func (a *InternalAPIEngine) GetResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
+	arg.MetaContext = m
 	m = m.EnsureCtx().WithLogTag("API")
 
 	url1 := a.getURL(arg)
@@ -726,15 +727,20 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) 
 
 // GetDecode performs a GET request and decodes the response via
 // JSON into the value pointed to by v.
-func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
-	m := arg.GetMetaContext(a.G())
+func (a *InternalAPIEngine) GetDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
+	arg.MetaContext = m
 	m = m.EnsureCtx().WithLogTag("API")
 	return a.getDecode(m, arg, v)
 }
 
+func (a *InternalAPIEngine) GetDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWrapper) error {
+	mctx := NewMetaContext(ctx, a.G())
+	return a.GetDecode(mctx, arg, v)
+}
+
 func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
 	arg.MetaContext = m
-	resp, finisher, err := a.GetResp(arg)
+	resp, finisher, err := a.GetResp(m, arg)
 	if err != nil {
 		m.Debug("| API GetDecode, GetResp error: %s", err)
 		return err
@@ -765,7 +771,8 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 	return nil
 }
 
-func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
+func (a *InternalAPIEngine) Post(m MetaContext, arg APIArg) (*APIRes, error) {
+	arg.MetaContext = m
 	url1 := a.getURL(arg)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
@@ -777,7 +784,7 @@ func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 // PostJSON does _not_ actually enforce the use of JSON.
 // That is now determined by APIArg's fields.
 func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
-	return a.Post(arg)
+	return a.Post(arg.MetaContext, arg)
 }
 
 // postResp performs a POST request and returns the http response.

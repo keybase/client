@@ -10,13 +10,13 @@ import (
 
 func getUnpinnedTLF(m libkb.MetaContext) (res *unpinnedTLF, err error) {
 
-	arg := libkb.NewAPIArgWithMetaContext(m, "kbfs/unpinned")
+	arg := libkb.NewAPIArg("kbfs/unpinned")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"n": libkb.I{Val: 1},
 	}
 	var r unpinnedTLFsRaw
-	err = m.G().API.GetDecode(arg, &r)
+	err = m.G().API.GetDecode(m, arg, &r)
 	if err != nil {
 		return nil, err
 	}

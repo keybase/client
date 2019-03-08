@@ -69,10 +69,9 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 	} else {
 		postArgs["no_email"] = libkb.B{Val: true}
 	}
-	res, err = m.G().API.Post(libkb.APIArg{
-		Endpoint:   "signup",
-		NetContext: m.Ctx(),
-		Args:       postArgs,
+	res, err = m.G().API.Post(m, libkb.APIArg{
+		Endpoint: "signup",
+		Args:     postArgs,
 	})
 	if err == nil {
 		s.username = libkb.NewNormalizedUsername(arg.Username)

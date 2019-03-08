@@ -243,7 +243,7 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	// admin permissions to be honored on the server.
 	readDeleted := m.G().Env.GetReadDeletedSigChain()
 
-	resp, finisher, err := sc.G().API.GetResp(APIArg{
+	resp, finisher, err := sc.G().API.GetResp(m, APIArg{
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeOPTIONAL,
 		Args: HTTPArgs{
@@ -252,7 +252,6 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 			"v2_compressed": B{!full},
 			"read_deleted":  B{readDeleted},
 		},
-		MetaContext: m,
 	})
 	if err != nil {
 		return

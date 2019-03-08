@@ -21,6 +21,7 @@ func (r *settingsResponse) GetAppStatus() *libkb.AppStatus {
 }
 
 func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybase1.GetTeamRepoSettingsArg) (keybase1.GitTeamRepoSettings, error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	if arg.Folder.FolderType != keybase1.FolderType_TEAM {
 		return keybase1.GitTeamRepoSettings{ChatDisabled: true}, nil
 	}
@@ -31,7 +32,7 @@ func GetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	var resp settingsResponse
-	if err := g.GetAPI().GetDecode(*apiArg, &resp); err != nil {
+	if err := g.GetAPI().GetDecode(mctx, *apiArg, &resp); err != nil {
 		return keybase1.GitTeamRepoSettings{}, err
 	}
 
@@ -68,6 +69,7 @@ func convertTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext,
 }
 
 func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SetTeamRepoSettingsArg) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 	if arg.Folder.FolderType != keybase1.FolderType_TEAM {
 		return errors.New("SetTeamRepoSettings denied: this repo is not a team repo")
 	}
@@ -99,7 +101,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		apiArg.AppStatusCodes = []int{libkb.SCOk, libkb.SCTeamWritePermDenied}
 	}
 
-	apiRes, err := g.GetAPI().Post(*apiArg)
+	apiRes, err := g.GetAPI().Post(mctx, *apiArg)
 	switch apiRes.AppStatus.Code {
 	case libkb.SCTeamWritePermDenied:
 		return libkb.TeamWritePermDeniedError{}

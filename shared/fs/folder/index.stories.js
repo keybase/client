@@ -27,17 +27,17 @@ export default () => {
         <Folder
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
-          shouldShowFileUIBanner={false}
+          shouldShowSFMIBanner={false}
           resetBannerType="none"
         />
       </Kb.Box2>
     ))
-    .add('with FileUIBanner', () => (
+    .add('with SystemFileManagerIntegrationBanner', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Folder
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
-          shouldShowFileUIBanner={true}
+          shouldShowSFMIBanner={true}
           resetBannerType="none"
         />
       </Kb.Box2>
@@ -47,7 +47,7 @@ export default () => {
         <Folder
           path={Types.stringToPath('/keybase/private/me,reset')}
           routePath={I.List([])}
-          shouldShowFileUIBanner={false}
+          shouldShowSFMIBanner={false}
           resetBannerType="self"
         />
       </Kb.Box2>
@@ -57,7 +57,7 @@ export default () => {
         <Folder
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
-          shouldShowFileUIBanner={false}
+          shouldShowSFMIBanner={false}
           resetBannerType={1}
         />
       </Kb.Box2>

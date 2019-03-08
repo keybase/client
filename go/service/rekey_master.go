@@ -599,14 +599,15 @@ func (u *unkeyedTLFsQueryResult) GetAppStatus() *libkb.AppStatus {
 	return &u.Status
 }
 
-func (r *RekeyHandler2) GetRevokeWarning(_ context.Context, arg keybase1.GetRevokeWarningArg) (res keybase1.RevokeWarning, err error) {
+func (r *RekeyHandler2) GetRevokeWarning(ctx context.Context, arg keybase1.GetRevokeWarningArg) (res keybase1.RevokeWarning, err error) {
 	var u unkeyedTLFsQueryResult
 	actingDevice := arg.ActingDevice
 	if actingDevice.IsNil() {
 		actingDevice = r.G().Env.GetDeviceID()
 	}
+	mctx := libkb.NewMetaContext(ctx, r.G())
 
-	err = r.G().API.GetDecode(libkb.APIArg{
+	err = r.G().API.GetDecode(mctx, libkb.APIArg{
 		Endpoint:    "kbfs/unkeyed_tlfs_from_pair",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{

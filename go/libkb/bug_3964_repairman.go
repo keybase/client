@@ -69,7 +69,7 @@ func (b *bug3964Repairman) postToServer(m MetaContext, serverHalfSet *LKSecServe
 	if serverHalfSet == nil {
 		return errors.New("internal error --- had nil server half set")
 	}
-	_, err = m.G().API.Post(APIArg{
+	_, err = m.G().API.Post(m, APIArg{
 		Endpoint:    "user/bug_3964_repair",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
@@ -77,7 +77,6 @@ func (b *bug3964Repairman) postToServer(m MetaContext, serverHalfSet *LKSecServe
 			"ppgen":             I{Val: int(ppgen)},
 			"lks_server_halves": S{Val: serverHalfSet.EncodeToHexList()},
 		},
-		MetaContext: m,
 	})
 	return err
 }
@@ -126,7 +125,7 @@ func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen P
 		return err
 	}
 
-	_, err = b.G().API.Post(APIArg{
+	_, err = b.G().API.Post(m, APIArg{
 		Endpoint:    "device/update_lks_client_half",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
@@ -134,7 +133,6 @@ func (b *bug3964Repairman) fixLKSClientHalf(m MetaContext, lksec *LKSec, ppgen P
 			"kid":             S{Val: kid.String()},
 			"lks_client_half": S{Val: ctext},
 		},
-		MetaContext: m,
 	})
 
 	return err

@@ -5,7 +5,6 @@ import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {NullComponent, namedConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
-import * as FsConstants from '../constants/fs'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
@@ -44,7 +43,7 @@ const mapStateToProps = state => ({
   conversationsToSend: conversationsToSend(state),
   daemonHandshakeState: state.config.daemonHandshakeState,
   kbfsDaemonConnected: state.fs.kbfsDaemonConnected,
-  kbfsEnabled: FsConstants.kbfsEnabled(state),
+  kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
   userInfo: state.users.infoMap,

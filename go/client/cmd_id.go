@@ -142,7 +142,7 @@ func (ui *idCmdIdentifyUI) Cancel(_ libkb.MetaContext) error {
 	return nil
 }
 
-func (ui *idCmdIdentifyUI) Finish(_ libkb.MetaContext, ) error {
+func (ui *idCmdIdentifyUI) Finish(_ libkb.MetaContext) error {
 	b, err := json.MarshalIndent(ui, "", "    ")
 	if err != nil {
 		return err

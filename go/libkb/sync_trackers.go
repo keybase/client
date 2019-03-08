@@ -123,11 +123,10 @@ func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 	}
 
 	var res *APIRes
-	res, err = t.G().API.Get(APIArg{
+	res, err = m.G().API.Get(m, APIArg{
 		Endpoint:    "user/trackers",
 		Args:        hargs,
 		SessionType: APISessionTypeNONE,
-		MetaContext: m,
 	})
 	m.Debug("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {

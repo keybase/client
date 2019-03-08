@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -29,7 +30,7 @@ const fakeResponse = `{
 
 type FakeAPI struct{}
 
-func (a *FakeAPI) Get(arg APIArg) (*APIRes, error) {
+func (a *FakeAPI) Get(mctx MetaContext, arg APIArg) (*APIRes, error) {
 
 	decoder := json.NewDecoder(bytes.NewBufferString(fakeResponse))
 	var obj interface{}
@@ -53,15 +54,19 @@ func (a *FakeAPI) Get(arg APIArg) (*APIRes, error) {
 
 }
 
-func (a *FakeAPI) GetDecode(arg APIArg, v APIResponseWrapper) error {
+func (a *FakeAPI) GetDecode(mctx MetaContext, arg APIArg, v APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
 }
 
-func (a *FakeAPI) GetResp(APIArg) (*http.Response, func(), error) {
+func (a *FakeAPI) GetDecodeCtx(ctx context.Context, arg APIArg, v APIResponseWrapper) error {
+	return fmt.Errorf("GetDecode is phony")
+}
+
+func (a *FakeAPI) GetResp(MetaContext, APIArg) (*http.Response, func(), error) {
 	return nil, noopFinisher, fmt.Errorf("GetResp is phony")
 }
 
-func (a *FakeAPI) Post(APIArg) (*APIRes, error) {
+func (a *FakeAPI) Post(MetaContext, APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("Post is phony")
 }
 
