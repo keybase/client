@@ -6,8 +6,10 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
 import * as Kb from '../common-adapters'
+import {NavigationActions} from '@react-navigation/core'
 import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/container'
-import {partition} from 'lodash-es'
+import {partition, noop} from 'lodash-es'
+import flags from '../util/feature-flags'
 import type {RouteProps} from '../route-tree/render-route'
 
 const mapStateToProps = state => ({
@@ -16,10 +18,16 @@ const mapStateToProps = state => ({
   waiting: Constants.isWaiting(state),
 })
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigation}) => ({
+  clearBadges: () => dispatch(DevicesGen.createClearBadges()),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) =>
-    dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}])),
+  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
+    if (flags.useNewRouter) {
+      navigation.dispatch(NavigationActions.navigate({params: {highlight}, routeName: 'deviceAdd'}))
+    } else {
+      dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}]))
+    }
+  },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -49,6 +57,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
   return {
     _stateOverride: null,
+    clearBadges: dispatchProps.clearBadges,
     hasNewlyRevoked: newlyRevokedIds.size > 0,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
@@ -62,6 +71,10 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
 }
 
 class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof Devices>> {
+  componentWillUnmount() {
+    this.props.clearBadges()
+  }
+
   render() {
     return (
       <Kb.Reloadable
@@ -82,6 +95,7 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
           showPaperKeyNudge={this.props.showPaperKeyNudge}
           title={this.props.title}
           waiting={this.props.waiting}
+          clearBadges={noop}
         />
       </Kb.Reloadable>
     )

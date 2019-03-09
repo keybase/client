@@ -32,6 +32,8 @@ export default function(
         : state
     case DevicesGen.badgeAppForDevices:
       return state.merge({isNew: I.Set(action.payload.ids)})
+    case DevicesGen.clearBadges:
+      return state.merge({isNew: I.Set()})
     case ProvisionGen.startProvision:
       return state.merge({justRevokedSelf: ''})
     // Saga only actions

@@ -38,9 +38,9 @@ function* requestPaperKey(): Generator<any, void, any> {
   )
 }
 
-const requestEndangeredTLFsLoad = state => {
+const requestEndangeredTLFsLoad = (state, action) => {
   const actingDevice = state.config.deviceID
-  const targetDevice = state.devices.selectedDeviceID
+  const targetDevice = flags.useNewRouter ? action.payload.deviceID : state.devices.selectedDeviceID
   if (actingDevice && targetDevice) {
     return RPCTypes.rekeyGetRevokeWarningRpcPromise({actingDevice, targetDevice}, Constants.waitingKey)
       .then((tlfs: RPCTypes.RevokeWarning) =>
@@ -86,12 +86,15 @@ const navigateAfterRevoked = (state, action) =>
   })
 
 const showRevokePage = () =>
+  !flags.useNewRouter &&
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage', 'deviceRevoke']})
 
 const showDevicePage = () =>
+  !flags.useNewRouter &&
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage']})
 
 const showPaperKeyPage = () =>
+  !flags.useNewRouter &&
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
 
 let _wasOnDeviceTab = false
@@ -104,6 +107,8 @@ const clearBadgesAfterNav = (state, action) => {
     return RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
   }
 }
+
+const clearNavBadges = state => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
 const receivedBadgeState = (state, action) =>
   DevicesGen.createBadgeAppForDevices({
@@ -130,9 +135,12 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
     receivedBadgeState
   )
 
-  // TODO fix this. see git for an example
   if (!flags.useNewRouter) {
     yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
+  } else {
+    yield* Saga.chainAction<
+      DevicesGen.LoadPayload | DevicesGen.RevokedPayload | DevicesGen.PaperKeyCreatedPayload
+    >([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], clearNavBadges)
   }
 
   // Loading data

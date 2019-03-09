@@ -12,6 +12,7 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of devices but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'devices:'
 export const badgeAppForDevices = 'devices:badgeAppForDevices'
+export const clearBadges = 'devices:clearBadges'
 export const endangeredTLFsLoaded = 'devices:endangeredTLFsLoaded'
 export const load = 'devices:load'
 export const loaded = 'devices:loaded'
@@ -24,6 +25,7 @@ export const showRevokePage = 'devices:showRevokePage'
 
 // Payload Types
 type _BadgeAppForDevicesPayload = $ReadOnly<{|ids: Array<string>|}>
+type _ClearBadgesPayload = void
 type _EndangeredTLFsLoadedPayload = $ReadOnly<{|deviceID: Types.DeviceID, tlfs: Array<string>|}>
 type _LoadPayload = void
 type _LoadedPayload = $ReadOnly<{|devices: Array<Types.Device>|}>
@@ -36,6 +38,7 @@ type _ShowRevokePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
 
 // Action Creators
 export const createBadgeAppForDevices = (payload: _BadgeAppForDevicesPayload) => ({payload, type: badgeAppForDevices})
+export const createClearBadges = (payload: _ClearBadgesPayload) => ({payload, type: clearBadges})
 export const createEndangeredTLFsLoaded = (payload: _EndangeredTLFsLoadedPayload) => ({payload, type: endangeredTLFsLoaded})
 export const createLoad = (payload: _LoadPayload) => ({payload, type: load})
 export const createLoaded = (payload: _LoadedPayload) => ({payload, type: loaded})
@@ -48,6 +51,7 @@ export const createShowRevokePage = (payload: _ShowRevokePagePayload) => ({paylo
 
 // Action Payloads
 export type BadgeAppForDevicesPayload = {|+payload: _BadgeAppForDevicesPayload, +type: 'devices:badgeAppForDevices'|}
+export type ClearBadgesPayload = {|+payload: _ClearBadgesPayload, +type: 'devices:clearBadges'|}
 export type EndangeredTLFsLoadedPayload = {|+payload: _EndangeredTLFsLoadedPayload, +type: 'devices:endangeredTLFsLoaded'|}
 export type LoadPayload = {|+payload: _LoadPayload, +type: 'devices:load'|}
 export type LoadedPayload = {|+payload: _LoadedPayload, +type: 'devices:loaded'|}
@@ -62,6 +66,7 @@ export type ShowRevokePagePayload = {|+payload: _ShowRevokePagePayload, +type: '
 // prettier-ignore
 export type Actions =
   | BadgeAppForDevicesPayload
+  | ClearBadgesPayload
   | EndangeredTLFsLoadedPayload
   | LoadPayload
   | LoadedPayload

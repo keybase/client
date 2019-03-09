@@ -18,6 +18,7 @@ type Props = {|
   // Only used by storybook
   _stateOverride: ?State,
   items: Array<Item>,
+  clearBadges: () => void,
   loadDevices: () => void,
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void,
   onBack: () => void,

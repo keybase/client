@@ -42,12 +42,12 @@ const routeTree = () => {
 }
 
 export const newRoutes = {
-  deviceAdd: {getScreen: () => require('./add-device/container').default},
-  devicePage: {getScreen: () => require('./device-page/container').default},
-  devicePaperKey: {getScreen: () => require('./paper-key/container').default},
-  deviceRevoke: {getScreen: () => require('./device-revoke/container').default},
-  'settingsTabs.devicesTab': {getScreen: () => require('./container').default},
-  'tabs.devicesTab': {getScreen: () => require('./container').default},
+  deviceAdd: {getScreen: () => require('./add-device/container').default, upgraded: true},
+  devicePage: {getScreen: () => require('./device-page/container').default, upgrade: true},
+  devicePaperKey: {getScreen: () => require('./paper-key/container').default, upgraded: true},
+  deviceRevoke: {getScreen: () => require('./device-revoke/container').default, upgraded: true},
+  'settingsTabs.devicesTab': {getScreen: () => require('./container').default, upgraded: true},
+  'tabs.devicesTab': {getScreen: () => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {}

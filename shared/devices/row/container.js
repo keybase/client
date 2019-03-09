@@ -2,10 +2,12 @@
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as Types from '../../constants/types/devices'
+import {NavigationActions, withNavigation} from '@react-navigation/core'
+import flags from '../../util/feature-flags'
 import {namedConnect} from '../../util/container'
 import DeviceRow from '.'
 
-type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean}
+type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean, navigation: any}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
@@ -29,13 +31,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isNew: stateProps.isNew,
   isRevoked: stateProps.isRevoked,
   name: stateProps.name,
-  showExistingDevicePage: () => dispatchProps._showExistingDevicePage(ownProps.deviceID),
+  showExistingDevicePage: () => {
+    if (flags.useNewRouter) {
+      ownProps.navigation.dispatch(
+        NavigationActions.navigate({params: {deviceID: ownProps.deviceID}, routeName: 'devicePage'})
+      )
+    } else {
+      dispatchProps._showExistingDevicePage(ownProps.deviceID)
+    }
+  },
   type: stateProps.type,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'DeviceRow'
-)(DeviceRow)
+export default withNavigation(
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'DeviceRow')(DeviceRow)
+)

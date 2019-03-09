@@ -2,23 +2,44 @@
 import * as Container from '../../util/container'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
+import {NavigationActions} from '@react-navigation/core'
 import AddDevice from '.'
+import flags from '../../util/feature-flags'
 import type {RouteProps} from '../../route-tree/render-route'
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, navigation}) => ({
   onAddComputer: () => {
-    dispatch(navigateUp())
+    if (flags.useNewRouter) {
+      navigation.dispatch(NavigationActions.back())
+    } else {
+      dispatch(navigateUp())
+    }
     dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'}))
   },
   onAddPaperKey: () => {
-    dispatch(navigateUp())
+    if (flags.useNewRouter) {
+      navigation.dispatch(NavigationActions.back())
+      navigation.dispatch(NavigationActions.navigate({routeName: 'devicePaperKey'}))
+    } else {
+      dispatch(navigateUp())
+    }
     dispatch(DevicesGen.createShowPaperKeyPage())
   },
   onAddPhone: () => {
-    dispatch(navigateUp())
+    if (flags.useNewRouter) {
+      navigation.dispatch(NavigationActions.back())
+    } else {
+      dispatch(navigateUp())
+    }
     dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'}))
   },
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => {
+    if (flags.useNewRouter) {
+      navigation.dispatch(NavigationActions.back())
+    } else {
+      dispatch(navigateUp())
+    }
+  },
 })
 
 export default Container.namedConnect<
@@ -30,6 +51,10 @@ export default Container.namedConnect<
 >(
   () => ({}),
   mapDispatchToProps,
-  (s, d, o) => ({...d, highlight: o.routeProps.get('highlight'), title: 'Add a device'}),
+  (s, d, o) => ({
+    ...d,
+    highlight: flags.useNewRouter ? o.navigation.getParam('highlight', []) : o.routeProps.get('highlight'),
+    title: 'Add a device',
+  }),
   'AddDevice'
 )(AddDevice)
