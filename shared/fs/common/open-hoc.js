@@ -18,17 +18,9 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, routePath}: OwnProps) => ({
-  _destinationPickerIncomingShareGoTo: () =>
+  _destinationPickerGoTo: () =>
     dispatch(
-      FsGen.createIncomingShareOpen({
-        currentIndex: destinationPickerIndex || 0,
-        path,
-        routePath /* make flow happy */,
-      })
-    ),
-  _destinationPickerMoveOrCopyGoTo: () =>
-    dispatch(
-      FsGen.createMoveOrCopyOpen({
+      FsGen.createDestinationPickerOpen({
         currentIndex: destinationPickerIndex || 0,
         path,
         routePath /* make flow happy */,
@@ -57,11 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps 
   onOpen:
     typeof ownProps.destinationPickerIndex === 'number'
       ? canOpenInDestinationPicker(stateProps, ownProps)
-        ? stateProps._destinationPicker.source.type === 'move-or-copy'
-          ? dispatchProps._destinationPickerMoveOrCopyGoTo
-          : stateProps._destinationPicker.source.type === 'incoming-share'
-            ? dispatchProps._destinationPickerIncomingShareGoTo
-            : null
+        ? dispatchProps._destinationPickerGoTo
         : null
       : dispatchProps._open,
   // We need the inexact spread here because this is a HOC. As such, it must

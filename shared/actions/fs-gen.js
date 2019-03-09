@@ -16,6 +16,7 @@ export const closeDestinationPicker = 'fs:closeDestinationPicker'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
+export const destinationPickerOpen = 'fs:destinationPickerOpen'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
 export const dismissFsError = 'fs:dismissFsError'
@@ -35,7 +36,6 @@ export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
-export const incomingShareOpen = 'fs:incomingShareOpen'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonConnected = 'fs:kbfsDaemonConnected'
 export const kbfsDaemonDisconnected = 'fs:kbfsDaemonDisconnected'
@@ -46,7 +46,6 @@ export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const move = 'fs:move'
-export const moveOrCopyOpen = 'fs:moveOrCopyOpen'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
 export const notifySyncActivity = 'fs:notifySyncActivity'
@@ -93,6 +92,7 @@ type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _CopyPayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
+type _DestinationPickerOpenPayload = $ReadOnly<{|routePath: I.List<string>, path: Types.Path, currentIndex: number|}>
 type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
 type _DismissFsErrorPayload = $ReadOnly<{|key: string|}>
@@ -112,7 +112,6 @@ type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.R
 type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
 type _HideSystemFileManagerIntegrationBannerPayload = void
-type _IncomingShareOpenPayload = $ReadOnly<{|routePath: I.List<string>, path: Types.Path, currentIndex: number|}>
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
 type _KbfsDaemonConnectedPayload = void
 type _KbfsDaemonDisconnectedPayload = void
@@ -122,7 +121,6 @@ type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boole
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|address: string, token: string|}>
 type _MimeTypeLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
 type _MimeTypeLoadedPayload = $ReadOnly<{|path: Types.Path, mimeType: Types.Mime|}>
-type _MoveOrCopyOpenPayload = $ReadOnly<{|routePath: I.List<string>, path: Types.Path, currentIndex: number|}>
 type _MovePayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _NewFolderNamePayload = $ReadOnly<{|editID: Types.EditID, name: string|}>
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
@@ -170,6 +168,7 @@ export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPay
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
+export const createDestinationPickerOpen = (payload: _DestinationPickerOpenPayload) => ({payload, type: destinationPickerOpen})
 export const createDiscardEdit = (payload: _DiscardEditPayload) => ({payload, type: discardEdit})
 export const createDismissDownload = (payload: _DismissDownloadPayload) => ({payload, type: dismissDownload})
 export const createDismissFsError = (payload: _DismissFsErrorPayload) => ({payload, type: dismissFsError})
@@ -189,7 +188,6 @@ export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({paylo
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({payload, type: folderListLoaded})
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
 export const createHideSystemFileManagerIntegrationBanner = (payload: _HideSystemFileManagerIntegrationBannerPayload) => ({payload, type: hideSystemFileManagerIntegrationBanner})
-export const createIncomingShareOpen = (payload: _IncomingShareOpenPayload) => ({payload, type: incomingShareOpen})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
 export const createKbfsDaemonConnected = (payload: _KbfsDaemonConnectedPayload) => ({payload, type: kbfsDaemonConnected})
 export const createKbfsDaemonDisconnected = (payload: _KbfsDaemonDisconnectedPayload) => ({payload, type: kbfsDaemonDisconnected})
@@ -200,7 +198,6 @@ export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) 
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({payload, type: mimeTypeLoad})
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({payload, type: mimeTypeLoaded})
 export const createMove = (payload: _MovePayload) => ({payload, type: move})
-export const createMoveOrCopyOpen = (payload: _MoveOrCopyOpenPayload) => ({payload, type: moveOrCopyOpen})
 export const createNewFolderName = (payload: _NewFolderNamePayload) => ({payload, type: newFolderName})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({payload, type: newFolderRow})
 export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) => ({payload, type: notifySyncActivity})
@@ -247,6 +244,7 @@ export type CloseDestinationPickerPayload = {|+payload: _CloseDestinationPickerP
 export type CommitEditPayload = {|+payload: _CommitEditPayload, +type: 'fs:commitEdit'|}
 export type CopyPayload = {|+payload: _CopyPayload, +type: 'fs:copy'|}
 export type DeleteFilePayload = {|+payload: _DeleteFilePayload, +type: 'fs:deleteFile'|}
+export type DestinationPickerOpenPayload = {|+payload: _DestinationPickerOpenPayload, +type: 'fs:destinationPickerOpen'|}
 export type DiscardEditPayload = {|+payload: _DiscardEditPayload, +type: 'fs:discardEdit'|}
 export type DismissDownloadPayload = {|+payload: _DismissDownloadPayload, +type: 'fs:dismissDownload'|}
 export type DismissFsErrorPayload = {|+payload: _DismissFsErrorPayload, +type: 'fs:dismissFsError'|}
@@ -266,7 +264,6 @@ export type FolderListLoadPayload = {|+payload: _FolderListLoadPayload, +type: '
 export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +type: 'fs:folderListLoaded'|}
 export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
 export type HideSystemFileManagerIntegrationBannerPayload = {|+payload: _HideSystemFileManagerIntegrationBannerPayload, +type: 'fs:hideSystemFileManagerIntegrationBanner'|}
-export type IncomingShareOpenPayload = {|+payload: _IncomingShareOpenPayload, +type: 'fs:incomingShareOpen'|}
 export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
 export type KbfsDaemonConnectedPayload = {|+payload: _KbfsDaemonConnectedPayload, +type: 'fs:kbfsDaemonConnected'|}
 export type KbfsDaemonDisconnectedPayload = {|+payload: _KbfsDaemonDisconnectedPayload, +type: 'fs:kbfsDaemonDisconnected'|}
@@ -276,7 +273,6 @@ export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loa
 export type LocalHTTPServerInfoPayload = {|+payload: _LocalHTTPServerInfoPayload, +type: 'fs:localHTTPServerInfo'|}
 export type MimeTypeLoadPayload = {|+payload: _MimeTypeLoadPayload, +type: 'fs:mimeTypeLoad'|}
 export type MimeTypeLoadedPayload = {|+payload: _MimeTypeLoadedPayload, +type: 'fs:mimeTypeLoaded'|}
-export type MoveOrCopyOpenPayload = {|+payload: _MoveOrCopyOpenPayload, +type: 'fs:moveOrCopyOpen'|}
 export type MovePayload = {|+payload: _MovePayload, +type: 'fs:move'|}
 export type NewFolderNamePayload = {|+payload: _NewFolderNamePayload, +type: 'fs:newFolderName'|}
 export type NewFolderRowPayload = {|+payload: _NewFolderRowPayload, +type: 'fs:newFolderRow'|}
@@ -326,6 +322,7 @@ export type Actions =
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
+  | DestinationPickerOpenPayload
   | DiscardEditPayload
   | DismissDownloadPayload
   | DismissFsErrorPayload
@@ -345,7 +342,6 @@ export type Actions =
   | FolderListLoadedPayload
   | FsErrorPayload
   | HideSystemFileManagerIntegrationBannerPayload
-  | IncomingShareOpenPayload
   | JournalUpdatePayload
   | KbfsDaemonConnectedPayload
   | KbfsDaemonDisconnectedPayload
@@ -355,7 +351,6 @@ export type Actions =
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload
   | MimeTypeLoadedPayload
-  | MoveOrCopyOpenPayload
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
