@@ -42,7 +42,8 @@ const load = () => {
           metaOne="Full power"
           metaTwo="Can do everything"
         />
-        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="large" />
+        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="big" />
+        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="huge" />
         <NameWithIcon
           {...commonProps}
           onClick={Sb.action('Clicked!')}

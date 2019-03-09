@@ -71,7 +71,7 @@ const DeviceRevoke = (props: Props) => {
       style={styles.container}
     >
       <Kb.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} size="small" />
-      <Kb.Text center={true} type="Header" >
+      <Kb.Text center={true} type="Header">
         Are you sure you want to revoke{' '}
         {props.device.currentDevice ? (
           'your current device'
@@ -87,7 +87,7 @@ const DeviceRevoke = (props: Props) => {
       </Kb.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
       {props.waiting && (
-        <Kb.Text center={true} type="BodySmallItalic" >
+        <Kb.Text center={true} type="BodySmallItalic">
           Calculating any side effects...
         </Kb.Text>
       )}
@@ -103,7 +103,6 @@ const styles = Styles.styleSheetCreate({
   }),
   headerName: {
     color: Styles.globalColors.red,
-    marginTop: 4,
     textDecorationLine: 'line-through',
   },
   italicName: {...Styles.globalStyles.italic},

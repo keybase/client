@@ -37,7 +37,7 @@ const TeamInfo = p => (
           style={styles.infoPopup}
         >
           <Kb.NameWithIcon
-            avatarSize={48}
+            size="small"
             teamname={p.name}
             title={p.name}
             metaOne={

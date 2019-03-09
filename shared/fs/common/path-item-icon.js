@@ -38,9 +38,7 @@ const getIconSizeString = (size: Size): RealSizeString => {
   }
 }
 
-const UnknownIcon = (props: Props) => (
-  <Kb.Icon type="iconfont-folder-private" color={Styles.globalColors.grey} fontSize={props.size} />
-)
+const UnknownIcon = (props: Props) => <Kb.Icon type="icon-folder-16" />
 
 const icons = {
   file: {
