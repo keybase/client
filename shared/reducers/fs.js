@@ -379,8 +379,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.deleteFile:
     case FsGen.move:
     case FsGen.copy:
-    case FsGen.moveOrCopyOpen:
-    case FsGen.incomingShareOpen:
+    case FsGen.destinationPickerOpen:
     case FsGen.closeDestinationPicker:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:

@@ -204,14 +204,9 @@
     "setIncomingShareLocalPath": {
       "localPath": "Types.LocalPath"
     },
-    "incomingShareOpen": {
-      "routePath": "I.List<string>",
-      "path": "Types.Path",
-      "currentIndex": "number"
-    },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "closeDestinationPicker": {},
-    "moveOrCopyOpen": {
+    "destinationPickerOpen": {
       "routePath": "I.List<string>",
       "path": "Types.Path",
       "currentIndex": "number"

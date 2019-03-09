@@ -750,20 +750,7 @@ const moveOrCopy = (state, action) => {
   )
 }
 
-const moveOrCopyOpen = (state, action) => [
-  FsGen.createSetDestinationPickerParentPath({
-    index: action.payload.currentIndex + 1,
-    path: action.payload.path,
-  }),
-  RouteTreeGen.createPutActionIfOnPath({
-    expectedPath: action.payload.routePath,
-    otherAction: RouteTreeGen.createNavigateAppend({
-      path: [{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}],
-    }),
-  }),
-]
-
-const incomingShareOpen = (state, action) => [
+const destinationPickerOpen = (state, action) => [
   FsGen.createSetDestinationPickerParentPath({
     index: action.payload.currentIndex + 1,
     path: action.payload.path,
@@ -945,8 +932,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     onFSSyncActivity
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
-  yield* Saga.chainAction<FsGen.MoveOrCopyOpenPayload>(FsGen.moveOrCopyOpen, moveOrCopyOpen)
-  yield* Saga.chainAction<FsGen.IncomingShareOpenPayload>(FsGen.incomingShareOpen, incomingShareOpen)
+  yield* Saga.chainAction<FsGen.DestinationPickerOpenPayload>(FsGen.destinationPickerOpen, destinationPickerOpen)
   yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   yield* Saga.chainAction<FsGen.CloseDestinationPickerPayload>(FsGen.closeDestinationPicker, closeDestinationPicker)
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)

@@ -29,17 +29,9 @@ const getDestinationParentPath = memoize((stateProps, ownProps: OwnProps) =>
 )
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  _onBackUpIncomingShare: (currentPath: Types.Path) =>
+  _onBackUp: (currentPath: Types.Path) =>
     dispatch(
-      FsGen.createIncomingShareOpen({
-        currentIndex: getIndex(ownProps),
-        path: Types.getPathParent(currentPath),
-        routePath: ownProps.routePath,
-      })
-    ),
-  _onBackUpMoveOrCopy: (currentPath: Types.Path) =>
-    dispatch(
-      FsGen.createMoveOrCopyOpen({
+      FsGen.createDestinationPickerOpen({
         currentIndex: getIndex(ownProps),
         path: Types.getPathParent(currentPath),
         routePath: ownProps.routePath,
@@ -100,11 +92,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     index: getIndex(ownProps),
     onBackUp: canBackUp(stateProps, ownProps)
-      ? stateProps._destinationPicker.source.type === 'move-or-copy'
-        ? () => dispatchProps._onBackUpMoveOrCopy(getDestinationParentPath(stateProps, ownProps))
-        : stateProps._destinationPicker.source.type === 'incoming-share'
-          ? () => dispatchProps._onBackUpIncomingShare(getDestinationParentPath(stateProps, ownProps))
-          : null
+      ? () => dispatchProps._onBackUp(getDestinationParentPath(stateProps, ownProps))
       : null,
     onCancel: dispatchProps.onCancel,
     onCopyHere: canCopy(stateProps, ownProps)
