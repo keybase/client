@@ -494,6 +494,9 @@ const (
 	// Sym is a symbolic link.
 	Sym
 
+	// FakeFile can be used to indicate a faked-out entry for a file,
+	// that will be specially processed by folderBranchOps.
+	FakeFile EntryType = 0xfffe
 	// FakeDir can be used to indicate a faked-out entry for a directory,
 	// that will be specially processed by folderBranchOps.
 	FakeDir EntryType = 0xffff
