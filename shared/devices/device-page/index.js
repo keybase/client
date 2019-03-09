@@ -100,14 +100,14 @@ const DevicePage = (props: Props) => {
 
   const revokeName = {
     backup: 'paper key',
-    desktop: 'device',
-    mobile: 'device',
+    desktop: 'computer',
+    mobile: 'phone',
   }[props.device.type]
 
   const metaTwo = {
     backup: 'Paper key',
     desktop: 'Computer',
-    mobile: 'Mobile device',
+    mobile: 'Phone',
   }[props.device.type]
 
   return (
