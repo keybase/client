@@ -2843,14 +2843,22 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	return retChildren, nil
 }
 
-func (fbo *folderBranchOps) makeFakeDirEntry(
-	ctx context.Context, lState *lockState, dir Node, name string) (
-	de DirEntry, err error) {
-	fbo.log.CDebugf(ctx, "Faking directory entry for %s", name)
+func (fbo *folderBranchOps) makeFakeEntryID(
+	ctx context.Context, dir Node, name string) (
+	id kbfsblock.ID, err error) {
+	// Use the path of the node to generate the node ID, which will be
+	// unique and deterministic within `fbo.nodeCache`.
 	dirPath := fbo.nodeCache.PathFromNode(dir)
-	id, err := kbfsblock.MakePermanentID(
+	return kbfsblock.MakePermanentID(
 		[]byte(dirPath.ChildPathNoPtr(name).String()),
 		fbo.config.BlockCryptVersion())
+}
+
+func (fbo *folderBranchOps) makeFakeDirEntry(
+	ctx context.Context, dir Node, name string) (
+	de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "Faking directory entry for %s", name)
+	id, err := fbo.makeFakeEntryID(ctx, dir, name)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -2873,6 +2881,43 @@ func (fbo *folderBranchOps) makeFakeDirEntry(
 	return de, nil
 }
 
+func (fbo *folderBranchOps) makeFakeFileEntry(
+	ctx context.Context, dir Node, name string) (de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "Faking file entry for %s", name)
+	id, err := fbo.makeFakeEntryID(ctx, dir, name)
+	if err != nil {
+		return DirEntry{}, err
+	}
+
+	fs := dir.GetFS(ctx)
+	if fs == nil {
+		return DirEntry{}, errors.New("No FS")
+	}
+
+	fi, err := fs.Lstat(name)
+	if err != nil {
+		return DirEntry{}, err
+	}
+
+	de = DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				ID:      id,
+				DataVer: FirstValidDataVer,
+			},
+		},
+		EntryInfo: EntryInfoFromFileInfo(fi),
+	}
+	if de.Type == Sym {
+		target, err := fs.Readlink(name)
+		if err != nil {
+			return DirEntry{}, err
+		}
+		de.SymPath = target
+	}
+	return de, nil
+}
+
 func (fbo *folderBranchOps) processMissedLookup(
 	ctx context.Context, lState *lockState, dir Node, name string,
 	missErr error) (node Node, ei EntryInfo, err error) {
@@ -2883,7 +2928,17 @@ func (fbo *folderBranchOps) processMissedLookup(
 	}
 
 	if et == FakeDir {
-		de, err := fbo.makeFakeDirEntry(ctx, lState, dir, name)
+		de, err := fbo.makeFakeDirEntry(ctx, dir, name)
+		if err != nil {
+			return nil, EntryInfo{}, missErr
+		}
+		node, err := fbo.blocks.GetChildNode(lState, dir, name, de)
+		if err != nil {
+			return nil, EntryInfo{}, err
+		}
+		return node, de.EntryInfo, nil
+	} else if et == FakeFile {
+		de, err := fbo.makeFakeFileEntry(ctx, dir, name)
 		if err != nil {
 			return nil, EntryInfo{}, missErr
 		}
@@ -2926,7 +2981,7 @@ func (fbo *folderBranchOps) statUsingFS(
 	// First check if this is needs to be a faked-out node.
 	autocreate, _, et, _ := node.ShouldCreateMissedLookup(ctx, name)
 	if autocreate && et == FakeDir {
-		de, err := fbo.makeFakeDirEntry(ctx, lState, node, name)
+		de, err := fbo.makeFakeDirEntry(ctx, node, name)
 		if err != nil {
 			return DirEntry{}, false, err
 		}
@@ -2940,36 +2995,9 @@ func (fbo *folderBranchOps) statUsingFS(
 
 	fbo.log.CDebugf(ctx, "Using an FS to satisfy stat of %s", name)
 
-	fi, err := fs.Lstat(name)
+	de, err = fbo.makeFakeFileEntry(ctx, node, name)
 	if err != nil {
-		return DirEntry{}, false, err
-	}
-
-	// Convert the FileInfo to a DirEntry.  Using the path of the node
-	// to generate the node ID, which will be unique and deterministic
-	// within `fbo.nodeCache`.
-	nodePath := fbo.nodeCache.PathFromNode(node)
-	id, err := kbfsblock.MakePermanentID(
-		[]byte(nodePath.ChildPathNoPtr(name).String()),
-		fbo.config.BlockCryptVersion())
-	if err != nil {
-		return DirEntry{}, false, err
-	}
-	de = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{
-				ID:      id,
-				DataVer: FirstValidDataVer,
-			},
-		},
-		EntryInfo: EntryInfoFromFileInfo(fi),
-	}
-	if de.Type == Sym {
-		target, err := fs.Readlink(name)
-		if err != nil {
-			return DirEntry{}, false, err
-		}
-		de.SymPath = target
+		return DirEntry{}, false, nil
 	}
 	return de, true, nil
 }

@@ -55,6 +55,9 @@ const (
 	// AutogitBranchPrefix is a prefix of a subdirectory name
 	// containing one element of a git reference name.
 	AutogitBranchPrefix = ".kbfs_autogit_branch_"
+	// AutogitCommitPrefix is a prefix of a file name
+	// containing the full commit hash.
+	AutogitCommitPrefix = ".kbfs_autogit_commit_"
 	// branchSlash can substitute for slashes in branch names,
 	// following `AutogitBranchPrefix`.
 	branchSlash = "^"
@@ -90,6 +93,33 @@ func (rfn repoFileNode) GetFile(ctx context.Context) billy.File {
 	return f
 }
 
+type repoCommitNode struct {
+	libkbfs.Node
+	am        *AutogitManager
+	gitRootFS *libfs.FS
+	repo      string
+	hash      plumbing.Hash
+}
+
+var _ libkbfs.Node = (*repoCommitNode)(nil)
+
+func (rcn repoCommitNode) GetFile(ctx context.Context) billy.File {
+	ctx = libkbfs.CtxWithRandomIDReplayable(
+		ctx, ctxAutogitIDKey, ctxAutogitOpID, rcn.am.log)
+	_, b, err := rcn.am.GetBrowserForRepo(ctx, rcn.gitRootFS, rcn.repo, "", "")
+	if err != nil {
+		rcn.am.log.CDebugf(nil, "Error getting browser: %+v", err)
+		return nil
+	}
+
+	f, err := b.getCommitFile(ctx, rcn.hash)
+	if err != nil {
+		rcn.am.log.CDebugf(ctx, "Error opening file: %+v", err)
+		return nil
+	}
+	return f
+}
+
 type repoDirNode struct {
 	libkbfs.Node
 	am        *AutogitManager
@@ -107,19 +137,29 @@ var _ libkbfs.Node = (*repoDirNode)(nil)
 func (rdn *repoDirNode) ShouldCreateMissedLookup(
 	ctx context.Context, name string) (
 	bool, context.Context, libkbfs.EntryType, string) {
-	if !strings.HasPrefix(name, AutogitBranchPrefix) {
+	switch {
+	case strings.HasPrefix(name, AutogitBranchPrefix):
+		branchName := strings.TrimPrefix(name, AutogitBranchPrefix)
+		if len(branchName) == 0 {
+			return rdn.Node.ShouldCreateMissedLookup(ctx, name)
+		}
+		// It's difficult to tell if a given name is a legitimate
+		// prefix for a branch name or not, so just accept everything.
+		// If it's not legit, trying to read the data will error out.
+		return true, ctx, libkbfs.FakeDir, ""
+	case strings.HasPrefix(name, AutogitCommitPrefix):
+		commit := strings.TrimPrefix(name, AutogitCommitPrefix)
+		if len(commit) == 0 {
+			return rdn.Node.ShouldCreateMissedLookup(ctx, name)
+		}
+		// It's a bit involved to tell if a given name is a legitimate
+		// commit or not, so just accept everything.  If it's not
+		// legit, trying to read the data will error out.
+		return true, ctx, libkbfs.FakeFile, ""
+	default:
 		return rdn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
 
-	branchName := strings.TrimPrefix(name, AutogitBranchPrefix)
-	if len(branchName) == 0 {
-		return rdn.Node.ShouldCreateMissedLookup(ctx, name)
-	}
-
-	// It's difficult to tell if a given name is a legitimate prefix
-	// to a branch name or not, so just accept everything.  If it's
-	// not legit, trying to read the data will error out.
-	return true, ctx, libkbfs.FakeDir, ""
 }
 
 func (rdn *repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
@@ -166,6 +206,15 @@ func (rdn *repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 			repo:      rdn.repo,
 			subdir:    "",
 			branch:    branch,
+		}
+	} else if strings.HasPrefix(name, AutogitCommitPrefix) {
+		commit := strings.TrimPrefix(name, AutogitCommitPrefix)
+		return &repoCommitNode{
+			Node:      child,
+			am:        rdn.am,
+			gitRootFS: rdn.gitRootFS,
+			repo:      rdn.repo,
+			hash:      plumbing.NewHash(commit),
 		}
 	}
 

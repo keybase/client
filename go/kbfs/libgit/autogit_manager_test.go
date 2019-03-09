@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 	billy "gopkg.in/src-d/go-billy.v4"
 	gogit "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
@@ -51,17 +52,10 @@ func initConfigForAutogit(t *testing.T) (
 	return ctx, config, cancel, tempdir
 }
 
-func addFileToWorktreeAndCommit(
-	t *testing.T, ctx context.Context, config libkbfs.Config,
-	h *libkbfs.TlfHandle, repo *gogit.Repository, worktreeFS billy.Filesystem,
-	name, data string) {
-	addFileToWorktree(t, repo, worktreeFS, name, data)
-	commitWorktree(t, ctx, config, h, worktreeFS)
-}
-
-func addFileToWorktree(
+func addFileToWorktreeWithInfo(
 	t *testing.T, repo *gogit.Repository, worktreeFS billy.Filesystem,
-	name, data string) {
+	name, data, msg, userName, userEmail string, timestamp time.Time) (
+	hash plumbing.Hash) {
 	foo, err := worktreeFS.Create(name)
 	require.NoError(t, err)
 	defer foo.Close()
@@ -71,14 +65,31 @@ func addFileToWorktree(
 	require.NoError(t, err)
 	_, err = wt.Add(name)
 	require.NoError(t, err)
-	_, err = wt.Commit("foo commit", &gogit.CommitOptions{
+	hash, err = wt.Commit(msg, &gogit.CommitOptions{
 		Author: &object.Signature{
-			Name:  "me",
-			Email: "me@keyba.se",
-			When:  time.Now(),
+			Name:  userName,
+			Email: userEmail,
+			When:  timestamp,
 		},
 	})
 	require.NoError(t, err)
+	return hash
+}
+
+func addFileToWorktree(
+	t *testing.T, repo *gogit.Repository, worktreeFS billy.Filesystem,
+	name, data string) {
+	_ = addFileToWorktreeWithInfo(
+		t, repo, worktreeFS, name, data, "foo commit", "me", "me@keyba.se",
+		time.Now())
+}
+
+func addFileToWorktreeAndCommit(
+	t *testing.T, ctx context.Context, config libkbfs.Config,
+	h *libkbfs.TlfHandle, repo *gogit.Repository, worktreeFS billy.Filesystem,
+	name, data string) {
+	addFileToWorktree(t, repo, worktreeFS, name, data)
+	commitWorktree(t, ctx, config, h, worktreeFS)
 }
 
 func commitWorktree(
