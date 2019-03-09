@@ -13,14 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func sessCheck(t *testing.T, g *libkb.GlobalContext) (err error) {
-	arg := libkb.NewRetryAPIArg("sesscheck")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
-	_, err = g.API.Get(arg)
-	t.Logf("sesscheck returned: %q", err)
-	return err
-}
-
 func setPassphraseInTest(tc libkb.TestContext) error {
 	newPassphrase := "okokokok"
 	arg := &keybase1.PassphraseChangeArg{
@@ -79,14 +71,14 @@ type errorAPIMock struct {
 	shouldTimeout bool
 }
 
-func (r *errorAPIMock) GetDecode(arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
 	if arg.Endpoint == "user/has_random_pw" {
 		r.callCount++
 		if r.shouldTimeout {
 			return errors.New("timeout or something")
 		}
 	}
-	return r.realAPI.GetDecode(arg, w)
+	return r.realAPI.GetDecode(mctx, arg, w)
 }
 
 func TestCanLogoutTimeout(t *testing.T) {

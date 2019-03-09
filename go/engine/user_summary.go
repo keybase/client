@@ -45,7 +45,7 @@ func (e *UserSummary) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *UserSummary) Run(m libkb.MetaContext) error {
-	sums, err := e.get()
+	sums, err := e.get(m)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (d *displayInfo) GetAppStatus() *libkb.AppStatus {
 	return &d.Status
 }
 
-func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
+func (e *UserSummary) get(mctx libkb.MetaContext) (map[keybase1.UID]*Summary, error) {
 
 	args := libkb.APIArg{
 		Endpoint: "user/display_info",
@@ -173,7 +173,7 @@ func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
 	}
 	// using POST because uids list might be long...
 	var j displayInfo
-	if err := e.G().API.PostDecode(args, &j); err != nil {
+	if err := mctx.G().API.PostDecode(mctx, args, &j); err != nil {
 		return nil, err
 	}
 

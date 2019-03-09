@@ -2,7 +2,7 @@
 import ConfirmSend from '.'
 import * as Constants from '../../constants/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
-import * as TrackerGen from '../../actions/tracker-gen'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {connect, isMobile, type RouteProps} from '../../util/container'
@@ -49,7 +49,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   _onReviewProofs: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onAbandonPayment: () => dispatch(WalletsGen.createAbandonPayment()),
   onBack: () => {
     dispatch(WalletsGen.createClearErrors())

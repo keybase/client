@@ -313,7 +313,8 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 // sessionForY gets session tokens that Y can use to interact with
 // API server.
 func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
-	resp, err := e.G().API.Post(libkb.APIArg{
+	mctx := libkb.NewMetaContextBackground(e.G())
+	resp, err := mctx.G().API.Post(mctx, libkb.APIArg{
 		Endpoint:    "new_session",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	})

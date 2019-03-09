@@ -997,7 +997,7 @@ func NewChatUI() *ChatUI {
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
 		GiphyWindow:        make(chan bool, 10),
-		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
+		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 100),
 		CommandMarkdown:    make(chan *chat1.UICommandMarkdown, 10),
 	}
 }
@@ -1307,6 +1307,10 @@ func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convI
 func (m *MockChatHelper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
 	return chat1.MessageUnboxed{}, nil
+}
+
+func (m *MockChatHelper) TopReacjis(ctx context.Context, uid gregor1.UID) []string {
+	return nil
 }
 
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,

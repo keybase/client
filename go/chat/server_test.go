@@ -3187,7 +3187,7 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 		assertUnreadline(ctx2, g2, users[1], msgID1, msgID2)
 
 		// reaction does not affect things
-		mustReactToMsg(ctx1, t, ctc, users[0], conv, msgID2)
+		mustReactToMsg(ctx1, t, ctc, users[0], conv, msgID2, ":+1:")
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_REACTION)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_REACTION)
 		assertUnreadline(ctx2, g2, users[1], 1, msgID1)
@@ -3276,7 +3276,7 @@ func mustEditMsg(ctx context.Context, t *testing.T, ctc *chatTestContext, user *
 }
 
 func mustReactToMsg(ctx context.Context, t *testing.T, ctc *chatTestContext, user *kbtest.FakeUser,
-	conv chat1.ConversationInfoLocal, msgID chat1.MessageID) chat1.MessageID {
+	conv chat1.ConversationInfoLocal, msgID chat1.MessageID, reaction string) chat1.MessageID {
 	postRes, err := ctc.as(t, user).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 		ConversationID: conv.Id,
 		Msg: chat1.MessagePlaintext{
@@ -3288,7 +3288,7 @@ func mustReactToMsg(ctx context.Context, t *testing.T, ctc *chatTestContext, use
 			},
 			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
 				MessageID: msgID,
-				Body:      ":+1:",
+				Body:      reaction,
 			}),
 		},
 	})
@@ -4649,11 +4649,11 @@ func TestChatSrvEphemeralConvRetention(t *testing.T) {
 		})
 
 		// make sure we can supersede existing messages
-		mustReactToMsg(ctx, t, ctc, users[0], conv, msgID)
+		mustReactToMsg(ctx, t, ctc, users[0], conv, msgID, ":+1:")
 
 		ephemeralMsgID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &age)
-		mustReactToMsg(ctx, t, ctc, users[0], conv, ephemeralMsgID)
+		mustReactToMsg(ctx, t, ctc, users[0], conv, ephemeralMsgID, ":+1:")
 	})
 }
 
@@ -4765,12 +4765,12 @@ func TestChatSrvEphemeralTeamRetention(t *testing.T) {
 		})
 
 		for _, conv := range []chat1.ConversationInfoLocal{convA, convB} {
-			mustReactToMsg(ctx, t, ctc, users[0], conv, latestMsg(conv.Id))
+			mustReactToMsg(ctx, t, ctc, users[0], conv, latestMsg(conv.Id), ":+1:")
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 			ephemeralMsgID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &age)
 			consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
-			mustReactToMsg(ctx, t, ctc, users[0], conv, ephemeralMsgID)
+			mustReactToMsg(ctx, t, ctc, users[0], conv, ephemeralMsgID, ":+1:")
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 		}
 
@@ -5624,13 +5624,14 @@ func TestChatSrvDeleteConversationUnconfirmed(t *testing.T) {
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	mctx := libkb.NewMetaContextBackground(g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/accelerate_team_rekeyd",
 		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := g.API.Post(apiArg)
+	_, err := g.API.Post(mctx, apiArg)
 	if err != nil {
 		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
 	}
@@ -6430,5 +6431,61 @@ func TestChatBulkAddToConv(t *testing.T) {
 		require.NoError(t, err)
 		assertSysMsg(nil, usernames, listener0)
 		assertSysMsg(nil, usernames, listener1)
+	})
+}
+
+func TestReacjiStore(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "ReacjiStore", 1)
+		defer ctc.cleanup()
+
+		user := ctc.users()[0]
+		uid := user.User.GetUID().ToBytes()
+		tc := ctc.world.Tcs[user.Username]
+		ctx := ctc.as(t, user).startCtx
+
+		listener := newServerChatListener()
+		ctc.as(t, user).h.G().NotifyRouter.AddListener(listener)
+		tc.ChatG.Syncer.(*Syncer).isConnected = true
+		reacjiStore := storage.NewReacjiStore(ctc.as(t, user).h.G())
+		assertTopReacjis := func(actual, expected []string, expectedMap storage.ReacjiMap) {
+			require.Len(t, actual, 5)
+			require.Equal(t, expected, actual)
+			require.Equal(t, expectedMap, reacjiStore.Get(ctx, uid))
+
+		}
+
+		expectedMap := make(storage.ReacjiMap)
+		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
+		// if the user has no history we return the default list
+		top5 := tc.G.ChatHelper.TopReacjis(ctx, uid)
+		assertTopReacjis(top5, storage.DefaultTopReacjis, expectedMap)
+
+		// post a bunch of reactions, we should end up with these reactions
+		// replacing the defaults sorted alphabetically (since they tie on
+		// being used once each)
+		reactionKeys := []string{"e", "d", "c", "b", "a"}
+		expected := make([]string, len(storage.DefaultTopReacjis))
+		copy(expected, storage.DefaultTopReacjis)
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
+		for _, reaction := range reactionKeys {
+			expectedMap[reaction]++
+			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction)
+			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
+			expected = append([]string{reaction}, expected...)[:len(storage.DefaultTopReacjis)]
+			info := consumeReactionUpdate(t, listener)
+			assertTopReacjis(info.TopReacjis, expected, expectedMap)
+		}
+		// bump "a" to the most frequent
+		msg = chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		textID2 := mustPostLocalForTest(t, ctc, user, conv, msg)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
+		mustReactToMsg(ctx, t, ctc, user, conv, textID2, "a")
+		consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
+		expectedMap["a"]++
+		info := consumeReactionUpdate(t, listener)
+		assertTopReacjis(info.TopReacjis, expected, expectedMap)
 	})
 }

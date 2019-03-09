@@ -38,7 +38,7 @@ func (s *SimpleSource) formatArg(formats []keybase1.AvatarFormat) string {
 
 func (s *SimpleSource) apiReq(m libkb.MetaContext, endpoint, param string, names []string,
 	formats []keybase1.AvatarFormat) (apiAvatarRes, error) {
-	arg := libkb.NewAPIArgWithMetaContext(m, endpoint)
+	arg := libkb.NewAPIArg(endpoint)
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeOPTIONAL
 	uarg := strings.Join(names, ",")
@@ -47,7 +47,7 @@ func (s *SimpleSource) apiReq(m libkb.MetaContext, endpoint, param string, names
 	arg.Args.Add("formats", libkb.S{Val: farg})
 	s.debug(m, "issuing %s avatar req: uarg: %s farg: %s", param, uarg, farg)
 	var apiRes apiAvatarRes
-	if err := m.G().API.GetDecode(arg, &apiRes); err != nil {
+	if err := m.G().API.GetDecode(m, arg, &apiRes); err != nil {
 		s.debug(m, "apiReq: API fail: %s", err)
 		return apiRes, err
 	}

@@ -44,14 +44,15 @@ func (r *rawGetConflictInfo) GetAppStatus() *libkb.AppStatus {
 }
 
 func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, isFullyResolved bool, name keybase1.ImplicitTeamDisplayName) (ret keybase1.ImplicitTeamDisplayName, err error) {
-	defer g.CTraceTimed(ctx, fmt.Sprintf("GetConflictInfo(%s,%v)", id, name), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed(fmt.Sprintf("GetConflictInfo(%s,%v)", id, name), func() error { return err })()
 
 	ret = name.DeepCopy()
 
 	key := conflictID{name.IsPublic, id}
 	cv, err := g.GetImplicitTeamConflictInfoCacher().Get(ctx, g, key)
 	if err != nil {
-		g.Log.CDebugf(ctx, "In fetching from cache: %s", err.Error())
+		mctx.Debug("In fetching from cache: %s", err.Error())
 	}
 	if cv != nil {
 		if p, ok := cv.(*keybase1.ImplicitTeamConflictInfo); ok {
@@ -60,7 +61,7 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 			}
 			return ret, nil
 		}
-		g.Log.CDebugf(ctx, "Bad element of wrong type from cache: %T", cv)
+		mctx.Debug("Bad element of wrong type from cache: %T", cv)
 	}
 
 	displayName, err := FormatImplicitTeamDisplayName(ctx, g, name)
@@ -68,7 +69,7 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 		return ret, err
 	}
 
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/conflict_info")
+	arg := libkb.NewAPIArg("team/conflict_info")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	if name.IsPublic {
 		arg.SessionType = libkb.APISessionTypeOPTIONAL
@@ -79,7 +80,7 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 		"public":       libkb.B{Val: name.IsPublic},
 	}
 	var raw rawGetConflictInfo
-	if err = g.API.GetDecode(arg, &raw); err != nil {
+	if err = mctx.G().API.GetDecode(mctx, arg, &raw); err != nil {
 		return ret, err
 	}
 
@@ -91,9 +92,9 @@ func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 	// Otherwise, the answer stays true indefinitely, so we can cache the value
 	// without fear of staleness.
 	if isFullyResolved || ci.IsConflict() {
-		tmpErr := g.GetImplicitTeamConflictInfoCacher().Put(ctx, g, key, ci)
+		tmpErr := mctx.G().GetImplicitTeamConflictInfoCacher().Put(ctx, g, key, ci)
 		if tmpErr != nil {
-			g.Log.CDebugf(ctx, "Failed to cached implicit team conflict info: %s", tmpErr.Error())
+			mctx.Debug("Failed to cached implicit team conflict info: %s", tmpErr.Error())
 		}
 	}
 

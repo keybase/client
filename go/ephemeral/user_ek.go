@@ -35,7 +35,8 @@ func (s *UserEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 // Upload a new userEK directly, when we're not adding it to a PUK or device
 // transaction.
 func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxes []keybase1.UserEkBoxMetadata) (err error) {
-	defer g.CTraceTimed(ctx, "postNewUserEK", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("postNewUserEK", func() error { return err })()
 
 	boxesJSON, err := json.Marshal(boxes)
 	if err != nil {
@@ -44,14 +45,13 @@ func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxe
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"sig":               libkb.S{Val: sig},
 			"boxes":             libkb.S{Val: string(boxesJSON)},
 			"creator_device_id": libkb.S{Val: string(g.Env.GetDeviceID())},
 		},
 	}
-	_, err = g.GetAPI().Post(apiArg)
+	_, err = g.GetAPI().Post(mctx, apiArg)
 	return err
 }
 
@@ -214,17 +214,17 @@ type userEKStatementResponse struct {
 // in the wild have EK support, we will make that case an error.
 func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []keybase1.UID) (
 	statements map[keybase1.UID]*keybase1.UserEkStatement, err error) {
-	defer g.CTraceTimed(ctx, fmt.Sprintf("fetchUserEKStatements: numUids: %v", len(uids)), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed(fmt.Sprintf("fetchUserEKStatements: numUids: %v", len(uids)), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/get_user_ek_batch",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"uids": libkb.S{Val: libkb.UidsToString(uids)},
 		},
 	}
-	res, err := g.GetAPI().Post(apiArg)
+	res, err := g.GetAPI().Post(mctx, apiArg)
 	if err != nil {
 		return nil, err
 	}
@@ -261,17 +261,18 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 // new userEK.
 func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (
 	statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
-	defer g.CTraceTimed(ctx, "fetchUserEKStatement", func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.TraceTimed("fetchUserEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"uids": libkb.S{Val: libkb.UidsToString([]keybase1.UID{uid})},
 		},
 	}
-	res, err := g.GetAPI().Get(apiArg)
+	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}

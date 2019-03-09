@@ -1,13 +1,7 @@
-• New reaction bar. Quickly add reactions by hovering over any message.
-• A new clearer and faster way to start a new conversation
-• New slash commands. Hit / to see a list of useful shortcuts
-• Set short term retention policies on teams and direct messages
-• Better 'who is typing' indicator
-
-Bugfixes:
-• Menubar widget more accurately shows logging in state
-• Fixed 'empty amount' errors
-• Fix for attachment saving failing
-• Images in chat url previews are clickable now
-• Better waiting indicators in the teams tab
-• Startup screen could be stretched on some screens
+• New toy: Cryptographic coin flips. Try /flip in chat
+• Giphy support! Try /giphy in chat
+• New font!
+• Easily add members to a channel
+• Faster profile loads
+• Better errors when uploading a profile photo
+• Improved device adding screens

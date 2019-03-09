@@ -142,7 +142,8 @@ func putBlockData(
 	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
 	oldLength := j.length()
 
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
@@ -227,7 +228,8 @@ func TestBlockJournalDuplicatePut(t *testing.T) {
 
 	oldLength := j.length()
 
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
@@ -262,7 +264,8 @@ func TestBlockJournalAddReference(t *testing.T) {
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	// Add a reference, which should succeed.
@@ -304,7 +307,8 @@ func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
 		uid1.AsUserOrTeam(), keybase1.BlockType_DATA)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	// Archive references.
@@ -1054,7 +1058,7 @@ func TestBlockJournalByteCounters(t *testing.T) {
 
 	data3 := []byte{1, 2, 3}
 	bID3, err := kbfsblock.MakePermanentID(
-		data3, kbfscrypto.EncryptionSecretbox)
+		data3, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 	_ = addBlockRef(ctx, t, j, bID3)
 	require.NoError(t, err)

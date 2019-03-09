@@ -792,9 +792,10 @@ func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInte
 }
 
 func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
-	arg := apiArg(ctx, "team/token")
+	mctx := libkb.NewMetaContext(ctx, g)
+	arg := apiArg("team/token")
 	arg.Args.Add("token", libkb.S{Val: token})
-	_, err := g.API.Post(arg)
+	_, err := mctx.G().API.Post(mctx, arg)
 	return err
 }
 
@@ -839,6 +840,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
@@ -862,11 +864,11 @@ func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) 
 
 	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
 
-	arg := apiArg(ctx, "team/seitan")
+	arg := apiArg("team/seitan")
 	arg.Args.Add("akey", libkb.S{Val: encoded})
 	arg.Args.Add("now", libkb.HTTPTime{Val: keybase1.Time(unixNow)})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = g.API.Post(arg)
+	_, err = mctx.G().API.Post(mctx, arg)
 	return err
 }
 
@@ -892,6 +894,7 @@ func ProcessSeitanV2(ikey SeitanIKeyV2, uv keybase1.UserVersion, kbtime keybase1
 }
 
 func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
@@ -905,11 +908,11 @@ func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey
 
 	g.Log.CDebugf(ctx, "seitan invite ID: %v", inviteID)
 
-	arg := apiArg(ctx, "team/seitan_v2")
+	arg := apiArg("team/seitan_v2")
 	arg.Args.Add("sig", libkb.S{Val: encoded})
 	arg.Args.Add("now", libkb.HTTPTime{Val: now})
 	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
-	_, err = g.API.Post(arg)
+	_, err = mctx.G().API.Post(mctx, arg)
 	return err
 }
 
@@ -1100,9 +1103,10 @@ func memberInvite(ctx context.Context, g *libkb.GlobalContext, teamname string, 
 }
 
 func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) (keybase1.TeamRequestAccessResult, error) {
-	arg := apiArg(ctx, "team/request_access")
+	arg := apiArg("team/request_access")
 	arg.Args.Add("team", libkb.S{Val: teamname})
-	apiRes, err := g.API.Post(arg)
+	mctx := libkb.NewMetaContext(ctx, g)
+	apiRes, err := g.API.Post(mctx, arg)
 
 	ret := keybase1.TeamRequestAccessResult{}
 	if apiRes != nil && apiRes.Body != nil {
@@ -1174,15 +1178,16 @@ func (r *accessRequestList) GetAppStatus() *libkb.AppStatus {
 
 func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) ([]keybase1.TeamJoinRequest, error) {
 	var arg libkb.APIArg
+	mctx := libkb.NewMetaContext(ctx, g)
 	if teamName != nil {
-		arg = apiArg(ctx, "team/access_requests")
+		arg = apiArg("team/access_requests")
 		arg.Args.Add("team", libkb.S{Val: *teamName})
 	} else {
-		arg = apiArg(ctx, "team/laar")
+		arg = apiArg("team/laar")
 	}
 
 	var arList accessRequestList
-	if err := g.API.GetDecode(arg, &arList); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &arList); err != nil {
 		return nil, err
 	}
 
@@ -1210,13 +1215,14 @@ func (r *myAccessRequestsList) GetAppStatus() *libkb.AppStatus {
 }
 
 func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) (res []keybase1.TeamName, err error) {
-	arg := apiArg(ctx, "team/my_access_requests")
+	mctx := libkb.NewMetaContext(ctx, g)
+	arg := apiArg("team/my_access_requests")
 	if teamName != nil {
 		arg.Args.Add("team", libkb.S{Val: *teamName})
 	}
 
 	var arList myAccessRequestsList
-	if err := g.API.GetDecode(arg, &arList); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &arList); err != nil {
 		return nil, err
 	}
 
@@ -1232,6 +1238,7 @@ func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName 
 }
 
 func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, username string) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
 		if err == errInviteRequired {
@@ -1241,10 +1248,10 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, userna
 		}
 		return err
 	}
-	arg := apiArg(ctx, "team/deny_access")
+	arg := apiArg("team/deny_access")
 	arg.Args.Add("team", libkb.S{Val: teamName})
 	arg.Args.Add("uid", libkb.S{Val: uv.Uid.String()})
-	if _, err := g.API.Post(arg); err != nil {
+	if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 		return err
 	}
 	t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
@@ -1255,8 +1262,8 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, userna
 	return nil
 }
 
-func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
-	arg := libkb.NewAPIArgWithNetContext(ctx, endpoint)
+func apiArg(endpoint string) libkb.APIArg {
+	arg := libkb.NewAPIArg(endpoint)
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	return arg
@@ -1697,10 +1704,11 @@ func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		return false, err
 	}
 
-	arg := apiArg(ctx, "team/disable_tars")
+	mctx := libkb.NewMetaContext(ctx, g)
+	arg := apiArg("team/disable_tars")
 	arg.Args.Add("tid", libkb.S{Val: id.String()})
 	var ret disableTARsRes
-	if err := g.API.GetDecode(arg, &ret); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &ret); err != nil {
 		return false, err
 	}
 
@@ -1708,15 +1716,16 @@ func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 }
 
 func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname string, disabled bool) error {
+	mctx := libkb.NewMetaContext(ctx, g)
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
 	}
 
-	arg := apiArg(ctx, "team/disable_tars")
+	arg := apiArg("team/disable_tars")
 	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 	arg.Args.Add("disabled", libkb.B{Val: disabled})
-	if _, err := g.API.Post(arg); err != nil {
+	if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 		return err
 	}
 	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
@@ -1743,16 +1752,17 @@ func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username st
 	if err != nil {
 		return nil, err
 	}
-	arg := apiArg(ctx, "team/list_profile_add")
+	arg := apiArg("team/list_profile_add")
 	arg.Args.Add("uid", libkb.S{Val: uid.String()})
 	var serverRes listProfileAddServerRes
-	if err = g.API.GetDecode(arg, &serverRes); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err = mctx.G().API.GetDecode(mctx, arg, &serverRes); err != nil {
 		return nil, err
 	}
 	for _, entry := range serverRes.Teams {
 		teamName, err := keybase1.TeamNameFromString(entry.FqName)
 		if err != nil {
-			g.Log.CDebugf(ctx, "TeamProfileAddList server returned bad team name %v: %v", entry.FqName, err)
+			mctx.Debug("TeamProfileAddList server returned bad team name %v: %v", entry.FqName, err)
 			continue
 		}
 		disabledReason := ""

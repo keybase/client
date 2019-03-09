@@ -13,7 +13,6 @@ import {headerProvider} from '../header/index.stories'
 
 export const filepreviewProvider = {
   FilePreviewDefaultView: () => ({
-    fileUIEnabled: false,
     onDownload: () => {},
     onSave: () => {},
     onShare: () => {},
@@ -23,6 +22,7 @@ export const filepreviewProvider = {
       name: 'bar.jpg',
       size: 10240,
     }),
+    sfmiEnabled: false,
   }),
   FilePreviewHeader: ({path}: {path: Types.Path}) => ({
     loadPathItem: () => {},

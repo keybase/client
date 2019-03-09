@@ -45,7 +45,7 @@ func mdResetOne(
 
 	rmdNext, err := irmd.MakeSuccessor(ctx, config.MetadataVersion(),
 		config.Codec(), config.KeyManager(),
-		config.KBPKI(), config.KBPKI(), irmd.MdID(), true)
+		config.KBPKI(), config.KBPKI(), config, irmd.MdID(), true)
 	if err != nil {
 		return err
 	}

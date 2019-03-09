@@ -1,7 +1,6 @@
 // @flow
 import * as UsersGen from '../actions/users-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as TrackerGen from '../actions/tracker-gen'
 import * as Constants from '../constants/users'
 import * as Types from '../constants/types/users'
 import * as Flow from '../util/flow'
@@ -9,11 +8,7 @@ import * as Flow from '../util/flow'
 const initialState: Types.State = Constants.makeState()
 const blankUserInfo = Constants.makeUserInfo()
 
-type Actions =
-  | UsersGen.Actions
-  | TrackerGen.UpdateUserInfoPayload
-  | Tracker2Gen.UpdateFollowersPayload
-  | Tracker2Gen.UpdatedDetailsPayload
+type Actions = UsersGen.Actions | Tracker2Gen.UpdateFollowersPayload | Tracker2Gen.UpdatedDetailsPayload
 
 const reducer = (state: Types.State = initialState, action: Actions): Types.State => {
   switch (action.type) {
@@ -45,10 +40,6 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     }
-    case TrackerGen.updateUserInfo:
-      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
-        userInfo.set('fullname', action.payload.userCard.fullName)
-      )
     case Tracker2Gen.updatedDetails:
       return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
         userInfo.set('fullname', action.payload.fullname)

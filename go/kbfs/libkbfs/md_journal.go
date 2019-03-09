@@ -131,6 +131,7 @@ type mdJournal struct {
 	crypto         cryptoPure
 	clock          Clock
 	teamMemChecker kbfsmd.TeamMembershipChecker
+	osg            OfflineStatusGetter
 	tlfID          tlf.ID
 	mdVer          kbfsmd.MetadataVer
 	dir            string
@@ -160,8 +161,8 @@ type mdJournal struct {
 func makeMDJournalWithIDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
-	teamMemChecker kbfsmd.TeamMembershipChecker, tlfID tlf.ID,
-	mdVer kbfsmd.MetadataVer, dir string, idJournal mdIDJournal,
+	teamMemChecker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter,
+	tlfID tlf.ID, mdVer kbfsmd.MetadataVer, dir string, idJournal mdIDJournal,
 	log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
@@ -178,6 +179,7 @@ func makeMDJournalWithIDJournal(
 		crypto:         crypto,
 		clock:          clock,
 		teamMemChecker: teamMemChecker,
+		osg:            osg,
 		tlfID:          tlfID,
 		mdVer:          mdVer,
 		dir:            dir,
@@ -224,8 +226,8 @@ func mdJournalPath(dir string) string {
 func makeMDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
-	teamMemChecker kbfsmd.TeamMembershipChecker, tlfID tlf.ID,
-	mdVer kbfsmd.MetadataVer, dir string,
+	teamMemChecker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter,
+	tlfID tlf.ID, mdVer kbfsmd.MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
 	journalDir := mdJournalPath(dir)
 	idJournal, err := makeMdIDJournal(codec, journalDir)
@@ -233,8 +235,8 @@ func makeMDJournal(
 		return nil, err
 	}
 	return makeMDJournalWithIDJournal(
-		ctx, uid, key, codec, crypto, clock, teamMemChecker, tlfID, mdVer, dir,
-		idJournal, log)
+		ctx, uid, key, codec, crypto, clock, teamMemChecker, osg, tlfID, mdVer,
+		dir, idJournal, log)
 }
 
 // The functions below are for building various paths.
@@ -475,7 +477,8 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 	}
 
 	err = rmd.IsValidAndSigned(
-		ctx, j.codec, j.teamMemChecker, extra, j.key)
+		ctx, j.codec, j.teamMemChecker, extra, j.key,
+		j.osg.OfflineAvailabilityForID(j.tlfID))
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
@@ -1341,7 +1344,8 @@ func (j *mdJournal) put(
 	}
 
 	err = rmd.bareMd.IsValidAndSigned(
-		ctx, j.codec, j.teamMemChecker, rmd.extra, j.key)
+		ctx, j.codec, j.teamMemChecker, rmd.extra, j.key,
+		j.osg.OfflineAvailabilityForID(j.tlfID))
 	if err != nil {
 		return kbfsmd.ID{}, err
 	}
@@ -1486,7 +1490,7 @@ func (j *mdJournal) resolveAndClear(
 	}()
 
 	otherJournal, err := makeMDJournalWithIDJournal(
-		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.teamMemChecker,
+		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.teamMemChecker, j.osg,
 		j.tlfID, j.mdVer, j.dir, otherIDJournal, j.log)
 	if err != nil {
 		return kbfsmd.ID{}, err

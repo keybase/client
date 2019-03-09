@@ -1,12 +1,11 @@
 // @flow
-import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as ProfileGen from '../../../actions/profile-gen'
+import * as React from 'react'
+import * as Tracker2Gen from '../../../actions/tracker2-gen'
+import * as Types from '../../../constants/types/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
-import {connect} from '../../../util/container'
-import {createGetProfile} from '../../../actions/tracker-gen'
-import {isMobile} from '../../../constants/platform'
-import {createShowUserProfile} from '../../../actions/profile-gen'
+import {connect, isMobile} from '../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -45,8 +44,8 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 
 const mapDispatchToProps = dispatch => ({
   onClick: isMobile
-    ? (username: string) => dispatch(createShowUserProfile({username}))
-    : (username: string) => dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+    ? (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
+    : (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

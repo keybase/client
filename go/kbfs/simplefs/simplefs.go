@@ -269,7 +269,7 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 			return nil, "", err
 		}
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+			ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
 		if err != nil {
 			return nil, "", err
 		}
@@ -348,12 +348,14 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		res[len(res)-1].Name = string(pname)
 		res[len(res)-1].DirentType = deTy2Ty(libkbfs.Dir)
 
-		handle, err := libfs.ParseTlfHandlePreferredQuick(ctx, k.config.KBPKI(), string(pname), t)
+		handle, err := libfs.ParseTlfHandlePreferredQuick(
+			ctx, k.config.KBPKI(), k.config, string(pname), t)
 		if err != nil {
 			k.log.Errorf("ParseTlfHandlePreferredQuick: %s %q %v", t, pname, err)
 			continue
 		}
-		res[len(res)-1].Writable, err = libfs.IsWriter(ctx, k.config.KBPKI(), handle)
+		res[len(res)-1].Writable, err = libfs.IsWriter(
+			ctx, k.config.KBPKI(), k.config, handle)
 		if err != nil {
 			k.log.Errorf("libfs.IsWriter: %q %+v", pname, err)
 			continue
@@ -557,7 +559,7 @@ func (k *SimpleFS) getFolderBranchFromPath(
 		return libkbfs.FolderBranch{}, "", err
 	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return libkbfs.FolderBranch{}, "", err
 	}
@@ -1203,7 +1205,8 @@ func (k *SimpleFS) pathsForSameTlfMove(
 	}
 
 	tlfHandle, err = libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), srcTlfName, srcTlfType)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, srcTlfName,
+		srcTlfType)
 	if err != nil {
 		return false, "", "", nil, err
 	}
@@ -1280,7 +1283,7 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 		return err
 	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -2070,7 +2073,7 @@ func (k *SimpleFS) SimpleFSReset(
 		return err
 	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -2167,7 +2170,7 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
 	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
 	}

@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as WaitingConstants from '../../../constants/waiting'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as TrackerGen from '../../../actions/tracker-gen'
+import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Normal from '.'
 import {compose, connect, withStateHandlers} from '../../../util/container'
@@ -42,8 +42,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
   onCancelSearch: () =>
     dispatch(Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})),
-  onShowTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
+  onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
 })
 

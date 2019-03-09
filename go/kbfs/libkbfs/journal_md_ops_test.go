@@ -108,7 +108,8 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -285,7 +286,8 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -320,7 +322,8 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -353,7 +356,8 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(
-		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
+		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	mdOps := jManager.mdOps()
@@ -383,7 +387,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		rmd, err = rmd.MakeSuccessor(ctx, config.MetadataVersion(),
 			config.Codec(), config.KeyManager(),
-			config.KBPKI(), config.KBPKI(), mdID, true)
+			config.KBPKI(), config.KBPKI(), config, mdID, true)
 		require.NoError(t, err)
 		mdID, err = j.put(ctx, config.Crypto(), config.KeyManager(),
 			config.BlockSplitter(), rmd, false)

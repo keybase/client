@@ -1201,7 +1201,7 @@ func claimPaymentWithDetail(mctx libkb.MetaContext, walletState *WalletState,
 	}
 
 	baseFee := walletState.BaseFee(mctx)
-	sp, unlock := NewSeqnoProvider(mctx, walletState)
+	sp, unlock := NewClaimSeqnoProvider(mctx, walletState)
 	defer unlock()
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {

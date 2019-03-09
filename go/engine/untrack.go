@@ -231,7 +231,7 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 		httpsArgs["sig_inner"] = libkb.S{Val: string(e.untrackStatementBytes)}
 	}
 
-	_, err = e.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "follow",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        httpsArgs,

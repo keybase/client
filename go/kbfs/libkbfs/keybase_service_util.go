@@ -37,7 +37,7 @@ func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, usernam
 
 	log := config.MakeLogger("")
 	publicHandle, err := getHandleFromFolderName(ctx,
-		config.KBPKI(), config.MDOps(), username, true)
+		config.KBPKI(), config.MDOps(), config, username, true)
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's public TLF: %+v", err)
@@ -48,8 +48,8 @@ func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, usernam
 				"for disk block cache: %+v", err)
 		}
 	}
-	privateHandle, err := getHandleFromFolderName(ctx, config.KBPKI(),
-		config.MDOps(), username, false)
+	privateHandle, err := getHandleFromFolderName(
+		ctx, config.KBPKI(), config.MDOps(), config, username, false)
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's private TLF: %+v", err)

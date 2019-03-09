@@ -1,12 +1,19 @@
 // @flow
-import React, {Component} from 'react'
-import type {Props} from '.'
-import {WaitingButton} from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as React from 'react'
+import {WaitingButton} from '../../../common-adapters'
+import * as Styles from '../../../styles'
+
+type Props = {|
+  following?: boolean,
+  waitingKey: string,
+  style?: Object,
+  onFollow?: () => void,
+  onUnfollow?: () => void,
+|}
 
 type State = {mouseOver: boolean}
 
-class FollowButton extends Component<Props, State> {
+class FollowButton extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {

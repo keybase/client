@@ -770,6 +770,10 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        },
+        {
+          "name": "includeMulti",
+          "type": "boolean"
         }
       ],
       "response": "AccountDetails"

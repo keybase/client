@@ -3,8 +3,7 @@ import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
 import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text, WithTooltip} from '../../common-adapters'
-import {globalStyles, globalMargins, platformStyles} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import * as Styles from '../../styles'
 
 const connectedUsernamesProps = {
   colorFollowing: true,
@@ -39,7 +38,11 @@ export const FollowNotification = (props: Props) => {
       <PeopleItem
         badged={props.badged}
         icon={
-          <Avatar username={username} onClick={() => props.onClickUser(username)} size={isMobile ? 48 : 32} />
+          <Avatar
+            username={username}
+            onClick={() => props.onClickUser(username)}
+            size={Styles.isMobile ? 48 : 32}
+          />
         }
         when={props.notificationTime}
         contentStyle={{justifyContent: 'center'}}
@@ -67,7 +70,7 @@ export const MultiFollowNotification = (props: Props) => {
     <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
       <Text type="Body" style={multiTextStyle}>
         <ConnectedUsernames
-          containerStyle={platformStyles({isElectron: {whiteSpace: 'wrap'}})}
+          containerStyle={Styles.platformStyles({isElectron: {whiteSpace: 'wrap'}})}
           inlineGrammar={true}
           showAnd={!props.numAdditional}
           {...connectedUsernamesProps}
@@ -78,7 +81,7 @@ export const MultiFollowNotification = (props: Props) => {
         following you.
       </Text>
       <ScrollView
-        {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+        {...(Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
         contentContainerStyle={scrollViewContainerStyle}
       >
         {usernames.map(username => (
@@ -87,7 +90,7 @@ export const MultiFollowNotification = (props: Props) => {
               onClick={() => props.onClickUser(username)}
               username={username}
               size={32}
-              style={{marginRight: globalMargins.xtiny}}
+              style={{marginRight: Styles.globalMargins.xtiny}}
             />
           </WithTooltip>
         ))}
@@ -96,21 +99,21 @@ export const MultiFollowNotification = (props: Props) => {
   )
 }
 
-const multiTextStyle = platformStyles({
+const multiTextStyle = Styles.platformStyles({
   common: {
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.xlarge,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.xlarge,
     marginTop: 2,
   },
   isElectron: {display: 'inline'},
 })
 
 const scrollViewContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  ...(isMobile
+  ...Styles.globalStyles.flexBoxRow,
+  paddingBottom: Styles.globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
+  ...(Styles.isMobile
     ? null
-    : {...globalStyles.flexBoxRow, flexWrap: 'wrap', height: 32, overflow: 'hidden', width: '100%'}),
+    : {...Styles.globalStyles.flexBoxRow, flexWrap: 'wrap', height: 32, overflow: 'hidden', width: '100%'}),
 }

@@ -204,18 +204,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         }
       })
     }
-    case FsGen.fuseStatusResult:
-      return state.merge({fuseStatus: action.payload.status})
-    case FsGen.setFlags:
-      return state.mergeIn(['flags'], action.payload)
-    case FsGen.installFuse:
-      return state.mergeIn(['flags'], {fuseInstalling: true, kextPermissionError: false})
-    case FsGen.installFuseResult:
-      // To prevent races, we overlap flags set to true. So we don't unset the
-      // fuseInstalling flag here.
-      return state.mergeIn(['flags'], action.payload)
-    case FsGen.installKBFS:
-      return state.mergeIn(['flags'], {kbfsInstalling: true})
     case FsGen.localHTTPServerInfo:
       return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
     case FsGen.favoriteIgnore: // fallthrough
@@ -297,14 +285,26 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
-      return state.update('moveOrCopy', mc =>
-        mc.set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
+      return state.update('destinationPicker', dp =>
+        dp.set('source', (dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource()))
+          .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
-      return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
-    case FsGen.setMoveOrCopyDestinationParentPath:
-      return state.update('moveOrCopy', mc =>
-        mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+      return state.update('destinationPicker', dp =>
+        dp.set('source', Constants.makeMoveOrCopySource({path: action.payload.path}))
+      )
+    case FsGen.setDestinationPickerParentPath:
+      return state.update('destinationPicker', dp =>
+        dp.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+      )
+    case FsGen.showIncomingShare:
+      return state.update('destinationPicker', dp =>
+        dp.set('source', (dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()))
+          .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
+      )
+    case FsGen.setIncomingShareLocalPath:
+      return state.update('destinationPicker', dp =>
+        dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
       )
     case FsGen.showSendLinkToChat:
       return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
@@ -326,12 +326,37 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.set('kbfsDaemonConnected', true)
     case FsGen.kbfsDaemonDisconnected:
       return state.set('kbfsDaemonConnected', false)
+    case FsGen.setDriverStatus:
+      return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
+    case FsGen.showSystemFileManagerIntegrationBanner:
+      return state.update('sfmi', sfmi => sfmi.set('showingBanner', true))
+    case FsGen.hideSystemFileManagerIntegrationBanner:
+      return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
+    case FsGen.driverEnable:
+      return state.update('sfmi', sfmi =>
+        sfmi.update('driverStatus', driverStatus =>
+          driverStatus.type === 'disabled' ? driverStatus.set('isEnabling', true) : driverStatus
+        )
+      )
+    case FsGen.driverKextPermissionError:
+      return state.update('sfmi', sfmi =>
+        sfmi.update('driverStatus', driverStatus =>
+          driverStatus.type === 'disabled'
+            ? driverStatus.set('kextPermissionError', true).set('isEnabling', false)
+            : driverStatus
+        )
+      )
+    case FsGen.driverDisable:
+      return state.update('sfmi', sfmi =>
+        sfmi.update('driverStatus', driverStatus =>
+          driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
+        )
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.pathItemLoad:
     case FsGen.download:
     case FsGen.favoritesLoad:
-    case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.notifySyncActivity:
     case FsGen.notifyTlfUpdate:
@@ -354,10 +379,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.deleteFile:
     case FsGen.move:
     case FsGen.copy:
-    case FsGen.moveOrCopyOpen:
-    case FsGen.closeMoveOrCopy:
+    case FsGen.destinationPickerOpen:
+    case FsGen.closeDestinationPicker:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
+    case FsGen.refreshDriverStatus:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
