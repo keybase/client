@@ -196,8 +196,7 @@ const config = (_, {mode}) => {
   }
 
   // multiple entries so we can chunk shared parts
-  // TODO remove tracker when entirely released
-  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
+  const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.js`

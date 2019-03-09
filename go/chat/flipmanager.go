@@ -125,25 +125,25 @@ type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer     *flip.Dealer
-	visualizer *FlipVisualizer
-	clock      clockwork.Clock
-	ri         func() chat1.RemoteInterface
-	shutdownMu sync.Mutex
-	shutdownCh chan struct{}
-	forceCh    chan struct{}
-	loadGameCh chan loadGameJob
+	dealer        *flip.Dealer
+	visualizer    *FlipVisualizer
+	clock         clockwork.Clock
+	ri            func() chat1.RemoteInterface
+	shutdownMu    sync.Mutex
+	shutdownCh    chan struct{}
+	forceCh       chan struct{}
+	loadGameCh    chan loadGameJob
+	maybeInjectCh chan func()
 
 	deck           string
 	cardMap        map[string]int
 	cardReverseMap map[int]string
 
-	gamesMu       sync.Mutex
-	games         *lru.Cache
-	dirtyGames    map[string]chat1.FlipGameID
-	flipConvs     *lru.Cache
-	gameMsgIDs    *lru.Cache
-	injectLockTab *libkb.LockTable
+	gamesMu    sync.Mutex
+	games      *lru.Cache
+	dirtyGames map[string]chat1.FlipGameID
+	flipConvs  *lru.Cache
+	gameMsgIDs *lru.Cache
 
 	partMu                     sync.Mutex
 	maxConvParticipations      int
@@ -175,7 +175,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		cardReverseMap:             make(map[int]string),
 		flipConvs:                  flipConvs,
 		gameMsgIDs:                 gameMsgIDs,
-		injectLockTab:              &libkb.LockTable{},
+		maybeInjectCh:              make(chan func(), 2000),
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -199,6 +199,7 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	go m.updateLoop(shutdownCh)
 	go m.notificationLoop(shutdownCh)
 	go m.loadGameLoop(shutdownCh)
+	go m.maybeInjectLoop(shutdownCh)
 }
 
 func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
@@ -618,6 +619,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 
 func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
 	gameID := update.Metadata.GameID
+	defer m.Trace(ctx, func() error { return err }, "handleUpdate: gameID: %s", gameID)()
 	defer func() {
 		if err == nil {
 			m.queueDirtyGameID(ctx, gameID, force)
@@ -1156,6 +1158,19 @@ func (m *FlipManager) updateActiveGame(ctx context.Context, uid gregor1.UID, con
 	return nil
 }
 
+func (m *FlipManager) maybeInjectLoop(shutdownCh chan struct{}) {
+	m.Debug(context.Background(), "maybeInjectLoop: starting")
+	for {
+		select {
+		case closure := <-m.maybeInjectCh:
+			closure()
+		case <-shutdownCh:
+			m.Debug(context.Background(), "maybeInjectLoop: exiting loop")
+			return
+		}
+	}
+}
+
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
 func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
 	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
@@ -1191,19 +1206,17 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")
 		return true
 	}
-	go func(ctx context.Context) {
+	// Ignore anything from the current device
+	ctx = BackgroundContext(ctx, m.G())
+	select {
+	case m.maybeInjectCh <- func() {
 		defer m.Trace(ctx, func() error { return nil },
-			"MaybeInjectFlipMessage(goroutine): uid: %s convID: %s", uid, convID)()
-		lock := m.injectLockTab.AcquireOnName(ctx, m.G(), convID.String())
-		defer lock.Release(ctx)
-
-		// Ignore anything from the current device
+			"MaybeInjectFlipMessage(goroutine): uid: %s convID: %s id: %d",
+			uid, convID, msg.GetMessageID())()
 		if m.Me().Eq(flip.UserDevice{
 			U: msg.Valid().ClientHeader.Sender,
 			D: msg.Valid().ClientHeader.SenderDevice,
 		}) {
-			// If this is our own message, then we need to make sure to update the msgID of the flip
-			m.Debug(ctx, "MaybeInjectFlipMessage: own message, updating stored and exiting")
 			m.gameMsgIDs.Add(body.Flip().GameID.String(), msg.GetMessageID())
 			return
 		}
@@ -1221,7 +1234,10 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		if err := m.updateActiveGame(ctx, uid, convID, hmi.ConvID, msg, body.Flip().GameID); err != nil {
 			m.Debug(ctx, "MaybeInjectFlipMessage: failed to rebuild non-active game: %s", err)
 		}
-	}(BackgroundContext(ctx, m.G()))
+	}:
+	default:
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to dispatch job, queue full!")
+	}
 	return true
 }
 

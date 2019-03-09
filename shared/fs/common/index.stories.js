@@ -5,6 +5,7 @@ import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import PathItemAction from './path-item-action'
 import PathItemIcon, {type Size} from './path-item-icon'
@@ -13,6 +14,7 @@ import TlfInfo from './tlf-info'
 import Loading from './loading'
 import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
+import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
@@ -58,8 +60,8 @@ export const commonProvider = {
     errs: [],
   }),
   ConnectedOpenInSystemFileManager: () => ({
-    installFuse: Sb.action('installFuse'),
-    kbfsEnabled: false,
+    driverEnabled: false,
+    enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
   PathItemAction: pathItemActionProps,
@@ -76,10 +78,19 @@ export const commonProvider = {
     lastWriter: 'songgao_test',
     mode,
   }),
+  RefreshDriverStatusOnMount: () => ({
+    refresh: Sb.action('refresh'),
+  }),
   SendInAppAction: () => ({onClick: Sb.action('onClick')}),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
     reset: ['foo', 'bar', 'cue'],
+  }),
+  TryEnableDriverOnFocus: () => ({
+    appFocusedCount: 1,
+    driverStatus: Constants.makeDriverStatusEnabled(),
+    onEnabled: Sb.action('onEnabled'),
+    refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
 }
 
@@ -200,6 +211,22 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
+    .add('OpenInSystemFileManager', () => (
+      <Kb.Box2 direction="vertical" gap="small">
+        <Kb.Text type="Body">disabled</Kb.Text>
+        <OpenInSystemFileManager
+          driverEnabled={false}
+          openInSystemFileManager={Sb.action('openInSystemFileManager')}
+          enableDriver={Sb.action('enableDriver')}
+        />
+        <Kb.Text type="Body">enabled</Kb.Text>
+        <OpenInSystemFileManager
+          driverEnabled={true}
+          openInSystemFileManager={Sb.action('openInSystemFileManager')}
+          enableDriver={Sb.action('enableDriver')}
+        />
+      </Kb.Box2>
+    ))
 
   Sb.storiesOf('Files/PathItemIcon', module)
     .add('tlf list', () => (

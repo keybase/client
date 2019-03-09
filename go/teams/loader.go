@@ -181,7 +181,8 @@ func (l *TeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keyb
 }
 
 func resolveNameToIDUntrustedAPICall(ctx context.Context, g *libkb.GlobalContext, teamName keybase1.TeamName, public bool) (id keybase1.TeamID, err error) {
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
+	mctx := libkb.NewMetaContext(ctx, g)
+	arg := libkb.NewAPIArg("team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"name":        libkb.S{Val: teamName.String()},
@@ -190,7 +191,7 @@ func resolveNameToIDUntrustedAPICall(ctx context.Context, g *libkb.GlobalContext
 	}
 
 	var rt rawTeam
-	if err := g.API.GetDecode(arg, &rt); err != nil {
+	if err := mctx.G().API.GetDecode(mctx, arg, &rt); err != nil {
 		return id, err
 	}
 	id = rt.ID

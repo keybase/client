@@ -38,10 +38,10 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 			"seqno":  I{Val: int(seqno)},
 			"msg":    B64Arg(msg),
 		},
-		MetaContext: mctx.BackgroundWithLogTags(),
 	}
+	mctx = mctx.BackgroundWithLogTags()
 	kexAPITimeout(&arg, time.Second*5)
-	_, err = mctx.G().API.Post(arg)
+	_, err = mctx.G().API.Post(mctx, arg)
 
 	return err
 }
@@ -87,12 +87,11 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 			"low":      I{Val: int(low)},
 			"poll":     I{Val: int(poll / time.Millisecond)},
 		},
-		MetaContext: mctx.BackgroundWithLogTags(),
 	}
 	kexAPITimeout(&arg, 2*poll)
 	var j kexResp
 
-	if err = mctx.G().API.GetDecode(arg, &j); err != nil {
+	if err = mctx.G().API.GetDecode(mctx.BackgroundWithLogTags(), arg, &j); err != nil {
 		return nil, err
 	}
 	if j.Status.Code != SCOk {

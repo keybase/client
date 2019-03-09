@@ -95,13 +95,12 @@ func (t *WebServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (
 		return
 	}
 	var res *libkb.APIRes
-	res, err = mctx.G().GetAPI().Get(libkb.APIArg{
+	res, err = mctx.G().GetAPI().Get(mctx, libkb.APIArg{
 		Endpoint:    "remotes/check",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"hostname": libkb.S{Val: host},
 		},
-		MetaContext: mctx,
 	})
 	if err != nil {
 		return

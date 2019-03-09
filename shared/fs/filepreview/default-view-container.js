@@ -13,8 +13,8 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  fileUIEnabled: Constants.kbfsEnabled(state),
   pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  sfmiEnabled: state.fs.sfmi.driverStatus === 'enabled',
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
@@ -23,14 +23,14 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
-  const {fileUIEnabled, pathItem} = stateProps
+  const {sfmiEnabled, pathItem} = stateProps
   const {download, showInSystemFileManager} = dispatchProps
   return {
     download,
-    fileUIEnabled,
     path,
     pathItem,
     routePath,
+    sfmiEnabled,
     showInSystemFileManager,
   }
 }

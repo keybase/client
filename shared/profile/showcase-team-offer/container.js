@@ -7,7 +7,6 @@ import * as Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import {HeaderOrPopup} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -29,20 +28,18 @@ const mapStateToProps = state => {
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onCancel: (you: string) => {
-    if (flags.identify3) {
-      // sadly a little racy, doing this for now
-      setTimeout(() => {
-        dispatch(
-          Tracker2Gen.createLoad({
-            assertion: you,
-            guiID: Constants.generateGUIID(),
-            ignoreCache: true,
-            inTracker: false,
-            reason: 'teams maybe changed',
-          })
-        )
-      }, 500)
-    }
+    // sadly a little racy, doing this for now
+    setTimeout(() => {
+      dispatch(
+        Tracker2Gen.createLoad({
+          assertion: you,
+          guiID: Constants.generateGUIID(),
+          ignoreCache: true,
+          inTracker: false,
+          reason: 'teams maybe changed',
+        })
+      )
+    }, 500)
     dispatch(navigateUp())
   },
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),

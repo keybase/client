@@ -185,9 +185,8 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 			"Could not parse url: '%v'", apiURL)
 	}
 
-	res, err := mctx.G().GetExternalAPI().Get(libkb.APIArg{
-		Endpoint:    apiURL,
-		MetaContext: mctx,
+	res, err := mctx.G().GetExternalAPI().Get(mctx, libkb.APIArg{
+		Endpoint: apiURL,
 	})
 	if err != nil {
 		return nil, libkb.XapiError(err, apiURL)

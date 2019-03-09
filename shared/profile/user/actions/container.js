@@ -45,16 +45,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         path: FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`),
       })
     ),
-  _onReload: (assertion: string) => {
-    dispatch(
-      Tracker2Gen.createLoad({
-        assertion,
-        guiID: Constants.generateGUIID(),
-        ignoreCache: true,
-        inTracker: false,
-        reason: '',
-      })
-    )
+  _onReload: (username: string) => {
+    dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
   },
   _onSendOrRequestLumens: (to: string, isRequest: boolean, recipientType: WalletsType.CounterpartyType) => {
     dispatch(

@@ -51,12 +51,11 @@ func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *k
 		Endpoint:    "user/card",
 		SessionType: sessionType,
 		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
-		NetContext:  m.Ctx(),
 	}
 
 	var card card
 
-	if err = m.G().API.GetDecode(arg, &card); err != nil {
+	if err = m.G().API.GetDecode(m, arg, &card); err != nil {
 		m.Warning("error getting user/card for %s: %s\n", uid, err)
 		return nil, err
 	}

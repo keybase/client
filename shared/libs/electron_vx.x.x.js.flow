@@ -560,7 +560,7 @@ declare class electron$MenuItem {
  * https://github.com/electron/electron/blob/master/docs/api/power-monitor.md
  */
 
-type electron$powerMonitor = {}
+declare class electron$powerMonitor extends events$EventEmitter {}
 
 /**
  * https://github.com/electron/electron/blob/master/docs/api/power-save-blocker.md

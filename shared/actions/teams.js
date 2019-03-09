@@ -21,7 +21,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
-import * as TrackerGen from './tracker-gen'
+import * as Tracker2Gen from './tracker2-gen'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
 import {chatTab, teamsTab} from '../constants/tabs'
@@ -314,11 +314,7 @@ const addReAddErrorHandler = (username, e) => {
       return ProfileGen.createShowUserProfile({username})
     } else {
       // otherwise show tracker popup
-      return TrackerGen.createGetProfile({
-        forceDisplay: true,
-        ignoreCache: true,
-        username,
-      })
+      return Tracker2Gen.createShowUser({asTracker: true, username})
     }
   }
 }

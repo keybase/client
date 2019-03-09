@@ -10,6 +10,8 @@ import CoinFlipResult from './results'
 
 export type Props = {|
   commitmentVis: string,
+  isSendError: boolean,
+  onFlipAgain: () => void,
   revealVis: string,
   resultText: string,
   errorInfo?: ?RPCChatTypes.UICoinFlipError,
@@ -73,7 +75,7 @@ class CoinFlip extends React.Component<Props, State> {
             {!Styles.isMobile && 'Collecting '}commitments: {this.props.participants.length}
           </Kb.Text>
           {this.props.phase === 'secrets' && (
-            <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+            <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
           )}
         </Kb.Box2>
         {this.props.phase === 'secrets' && (
@@ -82,7 +84,7 @@ class CoinFlip extends React.Component<Props, State> {
               {!Styles.isMobile && 'Collecting '}secrets: {this._revealSummary()}
             </Kb.Text>
             {this.props.phase === 'complete' && (
-              <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+              <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
             )}
           </Kb.Box2>
         )}
@@ -130,6 +132,19 @@ class CoinFlip extends React.Component<Props, State> {
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {this.props.resultInfo && <CoinFlipResult result={this.props.resultInfo} />}
         </Kb.Box2>
+        <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.flipAgainContainer}>
+          {this.props.isSendError || !!this.props.errorInfo ? (
+            <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onFlipAgain} style={styles.error}>
+              Try again
+            </Kb.Text>
+          ) : (
+            this.props.phase === 'complete' && (
+              <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onFlipAgain}>
+                Flip again
+              </Kb.Text>
+            )
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -146,6 +161,9 @@ const styles = Styles.styleSheetCreate({
   },
   error: {
     color: Styles.globalColors.red,
+  },
+  flipAgainContainer: {
+    paddingTop: Styles.globalMargins.tiny,
   },
   placeholder: {
     backgroundColor: Styles.globalColors.lightGrey,
