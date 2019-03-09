@@ -15,6 +15,7 @@ export const getProofSuggestions = 'tracker2:getProofSuggestions'
 export const ignore = 'tracker2:ignore'
 export const load = 'tracker2:load'
 export const proofSuggestionsUpdated = 'tracker2:proofSuggestionsUpdated'
+export const showUser = 'tracker2:showUser'
 export const updateAssertion = 'tracker2:updateAssertion'
 export const updateFollowers = 'tracker2:updateFollowers'
 export const updateResult = 'tracker2:updateResult'
@@ -27,12 +28,17 @@ type _GetProofSuggestionsPayload = void
 type _IgnorePayload = $ReadOnly<{|guiID: string|}>
 type _LoadPayload = $ReadOnly<{|assertion: string, forceDisplay?: boolean, fromDaemon?: boolean, guiID: string, ignoreCache?: boolean, reason: string, inTracker: boolean|}>
 type _ProofSuggestionsUpdatedPayload = $ReadOnly<{|suggestions: $ReadOnlyArray<Types.Assertion>|}>
+type _ShowUserPayload = $ReadOnly<{|asTracker: boolean, username: string|}>
 type _UpdateAssertionPayload = $ReadOnly<{|assertion: Types.Assertion, guiID: string|}>
 type _UpdateFollowersPayload = $ReadOnly<{|username: string, following: Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>, followers: Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>|}>
 type _UpdateResultPayload = $ReadOnly<{|guiID: string, result: Types.DetailsState, reason: ?string|}>
 type _UpdatedDetailsPayload = $ReadOnly<{|guiID: string, bio: string, followThem: boolean, followersCount: number, followingCount: number, followsYou: boolean, fullname: string, location: string, registeredForAirdrop: boolean, username: string, teamShowcase: Array<Types._TeamShowcase>|}>
 
 // Action Creators
+/**
+ * Short term until new nav, a convenience to show a card from inside the app
+ */
+export const createShowUser = (payload: _ShowUserPayload) => ({payload, type: showUser})
 export const createChangeFollow = (payload: _ChangeFollowPayload) => ({payload, type: changeFollow})
 export const createCloseTracker = (payload: _CloseTrackerPayload) => ({payload, type: closeTracker})
 export const createGetProofSuggestions = (payload: _GetProofSuggestionsPayload) => ({payload, type: getProofSuggestions})
@@ -51,6 +57,7 @@ export type GetProofSuggestionsPayload = {|+payload: _GetProofSuggestionsPayload
 export type IgnorePayload = {|+payload: _IgnorePayload, +type: 'tracker2:ignore'|}
 export type LoadPayload = {|+payload: _LoadPayload, +type: 'tracker2:load'|}
 export type ProofSuggestionsUpdatedPayload = {|+payload: _ProofSuggestionsUpdatedPayload, +type: 'tracker2:proofSuggestionsUpdated'|}
+export type ShowUserPayload = {|+payload: _ShowUserPayload, +type: 'tracker2:showUser'|}
 export type UpdateAssertionPayload = {|+payload: _UpdateAssertionPayload, +type: 'tracker2:updateAssertion'|}
 export type UpdateFollowersPayload = {|+payload: _UpdateFollowersPayload, +type: 'tracker2:updateFollowers'|}
 export type UpdateResultPayload = {|+payload: _UpdateResultPayload, +type: 'tracker2:updateResult'|}
@@ -65,6 +72,7 @@ export type Actions =
   | IgnorePayload
   | LoadPayload
   | ProofSuggestionsUpdatedPayload
+  | ShowUserPayload
   | UpdateAssertionPayload
   | UpdateFollowersPayload
   | UpdateResultPayload

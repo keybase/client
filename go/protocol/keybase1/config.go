@@ -483,6 +483,7 @@ type BootstrapStatus struct {
 	DeviceName string   `codec:"deviceName" json:"deviceName"`
 	Following  []string `codec:"following" json:"following"`
 	Followers  []string `codec:"followers" json:"followers"`
+	TopReacjis []string `codec:"topReacjis" json:"topReacjis"`
 }
 
 func (o BootstrapStatus) DeepCopy() BootstrapStatus {
@@ -515,6 +516,17 @@ func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 			}
 			return ret
 		})(o.Followers),
+		TopReacjis: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TopReacjis),
 	}
 }
 

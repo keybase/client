@@ -62,10 +62,9 @@ func UpdateDeviceCloneState(m MetaContext) (before, after int, err error) {
 			"prior":     S{Val: prior},
 			"stage":     S{Val: stage},
 		},
-		MetaContext: m,
 	}
 	var res cloneDetectionResponse
-	if err = m.G().API.PostDecode(arg, &res); err != nil {
+	if err = m.G().API.PostDecode(m, arg, &res); err != nil {
 		return 0, 0, err
 	}
 

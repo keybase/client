@@ -4,14 +4,13 @@ import {namedConnect} from '../../util/container'
 import Folder from '.'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import SecurityPrefsPromptingHoc from '../common/security-prefs-prompting-hoc'
 import * as FsGen from '../../actions/fs-gen'
 
 const mapStateToProps = (state, {path}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
   resetBannerType: Constants.resetBannerType(state, path),
-  shouldShowFileUIBanner: Constants.shouldShowFileUIBanner(state),
+  shouldShowSFMIBanner: state.fs.sfmi.showingBanner,
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
@@ -25,7 +24,7 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
   path,
   resetBannerType: stateProps.resetBannerType,
   routePath,
-  shouldShowFileUIBanner: stateProps.shouldShowFileUIBanner,
+  shouldShowSFMIBanner: stateProps.shouldShowSFMIBanner,
 })
 
 type OwnProps = {|
@@ -34,6 +33,6 @@ type OwnProps = {|
 |}
 
 // flow can't figure out type when compose is used.
-export default SecurityPrefsPromptingHoc<OwnProps>(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Folder')(Folder)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Folder')(
+  Folder
 )

@@ -1,10 +1,9 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
-import {getProfile as getProfileOLD, type GetProfilePayload as GetProfilePayloadOLD} from './tracker-gen'
+// import {getProfile as getProfileOLD, type GetProfilePayload as GetProfilePayloadOLD} from './tracker-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
-import flags from '../util/feature-flags'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 
@@ -151,17 +150,6 @@ function* load(state, action) {
   }
 }
 
-// Just to bridge the old action
-const _getProfileOLD = (_, action) =>
-  Tracker2Gen.createLoad({
-    assertion: action.payload.username,
-    forceDisplay: action.payload.forceDisplay,
-    guiID: Constants.generateGUIID(),
-    ignoreCache: action.payload.ignoreCache,
-    inTracker: false,
-    reason: '',
-  })
-
 const loadFollow = (_, action) => {
   const {assertion} = action.payload
   const convert = fs =>
@@ -197,11 +185,18 @@ const getProofSuggestions = () =>
     })
   )
 
-function* tracker2Saga(): Saga.SagaGenerator<any, any> {
-  if (!flags.identify3) {
-    return
-  }
+const showUser = (_, action) =>
+  Tracker2Gen.createLoad({
+    assertion: action.payload.username,
+    forceDisplay: action.payload.asTracker,
+    fromDaemon: false,
+    guiID: Constants.generateGUIID(),
+    ignoreCache: true,
+    inTracker: action.payload.asTracker,
+    reason: '',
+  })
 
+function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(
     EngineGen.keybase1Identify3UiIdentify3UpdateUserCard,
     updateUserCard
@@ -221,7 +216,7 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
     refreshChanged
   )
   // TEMP until actions/tracker is deprecated
-  yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
+  // yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
   // end TEMP until actions/tracker is deprecated
   //
   yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3ResultPayload>(
@@ -237,6 +232,7 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
     identify3UpdateRow
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
+  yield* Saga.chainAction<Tracker2Gen.ShowUserPayload>(Tracker2Gen.showUser, showUser)
 }
 
 export default tracker2Saga

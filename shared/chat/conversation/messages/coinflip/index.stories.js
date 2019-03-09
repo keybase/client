@@ -46,6 +46,8 @@ const parts = [
 
 const gathering = {
   commitmentVis: '',
+  isSendError: false,
+  onFlipAgain: Sb.action('again'),
   participants: [],
   phase: 'commitments',
   progressText: 'Gathering commitments...',
@@ -56,6 +58,8 @@ const gathering = {
 
 const partialGather = {
   commitmentVis,
+  isSendError: false,
+  onFlipAgain: Sb.action('again'),
   participants: parts.slice(0, 2),
   phase: 'commitments',
   progressText: 'Gathered 2 commitments...',
@@ -66,6 +70,8 @@ const partialGather = {
 
 const result = {
   commitmentVis,
+  isSendError: false,
+  onFlipAgain: Sb.action('again'),
   participants: parts,
   phase: 'complete',
   progressText: '2 participants have revealed secrets...',
@@ -81,6 +87,8 @@ const error = {
     // $FlowIssue variant types with void don't work
     typ: RPCChatTypes.chatUiUICoinFlipErrorTyp.generic,
   },
+  isSendError: false,
+  onFlipAgain: Sb.action('again'),
   participants: [],
   phase: 'complete',
   progressText: 'Something went wrong: Somebody pulled the plug',

@@ -148,9 +148,8 @@ func fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) (libkb.PassphraseGen
 		Args: libkb.HTTPArgs{
 			"kid": encKey.GetKID(),
 		},
-		MetaContext: m,
 	}
-	res, err := m.G().API.Get(arg)
+	res, err := m.G().API.Get(m, arg)
 	var dummy libkb.LKSecClientHalf
 	if err != nil {
 		return 0, dummy, err

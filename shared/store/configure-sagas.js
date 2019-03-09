@@ -19,7 +19,6 @@ import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
 import signupSaga from '../actions/signup'
 import teamsSaga from '../actions/teams'
-import trackerSaga from '../actions/tracker'
 import unlockFoldersSaga from '../actions/unlock-folders'
 import usersSaga from '../actions/users'
 import walletsSaga from '../actions/wallets'
@@ -42,7 +41,6 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(routeSaga)
   yield Saga.spawn(searchSaga)
   yield Saga.spawn(settingsSaga)
-  yield Saga.spawn(trackerSaga)
   yield Saga.spawn(teamsSaga)
   yield Saga.spawn(unlockFoldersSaga)
   yield Saga.spawn(usersSaga)

@@ -5,15 +5,9 @@ import Render from './avatar.render'
 import {throttle} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
 import {namedConnect} from '../util/container'
-import {
-  platformStyles,
-  desktopStyles,
-  collapseStyles,
-  isMobile,
-  type StylesCrossPlatformWithSomeDisallowed,
-} from '../styles'
-import {createShowUserProfile} from '../actions/profile-gen'
-import {createGetProfile} from '../actions/tracker-gen'
+import * as Styles from '../styles'
+import * as ProfileGen from '../actions/profile-gen'
+import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as ConfigGen from '../actions/config-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
@@ -35,7 +29,7 @@ export type OwnProps = {|
   size: AvatarSize,
   skipBackground?: boolean,
   skipBackgroundAfterLoaded?: boolean, // if we're on a white background we don't need a white back cover
-  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
   teamname?: ?string,
   username?: ?string,
   showFollowingStatus?: boolean, // show the green dots or not
@@ -61,7 +55,7 @@ type Props = {|
   size: AvatarSize,
   skipBackground?: boolean,
   skipBackgroundAfterLoaded?: boolean, // if we're on a white background we don't need a white back cover
-  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
   teamname?: ?string,
   url: URLType,
   username?: ?string,
@@ -175,9 +169,9 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   _sharedAskForUserData.injectDispatch(dispatch)
   return {
     _goToProfile: (username: string, desktopDest: 'profile' | 'tracker') =>
-      isMobile || desktopDest === 'profile'
-        ? dispatch(createShowUserProfile({username}))
-        : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+      Styles.isMobile || desktopDest === 'profile'
+        ? dispatch(ProfileGen.createShowUserProfile({username}))
+        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
     onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
   }
 }
@@ -192,9 +186,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onClick = () => dispatchProps._goToProfile(u, desktopDest)
   }
 
-  const style = collapseStyles([
+  const style = Styles.collapseStyles([
     ownProps.style,
-    onClick && platformStyles({isElectron: desktopStyles.clickable}),
+    onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
   ])
 
   let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
@@ -291,9 +285,9 @@ const mockOwnToViewProps = (
     onClick = action('onClickToProfile')
   }
 
-  const style = collapseStyles([
+  const style = Styles.collapseStyles([
     ownProps.style,
-    onClick && platformStyles({isElectron: desktopStyles.clickable}),
+    onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
   ])
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
 

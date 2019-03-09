@@ -409,7 +409,7 @@ func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 		},
 	}
 	var resp getCodeResponse
-	err = mctx.G().API.GetDecode(arg, &resp)
+	err = mctx.G().API.GetDecode(mctx, arg, &resp)
 	if err != nil {
 		return "", err
 	}
@@ -424,7 +424,7 @@ func VerifyEmailAuto(mctx libkb.MetaContext, email keybase1.EmailAddress) error 
 			"email": libkb.S{Val: string(email)},
 		},
 	}
-	_, err := mctx.G().API.Post(arg)
+	_, err := mctx.G().API.Post(mctx, arg)
 	return err
 }
 

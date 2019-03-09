@@ -20,7 +20,7 @@ export type String = string
 export type Uint = number
 export type Uint64 = number
 type WaitingKey = string | Array<string>
-type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+export type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 
 export type MessageTypes = {|
@@ -1125,7 +1125,7 @@ export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowRese
 export type Reaction = $ReadOnly<{ctime: Gregor1.Time, reactionMsgID: MessageID}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: {[key: string]: Reaction}}}>
 export type ReactionUpdate = $ReadOnly<{reactions: ReactionMap, targetMsgID: MessageID}>
-export type ReactionUpdateNotif = $ReadOnly<{convID: ConversationID, reactionUpdates?: ?Array<ReactionUpdate>}>
+export type ReactionUpdateNotif = $ReadOnly<{convID: ConversationID, topReacjis?: ?Array<String>, reactionUpdates?: ?Array<ReactionUpdate>}>
 export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageID, conv?: ?InboxUIItem}>
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>

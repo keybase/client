@@ -184,7 +184,8 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 	}
 	if handle.Type() == tlf.SingleTeam {
 		isReader, err := md.config.teamMembershipChecker().IsTeamReader(
-			ctx, handle.Writers[0].AsTeamOrBust(), session.UID)
+			ctx, handle.Writers[0].AsTeamOrBust(), session.UID,
+			keybase1.OfflineAvailability_NONE)
 		if err != nil {
 			return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 		}
@@ -552,8 +553,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	err = rmds.IsValidAndSigned(
-		ctx, md.config.Codec(),
-		md.config.teamMembershipChecker(), extra)
+		ctx, md.config.Codec(), md.config.teamMembershipChecker(), extra,
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return kbfsmd.ServerErrorBadRequest{Reason: err.Error()}
 	}

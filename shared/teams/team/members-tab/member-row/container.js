@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as TrackerGen from '../../../../actions/tracker-gen'
+import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
@@ -58,7 +58,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
     if (isMobile) {
       dispatch(ProfileGen.createShowUserProfile({username}))
     } else {
-      dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
   },
   onChat: () => {

@@ -9,7 +9,6 @@ class FakeEngine {
   }
   reset() {}
   dispatchWaitingAction() {}
-  cancelSession() {}
   rpc() {}
   listenOnConnect() {}
   listenOnDisconnect() {}

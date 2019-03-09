@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as MessageConstants from '../../../../constants/chat2/message'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
-import * as TrackerGen from '../../../../actions/tracker-gen'
+import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Types from '../../../../constants/types/chat2'
 import {namedConnect, isMobile} from '../../../../util/container'
 
@@ -48,7 +48,7 @@ const mapDisaptchToProps = dispatch => ({
   _onAuthorClick: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
     dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
   _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
@@ -100,7 +100,8 @@ const getFailureDescriptionAllowCancel = (message, you) => {
     if (you && ['pending', 'failed'].includes(message.submitState)) {
       // This is a message still in the outbox, we can retry/edit to fix
       failureDescription = `Failed to send: ${message.errorReason}`
-      allowCancelRetry = true
+      // for flip messages, don't allow retry/cancel
+      allowCancelRetry = message.type === 'attachment' || !message.flipGameID
     }
   }
   return {allowCancelRetry, failureDescription}

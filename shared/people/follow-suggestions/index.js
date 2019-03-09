@@ -2,8 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
 import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import * as Styles from '../../styles'
 
 export type FollowSuggestion = Types.FollowSuggestion
 
@@ -17,7 +16,7 @@ export default (props: Props) => (
       Consider following...
     </Text>
     <ScrollView
-      {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+      {...(Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
@@ -36,22 +35,22 @@ export default (props: Props) => (
   </Box>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
-    ...globalStyles.flexBoxColumn,
-    paddingTop: globalMargins.tiny,
+    ...Styles.globalStyles.flexBoxColumn,
+    paddingTop: Styles.globalMargins.tiny,
     position: 'relative',
   },
   meta: {
     paddingLeft: 2,
     paddingRight: 2,
   },
-  scrollViewContainer: platformStyles({
+  scrollViewContainer: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       borderBottomWidth: 1,
-      borderColor: globalColors.black_10,
-      paddingBottom: globalMargins.small,
+      borderColor: Styles.globalColors.black_10,
+      paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
       borderBottomStyle: 'solid',
@@ -66,15 +65,15 @@ const styles = styleSheetCreate({
     height: 112,
     width: 112,
   },
-  text: platformStyles({
+  text: Styles.platformStyles({
     common: {
-      marginBottom: globalMargins.tiny,
+      marginBottom: Styles.globalMargins.tiny,
     },
     isElectron: {
-      marginLeft: globalMargins.small,
+      marginLeft: Styles.globalMargins.small,
     },
     isMobile: {
-      marginLeft: globalMargins.tiny,
+      marginLeft: Styles.globalMargins.tiny,
     },
   }),
 })

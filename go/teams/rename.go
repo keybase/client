@@ -9,7 +9,8 @@ import (
 )
 
 func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase1.TeamName, newName keybase1.TeamName) error {
-	g.Log.CDebugf(ctx, "RenameSubteam %v -> %v", prevName, newName)
+	mctx := libkb.NewMetaContext(ctx, g)
+	mctx.Debug("RenameSubteam %v -> %v", prevName, newName)
 
 	if prevName.IsRootTeam() {
 		return fmt.Errorf("cannot rename root team: %s", prevName.String())
@@ -38,7 +39,8 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 	}
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		g.Log.CDebugf(ctx, "RenameSubteam load teams: parent:'%v' subteam:'%v'",
+		mctx := libkb.NewMetaContext(ctx, g)
+		mctx.Debug("RenameSubteam load teams: parent:'%v' subteam:'%v'",
 			parentName.String(), prevName.String())
 		parent, err := GetForTeamManagementByStringName(ctx, g, parentName.String(), true)
 		if err != nil {
@@ -49,7 +51,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
-		g.Log.CDebugf(ctx, "RenameSubteam load me")
+		mctx.Debug("RenameSubteam load me")
 		me, err := loadMeForSignatures(ctx, g)
 		if err != nil {
 			return err
@@ -73,15 +75,15 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		// Subteam renaming involves two links, one `rename_subteam` in the parent
 		// team's chain, and one `rename_up_pointer` in the subteam's chain.
 
-		g.Log.CDebugf(ctx, "RenameSubteam make sigs")
+		mctx.Debug("RenameSubteam make sigs")
 		renameSubteamSig, err := generateRenameSubteamSigForParentChain(
-			libkb.NewMetaContext(ctx, g), me, deviceSigningKey, parent.chain(), subteam.ID, newName, admin)
+			mctx, me, deviceSigningKey, parent.chain(), subteam.ID, newName, admin)
 		if err != nil {
 			return err
 		}
 
 		renameUpPointerSig, err := generateRenameUpPointerSigForSubteamChain(
-			libkb.NewMetaContext(ctx, g),
+			mctx,
 			me, deviceSigningKey, chainPair{parent: parent.chain(), subteam: subteam.chain()}, newName, admin)
 		if err != nil {
 			return err
@@ -100,8 +102,8 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		payload := make(libkb.JSONPayload)
 		payload["sigs"] = []interface{}{renameSubteamSig, renameUpPointerSig}
 
-		g.Log.CDebugf(ctx, "RenameSubteam post")
-		_, err = g.API.PostJSON(libkb.APIArg{
+		mctx.Debug("RenameSubteam post")
+		_, err = mctx.G().API.PostJSON(mctx, libkb.APIArg{
 			Endpoint:    "sig/multi",
 			SessionType: libkb.APISessionTypeREQUIRED,
 			JSONPayload: payload,
@@ -110,7 +112,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
-		go g.GetTeamLoader().NotifyTeamRename(ctx, subteam.ID, newName.String())
+		go mctx.G().GetTeamLoader().NotifyTeamRename(ctx, subteam.ID, newName.String())
 
 		return nil
 	})

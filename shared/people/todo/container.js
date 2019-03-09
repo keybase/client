@@ -7,12 +7,11 @@ import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {todoTypes} from '../../constants/people'
-import {connect} from '../../util/container'
-import {createGetMyProfile} from '../../actions/tracker-gen'
+import {connect, isMobile} from '../../util/container'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {createShowUserProfile} from '../../actions/profile-gen'
+import * as ProfileGen from '../../actions/profile-gen'
 import openURL from '../../util/open-url'
-import {isMobile} from '../../constants/platform'
 
 type TodoOwnProps = {|
   badged: boolean,
@@ -43,16 +42,16 @@ const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
 const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {
+    _onConfirm: username => {
       // make sure we have tracker state & profile is up to date
-      dispatch(createGetMyProfile({}))
+      dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
       dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.profileTab, 'editAvatar']}))
     },
     onDismiss: () => {},
   }),
   (stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
-    onConfirm: dispatchProps.onConfirm,
+    onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
     onDismiss: dispatchProps.onDismiss,
   })
 )(Task)
@@ -62,7 +61,7 @@ const BioConnector = connect<TodoOwnProps, _, _, _, _>(
   dispatch => ({
     _onConfirm: (username: string) => {
       // make sure we have tracker state & profile is up to date
-      dispatch(createGetMyProfile({}))
+      dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
       dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['editProfile2']}))
     },
     onDismiss: () => {},
@@ -77,7 +76,7 @@ const BioConnector = connect<TodoOwnProps, _, _, _, _>(
 const ProofConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
-    _onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
+    _onConfirm: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onDismiss: onSkipTodo('proof', dispatch),
   }),
   (stateProps, dispatchProps, ownProps) => ({

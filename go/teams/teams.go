@@ -1624,11 +1624,10 @@ func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) li
 }
 
 func (t *Team) postMulti(mctx libkb.MetaContext, payload libkb.JSONPayload) error {
-	_, err := t.G().API.PostJSON(libkb.APIArg{
+	_, err := t.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		MetaContext: mctx,
 	})
 	return err
 }

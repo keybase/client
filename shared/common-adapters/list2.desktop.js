@@ -21,12 +21,14 @@ class List2<T> extends PureComponent<Props<T>, void> {
   // all rows and mount again.
   _row = ({index, style}) => <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>
 
+  // Need to pass in itemData to make items re-render on prop changes.
   _fixed = ({height, width, itemHeight}) => (
     <FixedSizeList
       style={this.props.style}
       height={height}
       width={width}
       itemCount={this.props.items.length}
+      itemData={this.props.items}
       itemKey={this._keyExtractor}
       itemSize={itemHeight}
     >
@@ -40,6 +42,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
       height={height}
       width={width}
       itemCount={this.props.items.length}
+      itemData={this.props.items}
       itemKey={this._keyExtractor}
       itemSize={index => getItemLayout(index, this.props.items[index]).height}
       estimatedItemSize={this.props.estimatedItemHeight}

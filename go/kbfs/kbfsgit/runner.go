@@ -158,7 +158,7 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	}
 
 	h, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, config.KBPKI(), config.MDOps(), parts[1], t)
+		ctx, config.KBPKI(), config.MDOps(), config, parts[1], t)
 	if err != nil {
 		return nil, err
 	}
@@ -1123,7 +1123,8 @@ func (r *runner) checkGC(ctx context.Context) (err error) {
 	command := fmt.Sprintf("keybase git gc %s", r.repo)
 	if r.h.Type() == tlf.SingleTeam {
 		tid := r.h.FirstResolvedWriter()
-		teamName, err := r.config.KBPKI().GetNormalizedUsername(ctx, tid)
+		teamName, err := r.config.KBPKI().GetNormalizedUsername(
+			ctx, tid, r.config.OfflineAvailabilityForID(r.h.TlfID()))
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
-import {isMobile} from '../../constants/platform'
 import * as Styles from '../../styles'
 import Text from '../text'
 import KbfsPath from './kbfs-path-container'
@@ -216,7 +215,7 @@ const reactComponentsForMarkdownType = {
     return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
   fence: (node, output, state) =>
-    isMobile ? (
+    Styles.isMobile ? (
       <Box key={state.key} style={codeSnippetBlockStyle}>
         <Text
           type="Body"
@@ -289,7 +288,7 @@ const reactComponentsForMarkdownType = {
     )
   },
   newline: (node, output, state) =>
-    !isMobile || state.inParagraph ? (
+    !Styles.isMobile || state.inParagraph ? (
       '\n'
     ) : (
       <Text

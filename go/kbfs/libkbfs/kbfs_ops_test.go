@@ -496,7 +496,8 @@ type failIdentifyKBPKI struct {
 }
 
 func (kbpki failIdentifyKBPKI) Identify(
-	ctx context.Context, assertion, reason string) (
+	ctx context.Context, assertion, reason string,
+	_ keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 		kbpki.identifyErr
@@ -3316,7 +3317,7 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 
 	// Look up bob's public folder.
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "bob", tlf.Public)
+		ctx, config.KBPKI(), config.MDOps(), nil, "bob", tlf.Public)
 	require.NoError(t, err)
 	_, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	if _, ok := err.(WriteAccessError); !ok {
@@ -3451,7 +3452,8 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 
 	t.Log("Look up bob's public folder.")
 	h, err := ParseTlfHandle(
-		ctx, config1.KBPKI(), config1.MDOps(), string(name), tlf.SingleTeam)
+		ctx, config1.KBPKI(), config1.MDOps(), nil, string(name),
+		tlf.SingleTeam)
 	require.NoError(t, err)
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err := kbfsOps1.GetOrCreateRootNode(
@@ -3600,7 +3602,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 
 	t.Log("Create the folder before implicit teams are enabled.")
 	h, err := ParseTlfHandle(
-		ctx, config1.KBPKI(), config1.MDOps(), string(name), ty)
+		ctx, config1.KBPKI(), config1.MDOps(), nil, string(name), ty)
 	require.NoError(t, err)
 	require.False(t, h.IsBackedByTeam())
 	kbfsOps1 := config1.KBFSOps()
@@ -3704,7 +3706,7 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 	t.Log("Create a private folder for the master branch.")
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -3842,7 +3844,7 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -3908,7 +3910,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	t.Log("Create a private folder.")
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -3992,7 +3994,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	t.Log("Create a private, unsynced TLF and make sure updates are committed")
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -4108,7 +4110,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
@@ -4214,7 +4216,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
@@ -4350,7 +4352,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 
@@ -4570,7 +4572,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 
 	name := "u1"
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 

@@ -10,6 +10,7 @@ import (
 
 func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1.Folder, repoName keybase1.GitRepoName) error {
 	teamer := NewTeamer(g)
+	mctx := libkb.NewMetaContext(ctx, g)
 
 	teamIDVis, err := teamer.LookupOrCreate(ctx, folder)
 	if err != nil {
@@ -27,7 +28,7 @@ func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1
 	for _, repoResult := range repos {
 		repo, err := repoResult.GetIfOk()
 		if err != nil {
-			g.Log.CDebugf(ctx, "%v", err)
+			mctx.Debug("%v", err)
 			continue
 		}
 		if repo.LocalMetadata.RepoName == repoName {
@@ -42,12 +43,11 @@ func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1
 	apiArg := libkb.APIArg{
 		Endpoint:    "kbfs/git/team/delete",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"team_id": libkb.S{Val: string(teamIDVis.TeamID)},
 			"repo_id": libkb.S{Val: string(repoID)},
 		},
 	}
-	_, err = g.GetAPI().Post(apiArg)
+	_, err = mctx.G().GetAPI().Post(mctx, apiArg)
 	return err
 }

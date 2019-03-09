@@ -12,7 +12,7 @@ import {hasShare} from '../common/path-item-action/layout'
 
 type DefaultViewProps = {
   download: () => void,
-  fileUIEnabled: boolean,
+  sfmiEnabled: boolean,
   path: Types.Path,
   pathItem: Types.PathItem,
   routePath: I.List<string>,
@@ -55,7 +55,7 @@ const DefaultView = (props: DefaultViewProps) => (
       </>
     )}
     {!isIOS &&
-      (props.fileUIEnabled ? (
+      (props.sfmiEnabled ? (
         <Kb.Button
           key="open"
           type="Secondary"

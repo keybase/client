@@ -10,12 +10,17 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 	"sync"
+	"time"
 )
 
 type RPCCache struct {
 	sync.Mutex
 	edb *encrypteddb.EncryptedDB
 }
+
+const (
+	bestEffortHandlerTimeout = 500 * time.Millisecond
+)
 
 func newEncryptedDB(g *libkb.GlobalContext) *encrypteddb.EncryptedDB {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
@@ -121,40 +126,92 @@ func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, 
 	return err
 }
 
-// Serve an RPC out of the offline cache. The machinery only kicks into gear if the `oa` OfflineAvailability mode is set
-// to BEST_EFFORT. If not, then just use the function `handler` which does the main work of handling the RPC. Note that
-// `handler` already has the argument "baked in" or "curried in", and also, is responsible for setting a result of the
-// right type in the caller's stack frame. `handler` also returns the return value for the RPC as an inteface, so it
-// can be inserted into the offline cache in the success case. We also pass this function a `version`, which will tell
-// the cache-access machinery to fail if the wrong version of the data is cached. Next, we pass the `rpcName`, the
-// argument, and the pointer to which the result is stored if we hit the cache. This flow is unfortunately complicated,
-// but the issue is that we're trying to maintain runtime type checking, and it's hard to do without generics.
-func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability, version Version, rpcName string, encrypted bool, arg interface{}, res interface{},
-	handler func(mctx libkb.MetaContext) (interface{}, error)) (err error) {
+// Serve an RPC out of the offline cache. The machinery only kicks
+// into gear if the `oa` OfflineAvailability mode is set to
+// BEST_EFFORT. If not, then just use the function `handler` which
+// does the main work of handling the RPC. Note that `handler` must
+// not modify anything in the caller's stack frame; it might be run in
+// a background goroutine after this function returns, to populate the
+// cache. `handler` also returns the return value for the RPC as an
+// interface, so it can be inserted into the offline cache in the
+// success case. We also pass this function a `version`, which will
+// tell the cache-access machinery to fail if the wrong version of the
+// data is cached. Next, we pass the `rpcName`, the argument, and the
+// pointer to which the result is stored if we hit the cache.
+//
+// If this function doesn't return an error, and the returned `res` is
+// nil, then `resPtr` will have been filled in already by the cache.
+// Otherwise, `res` should be used by the caller as the response.
+func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability, version Version, rpcName string, encrypted bool, arg interface{}, resPtr interface{},
+	handler func(mctx libkb.MetaContext) (interface{}, error)) (res interface{}, err error) {
 
 	if oa != keybase1.OfflineAvailability_BEST_EFFORT {
-		_, err := handler(mctx)
-		return err
+		return handler(mctx)
 	}
 	mctx = mctx.WithLogTag("OFLN")
 	defer mctx.Trace(fmt.Sprintf("RPCCache#Serve(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() error { return err })()
-	if mctx.G().ConnectivityMonitor.IsConnected(mctx.Ctx()) == libkb.ConnectivityMonitorNo {
-		found, err := c.get(mctx, version, rpcName, encrypted, arg, res)
-		if err != nil {
-			return err
-		}
-		if !found {
-			return libkb.OfflineError{}
-		}
-		return nil
-	}
-	res, err = handler(mctx)
+
+	found, err := c.get(mctx, version, rpcName, encrypted, arg, resPtr)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	tmp := c.put(mctx, version, rpcName, encrypted, arg, res)
-	if tmp != nil {
-		mctx.Warning("Error putting RPC to offline storage: %s", tmp.Error())
+
+	// If we know we're not connected, use the cache value right away.
+	// TODO: API calls shouldn't necessarily depend on the
+	// connectivity as measured by gregor.
+	if mctx.G().ConnectivityMonitor.IsConnected(mctx.Ctx()) == libkb.ConnectivityMonitorNo {
+		if !found {
+			return nil, libkb.OfflineError{}
+		}
+		return nil, nil // resPtr was filled in by get()
 	}
-	return nil
+
+	type handlerRes struct {
+		res interface{}
+		err error
+	}
+	resCh := make(chan handlerRes, 1)
+
+	// New goroutine needs a new metacontext, in case the original
+	// gets canceled after the timeout below.  Preserve the log tags
+	// though.
+	newMctx := mctx.BackgroundWithLogTags()
+
+	// Launch a background goroutine to try to invoke the handler.
+	// Even if we hit a timeout below and return the cached value,
+	// this goroutine will keep going in an attempt to populate the
+	// cache on a slow network.
+	go func() {
+		res, err := handler(newMctx)
+		if err != nil {
+			resCh <- handlerRes{res, err}
+			return
+		}
+		tmp := c.put(newMctx, version, rpcName, encrypted, arg, res)
+		if tmp != nil {
+			newMctx.Warning("Error putting RPC to offline storage: %s", tmp.Error())
+		}
+		resCh <- handlerRes{res, nil}
+	}()
+
+	var timerCh <-chan time.Time
+	if found {
+		// Use a quick timeout if there's an available cached value.
+		timerCh = mctx.G().Clock().After(bestEffortHandlerTimeout)
+	} else {
+		// Wait indefinitely on the handler if there's nothing in the cache.
+		timerCh = make(chan time.Time)
+	}
+	select {
+	case hr := <-resCh:
+		// Explicitly return hr.res rather than nil in the err != nil
+		// case, because some RPCs might depend on getting a result
+		// along with an error.
+		return hr.res, hr.err
+	case <-timerCh:
+		mctx.Debug("Timeout waiting for handler; using cached value instead")
+		return res, nil
+	case <-mctx.Ctx().Done():
+		return nil, mctx.Ctx().Err()
+	}
 }

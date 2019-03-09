@@ -2,7 +2,7 @@
 import {namedConnect} from '../../util/container'
 import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
-import * as TrackerGen from '../../actions/tracker-gen'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as UsersConstants from '../../constants/users'
 import type {InfoMap as UserInfoMap} from '../../constants/types/users'
 import {Usernames, type BaseUsernamesProps, type Props, type UserList} from '.'
@@ -78,8 +78,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   onOpenProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  onOpenTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>

@@ -240,17 +240,6 @@ export type Uploads = I.RecordOf<_Uploads>
 export type OpenDialogType = 'file' | 'directory' | 'both'
 export type MobilePickType = 'photo' | 'video' | 'mixed'
 
-export type _Flags = {
-  kbfsOpening: boolean,
-  kbfsInstalling: boolean,
-  fuseInstalling: boolean,
-  kextPermissionError: boolean,
-  securityPrefsPrompted: boolean,
-  showBanner: boolean,
-}
-
-export type Flags = I.RecordOf<_Flags>
-
 export type _LocalHTTPServer = {
   address: string,
   token: string,
@@ -282,16 +271,36 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
-export type _MoveOrCopy = {
-  sourceItemPath: Path,
+export type _MoveOrCopySource = {
+  type: 'move-or-copy',
+  path: Path,
+}
+export type MoveOrCopySource = I.RecordOf<_MoveOrCopySource>
+
+export type _IncomingShareSource = {
+  type: 'incoming-share',
+  localPath: LocalPath,
+}
+
+export type IncomingShareSource = I.RecordOf<_IncomingShareSource>
+
+export type _NoSource = {
+  type: 'none',
+}
+
+export type NoSource = I.RecordOf<_NoSource>
+
+export type _DestinationPicker = {
   // id -> Path mapping. This is useful for mobile when we have multiple layers
   // stacked on top of each other, and we need to keep track of them for the
   // back button. We don't put this in routeProps directly as that'd
   // complicate stuff for desktop because we don't have something like a
   // routeToSibling.
   destinationParentPath: I.List<Path>,
+  source: MoveOrCopySource | IncomingShareSource | NoSource,
 }
-export type MoveOrCopy = I.RecordOf<_MoveOrCopy>
+
+export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
 export type _SendLinkToChat = {
   path: Path,
@@ -312,24 +321,58 @@ export type _PathItemActionMenu = {
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
-export type _State = {
-  pathItems: PathItems,
-  tlfs: Tlfs,
-  edits: Edits,
-  pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Map<Path, I.Set<string>>,
+export type _DriverStatusUnknown = {
+  type: 'unknown',
+}
+export type DriverStatusUnknown = I.RecordOf<_DriverStatusUnknown>
+
+export type _DriverStatusDisabled = {
+  type: 'disabled',
+  isEnabling: boolean,
+  isDismissed: boolean,
+  // macOS only
+  kextPermissionError: boolean,
+}
+export type DriverStatusDisabled = I.RecordOf<_DriverStatusDisabled>
+
+export type _DriverStatusEnabled = {
+  type: 'enabled',
+  isDisabling: boolean,
+  isNew: boolean,
+  // windows only
+  dokanOutdated: boolean,
+  dokanUninstallExecPath?: ?string,
+}
+export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
+
+export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
+
+export type _SystemFileManagerIntegration = {
+  driverStatus: DriverStatus,
+  // This only controls if system-file-manager-integration-banner is shown in
+  // Folders view. The banner always shows in Settings/Files screen.
+  showingBanner: boolean,
+}
+export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
+
+export type _State = {|
   downloads: Downloads,
-  uploads: Uploads,
-  fuseStatus: ?RPCTypes.FuseStatus,
-  flags: Flags,
-  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
-  localHTTPServerInfo: LocalHTTPServer,
+  edits: Edits,
   errors: I.Map<string, FsError>,
-  tlfUpdates: UserTlfUpdates,
-  moveOrCopy: MoveOrCopy,
+  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
+  loadingPaths: I.Map<Path, I.Set<string>>,
+  localHTTPServerInfo: LocalHTTPServer,
+  destinationPicker: DestinationPicker,
   sendLinkToChat: SendLinkToChat,
   pathItemActionMenu: PathItemActionMenu,
-}
+  pathItems: PathItems,
+  pathUserSettings: I.Map<Path, PathUserSetting>,
+  sendLinkToChat: SendLinkToChat,
+  sfmi: SystemFileManagerIntegration,
+  tlfUpdates: UserTlfUpdates,
+  tlfs: Tlfs,
+  uploads: Uploads,
+|}
 export type State = I.RecordOf<_State>
 
 export type Visibility = TlfType | null
@@ -352,8 +395,8 @@ export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path => (s.indexOf('/') === 0 ? s : null)
 export const pathToString = (p: Path): string => (!p ? '' : p)
-// export const stringToLocalPath = (s: string): LocalPath => s
-// export const localPathToString = (p: LocalPath): string => p
+export const stringToLocalPath = (s: string): LocalPath => s
+export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
 export const getPathNameFromElems = (elems: Array<string>): string => {
   if (elems.length === 0) return ''
@@ -428,7 +471,11 @@ export const stringToPathType = (s: string): PathType => {
 }
 export const pathTypeToString = (p: PathType): string => p
 export const pathConcat = (p: Path, s: string): Path =>
-  p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
+  s === ''
+    ? p
+    : p === '/'
+      ? stringToPath('/' + s)
+      : stringToPath(pathToString(p) + '/' + s)
 export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'

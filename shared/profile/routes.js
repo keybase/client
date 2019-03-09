@@ -1,14 +1,11 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
-import flags from '../util/feature-flags'
 
 const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
-  const Profile = flags.identify3 ? require('./user/container').default : require('./container').default
+  const Profile = require('./user/container').default
   const AddToTeam = require('./add-to-team/container').default
-  // TODO deprecate
-  const EditProfile = require('./edit-profile/container').default
   const EditProfile2 = require('./edit-profile2/container').default
   const EditAvatar = require('./edit-avatar/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
@@ -58,9 +55,6 @@ const profileRoute = () => {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      editProfile: {
-        component: EditProfile,
-      },
       editProfile2: {
         component: EditProfile2,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
@@ -105,13 +99,10 @@ export const newRoutes = {
   addToTeam: {getScreen: () => require('./add-to-team/container').default},
   confirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
   editAvatar: {getScreen: () => require('./edit-avatar/container').default},
-  editProfile: {getScreen: () => require('./edit-profile/container').default},
+  editProfile2: {getScreen: () => require('./edit-profile2/container').default},
   nonUserProfile: {getScreen: () => require('./non-user-profile/container').default},
   postProof: {getScreen: () => require('./post-proof/container').default},
-  profile: {
-    getScreen: () => (flags.identify3 ? require('./user/container').default : require('./container').default),
-    upgraded: true,
-  },
+  profile: {getScreen: () => require('./user/container').default, upgraded: true},
   proveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
   proveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
   revoke: {getScreen: () => require('./revoke/container').default},

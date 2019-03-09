@@ -411,7 +411,9 @@ func (s *mdServerTlfStorage) put(ctx context.Context,
 		return false, err
 	}
 
-	err = rmds.IsValidAndSigned(ctx, s.codec, s.teamMemChecker, extra)
+	err = rmds.IsValidAndSigned(
+		ctx, s.codec, s.teamMemChecker, extra,
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return false, kbfsmd.ServerErrorBadRequest{Reason: err.Error()}
 	}

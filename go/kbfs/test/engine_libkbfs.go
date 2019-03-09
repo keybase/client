@@ -202,11 +202,12 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 
 func parseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
-	tlfName string, t tlf.Type) (h *libkbfs.TlfHandle, err error) {
+	osg libkbfs.OfflineStatusGetter, tlfName string, t tlf.Type) (
+	h *libkbfs.TlfHandle, err error) {
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
-		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, tlfName, t)
+		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, osg, tlfName, t)
 		switch err := errors.Cause(err).(type) {
 		case nil:
 			break outer
@@ -248,7 +249,8 @@ func (k *LibKBFS) getRootDir(
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
+	h, err := parseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +296,8 @@ func (k *LibKBFS) GetRootDirAtTimeString(
 	config := u.(*libkbfs.ConfigLocal)
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
+	h, err := parseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +318,8 @@ func (k *LibKBFS) GetRootDirAtRelTimeString(
 	config := u.(*libkbfs.ConfigLocal)
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
+	h, err := parseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -578,7 +582,8 @@ func (k *LibKBFS) GetPrevRevisions(u User, file Node) (
 // name.
 func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
 	t tlf.Type) (libkbfs.Node, error) {
-	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
+	h, err := parseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, tlfName, t)
 	if err != nil {
 		return nil, err
 	}
@@ -734,7 +739,8 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	h, err := parseTlfHandle(ctx, config.KBPKI(), config.MDOps(), tlfName, t)
+	h, err := parseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), config, tlfName, t)
 	if err != nil {
 		return err
 	}

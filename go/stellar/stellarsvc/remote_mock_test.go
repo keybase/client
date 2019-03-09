@@ -966,16 +966,16 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 	// users are allowed to have currency preferences even for accounts
 	// that do not exist on the network yet.
 	var displayCurrency string
+	mctx := libkb.NewMetaContext(ctx, tc.G)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"account_id": libkb.S{Val: string(accountID)},
 		},
-		NetContext: ctx,
 	}
 	var apiRes accountCurrencyResult
-	err = tc.G.API.GetDecode(apiArg, &apiRes)
+	err = tc.G.API.GetDecode(mctx, apiArg, &apiRes)
 	if err == nil {
 		displayCurrency = apiRes.CurrencyDisplayPreference
 	}
