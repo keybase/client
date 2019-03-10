@@ -166,7 +166,7 @@ if (var == "foo")
   echo "foo";
 else echo "bar";\`\`\`
      How about *bold* and _italic?_ nice. :smile:
-a whole bunch of native emojis 😀 😁 😍 ☝️ ☎️
+a whole bunch of native emojis ${'😀 😁 😍 ☝️ ☎️  '}
 a whole bunch of string emojis :thumbsup: :cry: :fireworks:
 Now youre thinking with ~portals~ crypto.
 how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
@@ -181,9 +181,9 @@ this is the one below.`,
   echo "foo";
 else echo "bar";
   // this should be *asterisk* \`\`\``,
-  transparentEmojis: ` 😀 😁 😍 ☝️ `,
-  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
-  transparentEmojis3: `😶`,
+  transparentEmojis: ' 😀 😁 😍 ☝️ ',
+  transparentEmojis2: 'these should be solid 😀 😁 😍 ☝️ ',
+  transparentEmojis3: '😶',
   underscoreweirdness: `under_score the first, \`under_score the second\``, // <--- end of string
 }
 
