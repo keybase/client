@@ -13,4 +13,5 @@ export type WebViewProps = {
   onLoadingStateChange?: (isLoading: boolean) => void,
 }
 
-declare export default React.ComponentType<WebViewProps>
+declare var toExport: React.ComponentType<Props>;
+export default toExport

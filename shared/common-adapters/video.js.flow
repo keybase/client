@@ -16,4 +16,5 @@ export type State = {|
   videoWidth: number,
 |}
 
-declare export default React.ComponentType<Props>
+declare var toExport: React.ComponentType<Props>;
+export default toExport
