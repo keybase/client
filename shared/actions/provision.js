@@ -492,7 +492,7 @@ const showFinalErrorPage = (state, action) => {
     return RouteTreeGen.createNavigateTo({parentPath, path: ['error']})
   } else {
     if (flags.useNewRouter) {
-      return RouteTreeGen.createNavigateTo({parentPath, path: [devicesRoot]})
+      return RouteTreeGen.createNavigateTo({parentPath, path: devicesRoot})
     } else {
       return RouteTreeGen.createNavigateTo({parentPath, path: []})
     }

@@ -7,7 +7,7 @@ import flags from '../../util/feature-flags'
 import {namedConnect} from '../../util/container'
 import DeviceRow from '.'
 
-type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean, navigation: any}
+type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean, navigation?: any}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
@@ -32,7 +32,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isRevoked: stateProps.isRevoked,
   name: stateProps.name,
   showExistingDevicePage: () => {
-    if (flags.useNewRouter) {
+    if (flags.useNewRouter && ownProps.navigation) {
       ownProps.navigation.dispatch(
         NavigationActions.navigate({params: {deviceID: ownProps.deviceID}, routeName: 'devicePage'})
       )
@@ -43,14 +43,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.type,
 })
 
-let ConnectedDeviceRow = namedConnect<OwnProps, _, _, _, _>(
+let _ConnectedDeviceRow = namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
   'DeviceRow'
 )(DeviceRow)
-if (flags.useNewRouter) {
-  ConnectedDeviceRow = withNavigation(ConnectedDeviceRow)
-}
 
+const ConnectedDeviceRow = flags.useNewRouter ? withNavigation(_ConnectedDeviceRow) : _ConnectedDeviceRow
 export default ConnectedDeviceRow
