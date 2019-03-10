@@ -4,7 +4,15 @@ import * as Styles from '../styles'
 import type {Props} from './scroll-view'
 
 const ScrollView = (props: Props) => {
-  const {contentContainerStyle, style, className, ref, hideVerticalScroll, ...rest} = props
+  const {
+    contentContainerStyle,
+    style,
+    className,
+    ref,
+    hideVerticalScroll,
+    alwaysBounceVertical,
+    ...rest
+  } = props
   const cn = Styles.classNames(
     {'hide-scrollbar': hideVerticalScroll},
     {'scroll-container': hideVerticalScroll},
