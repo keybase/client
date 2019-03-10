@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/provision'
+import {_getNavigator} from '../constants/router2'
 import * as RouteTreeGen from './route-tree-gen'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
@@ -9,6 +10,8 @@ import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
+import {NavigationActions} from '@react-navigation/core'
+import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 
@@ -351,6 +354,10 @@ class ProvisioningManager {
     })
 
   maybeCancelProvision = state => {
+    if (flags.useNewRouter) {
+      return
+    }
+
     const root = state.routeTree.routeState && state.routeTree.routeState.selected
 
     const doingDeviceAdd = this._addingANewDevice && root === devicesRoot[0]
@@ -430,7 +437,13 @@ function* addNewDevice(state) {
     ProvisioningManager.getSingleton().done('add device success')
     // Now refresh and nav back
     yield Saga.put(DevicesGen.createLoad())
-    yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: devicesRoot, path: []}))
+    if (!flags.useNewRouter) {
+      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: devicesRoot, path: []}))
+    } else {
+      // $FlowIssue - Private API
+      const navigator: any = _getNavigator()
+      navigator.dispatch(NavigationActions.navigate({routeName: devicesRoot[devicesRoot.length - 1]}))
+    }
   } catch (finalError) {
     ProvisioningManager.getSingleton().done(finalError.message)
 
@@ -478,7 +491,11 @@ const showFinalErrorPage = (state, action) => {
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     return RouteTreeGen.createNavigateTo({parentPath, path: ['error']})
   } else {
-    return RouteTreeGen.createNavigateTo({parentPath, path: []})
+    if (flags.useNewRouter) {
+      return RouteTreeGen.createNavigateTo({parentPath, path: [devicesRoot]})
+    } else {
+      return RouteTreeGen.createNavigateTo({parentPath, path: []})
+    }
   }
 }
 

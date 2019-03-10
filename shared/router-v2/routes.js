@@ -7,6 +7,7 @@ import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '..
 import {newRoutes as _loggedOutRoutes} from '../login/routes'
 import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
+import {newRoutes as provisionNewRoutes} from '../provision/routes'
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
@@ -20,6 +21,7 @@ export const routes: {[key: string]: {getScreen: () => React.ComponentType<any>,
 
 const _newRoutes = [
   {route: deviceNewRoutes, tab: Tabs.devicesTab},
+  {route: provisionNewRoutes, tab: Tabs.devicesTab},
   {route: chatNewRoutes, tab: Tabs.chatTab},
   {route: peopleNewRoutes, tab: Tabs.peopleTab},
   {route: profileNewRoutes, tab: Tabs.peopleTab},

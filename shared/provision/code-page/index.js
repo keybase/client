@@ -8,6 +8,7 @@ import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {iconMeta} from '../../common-adapters/icon.constants'
 import {isAndroid} from '../../constants/platform'
+import flags from '../../util/feature-flags'
 
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
@@ -125,12 +126,14 @@ class CodePage2 extends React.Component<Props, State> {
               }
             />
           </Kb.Box2>
-          <Kb.BackButton
-            onClick={this.props.onBack}
-            iconColor={Styles.globalColors.white}
-            style={styles.backButton}
-            textStyle={styles.backButtonText}
-          />
+          {!flags.useNewRouter && (
+            <Kb.BackButton
+              onClick={this.props.onBack}
+              iconColor={Styles.globalColors.white}
+              style={styles.backButton}
+              textStyle={styles.backButtonText}
+            />
+          )}
           {!!this.props.error && <ErrorBanner error={this.props.error} />}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
             <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -270,9 +273,8 @@ const Instructions = (p: Props) => (
     ) : (
       <React.Fragment>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          On
+          On{' '}
           <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
-            {' '}
             {p.otherDeviceName}
           </Kb.Text>
           , go to

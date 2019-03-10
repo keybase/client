@@ -42,7 +42,6 @@ const routeTree = () => {
 }
 
 export const newRoutes = {
-  deviceAdd: {getScreen: () => require('./add-device/container').default, upgraded: true},
   devicePage: {getScreen: () => require('./device-page/container').default, upgrade: true},
   devicePaperKey: {getScreen: () => require('./paper-key/container').default, upgraded: true},
   deviceRevoke: {getScreen: () => require('./device-revoke/container').default, upgraded: true},
@@ -50,6 +49,8 @@ export const newRoutes = {
   'tabs.devicesTab': {getScreen: () => require('./container').default, upgraded: true},
 }
 
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  deviceAdd: {getScreen: () => require('./add-device/container').default, upgraded: true},
+}
 
 export default routeTree

@@ -43,6 +43,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.type,
 })
 
-export default withNavigation(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'DeviceRow')(DeviceRow)
-)
+let ConnectedDeviceRow = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'DeviceRow'
+)(DeviceRow)
+if (flags.useNewRouter) {
+  ConnectedDeviceRow = withNavigation(ConnectedDeviceRow)
+}
+
+export default ConnectedDeviceRow
