@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import type {SiteIconSet} from '../../../constants/types/tracker2'
 
 type InputProps = {||}
 
@@ -45,7 +46,12 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   }
 }
 
-type Props = {||}
+type Props = {|
+  serviceIcon: SiteIconSet,
+  serviceIconFull: SiteIconSet,
+  serviceName: string,
+  serviceSub: string,
+|}
 
 const _EnterUsername = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
