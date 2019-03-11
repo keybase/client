@@ -896,7 +896,7 @@ func enableOpenSweepForTeam(g *libkb.GlobalContext, t libkb.TestingTB, teamID ke
 
 	t.Logf("Calling team_enable_open_sweep for team ID: %s", teamID)
 
-	_, err := g.API.Post(apiArg)
+	_, err := g.API.Post(libkb.NewMetaContextTODO(g), apiArg)
 	require.NoError(t, err)
 }
 
