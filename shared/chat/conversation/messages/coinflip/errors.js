@@ -41,7 +41,7 @@ type GenericProps = {|
 |}
 
 const CoinFlipGenericError = (props: GenericProps) => (
-  <Kb.Text selectable={true} style={styles.error} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
     {props.error}
   </Kb.Text>
 )
@@ -51,38 +51,34 @@ type AbsenteeProps = {|
 |}
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
     <Kb.Text selectable={true} type="Body">
-      {props.error.absentees && props.error.absentees.length === 1 ? 'One player' : 'Some players'} that
-      committed to the coin flip failed to reveal their secrets in time:
+      Uh oh, a participant disappeared:
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text selectable={true} style={styles.error} type="BodySemibold">
         {(props.error.absentees || []).map(a => `${a.user} (device: ${a.device})`).join(', ')}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text selectable={true} type="BodySemibold">
-        This could mean one of two things:
-      </Kb.Text>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text selectable={true} type="Body">
-        • Either their client disconnected and could not reveal their secret, or
+        It was likely a network problem, but they could be trying to pull a fast one.
       </Kb.Text>
-      <Kb.Text selectable={true} type="Body">
-        • They're trying to cheat by disconnecting on purpose in order to force a new flip.
+      <Kb.Text type="BodyPrimaryLink" onClickURL="https://keybase.io/coin-flip">
+        Learn More
       </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
 )
 
 const CoinFlipTimeoutError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
     Flip timed out before a result was obtained.
   </Kb.Text>
 )
 
 const CoinFlipAbortedError = () => (
-  <Kb.Text selectable={true} style={styles.error} type="Body">
+  <Kb.Text selectable={true} style={styles.error} type="BodySmall">
     Flip aborted before a result was obtained.
   </Kb.Text>
 )
@@ -93,7 +89,7 @@ type DupProps = {|
 |}
 
 const CoinFlipDupError = (props: DupProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
     <Kb.Text selectable={true} type="Body">
       Duplicate {props.desc} received from the following participant:
     </Kb.Text>
@@ -108,7 +104,7 @@ type CommitMismatchProps = {|
 |}
 
 const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.bordered}>
     <Kb.Text selectable={true} type="Body">
       Commitment mismatch from the following participant:
     </Kb.Text>
@@ -119,6 +115,12 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  bordered: {
+    borderColor: Styles.globalColors.lightGrey,
+    borderLeftWidth: 4,
+    borderStyle: 'solid',
+    paddingLeft: Styles.globalMargins.tiny,
+  },
   error: {
     color: Styles.globalColors.red,
   },

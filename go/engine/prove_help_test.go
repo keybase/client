@@ -87,10 +87,9 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 		PromptPosted: true,
 		SigVersion:   &sv,
 	}
-
 	eng := NewProve(g, &arg)
 
-	okToCheckHook := func(_ context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
+	okToCheckHook := func(ctx context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
 		if sigID.IsNil() {
 			return false, "", fmt.Errorf("empty sigID; can't make a post")
@@ -102,7 +101,7 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
 		}
-		res, err := g.API.Post(apiArg)
+		res, err := g.API.Post(libkb.NewMetaContext(ctx, g), apiArg)
 		ok := err == nil
 		var postID string
 		if ok {
@@ -138,7 +137,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigV
 
 	eng := NewProve(g, &arg)
 
-	okToCheckHook := func(_ context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
+	okToCheckHook := func(ctx context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
 			SessionType: libkb.APISessionTypeREQUIRED,
@@ -146,7 +145,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigV
 				"post": libkb.S{Val: "XXXXXXX"},
 			},
 		}
-		res, err := g.API.Post(apiArg)
+		res, err := g.API.Post(libkb.NewMetaContext(ctx, g), apiArg)
 		ok := err == nil
 		var postID string
 		if ok {
@@ -178,7 +177,7 @@ func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 			"post_id": libkb.S{Val: postID},
 		},
 	}
-	_, err := g.API.Post(apiArg)
+	_, err := g.API.Post(libkb.NewMetaContextTODO(g), apiArg)
 	return err
 }
 
@@ -194,7 +193,7 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 
 	eng := NewProve(g, &arg)
 
-	okToCheckHook := func(_ context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
+	okToCheckHook := func(ctx context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
 		if sigID.IsNil() {
 			return false, "", fmt.Errorf("empty sigID; can't make a post")
@@ -207,7 +206,7 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 				"username": libkb.S{Val: rooterUsername},
 			},
 		}
-		res, err := g.API.Post(apiArg)
+		res, err := g.API.Post(libkb.NewMetaContext(ctx, g), apiArg)
 		ok := err == nil
 		var postID string
 		if ok {
@@ -257,9 +256,10 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	eng := NewProve(g, &arg)
 
 	// Post the proof to the gubble network and verify the sig hash
-	outputInstructionsHook := func(_ context.Context, _ keybase1.OutputInstructionsArg) error {
+	outputInstructionsHook := func(ctx context.Context, _ keybase1.OutputInstructionsArg) error {
 		sigID := eng.sigID
 		require.False(tc.T, sigID.IsNil())
+		mctx := libkb.NewMetaContext(ctx, g)
 
 		apiArg := libkb.APIArg{
 			Endpoint:    fmt.Sprintf("gubble_universe/%s", endpoint),
@@ -272,15 +272,14 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 				"json_redirect": libkb.B{Val: true},
 			},
 		}
-		_, err := g.API.Post(apiArg)
+		_, err := g.API.Post(libkb.NewMetaContext(ctx, g), apiArg)
 		require.NoError(tc.T, err)
 
 		apiArg = libkb.APIArg{
 			Endpoint:    fmt.Sprintf("gubble_universe/%s/%s/proofs", endpoint, fu.Username),
 			SessionType: libkb.APISessionTypeNONE,
 		}
-
-		res, err := g.GetAPI().Get(apiArg)
+		res, err := g.GetAPI().Get(mctx, apiArg)
 		require.NoError(tc.T, err)
 		objects, err := jsonhelpers.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
 			keybase1.SelectorEntry{

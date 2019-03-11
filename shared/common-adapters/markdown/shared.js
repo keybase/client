@@ -6,7 +6,6 @@ import Text from '../text'
 import logger from '../../logger'
 import type {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, tldExp, commonTlds} from './emoji-gen'
-import {isMobile} from '../../constants/platform'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 
 function createKbfsPathRegex(): ?RegExp {
@@ -180,7 +179,7 @@ const rules = {
   // it won't match.
   fallbackParagraph: {
     // $FlowIssue - tricky to get this to type properly
-    match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
+    match: (source, state, lookBehind) => (Styles.isMobile && !state.inParagraph ? [source] : null),
     order: 10000,
     parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
   },
@@ -279,7 +278,7 @@ const rules = {
     match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
     parse: (capture, parse, state) => {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
-      const content = isMobile ? capture[1].replace(/\n$/, '') : capture[1]
+      const content = Styles.isMobile ? capture[1].replace(/\n$/, '') : capture[1]
       return {
         content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
       }
@@ -298,7 +297,7 @@ const rules = {
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
     parse: function(capture, parse, state) {
       const preContent =
-        isMobile && !!capture[1]
+        Styles.isMobile && !!capture[1]
           ? wrapInParagraph(parse, capture[1], state)
           : SimpleMarkdown.parseInline(parse, capture[1], state)
       return {
@@ -337,7 +336,7 @@ const rules = {
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
     match: (source, state, lookBehind) =>
-      isMobile && !state.inParagraph ? null : textMatch(source, state, lookBehind),
+      Styles.isMobile && !state.inParagraph ? null : textMatch(source, state, lookBehind),
   },
 }
 
@@ -408,13 +407,13 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     }
     const inner = this.props.preview ? (
       <Text
-        type={isMobile ? 'Body' : 'BodySmall'}
+        type={Styles.isMobile ? 'Body' : 'BodySmall'}
         style={Styles.collapseStyles([
           markdownStyles.neutralPreviewStyle,
           this.props.style,
           styleOverride.preview,
         ])}
-        lineClamp={isMobile ? 1 : undefined}
+        lineClamp={Styles.isMobile ? 1 : undefined}
       >
         {output}
       </Text>
@@ -423,7 +422,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     )
 
     // Mobile doesn't use a wrapper
-    return isMobile ? (
+    return Styles.isMobile ? (
       inner
     ) : (
       <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>

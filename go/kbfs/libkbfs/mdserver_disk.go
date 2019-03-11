@@ -208,7 +208,8 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 	}
 	if handle.Type() == tlf.SingleTeam {
 		isReader, err := md.config.teamMembershipChecker().IsTeamReader(
-			ctx, handle.Writers[0].AsTeamOrBust(), session.UID)
+			ctx, handle.Writers[0].AsTeamOrBust(), session.UID,
+			keybase1.OfflineAvailability_NONE)
 		if err != nil {
 			return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 		} else if !isReader {

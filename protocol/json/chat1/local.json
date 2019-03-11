@@ -1468,6 +1468,10 @@
           "name": "version"
         },
         {
+          "type": "LocalConversationVers",
+          "name": "localVersion"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationLocalParticipant"

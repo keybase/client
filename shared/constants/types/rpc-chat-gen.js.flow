@@ -20,7 +20,7 @@ export type String = string
 export type Uint = number
 export type Uint64 = number
 type WaitingKey = string | Array<string>
-type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+export type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 
 export type MessageTypes = {|
@@ -185,7 +185,7 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'chat.1.chatUi.chatStellarDataError': {|
-    inParam: $ReadOnly<{|message: String|}>,
+    inParam: $ReadOnly<{|error: Keybase1.Status|}>,
     outParam: Boolean,
   |},
   'chat.1.chatUi.chatStellarDone': {|
@@ -844,7 +844,7 @@ export type ConversationIDMessageIDPairs = $ReadOnly<{pairs?: ?Array<Conversatio
 export type ConversationIDTriple = $ReadOnly<{tlfid: TLFID, topicType: TopicType, topicID: TopicID}>
 export type ConversationIndex = $ReadOnly<{i /* index */: {[key: string]: {[key: string]: Boolean}}, m /* metadata */: ConversationIndexMetadata}>
 export type ConversationIndexMetadata = $ReadOnly<{s /* seenIDs */: {[key: string]: Boolean}, v /* version */: Int}>
-export type ConversationInfoLocal = $ReadOnly<{id: ConversationID, triple: ConversationIDTriple, tlfName: String, topicName: String, headline: String, snippetMsg?: ?MessageUnboxed, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, participants?: ?Array<ConversationLocalParticipant>, finalizeInfo?: ?ConversationFinalizeInfo, resetNames?: ?Array<String>}>
+export type ConversationInfoLocal = $ReadOnly<{id: ConversationID, triple: ConversationIDTriple, tlfName: String, topicName: String, headline: String, snippetMsg?: ?MessageUnboxed, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, localVersion: LocalConversationVers, participants?: ?Array<ConversationLocalParticipant>, finalizeInfo?: ?ConversationFinalizeInfo, resetNames?: ?Array<String>}>
 export type ConversationLocal = $ReadOnly<{error?: ?ConversationErrorLocal, info: ConversationInfoLocal, readerInfo: ConversationReaderInfo, creatorInfo?: ?ConversationCreatorInfoLocal, notifications?: ?ConversationNotificationInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, maxMessages?: ?Array<MessageSummary>, isEmpty: Boolean, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, convSettings?: ?ConversationSettingsLocal, commands: ConversationCommandGroups}>
 export type ConversationLocalParticipant = $ReadOnly<{username: String, fullname?: ?String}>
 export type ConversationMember = $ReadOnly<{uid: Gregor1.UID, convID: ConversationID, topicType: TopicType}>
@@ -862,7 +862,7 @@ export type ConversationMembersType =
   | 2 // IMPTEAMNATIVE_2
   | 3 // IMPTEAMUPGRADE_3
 
-export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
+export type ConversationMetadata = $ReadOnly<{idTriple: ConversationIDTriple, conversationID: ConversationID, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, localVersion: LocalConversationVers, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, activeList?: ?Array<Gregor1.UID>, allList?: ?Array<Gregor1.UID>, resetList?: ?Array<Gregor1.UID>}>
 export type ConversationMinWriterRoleInfo = $ReadOnly<{uid: Gregor1.UID, role: Keybase1.TeamRole}>
 export type ConversationMinWriterRoleInfoLocal = $ReadOnly<{username: String, role: Keybase1.TeamRole}>
 export type ConversationNotificationInfo = $ReadOnly<{channelWide: Boolean, settings: {[key: string]: {[key: string]: Boolean}}}>
@@ -969,7 +969,7 @@ export type InboxResType =
   | 0 // VERSIONHIT_0
   | 1 // FULL_1
 
-export type InboxUIItem = $ReadOnly<{convID: String, topicType: TopicType, isPublic: Boolean, isEmpty: Boolean, name: String, snippet: String, snippetDecoration: String, channel: String, headline: String, visibility: Keybase1.TLFVisibility, participants?: ?Array<String>, fullNames: {[key: string]: String}, resetParticipants?: ?Array<String>, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, time: Gregor1.Time, notifications?: ?ConversationNotificationInfo, creatorInfo?: ?ConversationCreatorInfoLocal, version: ConversationVers, maxMsgID: MessageID, maxVisibleMsgID: MessageID, readMsgID: MessageID, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, convSettings?: ?ConversationSettingsLocal, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, commands: ConversationCommandGroups}>
+export type InboxUIItem = $ReadOnly<{convID: String, topicType: TopicType, isPublic: Boolean, isEmpty: Boolean, name: String, snippet: String, snippetDecoration: String, channel: String, headline: String, visibility: Keybase1.TLFVisibility, participants?: ?Array<String>, fullNames: {[key: string]: String}, resetParticipants?: ?Array<String>, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, time: Gregor1.Time, notifications?: ?ConversationNotificationInfo, creatorInfo?: ?ConversationCreatorInfoLocal, version: ConversationVers, localVersion: LocalConversationVers, maxMsgID: MessageID, maxVisibleMsgID: MessageID, readMsgID: MessageID, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, convSettings?: ?ConversationSettingsLocal, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, commands: ConversationCommandGroups}>
 export type InboxUIItemError = $ReadOnly<{typ: ConversationErrorType, message: String, unverifiedTLFName: String, rekeyInfo?: ?ConversationErrorRekey, remoteConv: UnverifiedInboxUIItem}>
 export type InboxUIItems = $ReadOnly<{items?: ?Array<InboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 export type InboxVers = Uint64
@@ -980,6 +980,7 @@ export type IncomingMessage = $ReadOnly<{message: UIMessage, modifiedMessage?: ?
 export type JoinLeaveConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type JoinLeaveConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type KBFSImpteamUpgradeUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers, topicType: TopicType}>
+export type LocalConversationVers = Uint64
 export type MakePreviewRes = $ReadOnly<{mimeType: String, previewMimeType?: ?String, location?: ?PreviewLocation, metadata?: ?AssetMetadata, baseMetadata?: ?AssetMetadata}>
 export type MarkAsReadLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type MarkAsReadRes = $ReadOnly<{rateLimit?: ?RateLimit}>
@@ -1124,7 +1125,7 @@ export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowRese
 export type Reaction = $ReadOnly<{ctime: Gregor1.Time, reactionMsgID: MessageID}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: {[key: string]: Reaction}}}>
 export type ReactionUpdate = $ReadOnly<{reactions: ReactionMap, targetMsgID: MessageID}>
-export type ReactionUpdateNotif = $ReadOnly<{convID: ConversationID, reactionUpdates?: ?Array<ReactionUpdate>}>
+export type ReactionUpdateNotif = $ReadOnly<{convID: ConversationID, topReacjis?: ?Array<String>, reactionUpdates?: ?Array<ReactionUpdate>}>
 export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageID, conv?: ?InboxUIItem}>
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type RemoteUserTypingUpdate = $ReadOnly<{uid: Gregor1.UID, deviceID: Gregor1.DeviceID, convID: ConversationID, typing: Boolean}>
@@ -1306,7 +1307,7 @@ export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost:
 export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, UnreadMessages /* compatUnreadMessages */: Int, diff: Boolean}>
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
 export type UnreadlineRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>, unreadlineID?: ?MessageID}>
-export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, topicType: TopicType, isPublic: Boolean, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, maxMsgID: MessageID, maxVisibleMsgID: MessageID, readMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, commands: ConversationCommandGroups}>
+export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, topicType: TopicType, isPublic: Boolean, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, localVersion: LocalConversationVers, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, maxMsgID: MessageID, maxVisibleMsgID: MessageID, readMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, commands: ConversationCommandGroups}>
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, snippetDecoration: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>

@@ -29,11 +29,13 @@ func (v *CmdPing) Run() error {
 		return PingGregor(v.G())
 	}
 
-	_, err := v.G().API.Post(libkb.APIArg{Endpoint: "ping"})
+	mctx := libkb.NewMetaContextBackground(v.G())
+
+	_, err := v.G().API.Post(mctx, libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}
-	_, err = v.G().API.Get(libkb.APIArg{Endpoint: "ping"})
+	_, err = v.G().API.Get(mctx, libkb.APIArg{Endpoint: "ping"})
 	if err != nil {
 		return err
 	}

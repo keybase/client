@@ -14,7 +14,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {throttle, merge} from 'lodash-es'
+import {merge} from 'lodash-es'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
@@ -89,24 +89,6 @@ function setupApp(store, runSagas) {
   })
   SafeElectron.getIpcRenderer().send('install-check')
 
-  const subsetsRemotesCareAbout = store => {
-    return {
-      tracker: store.tracker,
-    }
-  }
-
-  let _currentStore
-  store.subscribe(
-    throttle(() => {
-      let previousStore = _currentStore
-      _currentStore = subsetsRemotesCareAbout(store.getState())
-
-      if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
-        SafeElectron.getIpcRenderer().send('stateChange', store.getState())
-      }
-    }, 1000)
-  )
-
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 }
@@ -121,6 +103,7 @@ const FontLoader = () => (
     <p style={{fontFamily: 'Keybase', fontWeight: 600}}>keybase 600</p>
     <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 600}}>keybase 600 i</p>
     <p style={{fontFamily: 'Keybase', fontWeight: 700}}>keybase 700</p>
+    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 700}}>keybase 700 i</p>
   </div>
 )
 

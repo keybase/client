@@ -36,10 +36,9 @@ type canLogoutRet struct {
 
 // canLogout asks API server whether we should allow logging out or not.
 func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
-	err = mctx.G().API.GetDecode(libkb.APIArg{
+	err = mctx.G().API.GetDecode(mctx, libkb.APIArg{
 		Endpoint:    "user/can_logout",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		MetaContext: mctx,
 	}, &res)
 	return res, err
 }
@@ -60,8 +59,9 @@ func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.Deprovision
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email string) error {
-	res, err := h.G().API.Post(libkb.APIArg{
+func (h *LoginHandler) RecoverAccountFromEmailAddress(ctx context.Context, email string) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	res, err := mctx.G().API.Post(mctx, libkb.APIArg{
 		Endpoint:    "send-reset-pw",
 		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{

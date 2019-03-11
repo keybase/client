@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import Button from './button'
 import Box, {Box2} from './box'
 import Text from './text'
 import List2 from './list2'
@@ -64,6 +65,41 @@ const load = () =>
         />
       </Box>
     ))
+    .add('fixed - props change ', () => <PropsChangeTester />)
+
+class PropsChangeTester extends React.PureComponent<{||}, {|counter: number|}> {
+  state = {
+    counter: 0,
+  }
+  render() {
+    return (
+      <>
+        <Button
+          type="Primary"
+          label="increase"
+          onClick={() =>
+            this.setState(prevState => ({
+              counter: prevState.counter + 1,
+            }))
+          }
+        />
+        <Box style={styles.listContainer}>
+          <List2
+            items={[{val: this.state.counter}]}
+            bounces={true}
+            indexAsKey={true}
+            itemHeight={{height: 32, type: 'fixed'}}
+            renderItem={(index, item) => (
+              <Box2 direction="horizontal" style={styles.listItem} centerChildren={true} fullWidth={true}>
+                <Text type="Body">{item.val.toString()}</Text>
+              </Box2>
+            )}
+          />
+        </Box>
+      </>
+    )
+  }
+}
 const styles = Styles.styleSheetCreate({
   listContainer: {
     backgroundColor: Styles.globalColors.red,

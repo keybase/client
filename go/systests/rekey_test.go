@@ -303,6 +303,7 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 	// to the API server.
 	g := rkt.primaryContext()
 	fakeTLF := rkt.getFakeTLF()
+	mctx := libkb.NewMetaContextBackground(g)
 	apiArg := libkb.APIArg{
 		Args: libkb.HTTPArgs{
 			"tlfid":          libkb.S{Val: string(fakeTLF.id)},
@@ -312,7 +313,7 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 		Endpoint:    "test/fake_home_tlf",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
-	_, err := g.API.Post(apiArg)
+	_, err := g.API.Post(mctx, apiArg)
 	if err != nil {
 		rkt.t.Fatalf("Failed to post fake TLF: %s", err)
 	}
@@ -335,7 +336,8 @@ func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := g.API.Post(apiArg)
+	mctx := libkb.NewMetaContextBackground(g)
+	_, err := g.API.Post(mctx, apiArg)
 	if err != nil {
 		rkt.t.Fatalf("Failed to bump rekey to front of line: %s", err)
 	}
@@ -353,7 +355,8 @@ func (rkt *rekeyTester) kickRekeyd() {
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := g.API.Post(apiArg)
+	mctx := libkb.NewMetaContextBackground(g)
+	_, err := g.API.Post(mctx, apiArg)
 	if err != nil {
 		rkt.t.Errorf("Failed to accelerate rekeyd: %s", err)
 	}

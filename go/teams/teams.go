@@ -1624,11 +1624,10 @@ func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) li
 }
 
 func (t *Team) postMulti(mctx libkb.MetaContext, payload libkb.JSONPayload) error {
-	_, err := t.G().API.PostJSON(libkb.APIArg{
+	_, err := t.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		MetaContext: mctx,
 	})
 	return err
 }
@@ -1805,7 +1804,7 @@ func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post f
 }
 
 func isSigOldSeqnoError(err error) bool {
-	return libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCSigOldSeqno)
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigOldSeqno)
 }
 
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {
@@ -1923,6 +1922,11 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (err error) {
 	m := t.MetaContext(ctx)
 	defer m.Trace("Team.AssociateWithTLFID", func() error { return err })()
+
+	if tlfID.Eq(t.LatestKBFSTLFID()) {
+		m.Debug("No updated needed, TLFID already set to %s", tlfID)
+		return nil
+	}
 
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),

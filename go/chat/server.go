@@ -1240,7 +1240,11 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	}()
 	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
 	if err != nil {
-		ui.ChatStellarDataError(ctx, err.Error())
+		if err := libkb.ExportErrorAsStatus(h.G().GlobalContext, err); err != nil {
+			ui.ChatStellarDataError(ctx, *err)
+		} else {
+			h.Debug(ctx, "error exported to nothing") // should never happen
+		}
 		return res, err
 	}
 	h.Debug(ctx, "runStellarSendUI: payments described, telling UI")

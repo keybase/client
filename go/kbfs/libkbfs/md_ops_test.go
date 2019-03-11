@@ -279,7 +279,8 @@ func testMDOpsGetIDForUnresolvedHandlePublicSuccess(
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, nil)
 
-	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	hUnresolved, err := ParseTlfHandle(
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,bob@twitter", tlf.Public)
 	require.NoError(t, err)
 	hUnresolved.tlfID = tlf.NullID
@@ -309,17 +310,20 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 	defer mdOpsShutdown(mockCtrl, config)
 
 	id := tlf.FakeID(1, tlf.Public)
-	mdHandle1, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	mdHandle1, err := ParseTlfHandle(
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,dave@twitter", tlf.Public)
 	require.NoError(t, err)
 	mdHandle1.tlfID = tlf.NullID
 
-	mdHandle2, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	mdHandle2, err := ParseTlfHandle(
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,bob,charlie", tlf.Public)
 	require.NoError(t, err)
 	mdHandle2.tlfID = tlf.NullID
 
-	mdHandle3, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	mdHandle3, err := ParseTlfHandle(
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,bob@twitter,charlie@twitter", tlf.Public)
 	require.NoError(t, err)
 	mdHandle3.tlfID = tlf.NullID
@@ -335,8 +339,8 @@ func testMDOpsGetIDForUnresolvedMdHandlePublicSuccess(
 	verifyMDForPublic(config, rmds3, nil)
 
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), constIDGetter{id}, "alice,bob,charlie@twitter",
-		tlf.Public)
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
+		"alice,bob,charlie@twitter", tlf.Public)
 	require.NoError(t, err)
 	h.tlfID = tlf.NullID
 
@@ -378,7 +382,8 @@ func testMDOpsGetIDForUnresolvedHandlePublicFailure(
 	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Public, id)
 	rmds, _ := newRMDS(t, config, h)
 
-	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
+	hUnresolved, err := ParseTlfHandle(
+		ctx, config.KBPKI(), constIDGetter{id}, nil,
 		"alice,bob@github,bob@twitter", tlf.Public)
 	require.NoError(t, err)
 	hUnresolved.tlfID = tlf.NullID
@@ -1015,7 +1020,7 @@ func makeSuccessorRMDForTesting(
 
 	rmd, err := currRMD.MakeSuccessor(
 		ctx, config.MetadataVersion(), config.Codec(), config.KeyManager(),
-		config.KBPKI(), config.KBPKI(), mdID, true)
+		config.KBPKI(), config.KBPKI(), config, mdID, true)
 	require.NoError(t, err)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)

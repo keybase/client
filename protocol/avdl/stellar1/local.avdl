@@ -106,8 +106,10 @@ protocol local {
 
     boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
 
-    string batchID;       // if payment sent via batch, will contain the batch id
+    string batchID;                 // if payment sent via batch, will contain the batch id
     boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
+    boolean isInflation;            // true if payment from known inflation source
+    union { null, string } inflationSource; // name of inflation source
   }
 
   record PaymentOrErrorLocal {
@@ -172,8 +174,10 @@ protocol local {
     @lint("ignore")
     string externalTxURL;           // link to external web page with tx details
 
-    string batchID;       // if payment sent via batch, will contain the batch id
+    string batchID;                 // if payment sent via batch, will contain the batch id
     boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
+    boolean isInflation;            // true if payment from known inflation source
+    union { null, string } inflationSource; // name of inflation source
   }
 
   // accountID should be the accountID that you want the details for.

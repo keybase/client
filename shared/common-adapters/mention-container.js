@@ -1,11 +1,11 @@
 // @flow
 import * as Selectors from '../constants/selectors'
+import * as ProfileGen from '../actions/profile-gen'
+import * as Tracker2Gen from '../actions/tracker2-gen'
 import Mention, {type OwnProps} from './mention'
-import {namedConnect} from '../util/container'
-import {createGetProfile} from '../actions/tracker-gen'
 import {isMobile} from '../constants/platform'
-import {createShowUserProfile} from '../actions/profile-gen'
 import {isSpecialMention} from '../constants/chat2'
+import {namedConnect} from '../util/container'
 
 const mapStateToProps = (state, {username}: OwnProps): {|theme: $PropertyType<OwnProps, 'theme'>|} => {
   if (isSpecialMention(username)) {
@@ -28,9 +28,9 @@ const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
     ? undefined
     : () => {
         if (isMobile) {
-          dispatch(createShowUserProfile({username}))
+          dispatch(ProfileGen.createShowUserProfile({username}))
         } else {
-          dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
+          dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
         }
       },
 })

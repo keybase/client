@@ -412,12 +412,29 @@ func (h *TlfHandle) ToFavorite() Favorite {
 	}
 }
 
+// FavoriteData converts a TlfHandle into FavoriteData, suitable for
+// Favorites calls.
+func (h *TlfHandle) FavoriteData() FavoriteData {
+	fd := FavoriteData{
+		Name:         string(h.GetCanonicalName()),
+		FolderType:   h.Type().FolderType(),
+		Private:      h.Type() != tlf.Public,
+		ResetMembers: []keybase1.User{},
+	}
+	if h.IsBackedByTeam() {
+		teamID := h.FirstResolvedWriter().AsTeamOrBust()
+		fd.TeamID = &teamID
+	}
+	return fd
+}
+
 // ToFavorite converts a TlfHandle into a Favorite, and sets internal
 // state about whether the corresponding folder was just created or
 // not.
 func (h *TlfHandle) toFavToAdd(created bool) favToAdd {
 	return favToAdd{
 		Favorite: h.ToFavorite(),
+		Data:     h.FavoriteData(),
 		created:  created,
 	}
 }

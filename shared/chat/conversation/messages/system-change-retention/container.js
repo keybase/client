@@ -2,7 +2,7 @@
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
-import * as TrackerGen from '../../../../actions/tracker-gen'
+import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import SystemChangeRetention from '.'
 import {connect, isMobile} from '../../../../util/container'
 import {getCanPerform} from '../../../../constants/teams'
@@ -36,13 +36,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onClickUserAvatar: username => {
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(
-          TrackerGen.createGetProfile({
-            forceDisplay: true,
-            ignoreCache: true,
-            username,
-          })
-        )
+      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
   },
   _onManageRetention: conversationIDKey =>
     dispatch(

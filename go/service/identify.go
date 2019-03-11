@@ -75,21 +75,22 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (ret keybase1.IdentifyLiteRes, err error) {
 	mctx := libkb.NewMetaContext(netCtx, h.G()).WithLogTag("IDL")
 	defer mctx.Trace("IdentifyHandler#IdentifyLite", func() error { return err })()
-	retp := &ret
 	loader := func(mctx libkb.MetaContext) (interface{}, error) {
-		tmp, err := h.identifyLite(mctx, arg)
-		if err == nil {
-			*retp = tmp
-		}
-		return tmp, err
+		return h.identifyLite(mctx, arg)
 	}
 	cacheArg := keybase1.IdentifyLiteArg{
-		Id : arg.Id,
-		Assertion : arg.Assertion,
-		IdentifyBehavior : arg.IdentifyBehavior,
+		Id:               arg.Id,
+		Assertion:        arg.Assertion,
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.identifyLite", false, cacheArg, retp, loader)
-	return ret, err
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.identifyLite", false, cacheArg, &ret, loader)
+	if err != nil {
+		return servedRet.(keybase1.IdentifyLiteRes), err
+	}
+	if s, ok := servedRet.(keybase1.IdentifyLiteRes); ok {
+		ret = s
+	}
+	return ret, nil
 }
 
 func (h *IdentifyHandler) identifyLite(mctx libkb.MetaContext, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
@@ -171,15 +172,16 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg) (ret keybase1.UserOrTeamLite, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
 	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
-	retp := &ret
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, retp, func(mctx libkb.MetaContext) (interface{}, error) {
-		tmp, err := h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
-		if err == nil {
-			*retp = tmp
-		}
-		return tmp, err
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, &ret, func(mctx libkb.MetaContext) (interface{}, error) {
+		return h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
 	})
-	return ret, err
+	if err != nil {
+		return keybase1.UserOrTeamLite{}, err
+	}
+	if s, ok := servedRet.(keybase1.UserOrTeamLite); ok {
+		ret = s
+	}
+	return ret, nil
 }
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
@@ -195,7 +197,6 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RIIT")
 	defer mctx.Trace(fmt.Sprintf("IdentifyHandler#ResolveIdentifyImplicitTeam(%+v)", arg), func() error { return err })()
-	mctx.Debug("ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
 	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
 	if err != nil {
@@ -208,15 +209,18 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 		IsPublic:   arg.IsPublic,
 	}
 
-	resp := &res
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, resp, func(mctx libkb.MetaContext) (interface{}, error) {
-		tmp, err := h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
-		if tmp.DisplayName != "" {
-			*resp = tmp
-		}
-		return tmp, err
+	servedRes, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolveIdentifyImplicitTeam", false, cacheArg, &res, func(mctx libkb.MetaContext) (interface{}, error) {
+		return h.resolveIdentifyImplicitTeamHelper(mctx.Ctx(), arg, writerAssertions, readerAssertions)
 	})
 
+	if s, ok := servedRes.(keybase1.ResolveIdentifyImplicitTeamRes); ok {
+		// We explicitly want to return `servedRes` here, when err !=
+		// nil, as the caller might depend on it in certain cases.
+		res = s
+	} else if err != nil {
+		res = keybase1.ResolveIdentifyImplicitTeamRes{}
+	}
+	mctx.Debug("res: {displayName: %s, teamID: %s, folderID: %s}", res.DisplayName, res.TeamID, res.FolderID)
 	return res, err
 }
 

@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
-import FollowButton from '../../follow-button'
+import FollowButton from './follow-button'
 
 type Props = {|
   followThem: boolean,

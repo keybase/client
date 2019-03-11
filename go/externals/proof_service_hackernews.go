@@ -46,7 +46,7 @@ func KarmaURL(un string) string {
 
 func CheckKarma(mctx libkb.MetaContext, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := mctx.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: u, MetaContext: mctx})
+	res, err := mctx.G().GetExternalAPI().Get(mctx, libkb.APIArg{Endpoint: u})
 	if err != nil {
 		return 0, libkb.XapiError(err, u)
 	}

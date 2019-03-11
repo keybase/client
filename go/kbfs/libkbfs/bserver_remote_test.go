@@ -101,7 +101,8 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	bCtx := kbfsblock.MakeFirstContext(
 		currentUID.AsUserOrTeam(), keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	bID, err := kbfsblock.MakePermanentID(
+		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()

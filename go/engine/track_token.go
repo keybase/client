@@ -258,11 +258,10 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 	if sigVersion == libkb.KeybaseSignatureV2 {
 		httpsArgs["sig_inner"] = libkb.S{Val: string(e.trackStatementBytes)}
 	}
-	_, err = m.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "follow",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        httpsArgs,
-		NetContext:  m.Ctx(),
 	})
 
 	if err != nil {

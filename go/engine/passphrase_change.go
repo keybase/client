@@ -184,12 +184,11 @@ func (c *PassphraseChange) forceUpdatePassphrase(m libkb.MetaContext, sigKey lib
 		Endpoint:    "passphrase/sign",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		// Important to pass a MetaContext here to pick up the provisional login context
-		// or an ActiveDevice that is thread-local.
-		MetaContext: m,
 	}
 
-	_, err = m.G().API.PostJSON(postArg)
+	// Important to pass a MetaContext here to pick up the provisional login context
+	// or an ActiveDevice that is thread-local.
+	_, err = m.G().API.PostJSON(m, postArg)
 	if err != nil {
 		return fmt.Errorf("api post to passphrase/sign error: %s", err)
 	}
@@ -285,10 +284,9 @@ func (c *PassphraseChange) runStandardUpdate(m libkb.MetaContext) (err error) {
 		Endpoint:    "passphrase/replace",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		MetaContext: m,
 	}
 
-	_, err = c.G().API.PostJSON(postArg)
+	_, err = c.G().API.PostJSON(m, postArg)
 	if err != nil {
 		return err
 	}

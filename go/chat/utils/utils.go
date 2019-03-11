@@ -1007,6 +1007,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
+	res.LocalVersion = rawConv.Metadata.LocalVersion
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
@@ -1081,6 +1082,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.CreatorInfo = rawConv.CreatorInfo
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
+	res.LocalVersion = rawConv.Info.LocalVersion
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
@@ -1348,7 +1350,7 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	if !body.IsType(chat1.MessageType_FLIP) {
 		return nil
 	}
-	if msg.GetTopicType() == chat1.TopicType_CHAT {
+	if msg.GetTopicType() == chat1.TopicType_CHAT && !msg.IsOutbox() {
 		// only queue up a flip load for the flip messages in chat channels
 		g.CoinFlipManager.LoadFlip(ctx, uid, convID, msg.GetMessageID(), body.Flip().FlipConvID,
 			body.Flip().GameID)

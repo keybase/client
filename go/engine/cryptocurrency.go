@@ -139,11 +139,10 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		args["sig_inner"] = libkb.S{Val: string(sigInner)}
 	}
 
-	_, err = m.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "sig/post",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,
-		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err

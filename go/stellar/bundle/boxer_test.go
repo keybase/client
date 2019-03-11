@@ -327,7 +327,7 @@ func TestCanningFacility(t *testing.T) {
 	t.Logf("puk seed: %v", toB64(pukSeed[:]))
 	t.Logf("puk gen: %v", pukGen)
 	t.Logf("nonce: %v", toB64(boxed.EncParent.N[:]))
-	t.Logf("enc E: %v", toB64(boxed.EncParent.E[:]))
+	t.Logf("enc E: %v", toB64(boxed.EncParent.E))
 	t.Logf("\nEncParentB64: %v", boxed.EncParentB64)
 	t.Logf("VisParentB64: %v\n", boxed.VisParentB64)
 	for acctID, encodedAcct := range boxed.AcctBundles {

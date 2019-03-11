@@ -17,9 +17,9 @@ const CoinFlipParticipants = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true}>
-          <Kb.Text type="Body">
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.container}>
+          <Kb.Text type="Body" style={styles.title}>
             Participants
           </Kb.Text>
           <Kb.Text type="BodySmall">
@@ -38,7 +38,7 @@ const CoinFlipParticipants = (props: Props) => {
           ))}
         </Kb.ScrollView>
         <Kb.Divider />
-        <Kb.Box2 direction="vertical" style={styles.footer} centerChildren={true}>
+        <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
           <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/coin-flip">How This Works</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
@@ -57,23 +57,25 @@ const CoinFlipParticipants = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  footer: Styles.platformStyles({
+  container: Styles.platformStyles({
     isElectron: {
       paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isMobile: {
-      paddingBottom: Styles.globalMargins.xxtiny,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingTop: Styles.globalMargins.xsmall,
     },
   }),
   partContainer: {
     maxHeight: 200,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
   },
+  title: Styles.platformStyles({
+    isElectron: {
+      paddingTop: Styles.globalMargins.xtiny,
+    },
+  }),
 })
 
 export default CoinFlipParticipants

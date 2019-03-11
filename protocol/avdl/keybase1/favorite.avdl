@@ -19,7 +19,6 @@ protocol favorite {
   record Folder {
     string name;              // patrick,max or chris,maxtaco@twitter#strib
     boolean private;          // (DEPRECATED) in /keybase/private or /keybase/public?
-    boolean notificationsOn;  // user wants to be notified when this folder changes
     boolean created;          // this folder was just created by this user
     FolderType folderType;    // what type of folder is this?
 
@@ -27,6 +26,11 @@ protocol favorite {
     // the frontend doesn't need to be changed to support it.
     @jsonkey("team_id") @mpackkey("team_id")
     union { null, TeamID } teamID;
+
+    // TODO: decide if we need to include an ID here
+
+    @jsonkey("reset_members") @mpackkey("reset_members")
+    array<User> resetMembers;
 
   }
 

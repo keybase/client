@@ -973,7 +973,7 @@ type ChatUI struct {
 	InboxSearchDoneCb  chan chat1.ChatSearchInboxDoneArg
 	StellarShowConfirm chan struct{}
 	StellarDataConfirm chan chat1.UIChatPaymentSummary
-	StellarDataError   chan string
+	StellarDataError   chan keybase1.Status
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
 	GiphyResults       chan []chat1.GiphySearchResult
@@ -992,12 +992,12 @@ func NewChatUI() *ChatUI {
 		InboxSearchDoneCb:  make(chan chat1.ChatSearchInboxDoneArg, 50),
 		StellarShowConfirm: make(chan struct{}, 10),
 		StellarDataConfirm: make(chan chat1.UIChatPaymentSummary, 10),
-		StellarDataError:   make(chan string, 10),
+		StellarDataError:   make(chan keybase1.Status, 10),
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
 		GiphyWindow:        make(chan bool, 10),
-		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
+		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 100),
 		CommandMarkdown:    make(chan *chat1.UICommandMarkdown, 10),
 	}
 }
@@ -1113,8 +1113,8 @@ func (c *ChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UICha
 	return true, nil
 }
 
-func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, error) {
-	c.StellarDataError <- msg
+func (c *ChatUI) ChatStellarDataError(ctx context.Context, err keybase1.Status) (bool, error) {
+	c.StellarDataError <- err
 	return false, nil
 }
 
@@ -1307,6 +1307,10 @@ func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convI
 func (m *MockChatHelper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
 	return chat1.MessageUnboxed{}, nil
+}
+
+func (m *MockChatHelper) TopReacjis(ctx context.Context, uid gregor1.UID) []string {
+	return nil
 }
 
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,

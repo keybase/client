@@ -1042,7 +1042,8 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
-	} else if err := isReadableOrError(ctx, fbm.config.KBPKI(), head.ReadOnly()); err != nil {
+	} else if err := isReadableOrError(
+		ctx, fbm.config.KBPKI(), fbm.config, head.ReadOnly()); err != nil {
 		return err
 	} else if head.MergedStatus() != kbfsmd.Merged {
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
@@ -1056,7 +1057,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	isWriter, err := head.IsWriter(
-		ctx, fbm.config.KBPKI(), session.UID, session.VerifyingKey)
+		ctx, fbm.config.KBPKI(), fbm.config, session.UID, session.VerifyingKey)
 	if err != nil {
 		return err
 	}
