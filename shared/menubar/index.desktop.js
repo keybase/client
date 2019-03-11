@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as ConfigTypes from '../constants/types/config'
+import * as FsTypes from '../constants/types/fs'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import ChatContainer from './chat-container.desktop'
@@ -18,7 +19,7 @@ export type Props = {
   daemonHandshakeState: DaemonHandshakeState,
   logIn: () => void,
   loggedIn: boolean,
-  kbfsDaemonConnected: boolean,
+  kbfsDaemonStatus: FsTypes.KbfsDaemonStatus,
   kbfsEnabled: boolean,
   updateNow: () => void,
   onRekey: (path: string) => void,
@@ -46,7 +47,7 @@ class MenubarRender extends React.Component<Props, State> {
   attachmentRef = React.createRef<Kb.Icon>()
 
   _refreshUserFileEditsIfPossible = () =>
-    this.props.loggedIn && this.props.kbfsDaemonConnected && this.props.refreshUserFileEdits()
+    this.props.loggedIn && this.props.kbfsDaemonStatus === 'connected' && this.props.refreshUserFileEdits()
 
   componentDidMount() {
     this._refreshUserFileEditsIfPossible()
@@ -316,7 +317,7 @@ class MenubarRender extends React.Component<Props, State> {
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
-          {this.props.kbfsDaemonConnected ? (
+          {this.props.kbfsDaemonStatus === 'connected' ? (
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>

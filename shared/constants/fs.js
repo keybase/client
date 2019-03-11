@@ -230,7 +230,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
-  kbfsDaemonConnected: false,
+  kbfsDaemonStatus: 'unknown',
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
@@ -865,15 +865,15 @@ const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   }
 }
 
-export const getDestinationPickerPathName =
-  (picker: Types.DestinationPicker): string =>
-    picker.source.type === 'move-or-copy'
+export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
+  picker.source.type === 'move-or-copy'
     ? Types.getPathName(picker.source.path)
     : picker.source.type === 'incoming-share'
-      ? Types.getLocalPathName(picker.source.localPath)
-      : ''
+    ? Types.getLocalPathName(picker.source.localPath)
+    : ''
 
-export const splitFileNameAndExtension = (fileName: string) => ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+export const splitFileNameAndExtension = (fileName: string) =>
+  ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')

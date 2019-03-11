@@ -229,8 +229,10 @@
     "setPathItemActionMenuDownloadKey": {
       "key": "?string"
     },
-    "kbfsDaemonConnected": {},
-    "kbfsDaemonDisconnected": {},
+    "waitForKbfsDaemon": {},
+    "kbfsDaemonStatusChanged": {
+      "kbfsDaemonStatus": "Types.KbfsDaemonStatus"
+    },
 
     "placeholderAction": {}
   }
