@@ -102,6 +102,9 @@ type AccountInterface interface {
 	// try to force a passphrase change.
 	PassphraseChange(context.Context, PassphraseChangeArg) error
 	PassphrasePrompt(context.Context, PassphrasePromptArg) (GetPassphraseRes, error)
+	// * Check if user passphrase matches argument. Launches SecretUI prompt if
+	// * passphrase argument is empty. Returns `true` if passphrase is correct,
+	// * false if not, or an error if something else went wrong.
 	PassphraseCheck(context.Context, PassphraseCheckArg) (bool, error)
 	// * change email to the new given email by signing a statement.
 	EmailChange(context.Context, EmailChangeArg) error
@@ -260,6 +263,9 @@ func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePro
 	return
 }
 
+// * Check if user passphrase matches argument. Launches SecretUI prompt if
+// * passphrase argument is empty. Returns `true` if passphrase is correct,
+// * false if not, or an error if something else went wrong.
 func (c AccountClient) PassphraseCheck(ctx context.Context, __arg PassphraseCheckArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []interface{}{__arg}, &res)
 	return
