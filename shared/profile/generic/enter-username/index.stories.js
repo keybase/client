@@ -25,6 +25,7 @@ const load = () => {
   Sb.storiesOf('Profile/Generic Proofs/Enter username', module)
     .add('Empty', () => <EnterUsername {...props} />)
     .add('Prefilled', () => <EnterUsername {...props} username="ayoubd" />)
+    .add('Unreachable', () => <EnterUsername {...props} username="ayoubd" unreachable={true} />)
 }
 
 export default load

@@ -95,6 +95,9 @@ type Props = {|
 
 const _EnterUsername = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    {!props.unreachable && !Styles.isMobile && (
+      <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+    )}
     <Kb.Box2 alignItems="center" direction="vertical" gap="xtiny" style={styles.serviceIconHeaderContainer}>
       <SiteIcon set={props.serviceIconFull} full={true} style={styles.serviceIconFull} />
       <Kb.Box2 direction="vertical" alignItems="center">
@@ -110,18 +113,42 @@ const _EnterUsername = (props: Props) => (
         onChangeUsername={props.onChangeUsername}
       />
     </Kb.Box2>
-    <Kb.ButtonBar direction="row">
-      {!Styles.isMobile && !props.unreachable && (
-        <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" />
+    <Kb.Box2
+      alignItems="center"
+      fullWidth={true}
+      direction="vertical"
+      style={props.unreachable ? styles.buttonBarWarning : null}
+    >
+      {props.unreachable && (
+        <Kb.Text type="BodySmallSemibold" center={true} style={styles.warningText}>
+          You need to authorize your proof on {props.serviceName}.
+        </Kb.Text>
       )}
-      <Kb.Button type="PrimaryGreen" onClick={props.onSubmit} label={`Authorize on ${props.serviceName}`} />
-    </Kb.ButtonBar>
+      <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+        {!Styles.isMobile && !props.unreachable && (
+          <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
+        )}
+        <Kb.Button
+          type="PrimaryGreen"
+          onClick={props.onSubmit}
+          label={`Authorize on ${props.serviceName}`}
+          style={styles.buttonBig}
+        />
+      </Kb.ButtonBar>
+    </Kb.Box2>
   </Kb.Box2>
 )
 const EnterUsername = Kb.HeaderOrPopup(_EnterUsername)
 
 const styles = Styles.styleSheetCreate({
+  backButton: {left: Styles.globalMargins.small, position: 'absolute', top: Styles.globalMargins.small},
   borderBlue: {borderColor: Styles.globalColors.blue},
+  buttonBar: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium, Styles.globalMargins.medium),
+  },
+  buttonBarWarning: {backgroundColor: Styles.globalColors.yellow},
+  buttonBig: {flex: 2.5},
+  buttonSmall: {flex: 1},
   colorBlue: {color: Styles.globalColors.blue},
   container: Styles.platformStyles({isElectron: {height: 485, width: 560}}),
   inputBox: {
@@ -175,6 +202,7 @@ const styles = Styles.styleSheetCreate({
   serviceIconHeaderContainer: {
     paddingTop: Styles.globalMargins.medium,
   },
+  warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
 })
 
 export default EnterUsername
