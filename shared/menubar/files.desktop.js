@@ -82,14 +82,12 @@ type ShowAllProps = FileUpdatesHocProps & {|
 
 const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonContainer}>
-    {!props.isShowingAll && (
-      <Kb.Button
-        label={`+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
-        onClick={props.onShowAll}
-        small={true}
-        type="Secondary"
-      />
-    )}
+    <Kb.Button
+      label={`+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
+      onClick={props.onShowAll}
+      small={true}
+      type="Secondary"
+    />
   </Kb.Box2>
 )
 
@@ -100,7 +98,7 @@ const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
       <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
     ))}
-    {props.updates.length > defaultNumFileOptionsShown && (
+    {props.updates.length > defaultNumFileOptionsShown && !props.isShowingAll && (
       // $FlowIssue ¯\_(ツ)_/¯
       <FileUpdatesShowAll
         onShowAll={props.onShowAll}
