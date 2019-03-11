@@ -39,25 +39,3 @@ func TestCheckPassphrase(t *testing.T) {
 	})
 	require.Error(t, err)
 }
-
-func TestCheckPassphraseCli(t *testing.T) {
-	tc := libkb.SetupTest(t, "pche", 3)
-	defer tc.Cleanup()
-
-	fu, err := kbtest.CreateAndSignupFakeUser("lmu", tc.G)
-	require.NoError(t, err)
-
-	handler := NewAccountHandler(nil, tc.G)
-	ctx := context.Background()
-
-	router := fakeUIRouter{
-		secretUI: &libkb.TestSecretUI{
-			Passphrase: fu.Passphrase,
-		},
-	}
-	tc.G.SetUIRouter(router)
-
-	ret, err := handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{})
-	require.NoError(t, err)
-	require.True(t, ret)
-}
