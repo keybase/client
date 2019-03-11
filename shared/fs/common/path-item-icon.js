@@ -38,26 +38,22 @@ const getIconSizeString = (size: Size): RealSizeString => {
   }
 }
 
-const UnknownIcon = (props: Props) => (
-  <Kb.Icon type="iconfont-folder-private" color={Styles.globalColors.grey} fontSize={props.size} />
-)
+const UnknownIcon = (props: Props) => <Kb.Icon type="icon-folder-16" />
 
 const icons = {
   file: {
-    private: {
-      '16': 'icon-file-private-16',
-      '32': 'icon-file-private-32',
-      '48': 'icon-file-private-48',
-      '64': 'icon-file-private-64',
-    },
-    public: {
-      '16': 'icon-file-public-16',
-      '32': 'icon-file-public-32',
-      '48': 'icon-file-public-48',
-      '64': 'icon-file-public-64',
-    },
+    '16': 'icon-file-16',
+    '32': 'icon-file-32',
+    '48': 'icon-file-48',
+    '64': 'icon-file-64',
   },
   folder: {
+    '16': 'icon-folder-16',
+    '32': 'icon-folder-32',
+    '48': 'icon-folder-48',
+    '64': 'icon-folder-64',
+  },
+  tlfList: {
     private: {
       '16': 'icon-folder-private-16',
       '32': 'icon-folder-private-32',
@@ -88,11 +84,11 @@ const IconOnly = (props: Props) => {
 
   switch (parsedPath) {
     case Constants.parsedPathPrivateList:
-      return <Kb.Icon type={icons.folder.private[getIconSizeString(props.size)]} />
+      return <Kb.Icon type={icons.tlfList.private[getIconSizeString(props.size)]} />
     case Constants.parsedPathPublicList:
-      return <Kb.Icon type={icons.folder.public[getIconSizeString(props.size)]} />
+      return <Kb.Icon type={icons.tlfList.public[getIconSizeString(props.size)]} />
     case Constants.parsedPathTeamList:
-      return <Kb.Icon type={icons.folder.team[getIconSizeString(props.size)]} />
+      return <Kb.Icon type={icons.tlfList.team[getIconSizeString(props.size)]} />
     default:
     // must be a TLF root or inside TLF; fallthrough
   }
@@ -110,10 +106,9 @@ const IconOnly = (props: Props) => {
     case 'team-tlf':
       return <Kb.Avatar size={getIconSize(props.size)} teamname={parsedPath.team} isTeam={true} />
     case 'in-group-tlf':
-      const iconTlfType = parsedPath.tlfType === 'public' ? 'public' : 'private'
-      return <Kb.Icon type={icons[iconPathType][iconTlfType][getIconSizeString(props.size)]} />
+      return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
     case 'in-team-tlf':
-      return <Kb.Icon type={icons[iconPathType].private[getIconSizeString(props.size)]} />
+      return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
     default:
       return <UnknownIcon {...props} />
   }

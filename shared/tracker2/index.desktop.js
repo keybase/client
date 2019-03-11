@@ -159,6 +159,7 @@ const Tracker = (props: Props) => {
             <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
             <Kb.Box2 direction="vertical" style={styles.nameWithIconContainer}>
               <Kb.ConnectedNameWithIcon
+                size="big"
                 onClick="profile"
                 username={props.username}
                 underline={false}

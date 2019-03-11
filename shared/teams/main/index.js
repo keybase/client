@@ -46,12 +46,12 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
 
   return (
     <Kb.ListItem2
-      type="Large"
+      type="Small"
       firstItem={props.firstItem}
       onClick={props.onViewTeam}
       icon={
         <Kb.Box2 direction="vertical" style={styles.avatarContainer}>
-          <Kb.Avatar size={48} teamname={props.name} isTeam={true} />
+          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
           {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
         </Kb.Box2>
       }
