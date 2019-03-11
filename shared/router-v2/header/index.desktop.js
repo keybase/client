@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {LeftAction} from '../../common-adapters/header-hoc'
 
 // A mobile-like header for desktop
 

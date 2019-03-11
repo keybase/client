@@ -8,7 +8,6 @@ import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
-import flags from '../util/feature-flags'
 import AirdropBanner from '../wallets/airdrop/banner/container'
 
 export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (item, props) => {
@@ -55,20 +54,6 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
   return null
 }
 
-export const PeoplePageSearchBar = (props: {onSearch: ?() => void}) => (
-  <Kb.ClickableBox onClick={props.onSearch} style={styles.searchContainer}>
-    <Kb.Icon
-      color={Styles.globalColors.black_50}
-      fontSize={Styles.isMobile ? 20 : 16}
-      style={styles.searchIcon}
-      type="iconfont-search"
-    />
-    <Kb.Text style={styles.searchText} type="BodySemibold">
-      Search people
-    </Kb.Text>
-  </Kb.ClickableBox>
-)
-
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {Styles.isMobile && <AirdropBanner />}
@@ -77,38 +62,3 @@ export const PeoplePageList = (props: Props) => (
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Kb.Box>
 )
-
-const styles = Styles.styleSheetCreate({
-  searchContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      alignSelf: 'center',
-      backgroundColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      justifyContent: 'center',
-      zIndex: 20,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-      height: 24,
-      marginLeft: flags.useNewRouter ? 'auto' : Styles.globalMargins.small,
-      marginRight: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
-      marginTop: flags.useNewRouter ? 0 : Styles.globalMargins.xsmall,
-      width: 240,
-    },
-    isMobile: {
-      height: 32,
-      width: '100%',
-    },
-  }),
-  searchIcon: {
-    paddingRight: Styles.globalMargins.tiny,
-    position: 'relative',
-    top: 1,
-  },
-  searchText: {
-    color: Styles.globalColors.black_50,
-    maxWidth: flags.useNewRouter ? 240 : undefined,
-  },
-})
