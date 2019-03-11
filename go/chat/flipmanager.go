@@ -222,7 +222,12 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 		close(m.shutdownCh)
 		m.shutdownCh = nil
 	}
-	ch = m.dealerShutdownCh
+	if m.dealerShutdownCh != nil {
+		ch = m.dealerShutdownCh
+	} else {
+		ch = make(chan struct{})
+		close(ch)
+	}
 	m.shutdownMu.Unlock()
 	return ch
 }
