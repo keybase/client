@@ -6,8 +6,9 @@ import * as FsTypes from '../constants/types/fs'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
-  name: string,
   path: FsTypes.Path,
+  targetExtension?: string,
+  targetNameWithoutExtension: string,
   tlfType: FsTypes.TlfType,
   uploading: boolean,
   onClick: () => void,
@@ -47,9 +48,10 @@ export const FileUpdate = (props: FileUpdateProps) => (
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
         </Kb.Box>
       )}
-      <Kb.Text type="Body" style={styles.fileUpdateName}>
-        {props.name}
+      <Kb.Text type="Body" lineClamp={1}>
+        {props.targetNameWithoutExtension}
       </Kb.Text>
+      <Kb.Text type="Body">{props.targetExtension}</Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
 )
@@ -175,11 +177,6 @@ const styles = Styles.styleSheetCreate({
   buttonContainer: {
     marginTop: Styles.globalMargins.xtiny,
   },
-  fileUpdateName: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
   fileUpdateRow: {
     alignItems: 'center',
     marginTop: Styles.globalMargins.xtiny,
@@ -201,7 +198,6 @@ const styles = Styles.styleSheetCreate({
     zIndex: 100,
   },
   iconStyle: {
-    alignSelf: 'flex-start',
     flexShrink: 0,
     height: 16,
     marginRight: Styles.globalMargins.xtiny,

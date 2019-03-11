@@ -116,28 +116,32 @@ const load = () => {
       <Kb.Box2 direction="vertical">
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
-          name="foo"
+          targetExtension=""
+          targetNameWithoutExtension="foo"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={false}
         />
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/bar')}
-          name="bar"
+          targetExtension=""
+          targetNameWithoutExtension="bar"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={true}
         />
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/cow')}
-          name="cow"
+          targetExtension=""
+          targetNameWithoutExtension="cow"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={true}
         />
         <FileUpdate
           path={Types.stringToPath('/keybase/team/kbkbfstest/poo')}
-          name="poo"
+          targetExtension=""
+          targetNameWithoutExtension="poo"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={false}
@@ -146,7 +150,8 @@ const load = () => {
           path={Types.stringToPath(
             '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
           )}
-          name="poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
+          targetExtension=""
+          targetNameWithoutExtension="poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={false}
