@@ -33,4 +33,22 @@ func TestPassphraseChange(t *testing.T) {
 	err = eng.Run(m)
 	require.NoError(t, err)
 	require.False(t, eng.GetResult())
+
+	// Without SecretUI and without passphrase argument.
+	m = NewMetaContextForTest(tc)
+	err = eng.Run(m)
+	require.Error(t, err)
+
+	// Pass passphrase in arg
+	arg.Passphrase = u.Passphrase
+	eng = NewPassphraseCheck(tc.G, arg)
+	err = eng.Run(m)
+	require.NoError(t, err)
+	require.True(t, eng.GetResult())
+
+	arg.Passphrase = u.Passphrase + " "
+	eng = NewPassphraseCheck(tc.G, arg)
+	err = eng.Run(m)
+	require.NoError(t, err)
+	require.False(t, eng.GetResult())
 }
