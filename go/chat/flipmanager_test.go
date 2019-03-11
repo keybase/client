@@ -423,6 +423,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 }
 
 func TestFlipManagerRateLimit(t *testing.T) {
+	t.Skip()
 	ctc := makeChatTestContext(t, "TestFlipManagerRateLimit", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
