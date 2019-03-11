@@ -121,6 +121,13 @@
         {
           "type": "Identify3RowColor",
           "name": "color"
+        },
+        {
+          "type": [
+            null,
+            "KID"
+          ],
+          "name": "kid"
         }
       ]
     }
