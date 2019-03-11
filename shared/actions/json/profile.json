@@ -11,7 +11,6 @@
     "checkProof": {},
     "recheckProof": {"sigID": "string"},
     "cleanupUsername": {},
-    "dropPgp": {"kid": "RPCTypes.KID"},
     "uploadAvatar": {
       "filename": "string",
       "crop?": "RPCTypes.ImageCropRect"

@@ -16,6 +16,7 @@ import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 import {isMobile} from '../../constants/platform'
+import flags from '../../util/feature-flags'
 
 const editProfile = (state, action) =>
   RPCTypes.userProfileEditRpcPromise(
@@ -79,15 +80,32 @@ const onClickAvatar = (_, action) => {
   }
 }
 
-const submitRevokeProof = (_, action) =>
-  RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
-    .then(() => ProfileGen.createFinishRevoking())
-    .catch((error: RPCError) => {
-      logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-      return ProfileGen.createRevokeFinishError({
-        error: 'There was an error revoking your proof. You can click the button to try again.',
+const submitRevokeProof = (state, action) => {
+  const you = TrackerConstants.getDetails(state, state.config.username)
+  if (!you || !you.assertions) return null
+  const proof = you.assertions.find(a => a.sigID === action.payload.proofId)
+  if (!proof) return null
+
+  if (proof.type === 'pgp') {
+    return RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey)
+      .then(() =>
+        flags.useNewRouter ? RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []}) : undefined
+      )
+      .catch(e => {
+        logger.info('error in dropping pgp key', e)
+        return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
       })
-    })
+  } else {
+    return RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
+      .then(() => ProfileGen.createFinishRevoking())
+      .catch((error: RPCError) => {
+        logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
+        return ProfileGen.createRevokeFinishError({
+          error: 'There was an error revoking your proof. You can click the button to try again.',
+        })
+      })
+  }
+}
 
 const openURLIfNotNull = (nullableThing, url, metaText) => {
   if (nullableThing == null) {
@@ -127,7 +145,7 @@ const outputInstructionsActionLink = (state, action) => {
 const editAvatar = () =>
   isMobile
     ? undefined // handled in platform specific
-    : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'editAvatar'}]})
+    : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'profileEditAvatar'}]})
 
 const backToProfile = state => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),

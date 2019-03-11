@@ -26,6 +26,7 @@ export type SiteIcon = {
 export type _Assertion = {
   assertionKey: string, // twitter:bob
   color: AssertionColor,
+  kid: string, // used to revoke pgp keys
   metas: $ReadOnlyArray<AssertionMeta>,
   priority: number, // sort order
   proofURL: string, // http://twitter.com/bob/post/1234

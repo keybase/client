@@ -90,7 +90,6 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     // Saga only actions
     case ProfileGen.backToProfile:
     case ProfileGen.cancelPgpGen:
-    case ProfileGen.dropPgp:
     case ProfileGen.editProfile:
     case ProfileGen.finishRevoking:
     case ProfileGen.finishedWithKeyGen:

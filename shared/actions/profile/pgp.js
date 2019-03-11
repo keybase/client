@@ -1,20 +1,10 @@
 // @flow
-import logger from '../../logger'
-import * as Constants from '../../constants/profile'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
 import flags from '../../util/feature-flags'
-
-const dropPgpSaga = (_, action) =>
-  RPCTypes.revokeRevokeKeyRpcPromise({keyID: action.payload.kid}, Constants.waitingKey)
-    .then(() => RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []}))
-    .catch(e => {
-      logger.info('error in dropping pgp key', e)
-      return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
-    })
 
 const navBack = flags.useNewRouter
   ? null
@@ -45,7 +35,14 @@ function* generatePgp(state) {
     return Saga.callUntyped(function*() {
       yield Saga.put(
         RouteTreeGen.createNavigateTo({
-          path: [peopleTab, 'profile', 'pgp', 'provideInfo', 'generate', 'finished'],
+          path: [
+            peopleTab,
+            'profile',
+            'profilePgp',
+            'profileProvideInfo',
+            'profileGenerate',
+            'profileFinished',
+          ],
         })
       )
       const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
@@ -56,7 +53,9 @@ function* generatePgp(state) {
   const onFinished = () => {}
 
   yield Saga.put(
-    RouteTreeGen.createNavigateTo({path: [peopleTab, 'profile', 'pgp', 'provideInfo', 'generate']})
+    RouteTreeGen.createNavigateTo({
+      path: [peopleTab, 'profile', 'profilePgp', 'profileProvideInfo', 'profileGenerate'],
+    })
   )
   // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
   const cancelTask = yield Saga._fork(function*() {
@@ -84,7 +83,6 @@ function* generatePgp(state) {
 
 function* pgpSaga(): Generator<any, void, any> {
   yield* Saga.chainGenerator<ProfileGen.GeneratePgpPayload>(ProfileGen.generatePgp, generatePgp)
-  yield* Saga.chainAction<ProfileGen.DropPgpPayload>(ProfileGen.dropPgp, dropPgpSaga)
 }
 
 export {pgpSaga}

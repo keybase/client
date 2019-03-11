@@ -1,4 +1,5 @@
 // @flow
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import Revoke from '.'
 import * as Constants from '../../constants/profile'
@@ -25,11 +26,8 @@ const mapStateToProps = (state, {routeProps}) => ({
 const mapDispatchToProps = (dispatch, {routeProps}) => ({
   onCancel: () => dispatch(ProfileGen.createFinishRevoking()),
   onRevoke: () => {
-    if (routeProps.get('platform') === 'pgp') {
-      dispatch(ProfileGen.createDropPgp({kid: routeProps.get('proofId')}))
-    } else {
-      dispatch(ProfileGen.createSubmitRevokeProof({proofId: routeProps.get('proofId')}))
-    }
+    dispatch(ProfileGen.createSubmitRevokeProof({proofId: routeProps.get('proofId')}))
+    dispatch(RouteTreeGen.createClearModals())
   },
 })
 

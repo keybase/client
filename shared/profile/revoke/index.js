@@ -3,22 +3,24 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/profile'
-import {formatMessage, formatConfirmButton} from './index.shared'
+import {capitalize} from 'lodash-es'
 import {subtitle as platformSubtitle} from '../../util/platforms'
-import type {Props} from './index'
+import type {PlatformsExpandedType} from '../../constants/types/more'
+import Modal from '../modal'
+
+type Props = {|
+  platform: PlatformsExpandedType,
+  platformHandle: string,
+  errorMessage?: ?string,
+  onCancel: () => void,
+  onRevoke: () => void,
+  isWaiting: boolean,
+|}
 
 const Revoke = (props: Props) => {
   const platformHandleSubtitle = platformSubtitle(props.platform)
   return (
-    <Kb.Box style={styleContainer}>
-      {!props.isWaiting && (
-        <Kb.Icon
-          style={styleClose}
-          type="iconfont-close"
-          onClick={props.onCancel}
-          color={Styles.globalColors.black_10}
-        />
-      )}
+    <Modal>
       {!!props.errorMessage && (
         <Kb.Box style={styleErrorBanner}>
           <Kb.Text center={!Styles.isMobile} style={styleErrorBannerText} type="BodySemibold">
@@ -56,33 +58,14 @@ const Revoke = (props: Props) => {
           <Kb.WaitingButton
             type="Danger"
             onClick={props.onRevoke}
-            label={formatConfirmButton(props.platform)}
+            label={props.platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
             waitingKey={Constants.waitingKey}
           />
         </Kb.ButtonBar>
       </Kb.Box>
-    </Kb.Box>
+    </Modal>
   )
 }
-
-const styleContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flexGrow: 1,
-  paddingBottom: Styles.globalMargins.large,
-  paddingTop: Styles.globalMargins.large,
-  position: 'relative',
-  ...Styles.desktopStyles.scrollable,
-}
-
-const styleClose = Styles.collapseStyles([
-  {
-    position: 'absolute',
-    right: Styles.globalMargins.small,
-    top: Styles.globalMargins.small,
-  },
-  Styles.desktopStyles.clickable,
-])
 
 const styleErrorBanner = {
   ...Styles.globalStyles.flexBoxColumn,
@@ -125,5 +108,32 @@ const stylePlatformSubtitle = {
 }
 const styleDescriptionText = {marginTop: Styles.globalMargins.medium}
 const styleReminderText = {marginTop: Styles.globalMargins.tiny}
+
+function formatMessage(platform: PlatformsExpandedType) {
+  if (platform === 'pgp') {
+    return 'Are you sure you want to drop your PGP key'
+  }
+  let body
+  switch (platform) {
+    case 'btc':
+      body = 'Bitcoin address'
+      break
+    case 'dns':
+    case 'http':
+    case 'https':
+    case 'web':
+      body = 'website'
+      break
+    case 'hackernews':
+      body = 'Hacker News identity'
+      break
+    case 'pgp':
+      body = 'PGP key'
+      break
+    default:
+      body = `${capitalize(platform)} identity`
+  }
+  return `Are you sure you want to revoke your ${body}?`
+}
 
 export default Revoke

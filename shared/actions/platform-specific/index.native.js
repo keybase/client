@@ -358,7 +358,9 @@ const editAvatar = () =>
         resolve(ConfigGen.createFilePickerError({error: new Error(response.error)}))
       } else {
         resolve(
-          RouteTreeGen.createNavigateAppend({path: [{props: {image: response}, selected: 'editAvatar'}]})
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {image: response}, selected: 'profileEditAvatar'}],
+          })
         )
       }
     })

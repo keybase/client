@@ -32,6 +32,7 @@ export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).t
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   assertionKey: '',
   color: 'gray',
+  kid: '',
   metas: [],
   priority: -1,
   proofURL: '',
@@ -117,6 +118,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
   makeAssertion({
     assertionKey: `${row.key}:${row.value}`,
     color: rpcRowColorToColor(row.color),
+    kid: row.kid || ',',
     metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
     priority: row.priority,
     proofURL: row.proofURL,

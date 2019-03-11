@@ -26,7 +26,7 @@ const checkProof = (state, action) => {
       } else {
         return [
           ProfileGen.createUpdateProofStatus({found, status}),
-          RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}),
+          RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
         ]
       }
     })
@@ -48,13 +48,13 @@ const addProof = (_, action) => {
   // Special cases
   switch (action.payload.platform) {
     case 'dnsOrGenericWebSite':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveWebsiteChoice']})
+      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
     case 'zcash':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
+      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
     case 'btc':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
+      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
     case 'pgp':
-      return RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['pgp']})
+      return RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePgp']})
     default:
       // handled by addServiceProof
       break
@@ -137,7 +137,7 @@ function* addServiceProof(_, action) {
       )
     }
     actions.push(
-      Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']}))
+      Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']}))
     )
     return actions
   }
@@ -164,7 +164,9 @@ function* addServiceProof(_, action) {
     }
 
     actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-    actions.push(Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['postProof']})))
+    actions.push(
+      Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
+    )
     return actions
   }
 
@@ -231,7 +233,7 @@ const submitCryptoAddress = (state, action) => {
   )
     .then(() => [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok}),
-      RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}),
+      RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
     ])
     .catch((error: RPCError) => {
       logger.warn('Error making proof')

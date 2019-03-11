@@ -22,7 +22,7 @@ const mapDispatchToPropsHeader = dispatch => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['search']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileSearch']}))
   },
 })
 
@@ -91,7 +91,7 @@ const mapDispatchToProps = dispatch => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['search']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileSearch']}))
   },
 })
 
