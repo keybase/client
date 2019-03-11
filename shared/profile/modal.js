@@ -27,7 +27,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.isMobile ? undefined : Styles.globalMargins.medium,
   },
   container: {
-    maxWidth: Styles.isMobile ? undefined : 560,
+    width: Styles.isMobile ? undefined : 560,
     minHeight: Styles.isMobile ? undefined : 450,
     padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium,
   },

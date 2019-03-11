@@ -10,35 +10,27 @@ type OwnProps = {||}
 
 const Choice = ({onCancel, onOptionClick}) => (
   <Modal onCancel={onCancel}>
-    <Kb.Text style={styleTitle} type="Header">
-      Add a PGP key
-    </Kb.Text>
-    <Kb.ChoiceList
-      options={[
-        {
-          description: 'Keybase will generate a new PGP key and add it to your profile.',
-          icon: 'icon-pgp-key-new-48',
-          onClick: () => onOptionClick('provideInfo'),
-          title: 'Get a new PGP key',
-        },
-        {
-          description: 'Import an existing PGP key to your Keybase profile.',
-          icon: 'icon-pgp-key-import-48',
-          onClick: () => onOptionClick('import'),
-          title: 'I have one already',
-        },
-      ]}
-    />
+    <Kb.Box2 direction="vertical" gap="small">
+      <Kb.Text type="Header">Add a PGP key</Kb.Text>
+      <Kb.ChoiceList
+        options={[
+          {
+            description: 'Keybase will generate a new PGP key and add it to your profile.',
+            icon: 'icon-pgp-key-new-48',
+            onClick: () => onOptionClick('provideInfo'),
+            title: 'Get a new PGP key',
+          },
+          {
+            description: 'Import an existing PGP key to your Keybase profile.',
+            icon: 'icon-pgp-key-import-48',
+            onClick: () => onOptionClick('import'),
+            title: 'I have one already',
+          },
+        ]}
+      />
+    </Kb.Box2>
   </Modal>
 )
-
-const styleTitle = {
-  marginBottom: Styles.globalMargins.medium,
-}
-
-const styleCancelButton = {
-  marginTop: Styles.globalMargins.medium,
-}
 
 const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
