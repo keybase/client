@@ -193,7 +193,7 @@ const styles = Styles.styleSheetCreate({
   }),
   fullWidthTextContainer: Styles.platformStyles({isElectron: {textAlign: 'center', width: '100%'}}),
   hAvatarStyle: Styles.platformStyles({
-    isElectron: {marginRight: Styles.globalMargins.small},
+    isElectron: {marginRight: Styles.globalMargins.tiny},
     isMobile: {marginRight: Styles.globalMargins.small},
   }),
   hContainerStyle: {
