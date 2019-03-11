@@ -11,7 +11,6 @@ type Props = {
   error: ?RPCError,
   onAccountReset: () => void,
   onBack: () => void,
-  onBack: () => void,
   onKBHome: () => void,
   onPasswordReset: () => void,
 }

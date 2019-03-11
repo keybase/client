@@ -4,10 +4,9 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/devices'
 import PaperKey from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {NavigationActions} from '@react-navigation/core'
 import flags from '../../util/feature-flags'
 
-type OwnProps = {|navigation: any|}
+type OwnProps = {}
 
 const mapStateToProps = state => ({
   paperkey: state.devices.newPaperkey.stringValue(),
@@ -16,9 +15,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {navigation}) => ({
   onBack: () => {
-    flags.useNewRouter
-      ? navigation.dispatch(NavigationActions.back())
-      : dispatch(RouteTreeGen.createNavigateUp())
+    !flags.useNewRouter && dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

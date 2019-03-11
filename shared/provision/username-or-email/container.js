@@ -5,6 +5,7 @@ import UsernameOrEmail from '.'
 import {compose, connect, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import {constantsStatusCode} from '../../constants/types/rpc-gen'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -17,7 +18,9 @@ const mapStateToProps = state => ({
 })
 
 const dispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => dispatch(ownProps.navigateUp()),
+  onBack: () => {
+    !flags.useNewRouter && dispatch(ownProps.navigateUp())
+  },
   onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSubmit: (usernameOrEmail: string) =>
     dispatch(ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail})),

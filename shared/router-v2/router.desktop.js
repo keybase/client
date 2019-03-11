@@ -41,6 +41,7 @@ class AppView extends React.PureComponent<any> {
     const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
     const selectedTab = nameToTab[descriptor.state.routeName]
+    const onBack = childNav.getParam('customOnBack', childNav.pop)
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
@@ -50,7 +51,7 @@ class AppView extends React.PureComponent<any> {
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
-          <Header options={descriptor.options} onPop={childNav.pop} allowBack={index !== 0} />
+          <Header options={descriptor.options} onPop={onBack} allowBack={index !== 0} />
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}

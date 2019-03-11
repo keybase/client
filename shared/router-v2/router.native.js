@@ -21,11 +21,21 @@ import OutOfDate from '../app/out-of-date'
 useScreens()
 
 // Options used by default on all navigators
+// For info on what is passed to what see here: https://github.com/react-navigation/react-navigation-stack/blob/master/src/views/Header/Header.js
 const defaultNavigationOptions = {
   header: null,
-  headerLeft: hp => (
-    <LeftAction badgeNumber={0} leftAction="back" onLeftAction={hp.onPress} disabled={hp.scene.index === 0} />
-  ),
+  headerLeft: hp => {
+    const customOnBack =
+      hp.scene && hp.scene.route && hp.scene.route.params && hp.scene.route.params.customOnBack
+    return (
+      <LeftAction
+        badgeNumber={0}
+        leftAction="back"
+        onLeftAction={customOnBack || hp.onPress}
+        disabled={hp.scene.index === 0}
+      />
+    )
+  },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
