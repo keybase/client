@@ -119,7 +119,13 @@ const LoggedInStackNavigator = createNavigator(
 
 const LoggedOutStackNavigator = createNavigator(
   AppView,
-  StackRouter({...Shim.shim(loggedOutRoutes)}, {initialRouteName: 'login'}),
+  StackRouter(
+    {...Shim.shim(loggedOutRoutes)},
+    {
+      defaultNavigationOptions: p => ({headerHideBorder: true}),
+      initialRouteName: 'login',
+    }
+  ),
   {}
 )
 
