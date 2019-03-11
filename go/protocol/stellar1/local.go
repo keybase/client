@@ -209,6 +209,8 @@ type PaymentLocal struct {
 	Unread              bool            `codec:"unread" json:"unread"`
 	BatchID             string          `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
+	IsInflation         bool            `codec:"isInflation" json:"isInflation"`
+	InflationSource     *string         `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
 }
 
 func (o PaymentLocal) DeepCopy() PaymentLocal {
@@ -252,6 +254,14 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		Unread:              o.Unread,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
+		IsInflation:         o.IsInflation,
+		InflationSource: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.InflationSource),
 	}
 }
 
@@ -346,6 +356,8 @@ type PaymentDetailsLocal struct {
 	ExternalTxURL       string          `codec:"externalTxURL" json:"externalTxURL"`
 	BatchID             string          `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
+	IsInflation         bool            `codec:"isInflation" json:"isInflation"`
+	InflationSource     *string         `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
 }
 
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
@@ -392,6 +404,14 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		ExternalTxURL:       o.ExternalTxURL,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
+		IsInflation:         o.IsInflation,
+		InflationSource: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.InflationSource),
 	}
 }
 
