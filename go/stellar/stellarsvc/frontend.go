@@ -395,6 +395,8 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		IssuerDescription:   summary.IssuerDescription,
 		IssuerAccountID:     summary.IssuerAccountID,
 		ExternalTxURL:       details.ExternalTxURL,
+		IsInflation:         summary.IsInflation,
+		InflationSource:     summary.InflationSource,
 	}
 
 	return payment, nil
@@ -450,6 +452,8 @@ func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1
 		IssuerDescription:   summary.IssuerDescription,
 		IssuerAccountID:     summary.IssuerAccountID,
 		ExternalTxURL:       details.ExternalTxURL,
+		IsInflation:         summary.IsInflation,
+		InflationSource:     summary.InflationSource,
 	}
 
 	return payment, nil
