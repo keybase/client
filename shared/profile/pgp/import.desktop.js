@@ -4,14 +4,12 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
+import Modal from '../modal'
 
 type OwnProps = {||}
-type Props = {|
-  onCancel: () => void,
-|}
 
-const Import = (props: Props) => (
-  <Kb.StandardScreen onCancel={props.onCancel} style={styleContainer}>
+const Import = ({onCancel}) => (
+  <Modal onCancel={onCancel}>
     <Kb.Icon type="icon-pgp-key-import-48" />
     <Kb.Text style={styleHeader} type="Header">
       Import a PGP key
@@ -27,16 +25,8 @@ const Import = (props: Props) => (
       <Kb.Text type="TerminalComment"># for more options</Kb.Text>
       <Kb.Text type="Terminal">keybase pgp help</Kb.Text>
     </Kb.Box>
-    <Kb.Button style={styleCancelButton} type="Secondary" onClick={props.onCancel} label={'Close'} />
-  </Kb.StandardScreen>
+  </Modal>
 )
-
-const styleContainer = {
-  marginLeft: Styles.globalMargins.medium,
-  marginRight: Styles.globalMargins.medium,
-  maxWidth: 576,
-  padding: Styles.globalMargins.medium,
-}
 
 const styleHeader = {
   marginTop: Styles.globalMargins.medium,
@@ -62,7 +52,6 @@ const styleTerminal = {
   marginRight: -Styles.globalMargins.medium,
   padding: Styles.globalMargins.medium,
   textAlign: 'left',
-  width: '100%',
 }
 
 const mapDispatchToProps = dispatch => ({

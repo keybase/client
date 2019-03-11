@@ -106,12 +106,12 @@ export const newRoutes = {
   proveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
   revoke: {getScreen: () => require('./revoke/container').default},
   showcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
-  ...require('./pgp/routes').newRoutes,
 }
 
 export const newModalRoutes = {
   editProfile2: {getScreen: () => require('./edit-profile2/container').default},
   search: {getScreen: () => require('./search/container').default},
+  ...require('./pgp/routes').newRoutes,
 }
 
 export default profileRoute

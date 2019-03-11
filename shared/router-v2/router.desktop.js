@@ -284,6 +284,7 @@ const styles = Styles.styleSheetCreate({
   }),
   modalContainer: {
     ...Styles.globalStyles.fillAbsolute,
+    zIndex: 99999,
   },
 })
 
