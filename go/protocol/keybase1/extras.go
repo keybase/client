@@ -1224,6 +1224,10 @@ func (t TLFID) ToBytes() []byte {
 	return b
 }
 
+func (t TLFID) Eq(u TLFID) bool {
+	return t == u
+}
+
 func (b TLFIdentifyBehavior) UnblockThenForceIDTable() bool {
 	switch b {
 	case TLFIdentifyBehavior_GUI_PROFILE:

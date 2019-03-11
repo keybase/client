@@ -1923,6 +1923,11 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 	m := t.MetaContext(ctx)
 	defer m.Trace("Team.AssociateWithTLFID", func() error { return err })()
 
+	if tlfID.Eq(t.LatestKBFSTLFID()) {
+		m.Debug("No updated needed, TLFID already set to %s", tlfID)
+		return nil
+	}
+
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Implicit: t.IsImplicit(),
