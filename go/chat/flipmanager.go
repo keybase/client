@@ -125,15 +125,16 @@ type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer        *flip.Dealer
-	visualizer    *FlipVisualizer
-	clock         clockwork.Clock
-	ri            func() chat1.RemoteInterface
-	shutdownMu    sync.Mutex
-	shutdownCh    chan struct{}
-	forceCh       chan struct{}
-	loadGameCh    chan loadGameJob
-	maybeInjectCh chan func()
+	dealer           *flip.Dealer
+	visualizer       *FlipVisualizer
+	clock            clockwork.Clock
+	ri               func() chat1.RemoteInterface
+	shutdownMu       sync.Mutex
+	shutdownCh       chan struct{}
+	dealerShutdownCh chan struct{}
+	forceCh          chan struct{}
+	loadGameCh       chan loadGameJob
+	maybeInjectCh    chan func()
 
 	deck           string
 	cardMap        map[string]int
@@ -195,11 +196,14 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
 	m.shutdownMu.Lock()
 	shutdownCh := make(chan struct{})
+	dealerShutdownCh := make(chan struct{})
 	m.shutdownCh = shutdownCh
+	m.dealerShutdownCh = dealerShutdownCh
 	m.shutdownMu.Unlock()
-	go func() {
+	go func(shutdownCh chan struct{}) {
 		m.dealer.Run(context.Background())
-	}()
+		close(shutdownCh)
+	}(dealerShutdownCh)
 	go m.updateLoop(shutdownCh)
 	go m.notificationLoop(shutdownCh)
 	go m.loadGameLoop(shutdownCh)
@@ -214,9 +218,8 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 		close(m.shutdownCh)
 		m.shutdownCh = nil
 	}
+	ch = m.dealerShutdownCh
 	m.shutdownMu.Unlock()
-	ch = make(chan struct{})
-	close(ch)
 	return ch
 }
 
