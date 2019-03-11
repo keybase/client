@@ -4,6 +4,8 @@
 package client
 
 import (
+	"errors"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -74,10 +76,14 @@ func (c *CmdPassphraseCheck) Run() error {
 		}
 	}
 
-	if err := cli.PassphraseCheck(context.TODO(), arg); err != nil {
+	ret, err := cli.PassphraseCheck(context.TODO(), arg)
+	if err != nil {
 		return err
 	}
 
+	if !ret {
+		return errors.New("Invalid passphrase")
+	}
 	c.G().Log.Info("Passphrase confirmed.")
 	return nil
 }

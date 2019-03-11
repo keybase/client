@@ -166,7 +166,7 @@ func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLo
 	return err
 }
 
-func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.PassphraseCheckArg) (err error) {
+func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.PassphraseCheckArg) (ret bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.Trace("PassphraseCheck", func() error { return err })()
 
@@ -177,10 +177,20 @@ func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.Passp
 		secretUI := h.getSecretUI(arg.SessionID, h.G())
 		res, err := secretUI.GetPassphrase(promptArg, nil)
 		if err != nil {
-			return err
+			return false, err
 		}
 		passphrase = res.Passphrase
 	}
 	_, err = libkb.VerifyPassphraseForLoggedInUser(mctx, passphrase)
-	return err
+	if err != nil {
+		if _, ok := err.(libkb.PassphraseError); ok {
+			// Swallow passphrase errors, return `false` that the passphrase
+			// provided was incorrect.
+			return false, nil
+		}
+		// There was some other error.
+		return false, err
+	}
+	// No error, passphrase was correct.
+	return true, nil
 }

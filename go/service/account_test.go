@@ -19,12 +19,22 @@ func TestCheckPassphrase(t *testing.T) {
 
 	handler := NewAccountHandler(nil, tc.G)
 	ctx := context.Background()
-	err = handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{
+	ret, err := handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{
 		Passphrase: fu.Passphrase,
 	})
 	require.NoError(t, err)
+	require.True(t, ret)
 
-	err = handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{
+	// Bad passphrase should come back as ret=false and no error.
+	ret, err = handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{
+		Passphrase: fu.Passphrase + " ",
+	})
+	require.NoError(t, err)
+	require.False(t, ret)
+
+	// Other errors should come back as errors.
+	kbtest.Logout(tc)
+	ret, err = handler.PassphraseCheck(ctx, keybase1.PassphraseCheckArg{
 		Passphrase: fu.Passphrase + " ",
 	})
 	require.Error(t, err)

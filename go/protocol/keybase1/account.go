@@ -102,7 +102,7 @@ type AccountInterface interface {
 	// try to force a passphrase change.
 	PassphraseChange(context.Context, PassphraseChangeArg) error
 	PassphrasePrompt(context.Context, PassphrasePromptArg) (GetPassphraseRes, error)
-	PassphraseCheck(context.Context, PassphraseCheckArg) error
+	PassphraseCheck(context.Context, PassphraseCheckArg) (bool, error)
 	// * change email to the new given email by signing a statement.
 	EmailChange(context.Context, EmailChangeArg) error
 	// * Whether the logged-in user has uploaded private keys
@@ -160,7 +160,7 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]PassphraseCheckArg)(nil), args)
 						return
 					}
-					err = i.PassphraseCheck(ctx, typedArgs[0])
+					ret, err = i.PassphraseCheck(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -260,8 +260,8 @@ func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePro
 	return
 }
 
-func (c AccountClient) PassphraseCheck(ctx context.Context, __arg PassphraseCheckArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []interface{}{__arg}, nil)
+func (c AccountClient) PassphraseCheck(ctx context.Context, __arg PassphraseCheckArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []interface{}{__arg}, &res)
 	return
 }
 
