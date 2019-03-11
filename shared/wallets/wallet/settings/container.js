@@ -6,10 +6,10 @@ import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 
-type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const accountID = routeProps.get('accountID')
+const mapStateToProps = state => {
+  const accountID = Constants.getSelectedAccount(state)
   const account = Constants.getAccount(state, accountID)
   const name = account.name
   const mobileOnlyEditable = account.mobileOnlyEditable
@@ -48,7 +48,7 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
   _onBack: (accountID: Types.AccountID) => {
     dispatch(navigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
@@ -65,8 +65,7 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
     dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
   _onSetupInflation: (accountID: Types.AccountID) =>
     dispatch(navigateAppend([{props: {accountID}, selected: 'setInflation'}])),
-  _refresh: () => {
-    const accountID = routeProps.get('accountID')
+  _refresh: accountID => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadInflationDestination({accountID}))
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
@@ -85,7 +84,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
     dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
-  refresh: () => dispatchProps._refresh(),
+  refresh: () => dispatchProps._refresh(stateProps.accountID),
 })
 
 export default compose(
