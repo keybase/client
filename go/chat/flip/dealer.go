@@ -3,6 +3,7 @@ package flip
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"io"
 	"math"
 	"math/big"
@@ -77,6 +78,7 @@ type Game struct {
 	stage                  Stage
 	stageForTimeout        Stage
 	players                map[UserDeviceKey]*GamePlayerState
+	commitments            map[string]bool
 	gameUpdateCh           chan GameStateUpdateMessage
 	nPlayers               int
 	dealer                 *Dealer
@@ -334,16 +336,24 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 		if g.players[key] != nil {
 			return DuplicateRegistrationError{g.md, msg.Sender}
 		}
+
+		com := msg.Msg.Body.Commitment()
+		comHex := hex.EncodeToString(com[:])
+		if g.commitments[comHex] {
+			return DuplicateCommitmentError{}
+		}
+		g.commitments[comHex] = true
+
 		g.players[key] = &GamePlayerState{
 			ud:             msg.Sender,
-			commitment:     msg.Msg.Body.Commitment(),
+			commitment:     com,
 			commitmentTime: now,
 		}
 		g.gameUpdateCh <- GameStateUpdateMessage{
 			Metadata: g.GameMetadata(),
 			Commitment: &CommitmentUpdate{
 				User:       msg.Sender,
-				Commitment: msg.Msg.Body.Commitment(),
+				Commitment: com,
 			},
 		}
 
@@ -633,6 +643,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		stageForTimeout: Stage_ROUND1,
 		gameUpdateCh:    d.gameUpdateCh,
 		players:         make(map[UserDeviceKey]*GamePlayerState),
+		commitments:     make(map[string]bool),
 		dealer:          d,
 		me:              me,
 		clock:           d.dh.Clock,
