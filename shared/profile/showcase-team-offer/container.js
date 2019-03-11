@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
           guiID: Constants.generateGUIID(),
           ignoreCache: true,
           inTracker: false,
-          reason: 'teams maybe changed',
+          reason: '',
         })
       )
     }, 500)

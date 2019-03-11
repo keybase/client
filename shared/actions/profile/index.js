@@ -89,7 +89,7 @@ const submitRevokeProof = (state, action) => {
   if (proof.type === 'pgp') {
     return RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey)
       .then(() =>
-        flags.useNewRouter ? RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []}) : undefined
+        flags.useNewRouter ? null : RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []})
       )
       .catch(e => {
         logger.info('error in dropping pgp key', e)

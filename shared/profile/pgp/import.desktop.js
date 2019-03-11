@@ -37,10 +37,6 @@ const styleBody = {
   marginTop: Styles.globalMargins.small,
 }
 
-const styleCancelButton = {
-  marginTop: Styles.globalMargins.medium,
-}
-
 const styleTerminal = {
   ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'stretch',

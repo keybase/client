@@ -8,6 +8,7 @@ type Props = {|
   children: React.Node,
   onCancel?: () => void,
 |}
+
 const Modal = ({children, onCancel}: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="vertical" style={styles.content} fullWidth={true} alignItems="center">
@@ -21,15 +22,27 @@ const Modal = ({children, onCancel}: Props) => (
   </Kb.Box2>
 )
 
+// TODO remove
+const OldScreen = ({children, onCancel}: Props) => (
+  <Kb.StandardScreen onCancel={onCancel} style={{maxWidth: 512}}>
+    {children}
+    {onCancel && (
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
+        <Kb.Button type="Secondary" label="Cancel" onClick={onCancel} />
+      </Kb.Box2>
+    )}
+  </Kb.StandardScreen>
+)
+
 const styles = Styles.styleSheetCreate({
   buttonBar: {
     flexShrink: 0,
     padding: Styles.isMobile ? undefined : Styles.globalMargins.medium,
   },
   container: {
-    width: Styles.isMobile ? undefined : 560,
     minHeight: Styles.isMobile ? undefined : 450,
     padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium,
+    width: Styles.isMobile ? undefined : 560,
   },
   content: {
     flexGrow: 1,
@@ -37,4 +50,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default (flags.useNewRouter ? Kb.HeaderOrPopup(Modal) : Modal)
+export default (flags.useNewRouter ? Kb.HeaderOrPopup(Modal) : OldScreen)

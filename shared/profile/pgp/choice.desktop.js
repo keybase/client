@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 import Modal from '../modal'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {||}
 
@@ -32,9 +33,12 @@ const Choice = p => (
 )
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createClearModals()),
-  onShowImport: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileImport']})),
+  onCancel: () =>
+    flags.useNewRouter
+      ? dispatch(RouteTreeGen.createClearModals())
+      : dispatch(RouteTreeGen.createNavigateUp()),
   onShowGetNew: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProvideInfo']})),
+  onShowImport: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileImport']})),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
