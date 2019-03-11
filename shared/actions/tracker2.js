@@ -206,17 +206,20 @@ const showUser = (_, action) => {
   }
 }
 
+// if we mutated somehow reload ourselves and reget the suggestions
 const refreshSelf = (state, action) =>
-  state.config.uid === action.payload.params.uid &&
-  Tracker2Gen.createLoad({
-    assertion: state.config.username,
-    forceDisplay: false,
-    fromDaemon: false,
-    guiID: Constants.generateGUIID(),
-    ignoreCache: false,
-    inTracker: false,
-    reason: '',
-  })
+  state.config.uid === action.payload.params.uid && [
+    Tracker2Gen.createLoad({
+      assertion: state.config.username,
+      forceDisplay: false,
+      fromDaemon: false,
+      guiID: Constants.generateGUIID(),
+      ignoreCache: false,
+      inTracker: false,
+      reason: '',
+    }),
+    Tracker2Gen.createGetProofSuggestions(),
+  ]
 
 function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(

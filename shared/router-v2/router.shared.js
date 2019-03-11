@@ -97,7 +97,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         return true
       })
 
-      return numModals ? StackActions.pop({n: numModals}) : null
+      return numModals ? [StackActions.pop({n: numModals})] : []
     case RouteTreeGen.navigateUp:
       return [StackActions.pop()]
   }
