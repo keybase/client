@@ -26,6 +26,13 @@ func NewAccountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AccountHandl
 	}
 }
 
+func (h *AccountHandler) getDelegateSecretUI(sessionID int) (ret libkb.SecretUI, err error) {
+	if h.G().UIRouter != nil {
+		return h.G().UIRouter.GetSecretUI(sessionID)
+	}
+	return nil, nil
+}
+
 func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.PassphraseChangeArg) error {
 	eng := engine.NewPassphraseChange(h.G(), &arg)
 	uis := libkb.UIs{
@@ -38,15 +45,11 @@ func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.Pass
 
 func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {
 	ui := h.getSecretUI(arg.SessionID, h.G())
-	if h.G().UIRouter != nil {
-		delegateUI, err := h.G().UIRouter.GetSecretUI(arg.SessionID)
-		if err != nil {
-			return keybase1.GetPassphraseRes{}, err
-		}
-		if delegateUI != nil {
-			ui = delegateUI
-			h.G().Log.Debug("using delegate secret UI")
-		}
+	if delegateUI, err := h.getDelegateSecretUI(arg.SessionID); err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	} else if delegateUI != nil {
+		ui = delegateUI
+		h.G().Log.Debug("using delegate secret UI")
 	}
 
 	return ui.GetPassphrase(arg.GuiArg, nil)
@@ -175,6 +178,12 @@ func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.Passp
 		username := h.G().GetEnv().GetUsername().String()
 		promptArg := libkb.DefaultPassphrasePromptArg(mctx, username)
 		secretUI := h.getSecretUI(arg.SessionID, h.G())
+		if delegateUI, err := h.getDelegateSecretUI(arg.SessionID); err != nil {
+			return false, err
+		} else if delegateUI != nil {
+			secretUI = delegateUI
+			h.G().Log.Debug("using delegate secret UI")
+		}
 		res, err := secretUI.GetPassphrase(promptArg, nil)
 		if err != nil {
 			return false, err
