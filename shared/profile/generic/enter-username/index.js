@@ -83,6 +83,36 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   }
 }
 
+const Unreachable = props => (
+  <Kb.Box2
+    direction="horizontal"
+    gap="xtiny"
+    alignItems="flex-start"
+    style={Styles.collapseStyles([styles.inputBox, styles.unreachableBox])}
+  >
+    <SiteIcon
+      set={props.serviceIcon}
+      full={false}
+      style={Styles.collapseStyles([styles.opacity75, styles.inlineIcon])}
+    />
+    <Kb.Box2 direction="vertical">
+      <Kb.Text type="BodySemibold" style={styles.placeholder}>
+        <Kb.Text type="BodySemibold" style={styles.colorRed}>
+          {props.username}
+        </Kb.Text>
+        @{props.serviceName}
+      </Kb.Text>
+      <Kb.Meta title="unreachable" backgroundColor={Styles.globalColors.red} />
+    </Kb.Box2>
+    <Kb.Icon
+      type="iconfont-proof-broken"
+      color={Styles.globalColors.red}
+      boxStyle={styles.marginLeftAuto}
+      style={Kb.iconCastPlatformStyles(styles.inlineIcon)}
+    />
+  </Kb.Box2>
+)
+
 type Props = {|
   error: string,
   onBack: () => void,
@@ -115,13 +145,21 @@ const _EnterUsername = (props: Props) => (
       gap="xtiny"
       style={styles.inputContainer}
     >
-      <EnterUsernameInput
-        error={!!props.error}
-        serviceIcon={props.serviceIcon}
-        serviceName={props.serviceName}
-        username={props.username}
-        onChangeUsername={props.onChangeUsername}
-      />
+      {props.unreachable ? (
+        <Unreachable
+          serviceIcon={props.serviceIcon}
+          serviceName={props.serviceName}
+          username={props.username}
+        />
+      ) : (
+        <EnterUsernameInput
+          error={!!props.error}
+          serviceIcon={props.serviceIcon}
+          serviceName={props.serviceName}
+          username={props.username}
+          onChangeUsername={props.onChangeUsername}
+        />
+      )}
       {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
     </Kb.Box2>
     <Kb.Box2
@@ -162,7 +200,12 @@ const styles = Styles.styleSheetCreate({
   buttonBig: {flex: 2.5},
   buttonSmall: {flex: 1},
   colorBlue: {color: Styles.globalColors.blue},
+  colorRed: {color: Styles.globalColors.red},
   container: Styles.platformStyles({isElectron: {height: 485, width: 560}}),
+  inlineIcon: {
+    position: 'relative',
+    top: 1,
+  },
   inputBox: {
     ...Styles.padding(Styles.globalMargins.xsmall),
     borderColor: Styles.globalColors.black_10,
@@ -196,6 +239,7 @@ const styles = Styles.styleSheetCreate({
   invisible: {
     opacity: 0,
   },
+  marginLeftAuto: {marginLeft: 'auto'},
   opacity40: {
     opacity: 0.4,
   },
@@ -215,6 +259,7 @@ const styles = Styles.styleSheetCreate({
   serviceIconHeaderContainer: {
     paddingTop: Styles.globalMargins.medium,
   },
+  unreachableBox: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall), width: 360},
   warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
 })
 
