@@ -8,7 +8,7 @@ import FolderHeader from '../header/container'
 import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
-import DropTarget from './drop-target'
+import DragAndDrop from '../../common-adapters/drag-and-drop.desktop'
 import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 
@@ -21,7 +21,7 @@ type Props = {|
 |}
 
 const WithContent = (props: Props) => (
-  <DropTarget onAttach={props.onAttach}>
+  <DragAndDrop onAttach={props.onAttach}>
     <Rows
       path={props.path}
       routePath={props.routePath}
@@ -33,7 +33,7 @@ const WithContent = (props: Props) => (
           : []),
       ]}
     />
-  </DropTarget>
+  </DragAndDrop>
 )
 
 const SelfReset = (props: Props) => (
