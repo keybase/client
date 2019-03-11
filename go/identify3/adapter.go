@@ -316,8 +316,6 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 		return
 	}
 
-	kid := key.KID
-
 	arg := keybase1.Identify3Row{
 		Key:      "pgp",
 		Value:    hex.EncodeToString(key.PGPFingerprint),
@@ -329,7 +327,7 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 		ProofURL:     i.makeSigchainViewURL(mctx, key.SigID),
 		SiteIcon:     externals.MakeIcons(mctx, "pgp", "logo_black", 16),
 		SiteIconFull: externals.MakeIcons(mctx, "pgp", "logo_full", 64),
-		Kid:          &kid,
+		Kid:          &key.KID,
 	}
 
 	switch {
