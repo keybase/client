@@ -172,34 +172,11 @@ func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLo
 func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.PassphraseCheckArg) (ret bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.Trace("PassphraseCheck", func() error { return err })()
-
-	passphrase := arg.Passphrase
-	if passphrase == "" {
-		username := h.G().GetEnv().GetUsername().String()
-		promptArg := libkb.DefaultPassphrasePromptArg(mctx, username)
-		secretUI := h.getSecretUI(arg.SessionID, h.G())
-		if delegateUI, err := h.getDelegateSecretUI(arg.SessionID); err != nil {
-			return false, err
-		} else if delegateUI != nil {
-			secretUI = delegateUI
-			h.G().Log.Debug("using delegate secret UI")
-		}
-		res, err := secretUI.GetPassphrase(promptArg, nil)
-		if err != nil {
-			return false, err
-		}
-		passphrase = res.Passphrase
+	eng := engine.NewPassphraseCheck(mctx.G(), &arg)
+	uis := libkb.UIs{
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
 	}
-	_, err = libkb.VerifyPassphraseForLoggedInUser(mctx, passphrase)
-	if err != nil {
-		if _, ok := err.(libkb.PassphraseError); ok {
-			// Swallow passphrase errors, return `false` that the passphrase
-			// provided was incorrect.
-			return false, nil
-		}
-		// There was some other error.
-		return false, err
-	}
-	// No error, passphrase was correct.
-	return true, nil
+	err = eng.Run(mctx.WithUIs(uis))
+	return eng.GetResult(), err
 }
