@@ -48,7 +48,11 @@ func (k KeychainSecretStore) updateAccessibility(m MetaContext, accountName stri
 	query.SetSecClass(keychain.SecClassGenericPassword)
 	query.SetService(k.serviceName(m))
 	query.SetAccount(accountName)
-	query.SetMatchLimit(keychain.MatchLimitOne)
+
+	// iOS keychain returns `keychain.ErrorParam` if this is set so we skip it.
+	if !isIOS {
+		query.SetMatchLimit(keychain.MatchLimitOne)
+	}
 	updateItem := keychain.NewItem()
 	updateItem.SetAccessible(k.accessible())
 	if err := keychain.UpdateItem(query, updateItem); err != nil {
@@ -111,11 +115,9 @@ func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUs
 		m.Debug("NOOPing KeychainSecretStore#ClearSecret for empty username")
 		return nil
 	}
-	var query keychain.Item
-	if isIOS {
-		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup(m))
-	} else {
-		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, "")
+	query := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup(m))
+	// iOS keychain returns `keychain.ErrorParam` if this is set so we skip it.
+	if !isIOS {
 		query.SetMatchLimit(keychain.MatchLimitAll)
 	}
 	err := keychain.DeleteItem(query)
