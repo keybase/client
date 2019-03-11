@@ -112,7 +112,7 @@ func (d *Dealer) Run(ctx context.Context) error {
 			}
 
 			// exit the loop if we've shutdown
-		case <-d.shutdownCh:
+		case <-shutdownCh:
 			return io.EOF
 
 		}

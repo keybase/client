@@ -132,6 +132,7 @@ type FlipManager struct {
 	shutdownMu       sync.Mutex
 	shutdownCh       chan struct{}
 	dealerShutdownCh chan struct{}
+	dealerCancel     context.CancelFunc
 	forceCh          chan struct{}
 	loadGameCh       chan loadGameJob
 	maybeInjectCh    chan func()
@@ -195,13 +196,15 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
 	m.shutdownMu.Lock()
+	var dealerCtx context.Context
 	shutdownCh := make(chan struct{})
 	dealerShutdownCh := make(chan struct{})
 	m.shutdownCh = shutdownCh
 	m.dealerShutdownCh = dealerShutdownCh
+	dealerCtx, m.dealerCancel = context.WithCancel(context.Background())
 	m.shutdownMu.Unlock()
 	go func(shutdownCh chan struct{}) {
-		m.dealer.Run(context.Background())
+		m.dealer.Run(dealerCtx)
 		close(shutdownCh)
 	}(dealerShutdownCh)
 	go m.updateLoop(shutdownCh)
@@ -215,6 +218,7 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	m.dealer.Stop()
 	m.shutdownMu.Lock()
 	if m.shutdownCh != nil {
+		m.dealerCancel()
 		close(m.shutdownCh)
 		m.shutdownCh = nil
 	}
