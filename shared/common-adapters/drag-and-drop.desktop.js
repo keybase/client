@@ -32,10 +32,11 @@ type State = {|
   showDropOverlay: boolean,
 |}
 
-type Props = {
+type Props = {|
+  allowFolders?: boolean,
   children: React.Node,
   onAttach: ?(Array<string>) => void,
-}
+|}
 
 class DragAndDrop extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
@@ -47,21 +48,23 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     const fileList = e.dataTransfer.files
     const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
     if (paths.length) {
-      for (let path of paths) {
-        // Check if any file is a directory and bail out if not
-        try {
-          // We do this synchronously
-          // in testing, this is instantaneous
-          // even when dragging many files
-          const stat = fs.lstatSync(path)
-          if (stat.isDirectory()) {
-            // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
-            this.setState({showDropOverlay: false})
-            return
+      if (!this.props.allowFolders) {
+        for (let path of paths) {
+          // Check if any file is a directory and bail out if not
+          try {
+            // We do this synchronously
+            // in testing, this is instantaneous
+            // even when dragging many files
+            const stat = fs.lstatSync(path)
+            if (stat.isDirectory()) {
+              // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
+              this.setState({showDropOverlay: false})
+              return
+            }
+            // delegate to handler for any errors
+          } catch (e) {
+            logger.warn(`Error stating dropped attachment: ${e.code}`)
           }
-          // delegate to handler for any errors
-        } catch (e) {
-          logger.warn(`Error stating dropped attachment: ${e.code}`)
         }
       }
       this.props.onAttach(paths)

@@ -21,7 +21,7 @@ type Props = {|
 |}
 
 const WithContent = (props: Props) => (
-  <DragAndDrop onAttach={props.onAttach}>
+  <DragAndDrop allowFolders={true} onAttach={props.onAttach}>
     <Rows
       path={props.path}
       routePath={props.routePath}
