@@ -196,13 +196,17 @@
     "setMoveOrCopySource": {
       "path": "Types.Path"
     },
-    "setMoveOrCopyDestinationParentPath": {
+    "setDestinationPickerParentPath": {
       "index": "number",
       "path": "Types.Path"
     },
     "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
-    "closeMoveOrCopy": {},
-    "moveOrCopyOpen": {
+    "setIncomingShareLocalPath": {
+      "localPath": "Types.LocalPath"
+    },
+    "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
+    "closeDestinationPicker": {},
+    "destinationPickerOpen": {
       "routePath": "I.List<string>",
       "path": "Types.Path",
       "currentIndex": "number"

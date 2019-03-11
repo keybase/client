@@ -15,7 +15,7 @@ func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		return ret, err
 	}
 
-	arg := apiArg(ctx, "team/get")
+	arg := apiArg("team/get")
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
 
 	var rt rawTeam
@@ -46,7 +46,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 		return ret, err
 	}
 
-	arg := apiArg(ctx, "team/get")
+	arg := apiArg("team/get")
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
 
 	var teamRet rawTeam
@@ -60,7 +60,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	// admins/owners, or for everyone if AnyMemberShowcase is set,
 	// but this does not include implicit admins.
 	if (teamRet.Showcase.AnyMemberShowcase && role != keybase1.TeamRole_NONE) || role.IsOrAbove(keybase1.TeamRole_ADMIN) {
-		arg = apiArg(ctx, "team/member_showcase")
+		arg = apiArg("team/member_showcase")
 		arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 
 		var memberRet memberShowcaseRes
@@ -97,7 +97,7 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		return errors.New("at least one argument has to be non-nil")
 	}
 
-	arg := apiArg(ctx, "team/team_showcase")
+	arg := apiArg("team/team_showcase")
 	arg.Args.Add("tid", libkb.S{Val: string(t.ID)})
 	if isShowcased != nil {
 		arg.Args.Add("is_showcased", libkb.B{Val: *isShowcased})
@@ -127,7 +127,7 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 	}
 
 	mctx := libkb.NewMetaContext(ctx, g)
-	arg := apiArg(ctx, "team/member_showcase")
+	arg := apiArg("team/member_showcase")
 	arg.Args.Add("tid", libkb.S{Val: string(t.ID)})
 	arg.Args.Add("is_showcased", libkb.B{Val: isShowcased})
 	_, err = mctx.G().API.Post(mctx, arg)
