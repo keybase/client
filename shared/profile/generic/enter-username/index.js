@@ -6,6 +6,7 @@ import {SiteIcon} from '../shared'
 import type {SiteIconSet} from '../../../constants/types/tracker2'
 
 type InputProps = {|
+  error: boolean,
   onChangeUsername: string => void,
   serviceIcon: SiteIconSet,
   serviceName: string,
@@ -37,6 +38,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
           styles.inputBox,
           this.state.username && styles.inputBoxSmall,
           this.state.focus && styles.borderBlue,
+          this.props.error && styles.borderRed,
         ])}
         fullWidth={true}
       >
@@ -82,6 +84,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
 }
 
 type Props = {|
+  error: string,
   onBack: () => void,
   onChangeUsername: string => void,
   onSubmit: () => void,
@@ -105,13 +108,21 @@ const _EnterUsername = (props: Props) => (
         <Kb.Text type="BodySmall">{props.serviceSub}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Box2 fullWidth={true} direction="horizontal" alignItems="center" style={styles.inputContainer}>
+    <Kb.Box2
+      fullWidth={true}
+      direction="vertical"
+      alignItems="flex-start"
+      gap="xtiny"
+      style={styles.inputContainer}
+    >
       <EnterUsernameInput
+        error={!!props.error}
         serviceIcon={props.serviceIcon}
         serviceName={props.serviceName}
         username={props.username}
         onChangeUsername={props.onChangeUsername}
       />
+      {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
     </Kb.Box2>
     <Kb.Box2
       alignItems="center"
@@ -143,6 +154,7 @@ const EnterUsername = Kb.HeaderOrPopup(_EnterUsername)
 const styles = Styles.styleSheetCreate({
   backButton: {left: Styles.globalMargins.small, position: 'absolute', top: Styles.globalMargins.small},
   borderBlue: {borderColor: Styles.globalColors.blue},
+  borderRed: {borderColor: Styles.globalColors.red},
   buttonBar: {
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium, Styles.globalMargins.medium),
   },
@@ -165,6 +177,7 @@ const styles = Styles.styleSheetCreate({
   inputContainer: {
     ...Styles.padding(0, Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium),
     flex: 1,
+    justifyContent: 'center',
   },
   inputPlaceholder: Styles.platformStyles({
     common: {

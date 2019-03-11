@@ -4,6 +4,7 @@ import * as Sb from '../../../stories/storybook'
 import EnterUsername from '.'
 
 const props = {
+  error: '',
   onBack: Sb.action('onBack'),
   onChangeUsername: Sb.action('onChangeUsername'),
   onSubmit: Sb.action('onSubmit'),
@@ -25,6 +26,9 @@ const load = () => {
   Sb.storiesOf('Profile/Generic Proofs/Enter username', module)
     .add('Empty', () => <EnterUsername {...props} />)
     .add('Prefilled', () => <EnterUsername {...props} username="ayoubd" />)
+    .add('Error', () => (
+      <EnterUsername {...props} username="(#$&*(" error="Wrong username format. Please try again." />
+    ))
     .add('Unreachable', () => <EnterUsername {...props} username="ayoubd" unreachable={true} />)
 }
 
