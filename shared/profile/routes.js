@@ -6,7 +6,7 @@ const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
   const Profile = require('./user/container').default
   const AddToTeam = require('./add-to-team/container').default
-  const EditProfile2 = require('./edit-profile2/container').default
+  const EditProfile = require('./edit-profile/container').default
   const EditAvatar = require('./edit-avatar/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
   const ProveWebsiteChoice = require('./prove-website-choice/container').default
@@ -53,7 +53,7 @@ const profileRoute = () => {
       },
       profile: profileRoute,
       profileEdit: {
-        component: EditProfile2,
+        component: EditProfile,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       profileEditAvatar: {
@@ -108,7 +108,7 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  profileEdit: {getScreen: () => require('./edit-profile2/container').default},
+  profileEdit: {getScreen: () => require('./edit-profile/container').default},
   profileRevoke: {getScreen: () => require('./revoke/container').default},
   profileSearch: {getScreen: () => require('./search/container').default},
   ...require('./pgp/routes').newRoutes,
