@@ -82,11 +82,14 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
 }
 
 type Props = {|
+  onBack: () => void,
   onChangeUsername: string => void,
+  onSubmit: () => void,
   serviceIcon: SiteIconSet,
   serviceIconFull: SiteIconSet,
   serviceName: string,
   serviceSub: string,
+  unreachable: boolean,
   username: string,
 |}
 
@@ -107,6 +110,12 @@ const _EnterUsername = (props: Props) => (
         onChangeUsername={props.onChangeUsername}
       />
     </Kb.Box2>
+    <Kb.ButtonBar direction="row">
+      {!Styles.isMobile && !props.unreachable && (
+        <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" />
+      )}
+      <Kb.Button type="PrimaryGreen" onClick={props.onSubmit} label={`Authorize on ${props.serviceName}`} />
+    </Kb.ButtonBar>
   </Kb.Box2>
 )
 const EnterUsername = Kb.HeaderOrPopup(_EnterUsername)
