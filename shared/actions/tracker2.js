@@ -206,6 +206,18 @@ const showUser = (_, action) => {
   }
 }
 
+const refreshSelf = (state, action) =>
+  state.config.uid === action.payload.params.uid &&
+  Tracker2Gen.createLoad({
+    assertion: state.config.username,
+    forceDisplay: false,
+    fromDaemon: false,
+    guiID: Constants.generateGUIID(),
+    ignoreCache: false,
+    inTracker: false,
+    reason: '',
+  })
+
 function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(
     EngineGen.keybase1Identify3UiIdentify3UpdateUserCard,
@@ -243,6 +255,10 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
   yield* Saga.chainAction<Tracker2Gen.ShowUserPayload>(Tracker2Gen.showUser, showUser)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersUserChangedPayload>(
+    EngineGen.keybase1NotifyUsersUserChanged,
+    refreshSelf
+  )
 }
 
 export default tracker2Saga

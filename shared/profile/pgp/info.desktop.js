@@ -27,6 +27,7 @@ const Info = props => (
         smallLabel="Email 1:"
         hintText="(required)"
         onChangeText={props.onChangeEmail1}
+        onEnterKeyDown={props.onNext}
         value={props.email1}
         errorText={props.errorEmail1 ? 'error' : null}
       />
@@ -35,6 +36,7 @@ const Info = props => (
         smallLabel="Email 2:"
         hintText="(optional)"
         onChangeText={props.onChangeEmail2}
+        onEnterKeyDown={props.onNext}
         value={props.email2}
         errorText={props.errorEmail2 ? 'error' : null}
       />
@@ -43,6 +45,7 @@ const Info = props => (
         smallLabel="Email 3:"
         hintText="(optional)"
         onChangeText={props.onChangeEmail3}
+        onEnterKeyDown={props.onNext}
         value={props.email3}
         errorText={props.errorEmail3 ? 'error' : null}
       />

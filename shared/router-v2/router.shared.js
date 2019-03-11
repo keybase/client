@@ -87,16 +87,17 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         : [switchStack]
     }
     case RouteTreeGen.clearModals:
-      const path = Constants._getVisiblePathForNavigator(navigation.state)
-      const actions = []
+      const path = Constants._getModalStackForNavigator(navigation.state)
+      let numModals = 0
       path.reverse().some(p => {
         if (modalRoutes[p.routeName]) {
-          actions.push(StackActions.pop())
+          numModals++
           return false
         }
         return true
       })
-      return actions
+
+      return numModals ? StackActions.pop({n: numModals}) : null
     case RouteTreeGen.navigateUp:
       return [StackActions.pop()]
   }

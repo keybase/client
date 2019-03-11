@@ -33,7 +33,9 @@ const Choice = ({onCancel, onOptionClick}) => (
 )
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => {
+    dispatch(RouteTreeGen.createClearModals())
+  },
   onOptionClick: (type: 'import' | 'provideInfo') =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [type]})),
 })

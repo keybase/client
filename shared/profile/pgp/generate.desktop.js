@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 import Modal from '../modal'
 
@@ -23,7 +24,10 @@ const Generate = props => (
 )
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(ProfileGen.createCancelPgpGen()),
+  onCancel: () => {
+    dispatch(ProfileGen.createCancelPgpGen())
+    dispatch(RouteTreeGen.createClearModals())
+  },
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

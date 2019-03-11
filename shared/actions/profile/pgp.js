@@ -6,6 +6,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
+import flags from '../../util/feature-flags'
 
 const dropPgpSaga = (_, action) =>
   RPCTypes.revokeRevokeKeyRpcPromise({keyID: action.payload.kid}, Constants.waitingKey)
@@ -15,7 +16,9 @@ const dropPgpSaga = (_, action) =>
       return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
     })
 
-const navBack = Saga.put(RouteTreeGen.createNavigateTo({path: [peopleTab, 'profile']}))
+const navBack = flags.useNewRouter
+  ? null
+  : Saga.put(RouteTreeGen.createNavigateTo({path: [peopleTab, 'profile']}))
 
 function* generatePgp(state) {
   let canceled = false
