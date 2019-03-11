@@ -762,7 +762,7 @@ func (t *tlfIDToTeamIDMap) Lookup(mctx libkb.MetaContext, tlfID chat1.TLFID, api
 	if iTeamID, ok := t.storage.Get(tlfID.String()); ok {
 		return iTeamID.(keybase1.TeamID), nil
 	}
-	arg := libkb.NewAPIArgWithMetaContext(mctx, "team/id")
+	arg := libkb.NewAPIArg("team/id")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
 	arg.SessionType = libkb.APISessionTypeREQUIRED
@@ -786,7 +786,7 @@ func (t *tlfIDToTeamIDMap) LookupTLFID(mctx libkb.MetaContext, teamID keybase1.T
 	if iTLFID, ok := t.storage.Get(teamID.String()); ok {
 		return iTLFID.(chat1.TLFID), nil
 	}
-	arg := libkb.NewAPIArgWithMetaContext(mctx, "team/tlfid")
+	arg := libkb.NewAPIArg("team/tlfid")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("team_id", libkb.S{Val: teamID.String()})
 	arg.SessionType = libkb.APISessionTypeREQUIRED

@@ -291,11 +291,10 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	m.Debug("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",
 		len(pukBoxes), pukPrev != nil, newPukGeneration, myUserEKBox != nil)
 
-	_, err = m.G().API.PostJSON(libkb.APIArg{
+	_, err = m.G().API.PostJSON(m, libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err

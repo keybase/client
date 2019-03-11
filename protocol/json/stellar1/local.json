@@ -256,6 +256,17 @@
         {
           "type": "boolean",
           "name": "fromAirdrop"
+        },
+        {
+          "type": "boolean",
+          "name": "isInflation"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "inflationSource"
         }
       ]
     },
@@ -436,6 +447,17 @@
         {
           "type": "boolean",
           "name": "fromAirdrop"
+        },
+        {
+          "type": "boolean",
+          "name": "isInflation"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "inflationSource"
         }
       ]
     },

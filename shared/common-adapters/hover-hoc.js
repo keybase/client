@@ -2,7 +2,6 @@
 import * as React from 'react'
 import DesktopStyle from './desktop-style'
 import {Box2} from './box'
-import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 
 type Props = {
@@ -28,7 +27,7 @@ export default (
       <Box2 direction="horizontal" className="defaultComponent">
         <DefaultComponent />
       </Box2>
-      {!isMobile && (
+      {!Styles.isMobile && (
         <Box2 direction="horizontal" className="hoverComponent">
           <HoverComponent />
         </Box2>

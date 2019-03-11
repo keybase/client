@@ -285,14 +285,26 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
-      return state.update('moveOrCopy', mc =>
-        mc.set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
+      return state.update('destinationPicker', dp =>
+        dp.set('source', (dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource()))
+          .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
-      return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
-    case FsGen.setMoveOrCopyDestinationParentPath:
-      return state.update('moveOrCopy', mc =>
-        mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+      return state.update('destinationPicker', dp =>
+        dp.set('source', Constants.makeMoveOrCopySource({path: action.payload.path}))
+      )
+    case FsGen.setDestinationPickerParentPath:
+      return state.update('destinationPicker', dp =>
+        dp.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+      )
+    case FsGen.showIncomingShare:
+      return state.update('destinationPicker', dp =>
+        dp.set('source', (dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()))
+          .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
+      )
+    case FsGen.setIncomingShareLocalPath:
+      return state.update('destinationPicker', dp =>
+        dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
       )
     case FsGen.showSendLinkToChat:
       return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
@@ -367,8 +379,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.deleteFile:
     case FsGen.move:
     case FsGen.copy:
-    case FsGen.moveOrCopyOpen:
-    case FsGen.closeMoveOrCopy:
+    case FsGen.destinationPickerOpen:
+    case FsGen.closeDestinationPicker:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
     case FsGen.refreshDriverStatus:

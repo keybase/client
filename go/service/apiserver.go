@@ -40,12 +40,14 @@ func (a *APIServerHandler) Post(ctx context.Context, arg keybase1.PostArg) (keyb
 	return a.doPost(mctx, arg)
 }
 
-func (a *APIServerHandler) PostJSON(_ context.Context, arg keybase1.PostJSONArg) (keybase1.APIRes, error) {
-	return a.doPostJSON(arg)
+func (a *APIServerHandler) PostJSON(ctx context.Context, arg keybase1.PostJSONArg) (keybase1.APIRes, error) {
+	mctx := libkb.NewMetaContext(ctx, a.G())
+	return a.doPostJSON(mctx, arg)
 }
 
-func (a *APIServerHandler) Delete(_ context.Context, arg keybase1.DeleteArg) (keybase1.APIRes, error) {
-	return a.doDelete(arg)
+func (a *APIServerHandler) Delete(ctx context.Context, arg keybase1.DeleteArg) (keybase1.APIRes, error) {
+	mctx := libkb.NewMetaContext(ctx, a.G())
+	return a.doDelete(mctx, arg)
 }
 
 type GenericArg interface {
@@ -111,8 +113,8 @@ func (a *APIServerHandler) doPost(mctx libkb.MetaContext, arg keybase1.PostArg) 
 	return a.convertRes(ires), nil
 }
 
-func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1.APIRes, err error) {
-	defer a.G().Trace("APIServerHandler::PostJSON", func() error { return err })()
+func (a *APIServerHandler) doPostJSON(mctx libkb.MetaContext, rawarg keybase1.PostJSONArg) (res keybase1.APIRes, err error) {
+	defer mctx.Trace("APIServerHandler::PostJSON", func() error { return err })()
 	var ires *libkb.APIRes
 	arg := a.setupArg(rawarg)
 	jsonPayload := make(libkb.JSONPayload)
@@ -130,7 +132,7 @@ func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1
 	}
 	arg.JSONPayload = jsonPayload
 
-	ires, err = a.G().API.PostJSON(arg)
+	ires, err = mctx.G().API.PostJSON(mctx, arg)
 	if err != nil {
 		return keybase1.APIRes{}, err
 	}
@@ -138,10 +140,10 @@ func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1
 	return a.convertRes(ires), nil
 }
 
-func (a *APIServerHandler) doDelete(arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
+func (a *APIServerHandler) doDelete(mctx libkb.MetaContext, arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
 	a.G().Trace("APIServerHandler::Delete", func() error { return err })()
 	var ires *libkb.APIRes
-	ires, err = a.G().API.Delete(a.setupArg(arg))
+	ires, err = a.G().API.Delete(mctx, a.setupArg(arg))
 	if err != nil {
 		return res, err
 	}

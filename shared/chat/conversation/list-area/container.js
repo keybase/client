@@ -5,7 +5,7 @@ import * as Flow from '../../../util/flow'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
-import * as TrackerGen from '../../../actions/tracker-gen'
+import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
 import {connect, isMobile} from '../../../util/container'
@@ -113,7 +113,7 @@ const mapDispatchToProps = dispatch => ({
   onShowTracker: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
+      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

@@ -1,13 +1,12 @@
 // @flow
 import * as React from 'react'
+import * as ProfileGen from '../../../actions/profile-gen'
+import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import {namedConnect} from '../../../util/container'
-import {isMobile} from '../../../constants/platform'
-import {createShowUserProfile} from '../../../actions/profile-gen'
-import {createGetProfile} from '../../../actions/tracker-gen'
+import {namedConnect, isMobile} from '../../../util/container'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner, {getHeight} from '.'
 import * as RowTypes from '../../row/types'
@@ -31,8 +30,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(FsGen.createLetResetUserBackIn({id, username})),
   onViewProfile: (username: string) => () =>
     isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
 })
 
 const mergeProps = (

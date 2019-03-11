@@ -13,14 +13,14 @@ type OwnProps = {
 }
 
 const mapStateToProps = state => ({
-  _moveOrCopy: state.fs.moveOrCopy,
+  _destinationPicker: state.fs.destinationPicker,
   _pathItems: state.fs.pathItems,
 })
 
 const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, routePath}: OwnProps) => ({
   _destinationPickerGoTo: () =>
     dispatch(
-      FsGen.createMoveOrCopyOpen({
+      FsGen.createDestinationPickerOpen({
         currentIndex: destinationPickerIndex || 0,
         path,
         routePath /* make flow happy */,
@@ -34,7 +34,12 @@ const isFolder = (stateProps, ownProps: OwnProps) =>
   stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'folder'
 
 const canOpenInDestinationPicker = (stateProps, ownProps) =>
-  isFolder(stateProps, ownProps) && stateProps._moveOrCopy.sourceItemPath !== ownProps.path
+  isFolder(stateProps, ownProps) && (
+    stateProps._destinationPicker.source.type === 'incoming-share' || (
+      stateProps._destinationPicker.source.type === 'move-or-copy' &&
+      stateProps._destinationPicker.source.path !== ownProps.path
+    )
+  )
 
 type MergedProps = OwnProps & {
   onOpen: ?() => void,

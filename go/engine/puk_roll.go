@@ -178,11 +178,10 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 	}
 
 	m.Debug("PerUserKeyRoll post")
-	_, err = m.G().API.PostJSON(libkb.APIArg{
+	_, err = m.G().API.PostJSON(m, libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
-		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err

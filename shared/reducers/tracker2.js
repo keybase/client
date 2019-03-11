@@ -115,6 +115,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
     // Saga only actions
     case Tracker2Gen.getProofSuggestions:
     case Tracker2Gen.changeFollow:
+    case Tracker2Gen.showUser:
     case Tracker2Gen.ignore:
       return state
     default:

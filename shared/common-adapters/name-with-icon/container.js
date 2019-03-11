@@ -1,11 +1,10 @@
 // @flow
-import {namedConnect} from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {teamsTab} from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
-import * as TrackerGen from '../../actions/tracker-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
 import NameWithIcon, {type NameWithIconProps} from '.'
-import {isMobile} from '../../constants/platform'
+import {namedConnect, isMobile} from '../../util/container'
+import {teamsTab} from '../../constants/tabs'
 
 export type ConnectedNameWithIconProps = {|
   ...NameWithIconProps,
@@ -21,8 +20,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(
       RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname: teamname}, selected: 'team'}]})
     ),
-  onOpenTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 

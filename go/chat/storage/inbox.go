@@ -99,7 +99,7 @@ type Inbox struct {
 	flushMode InboxFlushMode
 }
 
-var addHookOnce sync.Once
+var addInboxMemCacheHookOnce sync.Once
 
 func FlushMode(mode InboxFlushMode) func(*Inbox) {
 	return func(i *Inbox) {
@@ -109,7 +109,7 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	// add a logout hook to clear the in-memory inbox cache, but only add it once:
-	addHookOnce.Do(func() {
+	addInboxMemCacheHookOnce.Do(func() {
 		g.ExternalG().AddLogoutHook(inboxMemCache)
 	})
 

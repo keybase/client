@@ -288,18 +288,19 @@ type API interface {
 	GetDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
 	GetResp(MetaContext, APIArg) (*http.Response, func(), error)
 	Post(MetaContext, APIArg) (*APIRes, error)
-	PostJSON(APIArg) (*APIRes, error)
-	PostDecode(APIArg, APIResponseWrapper) error
-	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
-	Delete(APIArg) (*APIRes, error)
+	PostJSON(MetaContext, APIArg) (*APIRes, error)
+	PostDecode(MetaContext, APIArg, APIResponseWrapper) error
+	PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
+	PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error)
+	Delete(MetaContext, APIArg) (*APIRes, error)
 }
 
 type ExternalAPI interface {
-	Get(APIArg) (*ExternalAPIRes, error)
-	Post(APIArg) (*ExternalAPIRes, error)
-	GetHTML(APIArg) (*ExternalHTMLRes, error)
-	GetText(APIArg) (*ExternalTextRes, error)
-	PostHTML(APIArg) (*ExternalHTMLRes, error)
+	Get(MetaContext, APIArg) (*ExternalAPIRes, error)
+	Post(MetaContext, APIArg) (*ExternalAPIRes, error)
+	GetHTML(MetaContext, APIArg) (*ExternalHTMLRes, error)
+	GetText(MetaContext, APIArg) (*ExternalTextRes, error)
+	PostHTML(MetaContext, APIArg) (*ExternalHTMLRes, error)
 }
 
 type IdentifyUI interface {
@@ -922,6 +923,7 @@ type ChatHelper interface {
 	GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
+	TopReacjis(ctx context.Context, uid gregor1.UID) []string
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
 import * as FsGen from '../../actions/fs-gen'
 import {namedConnect, compose, withHandlers, isMobile} from '../../util/container'
-import * as TrackerGen from '../../actions/tracker-gen'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
 import {gitTab, settingsTab} from '../../constants/tabs'
 import {gitTab as settingsGitTab} from '../../constants/settings'
 import openURL from '../../util/open-url'
@@ -49,8 +49,7 @@ const mapDispatchToProps = dispatch => ({
       })
     ),
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
-  openUserTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, username})),
+  openUserTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {

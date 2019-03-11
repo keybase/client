@@ -140,12 +140,11 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		Args: HTTPArgs{
 			"email_or_username": S{eOu},
 		},
-		NetContext:     m.Ctx(),
 		AppStatusCodes: []int{SCOk, SCBadLoginPassword, SCBadLoginUserNotFound},
 	}
 	lp.PopulateArgs(&arg.Args)
 	var res loginReply
-	err := m.G().API.PostDecode(arg, &res)
+	err := m.G().API.PostDecode(m, arg, &res)
 	if err != nil {
 		return nil, err
 	}

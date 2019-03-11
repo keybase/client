@@ -5,7 +5,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import * as Flow from '../../../util/flow'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import * as TrackerGen from '../../../actions/tracker-gen'
+import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RouteTree from '../../../route-tree'
 import * as Constants from '../../../constants/wallets'
@@ -31,8 +31,7 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onOpenTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,

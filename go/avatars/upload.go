@@ -80,7 +80,7 @@ func UploadImage(mctx libkb.MetaContext, filename string, teamID *keybase1.TeamI
 		RetryCount:     1,
 	}
 
-	_, err = mctx.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
+	_, err = mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)
 	if err != nil {
 		mctx.Debug("post error: %s", err)
 		return err

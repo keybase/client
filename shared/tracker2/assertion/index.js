@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Constants from '../../constants/tracker'
 import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -30,6 +29,16 @@ type Props = {|
   type: string,
   value: string,
 |}
+
+const proofTypeToDesc = proofType => {
+  switch (proofType) {
+    case 'btc':
+    case 'zcash':
+      return 'signature'
+    default:
+      return 'proof'
+  }
+}
 
 const stateToIcon = state => {
   switch (state) {
@@ -297,7 +306,7 @@ class Assertion extends React.PureComponent<Props, State> {
           </Kb.Box2>
         ),
       },
-      items: [{onClick: p.onShowProof, title: `View ${Constants.proofTypeToDesc(p.type)}`}, onRevoke],
+      items: [{onClick: p.onShowProof, title: `View ${proofTypeToDesc(p.type)}`}, onRevoke],
     }
   }
   _siteIcon = (full: boolean) => {
