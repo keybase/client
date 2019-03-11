@@ -884,6 +884,22 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	require.NoError(t, err)
 }
 
+func enableOpenSweepForTeam(g *libkb.GlobalContext, t libkb.TestingTB, teamID keybase1.TeamID) {
+	args := libkb.HTTPArgs{
+		"team_id": libkb.S{Val: teamID.String()},
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "test/team_enable_open_sweep",
+		Args:        args,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	t.Logf("Calling team_enable_open_sweep for team ID: %s", teamID)
+
+	_, err := g.API.Post(libkb.NewMetaContextTODO(g), apiArg)
+	require.NoError(t, err)
+}
+
 func clearServerUIDMapCache(g *libkb.GlobalContext, t libkb.TestingTB, uids []keybase1.UID) {
 	arg := libkb.NewAPIArg("user/names")
 	arg.SessionType = libkb.APISessionTypeNONE
