@@ -5,6 +5,10 @@
     "import * as RCConstants from '../route-tree'"
   ],
   "actions": {
+    "dispatchNav2Action": {
+      "_description": "Dispatch an action to react-navigation",
+      "action": "any"
+    },
     "setInitialRouteDef": {
       "_description": "Set the tree of route definitions. Dispatched at initialization time.",
       "routeDef": "RCConstants.RouteDefParams"
@@ -27,7 +31,7 @@
     },
     "navigateAppend": {
       "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path",
+      "parentPath?": "?RCConstants.Path"
     },
     "navigateUp": {},
     "putActionIfOnPath": {
