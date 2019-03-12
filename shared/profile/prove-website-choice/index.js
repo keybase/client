@@ -10,7 +10,7 @@ type Props = {|
 |}
 
 const ProveWebsiteChoice = (p: Props) => (
-  <Modal>
+  <Modal onCancel={p.onCancel}>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text center={true} type="Header">
         Prove your website in two ways:
@@ -31,7 +31,6 @@ const ProveWebsiteChoice = (p: Props) => (
           },
         ]}
       />
-      <Kb.Button type="Secondary" onClick={p.onCancel} label="Cancel" />
     </Kb.Box2>
   </Modal>
 )

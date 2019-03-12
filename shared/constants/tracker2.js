@@ -132,18 +132,21 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
     value: row.value,
   })
 
-export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion =>
-  makeAssertion({
-    assertionKey: s.key,
+export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion => {
+  const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key
+  return makeAssertion({
+    // we have a special case where we want to differentiate between a dns or web proof, so we have a special pseudo type we use
+    assertionKey: ourKey,
     color: 'gray',
     metas: [],
     proofURL: '',
     siteIcon: s.profileIcon || [],
     siteURL: '',
     state: 'suggestion',
-    type: s.key,
+    type: ourKey,
     value: s.profileText,
   })
+}
 
 const _scoreAssertionKey = a => {
   switch (a) {
