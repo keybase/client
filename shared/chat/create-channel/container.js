@@ -11,6 +11,7 @@ import {
 } from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {upperFirst} from 'lodash-es'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 
@@ -34,7 +35,11 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
     dispatch(TeamsGen.createSetChannelCreationError({error}))
   },
   onBack: () =>
-    dispatch(RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['chatManageChannels']})),
+    dispatch(
+      flags.useNewRouter
+        ? navigateUp()
+        : RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['chatManageChannels']})
+    ),
   onClose: () => dispatch(navigateUp()),
 })
 
