@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import ScrollView from '../scroll-view'
 import Text from '../text'
 import NameWithIcon from '../name-with-icon'
 
