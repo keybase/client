@@ -121,6 +121,14 @@ class RNApp extends React.PureComponent<any, any> {
     this._persistRoute()
   }
 
+  dispatch = (a: any) => {
+    const nav = this._nav
+    if (!nav) {
+      throw new Error('Missing nav?')
+    }
+    nav.dispatch(a)
+  }
+
   // debounce this so we don't persist a route that can crash and then keep them in some crash loop
   _persistRoute = debounce(() => {
     this.props.persistRoute(Constants.getVisiblePath())

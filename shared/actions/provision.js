@@ -10,7 +10,7 @@ import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import {NavigationActions} from '@react-navigation/core'
+import {NavigationActions, StackActions} from '@react-navigation/core'
 import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
@@ -347,11 +347,17 @@ class ProvisioningManager {
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         }
 
-  showCodePage = () =>
-    RouteTreeGen.createNavigateAppend({
-      parentPath: this._addingANewDevice ? devicesRoot : [Tabs.loginTab],
-      path: ['codePage'],
-    })
+  showCodePage = () => {
+    if (!flags.useNewRouter) {
+      return RouteTreeGen.createNavigateAppend({
+        parentPath: this._addingANewDevice ? devicesRoot : [Tabs.loginTab],
+        path: ['codePage'],
+      })
+    }
+    // $FlowIssue - Private API
+    const navigator: any = _getNavigator()
+    navigator.dispatch(StackActions.replace({routeName: 'codePage'}))
+  }
 
   maybeCancelProvision = state => {
     if (flags.useNewRouter) {
@@ -463,44 +469,113 @@ const submitPassphraseOrPaperkey = (state, action) =>
 const maybeCancelProvision = (state: TypedState) =>
   ProvisioningManager.getSingleton().maybeCancelProvision(state)
 
-const showDeviceListPage = state =>
-  !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['selectOtherDevice']})
+const showDeviceListPage = state => {
+  if (!flags.useNewRouter) {
+    return (
+      !state.provision.error.stringValue() &&
+      RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['selectOtherDevice']})
+    )
+  }
+  // $FlowIssue - Private API
+  const navigator: any = _getNavigator()
+  navigator.dispatch(StackActions.replace({routeName: 'selectOtherDevice'}))
+}
 
-const showNewDeviceNamePage = state =>
-  !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['setPublicName']})
+const showNewDeviceNamePage = state => {
+  if (!flags.useNewRouter) {
+    return (
+      !state.provision.error.stringValue() &&
+      RouteTreeGen.createNavigateAppend({
+        parentPath: [Tabs.loginTab],
+        path: ['setPublicName'],
+      })
+    )
+  }
+  // $FlowIssue - Private API
+  const navigator: any = _getNavigator()
+  navigator.dispatch(StackActions.replace({routeName: 'setPublicName'}))
+}
 
-const showCodePage = state =>
-  !state.provision.error.stringValue() && ProvisioningManager.getSingleton().showCodePage()
+const showCodePage = state => {
+  if (!flags.useNewRouter) {
+    return !state.provision.error.stringValue() && ProvisioningManager.getSingleton().showCodePage()
+  }
+  // $FlowIssue - Private API
+  const navigator: any = _getNavigator()
+  navigator.dispatch(StackActions.replace({routeName: 'codePage'}))
+}
 
-const showGPGPage = state =>
-  !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['gpgSign']})
+const showGPGPage = state => {
+  if (!flags.useNewRouter) {
+    return (
+      !state.provision.error.stringValue() &&
+      RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['gpgSign']})
+    )
+  }
 
-const showPassphrasePage = state =>
-  !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['passphrase']})
+  // $FlowIssue - Private API
+  const navigator: any = _getNavigator()
+  navigator.dispatch(StackActions.replace({routeName: 'gpgSign'}))
+}
 
-const showPaperkeyPage = state =>
-  !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey']})
+const showPassphrasePage = state => {
+  if (!flags.useNewRouter) {
+    return (
+      !state.provision.error.stringValue() &&
+      RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['passphrase']})
+    )
+  }
+  // $FlowIssue - Private API
+  const navigator: any = _getNavigator()
+  navigator.dispatch(StackActions.replace({routeName: 'passphrase'}))
+}
+
+const showPaperkeyPage = state => {
+  if (!flags.useNewRouter) {
+    return (
+      !state.provision.error.stringValue() &&
+      RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey']})
+    )
+  }
+  // $FlowIssue - Private API
+  const navigator: any = _getNavigator()
+  navigator.dispatch(StackActions.replace({routeName: 'usernameOrEmail'}))
+}
 
 const showFinalErrorPage = (state, action) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : [Tabs.loginTab]
+  let path
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
-    return RouteTreeGen.createNavigateTo({parentPath, path: ['error']})
+    path = ['error']
   } else {
     if (flags.useNewRouter) {
-      return RouteTreeGen.createNavigateTo({parentPath, path: devicesRoot})
+      path = devicesRoot
     } else {
-      return RouteTreeGen.createNavigateTo({parentPath, path: []})
+      path = []
     }
+  }
+
+  if (!flags.useNewRouter) {
+    return RouteTreeGen.createNavigateTo({parentPath, path})
+  } else {
+    // $FlowIssue - Private API
+    const navigator: any = _getNavigator()
+    // TODO(useNewRouter) change this to just a path name instead of an array
+    navigator.dispatch(StackActions.replace({routeName: path[path.length - 1]}))
   }
 }
 
-const showUsernameEmailPage = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['usernameOrEmail']})
+const showUsernameEmailPage = () => {
+  if (!flags.useNewRouter) {
+    return RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['usernameOrEmail']})
+  }
+
+  // $FlowIssue - Private API
+  const navigator: any = _getNavigator()
+  console.warn('navigator is', navigator)
+  // We don't replace here since it's the first page after the login page.
+  navigator.dispatch(StackActions.push({routeName: 'usernameOrEmail'}))
+}
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Always ensure we have one live
