@@ -173,7 +173,7 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
-        ...(previousStatusType === 'disabled' ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for newly enabled
+        ...((previousStatusType === 'disabled' || status.installAction === 2) ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for newly enabled
       ]
     : [
         FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
