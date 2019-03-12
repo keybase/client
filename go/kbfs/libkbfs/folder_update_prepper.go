@@ -1344,10 +1344,19 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	resOp.Updates = newUpdates
 
 	// Also include rmop unrefs for chains that were deleted in the
-	// unmerged branch (and so wouldn't be included in the resolved
-	// ops), and not re-created by some action in the merged branch.
-	// These need to be in the resolution for proper block accounting
-	// and invalidation.
+	// unmerged branch but not yet included in `newOps`, and not
+	// re-created by some action in the merged branch.  These need to
+	// be in the resolution for proper block accounting and
+	// invalidation.
+	rmOpUnrefs := make(map[BlockPointer]bool)
+	for _, op := range newOps {
+		if _, ok := op.(*rmOp); !ok {
+			continue
+		}
+		for _, unref := range op.Unrefs() {
+			rmOpUnrefs[unref] = true
+		}
+	}
 	for original, chain := range unmergedChains.byOriginal {
 		mergedChain := mergedChains.byOriginal[original]
 		if chain.isFile() || !unmergedChains.isDeleted(original) ||
@@ -1366,6 +1375,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			for _, ptr := range op.Unrefs() {
 				if unrefOrig, ok := unmergedChains.originals[ptr]; ok {
 					ptr = unrefOrig
+				}
+				if rmOpUnrefs[ptr] {
+					continue
 				}
 
 				newOps = addUnrefToFinalResOp(
