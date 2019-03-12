@@ -1,6 +1,7 @@
 // @flow
 import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
+import {InteractionManager} from 'react-native'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 
@@ -12,19 +13,16 @@ const shimNewRoute = (Original: any) => {
   class ShimmedNew extends React.PureComponent<any, {canDraw: boolean}> {
     static navigationOptions = Original.navigationOptions
     state = {canDraw: false}
-    _didFocusSubscription = null
-    _didFocus = () => {
-      this.setState({canDraw: true})
-      this._didFocusSubscription && this._didFocusSubscription.remove()
-      this._didFocusSubscription = null
+    _drawTask = null
+    componentDidMount() {
+      this._drawTask = InteractionManager.runAfterInteractions(this._didFocus)
     }
     componentWillUnmount() {
-      this._didFocusSubscription && this._didFocusSubscription.remove()
-      this._didFocusSubscription = null
+      this._drawTask && this._drawTask.cancel()
     }
-    constructor(props) {
-      super(props)
-      this._didFocusSubscription = props.navigation.addListener('didFocus', this._didFocus)
+    _didFocus = () => {
+      this.setState({canDraw: true})
+      this._drawTask = null
     }
     render() {
       if (!this.state.canDraw) {
