@@ -241,7 +241,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 			return err
 		}
 		iteamInfo, err := identifier.IdentifyImplicitTeam(
-			ctx, assertions, extensionSuffix, t, reason)
+			ctx, assertions, extensionSuffix, t, reason, offline)
 		if err != nil {
 			return err
 		}

@@ -70,7 +70,7 @@ func (e *SaltpackSenderIdentify) Run(m libkb.MetaContext) (err error) {
 	// would audit it for consistency with the main body of the tree. File this
 	// one away in the Book of Things We Would Do With Infinite Time and Money.
 	var maybeUID keybase1.UID
-	_, maybeUID, err = libkb.KeyLookupKIDIncludingRevoked(e.G(), e.arg.publicKey)
+	_, maybeUID, err = libkb.KeyLookupKIDIncludingRevoked(m, e.arg.publicKey)
 	if _, ok := err.(libkb.NotFoundError); ok {
 		// The key in question might not be a Keybase key at all (for example,
 		// anything generated with the Python saltpack implementation, which

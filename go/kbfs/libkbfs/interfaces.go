@@ -668,9 +668,16 @@ type KeybaseService interface {
 	// ResolveIdentifyImplicitTeam resolves, and optionally
 	// identifies, an implicit team.  If the implicit team doesn't yet
 	// exist, and doIdentifies is true, one is created.
+	//
+	// If the caller knows that the team needs to be resolvable while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `ResolveIdentifyImplicitTeam` might block
+	// on a network call.
 	ResolveIdentifyImplicitTeam(
 		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-		doIdentifies bool, reason string) (ImplicitTeamInfo, error)
+		doIdentifies bool, reason string,
+		offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error)
 
 	// ResolveImplicitTeamByID resolves an implicit team to a team
 	// name, given a team ID.
@@ -700,12 +707,20 @@ type KeybaseService interface {
 	// validate an assertion or the identity of a user, use this to
 	// get UserInfo structs as it is much cheaper than Identify.
 	//
-	// pollForKID, if non empty, causes `PollForKID` field to be populated, which
-	// causes the service to poll for the given KID. This is useful during
-	// provisioning where the provisioner needs to get the MD revision that the
-	// provisionee has set the rekey bit on.
-	LoadUserPlusKeys(ctx context.Context,
-		uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error)
+	// pollForKID, if non empty, causes `PollForKID` field to be
+	// populated, which causes the service to poll for the given
+	// KID. This is useful during provisioning where the provisioner
+	// needs to get the MD revision that the provisionee has set the
+	// rekey bit on.
+	//
+	// If the caller knows that the user needs to be loadable while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `LoadUserPlusKeys` might block on a
+	// network call.
+	LoadUserPlusKeys(
+		ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
+		offline keybase1.OfflineAvailability) (UserInfo, error)
 
 	// LoadTeamPlusKeys returns a TeamInfo struct for a team with the
 	// specified TeamID.  The caller can specify `desiredKeyGen` to
@@ -815,14 +830,26 @@ type resolver interface {
 		offline keybase1.OfflineAvailability) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 	// ResolveImplicitTeam resolves the given implicit team.
+	//
+	// If the caller knows that the team needs to be resolvable while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `ResolveImplicitTeam` might block on a
+	// network call.
 	ResolveImplicitTeam(
-		ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
-		ImplicitTeamInfo, error)
+		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+		offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error)
 	// ResolveImplicitTeamByID resolves the given implicit team, given
 	// a team ID.
+	//
+	// If the caller knows that the team needs to be resolvable while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `ResolveImplicitTeamByID` might block on
+	// a network call.
 	ResolveImplicitTeamByID(
-		ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type) (
-		ImplicitTeamInfo, error)
+		ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type,
+		offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error)
 	// ResolveTeamTLFID returns the TLF ID associated with a given
 	// team ID, or tlf.NullID if no ID is yet associated with that
 	// team.
@@ -859,9 +886,16 @@ type identifier interface {
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 	// IdentifyImplicitTeam identifies (and creates if necessary) the
 	// given implicit team.
+	//
+	// If the caller knows that the team needs to be identifiable
+	// while offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `IdentifyImplicitTeam` might block on a
+	// network call.
 	IdentifyImplicitTeam(
 		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-		reason string) (ImplicitTeamInfo, error)
+		reason string, offline keybase1.OfflineAvailability) (
+		ImplicitTeamInfo, error)
 }
 
 type normalizedUsernameGetter interface {
@@ -979,13 +1013,27 @@ type KBPKI interface {
 	// error type `RevokedDeviceVerificationError` is returned, which
 	// includes information the caller can use to verify the key using
 	// the merkle tree.
+	//
+	// If the caller knows that the keys needs to be verified while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `HasVerifyingKey` might block on a
+	// network call.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey kbfscrypto.VerifyingKey,
-		atServerTime time.Time) error
+		atServerTime time.Time, offline keybase1.OfflineAvailability) error
 
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).
-	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
+	//
+	// If the caller knows that the keys needs to be retrieved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetCryptPublicKeys` might block on a
+	// network call.
+	GetCryptPublicKeys(
+		ctx context.Context, uid keybase1.UID,
+		offline keybase1.OfflineAvailability) (
 		[]kbfscrypto.CryptPublicKey, error)
 
 	// TODO: Split the methods below off into a separate
@@ -2342,8 +2390,8 @@ type Clock interface {
 // ConflictRenamer deals with names for conflicting directory entries.
 type ConflictRenamer interface {
 	// ConflictRename returns the appropriately modified filename.
-	ConflictRename(ctx context.Context, op op, original string) (
-		string, error)
+	ConflictRename(
+		ctx context.Context, op op, original string) (string, error)
 }
 
 // Tracer maybe adds traces to contexts.

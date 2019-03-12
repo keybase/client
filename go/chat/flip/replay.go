@@ -66,6 +66,7 @@ func (g GameHistory) start(rh ReplayHelper) (game *Game, rest GameHistory, err e
 		params:       start,
 		gameUpdateCh: make(chan GameStateUpdateMessage),
 		players:      make(map[UserDeviceKey]*GamePlayerState),
+		commitments:  make(map[string]bool),
 		stage:        Stage_ROUND1,
 		clogf:        rh.CLogf,
 	}

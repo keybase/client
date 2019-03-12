@@ -65,10 +65,9 @@ func (e *FavoriteAdd) Run(m libkb.MetaContext) error {
 	if e.arg == nil {
 		return fmt.Errorf("FavoriteAdd arg is nil")
 	}
-	_, err := m.G().API.Post(libkb.APIArg{
+	_, err := m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "kbfs/favorite/add",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  m.Ctx(),
 		Args: libkb.HTTPArgs{
 			"tlf_name":    libkb.S{Val: e.arg.Folder.Name},
 			"folder_type": libkb.I{Val: int(e.arg.Folder.FolderType)},
@@ -111,7 +110,7 @@ func (e *FavoriteAdd) checkInviteNeeded(m libkb.MetaContext) error {
 		m.Debug("social assertion found in FavoriteAdd folder name: %s", assertion)
 		m.Debug("requesting an invitation for %s", assertion)
 
-		inv, err := libkb.GenerateInvitationCodeForAssertion(m.G(), assertion, libkb.InviteArg{})
+		inv, err := libkb.GenerateInvitationCodeForAssertion(m, assertion, libkb.InviteArg{})
 		if err != nil {
 			return err
 		}

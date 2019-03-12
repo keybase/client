@@ -107,25 +107,20 @@
     "openPathInSystemFileManager": {
       "path": "Types.Path"
     },
-    "fuseStatus": {},
-    "fuseStatusResult": {
-      "prevStatus": "?RPCTypes.FuseStatus",
-      "status": "RPCTypes.FuseStatus"
-    },
-    "setFlags": {
-      "kbfsOpening?": "boolean",
-      "kbfsInstalling?": "boolean",
-      "fuseInstalling?": "boolean",
-      "kextPermissionError?": "boolean",
-      "securityPrefsPrompted?": "boolean",
-      "showBanner?": "boolean"
-    },
-    "installFuse": {},
-    "installFuseResult": {
-      "kextPermissionError": "boolean"
-    },
-    "installKBFS": {},
     "uninstallKBFSConfirm": {},
+
+    "refreshDriverStatus": {},
+    "setDriverStatus": {
+      "driverStatus": "Types.DriverStatus"
+    },
+    "hideSystemFileManagerIntegrationBanner": {},
+    "showSystemFileManagerIntegrationBanner": {},
+    "driverEnable": {
+      "isRetry?": "?boolean"
+    },
+    "driverDisable": {},
+    "driverKextPermissionError": {},
+
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },
@@ -201,13 +196,17 @@
     "setMoveOrCopySource": {
       "path": "Types.Path"
     },
-    "setMoveOrCopyDestinationParentPath": {
+    "setDestinationPickerParentPath": {
       "index": "number",
       "path": "Types.Path"
     },
     "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
-    "closeMoveOrCopy": {},
-    "moveOrCopyOpen": {
+    "setIncomingShareLocalPath": {
+      "localPath": "Types.LocalPath"
+    },
+    "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
+    "closeDestinationPicker": {},
+    "destinationPickerOpen": {
       "routePath": "I.List<string>",
       "path": "Types.Path",
       "currentIndex": "number"

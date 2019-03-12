@@ -2,8 +2,7 @@
 import React from 'react'
 import PeopleItem from '../item'
 import {Box, Button, Icon, Text, type IconType} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
-import {isMobile} from '../../constants/platform'
+import * as Styles from '../../styles'
 
 export type Props = {
   badged: boolean,
@@ -17,7 +16,7 @@ export type Props = {
 
 export const Task = (props: Props) => (
   <PeopleItem format="multi" badged={props.badged} icon={<Icon type={props.icon} />}>
-    <Text type="Body" style={{marginRight: isMobile ? 112 : 80, marginTop: 2}}>
+    <Text type="Body" style={{marginRight: Styles.isMobile ? 112 : 80, marginTop: 2}}>
       {props.instructions}
     </Text>
     <Box style={actionContainerStyle}>
@@ -26,7 +25,7 @@ export const Task = (props: Props) => (
         type="Primary"
         label={props.confirmLabel}
         onClick={props.onConfirm}
-        style={{marginRight: globalMargins.small}}
+        style={{marginRight: Styles.globalMargins.small}}
       />
       {props.dismissable && (
         <Text type="BodyPrimaryLink" onClick={props.onDismiss}>
@@ -38,7 +37,7 @@ export const Task = (props: Props) => (
 )
 
 const actionContainerStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   flexWrap: 'wrap',
   justifyContent: 'flex-start',

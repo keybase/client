@@ -390,10 +390,11 @@ func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams
 }
 
 func (u *userPlusDevice) readInviteEmails(email string) []string {
+	mctx := libkb.NewMetaContextForTest(*u.tc)
 	arg := libkb.NewAPIArg("test/team/get_tokens")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("email", libkb.S{Val: email})
-	res, err := u.tc.G.API.Get(arg)
+	res, err := u.tc.G.API.Get(mctx, arg)
 	if err != nil {
 		u.tc.T.Fatal(err)
 	}
@@ -712,13 +713,13 @@ func (u *userPlusDevice) lookupImplicitTeam2(create bool, displayName string, pu
 }
 
 func (u *userPlusDevice) delayMerkleTeam(teamID keybase1.TeamID) {
-	_, err := u.tc.G.API.Post(libkb.APIArg{
+	mctx := libkb.NewMetaContextForTest(*u.tc)
+	_, err := u.tc.G.API.Post(mctx, libkb.APIArg{
 		Endpoint: "test/merkled/delay_team",
 		Args: libkb.HTTPArgs{
 			"tid": libkb.S{Val: teamID.String()},
 		},
 		SessionType: libkb.APISessionTypeREQUIRED,
-		MetaContext: libkb.NewMetaContextForTest(*u.tc),
 	})
 	require.NoError(u.tc.T, err)
 }
@@ -878,7 +879,24 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 
 	t.Logf("Calling accelerate_team_rekeyd, setting work_time_sec to %d", workTimeSec)
 
-	_, err := g.API.Post(apiArg)
+	mctx := libkb.NewMetaContextTODO(g)
+	_, err := g.API.Post(mctx, apiArg)
+	require.NoError(t, err)
+}
+
+func enableOpenSweepForTeam(g *libkb.GlobalContext, t libkb.TestingTB, teamID keybase1.TeamID) {
+	args := libkb.HTTPArgs{
+		"team_id": libkb.S{Val: teamID.String()},
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "test/team_enable_open_sweep",
+		Args:        args,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	t.Logf("Calling team_enable_open_sweep for team ID: %s", teamID)
+
+	_, err := g.API.Post(libkb.NewMetaContextTODO(g), apiArg)
 	require.NoError(t, err)
 }
 
@@ -890,7 +908,8 @@ func clearServerUIDMapCache(g *libkb.GlobalContext, t libkb.TestingTB, uids []ke
 		"no_cache": libkb.B{Val: true},
 	}
 	t.Logf("Calling user/names with uids: %v and no_cache: true to clear serverside uidmap cache", uids)
-	_, err := g.API.Post(arg)
+	mctx := libkb.NewMetaContextTODO(g)
+	_, err := g.API.Post(mctx, arg)
 	require.NoError(t, err)
 }
 
@@ -1624,7 +1643,8 @@ func TestForceRepollState(t *testing.T) {
 	tt.addUser("onr")
 	tt.addUser("wtr")
 
-	_, err := tt.users[0].tc.G.API.Post(libkb.APIArg{
+	mctx := libkb.NewMetaContextForTest(*tt.users[0].tc)
+	_, err := mctx.G().API.Post(mctx, libkb.APIArg{
 		Endpoint:    "test/big_state_cutoff",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{

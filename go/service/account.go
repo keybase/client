@@ -26,6 +26,13 @@ func NewAccountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AccountHandl
 	}
 }
 
+func (h *AccountHandler) getDelegateSecretUI(sessionID int) (ret libkb.SecretUI, err error) {
+	if h.G().UIRouter != nil {
+		return h.G().UIRouter.GetSecretUI(sessionID)
+	}
+	return nil, nil
+}
+
 func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.PassphraseChangeArg) error {
 	eng := engine.NewPassphraseChange(h.G(), &arg)
 	uis := libkb.UIs{
@@ -38,15 +45,11 @@ func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.Pass
 
 func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {
 	ui := h.getSecretUI(arg.SessionID, h.G())
-	if h.G().UIRouter != nil {
-		delegateUI, err := h.G().UIRouter.GetSecretUI(arg.SessionID)
-		if err != nil {
-			return keybase1.GetPassphraseRes{}, err
-		}
-		if delegateUI != nil {
-			ui = delegateUI
-			h.G().Log.Debug("using delegate secret UI")
-		}
+	if delegateUI, err := h.getDelegateSecretUI(arg.SessionID); err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	} else if delegateUI != nil {
+		ui = delegateUI
+		h.G().Log.Debug("using delegate secret UI")
 	}
 
 	return ui.GetPassphrase(arg.GuiArg, nil)
@@ -114,18 +117,18 @@ type GetLockdownResponse struct {
 }
 
 func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (ret keybase1.GetLockdownResponse, err error) {
-	defer h.G().CTraceTimed(ctx, "GetLockdownMode", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("GetLockdownMode", func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/lockdown",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var response GetLockdownResponse
-	err = h.G().API.GetDecode(apiArg, &response)
+	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
 	if err != nil {
 		return ret, err
 	}
 
-	mctx := libkb.NewMetaContext(ctx, h.G())
 	upak, _, err := mctx.G().GetUPAKLoader().Load(
 		libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional().WithUID(mctx.G().ActiveDevice.UID()))
 	if err != nil {
@@ -153,7 +156,8 @@ func (h *AccountHandler) GetLockdownMode(ctx context.Context, sessionID int) (re
 }
 
 func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLockdownModeArg) (err error) {
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetLockdownMode(%v)", arg.Enabled), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("SetLockdownMode(%v)", arg.Enabled), func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/lockdown",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -161,6 +165,18 @@ func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLo
 			"enabled": libkb.B{Val: arg.Enabled},
 		},
 	}
-	_, err = h.G().API.Post(apiArg)
+	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
+}
+
+func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.PassphraseCheckArg) (ret bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("PassphraseCheck", func() error { return err })()
+	eng := engine.NewPassphraseCheck(mctx.G(), &arg)
+	uis := libkb.UIs{
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
+	}
+	err = eng.Run(mctx.WithUIs(uis))
+	return eng.GetResult(), err
 }

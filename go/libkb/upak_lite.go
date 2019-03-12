@@ -112,9 +112,8 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 		Endpoint:    "sig/get_high",
 		SessionType: APISessionTypeOPTIONAL,
 		Args:        HTTPArgs{"uid": S{Val: hsc.uid.String()}},
-		MetaContext: m,
 	}
-	resp, finisher, err := m.G().API.GetResp(apiArg)
+	resp, finisher, err := m.G().API.GetResp(m, apiArg)
 	if err != nil {
 		return nil, err
 	}

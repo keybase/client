@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isMobile} from '../../constants/platform'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
 
 export type Props = {
@@ -52,13 +51,13 @@ const containerStyle = {
   paddingBottom: Styles.globalMargins.xsmall,
   paddingTop: Styles.globalMargins.xsmall,
   position: 'relative',
-  ...(isMobile ? null : {borderStyle: 'solid'}),
+  ...(Styles.isMobile ? null : {borderStyle: 'solid'}),
 }
 
 const iconContainerStyle = {
   marginLeft: Styles.globalMargins.small,
   marginRight: Styles.globalMargins.xsmall,
-  width: isMobile ? 48 : 32,
+  width: Styles.isMobile ? 48 : 32,
 }
 
 const childrenContainerStyle = {

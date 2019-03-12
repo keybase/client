@@ -260,7 +260,7 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
 	tmp := fmt.Sprintf("%v", arg.Argv)
-	re := regexp.MustCompile(`\b(chat|encrypt|git|accept-invite|wallet\s+send|wallet\s+import)\b`)
+	re := regexp.MustCompile(`\b(chat|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
 	if mtch := re.FindString(tmp); len(mtch) > 0 {
 		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
 	}
@@ -376,13 +376,13 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 		version = libkb.VersionString()
 	}
 
-	apiArg := libkb.NewAPIArgWithMetaContext(m, "pkg/check")
+	apiArg := libkb.NewAPIArg("pkg/check")
 	apiArg.Args = libkb.HTTPArgs{
 		"version":  libkb.S{Val: version},
 		"platform": libkb.S{Val: platform},
 	}
 	var raw rawGetPkgCheck
-	if err = m.G().API.GetDecode(apiArg, &raw); err != nil {
+	if err = m.G().API.GetDecode(m, apiArg, &raw); err != nil {
 		return res, err
 	}
 	return raw.Res, nil

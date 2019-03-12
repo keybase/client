@@ -156,13 +156,17 @@ type unflushedPathMDInfo struct {
 // blocks will need to be fetched.
 func addUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	log logger.Logger, mdInfos []unflushedPathMDInfo,
+	log logger.Logger, osg OfflineStatusGetter, mdInfos []unflushedPathMDInfo,
 	cpp chainsPathPopulator, unflushedPaths unflushedPathsMap) error {
 	// Make chains over the entire range to get the unflushed files.
 	chains := newCRChainsEmpty()
 	processedOne := false
 	for _, mdInfo := range mdInfos {
-		winfo := newWriterInfo(uid, key, mdInfo.revision)
+		offline := keybase1.OfflineAvailability_NONE
+		if osg != nil {
+			offline = osg.OfflineAvailabilityForID(mdInfo.kmd.TlfID())
+		}
+		winfo := newWriterInfo(uid, key, mdInfo.revision, offline)
 		if _, ok := unflushedPaths[mdInfo.revision]; ok {
 			if processedOne {
 				return fmt.Errorf("Couldn't skip revision %d after "+
@@ -231,7 +235,7 @@ func addUnflushedPaths(ctx context.Context,
 // given revision.
 func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	log logger.Logger, mdInfo unflushedPathMDInfo) (
+	log logger.Logger, osg OfflineStatusGetter, mdInfo unflushedPathMDInfo) (
 	unflushedPathsPerRevMap, error) {
 	cpp := func() chainsPathPopulator {
 		upc.lock.Lock()
@@ -247,8 +251,8 @@ func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 	newUnflushedPaths := make(unflushedPathsMap)
 	mdInfos := []unflushedPathMDInfo{mdInfo}
 
-	err := addUnflushedPaths(ctx, uid, key, codec, log, mdInfos, cpp,
-		newUnflushedPaths)
+	err := addUnflushedPaths(
+		ctx, uid, key, codec, log, osg, mdInfos, cpp, newUnflushedPaths)
 	if err != nil {
 		return nil, err
 	}
@@ -361,14 +365,14 @@ func reinitUpcCache(revision kbfsmd.Revision,
 // unflushed path map.
 func (upc *unflushedPathCache) initialize(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	log logger.Logger, cpp chainsPathPopulator,
+	log logger.Logger, osg OfflineStatusGetter, cpp chainsPathPopulator,
 	mdInfos []unflushedPathMDInfo) (unflushedPathsMap, bool, error) {
 	// First get all the paths for the given range.  On the first try
 	unflushedPaths := make(unflushedPathsMap)
 	log.CDebugf(ctx, "Initializing unflushed path cache with %d revisions",
 		len(mdInfos))
-	err := addUnflushedPaths(ctx, uid, key, codec, log, mdInfos, cpp,
-		unflushedPaths)
+	err := addUnflushedPaths(
+		ctx, uid, key, codec, log, osg, mdInfos, cpp, unflushedPaths)
 	if err != nil {
 		return nil, false, err
 	}
@@ -410,8 +414,8 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 
 			log.CDebugf(ctx, "Processing unflushed paths for %d items in "+
 				"the append queue", len(appends))
-			err := addUnflushedPaths(ctx, uid, key, codec, log, appends, cpp,
-				unflushedPaths)
+			err := addUnflushedPaths(
+				ctx, uid, key, codec, log, osg, appends, cpp, unflushedPaths)
 			if err != nil {
 				return nil, false, err
 			}
@@ -424,8 +428,8 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 				if op.op == upcOpRemove {
 					delete(unflushedPaths, op.rev)
 				} else if op.op == upcOpReinit {
-					perRevMap, err := upc.prepUnflushedPaths(ctx, uid, key,
-						codec, log, op.info)
+					perRevMap, err := upc.prepUnflushedPaths(
+						ctx, uid, key, codec, log, osg, op.info)
 					if err != nil {
 						return nil, false, err
 					}

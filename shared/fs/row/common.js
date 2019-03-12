@@ -127,15 +127,17 @@ export const StillCommon = (
       <Kb.Box style={rowStyles.rightBox}>
         <OpenInSystemFileManager path={props.path} />
         <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
-        <PathItemAction
-          path={props.path}
-          clickable={{actionIconClassName: 'fs-path-item-hover-icon', type: 'icon'}}
-          routePath={props.routePath}
-          initView="root"
-        />
+        <Kb.WithTooltip text="Other actions">
+          <PathItemAction
+            path={props.path}
+            clickable={{actionIconClassName: 'fs-path-item-hover-icon', type: 'icon'}}
+            routePath={props.routePath}
+            initView="root"
+          />
+        </Kb.WithTooltip>
       </Kb.Box>
     )}
   </HoverBox>
 )
 
-export const normalRowHeight = Styles.isMobile ? 64 : 40
+export const normalRowHeight = Styles.isMobile ? 56 : 48

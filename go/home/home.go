@@ -57,7 +57,8 @@ func homeRetry(a libkb.APIArg) libkb.APIArg {
 }
 
 func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int, skipPeople bool) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#getToCache", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("Home#getToCache", func() error { return err })()
 
 	numPeopleToRequest := 100
 	if numPeopleWanted > numPeopleToRequest {
@@ -66,14 +67,14 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 	if skipPeople {
 		numPeopleToRequest = 0
 	}
-	arg := libkb.NewAPIArgWithNetContext(ctx, "home")
+	arg := libkb.NewAPIArg("home")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"record_visit": libkb.B{Val: markedViewed},
 		"num_people":   libkb.I{Val: numPeopleToRequest},
 	}
 	var raw rawGetHome
-	if err = h.G().API.GetDecode(homeRetry(arg), &raw); err != nil {
+	if err = mctx.G().API.GetDecode(mctx, homeRetry(arg), &raw); err != nil {
 		return err
 	}
 	home := raw.Home
@@ -88,7 +89,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 	}
 	h.peopleCache = newPeopleCache
 
-	h.G().Log.CDebugf(ctx, "| %d follow suggestions returned", len(home.FollowSuggestions))
+	mctx.Debug("| %d follow suggestions returned", len(home.FollowSuggestions))
 	home.FollowSuggestions = nil
 
 	h.homeCache = &homeCache{
@@ -198,30 +199,30 @@ func (p *peopleCache) isValid(ctx context.Context, g *libkb.GlobalContext, numPe
 }
 
 func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#skipTodoType", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("Home#skipTodoType", func() error { return err })()
 
-	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"type": libkb.I{Val: int(typ)},
 		},
-		NetContext: ctx,
 	}))
 
 	return err
 }
 
 func (h *Home) DismissAnnouncement(ctx context.Context, id keybase1.HomeScreenAnnouncementID) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#DismissAnnouncement", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("Home#DismissAnnouncement", func() error { return err })()
 
-	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	_, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"announcement": libkb.I{Val: int(id)},
 		},
-		NetContext: ctx,
 	}))
 
 	return err
@@ -296,15 +297,15 @@ func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
 }
 
 func (h *Home) markViewedAPICall(ctx context.Context) (err error) {
-	defer h.G().CTraceTimed(ctx, "Home#markViewedAPICall", func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("Home#markViewedAPICall", func() error { return err })()
 
-	if _, err = h.G().API.Post(homeRetry(libkb.APIArg{
+	if _, err = mctx.G().API.Post(mctx, homeRetry(libkb.APIArg{
 		Endpoint:    "home/visit",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
-		NetContext:  ctx,
 	})); err != nil {
-		h.G().Log.CWarningf(ctx, "Unable to home#markViewedAPICall: %v", err)
+		mctx.Warning("Unable to home#markViewedAPICall: %v", err)
 	}
 	return nil
 }
@@ -434,11 +435,10 @@ func (h *Home) pollOnce(m libkb.MetaContext) (d time.Duration, err error) {
 	}
 
 	var raw rawPollHome
-	err = m.G().API.GetDecode(libkb.APIArg{
+	err = m.G().API.GetDecode(m, libkb.APIArg{
 		Endpoint:    "home/poll",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
-		MetaContext: m,
 	}, &raw)
 	if err != nil {
 		m.Warning("Unable to Home#pollOnce: %v", err)

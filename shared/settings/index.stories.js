@@ -9,6 +9,7 @@ import notifications from './notifications/index.stories'
 import passphrase from './passphrase/index.stories'
 import chat from './chat/index.stories'
 import landing from './landing/index.stories'
+import files from './files/index.stories'
 
 const load = () => {
   ;[
@@ -22,6 +23,7 @@ const load = () => {
     nav,
     chat,
     landing,
+    files,
   ].forEach(load => load())
 }
 

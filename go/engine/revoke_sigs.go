@@ -101,7 +101,7 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 	kid := sigKey.GetKID()
-	_, err = m.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "sig/revoke",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
@@ -109,7 +109,6 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 			"sig":                libkb.S{Val: sig},
 			"downgrade_lease_id": libkb.S{Val: string(lease.LeaseID)},
 		},
-		NetContext: m.Ctx(),
 	})
 	if err != nil {
 		return err

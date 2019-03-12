@@ -26,12 +26,12 @@ func newFlakeyRooterAPI(x libkb.ExternalAPI) *flakeyRooterAPI {
 	}
 }
 
-func (e *flakeyRooterAPI) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
+func (e *flakeyRooterAPI) GetText(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
 	e.G.Log.Debug("| flakeyRooterAPI.GetText, hard = %v, flake = %v", e.hardFail, e.flakeOut)
-	return e.orig.GetText(arg)
+	return e.orig.GetText(m, arg)
 }
 
-func (e *flakeyRooterAPI) Get(arg libkb.APIArg) (res *libkb.ExternalAPIRes, err error) {
+func (e *flakeyRooterAPI) Get(m libkb.MetaContext, arg libkb.APIArg) (res *libkb.ExternalAPIRes, err error) {
 	e.G.Log.Debug("| flakeyRooterAPI.Get, hard = %v, flake = %v", e.hardFail, e.flakeOut)
 	// Show an error if we're in flakey mode
 	if strings.Contains(arg.Endpoint, "rooter") {
@@ -43,20 +43,20 @@ func (e *flakeyRooterAPI) Get(arg libkb.APIArg) (res *libkb.ExternalAPIRes, err 
 		}
 	}
 
-	return e.orig.Get(arg)
+	return e.orig.Get(m, arg)
 }
 
-func (e *flakeyRooterAPI) GetHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes, err error) {
+func (e *flakeyRooterAPI) GetHTML(m libkb.MetaContext, arg libkb.APIArg) (res *libkb.ExternalHTMLRes, err error) {
 	e.G.Log.Debug("| flakeyRooterAPI.GetHTML, hard = %v, flake = %v", e.hardFail, e.flakeOut)
-	return e.orig.GetHTML(arg)
+	return e.orig.GetHTML(m, arg)
 }
 
-func (e *flakeyRooterAPI) Post(arg libkb.APIArg) (res *libkb.ExternalAPIRes, err error) {
-	return e.orig.Post(arg)
+func (e *flakeyRooterAPI) Post(m libkb.MetaContext, arg libkb.APIArg) (res *libkb.ExternalAPIRes, err error) {
+	return e.orig.Post(m, arg)
 }
 
-func (e *flakeyRooterAPI) PostHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes, err error) {
-	return e.orig.PostHTML(arg)
+func (e *flakeyRooterAPI) PostHTML(m libkb.MetaContext, arg libkb.APIArg) (res *libkb.ExternalHTMLRes, err error) {
+	return e.orig.PostHTML(m, arg)
 }
 
 func TestSoftSnooze(t *testing.T) {

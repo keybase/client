@@ -603,7 +603,8 @@ func AddImplicitTeamForTest(
 	config Config, name, suffix string, teamNumber byte, ty tlf.Type) (
 	keybase1.TeamID, error) {
 	iteamInfo, err := config.KeybaseService().ResolveIdentifyImplicitTeam(
-		context.Background(), name, suffix, ty, true, "")
+		context.Background(), name, suffix, ty, true, "",
+		keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return "", err
 	}

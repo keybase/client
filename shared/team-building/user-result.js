@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import * as Kb from '../common-adapters'
-import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import {followingStateToStyle} from '../search/shared'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
@@ -224,7 +223,7 @@ const AlreadyAddedIconButton = () => (
   <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.blue} />
 )
 
-const ActionButtonSize = isMobile ? 40 : 32
+const ActionButtonSize = Styles.isMobile ? 40 : 32
 const styles = Styles.styleSheetCreate({
   actionButton: Styles.platformStyles({
     common: {

@@ -15,11 +15,12 @@ func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		return ret, err
 	}
 
-	arg := apiArg(ctx, "team/get")
+	arg := apiArg("team/get")
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
 
 	var rt rawTeam
-	if err := g.API.GetDecode(arg, &rt); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := mctx.G().API.GetDecode(mctx, arg, &rt); err != nil {
 		return ret, err
 	}
 	return rt.Showcase, nil
@@ -45,11 +46,12 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 		return ret, err
 	}
 
-	arg := apiArg(ctx, "team/get")
+	arg := apiArg("team/get")
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
 
 	var teamRet rawTeam
-	if err := g.API.GetDecode(arg, &teamRet); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := mctx.G().API.GetDecode(mctx, arg, &teamRet); err != nil {
 		return ret, err
 	}
 	ret.TeamShowcase = teamRet.Showcase
@@ -58,11 +60,11 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	// admins/owners, or for everyone if AnyMemberShowcase is set,
 	// but this does not include implicit admins.
 	if (teamRet.Showcase.AnyMemberShowcase && role != keybase1.TeamRole_NONE) || role.IsOrAbove(keybase1.TeamRole_ADMIN) {
-		arg = apiArg(ctx, "team/member_showcase")
+		arg = apiArg("team/member_showcase")
 		arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
 
 		var memberRet memberShowcaseRes
-		if err := g.API.GetDecode(arg, &memberRet); err != nil {
+		if err := mctx.G().API.GetDecode(mctx, arg, &memberRet); err != nil {
 			if appErr, ok := err.(libkb.AppStatusError); ok &&
 				appErr.Code == int(keybase1.StatusCode_SCTeamShowcasePermDenied) {
 				// It is possible that we were still a member when
@@ -72,7 +74,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 				// checks before calling it - but if we have outdated team
 				// information, we might still end up here not being allowed
 				// to call it and getting this error.
-				g.Log.CDebugf(ctx, "GetTeamAndMemberShowcase hit a race with team %q", teamname)
+				mctx.Debug("GetTeamAndMemberShowcase hit a race with team %q", teamname)
 				return ret, nil
 			}
 
@@ -95,7 +97,7 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 		return errors.New("at least one argument has to be non-nil")
 	}
 
-	arg := apiArg(ctx, "team/team_showcase")
+	arg := apiArg("team/team_showcase")
 	arg.Args.Add("tid", libkb.S{Val: string(t.ID)})
 	if isShowcased != nil {
 		arg.Args.Add("is_showcased", libkb.B{Val: *isShowcased})
@@ -110,7 +112,8 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	if anyMemberShowcase != nil {
 		arg.Args.Add("any_member_showcase", libkb.B{Val: *anyMemberShowcase})
 	}
-	if _, err := g.API.Post(arg); err != nil {
+	mctx := libkb.NewMetaContext(ctx, g)
+	if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 		return err
 	}
 	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
@@ -123,10 +126,11 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 		return err
 	}
 
-	arg := apiArg(ctx, "team/member_showcase")
+	mctx := libkb.NewMetaContext(ctx, g)
+	arg := apiArg("team/member_showcase")
 	arg.Args.Add("tid", libkb.S{Val: string(t.ID)})
 	arg.Args.Add("is_showcased", libkb.B{Val: isShowcased})
-	_, err = g.API.Post(arg)
+	_, err = mctx.G().API.Post(mctx, arg)
 	if err != nil {
 		return err
 	}
@@ -134,9 +138,9 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 	// Clear usercard cache so when user goes to People tab,
 	// fresh card will be loaded.
 	u := g.ActiveDevice.UID()
-	g.Log.CDebugf(ctx, "Clearing Card cache for %s", u)
+	mctx.Debug("Clearing Card cache for %s", u)
 	if err := g.CardCache().Delete(u); err != nil {
-		g.Log.CDebugf(ctx, "Error in CardCache.Delete: %s", err)
+		mctx.Debug("Error in CardCache.Delete: %s", err)
 	}
 	g.UserChanged(u)
 	return nil

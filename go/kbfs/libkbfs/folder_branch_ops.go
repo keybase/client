@@ -3303,7 +3303,7 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	}
 	if isResolution || TLFJournalEnabled(fbo.config, fbo.id()) {
 		chains, err := newCRChainsForIRMDs(
-			ctx, fbo.config.Codec(), []ImmutableRootMetadata{rmd},
+			ctx, fbo.config.Codec(), fbo.config, []ImmutableRootMetadata{rmd},
 			&fbo.blocks, true)
 		if err != nil {
 			return nil, err
@@ -5523,7 +5523,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// the file and directory blocks that need to change during this
 	// sync.
 	syncChains, err := newCRChains(
-		ctx, fbo.config.Codec(), []chainMetadata{tempIRMD}, &fbo.blocks, false)
+		ctx, fbo.config.Codec(), fbo.config, []chainMetadata{tempIRMD},
+		&fbo.blocks, false)
 	if err != nil {
 		return err
 	}
@@ -7705,7 +7706,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	var newName kbname.NormalizedUsername
 	if fbo.id().Type() != tlf.SingleTeam {
 		iteamInfo, err := fbo.config.KBPKI().ResolveImplicitTeamByID(
-			ctx, tid, fbo.id().Type())
+			ctx, tid, fbo.id().Type(), fbo.oa())
 		if err == nil {
 			newName = iteamInfo.Name
 		}

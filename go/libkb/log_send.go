@@ -77,8 +77,8 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
-	l.G().Log.Debug("sending status + logs to keybase")
+func (l *LogSendContext) post(mctx MetaContext, status, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
+	mctx.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
 	mpart := multipart.NewWriter(&body)
@@ -130,14 +130,14 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, ekLog, desktopL
 	}
 
 	if len(traceBundle) > 0 {
-		l.G().Log.Debug("trace bundle size: %d", len(traceBundle))
+		mctx.Debug("trace bundle size: %d", len(traceBundle))
 		if err := addFile(mpart, "trace_tar_gz", "trace.tar.gz", traceBundle); err != nil {
 			return "", err
 		}
 	}
 
 	if len(cpuProfileBundle) > 0 {
-		l.G().Log.Debug("CPU profile bundle size: %d", len(cpuProfileBundle))
+		mctx.Debug("CPU profile bundle size: %d", len(cpuProfileBundle))
 		if err := addFile(mpart, "cpu_profile_tar_gz", "cpu_profile.tar.gz", cpuProfileBundle); err != nil {
 			return "", err
 		}
@@ -147,16 +147,16 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, ekLog, desktopL
 		return "", err
 	}
 
-	l.G().Log.Debug("body size: %d", body.Len())
+	mctx.Debug("body size: %d", body.Len())
 
 	arg := APIArg{
 		Endpoint:    "logdump/send",
 		SessionType: APISessionTypeOPTIONAL,
 	}
 
-	resp, err := l.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
+	resp, err := mctx.G().API.PostRaw(mctx, arg, mpart.FormDataContentType(), &body)
 	if err != nil {
-		l.G().Log.Debug("post error: %s", err)
+		mctx.Debug("post error: %s", err)
 		return "", err
 	}
 
@@ -485,6 +485,7 @@ func getCPUProfileBundle(log logger.Logger, cpuProfileDir string) []byte {
 // LogSend sends the tails of log files to kb, and also the last
 // few trace output files.
 func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int, uid keybase1.UID, installID InstallID, mergeExtendedStatus bool) (string, error) {
+	mctx := NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
 	logs := l.Logs
 	var kbfsLog string
 	var svcLog string
@@ -541,7 +542,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		watchdogLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID)
+	return l.post(mctx, statusJSON, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID)
 }
 
 // mergeExtendedStatus adds the extended status to the given status json blob.

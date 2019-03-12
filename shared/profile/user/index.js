@@ -101,6 +101,7 @@ const BioLayout = p => (
       editableIcon={!!p.onEditAvatar}
       onEditIcon={p.onEditAvatar}
       avatarSize={avatarSize}
+      size="huge"
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />

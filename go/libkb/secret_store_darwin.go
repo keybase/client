@@ -21,19 +21,9 @@ func (k KeychainSecretStore) serviceName(m MetaContext) string {
 	return m.G().GetStoredSecretServiceName()
 }
 
-func (k KeychainSecretStore) makeKeychainItem(m MetaContext, accountName NormalizedUsername, encodedSecret []byte) keychain.Item {
-	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", encodedSecret, k.accessGroup(m))
-	item.SetSynchronizable(k.synchronizable())
-	item.SetAccessible(k.accessible())
-	return item
-}
-
 func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
-
-	item := k.makeKeychainItem(m, accountName, nil)
 	m.Debug("KeychainSecretStore.StoreSecret(%s): deleting item before adding new one", accountName)
-	err = keychain.DeleteItem(item)
-	if err != nil {
+	if err = k.ClearSecret(m, accountName); err != nil {
 		// error probably ok here?
 		m.Debug("KeychainSecretStore.StoreSecret(%s): DeleteItem error: %s", accountName, err)
 	}
@@ -41,9 +31,10 @@ func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUs
 	m.Debug("KeychainSecretStore.StoreSecret(%s): adding item", accountName)
 	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
 	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
-	item = k.makeKeychainItem(m, accountName, []byte(encodedSecret))
-	err = keychain.AddItem(item)
-	if err != nil {
+	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", []byte(encodedSecret), k.accessGroup(m))
+	item.SetSynchronizable(k.synchronizable())
+	item.SetAccessible(k.accessible())
+	if err = keychain.AddItem(item); err != nil {
 		m.Warning("KeychainSecretStore.StoreSecret(%s): AddItem error: %s", accountName, err)
 		return err
 	}
@@ -57,7 +48,11 @@ func (k KeychainSecretStore) updateAccessibility(m MetaContext, accountName stri
 	query.SetSecClass(keychain.SecClassGenericPassword)
 	query.SetService(k.serviceName(m))
 	query.SetAccount(accountName)
-	query.SetMatchLimit(keychain.MatchLimitOne)
+
+	// iOS keychain returns `keychain.ErrorParam` if this is set so we skip it.
+	if !isIOS {
+		query.SetMatchLimit(keychain.MatchLimitOne)
+	}
 	updateItem := keychain.NewItem()
 	updateItem.SetAccessible(k.accessible())
 	if err := keychain.UpdateItem(query, updateItem); err != nil {
@@ -120,25 +115,23 @@ func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUs
 		m.Debug("NOOPing KeychainSecretStore#ClearSecret for empty username")
 		return nil
 	}
-	var query keychain.Item
-	if isIOS {
-		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup(m))
-	} else {
-		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, "")
+	query := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup(m))
+	// iOS keychain returns `keychain.ErrorParam` if this is set so we skip it.
+	if !isIOS {
 		query.SetMatchLimit(keychain.MatchLimitAll)
 	}
 	err := keychain.DeleteItem(query)
-	if err == keychain.ErrorItemNotFound {
+	switch err {
+	case nil:
+		m.Debug("KeychainSecretStore#ClearSecret(%s) success", accountName)
+		return nil
+	case keychain.ErrorItemNotFound:
 		m.Debug("KeychainSecretStore#ClearSecret(%s), item not found", accountName)
 		return nil
-	}
-	if err != nil {
+	default:
 		m.Debug("KeychainSecretStore#ClearSecret(%s), DeleteItem error: %s", accountName, err)
+		return err
 	}
-
-	m.Debug("KeychainSecretStore#ClearSecret(%s) success", accountName)
-
-	return err
 }
 
 func NewSecretStoreAll(m MetaContext) SecretStoreAll {

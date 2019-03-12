@@ -46,12 +46,12 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
 
   return (
     <Kb.ListItem2
-      type="Large"
+      type="Small"
       firstItem={props.firstItem}
       onClick={props.onViewTeam}
       icon={
         <Kb.Box2 direction="vertical" style={styles.avatarContainer}>
-          <Kb.Avatar size={48} teamname={props.name} isTeam={true} />
+          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
           {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
         </Kb.Box2>
       }
@@ -83,15 +83,21 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   )
 })
 
-class Teams extends React.PureComponent<Props> {
-  _teamsAndExtras = memoize(teamnames => {
-    return [
-      {key: '_banner', type: '_banner'},
-      ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
-      {key: '_note', type: '_note'},
-    ]
-  })
+type State = {
+  sawChatBanner: boolean,
+}
+class Teams extends React.PureComponent<Props, State> {
+  state = {sawChatBanner: false}
+  _teamsAndExtras = memoize((sawChatBanner, teamnames) => [
+    {key: '_banner', type: '_banner'},
+    ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
+    {key: '_note', type: '_note'},
+  ])
 
+  _onHideChatBanner = () => {
+    this.setState({sawChatBanner: true})
+    this.props.onHideChatBanner()
+  }
   _onOpenFolder = name => this.props.onOpenFolder(name)
   _onManageChat = name => this.props.onManageChat(name)
   _onViewTeam = name => this.props.onViewTeam(name)
@@ -99,8 +105,8 @@ class Teams extends React.PureComponent<Props> {
   _renderItem = (index, item) => {
     switch (item.type) {
       case '_banner':
-        return this.props.sawChatBanner ? null : (
-          <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this.props.onHideChatBanner} />
+        return this.state.sawChatBanner ? null : (
+          <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
         )
       case '_note':
         return <BetaNote onReadMore={this.props.onReadMore} />
@@ -127,6 +133,13 @@ class Teams extends React.PureComponent<Props> {
     }
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // Don't need to worry about the true->false direction.
+    if (!prevProps.sawChatBanner && this.props.sawChatBanner) {
+      this.setState({sawChatBanner: true})
+    }
+  }
+
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -135,7 +148,10 @@ class Teams extends React.PureComponent<Props> {
           onCreateTeam={this.props.onCreateTeam}
           onJoinTeam={this.props.onJoinTeam}
         />
-        <Kb.List items={this._teamsAndExtras(this.props.teamnames)} renderItem={this._renderItem} />
+        <Kb.List
+          items={this._teamsAndExtras(this.state.sawChatBanner, this.props.teamnames)}
+          renderItem={this._renderItem}
+        />
       </Kb.Box2>
     )
   }

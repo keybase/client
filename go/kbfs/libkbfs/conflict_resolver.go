@@ -448,7 +448,7 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	unmerged, merged []ImmutableRootMetadata) (
 	unmergedChains, mergedChains *crChains, err error) {
 	unmergedChains, err = newCRChainsForIRMDs(
-		ctx, cr.config.Codec(), unmerged, &cr.fbo.blocks, true)
+		ctx, cr.config.Codec(), cr.config, unmerged, &cr.fbo.blocks, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -474,7 +474,7 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	}
 
 	mergedChains, err = newCRChainsForIRMDs(
-		ctx, cr.config.Codec(), merged, &cr.fbo.blocks, true)
+		ctx, cr.config.Codec(), cr.config, merged, &cr.fbo.blocks, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1299,8 +1299,9 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 
-	currUnmergedWriterInfo := newWriterInfo(session.UID,
-		session.VerifyingKey, unmerged[len(unmerged)-1].Revision())
+	currUnmergedWriterInfo := newWriterInfo(
+		session.UID, session.VerifyingKey, unmerged[len(unmerged)-1].Revision(),
+		cr.fbo.oa())
 
 	// Find the corresponding path in the merged branch for each of
 	// these unmerged paths, and the set of any createOps needed to
@@ -2895,7 +2896,7 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	// No need to run any identifies on these chains, since we
 	// have already finished all actions.
 	resolvedChains, err := newCRChains(
-		ctx, cr.config.Codec(),
+		ctx, cr.config.Codec(), cr.config,
 		[]chainMetadata{rootMetadataWithKeyAndTimestamp{md,
 			session.VerifyingKey, cr.config.Clock().Now()}},
 		&cr.fbo.blocks, false)
@@ -3579,7 +3580,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	mostRecentMergedWriterInfo := newWriterInfo(
 		mostRecentMergedMD.LastModifyingWriter(),
 		mostRecentMergedMD.LastModifyingWriterVerifyingKey(),
-		mostRecentMergedMD.Revision())
+		mostRecentMergedMD.Revision(), cr.fbo.oa())
 
 	// Step 2: Figure out which actions need to be taken in the merged
 	// branch to best reflect the unmerged changes.  The result of

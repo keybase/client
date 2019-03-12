@@ -8,7 +8,7 @@ import Icon, {castPlatformStyles, type IconType} from '../icon'
 import Text, {type TextType} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
-type Size = 'smaller' | 'small' | 'default' | 'large'
+type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {|
@@ -56,7 +56,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     const isAvatar = !!(this.props.username || this.props.teamname) && !this.props.icon
     const commonHeight = Styles.isMobile ? 48 : 32
     const BoxComponent = this.props.onClick ? ClickableBox : Box
-    const adapterProps = getAdapterProps(this.props.size || 'default', !!this.props.username)
+    const adapterProps = getAdapterProps(this.props.size || 'default')
 
     let avatarOrIcon
     if (isAvatar) {
@@ -126,7 +126,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     )
     const metaTwo = (
       <TextOrComponent
-        textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
+        textType="BodySmall"
         val={this.props.metaTwo || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
@@ -242,7 +242,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
-const getAdapterProps = (size: Size, isUser: boolean) => {
+const getAdapterProps = (size: Size) => {
   switch (size) {
     case 'smaller':
       return {
@@ -253,27 +253,32 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
       }
     case 'small':
       return {
-        iconSize: isUser ? 64 : 48,
-        metaMargin: isUser ? 4 : 8,
+        iconSize: 48,
+        metaMargin: Styles.globalMargins.tiny,
         metaOneType: 'BodySmall',
         titleType: 'BodySemibold',
       }
-    case 'large':
-      if (isUser) {
-        return {
-          iconSize: 128,
-          metaMargin: 8,
-          metaOneType: 'BodySemibold',
-          titleType: 'HeaderBig',
-        }
+    case 'big':
+      return {
+        iconSize: 96,
+        metaMargin: Styles.globalMargins.tiny,
+        metaOneType: 'BodySemibold',
+        titleType: 'HeaderBig',
+      }
+    case 'huge':
+      return {
+        iconSize: 128,
+        metaMargin: Styles.globalMargins.tiny,
+        metaOneType: 'BodySemibold',
+        titleType: 'HeaderBig',
       }
   }
   // default
   return {
-    iconSize: isUser ? 96 : 64,
-    metaMargin: Styles.isMobile ? 6 : 8,
-    metaOneType: isUser ? 'BodySemibold' : 'BodySmall',
-    titleType: 'HeaderBig',
+    iconSize: 64,
+    metaMargin: Styles.globalMargins.tiny,
+    metaOneType: 'BodySemibold',
+    titleType: 'BodySemibold',
   }
 }
 
