@@ -7,14 +7,15 @@ import flags from '../util/feature-flags'
 type Props = {|
   children: React.Node,
   onCancel?: () => void,
+  skipButton?: boolean,
 |}
 
-const Modal = ({children, onCancel}: Props) => (
+const Modal = ({children, onCancel, skipButton}: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="vertical" style={styles.content} fullWidth={true} alignItems="center">
       {children}
     </Kb.Box2>
-    {onCancel && (
+    {onCancel && !skipButton && (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
         <Kb.Button type="Secondary" label="Cancel" onClick={onCancel} />
       </Kb.Box2>

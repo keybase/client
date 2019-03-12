@@ -20,7 +20,7 @@ type Props = {|
 const Revoke = (props: Props) => {
   const platformHandleSubtitle = platformSubtitle(props.platform)
   return (
-    <Modal>
+    <Modal onCancel={props.onCancel} skipButton={true}>
       {!!props.errorMessage && (
         <Kb.Box style={styleErrorBanner}>
           <Kb.Text center={!Styles.isMobile} style={styleErrorBannerText} type="BodySemibold">

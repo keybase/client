@@ -24,7 +24,10 @@ const mapStateToProps = (state, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {routeProps}) => ({
-  onCancel: () => dispatch(ProfileGen.createFinishRevoking()),
+  onCancel: () => {
+    dispatch(ProfileGen.createFinishRevoking())
+    dispatch(RouteTreeGen.createClearModals())
+  },
   onRevoke: () => {
     dispatch(ProfileGen.createSubmitRevokeProof({proofId: routeProps.get('proofId')}))
     dispatch(RouteTreeGen.createClearModals())

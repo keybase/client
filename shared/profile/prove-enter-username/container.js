@@ -23,7 +23,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onContinue: (username: string, platform: ?string) => {
+  _onSubmit: (username: string, platform: ?string) => {
     dispatch(ProfileGen.createUpdateUsername({username}))
 
     if (platform === 'btc') {
@@ -45,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   errorText: stateProps.errorText,
   onCancel: dispatchProps.onCancel,
-  onContinue: (username: string) => dispatchProps._onContinue(username, stateProps.platform),
+  onSubmit: (username: string) => dispatchProps._onSubmit(username, stateProps.platform),
   platform: stateProps.platform,
   username: stateProps.username,
 })

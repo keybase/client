@@ -1,21 +1,130 @@
 // @flow
-import * as Shared from './shared'
 import * as React from 'react'
 import * as Constants from '../../constants/profile'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type {Props} from '.'
+import {subtitle} from '../../util/platforms'
+import type {ProvablePlatformsType} from '../../constants/types/more'
+
+export type Props = {|
+  copyToClipboard: string => void,
+  errorMessage: string,
+  onCancel: () => void,
+  onOpenLink: () => void,
+  onSubmit: () => void,
+  openLinkBeforeSubmit: boolean,
+  platform: ProvablePlatformsType,
+  platformUserName: string,
+  proofText: string,
+  url: string,
+|}
+
+const actionMap: {[key: string]: ?string} = {
+  github: 'Create gist now',
+  hackernews: 'Go to Hacker News',
+  reddit: 'Reddit form',
+  twitter: 'Tweet it now',
+}
+
+const checkMap = {[key: string]: ?string} = {
+        twitter: 'OK tweeted! Check for it!',
+    reddit : 'OK posted! Check for it!',
+    facebook : '',
+    'github': 'OK posted! Check for it!',
+    'hackernews': 'OK posted! Check for it!',
+    'dns': 'OK posted! Check for it!',
+    'http': 'OK posted! Check for it!',
+    'https': 'OK posted! Check for it!',
+    'web': 'OK posted! Check for it!',
+}
+
+const webNote = 'Note: If someone already verified this domain, just append to the existing keybase.txt file.'
+
+const noteMap = {[key: string]: ?string} = {
+    'http': webNote,
+    'https': webNote,
+    'web': webNote,
+}
+
+const WebDescription = ({platformUserName}) => (
+          <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+            <Kb.Text center={true} type="BodySemibold">
+              Please serve the text below <Kb.Text type="BodySemiboldItalic">exactly as it appears</Kb.Text>{' '}
+              at one of these URL's.
+            </Kb.Text>
+            <Kb.Text
+              type="BodyPrimaryLink"
+              center={true}
+              onClick={() => openUrl(`${urlRoot}/keybase.txt`)}
+              style={{color: globalColors.blue, marginTop: globalMargins.tiny}}
+            >
+              {urlRoot}
+            </Kb.Text>
+            <Kb.Text
+              type="BodyPrimaryLink"
+              center={true}
+              onClick={() => openUrl(`${urlRoot}/.well-known/keybase.txt`)}
+              style={{color: globalColors.blue}}
+            >
+              {urlWellKnown}
+            </Kb.Text>
+          </Kb.Box>
+        )
+
+const descriptionMap  = {
+  twitter: () => (
+          <Kb.Text center={true} type="BodySemibold">
+            Please tweet the text below{' '}
+            <Kb.Text type="BodySemiboldItalic" style={{...Styles.globalStyles.italic}}>
+              exactly as it appears.
+            </Kb.Text>
+          </Kb.Text>
+  ),
+  reddit: () => (
+          <Kb.Text center={true} type="BodySemibold">
+            Click the link below and post the form in the subreddit{' '}
+            <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
+          </Kb.Text>
+        ),
+
+  github: () => (
+          <Kb.Text center={true} type="BodySemibold">
+            Login to GitHub and paste the text below into a{' '}
+            <Kb.Text type="BodySemiboldItalic">public</Kb.Text> gist called{' '}
+            <Kb.Text type="BodySemiboldItalic">keybase.md.</Kb.Text>
+          </Kb.Text>
+        ),
+  hackernews: () => (
+          <Kb.Text center={true} type="BodySemibold">
+            Please add the below text{' '}
+            <Kb.Text type="BodySemibold" style={{...globalStyles.italic}}>
+              exactly as it appears
+            </Kb.Text>{' '}
+            to your profile.
+          </Kb.Text>
+        ),
+
+  dns: () => (
+          <Kb.Text center={true} type="BodySemibold">
+            Enter the following as a TXT entry in your DNS zone,{' '}
+            <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>. If you need a "name" for your entry,
+            give it "@".
+          </Kb.Text>
+        ),
+  web: WebDescription,
+  http: WebDescription,
+  https: WebDescription,
+}
 
 const PostProof = (props: Props) => {
-  const {
-    descriptionView,
-    noteText,
-    onCompleteText,
-    proofText,
-    platformSubtitle,
-    proofActionText,
-  } = Shared.propsForPlatform(props)
-  const {proofAction} = props
+  const {, noteText, onCompleteText, platformSubtitle} = {
+    noteText: '',
+    platformSubtitle: subtitle(props.platform),
+    ...propsForPlatform(props),
+  }
+  const proofActionText = actionMap[props.platform] || ''
+  const DescriptionView = descriptionMap[props.platform]
+  const {proofAction, proofText} = props
 
   return (
     <Kb.Box
@@ -60,8 +169,7 @@ const PostProof = (props: Props) => {
               {platformSubtitle}
             </Kb.Text>
           )}
-          {descriptionView ||
-            (props.descriptionText && <Kb.Text type="Body">{props.descriptionText}</Kb.Text>)}
+          <DescriptionView platformUserName={props.platformUserName}/>
           {!!proofText && <Kb.CopyableText style={styleProofText} value={proofText} />}
           {!!noteText && (
             <Kb.Text style={styleNoteText} type="Body">

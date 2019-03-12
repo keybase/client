@@ -10,7 +10,7 @@ type Props = {|
   platform: PlatformsExpandedType,
   username: string,
   errorText: string,
-  onContinue: (username: string) => void,
+  onSubmit: (username: string) => void,
   onCancel: () => void,
 |}
 
@@ -22,7 +22,7 @@ type State = {|
 class EnterUsername extends React.Component<Props, State> {
   state = {canSubmit: false, username: ''}
   _submit = () => {
-    this.state.canSubmit && this.props.onContinue(this.state.username)
+    this.state.canSubmit && this.props.onSubmit(this.state.username)
   }
   _onChangeUsername = username => this.setState({canSubmit: !!username.length, username})
   render() {
@@ -33,15 +33,15 @@ class EnterUsername extends React.Component<Props, State> {
     }
     const {headerText, floatingLabelText, hintText} = pt
     return (
-      <Modal>
+      <Modal onCancel={this.props.onCancel} skipButton={true}>
+        {this.props.errorText && (
+          <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
+            <Kb.Text center={true} negative={true} type="BodySemibold">
+              {this.props.errorText}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
         <Kb.Box2 direction="vertical" gap="small">
-          {this.props.errorText && (
-            <Kb.Box2 direction="vertical" gap="small" style={styles.error}>
-              <Kb.Text negative={true} type="BodySemibold">
-                {this.props.errorText}
-              </Kb.Text>
-            </Kb.Box2>
-          )}
           <Kb.Text center={true} type="Header">
             {headerText}
           </Kb.Text>
@@ -149,6 +149,7 @@ const styles = Styles.styleSheetCreate({
   centered: {alignSelf: 'center'},
   error: {
     backgroundColor: Styles.globalColors.red,
+    borderRadius: Styles.borderRadius,
     padding: Styles.globalMargins.medium,
   },
   tips: {

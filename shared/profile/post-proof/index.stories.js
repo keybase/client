@@ -6,12 +6,13 @@ import * as Styles from '../../styles'
 import Render from '.'
 
 const props = {
-  allowProofCheck: true,
+  errorMessage: '',
+  openLinkBeforeSubmit: true,
+  url: 'a url',
   copyToClipboard: action('copyToClipboard'),
-  onAllowProofCheck: action('onAllowProofCheck'),
   onCancel: action('onCancel'),
-  onCancelText: 'Cancel',
-  onComplete: action('onComplete'),
+  onSubmit: action('onSubmit'),
+  onOpenLink: action('onOpenLink'),
   platformUserName: 'awendland',
 }
 
@@ -19,7 +20,6 @@ const propsTwitter = {
   ...props,
   platform: 'twitter',
   platformUserName: 'alexrwendland',
-  proofAction: action('proofAction'),
   proofText:
     'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
 }

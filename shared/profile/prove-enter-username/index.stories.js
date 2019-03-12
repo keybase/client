@@ -8,7 +8,7 @@ import ProveEnterUsername from '.'
 const props = {
   errorText: '',
   onCancel: () => action('onCancel'),
-  onContinue: () => action('onContinue'),
+  onSubmit: () => action('onContinue'),
   username: 'chris',
 }
 

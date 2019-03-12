@@ -33,7 +33,6 @@
       "username": "string",
       "openWebsite?": "?boolean"
     },
-    "outputInstructionsActionLink": {},
     "showUserProfile": {"username": "string"},
     "submitZcashAddress": {},
     "submitBTCAddress": {},
