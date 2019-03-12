@@ -1,87 +1,31 @@
 // @flow
-import * as GitGen from '../../actions/git-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import {getChannelsWaitingKey, getTeamChannelInfos} from '../../constants/teams'
-import {anyWaiting} from '../../constants/waiting'
 import {HeaderOrPopup} from '../../common-adapters'
-import {
-  connect,
-  compose,
-  lifecycle,
-  withHandlers,
-  withStateHandlers,
-  type RouteProps,
-} from '../../util/container'
-import SelectChannel from '.'
+import {connect, compose, type RouteProps} from '../../util/container'
+import LogOut from '.'
 
 type OwnProps = RouteProps<{teamname: string, selected: boolean, repoID: string}, {}>
 
-export type SelectChannelProps = {
-  teamname: string,
-  repoID: string,
-  selected: string,
-}
+const mapStateToProps = (state, {routeProps}) => ({
+  hasRandomPW: true, //, state.settings.passphrase.randomPW,
+})
 
-const mapStateToProps = (state, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
-  const selected = routeProps.get('selected')
-  const _channelInfos = getTeamChannelInfos(state, teamname)
-  return {
-    _channelInfos,
-    _selected: selected,
-    loaded: !!_channelInfos.size,
-    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
-  }
-}
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+  onCancel: () => dispatch(navigateUp()),
+})
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => {
-  const teamname = routeProps.get('teamname')
-  const repoID = routeProps.get('repoID')
-  return {
-    _onSubmit: (channelName: string) =>
-      dispatch(
-        GitGen.createSetTeamRepoSettings({
-          channelName,
-          chatDisabled: false,
-          repoID: repoID,
-          teamname: teamname,
-        })
-      ),
-    onCancel: () => dispatch(navigateUp()),
-    onLoad: () => dispatch(TeamsGen.createGetChannels({teamname})),
-  }
-}
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const channelNames = stateProps._channelInfos
-    .map(info => info.channelname)
-    .valueSeq()
-    .toArray()
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    channelNames,
-  }
-}
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  heading: stateProps.hasRandomPW
+    ? "You don't have a passphrase set -- you should set one before logging out, so that you can log in again later."
+    : 'Would you like to make sure that you know your passphrase before logging out?',
+})
 
 export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props.onLoad()
-    },
-  }),
-  withStateHandlers(props => ({selected: props._selected}), {
-    onSelect: () => (selected: string) => ({selected}),
-  }),
-  withHandlers({
-    onSubmit: ({_onSubmit, onCancel, selected}) => () => {
-      _onSubmit(selected)
-      onCancel()
-    },
-  })
-)(HeaderOrPopup(SelectChannel))
+  )
+)(HeaderOrPopup(LogOut))

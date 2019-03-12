@@ -1,58 +1,68 @@
 // @flow
 import * as React from 'react'
-import {Button, ScrollView, RadioButton, Text, Box} from '../../common-adapters'
-import {globalMargins, globalStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import NeedToSetPassphrase from '../../settings/passphrase'
 
-export type Props = {
-  channelNames: Array<string>,
-  selected: string,
-  onSelect: (channel: string) => void,
-  onSubmit: () => void,
-  waiting: boolean,
+export type Props = {|
+  hasRandomPW: boolean,
+  heading: string,
+|}
+
+type TestProps = {|
+  heading: string,
+  onTestPassphrase: () => void,
+|}
+
+type State = {|
+  passphrase: string,
+|}
+
+class OfferToTestPassphrase extends React.Component<TestProps, State> {
+  state: State
+  state = {passphrase: ''}
+
+  render() {
+    const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
+    console.warn('in offer with', this.props)
+
+    return (
+      <Kb.Box2 direction="vertical">
+        <Kb.Input
+          hintText="Enter your passphrase"
+          type={inputType}
+          value={this.state.passphrase}
+          onChangeText={passphrase => this.setState({passphrase})}
+          uncontrolled={false}
+        />
+        <Kb.Checkbox
+          label="Show typing"
+          onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+          checked={this.state.showTyping}
+          style={{marginBottom: Styles.globalMargins.medium}}
+        />
+      </Kb.Box2>
+    )
+  }
 }
 
 export default (props: Props) => (
-  <ScrollView contentContainerStyle={{padding: globalMargins.large}}>
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        flex: 1,
-        paddingBottom: globalMargins.xtiny,
-        paddingTop: globalMargins.xtiny,
-      }}
-    >
-      <Text type="Header">Select a channel</Text>
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          marginBottom: globalMargins.medium,
-          marginTop: globalMargins.medium,
-        }}
-      >
-        {props.channelNames.map(name => (
-          <Box
-            key={name}
-            style={
-              (globalStyles.flexBoxRow,
-              {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium})
-            }
-          >
-            <RadioButton
-              label={name}
-              selected={props.selected === name}
-              style={styleRadioButton}
-              onSelect={selected => (selected ? props.onSelect(name) : undefined)}
-            />
-          </Box>
-        ))}
-      </Box>
-      <Button waiting={props.waiting} type="Primary" label="Submit" onClick={props.onSubmit} small={true} />
-    </Box>
-  </ScrollView>
-)
+  <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
+    <Kb.Text type="Body">{props.heading}</Kb.Text>
+    {props.hasRandomPW ? (
+      <NeedToSetPassphrase heading={props.heading} />
+    ) : (
+      <OfferToTestPassphrase heading={props.heading} onTestPassphrase={props.onTestPassphrase} />
+    )}
 
-const styleRadioButton = {
-  ...globalStyles.flexBoxRow,
-  marginLeft: globalMargins.tiny,
-}
+    <Kb.Box2 direction="vertical">
+      <Kb.Text type="Header">Foo</Kb.Text>
+      <Kb.Button
+        label="No thanks, just log me out now."
+        onClick={() => props.onLogOut()}
+        small={true}
+        type="Danger"
+      />
+    </Kb.Box2>
+  </Kb.ScrollView>
+)
