@@ -1,7 +1,7 @@
 // @flow
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
-import openURL from '../../util/open-url'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import PostProof from '.'
 import {connect} from '../../util/container'
 
@@ -25,7 +25,7 @@ const mapStateToProps = state => {
 
   let url = ''
   let openLinkBeforeSubmit = false
-
+  let proofText = profile.proofText || ''
   switch (platform) {
     case 'twitter':
       openLinkBeforeSubmit = true
@@ -39,6 +39,7 @@ const mapStateToProps = state => {
     case 'facebook':
       openLinkBeforeSubmit = true
       url = profile.proofText ? profile.proofText : ''
+      proofText = ''
       break
     case 'hackernews':
       openLinkBeforeSubmit = true
@@ -53,14 +54,17 @@ const mapStateToProps = state => {
     openLinkBeforeSubmit,
     platform,
     platformUserName: profile.username,
-    proofText: profile.proofText || '',
+    proofText,
     url,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
+  onCancel: () => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(ProfileGen.createCancelAddProof())
+  },
   onSubmit: () => dispatch(ProfileGen.createCheckProof()),
 })
 
@@ -68,9 +72,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   copyToClipboard: dispatchProps.copyToClipboard,
   errorMessage: stateProps.errorMessage,
   onCancel: dispatchProps.onCancel,
-  onOpenLink: () => {
-    stateProps.url && openURL(stateProps.url)
-  },
   onSubmit: dispatchProps.onSubmit,
   openLinkBeforeSubmit: stateProps.openLinkBeforeSubmit,
   platform: stateProps.platform,

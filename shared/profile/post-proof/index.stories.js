@@ -6,14 +6,13 @@ import * as Styles from '../../styles'
 import Render from '.'
 
 const props = {
-  errorMessage: '',
-  openLinkBeforeSubmit: true,
-  url: 'a url',
   copyToClipboard: action('copyToClipboard'),
+  errorMessage: '',
   onCancel: action('onCancel'),
   onSubmit: action('onSubmit'),
-  onOpenLink: action('onOpenLink'),
+  openLinkBeforeSubmit: true,
   platformUserName: 'awendland',
+  url: 'a url',
 }
 
 const propsTwitter = {
