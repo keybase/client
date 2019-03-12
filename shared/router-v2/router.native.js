@@ -25,13 +25,11 @@ useScreens()
 const defaultNavigationOptions = {
   header: null,
   headerLeft: hp => {
-    const customOnBack =
-      hp.scene && hp.scene.route && hp.scene.route.params && hp.scene.route.params.customOnBack
     return (
       <LeftAction
         badgeNumber={0}
         leftAction="back"
-        onLeftAction={customOnBack || hp.onPress}
+        onLeftAction={hp.onPress}
         disabled={hp.scene.index === 0}
       />
     )
