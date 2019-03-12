@@ -5,7 +5,6 @@ import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import * as Kb from '../../../common-adapters'
-import DragAndDrop from '../../../common-adapters/drag-and-drop.desktop'
 import * as Styles from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import type {Props} from './index.types'
@@ -49,7 +48,7 @@ class Conversation extends React.PureComponent<Props, State> {
   render() {
     return (
       <Kb.Box className="conversation" style={styles.container} onPaste={this._onPaste}>
-        <DragAndDrop onAttach={this.props.onAttach}>
+        <Kb.DragAndDrop onAttach={this.props.onAttach}>
           {this.props.threadLoadedOffline && <Offline />}
           <HeaderArea
             isPending={this.props.isPending}
@@ -72,7 +71,7 @@ class Conversation extends React.PureComponent<Props, State> {
             onRequestScrollUp={this.props.onRequestScrollUp}
             conversationIDKey={this.props.conversationIDKey}
           />
-        </DragAndDrop>
+        </Kb.DragAndDrop>
       </Kb.Box>
     )
   }

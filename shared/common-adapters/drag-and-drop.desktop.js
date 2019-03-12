@@ -2,9 +2,10 @@
 import * as React from 'react'
 import fs from 'fs'
 import * as Styles from '../styles'
-import {Box, Box2} from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
+import type {Props} from './drag-and-drop'
 import logger from '../logger'
 
 type OverlayProps = {|
@@ -13,11 +14,12 @@ type OverlayProps = {|
 |}
 
 const DropOverlay = (props: OverlayProps) => (
-  <Box
+  <Box2
+    centerChildren={true}
     direction="horizontal"
-    style={styles.dropOverlay}
     onDragLeave={props.onDragLeave}
     onDrop={props.onDrop}
+    style={styles.dropOverlay}
   >
     <Box2 direction="vertical" centerChildren={true} gap="small">
       <Box2 direction="horizontal" style={styles.iconContainer} centerChildren={true}>
@@ -25,26 +27,18 @@ const DropOverlay = (props: OverlayProps) => (
       </Box2>
       <Text type="Header">Drop files to upload</Text>
     </Box2>
-  </Box>
+  </Box2>
 )
 
 type State = {|
   showDropOverlay: boolean,
 |}
 
-type Props = {|
-  allowFolders?: boolean,
-  children: React.Node,
-  onAttach: ?(Array<string>) => void,
-|}
-
 class DragAndDrop extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
 
   _onDrop = e => {
-    if (!this._validDrag(e) || !this.props.onAttach) {
-      return
-    }
+    if (!this._validDrag(e)) return
     const fileList = e.dataTransfer.files
     const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
     if (paths.length) {
@@ -67,7 +61,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
           }
         }
       }
-      this.props.onAttach(paths)
+      this.props.onAttach && this.props.onAttach(paths)
     }
     this.setState({showDropOverlay: false})
   }
@@ -88,31 +82,29 @@ class DragAndDrop extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const {children, onAttach} = this.props
-    if (Styles.isMobile || !onAttach) return children
     return (
-      <Box style={styles.containerStyle} onDragOver={this._onDragOver}>
-        {children}
+      <Box2
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        onDragOver={this._onDragOver}
+        style={styles.containerStyle}
+      >
+        {this.props.children}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
-      </Box>
+      </Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
   containerStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flex: 1,
     position: 'relative',
   },
   dropOverlay: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      alignSelf: 'center',
       backgroundImage: `linear-gradient(${Styles.globalColors.white_75}, ${Styles.globalColors.white})`,
-      justifyContent: 'center',
     },
   }),
   icon: {
@@ -127,4 +119,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default (Styles.isMobile ? ({children}: Props) => children : DragAndDrop)
+export default DragAndDrop
