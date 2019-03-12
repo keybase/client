@@ -19,7 +19,6 @@ const routeTree = () => {
   const ReallyLeaveTeam = require('../teams/really-leave-team/container-chat').default
   const InboxAndConversation = require('./inbox-and-conversation').default
   const TeamBuilding = require('../team-building/container').default
-  const {MaybePopupHoc} = require('../common-adapters')
   const {makeRouteDefNode, makeLeafTags} = require('../route-tree')
   const DeleteHistoryWarning = require('./delete-history-warning/container').default
   const RetentionWarning = require('../teams/team/settings-tab/retention/warning/container').default
@@ -69,7 +68,7 @@ const routeTree = () => {
     },
     chatEditChannel: {
       children: key => makeRouteDefNode(chatChildren[key]),
-      component: MaybePopupHoc(isMobile)(EditChannel),
+      component: EditChannel,
       tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
     },
     chatEnterPaperkey: {
