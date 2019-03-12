@@ -26,23 +26,51 @@ const load = () => {
     .addDecorator(story => <ScrollView>{story()}</ScrollView>)
     .add('Vertical', () => (
       <React.Fragment>
-        <NameWithIcon {...commonProps} username="ayoubd" isYou={true} metaOne="Danny Ayoub" size="default" />
         <NameWithIcon
           {...commonProps}
-          teamname="keybasefriends"
-          title="keybasefriends"
-          metaOne="786 members"
+          username="ayoubd"
+          isYou={true}
+          metaOne="Danny Ayoub"
+          metaTwo="Admin"
           size="default"
         />
         <NameWithIcon {...commonProps} username="cecileb" metaOne="Cécile Boucheron" size="small" />
         <NameWithIcon
           {...commonProps}
-          icon="iconfont-crown-admin"
-          title="Owner"
-          metaOne="Full power"
-          metaTwo="Can do everything"
+          username="chrisnojima"
+          metaOne="Chris Nojima"
+          metaTwo="Admin"
+          size="big"
         />
+        <NameWithIcon
+          {...commonProps}
+          username="chrisnojima"
+          metaOne="Chris Nojima"
+          metaTwo="Admin"
+          size="huge"
+        />
+        <NameWithIcon
+          {...commonProps}
+          icon="icon-computer-96"
+          title="Home laptop"
+          metaOne="Current device"
+          metaTwo="Computer"
+          size="big"
+        />
+        <NameWithIcon
+          {...commonProps}
+          teamname="keybasefriends"
+          title="keybasefriends"
+          metaOne="786 members"
+          size="huge"
+        />
+<<<<<<< Updated upstream
         <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="large" />
+||||||| merged common ancestors
+        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="big" />
+        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="huge" />
+=======
+>>>>>>> Stashed changes
         <NameWithIcon
           {...commonProps}
           onClick={Sb.action('Clicked!')}
