@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
@@ -2178,7 +2179,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 }
 
 func mergeUnrefCache(
-	ops *folderBranchOps, lState *lockState, file path, md *RootMetadata) {
+	ops *folderBranchOps, lState *kbfssync.LockState, file path,
+	md *RootMetadata) {
 	ops.blocks.blockLock.RLock(lState)
 	defer ops.blocks.blockLock.RUnlock(lState)
 	ops.blocks.unrefCache[file.tailPointer().Ref()].mergeUnrefCache(md)
@@ -2780,7 +2782,8 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 }
 
 func getOrCreateSyncInfo(
-	ops *folderBranchOps, lState *lockState, de DirEntry) (*syncInfo, error) {
+	ops *folderBranchOps, lState *kbfssync.LockState, de DirEntry) (
+	*syncInfo, error) {
 	ops.blocks.blockLock.Lock(lState)
 	defer ops.blocks.blockLock.Unlock(lState)
 	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)

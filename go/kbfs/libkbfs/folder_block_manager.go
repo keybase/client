@@ -26,7 +26,7 @@ type fbmHelper interface {
 	getMostRecentFullyMergedMD(ctx context.Context) (
 		ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *GCOp) error
-	getLatestMergedRevision(lState *lockState) kbfsmd.Revision
+	getLatestMergedRevision(lState *kbfssync.LockState) kbfsmd.Revision
 }
 
 const (
