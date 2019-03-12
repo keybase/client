@@ -6,6 +6,19 @@ import * as Constants from '../constants/router2'
 import {modalRoutes, routes} from './routes'
 import logger from '../logger'
 
+const getNumModals = navigation => {
+  const path = Constants._getModalStackForNavigator(navigation.state)
+  let numModals = 0
+  path.reverse().some(p => {
+    if (modalRoutes[p.routeName]) {
+      numModals++
+      return false
+    }
+    return true
+  })
+  return numModals
+}
+
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
 export const oldActionToNewActions = (action: any, navigation: any) => {
@@ -87,18 +100,25 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         : [switchStack]
     }
     case RouteTreeGen.clearModals:
-      const path = Constants._getModalStackForNavigator(navigation.state)
-      let numModals = 0
-      path.reverse().some(p => {
-        if (modalRoutes[p.routeName]) {
-          numModals++
-          return false
-        }
-        return true
-      })
-
+      const numModals = getNumModals(navigation)
       return numModals ? [StackActions.pop({n: numModals})] : []
     case RouteTreeGen.navigateUp:
       return [StackActions.pop()]
+    case RouteTreeGen.popToScreen: {
+      const numModals = getNumModals(navigation)
+      const appPath = Constants._getAppStackForNavigator(navigation.state)
+      if (!appPath.length) {
+        return []
+      }
+      let numAdditional = 0
+      const isInStack = appPath[0].routes.reverse().some(r => {
+        if (r.routeName === action.payload.routeName) {
+          return true
+        }
+        numAdditional++
+        return false
+      })
+      return isInStack && numModals + numAdditional ? [StackActions.pop({n: numModals + numAdditional})] : []
+    }
   }
 }

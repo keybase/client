@@ -138,8 +138,10 @@ type SelectorOwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey},
 
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
   const conversationIDKey: Types.ConversationIDKey = ownProps.routeProps.get('conversationIDKey')
+  const meta = Constants.getMeta(state, conversationIDKey)
   return {
     conversationIDKey,
+    shouldNavigateOut: meta.conversationIDKey === Constants.noConversationIDKey,
   }
 }
 
@@ -151,14 +153,21 @@ const mapDispatchToSelectorProps = (dispatch, {navigateUp}: SelectorOwnProps) =>
 const mergeSelectorProps = (stateProps, dispatchProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   onBack: dispatchProps.onBack,
+  shouldNavigateOut: stateProps.shouldNavigateOut,
 })
 
 type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   onBack: () => void,
+  shouldNavigateOut: boolean,
 |}
 
 class InfoPanelSelector extends React.PureComponent<Props> {
+  componentDidUpdate(prevProps) {
+    if (!prevProps.shouldNavigateOut && this.props.shouldNavigateOut) {
+      this.props.onBack()
+    }
+  }
   render() {
     if (!this.props.conversationIDKey) {
       return null

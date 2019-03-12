@@ -15,6 +15,7 @@ export const clearModals = 'route-tree:clearModals'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateTo = 'route-tree:navigateTo'
 export const navigateUp = 'route-tree:navigateUp'
+export const popToScreen = 'route-tree:popToScreen'
 export const putActionIfOnPath = 'route-tree:putActionIfOnPath'
 export const refreshRouteDef = 'route-tree:refreshRouteDef'
 export const resetRoute = 'route-tree:resetRoute'
@@ -28,6 +29,7 @@ type _ClearModalsPayload = void
 type _NavigateAppendPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
 type _NavigateToPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
 type _NavigateUpPayload = void
+type _PopToScreenPayload = $ReadOnly<{|routeName: string|}>
 type _PutActionIfOnPathPayload = $ReadOnly<{|expectedPath: RCConstants.Path, otherAction: any, parentPath?: ?RCConstants.Path|}>
 type _RefreshRouteDefPayload = $ReadOnly<{|loginRouteTree: RCConstants.RouteDefParams, appRouteTree: RCConstants.RouteDefParams|}>
 type _ResetRoutePayload = $ReadOnly<{|path: RCConstants.Path|}>
@@ -37,6 +39,10 @@ type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, 
 type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators
+/**
+ * ONLY used by the new nav. Use this to pop off the stack until we reach this screen. If screen isn't in stack is a noop.
+ */
+export const createPopToScreen = (payload: _PopToScreenPayload) => ({payload, type: popToScreen})
 /**
  * ONLY used by the new nav. use this to clear any modal routes
  */
@@ -60,6 +66,7 @@ export type ClearModalsPayload = {|+payload: _ClearModalsPayload, +type: 'route-
 export type NavigateAppendPayload = {|+payload: _NavigateAppendPayload, +type: 'route-tree:navigateAppend'|}
 export type NavigateToPayload = {|+payload: _NavigateToPayload, +type: 'route-tree:navigateTo'|}
 export type NavigateUpPayload = {|+payload: _NavigateUpPayload, +type: 'route-tree:navigateUp'|}
+export type PopToScreenPayload = {|+payload: _PopToScreenPayload, +type: 'route-tree:popToScreen'|}
 export type PutActionIfOnPathPayload = {|+payload: _PutActionIfOnPathPayload, +type: 'route-tree:putActionIfOnPath'|}
 export type RefreshRouteDefPayload = {|+payload: _RefreshRouteDefPayload, +type: 'route-tree:refreshRouteDef'|}
 export type ResetRoutePayload = {|+payload: _ResetRoutePayload, +type: 'route-tree:resetRoute'|}
@@ -75,6 +82,7 @@ export type Actions =
   | NavigateAppendPayload
   | NavigateToPayload
   | NavigateUpPayload
+  | PopToScreenPayload
   | PutActionIfOnPathPayload
   | RefreshRouteDefPayload
   | ResetRoutePayload
