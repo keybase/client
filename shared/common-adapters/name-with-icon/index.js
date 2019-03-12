@@ -22,6 +22,7 @@ export type NameWithIconProps = {|
   hideFollowingOverlay?: boolean,
   horizontal?: boolean,
   icon?: IconType,
+  iconBoxStyle?: Styles.StylesCrossPlatform,
   isYou?: boolean,
   metaOne?: string | React.Node,
   metaStyle?: Styles.StylesCrossPlatform,
@@ -77,6 +78,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     } else if (this.props.icon) {
       avatarOrIcon = (
         <Icon
+          boxStyle={this.props.iconBoxStyle}
           type={this.props.icon}
           style={
             this.props.horizontal

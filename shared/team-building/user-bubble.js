@@ -42,6 +42,7 @@ const DesktopBubble = (props: Props) => {
           hideFollowingOverlay={true}
           horizontal={false}
           icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
+          iconBoxStyle={props.service !== 'keybase' ? styles.iconBox : undefined}
           size="smaller"
           username={props.username}
         />
@@ -144,7 +145,13 @@ const styles = Styles.styleSheetCreate({
       lineHeight: '35px',
     },
   }),
-
+  // TODO: the service icons are too high without this - are they right?
+  iconBox: Styles.platformStyles({
+    isElectron: {
+      marginBottom: -3,
+      marginTop: 3,
+    },
+  }),
   remove: Styles.platformStyles({
     common: {
       borderRadius: 100,
