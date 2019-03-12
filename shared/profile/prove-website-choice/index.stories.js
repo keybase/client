@@ -5,7 +5,8 @@ import ProveWebsiteChoice from '.'
 
 const load = () => {
   storiesOf('Profile/ProveWebsiteChoice', module).add('DNS or File', () => (
-    <ProveWebsiteChoice onCancel={action('onCancel')} onOptionClick={action('onOptionClick')} />
+    <ProveWebsiteChoice onCancel={action('onCancel')} onDNS={action('onDNS')}
+    onFile={action('onFile')}/>
   ))
 }
 

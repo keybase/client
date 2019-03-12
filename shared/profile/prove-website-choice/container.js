@@ -9,7 +9,8 @@ const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
-  onOptionClick: choice => dispatch(ProfileGen.createAddProof({platform: choice === 'file' ? 'web' : 'dns'})),
+  onDNS: choice => dispatch(ProfileGen.createAddProof({platform: 'dns'})),
+  onFile: choice => dispatch(ProfileGen.createAddProof({platform: 'web'})),
 })
 
 export default connect<OwnProps, _, _, _, _>(

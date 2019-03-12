@@ -1,30 +1,11 @@
 // @flow
 import * as ProfileGen from '../../actions/profile-gen'
-import React, {Component} from 'react'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import ProveEnterUsername from '.'
 import {connect} from '../../util/container'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {||}
-
-type State = {
-  username: ?string,
-}
-
-class ProveEnterUsernameContainer extends Component<any, State> {
-  state = {
-    username: null,
-  }
-
-  render() {
-    return (
-      <ProveEnterUsername
-        {...this.props}
-        onUsernameChange={username => this.setState({username})}
-        onContinue={() => this.props.onContinue(this.state.username)}
-      />
-    )
-  }
-}
 
 const mapStateToProps = state => {
   const profile = state.profile
@@ -34,9 +15,7 @@ const mapStateToProps = state => {
   }
 
   return {
-    canContinue: true,
-    errorCode: profile.errorCode,
-    errorText: profile.errorText,
+    errorText: profile.errorText === 'Input canceled' ? '' : profile.errorText,
     platform: profile.platform,
     title: 'Add Proof',
     username: profile.username,
@@ -55,18 +34,24 @@ const mapDispatchToProps = dispatch => ({
       dispatch(ProfileGen.createSubmitUsername())
     }
   },
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
+  onCancel: () => {
+    dispatch(ProfileGen.createCancelAddProof())
+    if (flags.useNewRouter) {
+      dispatch(RouteTreeGen.createClearModals())
+    }
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
+  errorText: stateProps.errorText,
+  onCancel: dispatchProps.onCancel,
   onContinue: (username: string) => dispatchProps._onContinue(username, stateProps.platform),
+  platform: stateProps.platform,
+  username: stateProps.username,
 })
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(ProveEnterUsernameContainer)
+)(ProveEnterUsername)

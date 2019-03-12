@@ -98,17 +98,17 @@ const profileRoute = () => {
 export const newRoutes = {
   profile: {getScreen: () => require('./user/container').default, upgraded: true},
   profileAddToTeam: {getScreen: () => require('./add-to-team/container').default},
-  profileConfirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
   profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default},
   profileNonUser: {getScreen: () => require('./non-user-profile/container').default},
-  profilePostProof: {getScreen: () => require('./post-proof/container').default},
-  profileProveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
-  profileProveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
   profileShowcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
 }
 
 export const newModalRoutes = {
+  profileConfirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
   profileEdit: {getScreen: () => require('./edit-profile/container').default},
+  profilePostProof: {getScreen: () => require('./post-proof/container').default},
+  profileProveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
+  profileProveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
   profileRevoke: {getScreen: () => require('./revoke/container').default},
   profileSearch: {getScreen: () => require('./search/container').default},
   ...require('./pgp/routes').newRoutes,
