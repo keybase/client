@@ -156,6 +156,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		jar, _ = cookiejar.New(nil)
 	}
 
+	// Originally copied from http.DefaultTransport
 	dialer := net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
