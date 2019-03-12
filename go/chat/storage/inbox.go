@@ -575,7 +575,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		res = append(res, rc)
 	}
 	filtered := len(rcs) - len(res)
-	i.Debug(ctx, "applyQuery: res size: %d filtered: %d", len(res), filtered)
+	i.Debug(ctx, "applyQuery: query: %+v, res size: %d filtered: %d", query, len(res), filtered)
 	return res
 }
 
