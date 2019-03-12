@@ -12,7 +12,10 @@ const fileLoaderRule = {
   },
 }
 
-module.exports = (storybookBaseConfig, configType) => {
+module.exports = ({config, mode}) => {
+  const storybookBaseConfig = config
+  const configType = mode
+
   storybookBaseConfig.resolve = {
     extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
   }
@@ -34,30 +37,27 @@ module.exports = (storybookBaseConfig, configType) => {
 
   // Override default ignoring node_modules
   storybookBaseConfig.module.rules[0].exclude = /((node_modules\/(?!universalify|fs-extra|react-redux|@storybook))|\/dist\/)/
+  console.log('aaa', storybookBaseConfig.module.rules)
   storybookBaseConfig.module.rules.push(
-    {
-      // Don't include large mock images in a prod build
-      include: path.resolve(__dirname, '../images/mock'),
-      test: /\.jpg$/,
-      use: [fileLoaderRule],
-    },
+    // {
+    // // Don't include large mock images in a prod build
+    // include: path.resolve(__dirname, '../images/mock'),
+    // test: /\.jpg$/,
+    // use: [fileLoaderRule],
+    // },
     {
       include: path.resolve(__dirname, '../images/icons'),
       test: /\.(flow|native\.js|gif|png|jpg)$/,
       use: ['null-loader'],
     },
-    {
-      include: path.resolve(__dirname, '../images/illustrations'),
-      test: [/.*\.(gif|png)$/],
-      use: [fileLoaderRule],
-    },
+    // {
+    // include: path.resolve(__dirname, '../images/illustrations'),
+    // test: [/.*\.(gif|png)$/],
+    // use: [fileLoaderRule],
+    // },
     {
       test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
       use: [fileLoaderRule],
-    },
-    {
-      test: /\.css$/,
-      use: ['style-loader', 'css-loader'],
     }
   )
 

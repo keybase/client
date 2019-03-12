@@ -11,7 +11,9 @@ let isReactNative = process.env.BABEL_PLATFORM === 'ReactNative'
 
 module.exports = function(api /*: Api */) {
   if (api.env() !== 'test') {
-    api.cache(true)
+    try {
+      // api.cache(true)
+    } catch (e) {}
   }
 
   if (!isElectron && !isReactNative) {
@@ -31,6 +33,7 @@ module.exports = function(api /*: Api */) {
         '@babel/plugin-proposal-object-rest-spread',
         '@babel/transform-flow-strip-types',
         '@babel/plugin-proposal-class-properties',
+        ...(api.env() === 'test' ? ['@babel/plugin-transform-runtime'] : []),
       ],
       presets: ['@babel/preset-env', '@babel/preset-react'],
     }
