@@ -96,6 +96,20 @@
       ],
       "response": "GetPassphraseRes"
     },
+    "passphraseCheck": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        }
+      ],
+      "response": "boolean",
+      "doc": "* Check if user passphrase matches argument. Launches SecretUI prompt if\n   * passphrase argument is empty. Returns `true` if passphrase is correct,\n   * false if not, or an error if something else went wrong."
+    },
     "emailChange": {
       "request": [
         {

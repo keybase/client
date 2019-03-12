@@ -13,6 +13,13 @@ protocol account {
   GetPassphraseRes passphrasePrompt(int sessionID, GUIEntryArg guiArg);
 
   /**
+   * Check if user passphrase matches argument. Launches SecretUI prompt if
+   * passphrase argument is empty. Returns `true` if passphrase is correct,
+   * false if not, or an error if something else went wrong.
+   */
+  boolean passphraseCheck(int sessionID, string passphrase);
+
+  /**
    * change email to the new given email by signing a statement.
    */
   void emailChange(int sessionID, string newEmail);
