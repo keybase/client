@@ -23,9 +23,33 @@ const provider = Sb.createPropProviderWithCommon(
 const load = () => {
   Sb.storiesOf('Common/NameWithIcon', module)
     .addDecorator(provider)
-    .addDecorator(story => <ScrollView>{story()}</ScrollView>)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Vertical', () => (
       <React.Fragment>
+        <NameWithIcon
+          {...commonProps}
+          icon="icon-computer-96"
+          title="Home laptop"
+          metaOne="Current device"
+          metaTwo="Computer"
+          size="big"
+        />
+        <NameWithIcon {...commonProps} icon="icon-phone-48" title="iPhone 8" metaTwo="Phone" size="small" />
+        <NameWithIcon
+          {...commonProps}
+          teamname="keybasefriends"
+          title="keybasefriends"
+          metaOne="786 members"
+          metaTwo="TEAM"
+          size="big"
+        />
+        <NameWithIcon
+          {...commonProps}
+          teamname="keybasefriends"
+          title="keybasefriends"
+          metaOne="786 members"
+          size="small"
+        />
         <NameWithIcon
           {...commonProps}
           username="ayoubd"
@@ -37,39 +61,24 @@ const load = () => {
         <NameWithIcon {...commonProps} username="cecileb" metaOne="Cécile Boucheron" size="small" />
         <NameWithIcon
           {...commonProps}
-          username="chrisnojima"
-          metaOne="Chris Nojima"
-          metaTwo="Admin"
-          size="big"
-        />
-        <NameWithIcon
-          {...commonProps}
-          username="chrisnojima"
-          metaOne="Chris Nojima"
-          metaTwo="Admin"
-          size="huge"
-        />
-        <NameWithIcon
-          {...commonProps}
-          icon="icon-computer-96"
-          title="Home laptop"
-          metaOne="Current device"
-          metaTwo="Computer"
-          size="big"
-        />
-        <NameWithIcon
-          {...commonProps}
-          teamname="keybasefriends"
-          title="keybasefriends"
-          metaOne="786 members"
-          size="huge"
-        />
-        <NameWithIcon
-          {...commonProps}
           onClick={Sb.action('Clicked!')}
           username="mlsteele"
           metaOne="Miles Steele"
           size="small"
+        />
+        <NameWithIcon
+          {...commonProps}
+          username="chrisnojima"
+          metaOne="Chris Nojima"
+          metaTwo="Admin"
+          size="big"
+        />
+        <NameWithIcon
+          {...commonProps}
+          username="chrisnojima"
+          metaOne="Chris Nojima"
+          metaTwo="Admin"
+          size="huge"
         />
       </React.Fragment>
     ))
