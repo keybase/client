@@ -13,6 +13,9 @@ export type Props = {
   onRemove: () => void,
 }
 
+const bubbleSize = 32
+const removeSize = 16
+
 const KeybaseUserBubbleMobile = (props: Props) => <Kb.Avatar size={bubbleSize} username={props.username} />
 
 const GeneralServiceBubble = (props: Props) => (
@@ -56,7 +59,7 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName:
       <Kb.Icon
         type={'iconfont-close'}
         color={Styles.isMobile ? Styles.globalColors.white : Styles.globalColors.black_50_on_white}
-        fontSize={16}
+        fontSize={12}
         style={Kb.iconCastPlatformStyles(styles.removeIcon)}
       />
     </Kb.ClickableBox>
@@ -116,9 +119,6 @@ const UserBubble = (props: Props) => {
   return Styles.isMobile ? <Component containerStyle={styles.container} /> : <DesktopBubble {...props} />
 }
 
-const bubbleSize = 32
-const removeSize = 16
-
 const styles = Styles.styleSheetCreate({
   bubble: Styles.platformStyles({
     common: {},
@@ -154,6 +154,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
       cursor: 'pointer',
+      marginRight: Styles.globalMargins.tiny,
     },
     isMobile: {
       backgroundColor: Styles.globalColors.red,
