@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfssync
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func TestExclusiveLock(t *testing.T) {
 	})
 }
 
-type testMutexLevel mutexLevel
+type testMutexLevel MutexLevel
 
 const (
 	testFirst  testMutexLevel = 1
@@ -36,23 +36,23 @@ func (o testMutexLevel) String() string {
 	return fmt.Sprintf("test-lock-%d", int(o))
 }
 
-func testMutexLevelToString(o mutexLevel) string {
+func testMutexLevelToString(o MutexLevel) string {
 	return (testMutexLevel(o)).String()
 }
 
 func TestLeveledMutexSingleFlow(t *testing.T) {
-	mu1 := makeLeveledMutex(mutexLevel(testFirst), &sync.Mutex{})
-	mu2 := makeLeveledMutex(mutexLevel(testSecond), &sync.Mutex{})
-	mu3 := makeLeveledMutex(mutexLevel(testThird), &sync.Mutex{})
+	mu1 := MakeLeveledMutex(MutexLevel(testFirst), &sync.Mutex{})
+	mu2 := MakeLeveledMutex(MutexLevel(testSecond), &sync.Mutex{})
+	mu3 := MakeLeveledMutex(MutexLevel(testThird), &sync.Mutex{})
 
-	state := makeLevelState(testMutexLevelToString)
+	state := MakeLevelState(testMutexLevelToString)
 
-	for _, mu := range []leveledMutex{mu1, mu2, mu3} {
+	for _, mu := range []LeveledMutex{mu1, mu2, mu3} {
 		mu.AssertUnlocked(state)
 		mu.Lock(state)
 		mu.AssertLocked(state)
 
-		defer func(mu leveledMutex) {
+		defer func(mu LeveledMutex) {
 			mu.AssertLocked(state)
 			mu.Unlock(state)
 			mu.AssertUnlocked(state)
@@ -61,11 +61,11 @@ func TestLeveledMutexSingleFlow(t *testing.T) {
 }
 
 func TestLeveledMutexIncorrect(t *testing.T) {
-	mu1 := makeLeveledMutex(mutexLevel(testFirst), &sync.Mutex{})
-	mu2 := makeLeveledMutex(mutexLevel(testSecond), &sync.Mutex{})
-	mu3 := makeLeveledMutex(mutexLevel(testThird), &sync.Mutex{})
+	mu1 := MakeLeveledMutex(MutexLevel(testFirst), &sync.Mutex{})
+	mu2 := MakeLeveledMutex(MutexLevel(testSecond), &sync.Mutex{})
+	mu3 := MakeLeveledMutex(MutexLevel(testThird), &sync.Mutex{})
 
-	state := makeLevelState(testMutexLevelToString)
+	state := MakeLevelState(testMutexLevelToString)
 
 	require.Panics(t, func() {
 		mu1.AssertLocked(state)
@@ -101,11 +101,11 @@ func TestLeveledMutexIncorrect(t *testing.T) {
 
 // runLockSubsequences() runs all possible subsequences of {mu1, mu2,
 // mu3}.Lock() under the given WaitGroup.
-func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 leveledLocker) {
+func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 LeveledLocker) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		state := makeLevelState(testMutexLevelToString)
+		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
 		mu2.Lock(state)
@@ -117,7 +117,7 @@ func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 leveledLocker) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		state := makeLevelState(testMutexLevelToString)
+		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
 		mu2.Lock(state)
@@ -127,7 +127,7 @@ func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 leveledLocker) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		state := makeLevelState(testMutexLevelToString)
+		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
 		mu3.Lock(state)
@@ -137,7 +137,7 @@ func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 leveledLocker) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		state := makeLevelState(testMutexLevelToString)
+		state := MakeLevelState(testMutexLevelToString)
 		mu2.Lock(state)
 		defer mu2.Unlock(state)
 		mu3.Lock(state)
@@ -147,7 +147,7 @@ func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 leveledLocker) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		state := makeLevelState(testMutexLevelToString)
+		state := MakeLevelState(testMutexLevelToString)
 		mu1.Lock(state)
 		defer mu1.Unlock(state)
 	}()
@@ -155,7 +155,7 @@ func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 leveledLocker) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		state := makeLevelState(testMutexLevelToString)
+		state := MakeLevelState(testMutexLevelToString)
 		mu2.Lock(state)
 		defer mu2.Unlock(state)
 	}()
@@ -163,16 +163,16 @@ func runLockSubsequences(wg *sync.WaitGroup, mu1, mu2, mu3 leveledLocker) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		state := makeLevelState(testMutexLevelToString)
+		state := MakeLevelState(testMutexLevelToString)
 		mu3.Lock(state)
 		defer mu3.Unlock(state)
 	}()
 }
 
 func TestLeveledMutexMultiFlow(t *testing.T) {
-	mu1 := makeLeveledMutex(mutexLevel(testFirst), &sync.Mutex{})
-	mu2 := makeLeveledMutex(mutexLevel(testSecond), &sync.Mutex{})
-	mu3 := makeLeveledMutex(mutexLevel(testThird), &sync.Mutex{})
+	mu1 := MakeLeveledMutex(MutexLevel(testFirst), &sync.Mutex{})
+	mu2 := MakeLeveledMutex(MutexLevel(testSecond), &sync.Mutex{})
+	mu3 := MakeLeveledMutex(MutexLevel(testThird), &sync.Mutex{})
 
 	var wg sync.WaitGroup
 	runLockSubsequences(&wg, mu1, mu2, mu3)
@@ -180,11 +180,11 @@ func TestLeveledMutexMultiFlow(t *testing.T) {
 }
 
 func TestLeveledRWMutexSingleFlow(t *testing.T) {
-	mu1 := makeLeveledRWMutex(mutexLevel(testFirst), &sync.RWMutex{})
-	mu2 := makeLeveledRWMutex(mutexLevel(testSecond), &sync.RWMutex{})
-	mu3 := makeLeveledRWMutex(mutexLevel(testThird), &sync.RWMutex{})
+	mu1 := MakeLeveledRWMutex(MutexLevel(testFirst), &sync.RWMutex{})
+	mu2 := MakeLeveledRWMutex(MutexLevel(testSecond), &sync.RWMutex{})
+	mu3 := MakeLeveledRWMutex(MutexLevel(testThird), &sync.RWMutex{})
 
-	state := makeLevelState(testMutexLevelToString)
+	state := MakeLevelState(testMutexLevelToString)
 
 	mu1.AssertUnlocked(state)
 	mu1.Lock(state)
@@ -224,11 +224,11 @@ func TestLeveledRWMutexSingleFlow(t *testing.T) {
 }
 
 func TestLeveledRWMutexIncorrect(t *testing.T) {
-	mu1 := makeLeveledRWMutex(mutexLevel(testFirst), &sync.RWMutex{})
-	mu2 := makeLeveledRWMutex(mutexLevel(testSecond), &sync.RWMutex{})
-	mu3 := makeLeveledRWMutex(mutexLevel(testThird), &sync.RWMutex{})
+	mu1 := MakeLeveledRWMutex(MutexLevel(testFirst), &sync.RWMutex{})
+	mu2 := MakeLeveledRWMutex(MutexLevel(testSecond), &sync.RWMutex{})
+	mu3 := MakeLeveledRWMutex(MutexLevel(testThird), &sync.RWMutex{})
 
-	state := makeLevelState(testMutexLevelToString)
+	state := MakeLevelState(testMutexLevelToString)
 
 	require.Panics(t, func() {
 		mu1.AssertLocked(state)
@@ -299,9 +299,9 @@ func TestLeveledRWMutexIncorrect(t *testing.T) {
 }
 
 func TestLeveledRWMutexMultiFlow(t *testing.T) {
-	mu1 := makeLeveledMutex(mutexLevel(testFirst), &sync.Mutex{})
-	mu2 := makeLeveledRWMutex(mutexLevel(testSecond), &sync.RWMutex{})
-	mu3 := makeLeveledRWMutex(mutexLevel(testThird), &sync.RWMutex{})
+	mu1 := MakeLeveledMutex(MutexLevel(testFirst), &sync.Mutex{})
+	mu2 := MakeLeveledRWMutex(MutexLevel(testSecond), &sync.RWMutex{})
+	mu3 := MakeLeveledRWMutex(MutexLevel(testThird), &sync.RWMutex{})
 
 	var wg sync.WaitGroup
 

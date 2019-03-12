@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfssync
 
 import (
 	"fmt"
@@ -10,12 +10,12 @@ import (
 	"sync/atomic"
 )
 
-// The leveledMutex, leveledRWMutex, and lockState types enables a
+// The LeveledMutex, LeveledRWMutex, and LockState types enables a
 // lock hierarchy to be checked. For a program (or subsystem), each
-// (rw-)mutex must have a unique associated mutexLevel, which means
+// (rw-)mutex must have a unique associated MutexLevel, which means
 // that a (rw-)mutex must not be (r-)locked before another (rw-)mutex
-// with a lower mutexLevel in a given execution flow. This is achieved
-// by creating a new lockState at the start of an execution flow and
+// with a lower MutexLevel in a given execution flow. This is achieved
+// by creating a new LockState at the start of an execution flow and
 // passing it to the (r-)lock/(r-)unlock methods of each (rw-)mutex.
 //
 // TODO: Once this becomes a bottleneck, add a +build production
@@ -46,9 +46,9 @@ func (l exclusiveLock) unlock() {
 	}
 }
 
-// mutexLevel is the level for a mutex, which must be unique to that
+// MutexLevel is the level for a mutex, which must be unique to that
 // mutex.
-type mutexLevel int
+type MutexLevel int
 
 // exclusionType is the type of exclusion of a lock. A regular lock
 // always uses write exclusion, where only one thing at a time can
@@ -78,15 +78,15 @@ func (et exclusionType) prefix() string {
 // exclusionState holds the state for a held mutex.
 type exclusionState struct {
 	// The level of the held mutex.
-	level mutexLevel
+	level MutexLevel
 	// The exclusion type of the held mutex.
 	exclusionType exclusionType
 }
 
-// lockState holds the info regarding which level mutexes are held or
+// LockState holds the info regarding which level mutexes are held or
 // not for a particular execution flow.
-type lockState struct {
-	levelToString func(mutexLevel) string
+type LockState struct {
+	levelToString func(MutexLevel) string
 
 	// Protects exclusionStates.
 	exclusionStatesLock exclusiveLock
@@ -94,14 +94,14 @@ type lockState struct {
 	exclusionStates []exclusionState
 }
 
-// makeLevelState returns a new lockState. This must be called at the
-// start of a new execution flow and passed to any leveledMutex or
-// leveledRWMutex operation during that execution flow.
+// MakeLevelState returns a new LockState. This must be called at the
+// start of a new execution flow and passed to any LeveledMutex or
+// LeveledRWMutex operation during that execution flow.
 //
 // TODO: Consider adding a parameter to set the capacity of
 // exclusionStates.
-func makeLevelState(levelToString func(mutexLevel) string) *lockState {
-	return &lockState{
+func MakeLevelState(levelToString func(MutexLevel) string) *LockState {
+	return &LockState{
 		levelToString:       levelToString,
 		exclusionStatesLock: makeExclusiveLock(),
 	}
@@ -109,7 +109,7 @@ func makeLevelState(levelToString func(mutexLevel) string) *lockState {
 
 // currLocked returns the current exclusion state, or nil if there is
 // none.
-func (state *lockState) currLocked() *exclusionState {
+func (state *LockState) currLocked() *exclusionState {
 	stateCount := len(state.exclusionStates)
 	if stateCount == 0 {
 		return nil
@@ -118,8 +118,8 @@ func (state *lockState) currLocked() *exclusionState {
 }
 
 type levelViolationError struct {
-	levelToString func(mutexLevel) string
-	level         mutexLevel
+	levelToString func(MutexLevel) string
+	level         MutexLevel
 	exclusionType exclusionType
 	curr          exclusionState
 }
@@ -130,8 +130,8 @@ func (e levelViolationError) Error() string {
 		e.levelToString(e.curr.level), e.curr.exclusionType.prefix())
 }
 
-func (state *lockState) doLock(
-	level mutexLevel, exclusionType exclusionType, lock sync.Locker) error {
+func (state *LockState) doLock(
+	level MutexLevel, exclusionType exclusionType, lock sync.Locker) error {
 	state.exclusionStatesLock.lock()
 	defer state.exclusionStatesLock.unlock()
 
@@ -156,8 +156,8 @@ func (state *lockState) doLock(
 }
 
 type danglingUnlockError struct {
-	levelToString func(mutexLevel) string
-	level         mutexLevel
+	levelToString func(MutexLevel) string
+	level         MutexLevel
 	exclusionType exclusionType
 }
 
@@ -167,8 +167,8 @@ func (e danglingUnlockError) Error() string {
 }
 
 type mismatchedUnlockError struct {
-	levelToString func(mutexLevel) string
-	level         mutexLevel
+	levelToString func(MutexLevel) string
+	level         MutexLevel
 	exclusionType exclusionType
 	curr          exclusionState
 }
@@ -180,8 +180,8 @@ func (e mismatchedUnlockError) Error() string {
 		e.curr.exclusionType.prefix(), e.levelToString(e.curr.level))
 }
 
-func (state *lockState) doUnlock(
-	level mutexLevel, exclusionType exclusionType, lock sync.Locker) error {
+func (state *LockState) doUnlock(
+	level MutexLevel, exclusionType exclusionType, lock sync.Locker) error {
 	state.exclusionStatesLock.lock()
 	defer state.exclusionStatesLock.unlock()
 
@@ -211,8 +211,8 @@ func (state *lockState) doUnlock(
 }
 
 // getExclusionType returns returns the exclusionType for the given
-// mutexLevel, or nonExclusion if there is none.
-func (state *lockState) getExclusionType(level mutexLevel) exclusionType {
+// MutexLevel, or nonExclusion if there is none.
+func (state *LockState) getExclusionType(level MutexLevel) exclusionType {
 	state.exclusionStatesLock.lock()
 	defer state.exclusionStatesLock.unlock()
 
@@ -230,29 +230,33 @@ func (state *lockState) getExclusionType(level mutexLevel) exclusionType {
 	return nonExclusion
 }
 
-// leveledMutex is a mutex with an associated level, which must be
-// unique. Note that unlike sync.Mutex, leveledMutex is a reference
+// LeveledMutex is a mutex with an associated level, which must be
+// unique. Note that unlike sync.Mutex, LeveledMutex is a reference
 // type and not a value type.
-type leveledMutex struct {
-	level  mutexLevel
+type LeveledMutex struct {
+	level  MutexLevel
 	locker sync.Locker
 }
 
-func makeLeveledMutex(level mutexLevel, locker sync.Locker) leveledMutex {
-	return leveledMutex{
+// MakeLeveledMutex makes a mutex with the given level, backed by the
+// given locker.
+func MakeLeveledMutex(level MutexLevel, locker sync.Locker) LeveledMutex {
+	return LeveledMutex{
 		level:  level,
 		locker: locker,
 	}
 }
 
-func (m leveledMutex) Lock(lockState *lockState) {
+// Lock locks the associated locker.
+func (m LeveledMutex) Lock(lockState *LockState) {
 	err := lockState.doLock(m.level, writeExclusion, m.locker)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (m leveledMutex) Unlock(lockState *lockState) {
+// Unlock locks the associated locker.
+func (m LeveledMutex) Unlock(lockState *LockState) {
 	err := lockState.doUnlock(m.level, writeExclusion, m.locker)
 	if err != nil {
 		panic(err)
@@ -260,8 +264,8 @@ func (m leveledMutex) Unlock(lockState *lockState) {
 }
 
 type unexpectedExclusionError struct {
-	levelToString func(mutexLevel) string
-	level         mutexLevel
+	levelToString func(MutexLevel) string
+	level         MutexLevel
 	exclusionType exclusionType
 }
 
@@ -271,8 +275,8 @@ func (e unexpectedExclusionError) Error() string {
 }
 
 // AssertUnlocked does nothing if m is unlocked with respect to the
-// given lockState. Otherwise, it panics.
-func (m leveledMutex) AssertUnlocked(lockState *lockState) {
+// given LockState. Otherwise, it panics.
+func (m LeveledMutex) AssertUnlocked(lockState *LockState) {
 	et := lockState.getExclusionType(m.level)
 	if et != nonExclusion {
 		panic(unexpectedExclusionError{
@@ -284,8 +288,8 @@ func (m leveledMutex) AssertUnlocked(lockState *lockState) {
 }
 
 type unexpectedExclusionTypeError struct {
-	levelToString         func(mutexLevel) string
-	level                 mutexLevel
+	levelToString         func(MutexLevel) string
+	level                 MutexLevel
 	expectedExclusionType exclusionType
 	exclusionType         exclusionType
 }
@@ -299,8 +303,8 @@ func (e unexpectedExclusionTypeError) Error() string {
 }
 
 // AssertLocked does nothing if m is locked with respect to the given
-// lockState. Otherwise, it panics.
-func (m leveledMutex) AssertLocked(lockState *lockState) {
+// LockState. Otherwise, it panics.
+func (m LeveledMutex) AssertLocked(lockState *LockState) {
 	et := lockState.getExclusionType(m.level)
 	if et != writeExclusion {
 		panic(unexpectedExclusionTypeError{
@@ -312,50 +316,56 @@ func (m leveledMutex) AssertLocked(lockState *lockState) {
 	}
 }
 
-// leveledLocker represents an object that can be locked and unlocked
-// with a lockState.
-type leveledLocker interface {
-	Lock(*lockState)
-	Unlock(*lockState)
+// LeveledLocker represents an object that can be locked and unlocked
+// with a LockState.
+type LeveledLocker interface {
+	Lock(*LockState)
+	Unlock(*LockState)
 }
 
-// leveledMutex is a reader-writer mutex with an associated level,
-// which must be unique. Note that unlike sync.RWMutex, leveledRWMutex
+// LeveledRWMutex is a reader-writer mutex with an associated level,
+// which must be unique. Note that unlike sync.RWMutex, LeveledRWMutex
 // is a reference type and not a value type.
-type leveledRWMutex struct {
-	level    mutexLevel
+type LeveledRWMutex struct {
+	level    MutexLevel
 	rwLocker rwLocker
 }
 
-func makeLeveledRWMutex(level mutexLevel, rwLocker rwLocker) leveledRWMutex {
-	return leveledRWMutex{
+// MakeLeveledRWMutex makes a reader-writer mutex with the given
+// level, backed by the given rwLocker.
+func MakeLeveledRWMutex(level MutexLevel, rwLocker rwLocker) LeveledRWMutex {
+	return LeveledRWMutex{
 		level:    level,
 		rwLocker: rwLocker,
 	}
 }
 
-func (rw leveledRWMutex) Lock(lockState *lockState) {
+// Lock locks the associated locker.
+func (rw LeveledRWMutex) Lock(lockState *LockState) {
 	err := lockState.doLock(rw.level, writeExclusion, rw.rwLocker)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (rw leveledRWMutex) Unlock(lockState *lockState) {
+// Unlock unlocks the associated locker.
+func (rw LeveledRWMutex) Unlock(lockState *LockState) {
 	err := lockState.doUnlock(rw.level, writeExclusion, rw.rwLocker)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (rw leveledRWMutex) RLock(lockState *lockState) {
+// RLock locks the associated locker for reading.
+func (rw LeveledRWMutex) RLock(lockState *LockState) {
 	err := lockState.doLock(rw.level, readExclusion, rw.rwLocker.RLocker())
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (rw leveledRWMutex) RUnlock(lockState *lockState) {
+// RUnlock unlocks the associated locker for reading.
+func (rw LeveledRWMutex) RUnlock(lockState *LockState) {
 	err := lockState.doUnlock(rw.level, readExclusion, rw.rwLocker.RLocker())
 	if err != nil {
 		panic(err)
@@ -363,8 +373,8 @@ func (rw leveledRWMutex) RUnlock(lockState *lockState) {
 }
 
 // AssertUnlocked does nothing if m is unlocked with respect to the
-// given lockState. Otherwise, it panics.
-func (rw leveledRWMutex) AssertUnlocked(lockState *lockState) {
+// given LockState. Otherwise, it panics.
+func (rw LeveledRWMutex) AssertUnlocked(lockState *LockState) {
 	et := lockState.getExclusionType(rw.level)
 	if et != nonExclusion {
 		panic(unexpectedExclusionError{
@@ -376,8 +386,8 @@ func (rw leveledRWMutex) AssertUnlocked(lockState *lockState) {
 }
 
 // AssertLocked does nothing if m is locked with respect to the given
-// lockState. Otherwise, it panics.
-func (rw leveledRWMutex) AssertLocked(lockState *lockState) {
+// LockState. Otherwise, it panics.
+func (rw LeveledRWMutex) AssertLocked(lockState *LockState) {
 	et := lockState.getExclusionType(rw.level)
 	if et != writeExclusion {
 		panic(unexpectedExclusionTypeError{
@@ -390,8 +400,8 @@ func (rw leveledRWMutex) AssertLocked(lockState *lockState) {
 }
 
 // AssertRLocked does nothing if m is r-locked with respect to the
-// given lockState. Otherwise, it panics.
-func (rw leveledRWMutex) AssertRLocked(lockState *lockState) {
+// given LockState. Otherwise, it panics.
+func (rw LeveledRWMutex) AssertRLocked(lockState *LockState) {
 	et := lockState.getExclusionType(rw.level)
 	if et != readExclusion {
 		panic(unexpectedExclusionTypeError{
@@ -404,8 +414,8 @@ func (rw leveledRWMutex) AssertRLocked(lockState *lockState) {
 }
 
 type unexpectedNonExclusionError struct {
-	levelToString func(mutexLevel) string
-	level         mutexLevel
+	levelToString func(MutexLevel) string
+	level         MutexLevel
 }
 
 func (e unexpectedNonExclusionError) Error() string {
@@ -413,8 +423,8 @@ func (e unexpectedNonExclusionError) Error() string {
 }
 
 // AssertAnyLocked does nothing if m is locked or r-locked with
-// respect to the given lockState. Otherwise, it panics.
-func (rw leveledRWMutex) AssertAnyLocked(lockState *lockState) {
+// respect to the given LockState. Otherwise, it panics.
+func (rw LeveledRWMutex) AssertAnyLocked(lockState *LockState) {
 	et := lockState.getExclusionType(rw.level)
 	if et == nonExclusion {
 		panic(unexpectedNonExclusionError{
@@ -424,16 +434,17 @@ func (rw leveledRWMutex) AssertAnyLocked(lockState *lockState) {
 	}
 }
 
-func (rw leveledRWMutex) RLocker() leveledLocker {
+// RLocker implements the RWMutex interface for LeveledRMMutex.
+func (rw LeveledRWMutex) RLocker() LeveledLocker {
 	return (leveledRLocker)(rw)
 }
 
-type leveledRLocker leveledRWMutex
+type leveledRLocker LeveledRWMutex
 
-func (r leveledRLocker) Lock(lockState *lockState) {
-	(leveledRWMutex)(r).RLock(lockState)
+func (r leveledRLocker) Lock(lockState *LockState) {
+	(LeveledRWMutex)(r).RLock(lockState)
 }
 
-func (r leveledRLocker) Unlock(lockState *lockState) {
-	(leveledRWMutex)(r).RUnlock(lockState)
+func (r leveledRLocker) Unlock(lockState *LockState) {
+	(LeveledRWMutex)(r).RUnlock(lockState)
 }
