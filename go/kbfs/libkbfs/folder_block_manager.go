@@ -846,6 +846,7 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 
 func getUnrefPointersFromMD(
 	rmd ImmutableRootMetadata, includeGC bool) (ptrs []BlockPointer) {
+	ptrMap := make(map[BlockPointer]bool)
 	for _, op := range rmd.data.Changes.Ops {
 		if _, ok := op.(*GCOp); !includeGC && ok {
 			continue
@@ -854,8 +855,9 @@ func getUnrefPointersFromMD(
 			// Can be zeroPtr in weird failed sync scenarios.
 			// See syncInfo.replaceRemovedBlock for an example
 			// of how this can happen.
-			if ptr != zeroPtr {
+			if ptr != zeroPtr && !ptrMap[ptr] {
 				ptrs = append(ptrs, ptr)
+				ptrMap[ptr] = true
 			}
 		}
 		for _, update := range op.allUpdates() {
@@ -863,8 +865,9 @@ func getUnrefPointersFromMD(
 			// two identical pointers (usually because of
 			// conflict resolution), so ignore that for quota
 			// reclamation purposes.
-			if update.Ref != update.Unref {
+			if update.Ref != update.Unref && !ptrMap[update.Unref] {
 				ptrs = append(ptrs, update.Unref)
+				ptrMap[update.Unref] = true
 			}
 		}
 	}
