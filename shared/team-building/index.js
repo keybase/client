@@ -62,7 +62,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
               onDownArrowKeyDown={props.onDownArrowKeyDown}
               onUpArrowKeyDown={props.onUpArrowKeyDown}
               onEnterKeyDown={props.onEnterKeyDown}
-              onFinishTeamBuilding={() => {}}
+              onFinishTeamBuilding={props.onFinishTeamBuilding}
               onRemove={props.onRemove}
               teamSoFar={props.teamSoFar}
               onBackspace={props.onBackspace}
@@ -169,7 +169,9 @@ const styles = Styles.styleSheetCreate({
       minHeight: 200,
     },
     isElectron: {
+      borderRadius: 4,
       height: 434,
+      overflow: 'hidden',
       width: 470,
     },
   }),
@@ -189,6 +191,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       paddingBottom: Styles.globalMargins.small,
     },
+    isElectron: {
+      marginLeft: Styles.globalMargins.medium,
+    },
     isMobile: {
       marginTop: Styles.globalMargins.xtiny,
     },
@@ -207,6 +212,9 @@ const styles = Styles.styleSheetCreate({
       height: 48,
       width: 48,
     },
+  }),
+  mobileFlex: Styles.platformStyles({
+    isMobile: {flex: 1},
   }),
 })
 

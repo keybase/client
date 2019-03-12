@@ -19,6 +19,7 @@ export type NameWithIconProps = {|
   notFollowingColorOverride?: string,
   containerStyle?: Styles.StylesCrossPlatform,
   editableIcon?: boolean,
+  hideFollowingOverlay?: boolean,
   horizontal?: boolean,
   icon?: IconType,
   isYou?: boolean,
@@ -64,7 +65,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
           size={this.props.avatarSize || (this.props.horizontal ? commonHeight : adapterProps.iconSize)}
-          showFollowingStatus={this.props.horizontal ? undefined : true}
+          showFollowingStatus={this.props.horizontal ? undefined : !this.props.hideFollowingOverlay}
           username={this.props.username}
           teamname={this.props.teamname}
           style={Styles.collapseStyles([

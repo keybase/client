@@ -36,6 +36,7 @@ const DesktopBubble = (props: Props) => {
       <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
         <Kb.ConnectedNameWithIcon
           colorFollowing={true}
+          hideFollowingOverlay={true}
           horizontal={false}
           icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
           size="smaller"
