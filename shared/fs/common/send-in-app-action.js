@@ -21,12 +21,14 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
 
 const YouSeeAButtonYouPushIt = ({onClick, path, sendIconClassName}) =>
   Constants.canSendLinkToChat(Constants.parsePath(path)) && (
-    <Kb.Icon
-      type="iconfont-open-browser"
-      onClick={onClick}
-      className={sendIconClassName}
-      style={Kb.iconCastPlatformStyles(styles.icon)}
-    />
+    <Kb.WithTooltip text="Send link to chat">
+      <Kb.Icon
+        type="iconfont-open-browser"
+        onClick={onClick}
+        className={sendIconClassName}
+        style={Kb.iconCastPlatformStyles(styles.icon)}
+      />
+    </Kb.WithTooltip>
   )
 
 const styles = Styles.styleSheetCreate({
