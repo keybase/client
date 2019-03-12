@@ -27,7 +27,7 @@ class OfferToTestPassphrase extends React.Component<TestProps, State> {
     console.warn('in offer with', this.props)
 
     return (
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Input
           hintText="Enter your passphrase"
           type={inputType}
@@ -56,7 +56,6 @@ export default (props: Props) => (
     )}
 
     <Kb.Box2 direction="vertical">
-      <Kb.Text type="Header">Foo</Kb.Text>
       <Kb.Button
         label="No thanks, just log me out now."
         onClick={() => props.onLogOut()}
