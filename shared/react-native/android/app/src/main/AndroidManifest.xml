@@ -22,7 +22,7 @@
       <activity
         android:name=".MainActivity"
         android:screenOrientation="portrait"
-        android:launchMode="singleTask"
+        android:launchMode="singleTop"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
         android:windowSoftInputMode="adjustResize"
@@ -31,6 +31,26 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+        <intent-filter>
+          <action android:name="android.intent.action.SEND" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <data android:mimeType="text/*" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="android.intent.action.SEND" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <data android:mimeType="image/*" />
+          <data android:mimeType="video/*" />
+          <data android:mimeType="audio/*" />
+          <data android:mimeType="application/pdf" />
+        </intent-filter>
+        <!-- TODO: enable
+        <intent-filter>
+          <action android:name="android.intent.action.SEND_MULTIPLE" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <data android:mimeType="image/*" />
+        </intent-filter>
+        -->
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
 

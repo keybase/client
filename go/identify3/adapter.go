@@ -327,6 +327,7 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 		ProofURL:     i.makeSigchainViewURL(mctx, key.SigID),
 		SiteIcon:     externals.MakeIcons(mctx, "pgp", "logo_black", 16),
 		SiteIconFull: externals.MakeIcons(mctx, "pgp", "logo_full", 64),
+		Kid:          &key.KID,
 	}
 
 	switch {

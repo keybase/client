@@ -115,9 +115,14 @@ export default (Styles.isMobile
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
               <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
-              <Kb.Text type="BodySmallSemibold" lineClamp={1}>
-                {props.targetName}
-              </Kb.Text>
+              <Kb.Box2 direction="horizontal">
+                <Kb.Text type="BodySmallSemibold" lineClamp={1}>
+                  {props.targetNameWithoutExtension}
+                </Kb.Text>
+                <Kb.Text type="BodySmallSemibold">
+                  {props.targetExtension}
+                </Kb.Text>
+              </Kb.Box2>
             </Kb.Box2>
             <Kb.Text type="Header" lineClamp={1}>
               {Types.getPathName(props.parentPath)}
@@ -177,8 +182,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 8,
   },
   mobileHeaderContent: {
-    flex: 1,
-    marginRight: 90, // width of the "Cancel" button
+    paddingRight: 90, // width of the "Cancel" button
   },
   newFolderBox: {
     ...Styles.globalStyles.flexBoxRow,

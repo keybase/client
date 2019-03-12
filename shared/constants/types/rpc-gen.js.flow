@@ -2253,7 +2253,7 @@ export type Identify3ResultType =
   | 2 // NEEDS_UPGRADE_2
   | 3 // CANCELED_3
 
-export type Identify3Row = $ReadOnly<{guiID: Identify3GUIID, key: String, value: String, priority: Int, siteURL: String, siteIcon?: ?Array<SizedImage>, siteIconFull?: ?Array<SizedImage>, proofURL: String, sigID: SigID, ctime: Time, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor}>
+export type Identify3Row = $ReadOnly<{guiID: Identify3GUIID, key: String, value: String, priority: Int, siteURL: String, siteIcon?: ?Array<SizedImage>, siteIconFull?: ?Array<SizedImage>, proofURL: String, sigID: SigID, ctime: Time, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor, kid?: ?KID}>
 export type Identify3RowColor =
   | 1 // BLUE_1
   | 2 // RED_2
@@ -3001,6 +3001,7 @@ export type TeamNameLogPoint = $ReadOnly<{lastPart: TeamNamePart, seqno: Seqno}>
 export type TeamNamePart = String
 export type TeamNewlyAddedRow = $ReadOnly<{id: TeamID, name: String}>
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
+export type TeamOpenSweepMsg = $ReadOnly<{teamID: TeamID, resetUsersUntrusted?: ?Array<TeamCLKRResetUser>}>
 export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean, deleteOtherMessages: Boolean}>
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 export type TeamProfileAddEntry = $ReadOnly<{teamName: TeamName, open: Boolean, disabledReason: String}>

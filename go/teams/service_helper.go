@@ -1463,6 +1463,7 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 // Should work on either named or implicit teams.
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
+	ctx = libkb.WithLogTag(ctx, "CREATETLF")
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, false)
 		if err != nil {

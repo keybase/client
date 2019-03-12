@@ -542,7 +542,8 @@ func (k *KeybaseServiceBase) NormalizeSocialAssertion(
 // for KeybaseServiceBase.
 func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	doIdentifies bool, reason string,
+	offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
 	if tlfType != tlf.Private && tlfType != tlf.Public {
 		return ImplicitTeamInfo{}, fmt.Errorf(
 			"Invalid implicit team TLF type: %s", tlfType)
@@ -555,6 +556,7 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 		Reason:       keybase1.IdentifyReason{Reason: reason},
 		Create:       true,
 		IsPublic:     tlfType == tlf.Public,
+		Oa:           offline,
 	}
 
 	ei := getExtendedIdentify(ctx)

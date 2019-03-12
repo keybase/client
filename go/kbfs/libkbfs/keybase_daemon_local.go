@@ -304,7 +304,8 @@ func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 // for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	doIdentifies bool, reason string, _ keybase1.OfflineAvailability) (
+	ImplicitTeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return ImplicitTeamInfo{}, err
 	}

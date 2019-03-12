@@ -7705,7 +7705,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	var newName kbname.NormalizedUsername
 	if fbo.id().Type() != tlf.SingleTeam {
 		iteamInfo, err := fbo.config.KBPKI().ResolveImplicitTeamByID(
-			ctx, tid, fbo.id().Type())
+			ctx, tid, fbo.id().Type(), fbo.oa())
 		if err == nil {
 			newName = iteamInfo.Name
 		}

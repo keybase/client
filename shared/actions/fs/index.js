@@ -704,21 +704,38 @@ const deleteFile = (state, action) => {
 }
 
 const moveOrCopy = (state, action) => {
+  if (state.fs.destinationPicker.source.type === 'none') {
+    return
+  }
   const params = {
     dest: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(
         Types.pathConcat(
           action.payload.destinationParentPath,
-          Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
+          state.fs.destinationPicker.source.type === 'move-or-copy'
+            ? Types.getPathName(state.fs.destinationPicker.source.path)
+            : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
+            // We use the local path name here since we only care about file name.
         )
       ),
     },
     opID: Constants.makeUUID(),
-    src: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
-    },
+    src: state.fs.destinationPicker.source.type === 'move-or-copy'
+      ? {
+        PathType: RPCTypes.simpleFSPathType.kbfs,
+        kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
+      }
+      : state.fs.destinationPicker.source.type === 'incoming-share'
+        ? {
+          PathType: RPCTypes.simpleFSPathType.local,
+          local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
+        }
+        // This case isn't possible but must be handled for Flow to be happy.
+        : {
+          PathType: RPCTypes.simpleFSPathType.kbfs,
+          kbfs: null,
+        },
   }
   return (
     (action.type === FsGen.move
@@ -733,8 +750,8 @@ const moveOrCopy = (state, action) => {
   )
 }
 
-const moveOrCopyOpen = (state, action) => [
-  FsGen.createSetMoveOrCopyDestinationParentPath({
+const destinationPickerOpen = (state, action) => [
+  FsGen.createSetDestinationPickerParentPath({
     index: action.payload.currentIndex + 1,
     path: action.payload.path,
   }),
@@ -749,7 +766,7 @@ const moveOrCopyOpen = (state, action) => [
 const showMoveOrCopy = (state, action) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
 
-const closeMoveOrCopy = (state, action) => {
+const closeDestinationPicker = (state, action) => {
   const currentRoutes = getPathProps(state.routeTree.routeState)
   const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
   const newRoute = currentRoutes.reduce(
@@ -915,9 +932,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     onFSSyncActivity
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
-  yield* Saga.chainAction<FsGen.MoveOrCopyOpenPayload>(FsGen.moveOrCopyOpen, moveOrCopyOpen)
-  yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload>(FsGen.showMoveOrCopy, showMoveOrCopy)
-  yield* Saga.chainAction<FsGen.CloseMoveOrCopyPayload>(FsGen.closeMoveOrCopy, closeMoveOrCopy)
+  yield* Saga.chainAction<FsGen.DestinationPickerOpenPayload>(FsGen.destinationPickerOpen, destinationPickerOpen)
+  yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
+  yield* Saga.chainAction<FsGen.CloseDestinationPickerPayload>(FsGen.closeDestinationPicker, closeDestinationPicker)
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
 

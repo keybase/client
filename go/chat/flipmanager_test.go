@@ -512,7 +512,7 @@ func TestFlipManagerRateLimit(t *testing.T) {
 	close(stopCh)
 
 	clock.Advance(10 * time.Minute)
-	mustPostLocalForTest(t, ctc, users[0], conv,
+	mustPostLocalForTest(t, ctc, users[1], conv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "/flip",
 		}))

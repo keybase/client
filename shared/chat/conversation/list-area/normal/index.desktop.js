@@ -497,7 +497,11 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 
   // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
   // we defer settings things invisible for a little bit, which seems enough to fix it
-  _handlePositionChange = ({currentPosition}) => {
+  _handlePositionChange = ({currentPosition, event}) => {
+    // lets ignore when this happens, this seems like a large source of jiggliness
+    if (!event) {
+      return
+    }
     if (currentPosition) {
       const isVisible = currentPosition === 'inside'
       this._cancelAnim()

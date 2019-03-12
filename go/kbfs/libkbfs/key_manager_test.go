@@ -59,8 +59,8 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 
 	// Don't test implicit teams.
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
-		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
-		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(ImplicitTeamInfo{}, errors.New("No such team"))
 
 	mockNormalizeSocialAssertion(config)
 	return mockCtrl, config, ctx

@@ -171,7 +171,7 @@ class Rows extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate({
   divider: {
     backgroundColor: Styles.globalColors.black_05,
-    marginLeft: 48,
+    marginLeft: 64,
   },
   emptyContainer: {
     ...Styles.globalStyles.flexGrow,

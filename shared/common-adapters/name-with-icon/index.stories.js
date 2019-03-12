@@ -64,13 +64,6 @@ const load = () => {
           metaOne="786 members"
           size="huge"
         />
-<<<<<<< Updated upstream
-        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="large" />
-||||||| merged common ancestors
-        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="big" />
-        <NameWithIcon {...commonProps} username="chrisnojima" metaOne="Chris Nojima" size="huge" />
-=======
->>>>>>> Stashed changes
         <NameWithIcon
           {...commonProps}
           onClick={Sb.action('Clicked!')}
