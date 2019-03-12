@@ -127,12 +127,14 @@ export const StillCommon = (
       <Kb.Box style={rowStyles.rightBox}>
         <OpenInSystemFileManager path={props.path} />
         <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
-        <PathItemAction
-          path={props.path}
-          clickable={{actionIconClassName: 'fs-path-item-hover-icon', type: 'icon'}}
-          routePath={props.routePath}
-          initView="root"
-        />
+        <Kb.WithTooltip text="Other actions">
+          <PathItemAction
+            path={props.path}
+            clickable={{actionIconClassName: 'fs-path-item-hover-icon', type: 'icon'}}
+            routePath={props.routePath}
+            initView="root"
+          />
+        </Kb.WithTooltip>
       </Kb.Box>
     )}
   </HoverBox>
