@@ -365,7 +365,9 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 // well; a canceler function func() that the caller should call after all work is completed
 // on this request; and an error. The canceler function is to clean up the timeout.
 func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *http.Response, cancel func(), err error) {
-	defer m.TraceTimed("api.doRetry", func() error { return err })()
+	if m.G().Env.GetExtraNetLogging() {
+		defer m.TraceTimed("api.doRetry", func() error { return err })()
+	}
 
 	// This serves as a proxy for checking the status of the Gregor connection. If we are not
 	// connected to Gregor, then it is likely the case we are totally offline, or on a very bad
@@ -431,7 +433,9 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (res *http.Response, cancel func(), err error) {
-	defer m.TraceTimed("api.doTimeout", func() error { return err })()
+	if m.G().Env.GetExtraNetLogging() {
+		defer m.TraceTimed("api.doTimeout", func() error { return err })()
+	}
 	// check to see if the current context is canceled
 	select {
 	case <-m.Ctx().Done():

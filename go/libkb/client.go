@@ -139,7 +139,17 @@ func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 }
 
 func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client {
-	g.Log.Debug("api.Client:%v New", needCookie)
+	extraLog := func(ctx context.Context, msg string, args ...interface{}) {}
+	if g.Env.GetExtraNetLogging() {
+		extraLog = func(ctx context.Context, msg string, args ...interface{}) {
+			if ctx == nil {
+				g.Log.Debug(msg, args...)
+			} else {
+				g.Log.CDebugf(ctx, msg, args...)
+			}
+		}
+	}
+	extraLog(nil, "api.Client:%v New", needCookie)
 	env := g.Env
 	var jar *cookiejar.Jar
 	if needCookie && (config == nil || config.UseCookies) && env.GetTorMode().UseCookies() {
@@ -163,7 +173,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 	xprt.DialContext = func(ctx context.Context, network, addr string) (c net.Conn, err error) {
 		c, err = dialer.DialContext(ctx, network, addr)
 		if err != nil {
-			g.Log.CDebugf(ctx, "api.Client:%v transport.Dial err=%v", needCookie, err)
+			extraLog(ctx, "api.Client:%v transport.Dial err=%v", needCookie, err)
 			// If we get a DNS error, it could be because glibc has cached an
 			// old version of /etc/resolv.conf. The res_init() libc function
 			// busts that cache and keeps us from getting stuck in a state
@@ -174,7 +184,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 			return c, err
 		}
 		if err = rpc.DisableSigPipe(c); err != nil {
-			g.Log.CDebugf(ctx, "api.Client:%v transport.Dial DisableSigPipe err=%v", needCookie, err)
+			extraLog(ctx, "api.Client:%v transport.Dial DisableSigPipe err=%v", needCookie, err)
 			return c, err
 		}
 		return c, nil
@@ -185,7 +195,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 		}
 		if env.GetTorMode().Enabled() {
-			g.Log.Debug("api.Client:%v tor mode enabled", needCookie)
+			extraLog(nil, "api.Client:%v tor mode enabled", needCookie)
 			// TODO: should we call res_init on DNS errors here as well?
 			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, env.GetTorProxy())
 			xprt.DialContext = func(ctx context.Context, network, addr string) (c net.Conn, err error) {
@@ -230,7 +240,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 	}
 
 	if err := http2.ConfigureTransport(&xprt); err != nil {
-		g.Log.Debug("api.Client:%v New configuring http2 err=%v", err)
+		extraLog(nil, "api.Client:%v New configuring http2 err=%v", err)
 	}
 	ret.cli.Transport = &xprt
 	return ret
