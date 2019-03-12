@@ -87,7 +87,8 @@ type State = {
   sawChatBanner: boolean,
 }
 class Teams extends React.PureComponent<Props, State> {
-  state = {sawChatBanner: false}
+  state = {sawChatBanner: this.props.sawChatBanner}
+
   _teamsAndExtras = memoize((sawChatBanner, teamnames) => [
     {key: '_banner', type: '_banner'},
     ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
