@@ -660,8 +660,7 @@ func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) 
 		return res, err
 	}
 
-	res.UnreadlineID, err = h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID,
-		types.UnreadLineModeAll)
+	res.UnreadlineID, err = h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
 	if err != nil {
 		h.Debug(ctx, "GetUnreadline: unable to run UnreadMsgID: %v", err)
 		return res, err

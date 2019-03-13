@@ -73,13 +73,6 @@ const (
 	InboxSourceDataSourceLocalOnly
 )
 
-type UnreadLineModeTyp int
-
-const (
-	UnreadLineModeAll UnreadLineModeTyp = iota
-	UnreadLineModeLocal
-)
-
 type RemoteConversationMetadata struct {
 	Name              string   `codec:"n"`
 	TopicName         string   `codec:"t"`

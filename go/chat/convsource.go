@@ -358,11 +358,7 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID,
-	mode types.UnreadLineModeTyp) (*chat1.MessageID, error) {
-	if mode == types.UnreadLineModeLocal {
-		return nil, errors.New("local mode not available for remote source")
-	}
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
 	return s.getUnreadlineRemote(ctx, convID, readMsgID)
 }
 
@@ -1128,7 +1124,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID, mode types.UnreadLineModeTyp) (unreadlineID *chat1.MessageID, err error) {
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
@@ -1145,7 +1141,7 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	if unreadlineID == nil && mode != types.UnreadLineModeLocal {
+	if unreadlineID == nil {
 		return s.getUnreadlineRemote(ctx, convID, readMsgID)
 	}
 	return unreadlineID, nil
