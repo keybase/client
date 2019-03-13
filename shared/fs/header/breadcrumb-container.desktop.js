@@ -57,7 +57,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {inDestinationPicker, routePath}: OwnProps) => ({
   _navigateToPath: inDestinationPicker
-    ? (path: Types.Path) => dispatch(FsGen.createMoveOrCopyOpen({currentIndex: 0, path, routePath}))
+    ? (path: Types.Path) => dispatch(FsGen.createDestinationPickerOpen({currentIndex: 0, path, routePath}))
     : (path: Types.Path) => dispatch(FsGen.createOpenPathItem({path, routePath})),
 })
 

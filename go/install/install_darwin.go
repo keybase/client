@@ -1398,6 +1398,9 @@ func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
 		return err
 	}
 	cmd := exec.Command(updaterPath, "check")
+	// Run it in a new process group so when we are killed eventually by the
+	// updater, we don't bring down the updater too.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err = cmd.Start(); err != nil {
 		return err
 	}

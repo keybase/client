@@ -256,7 +256,10 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return fmt.Errorf("user wallet not created")
 	}
 
-	s.walletState.RefreshAll(mctx, "AcceptDisclaimer")
+	err = s.walletState.RefreshAll(mctx, "AcceptDisclaimer")
+	if err != nil {
+		mctx.Debug("AcceptDisclaimer RefreshAll error: %s", err)
+	}
 
 	return nil
 }
@@ -282,7 +285,10 @@ func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.Lin
 		return "", err
 	}
 
-	s.walletState.RefreshAll(mctx, "LinkNewWalletAccount")
+	err = s.walletState.RefreshAll(mctx, "LinkNewWalletAccount")
+	if err != nil {
+		mctx.Debug("LinkNewWalletAccountLocal RefreshAll error: %s", err)
+	}
 
 	return accountID, nil
 }
@@ -389,6 +395,8 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		IssuerDescription:   summary.IssuerDescription,
 		IssuerAccountID:     summary.IssuerAccountID,
 		ExternalTxURL:       details.ExternalTxURL,
+		IsInflation:         summary.IsInflation,
+		InflationSource:     summary.InflationSource,
 	}
 
 	return payment, nil
@@ -444,6 +452,8 @@ func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1
 		IssuerDescription:   summary.IssuerDescription,
 		IssuerAccountID:     summary.IssuerAccountID,
 		ExternalTxURL:       details.ExternalTxURL,
+		IsInflation:         summary.IsInflation,
+		InflationSource:     summary.InflationSource,
 	}
 
 	return payment, nil

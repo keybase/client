@@ -217,7 +217,8 @@ func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 }
 
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
+func (k *KeybaseDaemonLocal) Resolve(
+	ctx context.Context, assertion string, _ keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if err := checkContext(ctx); err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
@@ -257,11 +258,12 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Identify(
-	ctx context.Context, assertion, _ string) (
+	ctx context.Context, assertion, _ string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// The local daemon doesn't need to distinguish resolves from
 	// identifies.
-	return k.Resolve(ctx, assertion)
+	return k.Resolve(ctx, assertion, offline)
 }
 
 // NormalizeSocialAssertion implements the KeybaseService interface for
@@ -302,7 +304,8 @@ func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 // for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	doIdentifies bool, reason string, _ keybase1.OfflineAvailability) (
+	ImplicitTeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return ImplicitTeamInfo{}, err
 	}
@@ -422,8 +425,9 @@ func (k *KeybaseDaemonLocal) ResolveImplicitTeamByID(
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, _ keybase1.KID) (UserInfo, error) {
+func (k *KeybaseDaemonLocal) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, _ keybase1.KID,
+	_ keybase1.OfflineAvailability) (UserInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return UserInfo{}, err
 	}
@@ -446,7 +450,7 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
 func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, _ tlf.Type, _ kbfsmd.KeyGen,
 	_ keybase1.UserVersion, _ kbfscrypto.VerifyingKey,
-	_ keybase1.TeamRole) (TeamInfo, error) {
+	_ keybase1.TeamRole, _ keybase1.OfflineAvailability) (TeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return TeamInfo{}, err
 	}
@@ -495,7 +499,8 @@ func (k *KeybaseDaemonLocal) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	_ keybase1.OfflineAvailability) (
 	settings keybase1.KBFSTeamSettings, err error) {
 	if err := checkContext(ctx); err != nil {
 		return keybase1.KBFSTeamSettings{}, err

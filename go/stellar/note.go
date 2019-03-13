@@ -192,7 +192,7 @@ func noteEncryptHelper(ctx context.Context, note stellar1.NoteContents, symmetri
 	if err != nil {
 		return res, err
 	}
-	secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
+	secbox := secretbox.Seal(nil, clearpack, &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	return stellar1.EncryptedNote{
 		V: 1,

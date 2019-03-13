@@ -87,6 +87,7 @@ class MenubarRender extends React.Component<Props, State> {
             color={menuColor}
             hoverColor={menuColor}
             type="iconfont-nav-more"
+            sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -145,6 +146,7 @@ class MenubarRender extends React.Component<Props, State> {
             color={menuColor}
             hoverColor={menuColor}
             type="iconfont-nav-more"
+            sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -291,6 +293,7 @@ class MenubarRender extends React.Component<Props, State> {
               color={Styles.globalColors.darkBlue4}
               hoverColor={Styles.globalColors.black}
               type="iconfont-nav-more"
+              sizeType="Big"
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
@@ -364,7 +367,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
-        fontSize={22}
+        sizeType="Big"
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}

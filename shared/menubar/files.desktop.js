@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
-import PathItemIcon from '../fs/common/path-item-icon'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
@@ -19,7 +18,7 @@ type FileUpdatesProps = {|
 |}
 
 export type UserTlfUpdateRowProps = {|
-  tlf: string,
+  onClickAvatar: () => void,
   onSelectPath: () => void,
   path: FsTypes.Path,
   writer: string,
@@ -27,6 +26,7 @@ export type UserTlfUpdateRowProps = {|
   participants: Array<string>,
   teamname: string,
   timestamp: string,
+  tlf: string,
   updates: Array<FileUpdateProps>,
   username: string,
 |}
@@ -38,10 +38,7 @@ type FilesPreviewProps = {|
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
-      <Kb.Icon
-        type={props.tlfType === 'public' ? 'icon-file-public-16' : 'icon-file-private-16'}
-        style={Kb.iconCastPlatformStyles(styles.iconStyle)}
-      />
+      <Kb.Icon type="icon-file-16" style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
       {props.uploading && (
         <Kb.Box style={styles.iconBadgeBox}>
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
@@ -86,11 +83,7 @@ type ShowAllProps = FileUpdatesHocProps & {|
 const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonContainer}>
     <Kb.Button
-      label={
-        props.isShowingAll
-          ? 'Collapse'
-          : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`
-      }
+      label={`+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
       onClick={props.onShowAll}
       small={true}
       type="Secondary"
@@ -105,7 +98,7 @@ const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
       <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
     ))}
-    {props.updates.length > defaultNumFileOptionsShown && (
+    {props.updates.length > defaultNumFileOptionsShown && !props.isShowingAll && (
       // $FlowIssue ¯\_(ツ)_/¯
       <FileUpdatesShowAll
         onShowAll={props.onShowAll}
@@ -120,15 +113,7 @@ const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
-    <Kb.ClickableBox onClick={props.onSelectPath}>
-      <PathItemIcon
-        path={props.path}
-        size={32}
-        type="folder"
-        username={props.username}
-        style={styles.tlfRowAvatar}
-      />
-    </Kb.ClickableBox>
+    <Kb.Avatar size={32} username={props.writer} style={styles.tlfRowAvatar} onClick={props.onClickAvatar} />
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
@@ -181,7 +166,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 
 const styles = Styles.styleSheetCreate({
   buttonContainer: {
-    marginTop: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   fileUpdateName: Styles.platformStyles({
     isElectron: {
@@ -230,7 +215,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
   },
   tlfSectionHeader: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueGrey,
     color: Styles.globalColors.black_50,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,

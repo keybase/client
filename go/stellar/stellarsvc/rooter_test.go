@@ -42,7 +42,8 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *kbtest.FakeUser, secret
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
 		}
-		res, err := g.API.Post(apiArg)
+		mctx := libkb.NewMetaContextTODO(g)
+		res, err := g.API.Post(mctx, apiArg)
 		ok := err == nil
 		var postID string
 		if ok {

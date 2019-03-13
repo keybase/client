@@ -99,7 +99,7 @@ type Inbox struct {
 	flushMode InboxFlushMode
 }
 
-var addHookOnce sync.Once
+var addInboxMemCacheHookOnce sync.Once
 
 func FlushMode(mode InboxFlushMode) func(*Inbox) {
 	return func(i *Inbox) {
@@ -109,7 +109,7 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	// add a logout hook to clear the in-memory inbox cache, but only add it once:
-	addHookOnce.Do(func() {
+	addInboxMemCacheHookOnce.Do(func() {
 		g.ExternalG().AddLogoutHook(inboxMemCache)
 	})
 
@@ -575,7 +575,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		res = append(res, rc)
 	}
 	filtered := len(rcs) - len(res)
-	i.Debug(ctx, "applyQuery: res size: %d filtered: %d", len(res), filtered)
+	i.Debug(ctx, "applyQuery: query: %+v, res size: %d filtered: %d", query, len(res), filtered)
 	return res
 }
 
@@ -937,6 +937,27 @@ func (i *Inbox) UpdateInboxVersion(ctx context.Context, uid gregor1.UID, vers ch
 		return err
 	}
 	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
+func (i *Inbox) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "IncrementLocalConvVersion")()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "IncrementLocalConvVersion: no conversation found: convID: %s", convID)
+		return nil
+	}
+	conv.Conv.Metadata.LocalVersion++
 	return i.writeDiskInbox(ctx, uid, ibox)
 }
 

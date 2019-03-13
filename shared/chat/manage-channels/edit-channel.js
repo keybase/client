@@ -1,142 +1,145 @@
 // @flow
 import * as React from 'react'
-import {compose, withStateHandlers, lifecycle} from '../../util/container'
 import DeleteChannel from './delete-channel'
 import {
   Avatar,
   Text,
   Box,
   Button,
+  HeaderOrPopupWithHeader,
   Input,
   ProgressIndicator,
-  StandardScreen,
   ButtonBar,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
-type Props = {
+type Props = {|
   teamname: string,
   channelName: string,
   topic: string,
+  loadChannelInfo: () => void,
   onCancel: () => void,
   onSave: (channelName: string, topic: string) => void,
   onConfirmedDelete: () => void,
   showDelete: boolean,
+  title: string,
   deleteRenameDisabled: boolean,
   waitingForGetInfo: boolean,
-}
+|}
 
-type TextState = {
+type State = {
   newChannelName: string,
-  onChangeChannelName: (nextChannelName: string) => void,
   newTopic: string,
-  onChangeTopic: (nextTopic: string) => void,
 }
 
-const EditChannelBare = (props: Props & TextState) => (
-  <Box style={_boxStyle}>
-    <Avatar isTeam={true} teamname={props.teamname} size={32} />
-    <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
-      {props.teamname}
-    </Text>
-    {props.waitingForGetInfo ? (
-      <ProgressIndicator
-        style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny, width: 20}}
-      />
-    ) : (
-      <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
-        Edit #{props.channelName}
-      </Text>
-    )}
-    <Box style={{position: 'relative'}}>
-      <Input
-        onChangeText={props.onChangeChannelName}
-        hintText={props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
-        editable={!props.waitingForGetInfo && !props.deleteRenameDisabled}
-        value={props.newChannelName}
-      />
+class _EditChannel extends React.Component<Props, State> {
+  state = {newChannelName: this.props.channelName, newTopic: this.props.topic}
 
-      {props.deleteRenameDisabled && (
-        <Text
-          center={true} type="BodySmall"
-          style={{
-            left: 0,
-            position: 'absolute',
-            right: 0,
-            top: 60,
-          }}
-        >
-          #general can’t be renamed or deleted.
-        </Text>
-      )}
+  _onChangeChannelName = newChannelName => this.setState({newChannelName})
+  _onChangeTopic = newTopic => this.setState({newTopic})
+  _onSave = () => this.props.onSave(this.state.newChannelName, this.state.newTopic)
 
-      <Input
-        onChangeText={props.onChangeTopic}
-        editable={!props.waitingForGetInfo}
-        hintText={
-          props.waitingForGetInfo ? 'Loading channel description...' : 'Description or topic (optional)'
-        }
-        value={props.newTopic}
-      />
-    </Box>
-    <Box style={_bottomRowStyle}>
-      {!isMobile && props.showDelete && (
-        <DeleteChannel
-          channelName={props.channelName}
-          onConfirmedDelete={props.onConfirmedDelete}
-          disabled={props.deleteRenameDisabled}
-        />
-      )}
-      <ButtonBar>
-        <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
-        <Button
-          type="Primary"
-          label="Save"
-          disabled={props.channelName === props.newChannelName && props.topic === props.newTopic}
-          onClick={() => props.onSave(props.newChannelName, props.newTopic)}
-          style={{marginLeft: globalMargins.tiny}}
-        />
-      </ButtonBar>
-    </Box>
-    {isMobile && props.showDelete && !props.deleteRenameDisabled && (
-      <DeleteChannel
-        channelName={props.channelName}
-        onConfirmedDelete={props.onConfirmedDelete}
-        disabled={false}
-      />
-    )}
-  </Box>
-)
-
-// TODO(mm) this should be handled at a higher level
-const _EditChannelOnStandardScreen = (props: Props & TextState) => (
-  <StandardScreen onBack={props.onCancel}>
-    <EditChannelBare {...props} />
-  </StandardScreen>
-)
-
-const EditChannel: React.ComponentType<Props> = compose(
-  withStateHandlers(
-    props => ({
-      newChannelName: props.channelName,
-      newTopic: props.topic,
-    }),
-    {
-      onChangeChannelName: () => newChannelName => ({newChannelName}),
-      onChangeTopic: () => newTopic => ({newTopic}),
+  componentDidMount() {
+    if (this.props.waitingForGetInfo) {
+      this.props.loadChannelInfo()
     }
-  ),
-  lifecycle({
-    componentDidUpdate(prevProps: Props) {
-      if (prevProps.channelName !== this.props.channelName) {
-        this.props.onChangeChannelName(this.props.channelName)
-      }
-      if (prevProps.topic !== this.props.topic) {
-        this.props.onChangeTopic(this.props.topic)
-      }
-    },
-  })
-)(isMobile ? _EditChannelOnStandardScreen : EditChannelBare)
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.channelName !== this.props.channelName) {
+      this._onChangeChannelName(this.props.channelName)
+    }
+    if (prevProps.topic !== this.props.topic) {
+      this._onChangeTopic(this.props.topic)
+    }
+  }
+
+  render() {
+    return (
+      <Box style={_boxStyle}>
+        <Avatar isTeam={true} teamname={this.props.teamname} size={32} />
+        <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
+          {this.props.teamname}
+        </Text>
+        {this.props.waitingForGetInfo ? (
+          <ProgressIndicator
+            style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny, width: 20}}
+          />
+        ) : (
+          !isMobile && (
+            <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+              {this.props.title}
+            </Text>
+          )
+        )}
+        <Box style={{position: 'relative'}}>
+          <Input
+            onChangeText={this._onChangeChannelName}
+            hintText={this.props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
+            editable={!this.props.waitingForGetInfo && !this.props.deleteRenameDisabled}
+            value={this.state.newChannelName}
+          />
+
+          {this.props.deleteRenameDisabled && (
+            <Text
+              center={true}
+              type="BodySmall"
+              style={{
+                left: 0,
+                position: 'absolute',
+                right: 0,
+                top: 60,
+              }}
+            >
+              #general can’t be renamed or deleted.
+            </Text>
+          )}
+
+          <Input
+            onChangeText={this._onChangeTopic}
+            editable={!this.props.waitingForGetInfo}
+            hintText={
+              this.props.waitingForGetInfo
+                ? 'Loading channel description...'
+                : 'Description or topic (optional)'
+            }
+            value={this.state.newTopic}
+          />
+        </Box>
+        <Box style={_bottomRowStyle}>
+          {!isMobile && this.props.showDelete && (
+            <DeleteChannel
+              channelName={this.props.channelName}
+              onConfirmedDelete={this.props.onConfirmedDelete}
+              disabled={this.props.deleteRenameDisabled}
+            />
+          )}
+          <ButtonBar>
+            <Button type="Secondary" label="Cancel" onClick={this.props.onCancel} />
+            <Button
+              type="Primary"
+              label="Save"
+              disabled={
+                this.props.channelName === this.state.newChannelName &&
+                this.props.topic === this.state.newTopic
+              }
+              onClick={this._onSave}
+              style={{marginLeft: globalMargins.tiny}}
+            />
+          </ButtonBar>
+        </Box>
+        {isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
+          <DeleteChannel
+            channelName={this.props.channelName}
+            onConfirmedDelete={this.props.onConfirmedDelete}
+            disabled={false}
+          />
+        )}
+      </Box>
+    )
+  }
+}
+const EditChannel = HeaderOrPopupWithHeader(_EditChannel)
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,

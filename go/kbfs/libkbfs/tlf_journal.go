@@ -416,8 +416,8 @@ func makeTLFJournal(
 
 	mdJournal, err := makeMDJournal(
 		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
-		config.teamMembershipChecker(), tlfID, config.MetadataVersion(), dir,
-		log)
+		config.teamMembershipChecker(), config, tlfID, config.MetadataVersion(),
+		dir, log)
 	if err != nil {
 		return nil, err
 	}
@@ -1729,7 +1729,8 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 
 	handle, err := MakeTlfHandle(
 		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.resolver(),
-		j.config.usernameGetter(), constIDGetter{j.tlfID})
+		j.config.usernameGetter(), constIDGetter{j.tlfID},
+		j.config.OfflineAvailabilityForID(j.tlfID))
 	if err != nil {
 		return nil, err
 	}
@@ -1751,7 +1752,8 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 			ctx, j.config.Codec(), j.config.Crypto(),
 			j.config.BlockCache(), j.config.BlockOps(),
 			j.config.mdDecryptionKeyGetter(), j.config.teamMembershipChecker(),
-			mode, j.uid, rmd.GetSerializedPrivateMetadata(), rmd, rmd, j.log)
+			j.config, mode, j.uid, rmd.GetSerializedPrivateMetadata(), rmd,
+			rmd, j.log)
 		if err != nil {
 			return nil, err
 		}
@@ -1796,7 +1798,7 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 				return TLFJournalStatus{}, err
 			}
 			err = addUnflushedPaths(ctx, j.uid, j.key,
-				j.config.Codec(), j.log, mdInfos, cpp,
+				j.config.Codec(), j.log, j.config, mdInfos, cpp,
 				unflushedPaths)
 			if err != nil {
 				return TLFJournalStatus{}, err
@@ -1825,7 +1827,8 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 				return TLFJournalStatus{}, err
 			}
 			unflushedPaths, initSuccess, err = upCache.initialize(
-				ctx, j.uid, j.key, j.config.Codec(), j.log, cpp, mdInfos)
+				ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, cpp,
+				mdInfos)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
@@ -2328,7 +2331,7 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 		localTimestamp: time.Now(),
 	}
 	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
-		ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
+		ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, mdInfo)
 	if err != nil {
 		return err
 	}
@@ -2342,7 +2345,7 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 		// The cache was initialized after the last time we tried to
 		// prepare the unflushed paths.
 		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
+			ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, mdInfo)
 		if err != nil {
 			return err
 		}

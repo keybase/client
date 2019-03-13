@@ -24,7 +24,8 @@ const routeTree = () => {
   const LogOut = require('./logout/container').default
   const Passphrase = require('./passphrase/container').default
   const UserEmail = require('./email/container').default
-  const SecurityPrefs = require('../fs/common/security-prefs-container.desktop').default
+  const KextPermissionPopup = require('../fs/banner/system-file-manager-integration-banner/kext-permission-popup-container')
+    .default
   return makeRouteDefNode({
     children: {
       [Constants.landingTab]: {
@@ -79,8 +80,8 @@ const routeTree = () => {
       },
       [Constants.fsTab]: {
         children: {
-          securityPrefs: {
-            component: SecurityPrefs,
+          kextPermission: {
+            component: KextPermissionPopup,
           },
         },
         component: FilesContainer,

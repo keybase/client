@@ -28,6 +28,7 @@ export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedRememberPassphrase = 'settings:loadedRememberPassphrase'
 export const loadedSettings = 'settings:loadedSettings'
+export const loadedTestPassphrase = 'settings:loadedTestPassphrase'
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export const notificationsSaved = 'settings:notificationsSaved'
@@ -46,6 +47,7 @@ export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const testPassphrase = 'settings:testPassphrase'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
@@ -73,6 +75,7 @@ type _LoadedHasRandomPwPayload = $ReadOnly<{|randomPW: boolean|}>
 type _LoadedLockdownModePayload = $ReadOnly<{|status: ?boolean|}>
 type _LoadedRememberPassphrasePayload = $ReadOnly<{|remember: boolean|}>
 type _LoadedSettingsPayload = $ReadOnly<{|emails: ?Array<RPCTypes.Email>|}>
+type _LoadedTestPassphrasePayload = $ReadOnly<{|testPassphraseIsCorrect: ?boolean|}>
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = $ReadOnly<{|notifications: Types.NotificationsState|}>
 type _NotificationsSavedPayload = void
@@ -91,6 +94,7 @@ type _OnUpdatePassphraseErrorPayload = $ReadOnly<{|error: Error|}>
 type _OnUpdatedPGPSettingsPayload = $ReadOnly<{|hasKeys: boolean|}>
 type _ProcessorProfilePayload = $ReadOnly<{|durationSeconds: number|}>
 type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
+type _TestPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
 type _UnfurlSettingsErrorPayload = $ReadOnly<{|error: string|}>
 type _UnfurlSettingsRefreshPayload = void
@@ -134,6 +138,7 @@ export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload) => (
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload) => ({payload, type: loadedLockdownMode})
 export const createLoadedRememberPassphrase = (payload: _LoadedRememberPassphrasePayload) => ({payload, type: loadedRememberPassphrase})
 export const createLoadedSettings = (payload: _LoadedSettingsPayload) => ({payload, type: loadedSettings})
+export const createLoadedTestPassphrase = (payload: _LoadedTestPassphrasePayload) => ({payload, type: loadedTestPassphrase})
 export const createNotificationsRefresh = (payload: _NotificationsRefreshPayload) => ({payload, type: notificationsRefresh})
 export const createNotificationsRefreshed = (payload: _NotificationsRefreshedPayload) => ({payload, type: notificationsRefreshed})
 export const createNotificationsSaved = (payload: _NotificationsSavedPayload) => ({payload, type: notificationsSaved})
@@ -152,6 +157,7 @@ export const createOnUpdatePassphraseError = (payload: _OnUpdatePassphraseErrorP
 export const createOnUpdatedPGPSettings = (payload: _OnUpdatedPGPSettingsPayload) => ({payload, type: onUpdatedPGPSettings})
 export const createProcessorProfile = (payload: _ProcessorProfilePayload) => ({payload, type: processorProfile})
 export const createSetAllowDeleteAccount = (payload: _SetAllowDeleteAccountPayload) => ({payload, type: setAllowDeleteAccount})
+export const createTestPassphrase = (payload: _TestPassphrasePayload) => ({payload, type: testPassphrase})
 export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({payload, type: waitingForResponse})
 
@@ -175,6 +181,7 @@ export type LoadedHasRandomPwPayload = {|+payload: _LoadedHasRandomPwPayload, +t
 export type LoadedLockdownModePayload = {|+payload: _LoadedLockdownModePayload, +type: 'settings:loadedLockdownMode'|}
 export type LoadedRememberPassphrasePayload = {|+payload: _LoadedRememberPassphrasePayload, +type: 'settings:loadedRememberPassphrase'|}
 export type LoadedSettingsPayload = {|+payload: _LoadedSettingsPayload, +type: 'settings:loadedSettings'|}
+export type LoadedTestPassphrasePayload = {|+payload: _LoadedTestPassphrasePayload, +type: 'settings:loadedTestPassphrase'|}
 export type NotificationsRefreshPayload = {|+payload: _NotificationsRefreshPayload, +type: 'settings:notificationsRefresh'|}
 export type NotificationsRefreshedPayload = {|+payload: _NotificationsRefreshedPayload, +type: 'settings:notificationsRefreshed'|}
 export type NotificationsSavedPayload = {|+payload: _NotificationsSavedPayload, +type: 'settings:notificationsSaved'|}
@@ -193,6 +200,7 @@ export type OnUpdatePassphraseErrorPayload = {|+payload: _OnUpdatePassphraseErro
 export type OnUpdatedPGPSettingsPayload = {|+payload: _OnUpdatedPGPSettingsPayload, +type: 'settings:onUpdatedPGPSettings'|}
 export type ProcessorProfilePayload = {|+payload: _ProcessorProfilePayload, +type: 'settings:processorProfile'|}
 export type SetAllowDeleteAccountPayload = {|+payload: _SetAllowDeleteAccountPayload, +type: 'settings:setAllowDeleteAccount'|}
+export type TestPassphrasePayload = {|+payload: _TestPassphrasePayload, +type: 'settings:testPassphrase'|}
 export type TracePayload = {|+payload: _TracePayload, +type: 'settings:trace'|}
 export type UnfurlSettingsErrorPayload = {|+payload: _UnfurlSettingsErrorPayload, +type: 'settings:unfurlSettingsError'|}
 export type UnfurlSettingsRefreshPayload = {|+payload: _UnfurlSettingsRefreshPayload, +type: 'settings:unfurlSettingsRefresh'|}
@@ -222,6 +230,7 @@ export type Actions =
   | LoadedLockdownModePayload
   | LoadedRememberPassphrasePayload
   | LoadedSettingsPayload
+  | LoadedTestPassphrasePayload
   | NotificationsRefreshPayload
   | NotificationsRefreshedPayload
   | NotificationsSavedPayload
@@ -240,6 +249,7 @@ export type Actions =
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
   | SetAllowDeleteAccountPayload
+  | TestPassphrasePayload
   | TracePayload
   | UnfurlSettingsErrorPayload
   | UnfurlSettingsRefreshPayload

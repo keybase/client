@@ -1520,7 +1520,8 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 
 	t.Log("Ensure that the block references have been removed rather than just archived")
 	bOps := config.BlockOps()
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), config.MDOps(), "test_user", tlf.Private)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "test_user", tlf.Private)
 	require.NoError(t, err)
 	ptrs := make([]BlockPointer, len(pointerMap))
 	for _, ptr := range pointerMap {

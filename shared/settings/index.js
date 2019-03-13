@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as ConfigGen from '../actions/config-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as RouteTreeGen from '../actions/route-tree-gen'

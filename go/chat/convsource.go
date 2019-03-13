@@ -1222,7 +1222,9 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 			}
 		}
 		if len(reactionUpdates) > 0 {
+			topReactjis := storage.NewReacjiStore(s.G()).TopReacjis(ctx, uid)
 			activity := chat1.NewChatActivityWithReactionUpdate(chat1.ReactionUpdateNotif{
+				TopReacjis:      topReactjis,
 				ReactionUpdates: reactionUpdates,
 				ConvID:          convID,
 			})
@@ -1248,7 +1250,11 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 		})
 		s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, &act, chat1.ChatActivitySource_LOCAL)
 
-		// Send an additional notification to refresh the thread
+		// Send an additional notification to refresh the thread after we bump
+		// the local inbox version
+		if err := storage.NewInbox(s.G()).IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+			s.Debug(ctx, "notifyEphemeralPurge: unablle to IncrementLocalConvVersion, err", err)
+		}
 		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
 			chat1.ConversationStaleUpdate{
 				ConvID:     convID,

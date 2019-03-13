@@ -163,7 +163,7 @@ func (c testTLFJournalConfig) BGFlushDirOpBatchSize() int {
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
 	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
-	id, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
+	id, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
 	require.NoError(c.t, err)
 	bCtx := kbfsblock.MakeFirstContext(
 		c.uid.AsUserOrTeam(), keybase1.BlockType_DATA)
@@ -186,7 +186,8 @@ func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 		rmds.MD, extra, expectedRevision, expectedPrevRoot,
 		expectedMergeStatus, expectedBranchID)
 	err := rmds.IsValidAndSigned(
-		context.Background(), c.Codec(), nil, extra)
+		context.Background(), c.Codec(), nil, extra,
+		keybase1.OfflineAvailability_NONE)
 	require.NoError(c.t, err)
 	err = rmds.IsLastModifiedBy(c.uid, verifyingKey)
 	require.NoError(c.t, err)

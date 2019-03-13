@@ -130,7 +130,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		if err != nil {
 			return kbfscrypto.TLFCryptKey{}, err
 		}
-		keys, _, err := km.config.KBPKI().GetTeamTLFCryptKeys(ctx, tid, keyGen)
+		keys, _, err := km.config.KBPKI().GetTeamTLFCryptKeys(
+			ctx, tid, keyGen, km.config.OfflineAvailabilityForID(tlfID))
 		if err != nil {
 			return kbfscrypto.TLFCryptKey{}, err
 		}
@@ -221,11 +222,13 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(
 	kbpki := km.config.KBPKI()
 	crypto := km.config.Crypto()
 	localMakeRekeyReadError := func(err error) error {
-		return makeRekeyReadError(ctx, err, kbpki, kmd, uid, username)
+		return makeRekeyReadError(
+			ctx, err, kbpki, km.config, kmd, uid, username)
 	}
 
 	if flags&getTLFCryptKeyAnyDevice != 0 {
-		publicKeys, err := kbpki.GetCryptPublicKeys(ctx, uid)
+		publicKeys, err := kbpki.GetCryptPublicKeys(
+			ctx, uid, km.config.OfflineAvailabilityForID(kmd.TlfID()))
 		if err != nil {
 			return kbfscrypto.TLFCryptKeyClientHalf{},
 				kbfscrypto.TLFCryptKeyServerHalfID{},
@@ -447,14 +450,17 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 		return err
 	}
 
-	return identifyUserList(ctx, kbpki, kbpki, ids, tlfID.Type())
+	return identifyUserList(
+		ctx, kbpki, kbpki, ids, tlfID.Type(),
+		km.config.OfflineAvailabilityForID(tlfID))
 }
 
 // generateKeyMapForUsers returns a kbfsmd.UserDevicePublicKeys object for
 // the given list of users. Note that keyless users are retained in
 // the returned kbfsmd.UserDevicePublicKeys object.
 func (km *KeyManagerStandard) generateKeyMapForUsers(
-	ctx context.Context, users []keybase1.UserOrTeamID) (
+	ctx context.Context, users []keybase1.UserOrTeamID,
+	offline keybase1.OfflineAvailability) (
 	kbfsmd.UserDevicePublicKeys, error) {
 	keyMap := make(kbfsmd.UserDevicePublicKeys)
 
@@ -463,7 +469,8 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(
 		uid := w.AsUserOrBust() // only private TLFs should call this
 		// HACK: clear cache
 		km.config.KeybaseService().FlushUserFromLocalCache(ctx, uid)
-		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, uid)
+		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(
+			ctx, uid, offline)
 		if err != nil {
 			return nil, err
 		}
@@ -512,7 +519,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	idGetter := constIDGetter{md.TlfID()}
 	resolvedHandle, err := handle.ResolveAgain(
-		ctx, km.config.KBPKI(), idGetter)
+		ctx, km.config.KBPKI(), idGetter, km.config)
 	if err != nil {
 		return false, nil, err
 	}
@@ -527,7 +534,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		} else {
 			// Only allow yourself to change
 			resolvedHandle, err = handle.ResolveAgainForUser(
-				ctx, km.config.KBPKI(), idGetter, session.UID)
+				ctx, km.config.KBPKI(), idGetter, km.config, session.UID)
 			if err != nil {
 				return false, nil, err
 			}
@@ -582,15 +589,17 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, NewReadAccessError(resolvedHandle, session.Name, resolvedHandle.GetCanonicalPath())
 	}
 
+	offline := km.config.OfflineAvailabilityForID(md.TlfID())
+
 	// All writer keys in the desired keyset
 	updatedWriterKeys, err := km.generateKeyMapForUsers(
-		ctx, resolvedHandle.ResolvedWriters())
+		ctx, resolvedHandle.ResolvedWriters(), offline)
 	if err != nil {
 		return false, nil, err
 	}
 	// All reader keys in the desired keyset
 	updatedReaderKeys, err := km.generateKeyMapForUsers(
-		ctx, resolvedHandle.ResolvedReaders())
+		ctx, resolvedHandle.ResolvedReaders(), offline)
 	if err != nil {
 		return false, nil, err
 	}
@@ -740,8 +749,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		pmd, err := decryptMDPrivateData(
 			ctx, km.config.Codec(), km.config.Crypto(),
 			km.config.BlockCache(), km.config.BlockOps(), km, km.config.KBPKI(),
-			km.config.Mode(), session.UID, md.GetSerializedPrivateMetadata(),
-			md, md, km.log)
+			km.config, km.config.Mode(), session.UID,
+			md.GetSerializedPrivateMetadata(), md, md, km.log)
 		if err != nil {
 			return false, nil, err
 		}

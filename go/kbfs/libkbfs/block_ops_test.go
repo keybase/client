@@ -113,7 +113,7 @@ func (config testBlockOpsConfig) DataVersion() DataVer {
 }
 
 func (config testBlockOpsConfig) BlockCryptVersion() kbfscrypto.EncryptionVer {
-	return kbfscrypto.EncryptionSecretbox
+	return kbfscrypto.EncryptionSecretboxWithKeyNonce
 }
 
 func (config testBlockOpsConfig) Clock() Clock {

@@ -749,14 +749,6 @@ func CITimeMultiplier(g *GlobalContext) time.Duration {
 	return time.Duration(1)
 }
 
-func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
-	switch err := err.(type) {
-	case AppStatusError:
-		return err.Code == int(code)
-	}
-	return false
-}
-
 func CanExec(p string) error {
 	return canExec(p)
 }

@@ -112,6 +112,22 @@ func (t *testSyncedTlfGetterSetter) GetAllSyncedTlfs() []tlf.ID {
 	return tlfs
 }
 
+func (t *testSyncedTlfGetterSetter) OfflineAvailabilityForPath(
+	tlfPath string) keybase1.OfflineAvailability {
+	if t.IsSyncedTlfPath(tlfPath) {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
+}
+
+func (t *testSyncedTlfGetterSetter) OfflineAvailabilityForID(
+	tlfID tlf.ID) keybase1.OfflineAvailability {
+	if t.IsSyncedTlf(tlfID) {
+		return keybase1.OfflineAvailability_BEST_EFFORT
+	}
+	return keybase1.OfflineAvailability_NONE
+}
+
 type testInitModeGetter struct {
 	mode InitModeType
 }

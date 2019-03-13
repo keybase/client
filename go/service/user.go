@@ -138,14 +138,16 @@ func (h *UserHandler) LoadUserPlusKeysV2(ctx context.Context, arg keybase1.LoadU
 	}
 
 	retp := &ret
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "user.loadUserPlusKeysV2", false, cacheArg, &retp, func(mctx libkb.MetaContext) (interface{}, error) {
-		tmp, err := h.G().GetUPAKLoader().LoadV2WithKID(mctx.Ctx(), arg.Uid, arg.PollForKID)
-		if tmp != nil {
-			*retp = *tmp
-		}
-		return tmp, err
+	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "user.loadUserPlusKeysV2", false, cacheArg, &retp, func(mctx libkb.MetaContext) (interface{}, error) {
+		return h.G().GetUPAKLoader().LoadV2WithKID(mctx.Ctx(), arg.Uid, arg.PollForKID)
 	})
-
+	if s, ok := servedRet.(*keybase1.UserPlusKeysV2AllIncarnations); ok && s != nil {
+		// Even if err != nil, the caller might still be expecting
+		// data, so use the return value if there is one.
+		ret = *s
+	} else if err != nil {
+		ret = keybase1.UserPlusKeysV2AllIncarnations{}
+	}
 	return ret, err
 }
 
@@ -176,7 +178,8 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 }
 
 func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
-	emails, err := libkb.LoadUserEmails(h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	emails, err := libkb.LoadUserEmails(mctx)
 	if err != nil {
 		return
 	}
@@ -598,10 +601,9 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		libkb.AppStatusEmbed
 		RandomPW bool `json:"random_pw"`
 	}
-	err = h.G().API.GetDecode(libkb.APIArg{
+	err = m.G().API.GetDecode(m, libkb.APIArg{
 		Endpoint:       "user/has_random_pw",
 		SessionType:    libkb.APISessionTypeREQUIRED,
-		NetContext:     ctx,
 		InitialTimeout: initialTimeout,
 	}, &ret)
 	if err != nil {

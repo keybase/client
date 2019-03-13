@@ -5,7 +5,6 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {withProps} from 'recompose'
-import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
 import * as FsCommon from '../common'
 import * as RowCommon from '../row/common'
@@ -55,7 +54,7 @@ const DesktopHeaders = (props: Props) => (
 
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-    {!isMobile && <DesktopHeaders {...props} />}
+    {!Styles.isMobile && <DesktopHeaders {...props} />}
     <Kb.Divider key="dheader" />
     {!!props.onBackUp && (
       <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={props.onBackUp}>
@@ -95,9 +94,9 @@ const DestinationPicker = (props: Props) => (
     <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
       <Rows path={props.parentPath} destinationPickerIndex={props.index} routePath={props.routePath} />
     </Kb.Box2>
-    {isMobile && <Kb.Divider key="dfooter" />}
+    {Styles.isMobile && <Kb.Divider key="dfooter" />}
     <Kb.Box2 key="footer" direction="horizontal" centerChildren={true} fullWidth={true} style={styles.footer}>
-      {isMobile ? (
+      {Styles.isMobile ? (
         <NewFolder onNewFolder={props.onNewFolder} />
       ) : (
         <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
@@ -106,7 +105,7 @@ const DestinationPicker = (props: Props) => (
   </Kb.Box2>
 )
 
-export default (isMobile
+export default (Styles.isMobile
   ? withProps<_, any>(props => ({
       customComponent: (
         <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -116,9 +115,14 @@ export default (isMobile
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
               <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
-              <Kb.Text type="BodySmallSemibold" lineClamp={1}>
-                {props.targetName}
-              </Kb.Text>
+              <Kb.Box2 direction="horizontal">
+                <Kb.Text type="BodySmallSemibold" lineClamp={1}>
+                  {props.targetNameWithoutExtension}
+                </Kb.Text>
+                <Kb.Text type="BodySmallSemibold">
+                  {props.targetExtension}
+                </Kb.Text>
+              </Kb.Box2>
             </Kb.Box2>
             <Kb.Text type="Header" lineClamp={1}>
               {Types.getPathName(props.parentPath)}
@@ -178,8 +182,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 8,
   },
   mobileHeaderContent: {
-    flex: 1,
-    marginRight: 90, // width of the "Cancel" button
+    paddingRight: 90, // width of the "Cancel" button
   },
   newFolderBox: {
     ...Styles.globalStyles.flexBoxRow,

@@ -456,9 +456,15 @@ func ConvertIdentifyError(assertion string, err error) error {
 }
 
 // Resolve implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
+func (k *KeybaseServiceBase) Resolve(
+	ctx context.Context, assertion string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	res, err := k.identifyClient.Resolve3(ctx, keybase1.Resolve3Arg{Assertion: assertion})
+	res, err := k.identifyClient.Resolve3(
+		ctx, keybase1.Resolve3Arg{
+			Assertion: assertion,
+			Oa:        offline,
+		})
 	if err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
@@ -467,7 +473,9 @@ func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
 }
 
 // Identify implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason string) (
+func (k *KeybaseServiceBase) Identify(
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// setting UseDelegateUI to true here will cause daemon to use
 	// registered identify ui providers instead of terminal if any
@@ -479,6 +487,7 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 		// No need to go back and forth with the UI until the service
 		// knows for sure there's a need for a dialogue.
 		CanSuppressUI: true,
+		Oa:            offline,
 	}
 
 	ei := getExtendedIdentify(ctx)
@@ -533,7 +542,8 @@ func (k *KeybaseServiceBase) NormalizeSocialAssertion(
 // for KeybaseServiceBase.
 func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	doIdentifies bool, reason string,
+	offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
 	if tlfType != tlf.Private && tlfType != tlf.Public {
 		return ImplicitTeamInfo{}, fmt.Errorf(
 			"Invalid implicit team TLF type: %s", tlfType)
@@ -546,6 +556,7 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 		Reason:       keybase1.IdentifyReason{Reason: reason},
 		Create:       true,
 		IsPublic:     tlfType == tlf.Public,
+		Oa:           offline,
 	}
 
 	ei := getExtendedIdentify(ctx)
@@ -665,8 +676,9 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 
 // LoadUserPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
+func (k *KeybaseServiceBase) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
+	offline keybase1.OfflineAvailability) (UserInfo, error) {
 	cachedUserInfo := k.getCachedUserInfo(uid)
 	if cachedUserInfo.Name != kbname.NormalizedUsername("") {
 		if pollForKID == keybase1.KID("") {
@@ -692,7 +704,11 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		}
 	}
 
-	arg := keybase1.LoadUserPlusKeysV2Arg{Uid: uid, PollForKID: pollForKID}
+	arg := keybase1.LoadUserPlusKeysV2Arg{
+		Uid:        uid,
+		PollForKID: pollForKID,
+		Oa:         offline,
+	}
 	res, err := k.userClient.LoadUserPlusKeysV2(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err
@@ -757,8 +773,8 @@ var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type,
 	desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion,
-	desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole) (
-	TeamInfo, error) {
+	desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole,
+	offline keybase1.OfflineAvailability) (TeamInfo, error) {
 	if !allowedLoadTeamRoles[desiredRole] {
 		panic(fmt.Sprintf("Disallowed team role: %v", desiredRole))
 	}
@@ -811,6 +827,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 		Id:              tid,
 		Application:     keybase1.TeamApplication_KBFS,
 		IncludeKBFSKeys: true,
+		Oa:              offline,
 	}
 
 	if desiredKeyGen >= kbfsmd.FirstValidKeyGen {
@@ -898,10 +915,15 @@ func (k *KeybaseServiceBase) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (
 	keybase1.KBFSTeamSettings, error) {
 	// TODO: get invalidations from the server and cache the settings?
-	return k.kbfsClient.GetKBFSTeamSettings(ctx, keybase1.GetKBFSTeamSettingsArg{TeamID: teamID})
+	return k.kbfsClient.GetKBFSTeamSettings(
+		ctx, keybase1.GetKBFSTeamSettingsArg{
+			TeamID: teamID,
+			Oa:     offline,
+		})
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (
@@ -1205,7 +1227,7 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), k.config.MDOps(), req.Folder.Name,
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, req.Folder.Name,
 		!req.Folder.Private)
 	if err != nil {
 		return err
@@ -1323,7 +1345,8 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	// Making a favorite here to reuse the code that converts from
 	// `keybase1.FolderType` into `tlf.Type`.
 	fav := NewFavoriteFromFolder(folder)
-	handle, err := GetHandleFromFolderNameAndType(ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
+	handle, err := GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
 		return err
 	}
@@ -1336,7 +1359,7 @@ func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder) (err error) {
 	fav := NewFavoriteFromFolder(folder)
 	handle, err := GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
 		return err
 	}
@@ -1371,7 +1394,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	}
 
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), k.config.MDOps(), query.TlfName, false)
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, query.TlfName, false)
 	if err != nil {
 		return res, err
 	}
@@ -1413,7 +1436,7 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	}
 
 	tlfHandle, err := getHandleFromFolderName(
-		ctx, k.config.KBPKI(), k.config.MDOps(), query.TlfName,
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, query.TlfName,
 		true /* public */)
 	if err != nil {
 		return res, err

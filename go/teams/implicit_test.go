@@ -30,6 +30,47 @@ func newImplicitTLFID(public bool) keybase1.TLFID {
 	return keybase1.TLFID(hex.EncodeToString(idBytes))
 }
 
+func TestImplicitRaceCreateTLFs(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	displayName := u.Username
+	_, _, _, err = LookupImplicitTeam(context.TODO(), tc.G, displayName, false, ImplicitTeamOptions{})
+	require.Error(t, err)
+	require.IsType(t, TeamDoesNotExistError{}, err)
+	createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+	require.NoError(t, err)
+	tlfid0 := createdTeam.LatestKBFSTLFID()
+	require.False(t, impTeamName.IsPublic)
+	require.True(t, tlfid0.IsNil())
+	tlfid1 := newImplicitTLFID(true)
+	n := 4
+	doneCh := make(chan struct{}, n+1)
+	for i := 0; i < n; i++ {
+		go func() {
+			err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
+			require.NoError(t, err)
+			doneCh <- struct{}{}
+		}()
+	}
+	for i := 0; i < n; i++ {
+		select {
+		case <-doneCh:
+		case <-time.After(time.Minute):
+			t.Fatal("failed to get racing racers back")
+		}
+		tc.G.Log.Debug("Got finisher %d", i)
+	}
+	// second time, LookupOrCreate should Lookup the team just created.
+	createdTeam2, _, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+	require.NoError(t, err)
+	tlfid2 := createdTeam2.LatestKBFSTLFID()
+	require.Equal(t, createdTeam.ID, createdTeam2.ID)
+	require.Equal(t, impTeamName, impTeamName2, "public: %v", false)
+	require.Equal(t, tlfid1, tlfid2, "the right TLFID came back")
+}
+
 func TestLookupImplicitTeams(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
@@ -56,6 +97,10 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.True(t, tlfid0.IsNil())
 
 		tlfid1 := newImplicitTLFID(public)
+		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
+		require.NoError(t, err)
+
+		// We can double this, and it still should work (and noop the second Time)
 		err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
 		require.NoError(t, err)
 

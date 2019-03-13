@@ -54,7 +54,7 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	fs, id1, err := GetOrCreateRepoAndID(ctx, config, h, "Repo1", "")
@@ -109,7 +109,7 @@ func TestCreateRepoAndID(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")
@@ -158,7 +158,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx2, t, config2)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1,user2", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1,user2", tlf.Private)
 	require.NoError(t, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
@@ -228,7 +228,7 @@ func TestGetRepoAndID(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	_, _, err = GetRepoAndID(ctx, config, h, "Repo1", "")
@@ -265,7 +265,7 @@ func TestDeleteRepo(t *testing.T) {
 	config.SetClock(clock)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	_, err = CreateRepoAndID(ctx, config, h, "Repo1")
@@ -322,7 +322,7 @@ func TestRepoRename(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 
 	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")

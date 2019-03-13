@@ -142,6 +142,7 @@ type Identify3Row struct {
 	State        Identify3RowState  `codec:"state" json:"state"`
 	Metas        []Identify3RowMeta `codec:"metas" json:"metas"`
 	Color        Identify3RowColor  `codec:"color" json:"color"`
+	Kid          *KID               `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
 func (o Identify3Row) DeepCopy() Identify3Row {
@@ -189,6 +190,13 @@ func (o Identify3Row) DeepCopy() Identify3Row {
 			return ret
 		})(o.Metas),
 		Color: o.Color.DeepCopy(),
+		Kid: (func(x *KID) *KID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Kid),
 	}
 }
 

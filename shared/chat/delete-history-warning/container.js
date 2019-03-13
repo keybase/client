@@ -3,8 +3,7 @@ import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import DeleteHistoryWarning from '.'
 import {type RouteProps} from '../../route-tree/render-route'
-import {compose, connect} from '../../util/container'
-import {isMobile} from '../../constants/platform'
+import {compose, connect, isMobile} from '../../util/container'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 

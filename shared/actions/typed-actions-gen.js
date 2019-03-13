@@ -23,11 +23,10 @@ import type {Actions as settingsActions} from './settings-gen'
 import type {Actions as signupActions} from './signup-gen'
 import type {Actions as teambuildingActions} from './team-building-gen'
 import type {Actions as teamsActions} from './teams-gen'
-import type {Actions as trackerActions} from './tracker-gen'
 import type {Actions as tracker2Actions} from './tracker2-gen'
 import type {Actions as unlockfoldersActions} from './unlock-folders-gen'
 import type {Actions as usersActions} from './users-gen'
 import type {Actions as waitingActions} from './waiting-gen'
 import type {Actions as walletsActions} from './wallets-gen'
 
-export type TypedActions = chat2Actions | configActions | devActions | devicesActions | enginegenActions | entitiesActions | fsActions | gitActions | gregorActions | loginActions | notificationsActions | peopleActions | pinentryActions | profileActions | provisionActions | pushActions | routetreeActions | searchActions | settingsActions | signupActions | teambuildingActions | teamsActions | trackerActions | tracker2Actions | unlockfoldersActions | usersActions | waitingActions | walletsActions
+export type TypedActions = chat2Actions | configActions | devActions | devicesActions | enginegenActions | entitiesActions | fsActions | gitActions | gregorActions | loginActions | notificationsActions | peopleActions | pinentryActions | profileActions | provisionActions | pushActions | routetreeActions | searchActions | settingsActions | signupActions | teambuildingActions | teamsActions | tracker2Actions | unlockfoldersActions | usersActions | waitingActions | walletsActions

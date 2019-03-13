@@ -23,7 +23,7 @@ const routeTree = () => {
   const AdvancedContainer = require('./advanced/container').default
   const ChatContainer = require('./chat/container').default
   const Screenprotector = require('./screenprotector-container.native').default
-  const LogOut = require('./logout/container'.default)
+  const LogOut = require('./logout/container').default
 
   return makeRouteDefNode({
     children: {

@@ -7,6 +7,7 @@ import * as Constants from '../constants/teams'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
 import {connect, lifecycle, compose, withStateHandlers, type RouteProps} from '../util/container'
+import flags from '../util/feature-flags'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
@@ -27,7 +28,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
       })
     )
   },
-  onCancel: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
+  onCancel: () =>
+    dispatch(
+      flags.useNewRouter ? navigateUp() : Chat2Gen.createNavigateToInbox({findNewConversation: false})
+    ),
   onJoinSubteamChange: () => {},
   onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))

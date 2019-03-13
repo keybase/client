@@ -2,7 +2,6 @@
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import type {Email, Time} from './rpc-gen'
-import type {SimpleProofState} from './tracker'
 
 type InviteBase = {
   id: string,
@@ -18,7 +17,6 @@ export type AcceptedInvite = {
   username: string,
   fullname: string,
   currentlyFollowing: boolean,
-  trackerState: SimpleProofState,
 } & InviteBase
 
 export type Invitation = {
@@ -94,6 +92,7 @@ export type State = {
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
+  testPassphraseIsCorrect: ?boolean,
 }
 
 type AboutTab = 'settingsTabs.aboutTab'

@@ -33,13 +33,14 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	fbo := newFolderBranchOps(ctx, env.EmptyAppStateUpdater{}, config,
 		FolderBranch{id, MasterBranch}, standard, nil, nil)
 	// usernames don't matter for these tests
-	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
+	config.mockKbpki.EXPECT().GetNormalizedUsername(
+		gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().Return(kbname.NormalizedUsername("mockUser"), nil)
 
 	mockDaemon := NewMockKeybaseService(mockCtrl)
 	mockDaemon.EXPECT().LoadUserPlusKeys(
-		gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(
-		UserInfo{Name: "mockUser"}, nil)
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(UserInfo{Name: "mockUser"}, nil)
 	config.SetKeybaseService(mockDaemon)
 
 	timeoutCtx, cancel := context.WithTimeout(

@@ -121,3 +121,7 @@ func (r *RemoteNet) GetInflationDestinations(ctx context.Context) (ret []stellar
 func (r *RemoteNet) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error) {
 	return NetworkOptions(ctx, r.G())
 }
+
+func (r *RemoteNet) DetailsPlusPayments(ctx context.Context, accountID stellar1.AccountID) (stellar1.DetailsPlusPayments, error) {
+	return DetailsPlusPayments(ctx, r.G(), accountID)
+}

@@ -98,19 +98,23 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 }
 
 // Resolve implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) Resolve(ctx context.Context, assertion string) (
+func (k KeybaseServiceMeasured) Resolve(
+	ctx context.Context, assertion string,
+	offline keybase1.OfflineAvailability) (
 	name kbname.NormalizedUsername, uid keybase1.UserOrTeamID, err error) {
 	k.resolveTimer.Time(func() {
-		name, uid, err = k.delegate.Resolve(ctx, assertion)
+		name, uid, err = k.delegate.Resolve(ctx, assertion, offline)
 	})
 	return name, uid, err
 }
 
 // Identify implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) Identify(ctx context.Context, assertion, reason string) (
+func (k KeybaseServiceMeasured) Identify(
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	name kbname.NormalizedUsername, id keybase1.UserOrTeamID, err error) {
 	k.identifyTimer.Time(func() {
-		name, id, err = k.delegate.Identify(ctx, assertion, reason)
+		name, id, err = k.delegate.Identify(ctx, assertion, reason, offline)
 	})
 	return name, id, err
 }
@@ -130,10 +134,11 @@ func (k KeybaseServiceMeasured) NormalizeSocialAssertion(
 // for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (info ImplicitTeamInfo, err error) {
+	doIdentifies bool, reason string, offline keybase1.OfflineAvailability) (
+	info ImplicitTeamInfo, err error) {
 	k.resolveIdentifyImplicitTeamTimer.Time(func() {
 		info, err = k.delegate.ResolveIdentifyImplicitTeam(
-			ctx, assertions, suffix, tlfType, doIdentifies, reason)
+			ctx, assertions, suffix, tlfType, doIdentifies, reason, offline)
 	})
 	return info, err
 }
@@ -149,10 +154,12 @@ func (k KeybaseServiceMeasured) ResolveImplicitTeamByID(
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, pollForKID keybase1.KID) (userInfo UserInfo, err error) {
+func (k KeybaseServiceMeasured) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
+	offline keybase1.OfflineAvailability) (userInfo UserInfo, err error) {
 	k.loadUserPlusKeysTimer.Time(func() {
-		userInfo, err = k.delegate.LoadUserPlusKeys(ctx, uid, pollForKID)
+		userInfo, err = k.delegate.LoadUserPlusKeys(
+			ctx, uid, pollForKID, offline)
 	})
 	return userInfo, err
 }
@@ -161,11 +168,12 @@ func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
 func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 	tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
 	desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
-	desiredRole keybase1.TeamRole) (teamInfo TeamInfo, err error) {
+	desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
+	teamInfo TeamInfo, err error) {
 	k.loadTeamPlusKeysTimer.Time(func() {
 		teamInfo, err = k.delegate.LoadTeamPlusKeys(
 			ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey,
-			desiredRole)
+			desiredRole, offline)
 	})
 	return teamInfo, err
 }
@@ -183,10 +191,11 @@ func (k KeybaseServiceMeasured) CreateTeamTLF(
 // GetTeamSettings implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) GetTeamSettings(
-	ctx context.Context, teamID keybase1.TeamID) (
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (
 	settings keybase1.KBFSTeamSettings, err error) {
 	k.getTeamSettingsTimer.Time(func() {
-		settings, err = k.delegate.GetTeamSettings(ctx, teamID)
+		settings, err = k.delegate.GetTeamSettings(ctx, teamID, offline)
 	})
 	return settings, err
 }

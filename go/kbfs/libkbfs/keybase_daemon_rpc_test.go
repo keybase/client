@@ -31,7 +31,8 @@ func TestKeybaseDaemonRPCIdentifyCanceled(t *testing.T) {
 		logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
-		_, _, err := daemon.Identify(ctx, "", "")
+		_, _, err := daemon.Identify(
+			ctx, "", "", keybase1.OfflineAvailability_NONE)
 		return err
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
@@ -214,7 +215,8 @@ func testLoadUserPlusKeys(
 	client.loadUserPlusKeysCalled = false
 
 	ctx := context.Background()
-	info, err := c.LoadUserPlusKeys(ctx, uid, "")
+	info, err := c.LoadUserPlusKeys(
+		ctx, uid, "", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, info.Name)
@@ -228,7 +230,8 @@ func testIdentify(
 	client.identifyCalled = false
 
 	ctx := context.Background()
-	name, _, err := c.Identify(ctx, "uid:"+string(uid), "")
+	name, _, err := c.Identify(
+		ctx, "uid:"+string(uid), "", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, name)

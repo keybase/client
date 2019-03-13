@@ -22,7 +22,7 @@ func NewProfileEdit(g *libkb.GlobalContext, arg keybase1.ProfileEditArg) *Profil
 
 func (e *ProfileEdit) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("ProfileEdit#Run", func() error { return err })()
-	_, err = m.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "profile-edit",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
@@ -30,7 +30,6 @@ func (e *ProfileEdit) Run(m libkb.MetaContext) (err error) {
 			"full_name": libkb.S{Val: e.arg.FullName},
 			"location":  libkb.S{Val: e.arg.Location},
 		},
-		NetContext: m.Ctx(),
 	})
 	if err != nil {
 		return err

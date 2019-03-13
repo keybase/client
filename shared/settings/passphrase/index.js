@@ -5,12 +5,12 @@ import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapte
 
 type Props = {
   error?: ?Error,
-  heading: string,
   newPassphraseError: ?string,
   newPassphraseConfirmError: ?string,
   hasPGPKeyOnServer: boolean,
   onBack: () => void,
   onSave: (passphrase: string, passphraseConfirm: string) => void,
+  showTyping?: boolean,
   waitingForResponse: boolean,
   onUpdatePGPSettings: () => void,
 }
@@ -19,7 +19,7 @@ type State = {
   passphrase: string,
   passphraseConfirm: string,
   showTyping: boolean,
-  canSave: boolean,
+  errorSaving: string,
 }
 
 class UpdatePassphrase extends Component<Props, State> {
@@ -28,30 +28,38 @@ class UpdatePassphrase extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      canSave: false,
+      errorSaving: '',
       passphrase: '',
       passphraseConfirm: '',
-      showTyping: false,
+      showTyping: !!props.showTyping,
     }
   }
 
   _handlePassphraseChange(passphrase: string) {
     this.setState({
-      canSave: this._canSave(passphrase, this.state.passphraseConfirm),
+      errorSaving: this._errorSaving(passphrase, this.state.passphraseConfirm),
       passphrase,
     })
   }
 
   _handlePassphraseConfirmChange(passphraseConfirm: string) {
     this.setState({
-      canSave: this._canSave(this.state.passphrase, passphraseConfirm),
+      errorSaving: this._errorSaving(this.state.passphrase, passphraseConfirm),
       passphraseConfirm,
     })
   }
 
-  _canSave(passphrase: string, passphraseConfirm: string): boolean {
-    const downloadedPGPState = this.props.hasPGPKeyOnServer !== null
-    return downloadedPGPState && passphrase === passphraseConfirm && this.state.passphrase.length >= 8
+  _errorSaving(passphrase: string, passphraseConfirm: string): string {
+    if (this.state.passphrase.length < 8) {
+      return 'Your new passphrase must have at least 8 characters.'
+    }
+    if (passphrase !== passphraseConfirm) {
+      return 'Passphrases must match.'
+    }
+    if (this.props.hasPGPKeyOnServer === null) {
+      return 'There was a problem downloading your PGP key status.'
+    }
+    return ''
   }
 
   render() {
@@ -67,21 +75,15 @@ class UpdatePassphrase extends Component<Props, State> {
       : null
     return (
       <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
-        {!!this.props.heading && <Text type="BodySmall">{this.props.heading}</Text>}
         <Input
           hintText="New passphrase"
           type={inputType}
-          errorText={this.props.newPassphraseError}
+          errorText={this.state.errorSaving || this.props.newPassphraseError}
           value={this.state.passphrase}
           onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
           uncontrolled={false}
           style={styleInput}
         />
-        {!this.props.newPassphraseError && (
-          <Text type="BodySmall" style={stylePasswordNote}>
-            (Minimum 8 characters)
-          </Text>
-        )}
         <Input
           hintText="Confirm new passphrase"
           type={inputType}
@@ -94,13 +96,13 @@ class UpdatePassphrase extends Component<Props, State> {
         <Checkbox
           label="Show typing"
           onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
-          checked={this.state.showTyping}
+          checked={this.state.showTyping || !!this.props.showTyping}
           style={{marginBottom: globalMargins.medium}}
         />
         <Button
           type="Primary"
           label="Save"
-          disabled={!this.state.canSave}
+          disabled={!!this.state.errorSaving}
           onClick={() => this.props.onSave(this.state.passphrase, this.state.passphraseConfirm)}
           waiting={this.props.waitingForResponse}
         />
@@ -111,12 +113,6 @@ class UpdatePassphrase extends Component<Props, State> {
 
 const styleInput = {
   marginBottom: globalMargins.small,
-}
-
-const stylePasswordNote = {
-  height: 0, // don't offset next input by label height
-  position: 'relative',
-  top: -globalMargins.small,
 }
 
 export default UpdatePassphrase

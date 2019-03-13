@@ -118,15 +118,6 @@ function* loadDaemonBootstrapStatus(state, action) {
   }
 }
 
-let dispatchSetupEngineListenersOnce = false
-const dispatchSetupEngineListeners = () => {
-  if (dispatchSetupEngineListenersOnce) {
-    return
-  }
-  dispatchSetupEngineListenersOnce = true
-  return ConfigGen.createSetupEngineListeners()
-}
-
 let _firstTimeConnecting = true
 const startHandshake = state => {
   const firstTimeConnecting = _firstTimeConnecting
@@ -460,8 +451,6 @@ function* criticalOutOfDateCheck() {
 }
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
-  // Tell all other sagas to register for incoming engine calls
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(ConfigGen.installerRan, dispatchSetupEngineListeners)
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
   yield* Saga.chainAction<ConfigGen.RestartHandshakePayload | ConfigGen.StartHandshakePayload>(

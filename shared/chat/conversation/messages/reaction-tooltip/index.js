@@ -196,8 +196,8 @@ const styles = Styles.styleSheetCreate({
   userContainer: {
     backgroundColor: Styles.globalColors.white,
     paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny + Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.xtiny,
   },
 })

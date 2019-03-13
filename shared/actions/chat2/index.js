@@ -1286,32 +1286,36 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const routeName = 'chatPaymentsConfirm'
+  const confirmRouteName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
       RouteTreeGen.createNavigateAppend({
-        path: [routeName],
+        path: [confirmRouteName],
       })
     ),
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
       const state = yield* Saga.selectState()
-      if (getPath(state.routeTree.routeState).last() === routeName) {
+      if (!flags.useNewRouter && getPath(state.routeTree.routeState).last() === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createNavigateUp())
+      } else if (flags.useNewRouter) {
+        if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
+          yield Saga.put(RouteTreeGen.createClearModals())
+        }
       }
       if (canceled) {
         yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
       }
     })
   const onDataConfirm = ({summary}, response) => {
-    stellarConfirmWindowResponse = response
+    storeStellarConfirmWindowResponse(false, response)
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
   }
-  const onDataError = ({message}, response) => {
-    stellarConfirmWindowResponse = response
-    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
+  const onDataError = ({error}, response) => {
+    storeStellarConfirmWindowResponse(false, response)
+    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error}))
   }
 
   try {
@@ -1345,14 +1349,17 @@ function* messageSend(state, action) {
   // messages to not send. Do this after creating the objects above to
   // narrow down the places where the action can possibly stop.
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
-  stellarConfirmWindowResponse = null
 }
 
-let stellarConfirmWindowResponse = null
+let _stellarConfirmWindowResponse = null
+
+function storeStellarConfirmWindowResponse(accept: boolean, response) {
+  _stellarConfirmWindowResponse && _stellarConfirmWindowResponse.result(accept)
+  _stellarConfirmWindowResponse = response
+}
 
 const confirmScreenResponse = (_, action) => {
-  stellarConfirmWindowResponse && stellarConfirmWindowResponse.result(action.payload.accept)
-  stellarConfirmWindowResponse = null
+  storeStellarConfirmWindowResponse(action.payload.accept, null)
 }
 
 function* previewConversationAfterFindExisting(state, action, results, users) {
@@ -2528,8 +2535,7 @@ const unfurlResolvePrompt = (state, action) => {
 
 const toggleInfoPanel = (state, action) => {
   if (flags.useNewRouter) {
-    const visible = Router2Constants.getVisiblePath()
-    if (visible[visible.length - 1]?.routeName === 'chatInfoPanel') {
+    if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
       return RouteTreeGen.createNavigateUp()
     } else {
       return RouteTreeGen.createNavigateAppend({

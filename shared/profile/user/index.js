@@ -25,11 +25,13 @@ export type Props = {|
   followersCount: ?number,
   following: Array<string>,
   followingCount: ?number,
+  onAddIdentity: ?() => void,
   onBack: () => void,
   onReload: () => void,
   onSearch: () => void,
   onEditAvatar: ?() => void,
   reason: string,
+  showOtherIdentities: boolean,
   state: Types.DetailsState,
   suggestionKeys: ?Array<string>,
   userIsYou: boolean,
@@ -99,6 +101,7 @@ const BioLayout = p => (
       editableIcon={!!p.onEditAvatar}
       onEditIcon={p.onEditAvatar}
       avatarSize={avatarSize}
+      size="huge"
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
@@ -198,15 +201,17 @@ class FriendRow extends React.Component<FriendRowProps> {
   }
 }
 
-type BioTeamProofsProps = {|
+export type BioTeamProofsProps = {|
+  onAddIdentity: ?() => void,
   assertionKeys: ?Array<string>,
   backgroundColorType: BackgroundColorType,
   onEditAvatar: ?() => void,
+  showOtherIdentities: boolean,
   suggestionKeys: ?Array<string>,
   username: string,
   reason: string,
 |}
-class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
+export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
@@ -252,6 +257,17 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           </Kb.Text>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
+          {flags.proofProviders && this.props.showOtherIdentities && (
+            <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
+              <Kb.Button
+                label="Add other identities"
+                labelStyle={styles.label}
+                onClick={this.props.onAddIdentity}
+                style={styles.addIdentityButton}
+                type="Secondary"
+              />
+            </Kb.Box2>
+          )}
           <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
@@ -322,10 +338,12 @@ class User extends React.Component<Props, State> {
     data: ['bioTeamProofs'],
     renderItem: () => (
       <BioTeamProofs
+        onAddIdentity={this.props.onAddIdentity}
         assertionKeys={this.props.assertionKeys}
         backgroundColorType={this.props.backgroundColorType}
         username={this.props.username}
         reason={this.props.reason}
+        showOtherIdentities={this.props.showOtherIdentities}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
       />
@@ -401,6 +419,13 @@ const avatarSize = 128
 const headerHeight = Styles.isMobile ? 48 : 72
 
 const styles = Styles.styleSheetCreate({
+  addIdentityButton: {
+    marginBottom: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.xsmall,
+  },
+  addIdentityContainer: {
+    justifyContent: 'center',
+  },
   backButton: {color: Styles.globalColors.white},
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
@@ -486,6 +511,9 @@ const styles = Styles.styleSheetCreate({
   }),
   innerContainer: {...Styles.globalStyles.fillAbsolute},
   invisible: {opacity: 0},
+  label: {
+    color: Styles.globalColors.black,
+  },
   noGrow: {flexGrow: 0},
   proofs: Styles.platformStyles({
     isElectron: {

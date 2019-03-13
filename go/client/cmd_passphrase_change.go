@@ -48,6 +48,8 @@ func (c *CmdPassphraseChange) Run() error {
 		dui.Printf("\nThere was a problem during the standard update of your passphrase.")
 		dui.Printf("\n%s\n\n", err)
 		dui.Printf("If you have forgotten your existing passphrase, you can recover\n")
+		// TODO: Fix `passphrase change` to not ask for current passphrase when
+		// in NOPW, and advise users to use `keybase passphrase change`.
 		dui.Printf("your account with the command 'keybase passphrase recover'.\n\n")
 		return err
 	}

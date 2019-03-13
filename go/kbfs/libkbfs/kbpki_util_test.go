@@ -27,9 +27,11 @@ func (d *daemonKBPKI) GetCurrentSession(ctx context.Context) (
 	return d.daemon.CurrentSession(ctx, sessionID)
 }
 
-func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
+func (d *daemonKBPKI) Resolve(
+	ctx context.Context, assertion string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	return d.daemon.Resolve(ctx, assertion)
+	return d.daemon.Resolve(ctx, assertion, offline)
 }
 
 func (d *daemonKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion string) (
@@ -37,31 +39,49 @@ func (d *daemonKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion st
 	return d.daemon.NormalizeSocialAssertion(ctx, assertion)
 }
 
-func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (
+func (d *daemonKBPKI) Identify(
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	return d.daemon.Identify(ctx, assertion, reason)
+	return d.daemon.Identify(ctx, assertion, reason, offline)
 }
 
 // ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
 func (d *daemonKBPKI) ResolveImplicitTeam(
-	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	offline keybase1.OfflineAvailability) (
 	ImplicitTeamInfo, error) {
 	return d.daemon.ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, false, "")
+		ctx, assertions, suffix, tlfType, false, "", offline)
 }
 
 func (d *daemonKBPKI) GetNormalizedUsername(
-	ctx context.Context, id keybase1.UserOrTeamID) (
-	kbname.NormalizedUsername, error) {
+	ctx context.Context, id keybase1.UserOrTeamID,
+	offline keybase1.OfflineAvailability) (kbname.NormalizedUsername, error) {
 	asUser, err := id.AsUser()
 	if err != nil {
 		return kbname.NormalizedUsername(""), err
 	}
-	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, asUser, "")
+	userInfo, err := d.daemon.LoadUserPlusKeys(
+		ctx, asUser, "", keybase1.OfflineAvailability_NONE)
 	if err != nil {
 		return kbname.NormalizedUsername(""), err
 	}
 	return userInfo.Name, nil
+}
+
+func (d *daemonKBPKI) ResolveTeamTLFID(
+	ctx context.Context, teamID keybase1.TeamID,
+	offline keybase1.OfflineAvailability) (tlf.ID, error) {
+	settings, err := d.daemon.GetTeamSettings(ctx, teamID, offline)
+	if err != nil {
+		return tlf.NullID, err
+	}
+	tlfID, err := tlf.ParseID(settings.TlfID.String())
+	if err != nil {
+		return tlf.NullID, err
+	}
+	return tlfID, nil
 }
 
 // interposeDaemonKBPKI replaces the existing (mock) KBPKI with a
@@ -106,8 +126,9 @@ func (ik *identifyCountingKBPKI) getIdentifyCalls() int {
 }
 
 func (ik *identifyCountingKBPKI) Identify(
-	ctx context.Context, assertion, reason string) (
+	ctx context.Context, assertion, reason string,
+	offline keybase1.OfflineAvailability) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ik.addIdentifyCall()
-	return ik.KBPKI.Identify(ctx, assertion, reason)
+	return ik.KBPKI.Identify(ctx, assertion, reason, offline)
 }

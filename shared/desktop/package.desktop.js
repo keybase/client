@@ -193,7 +193,7 @@ function postPack(plat, arch) {
     }
     const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
     const dir = path.join(appPaths[0], subdir, 'app/desktop/dist')
-    const modules = ['node', 'main', 'tracker', 'menubar', 'unlock-folders', 'pinentry']
+    const modules = ['node', 'main', 'tracker2', 'menubar', 'unlock-folders', 'pinentry']
     const files = [
       ...modules.map(p => p + '.bundle.js'),
       ...modules.filter(p => p !== 'node').map(p => p + '.html'),

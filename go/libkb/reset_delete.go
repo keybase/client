@@ -36,9 +36,8 @@ func resetOrDeleteAccount(m MetaContext, username NormalizedUsername, passphrase
 		Endpoint:    endpoint,
 		SessionType: APISessionTypeREQUIRED,
 		Args:        NewHTTPArgs(),
-		MetaContext: m,
 	}
 	pdpka.PopulateArgs(&arg.Args)
-	_, err = m.G().API.Post(arg)
+	_, err = m.G().API.Post(m, arg)
 	return err
 }

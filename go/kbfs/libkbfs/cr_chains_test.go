@@ -160,7 +160,8 @@ func newChainMDForTest(t *testing.T) rootMetadataWithKeyAndTimestamp {
 	}
 
 	ctx := context.Background()
-	h, err := MakeTlfHandle(ctx, bh, bh.Type(), nil, nug, nil)
+	h, err := MakeTlfHandle(
+		ctx, bh, bh.Type(), nil, nug, nil, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
@@ -196,7 +197,7 @@ func TestCRChainsSingleOp(t *testing.T) {
 
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
-		context.Background(), makeChainCodec(), chainMDs, nil, true)
+		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -230,7 +231,7 @@ func TestCRChainsRenameOp(t *testing.T) {
 
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
-		context.Background(), makeChainCodec(), chainMDs, nil, true)
+		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -338,7 +339,7 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	bigChainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
 	chainMDs := []chainMetadata{bigChainMD}
 	cc, err := newCRChains(
-		context.Background(), makeChainCodec(), chainMDs, nil, true)
+		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains for big chainMD: %v", err)
 	}
@@ -369,7 +370,7 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 
 	// now make sure the chain of MDs gets the same answers
 	mcc, err := newCRChains(
-		context.Background(), makeChainCodec(), multiChainMDs, nil, true)
+		context.Background(), makeChainCodec(), nil, multiChainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains for multi chainMDs: %v", err)
 	}
@@ -500,7 +501,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
-		context.Background(), makeChainCodec(), chainMDs, nil, true)
+		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -534,7 +535,7 @@ func TestCRChainsRemove(t *testing.T) {
 	}
 
 	ccs, err := newCRChains(
-		context.Background(), makeChainCodec(), chainMDs, nil, true)
+		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -588,7 +589,7 @@ func TestCRChainsCollapsedSyncOps(t *testing.T) {
 
 	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
-		context.Background(), makeChainCodec(), chainMDs, nil, true)
+		context.Background(), makeChainCodec(), nil, chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}

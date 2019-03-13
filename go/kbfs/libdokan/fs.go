@@ -574,7 +574,7 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	dstName := dstPath[len(dstPath)-1]
 	// Yes, this is slow, but that is ok here.
 	if _, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, f.config.KBPKI(), f.config.MDOps(), dstName,
+		ctx, f.config.KBPKI(), f.config.MDOps(), f.config, dstName,
 		fl.tlfType); err != nil {
 		return dokan.ErrObjectNameNotFound
 	}

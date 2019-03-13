@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +19,8 @@ type noImplicitTeamKBPKI struct {
 
 // ResolveImplicitTeam implements the KBPKI interface for noImplicitTeamKBPKI.
 func (nitk noImplicitTeamKBPKI) ResolveImplicitTeam(
-	_ context.Context, _, _ string, _ tlf.Type) (
+	_ context.Context, _, _ string, _ tlf.Type,
+	_ keybase1.OfflineAvailability) (
 	libkbfs.ImplicitTeamInfo, error) {
 	return libkbfs.ImplicitTeamInfo{},
 		errors.New("Skipping implicit team lookup for quick handle parsing")
@@ -28,10 +30,11 @@ func (nitk noImplicitTeamKBPKI) ResolveImplicitTeam(
 // doing this time consuming checks needed for implicit-team checking
 // or TLF-ID-fetching.
 func ParseTlfHandlePreferredQuick(
-	ctx context.Context, kbpki libkbfs.KBPKI, name string, ty tlf.Type) (
+	ctx context.Context, kbpki libkbfs.KBPKI, osg libkbfs.OfflineStatusGetter,
+	name string, ty tlf.Type) (
 	handle *libkbfs.TlfHandle, err error) {
 	// Override the KBPKI with one that doesn't try to resolve
 	// implicit teams.
 	kbpki = noImplicitTeamKBPKI{kbpki}
-	return libkbfs.ParseTlfHandlePreferred(ctx, kbpki, nil, name, ty)
+	return libkbfs.ParseTlfHandlePreferred(ctx, kbpki, nil, osg, name, ty)
 }

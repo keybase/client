@@ -16,11 +16,11 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   dbCleanEnabled: false,
   foldersInProfileTab: false,
-  identify3: true,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
+  proofProviders: __DEV__,
   useNewRouter: false,
 }
 

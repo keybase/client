@@ -1,16 +1,23 @@
 // @flow
 import {HeaderOrPopup} from '../../common-adapters'
-import {connect, compose, type RouteProps} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
+import * as ConfigGen from '../../actions/config-gen'
+import * as SettingsGen from '../../actions/settings-gen'
+import HiddenString from '../../util/hidden-string'
 import LogOut from '.'
 
-type OwnProps = RouteProps<{teamname: string, selected: boolean, repoID: string}, {}>
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state, {routeProps}) => ({
   hasRandomPW: state.settings.passphrase.randomPW,
+  testPassphraseIsCorrect: state.settings.testPassphraseIsCorrect,
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
+  onLogout: () => dispatch(ConfigGen.createLogout()),
+  onTestPassphrase: passphrase =>
+    dispatch(SettingsGen.createTestPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -22,10 +29,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     : "Would you like to make sure that you know your passphrase before logging out? You'll need it to log back in.",
 })
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  )
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
 )(HeaderOrPopup(LogOut))

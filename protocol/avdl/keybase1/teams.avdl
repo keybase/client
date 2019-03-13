@@ -673,6 +673,13 @@ protocol teams {
     array<TeamSeitanRequest> seitans;
   }
 
+  record TeamOpenSweepMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    @jsonkey("reset_users")
+    array<TeamCLKRResetUser> resetUsersUntrusted;
+  }
+
   record TeamKBFSKeyRefresher {
     int generation;
     TeamApplication appType;

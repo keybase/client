@@ -221,7 +221,7 @@ func TestList(t *testing.T) {
 
 	t.Log("Shouldn't have created the TLF")
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), config.MDOps(), "jdoe", tlf.Private)
+		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetRootNode(
 		ctx, h, libkbfs.MasterBranch)
