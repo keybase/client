@@ -13,15 +13,13 @@ import flags from '../../util/feature-flags'
 type OwnProps = {
   path: Types.Path,
   routePath?: ?I.List<string>,
-  sendIconClassName: string,
-  attach?: ?boolean, // TODO: get rid of this and do the menu thing as designed
 }
 
 const mapStateToProps = (state, ownProps) => ({
   isFile: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'file',
 })
 
-const mapDispatchToProps = (dispatch, {path, routePath, attach}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
   onClickAttachment: () => dispatch(FsGen.createShowSendAttachmentToChat({path, routePath})),
   onClickLink: () => dispatch(FsGen.createShowSendLinkToChat({path, routePath})),
 })
@@ -33,9 +31,9 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(
         <Kb.WithTooltip text="Send link to chat">
           <Kb.Icon
             type="iconfont-open-browser"
-            onClick={props.toggleShowingMenu}
-            ref={props.setAttachmentRef}
-            className={props.sendIconClassName}
+            onClick={props.onClick}
+            color={Styles.globalColors.black_50}
+            hoverColor={Styles.globalColors.black}
             style={Kb.iconCastPlatformStyles(styles.icon)}
           />
         </Kb.WithTooltip>
