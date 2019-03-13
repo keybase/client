@@ -10,7 +10,7 @@ import Modal from '../modal'
 type OwnProps = {||}
 
 const Info = props => (
-  <Modal>
+  <Modal onCancel={props.onCancel} skipButton={true}>
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
       <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
       <Kb.Text type="BodySemibold" style={styles.centered}>

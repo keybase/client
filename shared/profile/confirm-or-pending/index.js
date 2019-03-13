@@ -16,9 +16,10 @@ type Props = {|
 
 const ConfirmOrPending = (props: Props) => {
   const message =
-    messageMap[props.platform] || props.isPending
+    messageMap[props.platform] ||
+    (props.isPending
       ? 'Some proofs can take a few hours to recognize. Check back later.'
-      : 'Leave your proof up so other users can identify you!'
+      : 'Leave your proof up so other users can identify you!')
   const platformIconOverlay = props.isPending ? 'icon-proof-pending' : 'icon-proof-success'
   const platformSubtitle = subtitle(props.platform)
   const title = props.isPending ? 'Your proof is pending.' : 'Verified!'

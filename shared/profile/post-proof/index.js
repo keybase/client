@@ -130,7 +130,7 @@ class PostProof extends React.Component<Props, State> {
     return (
       <Modal onCancel={props.onCancel} skipButton={true}>
         <Kb.ScrollView style={styles.scroll}>
-          {/* $FlowIssue  copyCapture */}
+          {/* $FlowIssue  copyCapture not in box2 */}
           <Kb.Box2
             direction="vertical"
             gap="small"

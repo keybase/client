@@ -19,23 +19,19 @@ export const Header = flags.useNewRouter
   : (props: Props) => (
       <Kb.HeaderHocHeader
         headerStyle={styles.header}
-        rightActions={
-          flags.useNewRouter
-            ? []
-            : [
-                {
-                  custom: (
-                    <Kb.Avatar
-                      key="avatar"
-                      username={props.myUsername}
-                      onClick={() => props.onClickUser(props.myUsername)}
-                      size={32}
-                    />
-                  ),
-                  label: 'Avatar',
-                },
-              ]
-        }
+        rightActions={[
+          {
+            custom: (
+              <Kb.Avatar
+                key="avatar"
+                username={props.myUsername}
+                onClick={() => props.onClickUser(props.myUsername)}
+                size={32}
+              />
+            ),
+            label: 'Avatar',
+          },
+        ]}
         titleComponent={<ProfileSearch />}
       />
     )
