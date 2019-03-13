@@ -86,6 +86,11 @@ const pathItemLoad = (state, action) =>
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 
+const clearRefreshTags = () => {
+  folderListRefreshTags.clear()
+  mimeTypeRefreshTags.clear()
+}
+
 function* folderList(_, action) {
   const {rootPath, refreshTag} =
     action.type === FsGen.editSuccess
@@ -204,7 +209,7 @@ function* folderList(_, action) {
       yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
     }
   } catch (error) {
-    yield Saga.put(makeRetriableErrorHandler(action)(error))
+    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
   } finally {
     yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
@@ -297,7 +302,7 @@ function* download(state, action) {
   } catch (error) {
     // This needs to be before the dismiss below, so that if it's a legit
     // error we'd show the red bar.
-    yield Saga.put(makeRetriableErrorHandler(action)(error))
+    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
   } finally {
     if (intent !== 'none') {
       // If it's a normal download, we show a red card for the user to dismiss.
@@ -333,7 +338,7 @@ function* upload(_, action) {
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
   } catch (error) {
-    yield Saga.put(makeRetriableErrorHandler(action)(error))
+    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
   }
 }
 
@@ -393,7 +398,7 @@ function* pollSyncStatusUntilDone(_, action) {
       ])
     }
   } catch (error) {
-    yield Saga.put(makeUnretriableErrorHandler(action)(error))
+    yield makeUnretriableErrorHandler(action)(error).map(action => Saga.put(action))
   } finally {
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
@@ -453,7 +458,7 @@ function* ignoreFavoriteSaga(_, action) {
         folder,
       })
     } catch (error) {
-      yield Saga.put(makeRetriableErrorHandler(action)(error))
+      yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
     }
   }
 }
@@ -564,7 +569,7 @@ function* loadMimeType(_, action) {
   try {
     yield* _loadMimeType(action.payload.path, action.payload.refreshTag)
   } catch (error) {
-    yield Saga.put(makeUnretriableErrorHandler(action)(error))
+    yield makeUnretriableErrorHandler(action)(error).map(action => Saga.put(action))
   }
 }
 
@@ -671,7 +676,7 @@ function* loadPathMetadata(state, action) {
       })
     )
   } catch (err) {
-    yield Saga.put(makeRetriableErrorHandler(action)(err))
+    yield makeRetriableErrorHandler(action)(err).map(action => Saga.put(action))
     return
   }
   if (pathItem.type === 'file') {
@@ -716,26 +721,28 @@ const moveOrCopy = (state, action) => {
           state.fs.destinationPicker.source.type === 'move-or-copy'
             ? Types.getPathName(state.fs.destinationPicker.source.path)
             : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
-            // We use the local path name here since we only care about file name.
+          // We use the local path name here since we only care about file name.
         )
       ),
     },
     opID: Constants.makeUUID(),
-    src: state.fs.destinationPicker.source.type === 'move-or-copy'
-      ? {
-        PathType: RPCTypes.simpleFSPathType.kbfs,
-        kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
-      }
-      : state.fs.destinationPicker.source.type === 'incoming-share'
+    src:
+      state.fs.destinationPicker.source.type === 'move-or-copy'
         ? {
-          PathType: RPCTypes.simpleFSPathType.local,
-          local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
-        }
-        // This case isn't possible but must be handled for Flow to be happy.
+            PathType: RPCTypes.simpleFSPathType.kbfs,
+            kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
+          }
+        : state.fs.destinationPicker.source.type === 'incoming-share'
+        ? {
+            PathType: RPCTypes.simpleFSPathType.local,
+            local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
+          }
         : {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: null,
-        },
+            // This case isn't possible but must be handled for Flow to be
+            // happy.
+            PathType: RPCTypes.simpleFSPathType.kbfs,
+            kbfs: null,
+          },
   }
   return (
     (action.type === FsGen.move
@@ -870,24 +877,30 @@ const clearRefreshTag = (state, action) => {
   mimeTypeRefreshTags.delete(action.payload.refreshTag)
 }
 
-let pingKbfsDaemonLoopRunning = false
-function* pingKbfsDaemonUntilConnected() {
-  if (pingKbfsDaemonLoopRunning) {
+// Can't rely on kbfsDaemonStatus === 'waiting' as that's set by reducre and
+// happens before this.
+let waitForKbfsDaemonOnFly = false
+const waitForKbfsDaemon = (state, action) => {
+  if (waitForKbfsDaemonOnFly) {
     return
   }
-  while (true) {
-    pingKbfsDaemonLoopRunning = true
-    yield Saga.delay(1000)
-    let connected = yield* Saga.callPromise(() =>
-      RPCTypes.SimpleFSSimpleFSPingRpcPromise()
-        .then(() => true)
-        .catch(() => false)
-    )
-    if (connected) {
-      yield Saga.put(FsGen.createKbfsDaemonConnected())
-      return
-    }
-  }
+  waitForKbfsDaemonOnFly = true
+  return RPCTypes.configWaitForClientRpcPromise({
+    clientType: RPCTypes.commonClientType.kbfs,
+    timeout: 20, // 20sec
+  })
+    .then(connected => {
+      waitForKbfsDaemonOnFly = false
+      return FsGen.createKbfsDaemonStatusChanged({
+        kbfsDaemonStatus: connected ? 'connected' : 'wait-timeout',
+      })
+    })
+    .catch(() => {
+      waitForKbfsDaemonOnFly = false
+      return FsGen.createKbfsDaemonStatusChanged({
+        kbfsDaemonStatus: 'wait-timeout',
+      })
+    })
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -932,19 +945,27 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     onFSSyncActivity
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
-  yield* Saga.chainAction<FsGen.DestinationPickerOpenPayload>(FsGen.destinationPickerOpen, destinationPickerOpen)
-  yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
-  yield* Saga.chainAction<FsGen.CloseDestinationPickerPayload>(FsGen.closeDestinationPicker, closeDestinationPicker)
+  yield* Saga.chainAction<FsGen.DestinationPickerOpenPayload>(
+    FsGen.destinationPickerOpen,
+    destinationPickerOpen
+  )
+  yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>(
+    [FsGen.showMoveOrCopy, FsGen.showIncomingShare],
+    showMoveOrCopy
+  )
+  yield* Saga.chainAction<FsGen.CloseDestinationPickerPayload>(
+    FsGen.closeDestinationPicker,
+    closeDestinationPicker
+  )
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
-
-  yield* Saga.chainGenerator<ConfigGen.InstallerRanPayload>(
-    ConfigGen.installerRan,
-    // Wait until a successful ping before filing FsGen.kbfsDaemonConnected.
-    // We need this on desktop as KBFS and service are two separate processes.
-    // There's no separate daemon on mobile, but in case we make init more
-    // async, it might be possible we get here before KBFS is actually up.
-    pingKbfsDaemonUntilConnected
+  yield* Saga.chainAction<FsGen.KbfsDaemonStatusChangedPayload>(
+    FsGen.kbfsDaemonStatusChanged,
+    clearRefreshTags
+  )
+  yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
+    [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
+    waitForKbfsDaemon
   )
 
   yield Saga.spawn(platformSpecificSaga)

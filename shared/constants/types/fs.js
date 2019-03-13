@@ -355,11 +355,13 @@ export type _SystemFileManagerIntegration = {
 }
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
+export type KbfsDaemonStatus = 'unknown' | 'waiting' | 'connected' | 'wait-timeout'
+
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
   errors: I.Map<string, FsError>,
-  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
+  kbfsDaemonStatus: KbfsDaemonStatus,
   loadingPaths: I.Map<Path, I.Set<string>>,
   localHTTPServerInfo: LocalHTTPServer,
   destinationPicker: DestinationPicker,
@@ -471,11 +473,7 @@ export const stringToPathType = (s: string): PathType => {
 }
 export const pathTypeToString = (p: PathType): string => p
 export const pathConcat = (p: Path, s: string): Path =>
-  s === ''
-    ? p
-    : p === '/'
-      ? stringToPath('/' + s)
-      : stringToPath(pathToString(p) + '/' + s)
+  s === '' ? p : p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
 export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'

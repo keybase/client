@@ -286,7 +286,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
       return state.update('destinationPicker', dp =>
-        dp.set('source', (dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource()))
+        dp
+          .set('source', dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource())
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
@@ -299,7 +300,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.showIncomingShare:
       return state.update('destinationPicker', dp =>
-        dp.set('source', (dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()))
+        dp
+          .set(
+            'source',
+            dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()
+          )
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setIncomingShareLocalPath:
@@ -322,10 +327,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('pathItemActionMenu', pathItemActionMenu =>
         pathItemActionMenu.set('downloadKey', action.payload.key)
       )
-    case FsGen.kbfsDaemonConnected:
-      return state.set('kbfsDaemonConnected', true)
-    case FsGen.kbfsDaemonDisconnected:
-      return state.set('kbfsDaemonConnected', false)
+    case FsGen.waitForKbfsDaemon:
+      return state.set('kbfsDaemonStatus', 'waiting')
+    case FsGen.kbfsDaemonStatusChanged:
+      return state.set('kbfsDaemonStatus', action.payload.kbfsDaemonStatus)
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:

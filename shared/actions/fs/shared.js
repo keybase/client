@@ -20,7 +20,7 @@ const _getRouteChangeActionForNonExistentError = (path: Types.Path) =>
     path: [...fsRootRoute, {props: {path, reason: 'non-existent'}, selected: 'oops'}],
   })
 
-const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: any): TypedActions => {
+const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: any): Array<TypedActions> => {
   // TODO: add and use proper error code for all these
   if (typeof error.desc === 'string') {
     if (
@@ -31,27 +31,41 @@ const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: 
       // public tlf doesn't exist
       error.desc.includes("Can't create TLF ID for non-team-backed handle")
     ) {
-      return _getRouteChangeActionForPermissionError(
-        // If you get a flow error here after aadding an action that has a 'path'
-        // field, try rename that field if the field is not of type FsTypes.Path.
-        (action.payload && action.payload.path) || Constants.defaultPath
-      )
+      return [
+        _getRouteChangeActionForPermissionError(
+          // If you get a flow error here after aadding an action that has a 'path'
+          // field, try rename that field if the field is not of type FsTypes.Path.
+          (action.payload && action.payload.path) || Constants.defaultPath
+        ),
+      ]
     }
     if (error.desc.includes('file does not exist')) {
-      return _getRouteChangeActionForNonExistentError(
-        // If you get a flow error here after aadding an action that has a 'path'
-        // field, try rename that field if the field is not of type FsTypes.Path.
-        (action.payload && action.payload.path) || Constants.defaultPath
-      )
+      return [
+        _getRouteChangeActionForNonExistentError(
+          // If you get a flow error here after aadding an action that has a 'path'
+          // field, try rename that field if the field is not of type FsTypes.Path.
+          (action.payload && action.payload.path) || Constants.defaultPath
+        ),
+      ]
+    }
+    if (error.desc.includes('KBFS client not found.')) {
+      return [
+        FsGen.createKbfsDaemonStatusChanged({kbfsDaemonStatus: 'wait-timeout'}),
+        // We don't retry actions when re-connected, so just route user back
+        // to root in case they get confused by orphan loading state.
+        RouteTreeGen.createNavigateTo({path: fsRootRoute}),
+      ]
     }
   }
-  return FsGen.createFsError({
-    error: Constants.makeError({
-      error,
-      erroredAction: action,
-      retriableAction: retriable ? action : undefined,
+  return [
+    FsGen.createFsError({
+      error: Constants.makeError({
+        error,
+        erroredAction: action,
+        retriableAction: retriable ? action : undefined,
+      }),
     }),
-  })
+  ]
 }
 
 export const makeRetriableErrorHandler = (action: FsGen.Actions) => makeErrorHandler(action, true)
