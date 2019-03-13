@@ -265,8 +265,14 @@ class Thread extends React.PureComponent<Props, State> {
       // are we at the top?
       const list = this._listRef.current
       if (list) {
+        console.log(`scrollTop: ${list.scrollTop} scrollHeight: ${list.scrollHeight}`)
         if (list.scrollTop < listEdgeSlop) {
-          this.props.loadMoreMessages()
+          this.props.loadOlderMessages()
+        } else if (
+          !this.state.isLockedToBottom &&
+          list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
+        ) {
+          this.props.loadNewerMessages()
         }
       }
     },

@@ -871,6 +871,26 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   }
 }
 
+type scrollDirection = 'none' | 'back' | 'forward'
+
+const scrollDirectionToPagination = (sd: scrollDirection, numberOfMessagesToLoad) => {
+  let pagination = {
+    last: false,
+    num: numberOfMessagesToLoad,
+    previous: '',
+  }
+  switch (sd) {
+    case 'none':
+      break
+    case 'back':
+      pagination.next = 'deadbeef'
+      break
+    case 'forward':
+      pagination.previous = 'deadbeef'
+  }
+  return pagination
+}
+
 // Load new messages on a thread. We call this when you select a conversation,
 // we get a thread-is-stale notification, or when you scroll up and want more
 // messages
@@ -878,6 +898,9 @@ function* loadMoreMessages(state, action) {
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
+  let sd: scrollDirection = 'none'
+  let messageIDControl = null
+  let forceClear = false
 
   switch (action.type) {
     case ConfigGen.changedFocus:
@@ -932,6 +955,19 @@ function* loadMoreMessages(state, action) {
         key = Constants.getResolvedPendingConversationIDKey(state)
       }
       break
+    case Chat2Gen.loadNewerMessagesDueToScroll:
+      key = action.payload.conversationIDKey
+      reason = 'scroll forward'
+      break
+    case Chat2Gen.loadMessagesAtID:
+      key = action.payload.conversationIDKey
+      reason = 'messages at id'
+      messageIDControl = {
+        mode: RPCChatTypes.localMessageIDControlMode.oldermessages,
+        num: Constants.numMessagesOnInitialLoad,
+        pivot: action.payload.messageID,
+      }
+      forceClear = true
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
       key = action.payload.conversationIDKey
@@ -951,7 +987,6 @@ function* loadMoreMessages(state, action) {
   }
 
   let numberOfMessagesToLoad
-  let isScrollingBack = false
 
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -965,7 +1000,10 @@ function* loadMoreMessages(state, action) {
       logger.info('Load thread bail: scrolling back and at the end')
       return
     }
-    isScrollingBack = true
+    sd = 'back'
+    numberOfMessagesToLoad = Constants.numMessagesOnScrollback
+  } else if (action.type === Chat2Gen.loadNewerMessagesDueToScroll) {
+    sd = 'forward'
     numberOfMessagesToLoad = Constants.numMessagesOnScrollback
   } else {
     numberOfMessagesToLoad = Constants.numMessagesOnInitialLoad
@@ -988,7 +1026,7 @@ function* loadMoreMessages(state, action) {
     const actions = []
 
     let shouldClearOthers = false
-    if (!isScrollingBack && !calledClear) {
+    if ((forceClear || sd !== 'none') && !calledClear) {
       shouldClearOthers = true
       calledClear = true
     }
@@ -1018,6 +1056,7 @@ function* loadMoreMessages(state, action) {
     return actions
   }
 
+  const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
   try {
     const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
       incomingCallMap: {
@@ -1028,18 +1067,15 @@ function* loadMoreMessages(state, action) {
         cbMode: RPCChatTypes.localGetThreadNonblockCbMode.incremental,
         conversationID,
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        pagination: {
-          last: false,
-          next: isScrollingBack ? 'deadbeef' : '', // daemon treats this as a boolean essentially. string means to scroll back, null means an initial load
-          num: numberOfMessagesToLoad,
-          previous: '',
-        },
+        pagination,
+
         pgmode: RPCChatTypes.localGetThreadNonblockPgMode.server,
         query: {
           disablePostProcessThread: false,
           disableResolveSupersedes: false,
           enableDeletePlaceholders: true,
           markAsRead: false,
+          messageIDControl,
           messageTypes: loadThreadMessageTypes,
         },
         reason: reasonToRPCReason(reason),
@@ -2772,6 +2808,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
+    | Chat2Gen.LoadNewerMessagesDueToScrollPayload
+    | Chat2Gen.LoadMessagesAtIDPayload
     | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
@@ -2781,6 +2819,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.selectConversation,
       Chat2Gen.setPendingConversationExistingConversationIDKey,
       Chat2Gen.loadOlderMessagesDueToScroll,
+      Chat2Gen.loadNewerMessagesDueToScroll,
+      Chat2Gen.loadMessagesAtID,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,

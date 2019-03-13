@@ -1242,3 +1242,15 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {seconds: 86400 * 7, text: '7 days'},
   {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()
+
+export const containsLatestMsgID = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey,
+  messages: Array<Types.Message>
+) => {
+  const meta = getMeta(state, conversationIDKey)
+  const topMsgID = messages.reduce((top, m) => {
+    return m.id > top ? m.id : top
+  }, 0)
+  return meta ? topMsgID >= meta.maxVisibleMsgID : false
+}

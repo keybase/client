@@ -90,6 +90,7 @@ export type _State = {
   unsentTextMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>,
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>,
+  containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

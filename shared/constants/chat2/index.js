@@ -25,6 +25,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
+  containsLatestMessageMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -282,6 +283,7 @@ export {
 
 export {
   allMessageTypes,
+  containsLatestMsgID,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,

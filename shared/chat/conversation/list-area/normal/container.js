@@ -15,15 +15,19 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
+  const meta = Constants.getMeta(state, conversationIDKey)
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
   let lastMessageIsOurs = false
+  let containsLastOrdinal = true
   if (lastOrdinal) {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
     lastMessageIsOurs = m && m.author === state.config.username
+    containsLastOrdinal = m && m.id >= meta.maxVisibleMsgID
   }
 
   return {
+    containsLastOrdinal,
     conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     lastMessageIsOurs,
@@ -32,14 +36,17 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
+  _loadNewerMessages: () => dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey})),
+  _loadOlderMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  _loadMoreMessages: dispatchProps._loadMoreMessages,
+  _loadNewerMessages: dispatchProps._loadNewerMessages,
+  _loadOlderMessages: dispatchProps._loadOlderMessages,
+  containsLastOrdinal: stateProps.containsLastOrdinal,
   conversationIDKey: stateProps.conversationIDKey,
   copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,
@@ -54,6 +61,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
+
+const loadMoreMessages = (state, props, loadFn) => ordinal => {
+  if (state._conversationIDKey === props.conversationIDKey) {
+    if (state._lastLoadMoreOrdinalTime + 1000 > Date.now()) {
+      // ignore a load if its too recent for the same ordinal
+      return
+    }
+  }
+
+  loadFn()
+  return {
+    _conversationIDKey: props.conversationIDKey,
+    _lastLoadMoreOrdinalTime: Date.now(),
+    lastLoadMoreOrdinal: ordinal,
+  }
+}
 
 export default compose(
   connect<OwnProps, _, _, _, _>(
@@ -70,21 +93,8 @@ export default compose(
     },
     {
       // We don't let you try and load more within a second. Used to use the ordinal but maybe we just never want a super quick load
-      loadMoreMessages: (state, props) => ordinal => {
-        if (state._conversationIDKey === props.conversationIDKey) {
-          if (state._lastLoadMoreOrdinalTime + 1000 > Date.now()) {
-            // ignore a load if its too recent for the same ordinal
-            return
-          }
-        }
-
-        props._loadMoreMessages()
-        return {
-          _conversationIDKey: props.conversationIDKey,
-          _lastLoadMoreOrdinalTime: Date.now(),
-          lastLoadMoreOrdinal: ordinal,
-        }
-      },
+      loadNewerMessages: (state, props) => loadMoreMessages(state, props, props._loadNewerMessages),
+      loadOlderMessages: (state, props) => loadMoreMessages(state, props, props._loadOlderMessages),
     }
   ),
   lifecycle({

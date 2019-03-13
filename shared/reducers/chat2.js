@@ -576,6 +576,7 @@ const rootReducer = (
       let oldMessageOrdinals = state.messageOrdinals
       let oldPendingOutboxToOrdinal = state.pendingOutboxToOrdinal
       let oldMessageMap = state.messageMap
+      let oldContainsLatestMessageMap = state.containsLatestMessageMap
 
       // so we can keep messages if they haven't mutated
       const previousMessageMap = state.messageMap
@@ -595,8 +596,9 @@ const rootReducer = (
       }, {})
 
       if (shouldClearOthers) {
+        const conversationIDKey = Types.stringToConversationIDKey(cid)
         oldMessageOrdinals = oldMessageOrdinals.withMutations(map => {
-          Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
+          Object.keys(convoToMessages).forEach(cid => map.delete())
         })
         oldPendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(map => {
           Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
@@ -604,6 +606,8 @@ const rootReducer = (
         oldMessageMap = oldMessageMap.withMutations(map => {
           Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
         })
+        oldContainsLatestMessageMap = oldContainsLatestMessageMap.set(Types.stringToConversationIDKey(cid),
+          Constants.containsLatestMsgID(state, Types.stringToConversationIDKey(cid),
       }
 
       // Types we can send and have to deal with outbox ids
@@ -1047,6 +1051,8 @@ const rootReducer = (
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
+    case Chat2Gen.loadNewerMessagesDueToScroll:
+    case Chat2Gen.loadMessagesAtID:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
