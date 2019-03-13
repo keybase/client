@@ -1531,16 +1531,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
   },
-  'icon-stellar-logo-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-16.png'),
-  },
-  'icon-stellar-logo-grey-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-grey-16.png'),
-  },
   'icon-team-git-16': {
     extension: 'png',
     isFont: false,
