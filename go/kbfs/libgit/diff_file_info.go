@@ -9,35 +9,35 @@ import (
 	"time"
 )
 
-type commitFileInfo struct {
+type diffFileInfo struct {
 	name  string
 	size  int64
 	mtime time.Time
 }
 
-var _ os.FileInfo = (*commitFileInfo)(nil)
+var _ os.FileInfo = (*diffFileInfo)(nil)
 
-func (cfi *commitFileInfo) Name() string {
+func (cfi *diffFileInfo) Name() string {
 	return cfi.name
 }
 
-func (cfi *commitFileInfo) Size() int64 {
+func (cfi *diffFileInfo) Size() int64 {
 	return cfi.size
 }
 
-func (cfi *commitFileInfo) Mode() os.FileMode {
+func (cfi *diffFileInfo) Mode() os.FileMode {
 	// Make it read-only.
 	return 0600
 }
 
-func (cfi *commitFileInfo) ModTime() time.Time {
+func (cfi *diffFileInfo) ModTime() time.Time {
 	return cfi.mtime
 }
 
-func (cfi *commitFileInfo) IsDir() bool {
+func (cfi *diffFileInfo) IsDir() bool {
 	return false
 }
 
-func (cfi *commitFileInfo) Sys() interface{} {
+func (cfi *diffFileInfo) Sys() interface{} {
 	return nil
 }
