@@ -8,8 +8,8 @@ import * as Flow from '../../util/flow'
 import logger from '../../logger'
 
 type RealSize = 96 | 64 | 48 | 32 | 16
-type RealSizeString = '64' | '48' | '32' | '16'
-export type Size = 64 | 48 | 32 | 16 | 12
+type RealSizeString = '96' | '64' | '48' | '32' | '16'
+export type Size = RealSize | 12
 
 export type Props = {
   badge?: ?Types.PathItemBadge,
@@ -55,6 +55,7 @@ const icons = {
     '32': 'icon-folder-32',
     '48': 'icon-folder-48',
     '64': 'icon-folder-64',
+    '96': 'icon-folder-64', // TODO: use 96 when we have it
   },
   tlfList: {
     private: {
@@ -62,18 +63,21 @@ const icons = {
       '32': 'icon-folder-private-32',
       '48': 'icon-folder-private-48',
       '64': 'icon-folder-private-64',
+      '96': 'icon-folder-private-64', // TODO: use 96 when we have it
     },
     public: {
       '16': 'icon-folder-public-16',
       '32': 'icon-folder-public-32',
       '48': 'icon-folder-public-48',
       '64': 'icon-folder-public-64',
+      '96': 'icon-folder-public-64', // TODO: use 96 when we have it
     },
     team: {
       '16': 'icon-folder-team-16',
       '32': 'icon-folder-team-32',
       '48': 'icon-folder-team-48',
       '64': 'icon-folder-team-64',
+      '96': 'icon-folder-team-64', // TODO: use 96 when we have it
     },
   },
 }
