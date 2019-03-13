@@ -61,7 +61,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxColumn,
       ...(flags.useNewRouter ? {marginRight: 12} : {}),
       alignSelf: 'center',
-      backgroundColor: Styles.globalColors.white,
       borderRadius: 5,
       marginTop: -24,
       minWidth: 400,
