@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -156,7 +157,7 @@ func (k *LibKBFS) newContext(u User) (context.Context, context.CancelFunc) {
 	}
 
 	id, errRandomRequestID := libkbfs.MakeRandomRequestID()
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		ctx, func(ctx context.Context) context.Context {
 			logTags := logger.CtxLogTags{
 				CtxIDKey:   CtxOpID,
@@ -179,7 +180,7 @@ func (k *LibKBFS) newContext(u User) (context.Context, context.CancelFunc) {
 	}
 
 	return ctx, func() {
-		libkbfs.CleanupCancellationDelayer(ctx)
+		libcontext.CleanupCancellationDelayer(ctx)
 		cancel()
 	}
 }
@@ -653,7 +654,7 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, t tlf.Type) error {
 	// Restart CR using a clean context, since we will cancel ctx when
 	// we return.
 	err = libkbfs.RestartCRForTesting(
-		libkbfs.BackgroundContextWithCancellationDelayer(), config,
+		libcontext.BackgroundContextWithCancellationDelayer(), config,
 		dir.GetFolderBranch())
 	if err != nil {
 		return err

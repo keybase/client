@@ -13,6 +13,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -98,7 +99,7 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	}
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
-	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+	err = libcontext.EnableDelayedCancellationWithGracePeriod(
 		ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
 	if err != nil {
 		return err
@@ -195,7 +196,7 @@ func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 	defer func() { err = f.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
-	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+	err = libcontext.EnableDelayedCancellationWithGracePeriod(
 		ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
 	if err != nil {
 		return err

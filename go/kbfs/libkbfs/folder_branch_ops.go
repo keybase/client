@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -3440,7 +3441,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	// Ctrl-C, this might not be a big deal. However, it also happens for other
 	// interrupts.  For applications that use signals to communicate, e.g.
 	// SIGALRM and SIGUSR1, this can happen pretty often, which renders broken.
-	if err = EnableDelayedCancellationWithGracePeriod(
+	if err = libcontext.EnableDelayedCancellationWithGracePeriod(
 		ctx, fbo.config.DelayedCancellationGracePeriod()); err != nil {
 		return err
 	}
@@ -4816,7 +4817,7 @@ func (fbo *folderBranchOps) Read(
 		if _, isSet := os.LookupEnv("KBFS_DISABLE_GIT_SPECIAL_CASE"); !isSet {
 			for _, n := range filePath.path {
 				if n.Name == ".git" {
-					EnableDelayedCancellationWithGracePeriod(ctx, fbo.config.DelayedCancellationGracePeriod())
+					libcontext.EnableDelayedCancellationWithGracePeriod(ctx, fbo.config.DelayedCancellationGracePeriod())
 					break
 				}
 			}
@@ -6905,7 +6906,7 @@ func (fbo *folderBranchOps) newCtxWithFBOID() (context.Context, context.CancelFu
 	// ctxWithRandomIDReplayable, which attaches replayably.
 	ctx := fbo.ctxWithFBOID(context.Background())
 	ctx, cancelFunc := context.WithCancel(ctx)
-	ctx, err := NewContextWithCancellationDelayer(ctx)
+	ctx, err := libcontext.NewContextWithCancellationDelayer(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -7365,7 +7366,7 @@ func (fbo *folderBranchOps) backgroundFlusher() {
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.
-			ctx = NewContextReplayable(ctx,
+			ctx = libcontext.NewContextReplayable(ctx,
 				func(ctx context.Context) context.Context {
 					return context.WithValue(ctx, CtxBackgroundSyncKey, "1")
 				})

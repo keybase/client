@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -24,7 +25,7 @@ import (
 func initConfigForAutogit(t *testing.T) (
 	ctx context.Context, config *libkbfs.ConfigLocal,
 	cancel context.CancelFunc, tempdir string) {
-	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx = libcontext.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitDefault, "user1", "user2")
 	success := false

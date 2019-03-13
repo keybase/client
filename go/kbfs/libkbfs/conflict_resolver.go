@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
@@ -128,7 +129,7 @@ func NewConflictResolver(
 	}
 
 	if fbo.bType == standard && config.Mode().ConflictResolutionEnabled() {
-		cr.startProcessing(BackgroundContextWithCancellationDelayer())
+		cr.startProcessing(libcontext.BackgroundContextWithCancellationDelayer())
 	}
 	return cr
 }
@@ -196,7 +197,7 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 		if cr.currCancel != nil {
 			cr.currCancel()
 		}
-		CleanupCancellationDelayer(baseCtx)
+		libcontext.CleanupCancellationDelayer(baseCtx)
 	}()
 	for ci := range inputChan {
 		ctx := CtxWithRandomIDReplayable(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
