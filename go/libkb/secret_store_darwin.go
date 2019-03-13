@@ -143,22 +143,21 @@ func (k KeychainSecretStore) RetrieveSecret(mctx MetaContext, accountName Normal
 
 	// find the last valid item we have stored in the keychain
 	var previousSecret LKSecFullSecret
-Loop:
 	for i := 0; i < maxKeychainItemSlots; i++ {
 		account := newKeychainSlottedAccount(accountName, i)
 		secret, err = k.retrieveSecret(mctx, account)
-		switch err {
-		case nil:
+		if err == nil {
 			previousSecret = secret
-		case keychain.ErrorItemNotFound, NewErrSecretForUserNotFound(accountName):
+			mctx.Debug("successfully retrieved secret on attempt: %d, checking if there is another filled slot", i)
+		} else if _, ok := err.(SecretStoreError); ok || err == keychain.ErrorItemNotFound {
 			// We've reached the end of the keychain entries so let's return
 			// the previous secret we found.
 			secret = previousSecret
 			k.updateAccessibility(mctx, account)
 			err = nil
-			mctx.Debug("successfully retrieved secret on attempt: %d", i-1)
-			break Loop
-		default:
+			mctx.Debug("found last slot: %d, finished read", i)
+			break
+		} else {
 			mctx.Debug("unable to retrieve secret: %v, attempt: %d", err, i)
 		}
 	}
