@@ -148,24 +148,27 @@ const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
 const mapDispatchToSelectorProps = (dispatch, {navigateUp}: SelectorOwnProps) => ({
   // Used by HeaderHoc.
   onBack: () => navigateUp && dispatch(navigateUp()),
+  onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
 })
 
 const mergeSelectorProps = (stateProps, dispatchProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   onBack: dispatchProps.onBack,
+  onGoToInbox: dispatchProps.onGoToInbox,
   shouldNavigateOut: stateProps.shouldNavigateOut,
 })
 
 type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   onBack: () => void,
+  onGoToInbox: () => void,
   shouldNavigateOut: boolean,
 |}
 
 class InfoPanelSelector extends React.PureComponent<Props> {
   componentDidUpdate(prevProps) {
     if (!prevProps.shouldNavigateOut && this.props.shouldNavigateOut) {
-      this.props.onBack()
+      this.props.onGoToInbox()
     }
   }
   render() {

@@ -99,13 +99,14 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         ? [switchStack, StackActions.reset({actions: sa, index: sa.length - 1})]
         : [switchStack]
     }
-    case RouteTreeGen.clearModals:
+    case RouteTreeGen.clearModals: {
       const numModals = getNumModals(navigation)
       return numModals ? [StackActions.pop({n: numModals})] : []
+    }
     case RouteTreeGen.navigateUp:
       return [StackActions.pop()]
     case RouteTreeGen.popToScreen: {
-      const numModals = getNumModals(navigation)
+      const modals = getNumModals(navigation)
       const appPath = Constants._getAppStackForNavigator(navigation.state)
       if (!appPath.length) {
         return []
@@ -118,7 +119,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         numAdditional++
         return false
       })
-      return isInStack && numModals + numAdditional ? [StackActions.pop({n: numModals + numAdditional})] : []
+      return isInStack && modals + numAdditional ? [StackActions.pop({n: modals + numAdditional})] : []
     }
   }
 }
