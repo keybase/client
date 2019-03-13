@@ -37,7 +37,6 @@ const load = () => {
       <PostProof {...propsTwitter} errorMessage={"We couldn't find your proof. Please retry!"} />
     ))
     .add('Reddit', () => <PostProof {...props} platform={'reddit'} />)
-    .add('Facebook', () => <PostProof {...props} platform={'facebook'} />)
     .add('GitHub', () => (
       <PostProof
         {...props}
