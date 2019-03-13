@@ -7,11 +7,12 @@
 //
 
 #import "CocoaLumberjack.h"
+#import <React/RCTBridgeDelegate.h>
 #import <UIKit/UIKit.h>
 
 @class Engine;
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@interface AppDelegate : UIResponder <UIApplicationDelegate, RCTBridgeDelegate>
 
 @property (nonatomic, strong) UIWindow *window;
 @property (nonatomic, strong) Engine *engine;

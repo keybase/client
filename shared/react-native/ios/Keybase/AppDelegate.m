@@ -17,11 +17,6 @@
 #import "Pusher.h"
 #import "Fs.h"
 
-// Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
-// You'll also have to edit the React.xcodeproj. Instructions here:
-// https://github.com/facebook/react-native/issues/15003#issuecomment-323715121
-//#define SYSTRACING
-
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
 @property UIBackgroundTaskIdentifier shutdownTask;
@@ -76,32 +71,16 @@ const BOOL isDebug = NO;
   [self setupGo];
   [self notifyAppState:application];
 
-  NSURL *jsCodeLocation;
-
-  // Uncomment for prod JS in dev mode (and comment the line after
-  // that). If you're building onto a phone, you'll have to change
-  // localhost:8081 to point to the bundler running on your computer.
-  //
-//   jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
-#ifdef SYSTRACING
-  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
-                                            launchOptions:launchOptions];
-
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge moduleName:@"Keybase" initialProperties:nil];
-#else
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
-                                                      moduleName:@"Keybase"
-                                               initialProperties:nil
-                                                   launchOptions:launchOptions];
-  rootView.backgroundColor = [UIColor whiteColor];
-#endif
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
+                                                   moduleName:@"Keybase"
+                                            initialProperties:nil];
+  rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
-
   [self.window makeKeyAndVisible];
 
   // To simplify the cover animation raciness
@@ -117,6 +96,15 @@ const BOOL isDebug = NO;
    UIApplicationBackgroundFetchIntervalMinimum];
 
   return YES;
+}
+
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
+{
+#if DEBUG
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+#else
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+#endif
 }
 
 -(void) application:(UIApplication *)application performFetchWithCompletionHandler:
