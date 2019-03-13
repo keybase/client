@@ -267,17 +267,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ]
       )
     case FsGen.newFolderName:
-      // $FlowFixMe
-      return state.updateIn(
-        ['edits', action.payload.editID],
-        editItem => editItem && editItem.set('name', action.payload.name)
+      return state.update('edits', edits =>
+        edits.update(action.payload.editID, edit => edit && edit.set('name', action.payload.name))
       )
     case FsGen.commitEdit:
-      // $FlowFixMe
-      return state.setIn(['edits', action.payload.editID, 'status'], 'saving')
+      return state.update('edits', edits =>
+        edits.update(action.payload.editID, edit => edit.set('status', 'saving'))
+      )
     case FsGen.discardEdit:
-      // $FlowFixMe
-      return state.removeIn(['edits', action.payload.editID])
+      return state.update('edits', edits => edits.remove(action.payload.editID))
     case FsGen.fsError:
       return reduceFsError(state, action)
     case FsGen.userFileEditsLoaded:
@@ -311,14 +309,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('destinationPicker', dp =>
         dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
       )
+    case FsGen.showSendAttachmentToChat:
+      return state.set(
+        'sendAttachmentToChat',
+        Constants.makeSendAttachmentToChat({path: action.payload.path})
+      )
     case FsGen.showSendLinkToChat:
       return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
     case FsGen.setSendLinkToChatConvID:
-      // $FlowIssue
-      return state.setIn(['sendLinkToChat', 'convID'], action.payload.convID)
-    case FsGen.setSendLinkToChatChannels:
-      // $FlowIssue
-      return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        sendLinkToChat.set('convID', action.payload.convID)
+      )
     case FsGen.setPathItemActionMenuView:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
         pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
@@ -357,6 +358,19 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
         )
       )
+    case FsGen.setSendLinkToChatChannels:
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        sendLinkToChat.set('channels', action.payload.channels)
+      )
+    case FsGen.setSendAttachmentToChatConvID:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('convID', action.payload.convID)
+      )
+    case FsGen.setSendAttachmentToChatFilter:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('filter', action.payload.filter)
+      )
+
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.pathItemLoad:
