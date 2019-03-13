@@ -3170,10 +3170,42 @@ func (o ThreadView) DeepCopy() ThreadView {
 	}
 }
 
+type MessageIDControlMode int
+
+const (
+	MessageIDControlMode_OLDERMESSAGES MessageIDControlMode = 0
+	MessageIDControlMode_NEWERMESSAGES MessageIDControlMode = 1
+	MessageIDControlMode_CENTERED      MessageIDControlMode = 2
+	MessageIDControlMode_UNREADLINE    MessageIDControlMode = 3
+)
+
+func (o MessageIDControlMode) DeepCopy() MessageIDControlMode { return o }
+
+var MessageIDControlModeMap = map[string]MessageIDControlMode{
+	"OLDERMESSAGES": 0,
+	"NEWERMESSAGES": 1,
+	"CENTERED":      2,
+	"UNREADLINE":    3,
+}
+
+var MessageIDControlModeRevMap = map[MessageIDControlMode]string{
+	0: "OLDERMESSAGES",
+	1: "NEWERMESSAGES",
+	2: "CENTERED",
+	3: "UNREADLINE",
+}
+
+func (e MessageIDControlMode) String() string {
+	if v, ok := MessageIDControlModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type MessageIDControl struct {
-	Pivot  *MessageID `codec:"pivot,omitempty" json:"pivot,omitempty"`
-	Recent bool       `codec:"recent" json:"recent"`
-	Num    int        `codec:"num" json:"num"`
+	Pivot *MessageID           `codec:"pivot,omitempty" json:"pivot,omitempty"`
+	Mode  MessageIDControlMode `codec:"mode" json:"mode"`
+	Num   int                  `codec:"num" json:"num"`
 }
 
 func (o MessageIDControl) DeepCopy() MessageIDControl {
@@ -3185,8 +3217,8 @@ func (o MessageIDControl) DeepCopy() MessageIDControl {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Pivot),
-		Recent: o.Recent,
-		Num:    o.Num,
+		Mode: o.Mode.DeepCopy(),
+		Num:  o.Num,
 	}
 }
 
