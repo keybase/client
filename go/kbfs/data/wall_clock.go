@@ -2,14 +2,15 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import "time"
 
-type wallClock struct {
+// WallClock is a wrapper around the built-in clock.
+type WallClock struct {
 }
 
-// Now implements the Clock interface for wallClock.
-func (wc wallClock) Now() time.Time {
+// Now returns the current wall clock time.
+func (wc WallClock) Now() time.Time {
 	return time.Now()
 }

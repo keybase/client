@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	kbfsdata "github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfssync"
@@ -156,8 +157,9 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	require.NoError(t, err, "Sync got an error: %v", err)
 }
 
-func testCalcNumFileBlocks(dataLen int, bsplitter *BlockSplitterSimple) int {
-	nChildBlocks := 1 + dataLen/int(bsplitter.maxSize)
+func testCalcNumFileBlocks(
+	dataLen int, bsplitter *kbfsdata.BlockSplitterSimple) int {
+	nChildBlocks := 1 + dataLen/int(bsplitter.MaxSize())
 	nFileBlocks := nChildBlocks
 	for nChildBlocks > 1 {
 		parentBlocks := 0
@@ -181,7 +183,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 
@@ -267,11 +269,11 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	// root block + 2 modifications (create + write), the empty file
 	// block, the n initial modification blocks plus top block (if
 	// applicable).
-	bcs := config.BlockCache().(*BlockCacheStandard)
-	numCleanBlocks := bcs.cleanTransient.Len()
+	bcs := config.BlockCache().(*kbfsdata.BlockCacheStandard)
+	numCleanBlocks := bcs.NumCleanTransientBlocks()
 	nFileBlocks := testCalcNumFileBlocks(initialWriteBytes, bsplitter)
 	if g, e := numCleanBlocks, 4+nFileBlocks; g != e {
-		t.Logf("Unexpected number of cached clean blocks: %d vs %d (%d vs %d)", g, e, totalSize, bsplitter.maxSize)
+		t.Logf("Unexpected number of cached clean blocks: %d vs %d (%d vs %d)", g, e, totalSize, bsplitter.MaxSize())
 	}
 
 	err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
@@ -286,8 +288,8 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	numDirtyBlocks := len(dbcs.cache)
+	dbcs := config.DirtyBlockCache().(*kbfsdata.DirtyBlockCacheStandard)
+	numDirtyBlocks := dbcs.Size()
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -330,7 +332,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 
@@ -411,8 +413,8 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	numDirtyBlocks := len(dbcs.cache)
+	dbcs := config.DirtyBlockCache().(*kbfsdata.DirtyBlockCacheStandard)
+	numDirtyBlocks := dbcs.Size()
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -426,7 +428,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	defer kbfsConcurTestShutdownNoCheck(t, config, ctx, cancel)
 
 	// Turn off transient block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(kbfsdata.NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -519,7 +521,7 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr kbfsdata.BlockPointer) (
 	kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
@@ -553,7 +555,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(kbfsdata.NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -635,7 +637,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(kbfsdata.NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -716,8 +718,8 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
-		config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(
+		kbfsdata.MaxBlockSizeBytesDefault, 8*1024, config.Codec())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -844,10 +846,10 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(kbfsdata.NewBlockCacheStandard(0, 1<<30))
 
 	// Use the smallest block size possible.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 
@@ -858,7 +860,7 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	// Write to file to make an indirect block.
-	data := make([]byte, bsplitter.maxSize+1)
+	data := make([]byte, bsplitter.MaxSize()+1)
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	require.NoError(t, err, "Couldn't write to file: %v", err)
 
@@ -937,7 +939,8 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// make the unembedded size large, so we don't create thousands of
 	// unembedded block change blocks.
 	blockSize := int64(5)
-	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024, 0}
+	bsplit, err := kbfsdata.NewBlockSplitterSimpleExact(blockSize, 2, 100*1024)
+	require.NoError(t, err)
 	config.SetBlockSplitter(bsplit)
 
 	// create and write to a file
@@ -961,7 +964,8 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// there should be 7 blocks at this point: the original root block
 	// + 2 modifications (create + write), the top indirect file block
 	// and a modification (write), and its two children blocks.
-	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).cleanTransient.Len()
+	numCleanBlocks := config.BlockCache().(*kbfsdata.BlockCacheStandard).
+		NumCleanTransientBlocks()
 	if numCleanBlocks != 7 {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)
@@ -1118,7 +1122,8 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	// make the unembedded size large, so we don't create thousands of
 	// unembedded block change blocks.
 	blockSize := int64(5)
-	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024, 0}
+	bsplit, err := kbfsdata.NewBlockSplitterSimpleExact(blockSize, 2, 100*1024)
+	require.NoError(t, err)
 	config.SetBlockSplitter(bsplit)
 
 	// create and write to a file
@@ -1267,7 +1272,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// make the unembedded size large, so we don't create thousands of
 	// unembedded block change blocks.
 	blockSize := int64(5)
-	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024, 0}
+	bsplit, err := kbfsdata.NewBlockSplitterSimpleExact(blockSize, 2, 100*1024)
+	require.NoError(t, err)
 	config.SetBlockSplitter(bsplit)
 
 	// create and write to a file
@@ -1289,14 +1295,14 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any(), gomock.Any()).Times(2).After(c).Return(nil)
 	putErr := errors.New("This is a forced error on put")
-	errPtrChan := make(chan BlockPointer)
+	errPtrChan := make(chan kbfsdata.BlockPointer)
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 			_ DiskBlockCacheType) {
-			errPtrChan <- BlockPointer{
+			errPtrChan <- kbfsdata.BlockPointer{
 				ID:      id,
 				Context: context,
 			}
@@ -1315,7 +1321,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		AnyTimes().Return(nil, nil)
 	b.EXPECT().Shutdown(gomock.Any()).AnyTimes()
 
-	var errPtr BlockPointer
+	var errPtr kbfsdata.BlockPointer
 	go func() {
 		errPtr = <-errPtrChan
 		close(proceedChan)
@@ -1346,7 +1352,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// Use the smallest possible block size.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 
@@ -1444,8 +1450,8 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	numDirtyBlocks := len(dbcs.cache)
+	dbcs := config.DirtyBlockCache().(*kbfsdata.DirtyBlockCacheStandard)
+	numDirtyBlocks := dbcs.Size()
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -1473,7 +1479,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// Use the smallest possible block size.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 
@@ -1528,7 +1534,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "test_user", tlf.Private)
 	require.NoError(t, err)
-	ptrs := make([]BlockPointer, len(pointerMap))
+	ptrs := make([]kbfsdata.BlockPointer, len(pointerMap))
 	for _, ptr := range pointerMap {
 		ptrs = append(ptrs, ptr.BlockPointer)
 	}
@@ -1638,13 +1644,10 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	}
 
 	t.Log("Make sure there are no dirty blocks left at the end of the test.")
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	numDirtyBlocks := len(dbcs.cache)
+	dbcs := config.DirtyBlockCache().(*kbfsdata.DirtyBlockCacheStandard)
+	numDirtyBlocks := dbcs.Size()
 	if numDirtyBlocks != 0 {
-		for ptr := range dbcs.cache {
-			t.Logf("Block %v still dirty", ptr.id)
-		}
-		t.Errorf("%d dirty blocks left after final sync, sync=%d wait=%d", numDirtyBlocks, dbcs.syncBufBytes, dbcs.waitBufBytes)
+		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
 	// Shutdown the MDServer to disable state checking at the end of the test,
 	// since we hacked stuff a bit by deleting blocks manually rather than
@@ -1801,7 +1804,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 
@@ -1887,7 +1890,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 
@@ -2042,7 +2045,7 @@ type blockOpsOverQuota struct {
 }
 
 func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
-	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+	blockPtr kbfsdata.BlockPointer, readyBlockData kbfsdata.ReadyBlockData) error {
 	return kbfsblock.ServerErrorOverQuota{
 		Throttled: true,
 	}
@@ -2065,8 +2068,8 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 
 	// Write over the dirty amount of data.  TODO: make this
 	// configurable for a speedier test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	data := make([]byte, dbcs.minSyncBufCap+1)
+	const minSyncBufCap = int64(kbfsdata.MaxBlockSizeBytesDefault)
+	data := make([]byte, minSyncBufCap+1)
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	require.NoError(t, err, "Couldn't write file: %v", err)
 
@@ -2086,7 +2089,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	<-onSyncStalledCh
 
 	// Write more data which should get accepted but deferred.
-	moreData := make([]byte, dbcs.minSyncBufCap*2+1)
+	moreData := make([]byte, minSyncBufCap*2+1)
 	err = kbfsOps.Write(ctx, fileNode, moreData, int64(len(data)))
 	require.NoError(t, err, "Couldn't write file: %v", err)
 
@@ -2107,7 +2110,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 		defer ops.blocks.blockLock.Unlock(lState)
 		df := ops.blocks.getOrCreateDirtyFileLocked(lState, filePath)
 		// TODO: locking
-		for len(df.errListeners) != 3 {
+		for df.NumErrListeners() != 3 {
 			ops.blocks.blockLock.Unlock(lState)
 			runtime.Gosched()
 			ops.blocks.blockLock.Lock(lState)
@@ -2162,7 +2165,7 @@ type stallingNodeCache struct {
 }
 
 func (snc *stallingNodeCache) UpdatePointer(
-	oldRef BlockRef, newPtr BlockPointer) NodeID {
+	oldRef kbfsdata.BlockRef, newPtr kbfsdata.BlockPointer) NodeID {
 	select {
 	case <-snc.doStallUpdate:
 		<-snc.unstallUpdate
@@ -2171,7 +2174,7 @@ func (snc *stallingNodeCache) UpdatePointer(
 	return snc.NodeCache.UpdatePointer(oldRef, newPtr)
 }
 
-func (snc *stallingNodeCache) PathFromNode(node Node) path {
+func (snc *stallingNodeCache) PathFromNode(node Node) kbfsdata.Path {
 	snc.beforePathsCalled <- struct{}{}
 	p := snc.NodeCache.PathFromNode(node)
 	snc.afterPathCalled <- struct{}{}
@@ -2313,7 +2316,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 		StallMDOp(ctx, config, StallableMDPut, 1)
 
 	// Use the smallest possible block size.
-	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	bsplitter, err := kbfsdata.NewBlockSplitterSimple(20, 8*1024, config.Codec())
 	require.NoError(t, err, "Couldn't create block splitter: %v", err)
 	config.SetBlockSplitter(bsplitter)
 

@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
@@ -542,7 +543,10 @@ func getRekeyFSM(ctx context.Context, ops KBFSOps, tlfID tlf.ID) RekeyFSM {
 	switch o := ops.(type) {
 	case *KBFSOpsStandard:
 		return o.getOpsNoAdd(
-			ctx, FolderBranch{Tlf: tlfID, Branch: MasterBranch}).rekeyFSM
+			ctx, data.FolderBranch{
+				Tlf:    tlfID,
+				Branch: data.MasterBranch,
+			}).rekeyFSM
 	default:
 		panic("unknown KBFSOps")
 	}

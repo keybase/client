@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -95,7 +95,7 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	// the number of realistic indirect pointers you can fit into the
 	// default block size.  TODO: calculate this number more exactly
 	// during initialization for a given `maxSize`.
-	maxPtrs := int(.75 * float64(maxSize/int64(bpSize)))
+	maxPtrs := int(.75 * float64(maxSize/int64(BPSize)))
 	if maxPtrs < 2 {
 		maxPtrs = 2
 	}
@@ -108,6 +108,23 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	return &BlockSplitterSimple{
 		maxSize:                 maxSize,
 		maxPtrsPerBlock:         maxPtrs,
+		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
+		maxDirEntriesPerBlock:   maxDirEntriesPerBlock,
+	}, nil
+}
+
+// NewBlockSplitterSimpleExact returns a BlockSplitterSimple with the
+// max block size set to an exact value.
+func NewBlockSplitterSimpleExact(
+	maxSize int64, maxPtrsPerBlock int, blockChangeEmbedMaxSize uint64) (
+	*BlockSplitterSimple, error) {
+	maxDirEntriesPerBlock, err := getMaxDirEntriesPerBlock()
+	if err != nil {
+		return nil, err
+	}
+	return &BlockSplitterSimple{
+		maxSize:                 maxSize,
+		maxPtrsPerBlock:         maxPtrsPerBlock,
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
 		maxDirEntriesPerBlock:   maxDirEntriesPerBlock,
 	}, nil
@@ -126,7 +143,7 @@ func (b *BlockSplitterSimple) SetMaxDirEntriesByBlockSize(
 	}
 
 	block := NewDirBlock().(*DirBlock)
-	bigName := strings.Repeat("a", maxNameBytesDefault)
+	bigName := strings.Repeat("a", MaxNameBytesDefault)
 	// Make "typical" DirEntry, though the max dir entry is a bit
 	// bigger than this (can contain a variable-length symlink path,
 	// for example).
@@ -210,11 +227,10 @@ func (b *BlockSplitterSimple) MaxPtrsPerBlock() int {
 	return b.maxPtrsPerBlock
 }
 
-// ShouldEmbedBlockChanges implements the BlockSplitter interface for
+// ShouldEmbedData implements the BlockSplitter interface for
 // BlockSplitterSimple.
-func (b *BlockSplitterSimple) ShouldEmbedBlockChanges(
-	bc *BlockChanges) bool {
-	return bc.SizeEstimate() <= b.blockChangeEmbedMaxSize
+func (b *BlockSplitterSimple) ShouldEmbedData(size uint64) bool {
+	return size <= b.blockChangeEmbedMaxSize
 }
 
 // SplitDirIfNeeded implements the BlockSplitter interface for
@@ -247,4 +263,23 @@ func (b *BlockSplitterSimple) SplitDirIfNeeded(block *DirBlock) (
 	}
 	newOffset := StringOffset(names[startOff])
 	return []*DirBlock{block, newBlock}, &newOffset
+}
+
+// MaxSize returns the max block size.
+func (b *BlockSplitterSimple) MaxSize() int64 {
+	return b.maxSize
+}
+
+// SetBlockChangeEmbedMaxSizeForTesting sets the max size for block
+// change embeds, which is useful for testing.  It is not
+// goroutine-safe.
+func (b *BlockSplitterSimple) SetBlockChangeEmbedMaxSizeForTesting(
+	newSize uint64) {
+	b.blockChangeEmbedMaxSize = newSize
+}
+
+// SetMaxDirEntriesPerBlockForTesting sets the max dir entries for a
+// block, which is useful for testing.  It is not goroutine-safe.
+func (b *BlockSplitterSimple) SetMaxDirEntriesPerBlockForTesting(newMax int) {
+	b.maxDirEntriesPerBlock = newMax
 }

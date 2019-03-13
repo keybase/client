@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -69,11 +70,11 @@ var errNoSuchHandle = simpleFSError{"No such handle"}
 var errNoResult = simpleFSError{"Async result not found"}
 
 type newFSFunc func(
-	context.Context, libkbfs.Config, *tlfhandle.Handle, libkbfs.BranchName,
+	context.Context, libkbfs.Config, *tlfhandle.Handle, data.BranchName,
 	string, bool) (billy.Filesystem, error)
 
 func defaultNewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch data.BranchName, subdir string,
 	create bool) (
 	billy.Filesystem, error) {
 	maker := libfs.NewFS
@@ -108,7 +109,7 @@ type SimpleFS struct {
 
 	subscribeLock               sync.RWMutex
 	subscribeCurrTlfPathFromGUI string
-	subscribeCurrFB             libkbfs.FolderBranch
+	subscribeCurrFB             data.FolderBranch
 
 	localHTTPServer *libhttpserver.Server
 }
@@ -208,14 +209,14 @@ func remoteTlfAndPath(path keybase1.Path) (
 
 func (k *SimpleFS) branchNameFromPath(
 	ctx context.Context, tlfHandle *tlfhandle.Handle, path keybase1.Path) (
-	libkbfs.BranchName, error) {
+	data.BranchName, error) {
 	pt, err := path.PathType()
 	if err != nil {
 		return "", err
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
-		return libkbfs.MasterBranch, nil
+		return data.MasterBranch, nil
 	case keybase1.PathType_KBFS_ARCHIVED:
 		archivedParam := path.KbfsArchived().ArchivedParam
 		archivedType, err := archivedParam.KBFSArchivedType()
@@ -224,7 +225,7 @@ func (k *SimpleFS) branchNameFromPath(
 		}
 		switch archivedType {
 		case keybase1.KBFSArchivedType_REVISION:
-			return libkbfs.MakeRevBranchName(
+			return data.MakeRevBranchName(
 				kbfsmd.Revision(archivedParam.Revision())), nil
 		case keybase1.KBFSArchivedType_TIME:
 			t := keybase1.FromTime(archivedParam.Time())
@@ -232,14 +233,14 @@ func (k *SimpleFS) branchNameFromPath(
 			if err != nil {
 				return "", err
 			}
-			return libkbfs.MakeRevBranchName(rev), nil
+			return data.MakeRevBranchName(rev), nil
 		case keybase1.KBFSArchivedType_TIME_STRING:
 			t := archivedParam.TimeString()
 			rev, err := libfs.RevFromTimeString(ctx, k.config, tlfHandle, t)
 			if err != nil {
 				return "", err
 			}
-			return libkbfs.MakeRevBranchName(rev), nil
+			return data.MakeRevBranchName(rev), nil
 		case keybase1.KBFSArchivedType_REL_TIME_STRING:
 			t := archivedParam.RelTimeString()
 			rev, err := libfs.RevFromRelativeTimeString(
@@ -247,7 +248,7 @@ func (k *SimpleFS) branchNameFromPath(
 			if err != nil {
 				return "", err
 			}
-			return libkbfs.MakeRevBranchName(rev), nil
+			return data.MakeRevBranchName(rev), nil
 		default:
 			return "", simpleFSError{"Invalid archived type for branch name"}
 		}
@@ -308,15 +309,15 @@ func (k *SimpleFS) getFSIfExists(
 	return k.getFSWithMaybeCreate(ctx, path, false)
 }
 
-func deTy2Ty(et libkbfs.EntryType) keybase1.DirentType {
+func deTy2Ty(et data.EntryType) keybase1.DirentType {
 	switch et {
-	case libkbfs.Exec:
+	case data.Exec:
 		return keybase1.DirentType_EXEC
-	case libkbfs.File:
+	case data.File:
 		return keybase1.DirentType_FILE
-	case libkbfs.Dir:
+	case data.Dir:
 		return keybase1.DirentType_DIR
-	case libkbfs.Sym:
+	case data.Sym:
 		return keybase1.DirentType_SYM
 	}
 	panic("deTy2Ty unreachable")
@@ -347,7 +348,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		}
 		res = append(res, keybase1.Dirent{})
 		res[len(res)-1].Name = string(pname)
-		res[len(res)-1].DirentType = deTy2Ty(libkbfs.Dir)
+		res[len(res)-1].DirentType = deTy2Ty(data.Dir)
 
 		handle, err := tlfhandle.ParseHandlePreferredQuick(
 			ctx, k.config.KBPKI(), k.config, string(pname), t)
@@ -387,13 +388,13 @@ func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 	de.Time = keybase1.ToTime(fi.ModTime())
 	de.Size = int(fi.Size()) // TODO: FIX protocol
 
-	t := libkbfs.File
+	t := data.File
 	if fi.IsDir() {
-		t = libkbfs.Dir
+		t = data.Dir
 	} else if fi.Mode()&0100 != 0 {
-		t = libkbfs.Exec
+		t = data.Exec
 	} else if fi.Mode()&os.ModeSymlink != 0 {
-		t = libkbfs.Sym
+		t = data.Sym
 	}
 	de.DirentType = deTy2Ty(t)
 	de.Writable = (fi.Mode()&0222 != 0)
@@ -554,25 +555,25 @@ func isFiltered(filter keybase1.ListFilter, name string) bool {
 
 func (k *SimpleFS) getFolderBranchFromPath(
 	ctx context.Context, path keybase1.Path) (
-	libkbfs.FolderBranch, string, error) {
+	data.FolderBranch, string, error) {
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
-		return libkbfs.FolderBranch{}, "", err
+		return data.FolderBranch{}, "", err
 	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
-		return libkbfs.FolderBranch{}, "", err
+		return data.FolderBranch{}, "", err
 	}
 
 	// Get the root node first to initialize the TLF.
 	node, _, err := k.config.KBFSOps().GetRootNode(
-		ctx, tlfHandle, libkbfs.MasterBranch)
+		ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
-		return libkbfs.FolderBranch{}, "", err
+		return data.FolderBranch{}, "", err
 	}
 	if node == nil {
-		return libkbfs.FolderBranch{}, tlfHandle.GetCanonicalPath(), nil
+		return data.FolderBranch{}, tlfHandle.GetCanonicalPath(), nil
 	}
 	return node.GetFolderBranch(), tlfHandle.GetCanonicalPath(), nil
 }
@@ -605,7 +606,7 @@ func (k *SimpleFS) refreshSubscription(
 	if err != nil {
 		return err
 	}
-	if fb == (libkbfs.FolderBranch{}) {
+	if fb == (data.FolderBranch{}) {
 		k.log.CDebugf(
 			ctx, "Ignoring subscription for empty TLF %q", path)
 		return nil
@@ -615,9 +616,9 @@ func (k *SimpleFS) refreshSubscription(
 		return nil
 	}
 
-	if k.subscribeCurrFB != (libkbfs.FolderBranch{}) {
+	if k.subscribeCurrFB != (data.FolderBranch{}) {
 		err = k.config.Notifier().UnregisterFromChanges(
-			[]libkbfs.FolderBranch{k.subscribeCurrFB}, k)
+			[]data.FolderBranch{k.subscribeCurrFB}, k)
 		if err != nil {
 			return err
 		}
@@ -625,7 +626,7 @@ func (k *SimpleFS) refreshSubscription(
 
 	k.log.CDebugf(ctx, "Subscribing to %s", tlfPathFromGUI)
 	err = k.config.Notifier().RegisterForChanges(
-		[]libkbfs.FolderBranch{fb}, k)
+		[]data.FolderBranch{fb}, k)
 	if err != nil {
 		return err
 	}
@@ -656,9 +657,9 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 			switch {
 			case rawPath == "/":
 				res = []keybase1.Dirent{
-					{Name: "private", DirentType: deTy2Ty(libkbfs.Dir)},
-					{Name: "public", DirentType: deTy2Ty(libkbfs.Dir)},
-					{Name: "team", DirentType: deTy2Ty(libkbfs.Dir)},
+					{Name: "private", DirentType: deTy2Ty(data.Dir)},
+					{Name: "public", DirentType: deTy2Ty(data.Dir)},
+					{Name: "team", DirentType: deTy2Ty(data.Dir)},
 				}
 			case rawPath == `/public`:
 				res, err = k.favoriteList(ctx, arg.Path, tlf.Public)
@@ -1241,7 +1242,7 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 				k.log.CDebugf(ctx, "Renaming within same TLF: %s",
 					tlfHandle.GetCanonicalPath())
 				fs, err := libfs.NewFS(
-					ctx, k.config, tlfHandle, libkbfs.MasterBranch, "", "",
+					ctx, k.config, tlfHandle, data.MasterBranch, "", "",
 					keybase1.MDPriorityNormal)
 				if err != nil {
 					return err
@@ -1297,7 +1298,7 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 		return err
 	}
 	fs, err := libfs.NewFS(
-		ctx, k.config, tlfHandle, libkbfs.MasterBranch, "", "",
+		ctx, k.config, tlfHandle, data.MasterBranch, "", "",
 		keybase1.MDPriorityNormal)
 	if err != nil {
 		return err
@@ -1605,7 +1606,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 
 func (k *SimpleFS) getRevisionsFromPath(
 	ctx context.Context, path keybase1.Path) (
-	os.FileInfo, libkbfs.PrevRevisions, error) {
+	os.FileInfo, data.PrevRevisions, error) {
 	fs, finalElem, err := k.getFSIfExists(ctx, path)
 	if err != nil {
 		k.log.CDebugf(ctx, "Trouble getting fs for path %s: %+v", path, err)
@@ -2073,7 +2074,7 @@ func (k *SimpleFS) SimpleFSFolderEditHistory(
 	if err != nil {
 		return keybase1.FSFolderEditHistory{}, err
 	}
-	if fb == (libkbfs.FolderBranch{}) {
+	if fb == (data.FolderBranch{}) {
 		return keybase1.FSFolderEditHistory{}, nil
 	}
 
@@ -2114,7 +2115,7 @@ func (k *SimpleFS) BatchChanges(
 	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID) {
 	// Don't take any locks while processing these notifications,
 	// since it risks deadlock.
-	fbs := make(map[libkbfs.FolderBranch]bool, 1)
+	fbs := make(map[data.FolderBranch]bool, 1)
 	for _, nc := range changes {
 		fbs[nc.Node.GetFolderBranch()] = true
 	}
@@ -2162,7 +2163,7 @@ func (k *SimpleFS) SimpleFSGetTeamQuotaUsage(
 	if err != nil {
 		return keybase1.SimpleFSQuotaUsage{}, err
 	}
-	if fb == (libkbfs.FolderBranch{}) {
+	if fb == (data.FolderBranch{}) {
 		return keybase1.SimpleFSQuotaUsage{}, nil
 	}
 
@@ -2195,7 +2196,7 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 
 	// Ensure the TLF is initialized by getting the root node first.
 	_, _, err = k.config.KBFSOps().GetRootNode(
-		ctx, tlfHandle, libkbfs.MasterBranch)
+		ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
 	}

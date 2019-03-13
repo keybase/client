@@ -9,6 +9,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -26,7 +27,7 @@ import (
 // block pointers for the node.
 type crChain struct {
 	ops                  []op
-	original, mostRecent BlockPointer
+	original, mostRecent data.BlockPointer
 	file                 bool
 }
 
@@ -39,13 +40,13 @@ type crChain struct {
 //  * A remove that only unreferences blocks created within this branch
 // This function returns the list of pointers that should be unreferenced
 // as part of an eventual resolution of the corresponding branch.
-func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
-	originals map[BlockPointer]BlockPointer) (toUnrefs []BlockPointer) {
+func (cc *crChain) collapse(createdOriginals map[data.BlockPointer]bool,
+	originals map[data.BlockPointer]data.BlockPointer) (toUnrefs []data.BlockPointer) {
 	createsSeen := make(map[string]int)
 	indicesToRemove := make(map[int]bool)
 	var wr []WriteRange
 	lastSyncOp := -1
-	var syncRefs, syncUnrefs []BlockPointer
+	var syncRefs, syncUnrefs []data.BlockPointer
 	for i, op := range cc.ops {
 		switch realOp := op.(type) {
 		case *createOp:
@@ -173,7 +174,7 @@ func (cc *crChain) removeSyncOps() {
 }
 
 func (cc *crChain) getActionsToMerge(
-	ctx context.Context, renamer ConflictRenamer, mergedPath path,
+	ctx context.Context, renamer ConflictRenamer, mergedPath data.Path,
 	mergedChain *crChain) (crActionList, error) {
 	var actions crActionList
 
@@ -244,7 +245,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 	// chain.  If it only has a setAttr/mtime, we don't know what it
 	// is, so fall through and fetch the block unless we come across
 	// another op that can determine the type.
-	var parentDir BlockPointer
+	var parentDir data.BlockPointer
 	for _, op := range cc.ops {
 		switch realOp := op.(type) {
 		case *syncOp:
@@ -295,15 +296,18 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 
 	// If we get down here, we have an ambiguity, and need to fetch
 	// the block to figure out the file type.
-	parentPath := path{
+	parentPath := data.Path{
 		FolderBranch: fbo.folderBranch,
-		path:         []pathNode{{parentMostRecent, ""}},
+		Path: []data.PathNode{{
+			BlockPointer: parentMostRecent,
+			Name:         "",
+		}},
 	}
 	parentDD, cleanupFn := fbo.newDirDataWithDBM(
 		makeFBOLockState(), parentPath, keybase1.UserOrTeamID(""), kmd,
 		newDirBlockMapMemory())
 	defer cleanupFn()
-	entries, err := parentDD.getEntries(ctx)
+	entries, err := parentDD.GetEntries(ctx)
 	if err != nil {
 		return err
 	}
@@ -314,11 +318,11 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			continue
 		}
 		switch entry.Type {
-		case Dir:
+		case data.Dir:
 			cc.file = false
-		case File:
+		case data.File:
 			cc.file = true
-		case Exec:
+		case data.Exec:
 			cc.file = true
 		default:
 			return errors.Errorf("Unexpected chain type: %s", entry.Type)
@@ -380,9 +384,9 @@ func (cc *crChain) hasSetAttrOp() bool {
 }
 
 type renameInfo struct {
-	originalOldParent BlockPointer
+	originalOldParent data.BlockPointer
 	oldName           string
-	originalNewParent BlockPointer
+	originalNewParent data.BlockPointer
 	newName           string
 }
 
@@ -398,29 +402,29 @@ func (ri renameInfo) String() string {
 // by both the starting (original) and ending (most recent) pointers.
 // It also keeps track of which chain points to the root of the folder.
 type crChains struct {
-	byOriginal   map[BlockPointer]*crChain
-	byMostRecent map[BlockPointer]*crChain
-	originalRoot BlockPointer
+	byOriginal   map[data.BlockPointer]*crChain
+	byMostRecent map[data.BlockPointer]*crChain
+	originalRoot data.BlockPointer
 
 	// The original blockpointers for nodes that have been
 	// unreferenced or initially referenced during this chain.
-	deletedOriginals map[BlockPointer]bool
-	createdOriginals map[BlockPointer]bool
+	deletedOriginals map[data.BlockPointer]bool
+	createdOriginals map[data.BlockPointer]bool
 
 	// A map from original blockpointer to the full rename operation
 	// of the node (from the original location of the node to the
 	// final locations).
-	renamedOriginals map[BlockPointer]renameInfo
+	renamedOriginals map[data.BlockPointer]renameInfo
 
 	// Separately track pointers for unembedded block changes.
-	blockChangePointers map[BlockPointer]bool
+	blockChangePointers map[data.BlockPointer]bool
 
 	// Pointers that should be explicitly cleaned up in the resolution.
-	toUnrefPointers map[BlockPointer]bool
+	toUnrefPointers map[data.BlockPointer]bool
 
 	// Pointers that should explicitly *not* be cleaned up in the
 	// resolution.
-	doNotUnrefPointers map[BlockPointer]bool
+	doNotUnrefPointers map[data.BlockPointer]bool
 
 	// Also keep the info for the most recent chain MD used to
 	// build these chains.
@@ -428,13 +432,13 @@ type crChains struct {
 
 	// We need to be able to track ANY BlockPointer, at any point in
 	// the chain, back to its original.
-	originals map[BlockPointer]BlockPointer
+	originals map[data.BlockPointer]data.BlockPointer
 
 	// All the resolution ops from the branch, in order.
 	resOps []*resolutionOp
 }
 
-func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
+func (ccs *crChains) addOp(ptr data.BlockPointer, op op) error {
 	currChain, ok := ccs.byMostRecent[ptr]
 	if !ok {
 		return errors.Errorf("Could not find chain for most recent ptr %v", ptr)
@@ -446,7 +450,7 @@ func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
 
 // addNoopChain adds a new chain with no ops to the chains struct, if
 // that pointer isn't involved in any chains yet.
-func (ccs *crChains) addNoopChain(ptr BlockPointer) {
+func (ccs *crChains) addNoopChain(ptr data.BlockPointer) {
 	if _, ok := ccs.byMostRecent[ptr]; ok {
 		return
 	}
@@ -577,9 +581,8 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			// Something was overwritten; make an explicit rm for it
 			// so we can check for conflicts.
 			roOverwrite, err := newRmOp(realOp.NewName, ndu,
-				// We don't know the real type, but this op is only
-				// used locally so it doesn't matter.
-				File)
+
+				data.File)
 			if err != nil {
 				return err
 			}
@@ -680,7 +683,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 }
 
 func (ccs *crChains) makeChainForNewOpWithUpdate(
-	targetPtr BlockPointer, newOp op, update *blockUpdate) error {
+	targetPtr data.BlockPointer, newOp op, update *blockUpdate) error {
 	oldUpdate := *update
 	// so that most recent == original
 	var err error
@@ -705,7 +708,7 @@ func (ccs *crChains) makeChainForNewOpWithUpdate(
 // usual makeChainForOp method.  This function is not goroutine-safe
 // with respect to newOp.  Also note that rename ops will not be split
 // into two ops; they will be placed only in the new directory chain.
-func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
+func (ccs *crChains) makeChainForNewOp(targetPtr data.BlockPointer, newOp op) error {
 	switch realOp := newOp.(type) {
 	case *createOp:
 		return ccs.makeChainForNewOpWithUpdate(targetPtr, newOp, &realOp.Dir)
@@ -715,7 +718,7 @@ func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
 		// In this case, we don't want to split the rename chain, so
 		// just make up a new operation and later overwrite it with
 		// the rename op.
-		co, err := newCreateOp(realOp.NewName, realOp.NewDir.Unref, File)
+		co, err := newCreateOp(realOp.NewName, realOp.NewDir.Unref, data.File)
 		if err != nil {
 			return err
 		}
@@ -744,78 +747,78 @@ func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
 	}
 }
 
-func (ccs *crChains) mostRecentFromOriginal(original BlockPointer) (
-	BlockPointer, error) {
+func (ccs *crChains) mostRecentFromOriginal(original data.BlockPointer) (
+	data.BlockPointer, error) {
 	chain, ok := ccs.byOriginal[original]
 	if !ok {
-		return BlockPointer{}, errors.WithStack(NoChainFoundError{original})
+		return data.BlockPointer{}, errors.WithStack(NoChainFoundError{original})
 	}
 	return chain.mostRecent, nil
 }
 
-func (ccs *crChains) mostRecentFromOriginalOrSame(original BlockPointer) (
-	BlockPointer, error) {
+func (ccs *crChains) mostRecentFromOriginalOrSame(original data.BlockPointer) (
+	data.BlockPointer, error) {
 	ptr, err := ccs.mostRecentFromOriginal(original)
 	if err == nil {
 		// A satisfactory chain was found.
 		return ptr, nil
 	} else if _, ok := errors.Cause(err).(NoChainFoundError); !ok {
 		// An unexpected error!
-		return BlockPointer{}, err
+		return data.BlockPointer{}, err
 	}
 	return original, nil
 }
 
-func (ccs *crChains) originalFromMostRecent(mostRecent BlockPointer) (
-	BlockPointer, error) {
+func (ccs *crChains) originalFromMostRecent(mostRecent data.BlockPointer) (
+	data.BlockPointer, error) {
 	chain, ok := ccs.byMostRecent[mostRecent]
 	if !ok {
-		return BlockPointer{}, errors.WithStack(NoChainFoundError{mostRecent})
+		return data.BlockPointer{}, errors.WithStack(NoChainFoundError{mostRecent})
 	}
 	return chain.original, nil
 }
 
-func (ccs *crChains) originalFromMostRecentOrSame(mostRecent BlockPointer) (
-	BlockPointer, error) {
+func (ccs *crChains) originalFromMostRecentOrSame(mostRecent data.BlockPointer) (
+	data.BlockPointer, error) {
 	ptr, err := ccs.originalFromMostRecent(mostRecent)
 	if err == nil {
 		// A satisfactory chain was found.
 		return ptr, nil
 	} else if _, ok := errors.Cause(err).(NoChainFoundError); !ok {
 		// An unexpected error!
-		return BlockPointer{}, err
+		return data.BlockPointer{}, err
 	}
 	return mostRecent, nil
 }
 
-func (ccs *crChains) isCreated(original BlockPointer) bool {
+func (ccs *crChains) isCreated(original data.BlockPointer) bool {
 	return ccs.createdOriginals[original]
 }
 
-func (ccs *crChains) isDeleted(original BlockPointer) bool {
+func (ccs *crChains) isDeleted(original data.BlockPointer) bool {
 	return ccs.deletedOriginals[original]
 }
 
-func (ccs *crChains) renamedParentAndName(original BlockPointer) (
-	BlockPointer, string, bool) {
+func (ccs *crChains) renamedParentAndName(original data.BlockPointer) (
+	data.BlockPointer, string, bool) {
 	info, ok := ccs.renamedOriginals[original]
 	if !ok {
-		return BlockPointer{}, "", false
+		return data.BlockPointer{}, "", false
 	}
 	return info.originalNewParent, info.newName, true
 }
 
 func newCRChainsEmpty() *crChains {
 	return &crChains{
-		byOriginal:          make(map[BlockPointer]*crChain),
-		byMostRecent:        make(map[BlockPointer]*crChain),
-		deletedOriginals:    make(map[BlockPointer]bool),
-		createdOriginals:    make(map[BlockPointer]bool),
-		renamedOriginals:    make(map[BlockPointer]renameInfo),
-		blockChangePointers: make(map[BlockPointer]bool),
-		toUnrefPointers:     make(map[BlockPointer]bool),
-		doNotUnrefPointers:  make(map[BlockPointer]bool),
-		originals:           make(map[BlockPointer]BlockPointer),
+		byOriginal:          make(map[data.BlockPointer]*crChain),
+		byMostRecent:        make(map[data.BlockPointer]*crChain),
+		deletedOriginals:    make(map[data.BlockPointer]bool),
+		createdOriginals:    make(map[data.BlockPointer]bool),
+		renamedOriginals:    make(map[data.BlockPointer]renameInfo),
+		blockChangePointers: make(map[data.BlockPointer]bool),
+		toUnrefPointers:     make(map[data.BlockPointer]bool),
+		doNotUnrefPointers:  make(map[data.BlockPointer]bool),
+		originals:           make(map[data.BlockPointer]data.BlockPointer),
 	}
 }
 
@@ -895,18 +898,24 @@ func newCRChains(
 			return nil, err
 		}
 
-		data := *chainMD.Data()
+		chainData := *chainMD.Data()
 
-		err = ccs.addOps(codec, data, winfo, chainMD.LocalTimestamp())
+		err = ccs.addOps(codec, chainData, winfo, chainMD.LocalTimestamp())
 
-		if ptr := data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
+		if ptr := chainData.cachedChanges.Info.BlockPointer; ptr != data.ZeroPtr {
 			ccs.blockChangePointers[ptr] = true
 
 			// Any child block change pointers?
 			infos, err := fbo.GetIndirectFileBlockInfos(
 				ctx, makeFBOLockState(), chainMD,
-				path{fbo.folderBranch, []pathNode{{
-					ptr, fmt.Sprintf("<MD rev %d>", chainMD.Revision())}}})
+				data.Path{
+					FolderBranch: fbo.folderBranch,
+					Path: []data.PathNode{{
+						BlockPointer: ptr,
+						Name: fmt.Sprintf(
+							"<MD rev %d>", chainMD.Revision()),
+					},
+					}})
 			if err != nil {
 				return nil, err
 			}
@@ -922,7 +931,7 @@ func newCRChains(
 		if !ccs.originalRoot.IsInitialized() {
 			// Find the original pointer for the root directory
 			if rootChain, ok :=
-				ccs.byMostRecent[data.Dir.BlockPointer]; ok {
+				ccs.byMostRecent[chainData.Dir.BlockPointer]; ok {
 				ccs.originalRoot = rootChain.original
 			}
 		}
@@ -999,7 +1008,7 @@ func (ccs *crChains) summary(identifyChains *crChains,
 	return res
 }
 
-func (ccs *crChains) removeChain(ptr BlockPointer) {
+func (ccs *crChains) removeChain(ptr data.BlockPointer) {
 	if chain, ok := ccs.byMostRecent[ptr]; ok {
 		delete(ccs.byOriginal, chain.original)
 	} else {
@@ -1012,7 +1021,7 @@ func (ccs *crChains) removeChain(ptr BlockPointer) {
 // modifying each custom BlockPointer field to reference the original
 // version of the corresponding blocks.
 func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
-	var unrefs []*BlockPointer
+	var unrefs []*data.BlockPointer
 	var newOp op
 	switch realOp := currOp.(type) {
 	case *createOp:
@@ -1047,7 +1056,7 @@ func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
 		// Loop over the originals, since if `changeOriginal` was
 		// called, there might be a path of them.
 		for ok {
-			var original BlockPointer
+			var original data.BlockPointer
 			original, ok = ccs.originals[*unref]
 			if ok {
 				*unref = original
@@ -1059,8 +1068,8 @@ func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
 
 // changeOriginal converts the original of a chain to a different
 // original, which originated in some other branch.
-func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
-	newOriginal BlockPointer) error {
+func (ccs *crChains) changeOriginal(oldOriginal data.BlockPointer,
+	newOriginal data.BlockPointer) error {
 	if oldOriginal == newOriginal {
 		// This apparently can happen, but I'm not sure how.  (See
 		// KBFS-2946.)  Maybe because of a self-conflict in some weird
@@ -1112,7 +1121,7 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	return nil
 }
 
-func (ccs *crChains) findPathForDeleted(mostRecent BlockPointer) path {
+func (ccs *crChains) findPathForDeleted(mostRecent data.BlockPointer) data.Path {
 	// Find the parent chain that deleted this one.
 	for ptr, chain := range ccs.byMostRecent {
 		for _, op := range chain.ops {
@@ -1124,7 +1133,7 @@ func (ccs *crChains) findPathForDeleted(mostRecent BlockPointer) path {
 				if unref == mostRecent {
 					// If the path isn't set yet, recurse.
 					p := ro.getFinalPath()
-					if !p.isValid() {
+					if !p.IsValid() {
 						p = ccs.findPathForDeleted(ptr)
 					}
 					return p.ChildPath(ro.OldName, mostRecent)
@@ -1139,24 +1148,24 @@ func (ccs *crChains) findPathForDeleted(mostRecent BlockPointer) path {
 	// part, it's just informational for log messages and journal
 	// status.  So if we are stuck, just pick use the root directory
 	// and a fake name.
-	var rootMostRecent BlockPointer
+	var rootMostRecent data.BlockPointer
 	if ccs.mostRecentChainMDInfo != nil {
 		rootMostRecent =
 			ccs.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer
 	}
-	return path{
-		FolderBranch: FolderBranch{
+	return data.Path{
+		FolderBranch: data.FolderBranch{
 			Tlf:    ccs.mostRecentChainMDInfo.TlfID(),
-			Branch: MasterBranch,
+			Branch: data.MasterBranch,
 		},
-		path: []pathNode{{
+		Path: []data.PathNode{{
 			BlockPointer: rootMostRecent,
 			Name:         mostRecent.String(),
 		}},
 	}
 }
 
-func (ccs *crChains) findPathForCreated(createdChain *crChain) path {
+func (ccs *crChains) findPathForCreated(createdChain *crChain) data.Path {
 	mostRecent := createdChain.mostRecent
 
 	// Find the parent chain that deleted this one.
@@ -1170,7 +1179,7 @@ func (ccs *crChains) findPathForCreated(createdChain *crChain) path {
 				if ref == createdChain.original {
 					// If the path isn't set yet, recurse.
 					p := co.getFinalPath()
-					if !p.isValid() {
+					if !p.IsValid() {
 						p = ccs.findPathForCreated(chain)
 					}
 					return p.ChildPath(co.NewName, mostRecent)
@@ -1185,17 +1194,17 @@ func (ccs *crChains) findPathForCreated(createdChain *crChain) path {
 	// part, it's just informational for log messages and journal
 	// status.  So if we are stuck, just pick use the root directory
 	// and a fake name.
-	var rootMostRecent BlockPointer
+	var rootMostRecent data.BlockPointer
 	if ccs.mostRecentChainMDInfo != nil {
 		rootMostRecent =
 			ccs.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer
 	}
-	return path{
-		FolderBranch: FolderBranch{
+	return data.Path{
+		FolderBranch: data.FolderBranch{
 			Tlf:    ccs.mostRecentChainMDInfo.TlfID(),
-			Branch: MasterBranch,
+			Branch: data.MasterBranch,
 		},
-		path: []pathNode{{
+		Path: []data.PathNode{{
 			BlockPointer: rootMostRecent,
 			Name:         mostRecent.String(),
 		}},
@@ -1214,10 +1223,10 @@ func (ccs *crChains) findPathForCreated(createdChain *crChain) path {
 // paths should include the paths of newly-created nodes.
 func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	log logger.Logger, nodeCache NodeCache, includeCreates bool,
-	checkOpFinalPaths bool) ([]path, error) {
-	newPtrs := make(map[BlockPointer]bool)
-	var ptrs []BlockPointer
-	renameOps := make(map[BlockPointer][]*renameOp)
+	checkOpFinalPaths bool) ([]data.Path, error) {
+	newPtrs := make(map[data.BlockPointer]bool)
+	var ptrs []data.BlockPointer
+	renameOps := make(map[data.BlockPointer][]*renameOp)
 	for ptr, chain := range ccs.byMostRecent {
 		newPtrs[ptr] = true
 		// We only care about the paths for ptrs that are directly
@@ -1251,7 +1260,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 		// If we plan to check all the paths, clear them out first.
 		for _, chain := range ccs.byMostRecent {
 			for _, op := range chain.ops {
-				op.setFinalPath(path{})
+				op.setFinalPath(data.Path{})
 			}
 		}
 	}
@@ -1263,9 +1272,9 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 		return nil, err
 	}
 
-	paths := make([]path, 0, len(pathMap))
+	paths := make([]data.Path, 0, len(pathMap))
 	for ptr, p := range pathMap {
-		if len(p.path) == 0 {
+		if len(p.Path) == 0 {
 			log.CDebugf(ctx, "Ignoring pointer with no found path: %v", ptr)
 			ccs.removeChain(ptr)
 			continue
@@ -1316,7 +1325,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	if checkOpFinalPaths {
 		for _, chain := range ccs.byMostRecent {
 			for _, op := range chain.ops {
-				if !op.getFinalPath().isValid() {
+				if !op.getFinalPath().IsValid() {
 					return nil, errors.Errorf(
 						"Op %s doesn't have final path", op)
 				}
@@ -1366,7 +1375,7 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 				}
 			}
 
-			if !rop.oldFinalPath.isValid() {
+			if !rop.oldFinalPath.IsValid() {
 				// We don't need to revert any renames without an
 				// rmOp, because it was probably just created and
 				// renamed within a single journal update.

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -61,7 +62,7 @@ const (
 
 type blocksToDelete struct {
 	md      ReadOnlyRootMetadata
-	blocks  []BlockPointer
+	blocks  []data.BlockPointer
 	bdType  blockDeleteType
 	backoff backoff.BackOff
 }
@@ -133,14 +134,14 @@ type folderBlockManager struct {
 }
 
 func newFolderBlockManager(
-	appStateUpdater env.AppStateUpdater, config Config, fb FolderBranch,
+	appStateUpdater env.AppStateUpdater, config Config, fb data.FolderBranch,
 	bType branchType, helper fbmHelper) *folderBlockManager {
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
 
 	var latestMergedChan chan struct{}
 	qrEnabled :=
-		fb.Branch == MasterBranch && config.Mode().QuotaReclamationEnabled()
+		fb.Branch == data.MasterBranch && config.Mode().QuotaReclamationEnabled()
 	if qrEnabled {
 		latestMergedChan = make(chan struct{}, 1)
 	}
@@ -451,7 +452,7 @@ func (fbm *folderBlockManager) forceQuotaReclamation() {
 // block server for the given block pointers.  For deletes, it returns
 // a list of block IDs that no longer have any references.
 func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer, archive bool) (
+	tlfID tlf.ID, ptrs []data.BlockPointer, archive bool) (
 	[]kbfsblock.ID, error) {
 	fbm.log.CDebugf(ctx, "Downgrading %d pointers (archive=%t)",
 		len(ptrs), archive)
@@ -464,7 +465,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
 	}
-	chunks := make(chan []BlockPointer, numChunks)
+	chunks := make(chan []data.BlockPointer, numChunks)
 
 	var wg sync.WaitGroup
 	defer wg.Wait()
@@ -535,7 +536,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 // for the given block pointers.  It returns a list of block IDs that
 // no longer have any references.
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer) ([]kbfsblock.ID, error) {
+	tlfID tlf.ID, ptrs []data.BlockPointer) ([]kbfsblock.ID, error) {
 	return fbm.doChunkedDowngrades(ctx, tlfID, ptrs, false)
 }
 
@@ -686,7 +687,7 @@ func (fbm *folderBlockManager) runUnlessShutdown(
 }
 
 func (fbm *folderBlockManager) archiveBlockRefs(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer) error {
+	tlfID tlf.ID, ptrs []data.BlockPointer) error {
 	_, err := fbm.doChunkedDowngrades(ctx, tlfID, ptrs, true)
 	return err
 }
@@ -704,14 +705,14 @@ type unrefIterator struct {
 // from the beginning of the list.
 func (fbm *folderBlockManager) getUnrefPointersFromMD(
 	rmd ReadOnlyRootMetadata, includeGC bool, iter *unrefIterator) (
-	ptrs []BlockPointer, nextIter *unrefIterator) {
+	ptrs []data.BlockPointer, nextIter *unrefIterator) {
 	currPtr := 0
 	complete := true
 	nextPtr := 0
 	if iter != nil {
 		nextPtr = iter.nextPtr
 	}
-	ptrMap := make(map[BlockPointer]bool)
+	ptrMap := make(map[data.BlockPointer]bool)
 	max := fbm.config.Mode().MaxBlockPtrsToManageAtOnce()
 opLoop:
 	for _, op := range rmd.data.Changes.Ops {
@@ -728,7 +729,7 @@ opLoop:
 			// Can be zeroPtr in weird failed sync scenarios.
 			// See syncInfo.replaceRemovedBlock for an example
 			// of how this can happen.
-			if ptr != zeroPtr && !ptrMap[ptr] {
+			if ptr != data.ZeroPtr && !ptrMap[ptr] {
 				ptrMap[ptr] = true
 			}
 			nextPtr++
@@ -758,7 +759,7 @@ opLoop:
 			}
 		}
 	}
-	ptrs = make([]BlockPointer, 0, len(ptrMap))
+	ptrs = make([]data.BlockPointer, 0, len(ptrMap))
 	for ptr := range ptrMap {
 		ptrs = append(ptrs, ptr)
 	}
@@ -776,14 +777,14 @@ func (fbm *folderBlockManager) archiveAllBlocksInMD(md ReadOnlyRootMetadata) {
 	// timeout.
 	ctx := fbm.ctxWithFBMID(context.Background())
 	ctx, cancel := context.WithTimeout(
-		context.Background(), backgroundTaskTimeout)
+		context.Background(), data.BackgroundTaskTimeout)
 	fbm.setArchiveCancel(cancel)
 	defer fbm.cancelArchive()
 
 	iter := &unrefIterator{0}
 	defer fbm.archiveGroup.Done()
 	for iter != nil {
-		var ptrs []BlockPointer
+		var ptrs []data.BlockPointer
 		ptrs, iter = fbm.getUnrefPointersFromMD(md, true, iter)
 		fbm.runUnlessShutdownWithCtx(
 			ctx, func(ctx context.Context) (err error) {
@@ -835,7 +836,8 @@ func (fbm *folderBlockManager) deleteBlocksInBackground() {
 		select {
 		case toDelete := <-fbm.blocksToDeleteChan:
 			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
-				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
+				ctx, cancel := context.WithTimeout(
+					ctx, data.BackgroundTaskTimeout)
 				fbm.setBlocksToDeleteCancel(cancel)
 				defer fbm.cancelBlocksToDelete()
 
@@ -935,7 +937,7 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 // the latest revision represented in the returned slice of pointers.
 func (fbm *folderBlockManager) getUnreferencedBlocks(
 	ctx context.Context, earliestRev, mostRecentRev kbfsmd.Revision) (
-	ptrs []BlockPointer, lastRev kbfsmd.Revision,
+	ptrs []data.BlockPointer, lastRev kbfsmd.Revision,
 	complete bool, err error) {
 	fbm.log.CDebugf(ctx, "Getting unreferenced blocks between revisions "+
 		"%d and %d", earliestRev, mostRecentRev)
@@ -1013,11 +1015,11 @@ outer:
 }
 
 func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
-	ptrs []BlockPointer, zeroRefCounts []kbfsblock.ID,
+	ptrs []data.BlockPointer, zeroRefCounts []kbfsblock.ID,
 	latestRev kbfsmd.Revision) error {
 	gco := newGCOp(latestRev)
 	for _, id := range zeroRefCounts {
-		gco.AddUnrefBlock(BlockPointer{ID: id})
+		gco.AddUnrefBlock(data.BlockPointer{ID: id})
 	}
 
 	ctx, err := tlfhandle.MakeExtendedIdentify(
@@ -1323,7 +1325,7 @@ func (fbm *folderBlockManager) clearLastQRData() {
 }
 
 func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
-	ctx context.Context, ptrs []BlockPointer) (
+	ctx context.Context, ptrs []data.BlockPointer) (
 	nonLiveBlocks []kbfsblock.ID, err error) {
 	fbm.log.CDebugf(ctx, "Get live count for %d pointers", len(ptrs))
 	bops := fbm.config.BlockOps()
@@ -1335,7 +1337,7 @@ func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
 	}
-	chunks := make(chan []BlockPointer, numChunks)
+	chunks := make(chan []data.BlockPointer, numChunks)
 
 	eg, groupCtx := errgroup.WithContext(ctx)
 	chunkResults := make(chan []kbfsblock.ID, numChunks)
@@ -1453,7 +1455,7 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 		for iter != nil {
 			// Include unrefs from `gcOp`s here, as a double-check
 			// against archive races (see comment below).
-			var ptrs []BlockPointer
+			var ptrs []data.BlockPointer
 			ptrs, iter = fbm.getUnrefPointersFromMD(
 				rmd.ReadOnlyRootMetadata, true, iter)
 

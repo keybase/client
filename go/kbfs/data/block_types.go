@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -139,8 +139,8 @@ func (cb *CommonBlock) SetEncodedSize(size uint32) {
 }
 
 // DataVersion returns data version for this block.
-func (cb *CommonBlock) DataVersion() DataVer {
-	return FirstValidDataVer
+func (cb *CommonBlock) DataVersion() Ver {
+	return FirstValidVer
 }
 
 // NewEmpty implements the Block interface for CommonBlock.
@@ -201,6 +201,16 @@ func NewCommonBlock() Block {
 	return &CommonBlock{}
 }
 
+// NewCommonBlockForTesting returns a common block with some of the
+// internal state set, which is useful for testing.
+func NewCommonBlockForTesting(
+	isInd bool, cachedEncodedSize uint32) CommonBlock {
+	return CommonBlock{
+		IsInd:             isInd,
+		cachedEncodedSize: cachedEncodedSize,
+	}
+}
+
 // DirBlock is the contents of a directory
 type DirBlock struct {
 	CommonBlock
@@ -251,11 +261,11 @@ func (db *DirBlock) IsTail() bool {
 
 // DataVersion returns data version for this block, which is assumed
 // to have been modified locally.
-func (db *DirBlock) DataVersion() DataVer {
+func (db *DirBlock) DataVersion() Ver {
 	if db.IsInd {
-		return IndirectDirsDataVer
+		return IndirectDirsVer
 	}
-	return FirstValidDataVer
+	return FirstValidVer
 }
 
 // ToCommonBlock implements the Block interface for DirBlock.
@@ -395,7 +405,9 @@ func (db *DirBlock) SetIndirectPtrInfo(i int, info BlockInfo) {
 	db.IPtrs[i].BlockInfo = info
 }
 
-func (db *DirBlock) totalPlainSizeEstimate(
+// TotalPlainSizeEstimate returns an estimate of the plaintext size of
+// this directory block.
+func (db *DirBlock) TotalPlainSizeEstimate(
 	plainSize int, bsplit BlockSplitter) int {
 	if !db.IsIndirect() || len(db.IPtrs) == 0 {
 		return plainSize
@@ -474,15 +486,15 @@ func (fb *FileBlock) IsTail() bool {
 
 // DataVersion returns data version for this block, which is assumed
 // to have been modified locally.
-func (fb *FileBlock) DataVersion() DataVer {
+func (fb *FileBlock) DataVersion() Ver {
 	if !fb.IsInd {
-		return FirstValidDataVer
+		return FirstValidVer
 	}
 
 	if len(fb.IPtrs) == 0 {
 		// This is a truncated file block that hasn't had its level of
 		// indirection removed.
-		return FirstValidDataVer
+		return FirstValidVer
 	}
 
 	// If this is an indirect block, and none of its children are
@@ -520,11 +532,11 @@ func (fb *FileBlock) DataVersion() DataVer {
 	}
 
 	if !hasDirect {
-		return AtLeastTwoLevelsOfChildrenDataVer
+		return AtLeastTwoLevelsOfChildrenVer
 	} else if hasHoles {
-		return ChildHolesDataVer
+		return ChildHolesVer
 	}
-	return FirstValidDataVer
+	return FirstValidVer
 }
 
 // ToCommonBlock implements the Block interface for FileBlock.
@@ -701,9 +713,9 @@ func (fb *FileBlock) SetIndirectPtrInfo(i int, info BlockInfo) {
 }
 
 // DefaultNewBlockDataVersion returns the default data version for new blocks.
-func DefaultNewBlockDataVersion(holes bool) DataVer {
+func DefaultNewBlockDataVersion(holes bool) Ver {
 	if holes {
-		return ChildHolesDataVer
+		return ChildHolesVer
 	}
-	return FirstValidDataVer
+	return FirstValidVer
 }

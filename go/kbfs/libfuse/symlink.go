@@ -12,6 +12,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -63,7 +64,7 @@ func (s *Symlink) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (link
 		return "", err
 	}
 
-	if de.Type != libkbfs.Sym {
+	if de.Type != data.Sym {
 		return "", fuse.Errno(syscall.EINVAL)
 	}
 	return de.SymPath, nil

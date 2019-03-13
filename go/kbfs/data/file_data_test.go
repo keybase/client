@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"bytes"
@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
-	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/libkey"
+	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -22,23 +22,22 @@ import (
 )
 
 func setupFileDataTest(t *testing.T, maxBlockSize int64,
-	maxPtrsPerBlock int) (*fileData, BlockCache, DirtyBlockCache, *dirtyFile) {
+	maxPtrsPerBlock int) (*FileData, BlockCache, DirtyBlockCache, *DirtyFile) {
 	// Make a fake file.
 	ptr := BlockPointer{
 		ID:         kbfsblock.FakeID(42),
 		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, tlf.Private)
-	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
+	file := Path{FolderBranch{Tlf: id}, []PathNode{{ptr, "file"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10, 0}
-	kmd := emptyKeyMetadata{id, 1}
+	kmd := libkeytest.NewEmptyKeyMetadata(id, 1)
 
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
-	dirtyBcache := simpleDirtyBlockCacheStandard()
+	dirtyBcache := SimpleDirtyBlockCacheStandard()
 	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
-		_ path, _ blockReqType) (*FileBlock, bool, error) {
+		_ Path, _ BlockReqType) (*FileBlock, bool, error) {
 		isDirty := true
 		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)
 		if err != nil {
@@ -60,10 +59,9 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 		return dirtyBcache.Put(ctx, id, ptr, MasterBranch, block)
 	}
 
-	fd := newFileData(
-		file, chargedTo, crypto, bsplit, kmd, getter, cacher,
-		logger.NewTestLogger(t))
-	df := newDirtyFile(file, dirtyBcache)
+	fd := NewFileData(
+		file, chargedTo, bsplit, kmd, getter, cacher, logger.NewTestLogger(t))
+	df := NewDirtyFile(file, dirtyBcache)
 	return fd, cleanCache, dirtyBcache, df
 }
 
@@ -199,7 +197,7 @@ func testFileDataLevelFromData(t *testing.T, maxBlockSize Int64Offset,
 	return prevChildren[0]
 }
 
-func (tfdl testFileDataLevel) check(t *testing.T, fd *fileData,
+func (tfdl testFileDataLevel) check(t *testing.T, fd *FileData,
 	ptr BlockPointer, off Int64Offset, dirtyBcache DirtyBlockCache) (
 	dirtyPtrs map[BlockPointer]bool) {
 	dirtyPtrs = make(map[BlockPointer]bool)
@@ -214,7 +212,7 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *fileData,
 			levelString)
 	}
 
-	fblock, isDirty, err := fd.getter(nil, nil, ptr, path{}, blockRead)
+	fblock, isDirty, err := fd.getter(nil, nil, ptr, Path{}, BlockRead)
 	require.NoError(t, err, levelString)
 	require.Equal(t, tfdl.dirty, isDirty, levelString)
 	require.NotNil(t, fblock, levelString)
@@ -241,15 +239,15 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *fileData,
 	return dirtyPtrs
 }
 
-func testFileDataCheckWrite(t *testing.T, fd *fileData,
-	dirtyBcache DirtyBlockCache, df *dirtyFile, data []byte, off Int64Offset,
+func testFileDataCheckWrite(t *testing.T, fd *FileData,
+	dirtyBcache DirtyBlockCache, df *DirtyFile, data []byte, off Int64Offset,
 	topBlock *FileBlock, oldDe DirEntry, expectedSize uint64,
 	expectedUnrefs []BlockInfo, expectedDirtiedBytes int64,
 	expectedBytesExtended int64, expectedTopLevel testFileDataLevel) {
 	// Do the write.
 	ctx := context.Background()
 	newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, bytesExtended, err :=
-		fd.write(ctx, data, off, topBlock, oldDe, df)
+		fd.Write(ctx, data, off, topBlock, oldDe, df)
 	require.NoError(t, err)
 
 	// Check the basics.
@@ -295,7 +293,7 @@ func testFileDataWriteExtendEmptyFile(t *testing.T, maxBlockSize Int64Offset,
 
 	// Make sure we can read back the complete data.
 	gotData := make([]byte, fullDataLen)
-	nRead, err := fd.read(context.Background(), gotData, 0)
+	nRead, err := fd.Read(context.Background(), gotData, 0)
 	require.NoError(t, err)
 	require.Equal(t, Int64Offset(nRead), fullDataLen)
 	require.True(t, bytes.Equal(data, gotData))
@@ -324,7 +322,7 @@ func TestFileDataWriteNewLevel(t *testing.T) {
 	}
 }
 
-func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
+func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 	maxBlockSize Int64Offset, maxPtrsPerBlock int, existingData []byte,
 	holes []testFileDataHole, cleanBcache BlockCache) (*FileBlock, int) {
 	// First fill in the leaf blocks.
@@ -369,7 +367,6 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 
 	// Now fill in any parents.
 	numLevels := 1
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	for len(prevChildren) != 1 {
 		prevChildIndex := 0
 		var level []*FileBlock
@@ -391,7 +388,7 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 				dt = IndirectBlock
 			}
 			for j, child := range children {
-				id, err := crypto.MakeTemporaryBlockID()
+				id, err := kbfsblock.MakeTemporaryID()
 				require.NoError(t, err)
 				ptr := BlockPointer{
 					ID:         id,
@@ -418,7 +415,7 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 	}
 
 	if numLevels > 1 {
-		fd.tree.file.path[len(fd.tree.file.path)-1].DirectType = IndirectBlock
+		fd.tree.file.Path[len(fd.tree.file.Path)-1].DirectType = IndirectBlock
 	}
 
 	cleanBcache.Put(
@@ -467,7 +464,7 @@ func testFileDataWriteExtendExistingFile(t *testing.T, maxBlockSize Int64Offset,
 
 	// Make sure we can read back the complete data.
 	gotData := make([]byte, fullDataLen)
-	nRead, err := fd.read(context.Background(), gotData, 0)
+	nRead, err := fd.Read(context.Background(), gotData, 0)
 	require.NoError(t, err)
 	require.Equal(t, nRead, int64(fullDataLen))
 	require.True(t, bytes.Equal(data, gotData))
@@ -573,7 +570,7 @@ func testFileDataOverwriteExistingFile(t *testing.T, maxBlockSize Int64Offset,
 
 	// Make sure we can read back the complete data.
 	gotData := make([]byte, fullDataLen)
-	nRead, err := fd.read(context.Background(), gotData, 0)
+	nRead, err := fd.Read(context.Background(), gotData, 0)
 	require.NoError(t, err)
 	require.Equal(t, nRead, int64(fullDataLen))
 	require.True(t, bytes.Equal(data, gotData))
@@ -607,17 +604,17 @@ func TestFileDataWriteHole(t *testing.T) {
 	}
 }
 
-func testFileDataCheckTruncateExtend(t *testing.T, fd *fileData,
-	dirtyBcache DirtyBlockCache, df *dirtyFile, size uint64,
+func testFileDataCheckTruncateExtend(t *testing.T, fd *FileData,
+	dirtyBcache DirtyBlockCache, df *DirtyFile, size uint64,
 	topBlock *FileBlock, oldDe DirEntry, expectedTopLevel testFileDataLevel) {
 	// Do the extending truncate.
 	ctx := context.Background()
 
 	_, parentBlocks, _, _, _, _, err :=
-		fd.getFileBlockAtOffset(ctx, topBlock, Int64Offset(size), blockWrite)
+		fd.GetFileBlockAtOffset(ctx, topBlock, Int64Offset(size), BlockWrite)
 	require.NoError(t, err)
 
-	newDe, dirtyPtrs, err := fd.truncateExtend(
+	newDe, dirtyPtrs, err := fd.TruncateExtend(
 		ctx, size, topBlock, parentBlocks, oldDe, df)
 	require.NoError(t, err)
 
@@ -671,7 +668,7 @@ func testFileDataTruncateExtendFile(t *testing.T, maxBlockSize Int64Offset,
 
 	// Make sure we can read back the complete data.
 	gotData := make([]byte, newSize)
-	nRead, err := fd.read(context.Background(), gotData, 0)
+	nRead, err := fd.Read(context.Background(), gotData, 0)
 	require.NoError(t, err)
 	require.Equal(t, nRead, int64(newSize))
 	require.True(t, bytes.Equal(data, gotData))
@@ -699,14 +696,14 @@ func TestFileDataTruncateExtendLevel(t *testing.T) {
 	}
 }
 
-func testFileDataCheckTruncateShrink(t *testing.T, fd *fileData,
+func testFileDataCheckTruncateShrink(t *testing.T, fd *FileData,
 	dirtyBcache DirtyBlockCache, size uint64,
 	topBlock *FileBlock, oldDe DirEntry, expectedUnrefs []BlockInfo,
 	expectedDirtiedBytes int64, expectedTopLevel testFileDataLevel) {
 	// Do the extending truncate.
 	ctx := context.Background()
 
-	newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, err := fd.truncateShrink(
+	newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, err := fd.TruncateShrink(
 		ctx, size, topBlock, oldDe)
 	require.NoError(t, err)
 
@@ -759,7 +756,7 @@ func testFileDataShrinkExistingFile(t *testing.T, maxBlockSize Int64Offset,
 
 	// Make sure we can read back the complete data.
 	gotData := make([]byte, newSize)
-	nRead, err := fd.read(context.Background(), gotData, 0)
+	nRead, err := fd.Read(context.Background(), gotData, 0)
 	require.NoError(t, err)
 	require.Equal(t, nRead, int64(newSize))
 	require.True(t, bytes.Equal(data[:newSize], gotData))
@@ -837,7 +834,7 @@ func testFileDataWriteExtendExistingFileWithGap(t *testing.T,
 
 	// Make sure we can read back the complete data.
 	gotData := make([]byte, fullDataLen)
-	nRead, err := fd.read(context.Background(), gotData, 0)
+	nRead, err := fd.Read(context.Background(), gotData, 0)
 	require.NoError(t, err)
 	require.Equal(t, nRead, int64(fullDataLen))
 	require.True(t, bytes.Equal(data, gotData))

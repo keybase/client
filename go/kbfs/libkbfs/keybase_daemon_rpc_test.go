@@ -13,6 +13,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
@@ -349,7 +350,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
 	config1.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 
-	clock, first := newTestClockAndTimeNow()
+	clock, first := clocktest.NewTestClockAndTimeNow()
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, userName2)

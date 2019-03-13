@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -12,8 +12,8 @@ import (
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
-	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/libkey"
+	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -22,23 +22,22 @@ import (
 )
 
 func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
-	*dirData, BlockCache, DirtyBlockCache) {
+	*DirData, BlockCache, DirtyBlockCache) {
 	// Make a fake dir.
 	ptr := BlockPointer{
 		ID:         kbfsblock.FakeID(42),
 		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, tlf.Private)
-	dir := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "dir"}}}
+	dir := Path{FolderBranch{Tlf: id}, []PathNode{{ptr, "dir"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	bsplit := &BlockSplitterSimple{10, maxPtrsPerBlock, 10, numDirEntries}
-	kmd := emptyKeyMetadata{id, 1}
+	kmd := libkeytest.NewEmptyKeyMetadata(id, 1)
 
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
-	dirtyBcache := simpleDirtyBlockCacheStandard()
+	dirtyBcache := SimpleDirtyBlockCacheStandard()
 	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
-		_ path, _ blockReqType) (*DirBlock, bool, error) {
+		_ Path, _ BlockReqType) (*DirBlock, bool, error) {
 		isDirty := true
 		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)
 		if err != nil {
@@ -60,9 +59,8 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 		return dirtyBcache.Put(ctx, id, ptr, MasterBranch, block)
 	}
 
-	dd := newDirData(
-		dir, chargedTo, crypto, bsplit, kmd, getter, cacher,
-		logger.NewTestLogger(t))
+	dd := NewDirData(
+		dir, chargedTo, bsplit, kmd, getter, cacher, logger.NewTestLogger(t))
 	return dd, cleanCache, dirtyBcache
 }
 
@@ -82,27 +80,27 @@ func TestDirDataGetChildren(t *testing.T) {
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
 
 	t.Log("No entries, direct block")
-	children, err := dd.getChildren(ctx)
+	children, err := dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 0)
 
 	t.Log("Single entry, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "a", 1)
-	children, err = dd.getChildren(ctx)
+	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 1)
 	require.Equal(t, uint64(1), children["a"].Size)
 
 	t.Log("Two entries, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "b", 2)
-	children, err = dd.getChildren(ctx)
+	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 2)
 	require.Equal(t, uint64(1), children["a"].Size)
 	require.Equal(t, uint64(2), children["b"].Size)
 
 	t.Log("Indirect blocks")
-	dd.tree.file.path[len(dd.tree.file.path)-1].DirectType = IndirectBlock
+	dd.tree.file.Path[len(dd.tree.file.Path)-1].DirectType = IndirectBlock
 	newTopBlock := NewDirBlock().(*DirBlock)
 	newTopBlock.IsInd = true
 	ptr1 := BlockPointer{
@@ -128,7 +126,7 @@ func TestDirDataGetChildren(t *testing.T) {
 		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry)
 	cleanBcache.Put(ptr1, dd.tree.file.Tlf, topBlock, TransientEntry)
 	cleanBcache.Put(ptr2, dd.tree.file.Tlf, block2, TransientEntry)
-	children, err = dd.getChildren(ctx)
+	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 4)
 	require.Equal(t, uint64(1), children["a"].Size)
@@ -139,8 +137,8 @@ func TestDirDataGetChildren(t *testing.T) {
 }
 
 func testDirDataCheckLookup(
-	t *testing.T, ctx context.Context, dd *dirData, name string, size uint64) {
-	de, err := dd.lookup(ctx, name)
+	t *testing.T, ctx context.Context, dd *DirData, name string, size uint64) {
+	de, err := dd.Lookup(ctx, name)
 	require.NoError(t, err)
 	require.Equal(t, size, de.Size)
 }
@@ -153,18 +151,18 @@ func TestDirDataLookup(t *testing.T) {
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
 
 	t.Log("No entries, direct block")
-	_, err := dd.lookup(ctx, "a")
+	_, err := dd.Lookup(ctx, "a")
 	require.Equal(t, idutil.NoSuchNameError{Name: "a"}, err)
 
 	t.Log("Single entry, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "a", 1)
 	testDirDataCheckLookup(t, ctx, dd, "a", 1)
-	_, err = dd.lookup(ctx, "b")
+	_, err = dd.Lookup(ctx, "b")
 	require.Equal(t, idutil.NoSuchNameError{Name: "b"}, err)
 
 	t.Log("Indirect blocks")
 	addFakeDirDataEntryToBlock(topBlock, "b", 2)
-	dd.tree.file.path[len(dd.tree.file.path)-1].DirectType = IndirectBlock
+	dd.tree.file.Path[len(dd.tree.file.Path)-1].DirectType = IndirectBlock
 	newTopBlock := NewDirBlock().(*DirBlock)
 	newTopBlock.IsInd = true
 	ptr1 := BlockPointer{
@@ -198,8 +196,8 @@ func TestDirDataLookup(t *testing.T) {
 }
 
 func addFakeDirDataEntry(
-	t *testing.T, ctx context.Context, dd *dirData, name string, size uint64) {
-	_, err := dd.addEntry(ctx, name, DirEntry{
+	t *testing.T, ctx context.Context, dd *DirData, name string, size uint64) {
+	_, err := dd.AddEntry(ctx, name, DirEntry{
 		EntryInfo: EntryInfo{
 			Size: size,
 		},
@@ -214,7 +212,7 @@ type testDirDataLeaf struct {
 }
 
 func testDirDataCheckLeafs(
-	t *testing.T, dd *dirData, cleanBcache BlockCache,
+	t *testing.T, dd *DirData, cleanBcache BlockCache,
 	dirtyBcache DirtyBlockCache, expectedLeafs []testDirDataLeaf,
 	maxPtrsPerBlock, numDirEntries int) {
 	// Top block should always be dirty.
@@ -288,7 +286,7 @@ func testDirDataCheckLeafs(
 }
 
 func testDirDataCleanCache(
-	dd *dirData, cleanBCache BlockCache, dirtyBCache DirtyBlockCache) {
+	dd *DirData, cleanBCache BlockCache, dirtyBCache DirtyBlockCache) {
 	dbc := dirtyBCache.(*DirtyBlockCacheStandard)
 	for id, block := range dbc.cache {
 		ptr := BlockPointer{ID: id.id}
@@ -385,7 +383,7 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLookup(t, ctx, dd, " 1", 14)
 
 	t.Log("Adding an existing name should error")
-	_, err := dd.addEntry(ctx, "a", DirEntry{
+	_, err := dd.AddEntry(ctx, "a", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -403,11 +401,11 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	t.Log("Make a simple dir and remove one entry")
 	addFakeDirDataEntry(t, ctx, dd, "a", 1)
 	addFakeDirDataEntry(t, ctx, dd, "z", 2)
-	_, err := dd.removeEntry(ctx, "z")
+	_, err := dd.RemoveEntry(ctx, "z")
 	require.NoError(t, err)
 	require.Len(t, topBlock.Children, 1)
 	testDirDataCheckLookup(t, ctx, dd, "a", 1)
-	_, err = dd.lookup(ctx, "z")
+	_, err = dd.Lookup(ctx, "z")
 	require.Equal(t, idutil.NoSuchNameError{Name: "z"}, err)
 
 	t.Log("Make a big complicated tree and remove an entry")
@@ -426,7 +424,7 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
-	_, err = dd.removeEntry(ctx, "c")
+	_, err = dd.RemoveEntry(ctx, "c")
 	require.NoError(t, err)
 	expectedLeafs := []testDirDataLeaf{
 		{"", 2, false},    // " 1" and "a"
@@ -451,7 +449,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 
 	t.Log("Make a simple dir and update one entry")
 	addFakeDirDataEntry(t, ctx, dd, "a", 1)
-	_, err := dd.updateEntry(ctx, "a", DirEntry{
+	_, err := dd.UpdateEntry(ctx, "a", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -475,7 +473,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
-	_, err = dd.updateEntry(ctx, "c", DirEntry{
+	_, err = dd.UpdateEntry(ctx, "c", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 1000,
 		},
@@ -495,7 +493,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	}
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 	t.Log("Updating an non-existing name should error")
-	_, err = dd.updateEntry(ctx, "foo", DirEntry{
+	_, err = dd.UpdateEntry(ctx, "foo", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},

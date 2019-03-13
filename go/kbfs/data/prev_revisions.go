@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -29,11 +29,11 @@ var minPrevRevisionSlotCounts = [...]uint8{1, 5, 10, 25, 100}
 // of descending revision number, starting with the most recent.
 type PrevRevisions []PrevRevisionAndCount
 
-// addRevision returns a copy of `pr` with a new immediately-previous
+// AddRevision returns a copy of `pr` with a new immediately-previous
 // revision added, with the existing entries moved or overwritten to
 // accomodate the new entry, and with increased counts.  Any existing
 // revisions smaller than or equal to minRev will be removed.
-func (pr PrevRevisions) addRevision(
+func (pr PrevRevisions) AddRevision(
 	r, minRev kbfsmd.Revision) (ret PrevRevisions) {
 	newLength := len(pr)
 	if newLength < len(minPrevRevisionSlotCounts) {
