@@ -112,7 +112,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         return []
       }
       let numAdditional = 0
-      const isInStack = appPath[0].routes.reverse().some(r => {
+      const isInStack = appPath.reverse().some(r => {
         if (r.routeName === action.payload.routeName) {
           return true
         }

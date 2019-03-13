@@ -33,7 +33,8 @@ const findAppRoute = (arr, s) => {
   if (!loggedInOut) {
     return []
   }
-  return loggedInOut.routes.slice(0, 1)
+  const mainRoute = loggedInOut.routes.slice(0, 1)
+  return mainRoute[0].routes
 }
 
 // Private API used by navigator itself
