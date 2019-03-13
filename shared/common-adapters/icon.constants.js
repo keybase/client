@@ -1471,30 +1471,30 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-securing-static-266.png'),
   },
-  'icon-shh-16': {
+  'icon-shh-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-16.png'),
+    require: require('../images/icons/icon-shh-19-16.png'),
   },
-  'icon-shh-24': {
+  'icon-shh-26-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-24.png'),
+    require: require('../images/icons/icon-shh-26-21.png'),
   },
-  'icon-shh-active-16': {
+  'icon-shh-active-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-active-16.png'),
+    require: require('../images/icons/icon-shh-active-19-16.png'),
   },
-  'icon-shh-active-24': {
+  'icon-shh-active-26-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-active-24.png'),
+    require: require('../images/icons/icon-shh-active-26-21.png'),
   },
-  'icon-shh-hover-16': {
+  'icon-shh-hover-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-hover-16.png'),
+    require: require('../images/icons/icon-shh-hover-19-16.png'),
   },
   'icon-skull-48': {
     extension: 'png',
