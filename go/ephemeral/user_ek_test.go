@@ -32,7 +32,7 @@ func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb
 
 	// We've stored the result in local storage
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
-	maxGeneration, err := userEKBoxStorage.MaxGeneration(context.Background())
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	ek, err := userEKBoxStorage.Get(context.Background(), maxGeneration, nil)
 	require.NoError(t, err)

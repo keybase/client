@@ -56,7 +56,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 	// After the provision, Y should have access to this userEK generation
 	userEKBoxStorageX := tcX.G.GetUserEKBoxStorage()
-	userEKGenX, err := userEKBoxStorageX.MaxGeneration(context.Background())
+	userEKGenX, err := userEKBoxStorageX.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 
 	var userEKX keybase1.UserEk
@@ -134,7 +134,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	wg.Wait()
 
 	deviceEKStorageY := tcY.G.GetDeviceEKStorage()
-	maxDeviceEKGenerationY, err := deviceEKStorageY.MaxGeneration(context.Background())
+	maxDeviceEKGenerationY, err := deviceEKStorageY.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	if upgradePerUserKey {
 		// Confirm that Y has a deviceEK.
@@ -163,7 +163,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// Confirm Y has a userEK at the same generation as X. If we didn't have a
 	// PUK this generation will be -1.
 	userEKBoxStorageY := tcY.G.GetUserEKBoxStorage()
-	userEKGenY, err := userEKBoxStorageY.MaxGeneration(context.Background())
+	userEKGenY, err := userEKBoxStorageY.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	require.EqualValues(t, userEKGenX, userEKGenY)
 
