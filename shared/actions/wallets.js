@@ -249,8 +249,8 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(accepted =>
-    WalletsGen.createWalletDisclaimerReceived({accepted}),
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(
+    accepted => WalletsGen.createWalletDisclaimerReceived({accepted})
   )
 
 const loadAccounts = (state, action) => {
@@ -645,7 +645,7 @@ const navigateToAccount = (state, action) => {
   }
   const wallet = isMobile
     ? [Tabs.settingsTab, SettingsConstants.walletsTab]
-    : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
+    : [{props: {}, selected: Tabs.walletsTab}]
 
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
