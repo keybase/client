@@ -12,15 +12,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/storage"
-	"golang.org/x/net/context"
-
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -44,19 +44,6 @@ func (e errIncorrectFavoritesCacheVersion) Error() string {
 		e.cache, e.version)
 }
 
-type favToAdd struct {
-	Favorite Favorite
-	Data     FavoriteData
-
-	// created, if set to true, indicates that this is the first time the TLF has
-	// ever existed. It is only used when adding the TLF to favorites
-	created bool
-}
-
-func (f favToAdd) ToKBFolder() keybase1.Folder {
-	return f.Favorite.ToKBFolder(f.created)
-}
-
 // favReq represents a request to access the logged-in user's
 // favorites list.  A single request can do one or more of the
 // following: refresh the current cached list, add a favorite, remove
@@ -67,9 +54,9 @@ type favReq struct {
 	// Request types
 	clear       bool
 	refresh     bool
-	toAdd       []favToAdd
-	toDel       []Favorite
-	favs        chan<- []Favorite
+	toAdd       []favorites.ToAdd
+	toDel       []favorites.Folder
+	favs        chan<- []favorites.Folder
 	favsAll     chan<- keybase1.FavoritesResult
 	homeTLFInfo *homeTLFInfo
 
@@ -80,24 +67,6 @@ type favReq struct {
 
 	// Context
 	ctx context.Context
-}
-
-// FavoriteData represents the auxiliary data belonging to a KBFS Favorite.
-type FavoriteData struct {
-	Name         string
-	FolderType   keybase1.FolderType
-	Private      bool
-	TeamID       *keybase1.TeamID
-	ResetMembers []keybase1.User
-}
-
-func favoriteDataFrom(folder keybase1.Folder) FavoriteData {
-	return FavoriteData{
-		Name:       folder.Name,
-		FolderType: folder.FolderType,
-		Private:    folder.Private,
-		TeamID:     folder.TeamID,
-	}
 }
 
 type homeTLFInfo struct {
@@ -125,15 +94,15 @@ type Favorites struct {
 	// the last refresh and this device is offline.
 	// When another device modifies the favorites [or new or ignored] list,
 	// the server will try to alert the other devices to refresh.
-	favCache        map[Favorite]FavoriteData
-	newCache        map[Favorite]FavoriteData
-	ignoredCache    map[Favorite]FavoriteData
+	favCache        map[favorites.Folder]favorites.Data
+	newCache        map[favorites.Folder]favorites.Data
+	ignoredCache    map[favorites.Folder]favorites.Data
 	cacheExpireTime time.Time
 
 	diskCache *LevelDb
 
 	inFlightLock sync.Mutex
-	inFlightAdds map[Favorite]*favReq
+	inFlightAdds map[favorites.Folder]*favReq
 
 	muShutdown sync.RWMutex
 	shutdown   bool
@@ -157,7 +126,7 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 	f := &Favorites{
 		config:       config,
 		reqChan:      reqChan,
-		inFlightAdds: make(map[Favorite]*favReq),
+		inFlightAdds: make(map[favorites.Folder]*favReq),
 		log:          log,
 	}
 
@@ -171,9 +140,9 @@ func NewFavorites(config Config) *Favorites {
 
 type favoritesCacheForDisk struct {
 	version      int
-	favCache     map[Favorite]FavoriteData
-	newCache     map[Favorite]FavoriteData
-	ignoredCache map[Favorite]FavoriteData
+	favCache     map[favorites.Folder]favorites.Data
+	newCache     map[favorites.Folder]favorites.Data
+	ignoredCache map[favorites.Folder]favorites.Data
 }
 type favoritesCacheEncryptedForDisk struct {
 	version        int
@@ -312,13 +281,13 @@ func (f *Favorites) closeReq(req *favReq, err error) {
 	req.err = err
 	close(req.done)
 	for _, fav := range req.toAdd {
-		delete(f.inFlightAdds, fav.Favorite)
+		delete(f.inFlightAdds, fav.Folder)
 	}
 }
 
 // sendChangesToEditHistory notes any deleted favorites and removes them
 // from this user's kbfsedits.UserHistory.
-func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]FavoriteData) {
+func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favorites.Data) {
 	for oldFav := range oldCache {
 		if _, present := f.favCache[oldFav]; !present {
 			f.config.UserHistory().ClearTLF(tlf.CanonicalName(oldFav.Name),
@@ -332,7 +301,7 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]FavoriteData)
 	}
 }
 
-func favoriteToFolder(fav Favorite, data FavoriteData) keybase1.Folder {
+func favoriteToFolder(fav favorites.Folder, data favorites.Data) keybase1.Folder {
 	return keybase1.Folder{
 		Name:       fav.Name,
 		Private:    data.Private,
@@ -373,14 +342,14 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		} else { // Successfully got new favorites from server.
 			session, sessionErr := f.config.KBPKI().GetCurrentSession(req.ctx)
 			oldCache := f.favCache
-			f.newCache = make(map[Favorite]FavoriteData)
-			f.favCache = make(map[Favorite]FavoriteData)
-			f.ignoredCache = make(map[Favorite]FavoriteData)
+			f.newCache = make(map[favorites.Folder]favorites.Data)
+			f.favCache = make(map[favorites.Folder]favorites.Data)
+			f.ignoredCache = make(map[favorites.Folder]favorites.Data)
 			f.cacheExpireTime = libkb.ForceWallClock(f.config.Clock().Now()).Add(
 				favoritesCacheExpirationTime)
 			for _, folder := range favResult.FavoriteFolders {
-				f.favCache[*NewFavoriteFromFolder(
-					folder)] = favoriteDataFrom(folder)
+				f.favCache[*favorites.NewFolderFromProtocol(
+					folder)] = favorites.DataFrom(folder)
 				if sessionErr != nil && folder.Name == string(session.Name) {
 					if folder.Private {
 						f.homeTLFInfo.PrivateTeamID = *folder.TeamID
@@ -390,22 +359,28 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				}
 			}
 			for _, folder := range favResult.IgnoredFolders {
-				f.ignoredCache[*NewFavoriteFromFolder(
-					folder)] = favoriteDataFrom(folder)
+				f.ignoredCache[*favorites.NewFolderFromProtocol(
+					folder)] = favorites.DataFrom(folder)
 			}
 			for _, folder := range favResult.NewFolders {
-				f.newCache[*NewFavoriteFromFolder(
-					folder)] = favoriteDataFrom(folder)
+				f.newCache[*favorites.NewFolderFromProtocol(
+					folder)] = favorites.DataFrom(folder)
 			}
 			if err == nil {
 				// Add favorites for the current user, that cannot be deleted.
-				f.favCache[Favorite{string(session.Name), tlf.Private}] = FavoriteData{
+				f.favCache[favorites.Folder{
+					Name: string(session.Name),
+					Type: tlf.Private,
+				}] = favorites.Data{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
 					TeamID:     &f.homeTLFInfo.PrivateTeamID,
 					Private:    true,
 				}
-				f.favCache[Favorite{string(session.Name), tlf.Public}] = FavoriteData{
+				f.favCache[favorites.Folder{
+					Name: string(session.Name),
+					Type: tlf.Public,
+				}] = favorites.Data{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
 					TeamID:     &f.homeTLFInfo.PublicTeamID,
@@ -427,9 +402,9 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	}
 
 	for _, fav := range req.toAdd {
-		_, present := f.favCache[fav.Favorite]
-		if !fav.created && present {
-			f.favCache[fav.Favorite] = fav.Data
+		_, present := f.favCache[fav.Folder]
+		if !fav.Created && present {
+			f.favCache[fav.Folder] = fav.Data
 			continue
 		}
 		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
@@ -438,7 +413,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				"Failure adding favorite %v: %v", fav, err)
 			return err
 		}
-		f.favCache[fav.Favorite] = fav.Data
+		f.favCache[fav.Folder] = fav.Data
 	}
 
 	for _, fav := range req.toDel {
@@ -454,7 +429,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	}
 
 	if req.favs != nil {
-		favorites := make([]Favorite, 0, len(f.favCache))
+		favorites := make([]favorites.Folder, 0, len(f.favCache))
 		for fav := range f.favCache {
 			favorites = append(favorites, fav)
 		}
@@ -562,24 +537,24 @@ func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
 }
 
 func (f *Favorites) startOrJoinAddReq(
-	ctx context.Context, fav favToAdd) (req *favReq, doSend bool) {
+	ctx context.Context, fav favorites.ToAdd) (req *favReq, doSend bool) {
 	f.inFlightLock.Lock()
 	defer f.inFlightLock.Unlock()
-	req, ok := f.inFlightAdds[fav.Favorite]
+	req, ok := f.inFlightAdds[fav.Folder]
 	if !ok {
 		req = &favReq{
 			ctx:   ctx,
-			toAdd: []favToAdd{fav},
+			toAdd: []favorites.ToAdd{fav},
 			done:  make(chan struct{}),
 		}
-		f.inFlightAdds[fav.Favorite] = req
+		f.inFlightAdds[fav.Folder] = req
 		doSend = true
 	}
 	return req, doSend
 }
 
 // Add adds a favorite to your favorites list.
-func (f *Favorites) Add(ctx context.Context, fav favToAdd) error {
+func (f *Favorites) Add(ctx context.Context, fav favorites.ToAdd) error {
 	if f.disabled {
 		return nil
 	}
@@ -606,7 +581,7 @@ func (f *Favorites) Add(ctx context.Context, fav favToAdd) error {
 // different favorite operations are in flight.)  The given context is
 // used only for enqueuing the request on an internal queue, not for
 // any resulting I/O.
-func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
+func (f *Favorites) AddAsync(ctx context.Context, fav favorites.ToAdd) {
 	if f.disabled || f.hasShutdown() {
 		return
 	}
@@ -628,7 +603,7 @@ func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
 
 // Delete deletes a favorite from the favorites list.  It is
 // idempotent.
-func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
+func (f *Favorites) Delete(ctx context.Context, fav favorites.Folder) error {
 	if f.disabled {
 		return nil
 	}
@@ -637,7 +612,7 @@ func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
 	}
 	return f.sendReq(ctx, &favReq{
 		ctx:   ctx,
-		toDel: []Favorite{fav},
+		toDel: []favorites.Folder{fav},
 		done:  make(chan struct{}),
 	})
 }
@@ -686,14 +661,14 @@ func (f *Favorites) ClearCache(ctx context.Context) {
 }
 
 // Get returns the logged-in user's list of favorites. It uses the cache.
-func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
+func (f *Favorites) Get(ctx context.Context) ([]favorites.Folder, error) {
 	if f.disabled {
 		session, err := f.config.KBPKI().GetCurrentSession(ctx)
 		if err == nil {
 			// Add favorites only for the current user.
-			return []Favorite{
-				{string(session.Name), tlf.Private},
-				{string(session.Name), tlf.Public},
+			return []favorites.Folder{
+				{Name: string(session.Name), Type: tlf.Private},
+				{Name: string(session.Name), Type: tlf.Public},
 			}, nil
 		}
 		return nil, nil
@@ -701,7 +676,7 @@ func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	if f.hasShutdown() {
 		return nil, ShutdownHappenedError{}
 	}
-	favChan := make(chan []Favorite, 1)
+	favChan := make(chan []favorites.Folder, 1)
 	req := &favReq{
 		ctx:  ctx,
 		favs: favChan,

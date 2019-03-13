@@ -14,11 +14,10 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libhttpserver"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -26,6 +25,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
@@ -449,7 +449,7 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
 	}
 	k.log.CDebugf(ctx, "done op %X, status=%v", opid, err)
 	if ctx != nil {
-		libkbfs.CleanupCancellationDelayer(ctx)
+		libcontext.CleanupCancellationDelayer(ctx)
 	}
 }
 
@@ -1255,7 +1255,7 @@ func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interfac
 	return k.startOpWrapContext(ctx)
 }
 func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
-	return libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
+	return libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		outer, func(c context.Context) context.Context {
 			return c
 		}))
@@ -1264,7 +1264,7 @@ func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, e
 func (k *SimpleFS) doneSyncOp(ctx context.Context, err error) {
 	k.log.CDebugf(ctx, "done sync op, status=%v", err)
 	if ctx != nil {
-		libkbfs.CleanupCancellationDelayer(ctx)
+		libcontext.CleanupCancellationDelayer(ctx)
 	}
 }
 
@@ -1431,7 +1431,7 @@ func (k *SimpleFS) doneReadWriteOp(ctx context.Context, opID keybase1.OpID, err 
 	k.lock.Unlock()
 	k.log.CDebugf(ctx, "doneReadWriteOp, status=%v", err)
 	if ctx != nil {
-		libkbfs.CleanupCancellationDelayer(ctx)
+		libcontext.CleanupCancellationDelayer(ctx)
 	}
 }
 

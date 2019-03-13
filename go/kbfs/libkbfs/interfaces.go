@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -338,7 +339,7 @@ type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation when the cache
 	// is empty or expired.
-	GetFavorites(ctx context.Context) ([]Favorite, error)
+	GetFavorites(ctx context.Context) ([]favorites.Folder, error)
 	// GetFavoritesAll returns the logged-in user's lists of favorite, ignored,
 	// and new top-level folders.  This is a remote-access operation when the
 	// cache is empty or expired.
@@ -353,17 +354,17 @@ type KBFSOps interface {
 	ClearCachedFavorites(ctx context.Context)
 	// AddFavorite adds the favorite to both the server and
 	// the local cache.
-	AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error
+	AddFavorite(ctx context.Context, fav favorites.Folder, data favorites.Data) error
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
-	DeleteFavorite(ctx context.Context, fav Favorite) error
+	DeleteFavorite(ctx context.Context, fav favorites.Folder) error
 	// SetFavoritesHomeTLFInfo sets the home TLF TeamIDs to initialize the
 	// favorites cache on login.
 	SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo)
 	// RefreshEditHistory asks the FBO for the given favorite to reload its
 	// edit history.
-	RefreshEditHistory(fav Favorite)
+	RefreshEditHistory(fav favorites.Folder)
 
 	// GetTLFCryptKeys gets crypt key of all generations as well as
 	// TLF ID for tlfHandle. The returned keys (the keys slice) are ordered by

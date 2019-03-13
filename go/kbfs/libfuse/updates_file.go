@@ -11,6 +11,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -53,7 +54,7 @@ func (f *UpdatesFile) Write(ctx context.Context, req *fuse.WriteRequest,
 			return errors.New("Updates are already enabled")
 		}
 		err = libkbfs.RestartCRForTesting(
-			libkbfs.BackgroundContextWithCancellationDelayer(),
+			libcontext.BackgroundContextWithCancellationDelayer(),
 			f.folder.fs.config, f.folder.getFolderBranch())
 		if err != nil {
 			return err
