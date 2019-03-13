@@ -706,7 +706,7 @@ const cancelRequest = (state, action) =>
 
 const maybeNavigateAwayFromSendForm = state => {
   if (flags.useNewRouter) {
-    const path = Router2Constants.getVisiblePath()
+    const path = Router2Constants.getModalStack()
     const actions = []
     // pop off any routes that are part of the popup
     path.reverse().some(p => {
