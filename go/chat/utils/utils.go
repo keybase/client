@@ -1637,7 +1637,8 @@ func (p pagerMsg) GetMessageID() chat1.MessageID {
 	return p.msgID
 }
 
-func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
+func MessageIDControlToPagination(ctx context.Context, logger DebugLabeler, control *chat1.MessageIDControl,
+	conv *types.RemoteConversation) (res *chat1.Pagination) {
 	if control == nil {
 		return res
 	}
@@ -1645,11 +1646,38 @@ func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *ch
 	res = new(chat1.Pagination)
 	res.Num = control.Num
 	if control.Pivot != nil {
-		pm := pagerMsg{msgID: *control.Pivot}
 		var err error
-		if control.Recent {
+		pm := pagerMsg{msgID: *control.Pivot}
+		switch control.Mode {
+		case chat1.MessageIDControlMode_OLDERMESSAGES:
+			res.Next, err = pag.MakeIndex(pm)
+		case chat1.MessageIDControlMode_NEWERMESSAGES:
 			res.Previous, err = pag.MakeIndex(pm)
-		} else {
+		case chat1.MessageIDControlMode_UNREADLINE:
+			if conv == nil {
+				// just bail out of here with no conversation
+				logger.Debug(ctx, "MessageIDControlToPagination: unreadline mode with no conv, bailing")
+				return nil
+			}
+			pm.msgID = conv.Conv.ReaderInfo.ReadMsgid
+			fallthrough
+		case chat1.MessageIDControlMode_CENTERED:
+			// Heuristic that we might want to revisit, get older messages from a little ahead of where
+			// we want to center on
+			maxForward := 1000
+			if conv != nil {
+				logger.Debug(ctx,
+					"MessageIDControlToPagination: max visible ID: %d pivot: %d",
+					conv.Conv.MaxVisibleMsgID(), pm.msgID)
+				maxForward = int(conv.Conv.ReaderInfo.MaxMsgid - pm.msgID)
+			}
+			desired := int(pm.msgID) + control.Num/2
+			logger.Debug(ctx, "MessageIDControlToPagination: max forward: %d desired: %d", maxForward,
+				desired)
+			if desired > maxForward {
+				desired = maxForward
+			}
+			pm.msgID = pm.msgID.Advance(uint(desired) + 1)
 			res.Next, err = pag.MakeIndex(pm)
 		}
 		if err != nil {
@@ -1659,7 +1687,7 @@ func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *ch
 	return res
 }
 
-// assetsForMessage gathers all assets on a message
+// AssetsForMessage gathers all assets on a message
 func AssetsForMessage(g *globals.Context, msgBody chat1.MessageBody) (assets []chat1.Asset) {
 	typ, err := msgBody.MessageType()
 	if err != nil {
