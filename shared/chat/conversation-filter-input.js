@@ -74,7 +74,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
   }
 
   componentDidMount() {
-    // In choose-conversation, this is inside overlaye and gets unmounted when
+    // In choose-conversation, this is inside overlay and gets unmounted when
     // the popup hides. So just provide an option to focus on mount.
     this.props.focusOnMount && this._startEditing()
   }

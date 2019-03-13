@@ -30,9 +30,7 @@ const getConversationText = (conv: Types.ConversationMeta): string => {
   if (conv.teamType === 'small') {
     return conv.teamname
   }
-  return Constants.getRowParticipants(conv, '')
-    .toArray()
-    .join(',')
+  return Constants.getRowParticipants(conv, '').join(',')
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
