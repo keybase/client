@@ -158,7 +158,8 @@ func queryAPIServerForRekeyInfo(g *libkb.GlobalContext) (keybase1.ProblemSet, er
 	}
 
 	var tmp rekeyQueryResult
-	err := g.API.PostDecode(libkb.APIArg{
+	mctx := libkb.NewMetaContextBackground(g)
+	err := g.API.PostDecode(mctx, libkb.APIArg{
 		Endpoint:    "kbfs/problem_sets",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,

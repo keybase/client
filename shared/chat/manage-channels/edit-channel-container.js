@@ -3,7 +3,7 @@ import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/chat2'
 import EditChannel, {type Props} from './edit-channel'
-import {connect, compose, lifecycle, type RouteProps} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 
 type OwnProps = RouteProps<
   {
@@ -75,9 +75,9 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
   const {teamname, conversationIDKey, channelName, topic} = stateProps
   const deleteRenameDisabled = channelName === 'general'
   return {
-    _loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
     channelName,
     deleteRenameDisabled,
+    loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
     onCancel: dispatchProps._navigateUp,
     onConfirmedDelete: () => {
       dispatchProps._onConfirmedDelete(teamname, conversationIDKey)
@@ -96,23 +96,15 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     },
     showDelete: stateProps.canDelete,
     teamname,
+    title: `Edit #${channelName}`,
     topic,
     waitingForGetInfo: stateProps.waitingForGetInfo,
   }
 }
 
-const ConnectedEditChannel = compose(
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  lifecycle({
-    componentDidMount() {
-      if (this.props.waitingForGetInfo) {
-        this.props._loadChannelInfo()
-      }
-    },
-  })
+const ConnectedEditChannel = connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
 )(EditChannel)
 export default ConnectedEditChannel

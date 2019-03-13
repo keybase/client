@@ -115,7 +115,7 @@ func TestAPIServerPostJSON(t *testing.T) {
 	}
 
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doPostJSON(arg)
+	res, err := handler.doPostJSON(libkb.NewMetaContextForTest(tc), arg)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -3,6 +3,7 @@ package flip
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"io"
 	"math"
 	"math/big"
@@ -77,6 +78,7 @@ type Game struct {
 	stage                  Stage
 	stageForTimeout        Stage
 	players                map[UserDeviceKey]*GamePlayerState
+	commitments            map[string]bool
 	gameUpdateCh           chan GameStateUpdateMessage
 	nPlayers               int
 	dealer                 *Dealer
@@ -322,6 +324,12 @@ func (g *Game) handleCommitment(ctx context.Context, sender UserDevice, now time
 	}
 	ps.commitment = &com
 	ps.commitmentTime = now
+
+	comHex := hex.EncodeToString(com[:])
+	if g.commitments[comHex] {
+		return DuplicateCommitmentError{}
+	}
+	g.commitments[comHex] = true
 
 	// If this user was a latecomer (we got the commitment after we got the CommitmentComplete),
 	// then we mark them as being accounted for.
@@ -705,6 +713,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		stageForTimeout: Stage_ROUND1,
 		gameUpdateCh:    d.gameUpdateCh,
 		players:         make(map[UserDeviceKey]*GamePlayerState),
+		commitments:     make(map[string]bool),
 		dealer:          d,
 		me:              me,
 		clock:           d.dh.Clock,

@@ -59,7 +59,8 @@ protocol identify3Ui {
     Time ctime;                    // sometimes it's zero.
     Identify3RowState state;       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
     array<Identify3RowMeta> metas; // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
-    Identify3RowColor color;        // 'blue' | 'red' | 'black' | 'green' | 'gray'
+    Identify3RowColor color;       // 'blue' | 'red' | 'black' | 'green' | 'gray'
+    union { null, KID } kid;       // in the case of PGP key, also send the KID so that we can revoke by kid
   }
 
   @lint("ignore")

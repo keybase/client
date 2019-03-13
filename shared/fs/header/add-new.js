@@ -8,6 +8,7 @@ import {
   Text,
   FloatingMenu,
   OverlayParentHOC,
+  WithTooltip,
   type OverlayParentProps,
 } from '../../common-adapters'
 import StaticBreadcrumb from '../common/static-breadcrumb'
@@ -97,14 +98,16 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
   return (
     !!props.newFolderRow && (
       <>
-        <ClickableBox style={styles.addNew} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-          <Icon type="iconfont-new" color={Styles.globalColors.blue} style={styles.iconNew} />
-          {!Styles.isMobile && (
-            <Text type="BodyBigLink" style={styles.text}>
-              New ...
-            </Text>
-          )}
-        </ClickableBox>
+        <WithTooltip text="Upload or create">
+          <ClickableBox style={styles.addNew} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+            <Icon type="iconfont-new" color={Styles.globalColors.blue} style={styles.iconNew} />
+            {!Styles.isMobile && (
+              <Text type="BodyBigLink" style={styles.text}>
+                New ...
+              </Text>
+            )}
+          </ClickableBox>
+        </WithTooltip>
         <FloatingMenu
           attachTo={props.getAttachmentRef}
           visible={props.showingMenu}

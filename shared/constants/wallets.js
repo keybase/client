@@ -6,7 +6,6 @@ import * as Styles from '../styles'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
-import {isMobile} from './platform'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
@@ -629,9 +628,9 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   return sign + balanceChange
 }
 
-export const rootWalletTab = isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
-export const rootWalletPath = [rootWalletTab, ...(isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
-export const walletPath = isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
+export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
+export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
+export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 
 const walletPathList = I.List(walletPath)
 export const isLookingAtWallet = (routeState: ?RouteStateNode) => {

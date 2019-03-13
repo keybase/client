@@ -4,7 +4,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from './avatars'
-import {isMobile} from '../constants/platform'
 
 type Props = {|
   backgroundColor: ?string,
@@ -77,7 +76,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
   }
 }
 
-export const rowHeight = isMobile ? 64 : 56
+export const rowHeight = Styles.isMobile ? 64 : 56
 
 const styles = Styles.styleSheetCreate({
   container: {

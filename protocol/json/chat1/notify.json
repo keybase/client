@@ -283,6 +283,13 @@
         {
           "type": {
             "type": "array",
+            "items": "string"
+          },
+          "name": "topReacjis"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ReactionUpdate"
           },
           "name": "reactionUpdates"

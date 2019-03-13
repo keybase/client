@@ -471,15 +471,10 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keyb
 	ctx = libkb.WithLogTag(ctx, "LTPAK")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LoadTeamPlusApplicationKeys(%s)", arg.Id), func() error { return err })()
 
-	resp := &res
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	loader := func(mctx libkb.MetaContext) (interface{}, error) {
-		tmp, err := teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers,
+		return teams.LoadTeamPlusApplicationKeys(ctx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers,
 			arg.IncludeKBFSKeys)
-		if err == nil {
-			*resp = tmp
-		}
-		return tmp, err
 	}
 
 	// argKey is a copy of arg that's going to be used for a cache key, so clear out
@@ -489,9 +484,14 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keyb
 	argKey.SessionID = 0
 	argKey.IncludeKBFSKeys = false
 
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "teams.loadTeamPlusApplicationKeys", true, argKey, resp, loader)
-	return res, err
-
+	servedRes, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "teams.loadTeamPlusApplicationKeys", true, argKey, &res, loader)
+	if err != nil {
+		return keybase1.TeamPlusApplicationKeys{}, err
+	}
+	if s, ok := servedRes.(keybase1.TeamPlusApplicationKeys); ok {
+		res = s
+	}
+	return res, nil
 }
 
 func (h *TeamsHandler) TeamCreateSeitanToken(ctx context.Context, arg keybase1.TeamCreateSeitanTokenArg) (token keybase1.SeitanIKey, err error) {

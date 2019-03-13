@@ -5,8 +5,10 @@ import {capitalize} from 'lodash-es'
 import {globalColors, globalStyles, globalMargins, platformStyles, desktopStyles} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
 import {AVATAR_SIZE} from '../../constants/profile'
-import {HEADER_SIZE} from '../../profile/index.desktop'
 import type {Props} from '.'
+
+const HEADER_TOP_SPACE = 48
+const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 const NonUserRender = (props: Props) => (
   <Box style={styleContainer}>

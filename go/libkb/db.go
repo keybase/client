@@ -48,6 +48,7 @@ const (
 	DBUserEKBox                = 0xeb
 	DBTeamEKBox                = 0xec
 	DBChatIndex                = 0xed
+	DBChatReacji               = 0xef
 	DBMerkleRoot               = 0xf0
 	DBTrackers                 = 0xf1
 	DBGregor                   = 0xf2
@@ -92,6 +93,7 @@ func IsPermDbKey(typ ObjType) bool {
 		DBOfflineRPC,
 		DBChatCollapses,
 		DBHasRandomPW,
+		DBChatReacji,
 		DBStellarDisclaimer:
 		return true
 	default:

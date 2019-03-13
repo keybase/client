@@ -215,7 +215,8 @@ func testLoadUserPlusKeys(
 	client.loadUserPlusKeysCalled = false
 
 	ctx := context.Background()
-	info, err := c.LoadUserPlusKeys(ctx, uid, "")
+	info, err := c.LoadUserPlusKeys(
+		ctx, uid, "", keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, info.Name)

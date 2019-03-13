@@ -20,7 +20,7 @@ func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, vi
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -37,7 +37,7 @@ func VerifyPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -71,7 +71,7 @@ func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber)
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.Delete(arg)
+	_, err := mctx.G().API.Delete(mctx, arg)
 	return err
 }
 
@@ -86,7 +86,7 @@ func SetVisibilityPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -101,7 +101,7 @@ func SetVisibilityAllPhoneNumber(mctx libkb.MetaContext, visibility keybase1.Ide
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := mctx.G().API.PostJSON(arg)
+	_, err := mctx.G().API.PostJSON(mctx, arg)
 	return err
 }
 
@@ -122,7 +122,7 @@ func BulkLookupPhoneNumbers(mctx libkb.MetaContext, phoneNumberContacts []keybas
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	var resp phoneLookupAPIResult
-	err := mctx.G().API.PostDecode(arg, &resp)
+	err := mctx.G().API.PostDecode(mctx, arg, &resp)
 	if err != nil {
 		return nil, err
 	}
