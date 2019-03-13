@@ -1613,7 +1613,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 
 	ret.DeleteChannel = admin
 	ret.RenameChannel = writer
-	ret.EditChannelDescription = writer
+	ret.EditChannelDescription = admin
 	ret.DeleteChatHistory = admin
 	ret.SetRetentionPolicy = admin
 	ret.SetMinWriterRole = admin
