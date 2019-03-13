@@ -114,7 +114,7 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
-	defer idx.Trace(ctx, func() error { return nil }, "Stop")()
+	defer idx.Trace(ctx, func() error { return nil }, "Start")()
 	idx.Lock()
 	defer idx.Unlock()
 
@@ -405,11 +405,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 			MarkAsRead:               false,
 		}
 		for i := minIdxID; i < maxIdxID; i += chat1.MessageID(idx.pageSize) {
-			pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
-				Num:    idx.pageSize,
-				Pivot:  &i,
-				Recent: true,
-			})
+			pagination := utils.MessageIDControlToPagination(ctx, idx.DebugLabeler, &chat1.MessageIDControl{
+				Num:   idx.pageSize,
+				Pivot: &i,
+				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
+			}, nil)
 			if opts.forceReindex { // block on gathering results
 				tv, err := idx.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 				if err != nil {

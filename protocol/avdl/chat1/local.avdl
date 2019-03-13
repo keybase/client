@@ -49,12 +49,6 @@ protocol local {
     string headline;
   }
 
-  record MessageFlip {
-    string text;
-    FlipGameID gameID;
-    ConversationID flipConvID;
-  }
-
   enum MessageSystemType {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
@@ -62,8 +56,7 @@ protocol local {
     CREATETEAM_3,
     GITPUSH_4,
     CHANGEAVATAR_5,
-    CHANGERETENTION_6,
-    BULKADDTOCONV_7
+    CHANGERETENTION_6
   }
 
   record MessageSystemAddedToTeam {
@@ -116,10 +109,6 @@ protocol local {
     string user;
   }
 
-  record MessageSystemBulkAddToConv {
-    array<string> usernames;
-  }
-
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -128,7 +117,6 @@ protocol local {
     case GITPUSH: MessageSystemGitPush;
     case CHANGEAVATAR: MessageSystemChangeAvatar;
     case CHANGERETENTION: MessageSystemChangeRetention;
-    case BULKADDTOCONV: MessageSystemBulkAddToConv;
   }
 
   record MessageDeleteHistory {
@@ -192,7 +180,6 @@ protocol local {
     case SENDPAYMENT: MessageSendPayment;
     case REQUESTPAYMENT: MessageRequestPayment;
     case UNFURL: MessageUnfurl;
-    case FLIP: MessageFlip;
   }
 
   enum OutboxStateType {
@@ -478,7 +465,6 @@ protocol local {
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
-    LocalConversationVers localVersion;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<ConversationLocalParticipant> participants;
@@ -565,12 +551,20 @@ protocol local {
 
   record ThreadView {
     array<MessageUnboxed> messages;
+    union { null, MessageID } unreadLine;
     union { null, Pagination } pagination;
+  }
+
+  enum MessageIDControlMode {
+    OLDERMESSAGES_0,
+    NEWERMESSAGES_1,
+    CENTERED_2,
+    UNREADLINE_3
   }
 
   record MessageIDControl {
     union { null, MessageID } pivot;
-    boolean recent;
+    MessageIDControlMode mode;
     int num;
   }
 
@@ -881,8 +875,7 @@ protocol local {
   FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, keybase1.TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
-  void updateTyping(ConversationID conversationID, boolean typing); // throttled
-  void updateUnsentText(ConversationID conversationID, string text); // debounced
+  void updateTyping(ConversationID conversationID, string text);
 
   // Channel management
   record JoinLeaveConversationLocalRes {
@@ -996,6 +989,4 @@ protocol local {
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
 
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
-
-  void bulkAddToConv(ConversationID convID, array<string> usernames);
 }

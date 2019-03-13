@@ -38,7 +38,6 @@ protocol chatUi {
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
-    LocalConversationVers localVersion;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
     MessageID maxMsgID;
@@ -81,7 +80,6 @@ protocol chatUi {
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
-    LocalConversationVers localVersion;
     MessageID maxMsgID;
     MessageID maxVisibleMsgID;
     MessageID readMsgID;
@@ -186,9 +184,6 @@ protocol chatUi {
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
     boolean isCollapsed;
-    union { null, string } flipGameID;
-    boolean isDeleteable;
-    boolean isEditable;
   }
 
   record UIMessageOutbox {
@@ -200,7 +195,6 @@ protocol chatUi {
     gregor1.Time ctime;
     double ordinal;
     boolean isEphemeral;
-    union { null, string} flipGameID;
 
     // For attachments
     string filename;
@@ -224,6 +218,7 @@ protocol chatUi {
 
   record UIMessages {
     array<UIMessage> messages;
+    union { null, MessageID } unreadLine;
     union { null, UIPagination } pagination;
   }
 
@@ -274,96 +269,8 @@ protocol chatUi {
   }
   void chatStellarShowConfirm(int sessionID);
   boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
-  boolean chatStellarDataError(int sessionID, keybase1.Status error);
+  boolean chatStellarDataError(int sessionID, string message);
   void chatStellarDone(int sessionID, boolean canceled);
 
- record GiphySearchResult {
-    string targetUrl;
-    string previewUrl;
-    int previewWidth;
-    int previewHeight;
-    boolean previewIsVideo;
-  }
-  void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
-  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show);
-
   void chatShowManageChannels(int sessionID, string teamname);
-
-  enum UICoinFlipPhase {
-    COMMITMENT_0,
-    REVEALS_1,
-    COMPLETE_2,
-    ERROR_3
-  }
-  record UICoinFlipErrorParticipant {
-    string user;
-    string device;
-  }
-  record UICoinFlipAbsenteeError {
-    array<UICoinFlipErrorParticipant> absentees;
-  }
-  enum UICoinFlipErrorTyp {
-    GENERIC_0,
-    ABSENTEE_1,
-    TIMEOUT_2,
-    ABORTED_3,
-    DUPREG_4,
-    DUPCOMMITCOMPLETE_5,
-    DUPREVEAL_6,
-    COMMITMISMATCH_7
-  }
-  variant UICoinFlipError switch (UICoinFlipErrorTyp typ) {
-  case GENERIC: string;
-  case ABSENTEE: UICoinFlipAbsenteeError;
-  case TIMEOUT: void;
-  case ABORTED: void;
-  case DUPREG: UICoinFlipErrorParticipant;
-  case DUPCOMMITCOMPLETE: UICoinFlipErrorParticipant;
-  case DUPREVEAL: UICoinFlipErrorParticipant;
-  case COMMITMISMATCH: UICoinFlipErrorParticipant;
-  }
-  enum UICoinFlipResultTyp {
-    NUMBER_0,
-    SHUFFLE_1,
-    DECK_2,
-    HANDS_3,
-    COIN_4
-  }
-  record UICoinFlipHand {
-    string target;
-    array<int> hand;
-  }
-  variant UICoinFlipResult switch (UICoinFlipResultTyp typ) {
-    case NUMBER: string;
-    case SHUFFLE: array<string>;
-    case DECK: array<int>;
-    case HANDS: array<UICoinFlipHand>;
-    case COIN: bool; // heads?
-  }
-  record UICoinFlipParticipant {
-    string uid;
-    string deviceID;
-    string username;
-    string deviceName;
-    string commitment;
-    union { null, string } reveal;
-  }
-  record UICoinFlipStatus {
-    string gameID;
-    UICoinFlipPhase phase;
-    string progressText;
-    string resultText;
-    string commitmentVisualization;
-    string revealVisualization;
-    array<UICoinFlipParticipant> participants;
-    union { null, UICoinFlipError } errorInfo;
-    union { null, UICoinFlipResult } resultInfo;
-  }
-  void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
-
-  record UICommandMarkdown {
-    string body;
-    union { null, string} title;
-  }
-  void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
 }
