@@ -737,22 +737,13 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	arg.Query.EnableDeletePlaceholders = true
 
-	// Get the conversation from local storage
-	var conv *types.RemoteConversation
-	uconv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConversationID,
-		types.InboxSourceDataSourceLocalOnly)
-	if err != nil {
-		h.Debug(ctx, "GetThreadNonblock: failed to get conversation: %s", err)
-	} else {
-		conv = &uconv
-	}
 	// Parse out options
-	if arg.Query != nil && arg.Query.MessageIDControl != nil && conv != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		// Pager control into pagination if given
 		h.Debug(ctx, "GetThreadNonblock: using message ID control for pagination: %v",
 			*arg.Query.MessageIDControl)
-		pagination = utils.MessageIDControlToPagination(ctx, h.DebugLabeler, arg.Query.MessageIDControl,
-			conv)
+		pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
+			*arg.Query.MessageIDControl)
 	} else {
 		// Apply any pager mode transformations
 		pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
