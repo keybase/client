@@ -83,7 +83,9 @@ function updateIconFont(web) {
       execSync('fontforge')
     } catch (e) {
       if (e.message.includes('not found')) {
-        throw new Error('FontForge is required to generate the icon font. Install and try again.')
+        throw new Error(
+          'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.'
+        )
       }
       throw e
     }
