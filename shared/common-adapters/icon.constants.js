@@ -146,11 +146,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dns-48.png'),
   },
-  'icon-dropping-file-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-dropping-file-48.png'),
-  },
   'icon-facebook-continue': {
     extension: 'png',
     isFont: false,
