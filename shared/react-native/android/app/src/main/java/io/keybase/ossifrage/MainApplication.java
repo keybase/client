@@ -1,7 +1,7 @@
 package io.keybase.ossifrage;
 
 import android.app.Application;
-
+import com.reactnativecommunity.netinfo.NetInfoPackage;
 import com.evernote.android.job.JobManager;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -80,7 +80,8 @@ public class MainApplication extends Application implements ReactApplication {
                         new FastImageViewPackage(),
                         new LottiePackage(),
                         new RNGestureHandlerPackage(),
-                        new RNScreensPackage()
+                        new RNScreensPackage(),
+                        new NetInfoPackage()
                 );
             }
 
@@ -95,7 +96,8 @@ public class MainApplication extends Application implements ReactApplication {
                     new FastImageViewPackage(),
                     new LottiePackage(),
                     new RNGestureHandlerPackage(),
-                    new RNScreensPackage()
+                    new RNScreensPackage(),
+                    new NetInfoPackage()
             );
         }
         @Override

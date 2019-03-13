@@ -13,7 +13,6 @@ import flags from '../../util/feature-flags'
 // this CANNOT be an import *, totally screws up the packager
 import {
   Alert,
-  NetInfo,
   Linking,
   NativeModules,
   ActionSheetIOS,
@@ -21,6 +20,7 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
+import NetInfo from '@react-native-community/netinfo'
 import {getPath} from '../../route-tree'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
