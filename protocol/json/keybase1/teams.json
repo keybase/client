@@ -2331,7 +2331,7 @@
         },
         {
           "type": "boolean",
-          "name": "changeChannelAvatar"
+          "name": "editTeamDescription"
         },
         {
           "type": "boolean",

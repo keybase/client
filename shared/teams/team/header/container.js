@@ -18,7 +18,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   return {
     _you: state.config.username,
     canChat: yourOperations.chat,
-    canEditDescription: yourOperations.editChannelDescription,
+    canEditDescription: yourOperations.editTeamDescription,
     canJoinTeam: yourOperations.joinTeam,
     canManageMembers: yourOperations.manageMembers,
     description: Constants.getTeamPublicitySettings(state, teamname).description,
