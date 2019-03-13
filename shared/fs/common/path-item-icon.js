@@ -7,7 +7,7 @@ import * as Kb from '../../common-adapters'
 import * as Flow from '../../util/flow'
 import logger from '../../logger'
 
-type RealSize = 64 | 48 | 32 | 16
+type RealSize = 96 | 64 | 48 | 32 | 16
 type RealSizeString = '64' | '48' | '32' | '16'
 export type Size = 64 | 48 | 32 | 16 | 12
 
@@ -32,6 +32,8 @@ const getIconSizeString = (size: Size): RealSizeString => {
       return '48'
     case 64:
       return '64'
+    case 96:
+      return '96'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(realSize)
       return '32'
@@ -46,6 +48,7 @@ const icons = {
     '32': 'icon-file-32',
     '48': 'icon-file-48',
     '64': 'icon-file-64',
+    '96': 'icon-file-96',
   },
   folder: {
     '16': 'icon-folder-16',

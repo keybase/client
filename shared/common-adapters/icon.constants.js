@@ -396,6 +396,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-file-64.png'),
   },
+  'icon-file-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-96.png'),
+  },
   'icon-file-delete-48': {
     extension: 'png',
     isFont: false,
