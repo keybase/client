@@ -28,7 +28,6 @@ const Import = ({onCancel}) => (
   </Modal>
 )
 
-// temp
 const styleHeader = {
   marginTop: Styles.globalMargins.medium,
 }
