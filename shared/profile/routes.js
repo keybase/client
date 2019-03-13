@@ -23,14 +23,10 @@ const profileRoute = () => {
 
   const proveEnterUsername = makeRouteDefNode({
     children: {
-      confirmOrPending: {
-        component: ConfirmOrPending,
-      },
-      postProof: {
+      profileConfirmOrPending: {component: ConfirmOrPending},
+      profilePostProof: {
         children: {
-          confirmOrPending: {
-            component: ConfirmOrPending,
-          },
+          profileConfirmOrPending: {component: ConfirmOrPending},
         },
         component: PostProof,
       },
@@ -61,22 +57,16 @@ const profileRoute = () => {
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
       profileNonUser: {
-        children: {
-          profile: profileRoute,
-        },
+        children: {profile: profileRoute},
         component: NonUserProfile,
       },
       profilePgp: pgpRoutes,
       profileProveEnterUsername: proveEnterUsername,
       profileProveWebsiteChoice: {
-        children: {
-          proveEnterUsername,
-        },
+        children: {proveEnterUsername},
         component: ProveWebsiteChoice,
       },
-      profileRevoke: {
-        component: RevokeContainer,
-      },
+      profileRevoke: {component: RevokeContainer},
       profileSearch: {
         children: {},
         component: SearchPopup,

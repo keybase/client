@@ -17,7 +17,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: false,
-  useNewRouter: true, // TEMP
+  useNewRouter: false,
 }
 
 // load overrides
