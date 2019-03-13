@@ -1,19 +1,18 @@
 // @flow
 import React, {Component} from 'react'
-import {globalMargins} from '../../styles'
-import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 
 type Props = {
   error?: ?Error,
-  heading: string,
-  newPassphraseError: ?string,
-  newPassphraseConfirmError: ?string,
-  hasPGPKeyOnServer: boolean,
-  onBack: () => void,
+  newPassphraseError?: ?string,
+  newPassphraseConfirmError?: ?string,
+  hasPGPKeyOnServer?: boolean,
+  onBack?: () => void,
   onSave: (passphrase: string, passphraseConfirm: string) => void,
   showTyping?: boolean,
-  waitingForResponse: boolean,
-  onUpdatePGPSettings: () => void,
+  waitingForResponse?: boolean,
+  onUpdatePGPSettings?: () => void,
 }
 
 type State = {
@@ -23,7 +22,7 @@ type State = {
   errorSaving: string,
 }
 
-class UpdatePassphrase extends Component<Props, State> {
+export class UpdatePassphrase extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -65,19 +64,9 @@ class UpdatePassphrase extends Component<Props, State> {
 
   render() {
     const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
-    const notification = this.props.error
-      ? {message: this.props.error.message, type: 'error'}
-      : this.props.hasPGPKeyOnServer
-      ? {
-          message:
-            "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
-          type: 'error',
-        }
-      : null
     return (
-      <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
-        {!!this.props.heading && <Text type="BodySmall">{this.props.heading}</Text>}
-        <Input
+      <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Input
           hintText="New passphrase"
           type={inputType}
           errorText={this.state.errorSaving || this.props.newPassphraseError}
@@ -86,7 +75,7 @@ class UpdatePassphrase extends Component<Props, State> {
           uncontrolled={false}
           style={styleInput}
         />
-        <Input
+        <Kb.Input
           hintText="Confirm new passphrase"
           type={inputType}
           value={this.state.passphraseConfirm}
@@ -95,26 +84,43 @@ class UpdatePassphrase extends Component<Props, State> {
           uncontrolled={false}
           style={styleInput}
         />
-        <Checkbox
+        <Kb.Checkbox
           label="Show typing"
           onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
           checked={this.state.showTyping || !!this.props.showTyping}
-          style={{marginBottom: globalMargins.medium}}
+          style={{marginBottom: Styles.globalMargins.medium}}
         />
-        <Button
+        <Kb.Button
           type="Primary"
           label="Save"
           disabled={!!this.state.errorSaving}
           onClick={() => this.props.onSave(this.state.passphrase, this.state.passphraseConfirm)}
           waiting={this.props.waitingForResponse}
         />
-      </StandardScreen>
+      </Kb.Box2>
     )
   }
 }
 
 const styleInput = {
-  marginBottom: globalMargins.small,
+  marginBottom: Styles.globalMargins.small,
 }
 
-export default UpdatePassphrase
+const UpdatePassphraseWrapper = (props: Props) => {
+  const notification = props.error
+    ? {message: props.error.message, type: 'error'}
+    : props.hasPGPKeyOnServer
+    ? {
+        message:
+          "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
+        type: 'error',
+      }
+    : null
+  return (
+    <Kb.StandardScreen onBack={props.onBack} notification={notification} style={{alignItems: 'center'}}>
+      <UpdatePassphrase {...props} />
+    </Kb.StandardScreen>
+  )
+}
+
+export default UpdatePassphraseWrapper

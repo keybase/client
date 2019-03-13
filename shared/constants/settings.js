@@ -39,6 +39,7 @@ const initialState: Types.State = {
     randomPW: null,
     rememberPassphrase: true,
   },
+  testPassphraseIsCorrect: null,
   waitingForResponse: false,
 }
 
@@ -62,6 +63,7 @@ export const fsTab = 'settingsTabs.fsTab'
 export const gitTab = 'settingsTabs.gitTab'
 export const invitationsTab = 'settingsTabs.invitationsTab'
 export const landingTab = 'settingsTabs.landingTab'
+export const logOutTab = 'settingsTabs.logOutTab'
 export const notificationsTab = 'settingsTabs.notificationsTab'
 export const passphraseTab = 'settingsTabs.passphrase'
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
@@ -73,6 +75,7 @@ export const walletsTab = 'settingsTabs.walletsTab'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
+export const testPassphraseWaitingKey = 'settings:testPassphrase'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export {
   initialState,

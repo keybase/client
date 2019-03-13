@@ -403,6 +403,14 @@ function* processorProfile(_, action) {
 const rememberPassphrase = (_, action) =>
   RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 
+const testPassphrase = (_, action) =>
+  RPCTypes.accountPassphraseCheckRpcPromise(
+    {
+      passphrase: action.payload.passphrase.stringValue(),
+    },
+    Constants.testPassphraseWaitingKey
+  ).then(res => SettingsGen.createLoadedTestPassphrase({testPassphraseIsCorrect: res}))
+
 const loadLockdownMode = state =>
   state.config.loggedIn &&
   RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.loadLockdownModeWaitingKey)
@@ -522,6 +530,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyUsersPasswordChanged,
     passwordChanged
   )
+
+  yield* Saga.chainAction<SettingsGen.TestPassphrasePayload>(SettingsGen.testPassphrase, testPassphrase)
 }
 
 export default settingsSaga

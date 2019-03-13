@@ -4,12 +4,11 @@ import UpdatePassphrase from '.'
 import {compose, lifecycle, connect, type RouteProps} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = RouteProps<{heading: string}, {}>
+type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state, {routeProps}) => ({
+const mapStateToProps = state => ({
   error: state.settings.passphrase.error,
   hasPGPKeyOnServer: !!state.settings.passphrase.hasPGPKeyOnServer,
-  heading: routeProps.get('heading'),
   newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError
     ? state.settings.passphrase.newPassphraseConfirmError.stringValue()
     : null,
