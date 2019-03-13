@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"testing"
@@ -49,5 +49,5 @@ func makeFakeDirEntryFuture(t *testing.T) dirEntryFuture {
 }
 
 func TestDirEntryUnknownFields(t *testing.T) {
-	testStructUnknownFields(t, makeFakeDirEntryFuture(t))
+	kbfscodec.TestStructUnknownFieldsMsgpack(t, makeFakeDirEntryFuture(t))
 }

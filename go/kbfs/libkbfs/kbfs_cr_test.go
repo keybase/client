@@ -11,9 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -59,7 +61,7 @@ func (t *testCRObserver) TlfHandleChange(ctx context.Context,
 }
 
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
-	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
+	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb data.FolderBranch,
 	prefix string) {
 	status, _, err := kbfsOps.FolderStatus(ctx, fb)
 	require.NoError(t, err)
@@ -122,12 +124,12 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	if unembedChanges {
-		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
+		bss1, ok1 := config1.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok1)
-		bss2, ok2 := config2.BlockSplitter().(*BlockSplitterSimple)
+		bss2, ok2 := config2.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok2)
-		bss1.blockChangeEmbedMaxSize = 3
-		bss2.blockChangeEmbedMaxSize = 3
+		bss1.SetBlockChangeEmbedMaxSizeForTesting(3)
+		bss2.SetBlockChangeEmbedMaxSizeForTesting(3)
 	}
 
 	name := userName1.String() + "," + userName2.String()
@@ -356,7 +358,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	c := make(chan struct{}, 2)
 	cro := &testCRObserver{c, nil}
 	config1B.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1B.GetFolderBranch()}, cro)
+		[]data.FolderBranch{rootNode1B.GetFolderBranch()}, cro)
 
 	ops1B := getOps(config1B, fileNode1B.GetFolderBranch().Tlf)
 	ops2B := getOps(config2B, fileNode1B.GetFolderBranch().Tlf)
@@ -474,14 +476,14 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	if unembedChanges {
-		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
+		bss1, ok1 := config1.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok1)
-		bss2, ok2 := config2.BlockSplitter().(*BlockSplitterSimple)
+		bss2, ok2 := config2.BlockSplitter().(*data.BlockSplitterSimple)
 		require.True(t, ok2)
 		// 128 seems to be a good size that works on both 386 and x64
 		// platforms.
-		bss1.blockChangeEmbedMaxSize = 128
-		bss2.blockChangeEmbedMaxSize = 128
+		bss1.SetBlockChangeEmbedMaxSizeForTesting(128)
+		bss2.SetBlockChangeEmbedMaxSizeForTesting(128)
 	}
 
 	name := userName1.String() + "," + userName2.String()
@@ -556,7 +558,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 		md, err := config1.MDOps().GetForTLF(ctx,
 			rootNode1.GetFolderBranch().Tlf, nil)
 		require.NoError(t, err)
-		require.NotEqual(t, zeroPtr, md.data.cachedChanges.Info.BlockPointer)
+		require.NotEqual(t, data.ZeroPtr, md.data.cachedChanges.Info.BlockPointer)
 	}
 }
 
@@ -692,7 +694,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
@@ -798,7 +800,7 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	err = jManager.EnableAuto(ctx)
 	require.NoError(t, err)
 
-	clock, _ := newTestClockAndTimeNow()
+	clock, _ := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
@@ -932,7 +934,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -1022,7 +1024,7 @@ func TestCRDouble(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
 	// create and write to a file
@@ -1164,7 +1166,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 	name := userName1.String() + "," + userName2.String()
 
@@ -1308,7 +1310,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
@@ -1443,14 +1445,15 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2.SetClock(newTestClockNow())
+	config2.SetClock(clocktest.NewTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
 	// Make the blocks small, with multiple levels of indirection, but
 	// make the unembedded size large, so we don't create thousands of
 	// unembedded block change blocks.
 	blockSize := int64(5)
-	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024, 0}
+	bsplit, err := data.NewBlockSplitterSimpleExact(blockSize, 2, 100*1024)
+	require.NoError(t, err)
 	config1.SetBlockSplitter(bsplit)
 
 	// create and write to a file
@@ -1574,7 +1577,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	require.NoError(t, err)
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	clock, now := newTestClockAndTimeNow()
+	clock, now := clocktest.NewTestClockAndTimeNow()
 	config2.SetClock(clock)
 	name := userName1.String() + "," + userName2.String()
 

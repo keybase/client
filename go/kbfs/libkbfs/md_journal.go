@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -1206,7 +1207,7 @@ func (e MDJournalConflictError) Error() string {
 // rmd becomes the initial entry.
 func (j *mdJournal) put(
 	ctx context.Context, signer kbfscrypto.Signer,
-	ekg encryptionKeyGetter, bsplit BlockSplitter, rmd *RootMetadata,
+	ekg encryptionKeyGetter, bsplit data.BlockSplitter, rmd *RootMetadata,
 	isLocalSquash bool) (
 	mdID kbfsmd.ID, err error) {
 	j.log.CDebugf(ctx, "Putting MD for TLF=%s with rev=%s bid=%s",
@@ -1332,8 +1333,8 @@ func (j *mdJournal) put(
 	}
 
 	// Ensure that the block changes are properly unembedded.
-	if rmd.data.Changes.Info.BlockPointer == zeroPtr &&
-		!bsplit.ShouldEmbedBlockChanges(&rmd.data.Changes) {
+	if rmd.data.Changes.Info.BlockPointer == data.ZeroPtr &&
+		!bsplit.ShouldEmbedData(rmd.data.Changes.SizeEstimate()) {
 		return kbfsmd.ID{},
 			errors.New("MD has embedded block changes, but shouldn't")
 	}
@@ -1428,7 +1429,7 @@ func (j *mdJournal) clear(ctx context.Context, bid kbfsmd.BranchID) error {
 
 func (j *mdJournal) resolveAndClear(
 	ctx context.Context, signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, mdcache MDCache, bid kbfsmd.BranchID, rmd *RootMetadata) (
+	bsplit data.BlockSplitter, mdcache MDCache, bid kbfsmd.BranchID, rmd *RootMetadata) (
 	mdID kbfsmd.ID, err error) {
 	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",
 		bid, rmd.Revision())

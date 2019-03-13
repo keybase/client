@@ -1,4 +1,4 @@
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -9,17 +9,17 @@ import (
 )
 
 func makePaths(childIndices [][]int,
-	mockBlock BlockWithPtrs) [][]parentBlockAndChildIndex {
-	result := [][]parentBlockAndChildIndex(nil)
+	mockBlock BlockWithPtrs) [][]ParentBlockAndChildIndex {
+	result := [][]ParentBlockAndChildIndex(nil)
 	for _, indexList := range childIndices {
-		path := []parentBlockAndChildIndex(nil)
+		Path := []ParentBlockAndChildIndex(nil)
 		for _, childIndex := range indexList {
-			path = append(path, parentBlockAndChildIndex{
+			Path = append(Path, ParentBlockAndChildIndex{
 				pblock:     mockBlock,
 				childIndex: childIndex,
 			})
 		}
-		result = append(result, path)
+		result = append(result, Path)
 	}
 	return result
 }

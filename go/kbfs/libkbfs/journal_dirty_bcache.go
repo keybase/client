@@ -7,22 +7,22 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlf"
-
 	"golang.org/x/net/context"
 )
 
 type journalDirtyBlockCache struct {
 	jManager     *JournalManager
-	syncCache    DirtyBlockCache
-	journalCache DirtyBlockCache
+	syncCache    data.DirtyBlockCache
+	journalCache data.DirtyBlockCache
 }
 
-var _ DirtyBlockCache = journalDirtyBlockCache{}
+var _ data.DirtyBlockCache = journalDirtyBlockCache{}
 
 func (j journalDirtyBlockCache) Get(
-	ctx context.Context, tlfID tlf.ID, ptr BlockPointer,
-	branch BranchName) (Block, error) {
+	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
+	branch data.BranchName) (data.Block, error) {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.Get(ctx, tlfID, ptr, branch)
 	}
@@ -31,8 +31,8 @@ func (j journalDirtyBlockCache) Get(
 }
 
 func (j journalDirtyBlockCache) Put(
-	ctx context.Context, tlfID tlf.ID, ptr BlockPointer,
-	branch BranchName, block Block) error {
+	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
+	branch data.BranchName, block data.Block) error {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.Put(ctx, tlfID, ptr, branch, block)
 	}
@@ -40,8 +40,8 @@ func (j journalDirtyBlockCache) Put(
 	return j.syncCache.Put(ctx, tlfID, ptr, branch, block)
 }
 
-func (j journalDirtyBlockCache) Delete(tlfID tlf.ID, ptr BlockPointer,
-	branch BranchName) error {
+func (j journalDirtyBlockCache) Delete(tlfID tlf.ID, ptr data.BlockPointer,
+	branch data.BranchName) error {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.Delete(tlfID, ptr, branch)
 	}
@@ -49,8 +49,8 @@ func (j journalDirtyBlockCache) Delete(tlfID tlf.ID, ptr BlockPointer,
 	return j.syncCache.Delete(tlfID, ptr, branch)
 }
 
-func (j journalDirtyBlockCache) IsDirty(tlfID tlf.ID, ptr BlockPointer,
-	branch BranchName) bool {
+func (j journalDirtyBlockCache) IsDirty(tlfID tlf.ID, ptr data.BlockPointer,
+	branch data.BranchName) bool {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.IsDirty(tlfID, ptr, branch)
 	}
@@ -63,7 +63,7 @@ func (j journalDirtyBlockCache) IsAnyDirty(tlfID tlf.ID) bool {
 }
 
 func (j journalDirtyBlockCache) RequestPermissionToDirty(ctx context.Context,
-	tlfID tlf.ID, estimatedDirtyBytes int64) (DirtyPermChan, error) {
+	tlfID tlf.ID, estimatedDirtyBytes int64) (data.DirtyPermChan, error) {
 	if j.jManager.hasTLFJournal(tlfID) {
 		return j.journalCache.RequestPermissionToDirty(ctx, tlfID,
 			estimatedDirtyBytes)

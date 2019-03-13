@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -120,22 +121,17 @@ func TestBsplitterOffTooBig(t *testing.T) {
 
 func TestBsplitterShouldEmbed(t *testing.T) {
 	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
-	bc := &BlockChanges{}
-	bc.sizeEstimate = 1
-	if !bsplit.ShouldEmbedBlockChanges(bc) {
+	if !bsplit.ShouldEmbedData(1) {
 		t.Errorf("Not embedding a 1-byte block change")
 	}
-	bc.sizeEstimate = 10
-	if !bsplit.ShouldEmbedBlockChanges(bc) {
+	if !bsplit.ShouldEmbedData(10) {
 		t.Errorf("Not embedding a 10-byte block change")
 	}
 }
 
 func TestBsplitterShouldNotEmbed(t *testing.T) {
 	bsplit := &BlockSplitterSimple{10, 5, 10, 0}
-	bc := &BlockChanges{}
-	bc.sizeEstimate = 11
-	if bsplit.ShouldEmbedBlockChanges(bc) {
+	if bsplit.ShouldEmbedData(11) {
 		t.Errorf("Not embedding a 1-byte block change")
 	}
 }
@@ -158,8 +154,7 @@ func TestBsplitterOverhead(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Encoding block failed: %v", err)
 	}
-	crypto := MakeCryptoCommon(codec, makeBlockCryptV1())
-	paddedBlock, err := crypto.padBlock(encodedBlock)
+	paddedBlock, err := kbfscrypto.PadBlock(encodedBlock)
 	if err != nil {
 		t.Fatalf("Padding block failed: %v", err)
 	}

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -12,22 +12,22 @@ import (
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 )
 
-// path represents the full KBFS path to a particular location, so
+// Path represents the full KBFS path to a particular location, so
 // that a flush can traverse backwards and fix up ids along the way.
-type path struct {
+type Path struct {
 	FolderBranch
-	path []pathNode
+	Path []PathNode
 }
 
-// isValid() returns true if the path has at least one node (for the
+// IsValid returns true if the path has at least one node (for the
 // root).
-func (p path) isValid() bool {
-	if len(p.path) < 1 {
+func (p Path) IsValid() bool {
+	if len(p.Path) < 1 {
 		return false
 	}
 
-	for _, n := range p.path {
-		if !n.isValid() {
+	for _, n := range p.Path {
+		if !n.IsValid() {
 			return false
 		}
 	}
@@ -35,11 +35,11 @@ func (p path) isValid() bool {
 	return true
 }
 
-// isValidForNotification() returns true if the path has at least one
+// IsValidForNotification returns true if the path has at least one
 // node (for the root), and the first element of the path is non-empty
 // and does not start with "<", which indicates an unnotifiable path.
-func (p path) isValidForNotification() bool {
-	if !p.isValid() {
+func (p Path) IsValidForNotification() bool {
+	if !p.IsValid() {
 		return false
 	}
 
@@ -47,47 +47,47 @@ func (p path) isValidForNotification() bool {
 		return false
 	}
 
-	return len(p.path[0].Name) > 0 && !strings.HasPrefix(p.path[0].Name, "<")
+	return len(p.Path[0].Name) > 0 && !strings.HasPrefix(p.Path[0].Name, "<")
 }
 
-// hasValidParent() returns true if this path is valid and
-// parentPath() is a valid path.
-func (p path) hasValidParent() bool {
-	return len(p.path) >= 2 && p.parentPath().isValid()
+// HasValidParent returns true if this path is valid and
+// `ParentPath()` is a valid path.
+func (p Path) HasValidParent() bool {
+	return len(p.Path) >= 2 && p.ParentPath().IsValid()
 }
 
-// tailName returns the name of the final node in the Path. Must be
+// TailName returns the name of the final node in the Path. Must be
 // called with a valid path.
-func (p path) tailName() string {
-	return p.path[len(p.path)-1].Name
+func (p Path) TailName() string {
+	return p.Path[len(p.Path)-1].Name
 }
 
-// tailPointer returns the BlockPointer of the final node in the Path.
+// TailPointer returns the BlockPointer of the final node in the Path.
 // Must be called with a valid path.
-func (p path) tailPointer() BlockPointer {
-	return p.path[len(p.path)-1].BlockPointer
+func (p Path) TailPointer() BlockPointer {
+	return p.Path[len(p.Path)-1].BlockPointer
 }
 
-// tailRef returns the BlockRef of the final node in the Path.  Must
+// TailRef returns the BlockRef of the final node in the Path.  Must
 // be called with a valid path.
-func (p path) tailRef() BlockRef {
-	return p.path[len(p.path)-1].Ref()
+func (p Path) TailRef() BlockRef {
+	return p.Path[len(p.Path)-1].Ref()
 }
 
 // DebugString returns a string representation of the path with all
 // branch and pointer information.
-func (p path) DebugString() string {
-	debugNames := make([]string, 0, len(p.path))
-	for _, node := range p.path {
+func (p Path) DebugString() string {
+	debugNames := make([]string, 0, len(p.Path))
+	for _, node := range p.Path {
 		debugNames = append(debugNames, node.DebugString())
 	}
 	return fmt.Sprintf("%s:%s", p.FolderBranch, strings.Join(debugNames, "/"))
 }
 
 // String implements the fmt.Stringer interface for Path.
-func (p path) String() string {
-	names := make([]string, 0, len(p.path))
-	for _, node := range p.path {
+func (p Path) String() string {
+	names := make([]string, 0, len(p.Path))
+	for _, node := range p.Path {
 		names = append(names, node.Name)
 	}
 	return strings.Join(names, "/")
@@ -98,49 +98,50 @@ func (p path) String() string {
 // specific path, for example, by replacing /keybase with the appropriate drive
 // letter on Windows. It also, might need conversion if on a different run mode,
 // for example, /keybase.staging on Unix type platforms.
-func (p path) CanonicalPathString() string {
+func (p Path) CanonicalPathString() string {
 	return tlfhandle.BuildCanonicalPathForTlf(p.Tlf, p.String())
 }
 
-// parentPath returns a new Path representing the parent subdirectory
+// ParentPath returns a new Path representing the parent subdirectory
 // of this Path. Must be called with a valid path. Should not be
 // called with a path of only a single node, as that would produce an
 // invalid path.
-func (p path) parentPath() *path {
-	return &path{p.FolderBranch, p.path[:len(p.path)-1]}
+func (p Path) ParentPath() *Path {
+	return &Path{p.FolderBranch, p.Path[:len(p.Path)-1]}
 }
 
 // ChildPath returns a new Path with the addition of a new entry
 // with the given name and BlockPointer.
-func (p path) ChildPath(name string, ptr BlockPointer) path {
-	child := path{
+func (p Path) ChildPath(name string, ptr BlockPointer) Path {
+	child := Path{
 		FolderBranch: p.FolderBranch,
-		path:         make([]pathNode, len(p.path), len(p.path)+1),
+		Path:         make([]PathNode, len(p.Path), len(p.Path)+1),
 	}
-	copy(child.path, p.path)
-	child.path = append(child.path, pathNode{Name: name, BlockPointer: ptr})
+	copy(child.Path, p.Path)
+	child.Path = append(child.Path, PathNode{Name: name, BlockPointer: ptr})
 	return child
 }
 
 // ChildPathNoPtr returns a new Path with the addition of a new entry
 // with the given name.  That final PathNode will have no BlockPointer.
-func (p path) ChildPathNoPtr(name string) path {
+func (p Path) ChildPathNoPtr(name string) Path {
 	return p.ChildPath(name, BlockPointer{})
 }
 
 // PathNode is a single node along an KBFS path, pointing to the top
 // block for that node of the path.
-type pathNode struct {
+type PathNode struct {
 	BlockPointer
 	Name string
 }
 
-func (n pathNode) isValid() bool {
+// IsValid returns true if this node contains a valid block pointer.
+func (n PathNode) IsValid() bool {
 	return n.BlockPointer.IsValid()
 }
 
 // DebugString returns a string representation of the node with all
 // pointer information.
-func (n pathNode) DebugString() string {
+func (n PathNode) DebugString() string {
 	return fmt.Sprintf("%s(ptr=%s)", n.Name, n.BlockPointer)
 }

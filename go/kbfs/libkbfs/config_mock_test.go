@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
@@ -130,7 +131,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	// turn off background flushing by default during tests
 	config.noBGFlush = true
 
-	config.maxNameBytes = maxNameBytesDefault
+	config.maxNameBytes = data.MaxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.SetMetadataVersion(defaultClientMetadataVer)

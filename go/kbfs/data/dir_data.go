@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"github.com/keybase/client/go/kbfs/idutil"
@@ -19,27 +19,27 @@ import (
 // dirty.  It may be called from new goroutines, and must handle any
 // required locks accordingly.
 type dirBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
-	path, blockReqType) (dblock *DirBlock, wasDirty bool, err error)
+	Path, BlockReqType) (dblock *DirBlock, wasDirty bool, err error)
 
-// dirData is a helper struct for accessing and manipulating data
+// DirData is a helper struct for accessing and manipulating data
 // within a directory.  It's meant for use within a single scope, not
 // for long-term storage.  The caller must ensure goroutine-safety.
-type dirData struct {
+type DirData struct {
 	getter dirBlockGetter
 	tree   *blockTree
 }
 
-func newDirData(dir path, chargedTo keybase1.UserOrTeamID,
-	crypto cryptoPure, bsplit BlockSplitter, kmd libkey.KeyMetadata,
-	getter dirBlockGetter, cacher dirtyBlockCacher,
-	log logger.Logger) *dirData {
-	dd := &dirData{
+// NewDirData creates a new DirData instance.
+func NewDirData(
+	dir Path, chargedTo keybase1.UserOrTeamID, bsplit BlockSplitter,
+	kmd libkey.KeyMetadata, getter dirBlockGetter, cacher dirtyBlockCacher,
+	log logger.Logger) *DirData {
+	dd := &DirData{
 		getter: getter,
 	}
 	dd.tree = &blockTree{
 		file:      dir,
 		chargedTo: chargedTo,
-		crypto:    crypto,
 		kmd:       kmd,
 		bsplit:    bsplit,
 		getter:    dd.blockGetter,
@@ -49,13 +49,13 @@ func newDirData(dir path, chargedTo keybase1.UserOrTeamID,
 	return dd
 }
 
-func (dd *dirData) rootBlockPointer() BlockPointer {
-	return dd.tree.file.tailPointer()
+func (dd *DirData) rootBlockPointer() BlockPointer {
+	return dd.tree.file.TailPointer()
 }
 
-func (dd *dirData) blockGetter(
+func (dd *DirData) blockGetter(
 	ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
-	dir path, rtype blockReqType) (
+	dir Path, rtype BlockReqType) (
 	block BlockWithPtrs, wasDirty bool, err error) {
 	return dd.getter(ctx, kmd, ptr, dir, rtype)
 }
@@ -66,7 +66,8 @@ var hiddenEntries = map[string]bool{
 	".kbfs_deleted_repos": true,
 }
 
-func (dd *dirData) getTopBlock(ctx context.Context, rtype blockReqType) (
+// GetTopBlock returns the top-most block in this directory block tree.
+func (dd *DirData) GetTopBlock(ctx context.Context, rtype BlockReqType) (
 	*DirBlock, error) {
 	topBlock, _, err := dd.getter(
 		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, rtype)
@@ -76,9 +77,11 @@ func (dd *dirData) getTopBlock(ctx context.Context, rtype blockReqType) (
 	return topBlock, nil
 }
 
-func (dd *dirData) getChildren(ctx context.Context) (
+// GetChildren returns a map of all the child EntryInfos in this
+// directory.
+func (dd *DirData) GetChildren(ctx context.Context) (
 	children map[string]EntryInfo, err error) {
-	topBlock, err := dd.getTopBlock(ctx, blockRead)
+	topBlock, err := dd.GetTopBlock(ctx, BlockRead)
 	if err != nil {
 		return nil, err
 	}
@@ -106,9 +109,11 @@ func (dd *dirData) getChildren(ctx context.Context) (
 	return children, nil
 }
 
-func (dd *dirData) getEntries(ctx context.Context) (
+// GetEntries returns a map of all the child DirEntrys in this
+// directory.
+func (dd *DirData) GetEntries(ctx context.Context) (
 	children map[string]DirEntry, err error) {
-	topBlock, err := dd.getTopBlock(ctx, blockRead)
+	topBlock, err := dd.GetTopBlock(ctx, BlockRead)
 	if err != nil {
 		return nil, err
 	}
@@ -133,15 +138,17 @@ func (dd *dirData) getEntries(ctx context.Context) (
 	return children, nil
 }
 
-func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
-	topBlock, err := dd.getTopBlock(ctx, blockRead)
+// Lookup returns the DirEntry for the given entry named by `name` in
+// this directory.
+func (dd *DirData) Lookup(ctx context.Context, name string) (DirEntry, error) {
+	topBlock, err := dd.GetTopBlock(ctx, BlockRead)
 	if err != nil {
 		return DirEntry{}, err
 	}
 
 	off := StringOffset(name)
 	_, _, block, _, _, _, err := dd.tree.getBlockAtOffset(
-		ctx, topBlock, &off, blockLookup)
+		ctx, topBlock, &off, BlockLookup)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -156,9 +163,9 @@ func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
 // createIndirectBlock creates a new indirect block and pick a new id
 // for the existing block, and use the existing block's ID for the new
 // indirect block that becomes the parent.
-func (dd *dirData) createIndirectBlock(ctx context.Context, dver DataVer) (
+func (dd *DirData) createIndirectBlock(ctx context.Context, dver Ver) (
 	BlockWithPtrs, error) {
-	newID, err := dd.tree.crypto.MakeTemporaryBlockID()
+	newID, err := kbfsblock.MakeTemporaryID()
 	if err != nil {
 		return nil, err
 	}
@@ -196,9 +203,9 @@ func (dd *dirData) createIndirectBlock(ctx context.Context, dver DataVer) (
 	return dblock, nil
 }
 
-func (dd *dirData) processModifiedBlock(
+func (dd *DirData) processModifiedBlock(
 	ctx context.Context, ptr BlockPointer,
-	parentBlocks []parentBlockAndChildIndex, block *DirBlock) (
+	parentBlocks []ParentBlockAndChildIndex, block *DirBlock) (
 	unrefs []BlockInfo, err error) {
 	newBlocks, newOffset := dd.tree.bsplit.SplitDirIfNeeded(block)
 
@@ -218,7 +225,7 @@ func (dd *dirData) processModifiedBlock(
 			dd.rootBlockPointer())
 
 		rightParents, _, err := dd.tree.newRightBlock(
-			ctx, parentBlocks, newOffset, FirstValidDataVer,
+			ctx, parentBlocks, newOffset, FirstValidVer,
 			NewDirBlockWithPtrs, dd.createIndirectBlock)
 		if err != nil {
 			return nil, err
@@ -255,18 +262,18 @@ func (dd *dirData) processModifiedBlock(
 	return unrefs, nil
 }
 
-func (dd *dirData) addEntryHelper(
+func (dd *DirData) addEntryHelper(
 	ctx context.Context, name string, newDe DirEntry,
 	errorIfExists, errorIfNoMatch bool) (
 	unrefs []BlockInfo, err error) {
-	topBlock, err := dd.getTopBlock(ctx, blockWrite)
+	topBlock, err := dd.GetTopBlock(ctx, BlockWrite)
 	if err != nil {
 		return nil, err
 	}
 
 	off := StringOffset(name)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
-		ctx, topBlock, &off, blockWrite)
+		ctx, topBlock, &off, BlockWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -284,34 +291,38 @@ func (dd *dirData) addEntryHelper(
 	return dd.processModifiedBlock(ctx, ptr, parentBlocks, dblock)
 }
 
-func (dd *dirData) addEntry(
+// AddEntry adds a new entry to this directory.
+func (dd *DirData) AddEntry(
 	ctx context.Context, newName string, newDe DirEntry) (
 	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, newName, newDe, true, false)
 }
 
-func (dd *dirData) updateEntry(
+// UpdateEntry updates an existing entry to this directory.
+func (dd *DirData) UpdateEntry(
 	ctx context.Context, name string, newDe DirEntry) (
 	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, name, newDe, false, true)
 }
 
-func (dd *dirData) setEntry(
+// SetEntry set an entry to this directory, whether it is new or existing.
+func (dd *DirData) SetEntry(
 	ctx context.Context, name string, newDe DirEntry) (
 	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, name, newDe, false, false)
 }
 
-func (dd *dirData) removeEntry(ctx context.Context, name string) (
+// RemoveEntry removes an entry from this directory.
+func (dd *DirData) RemoveEntry(ctx context.Context, name string) (
 	unrefs []BlockInfo, err error) {
-	topBlock, err := dd.getTopBlock(ctx, blockWrite)
+	topBlock, err := dd.GetTopBlock(ctx, BlockWrite)
 	if err != nil {
 		return nil, err
 	}
 
 	off := StringOffset(name)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
-		ctx, topBlock, &off, blockWrite)
+		ctx, topBlock, &off, BlockWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -329,23 +340,25 @@ func (dd *dirData) removeEntry(ctx context.Context, name string) (
 	return dd.processModifiedBlock(ctx, ptr, parentBlocks, dblock)
 }
 
-// ready, if given an indirect top-block, readies all the dirty child
-// blocks, and updates their block IDs in their parent block's list of
-// indirect pointers.  It returns a map pointing from the new block
-// info from any readied block to its corresponding old block pointer.
-func (dd *dirData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
+// Ready readies all the dirty child blocks for a directory tree with
+// an indirect top-block, and updates their block IDs in their parent
+// block's list of indirect pointers.  It returns a map pointing from
+// the new block info from any readied block to its corresponding old
+// block pointer.
+func (dd *DirData) Ready(ctx context.Context, id tlf.ID,
+	bcache BlockCache, dirtyBcache IsDirtyProvider,
+	rp ReadyProvider, bps BlockPutState,
 	topBlock *DirBlock) (map[BlockInfo]BlockPointer, error) {
 	return dd.tree.ready(
-		ctx, id, bcache, dirtyBcache, bops, bps, topBlock, nil)
+		ctx, id, bcache, dirtyBcache, rp, bps, topBlock, nil)
 }
 
-// getDirtyChildPtrs returns a set of dirty child pointers (not the
+// GetDirtyChildPtrs returns a set of dirty child pointers (not the
 // root pointer) for the directory.
-func (dd *dirData) getDirtyChildPtrs(
-	ctx context.Context, dirtyBcache isDirtyProvider) (
+func (dd *DirData) GetDirtyChildPtrs(
+	ctx context.Context, dirtyBcache IsDirtyProvider) (
 	ptrs map[BlockPointer]bool, err error) {
-	topBlock, err := dd.getTopBlock(ctx, blockRead)
+	topBlock, err := dd.GetTopBlock(ctx, BlockRead)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +374,7 @@ func (dd *dirData) getDirtyChildPtrs(
 	for off != nil {
 		_, parentBlocks, block, nextBlockOff, _, err :=
 			dd.tree.getNextDirtyBlockAtOffset(
-				ctx, topBlock, off, blockWrite, dirtyBcache)
+				ctx, topBlock, off, BlockWrite, dirtyBcache)
 		if err != nil {
 			return nil, err
 		}
@@ -379,7 +392,9 @@ func (dd *dirData) getDirtyChildPtrs(
 	return ptrs, nil
 }
 
-func (dd *dirData) getIndirectDirBlockInfos(ctx context.Context) (
+// GetIndirectDirBlockInfos returns all of the BlockInfos for blocks
+// pointed to by indirect blocks within this directory tree.
+func (dd *DirData) GetIndirectDirBlockInfos(ctx context.Context) (
 	[]BlockInfo, error) {
 	return dd.tree.getIndirectBlockInfos(ctx)
 }

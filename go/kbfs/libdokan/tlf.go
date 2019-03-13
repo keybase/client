@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -46,7 +47,7 @@ func (tlf *TLF) getStoredDir() *Dir {
 }
 
 func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
-	mode libkbfs.ErrorModeType, branch libkbfs.BranchName, filterErr bool) (
+	mode libkbfs.ErrorModeType, branch data.BranchName, filterErr bool) (
 	dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
@@ -114,7 +115,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
 
 func (tlf *TLF) loadDir(ctx context.Context, info string) (*Dir, error) {
 	dir, _, err := tlf.loadDirHelper(
-		ctx, info, libkbfs.WriteMode, libkbfs.MasterBranch, false)
+		ctx, info, libkbfs.WriteMode, data.MasterBranch, false)
 	return dir, err
 }
 
@@ -125,11 +126,11 @@ func (tlf *TLF) loadDir(ctx context.Context, info string) (*Dir, error) {
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context, info string) (
 	*Dir, bool, error) {
 	return tlf.loadDirHelper(
-		ctx, info, libkbfs.ReadMode, libkbfs.MasterBranch, true)
+		ctx, info, libkbfs.ReadMode, data.MasterBranch, true)
 }
 
 func (tlf *TLF) loadArchivedDir(
-	ctx context.Context, info string, branch libkbfs.BranchName) (
+	ctx context.Context, info string, branch data.BranchName) (
 	*Dir, bool, error) {
 	// Always filter errors for archive TLF directories, so that we
 	// don't try to initialize them.
@@ -185,7 +186,7 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
 	// If it is a creation then we need the dir for real.
 	dir, exitEarly, err :=
 		tlf.loadDirHelper(
-			ctx, "open", mode, libkbfs.MasterBranch, !oc.isCreation())
+			ctx, "open", mode, data.MasterBranch, !oc.isCreation())
 	if err != nil {
 		return nil, 0, err
 	}

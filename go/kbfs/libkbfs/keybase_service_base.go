@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -1247,7 +1248,7 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	}
 
 	rootNode, _, err := k.config.KBFSOps().
-		GetOrCreateRootNode(ctx, tlfHandle, MasterBranch)
+		GetOrCreateRootNode(ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -299,7 +299,7 @@ func (b *BlockCacheStandard) Put(
 	}
 	if lifetime == TransientEntry {
 		if !transientCacheHasRoom {
-			return cachePutCacheFullError{ptr.ID}
+			return CachePutCacheFullError{ptr.ID}
 		}
 		b.cleanTransient.Add(ptr.ID, block)
 	}
@@ -362,4 +362,10 @@ func (b *BlockCacheStandard) DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error 
 	key := idCacheKey{tlf, hash}
 	b.ids.Remove(key)
 	return nil
+}
+
+// NumCleanTransientBlocks returns the number of blocks in the cache
+// with transient lifetimes.
+func (b *BlockCacheStandard) NumCleanTransientBlocks() int {
+	return b.cleanTransient.Len()
 }

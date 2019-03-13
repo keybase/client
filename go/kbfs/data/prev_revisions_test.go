@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"testing"
@@ -39,14 +39,14 @@ func TestPrevRevisions(t *testing.T) {
 	var i int
 	for ; i < len(minPrevRevisionSlotCounts); i++ {
 		rev := kbfsmd.Revision((i + 1) * 2)
-		pr = pr.addRevision(rev, 0)
+		pr = pr.AddRevision(rev, 0)
 		require.Len(t, pr, i+1)
 		checkRevRevisions(t, pr, 0, rev, i+1)
 	}
 	t.Log("The next set will start replacing the prev ones")
 	for ; i < len(minPrevRevisionSlotCounts)*2; i++ {
 		rev := kbfsmd.Revision((i + 1) * 2)
-		pr = pr.addRevision(rev, 0)
+		pr = pr.AddRevision(rev, 0)
 		require.Len(t, pr, len(minPrevRevisionSlotCounts))
 		checkRevRevisions(t, pr, 0, rev, i+1)
 	}
@@ -54,14 +54,14 @@ func TestPrevRevisions(t *testing.T) {
 	t.Log("Exceed the maximum min count")
 	for ; i < maxMin+1; i++ {
 		rev := kbfsmd.Revision((i + 1) * 2)
-		pr = pr.addRevision(rev, 0)
+		pr = pr.AddRevision(rev, 0)
 		require.Len(t, pr, len(minPrevRevisionSlotCounts))
 		checkRevRevisions(t, pr, 0, rev, i+1)
 	}
 	t.Log("Exceed the maximum min count by even more")
 	for ; i < maxMin*2+1; i++ {
 		rev := kbfsmd.Revision((i + 1) * 2)
-		pr = pr.addRevision(rev, 0)
+		pr = pr.AddRevision(rev, 0)
 		require.Len(t, pr, len(minPrevRevisionSlotCounts))
 		checkRevRevisions(t, pr, 0, rev, i+1)
 	}
@@ -69,31 +69,31 @@ func TestPrevRevisions(t *testing.T) {
 	gcRev := pr[len(pr)-1].Revision + 1
 	i++
 	rev := kbfsmd.Revision((i + 1) * 2)
-	pr = pr.addRevision(rev, gcRev)
+	pr = pr.AddRevision(rev, gcRev)
 	require.Len(t, pr, len(minPrevRevisionSlotCounts))
 	checkRevRevisions(t, pr, gcRev, rev, i+1)
 	t.Log("Garbage collect past the final two revisions")
 	gcRev = pr[len(pr)-2].Revision + 1
 	i++
 	rev = kbfsmd.Revision((i + 1) * 2)
-	pr = pr.addRevision(rev, gcRev)
+	pr = pr.AddRevision(rev, gcRev)
 	require.Len(t, pr, len(minPrevRevisionSlotCounts)-1)
 	checkRevRevisions(t, pr, gcRev, rev, i+1)
 	t.Log("Garbage collect everything")
 	gcRev = pr[0].Revision
 	i++
 	rev = kbfsmd.Revision((i + 1) * 2)
-	pr = pr.addRevision(rev, gcRev)
+	pr = pr.AddRevision(rev, gcRev)
 	require.Len(t, pr, 1)
 	checkRevRevisions(t, pr, gcRev, rev, i+1)
 
 	t.Log("Fill it up again")
 	for j := kbfsmd.Revision(1); j < 5; j++ {
-		pr = pr.addRevision(rev+j, gcRev)
+		pr = pr.AddRevision(rev+j, gcRev)
 	}
 
 	t.Log("A lower revision number wipes everything out")
 	rev = kbfsmd.Revision(rev - 1)
-	pr = pr.addRevision(rev, gcRev)
+	pr = pr.AddRevision(rev, gcRev)
 	require.Len(t, pr, 1)
 }

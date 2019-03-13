@@ -8,6 +8,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -74,7 +75,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 			}
 
 			status, _, err := config.KBFSOps().FolderStatus(
-				groupCtx, FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+				groupCtx, data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch})
 			if err != nil {
 				return err
 			}

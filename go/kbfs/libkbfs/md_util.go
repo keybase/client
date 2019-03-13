@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -468,33 +469,33 @@ func encryptMDPrivateData(
 	return nil
 }
 
-func getFileBlockForMD(ctx context.Context, bcache BlockCacheSimple, bops BlockOps,
-	ptr BlockPointer, tlfID tlf.ID, rmdWithKeys libkey.KeyMetadata) (
-	*FileBlock, error) {
+func getFileBlockForMD(ctx context.Context, bcache data.BlockCacheSimple, bops BlockOps,
+	ptr data.BlockPointer, tlfID tlf.ID, rmdWithKeys libkey.KeyMetadata) (
+	*data.FileBlock, error) {
 	// We don't have a convenient way to fetch the block from here via
 	// folderBlockOps, so just go directly via the
 	// BlockCache/BlockOps.  No locking around the blocks is needed
 	// since these change blocks are read-only.
 	block, err := bcache.Get(ptr)
 	if err != nil {
-		block = NewFileBlock()
-		if err := bops.Get(ctx, rmdWithKeys, ptr, block, TransientEntry); err != nil {
+		block = data.NewFileBlock()
+		if err := bops.Get(ctx, rmdWithKeys, ptr, block, data.TransientEntry); err != nil {
 			return nil, err
 		}
 	}
 
-	fblock, ok := block.(*FileBlock)
+	fblock, ok := block.(*data.FileBlock)
 	if !ok {
-		return nil, NotFileBlockError{ptr, MasterBranch, path{}}
+		return nil, NotFileBlockError{ptr, data.MasterBranch, data.Path{}}
 	}
 	return fblock, nil
 }
 
 func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
-	bcache BlockCacheSimple, bops BlockOps, mode InitMode, tlfID tlf.ID,
+	bcache data.BlockCacheSimple, bops BlockOps, mode InitMode, tlfID tlf.ID,
 	pmd *PrivateMetadata, rmdWithKeys libkey.KeyMetadata, log logger.Logger) error {
 	info := pmd.Changes.Info
-	if info.BlockPointer == zeroPtr {
+	if info.BlockPointer == data.ZeroPtr {
 		return nil
 	}
 
@@ -510,28 +511,34 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 
 	// Treat the unembedded block change like a file so we can reuse
 	// the file reading code.
-	file := path{FolderBranch{tlfID, MasterBranch},
-		[]pathNode{{
-			info.BlockPointer, fmt.Sprintf("<MD with block change pointer %s>",
-				info.BlockPointer)}}}
-	getter := func(ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
-		p path, rtype blockReqType) (*FileBlock, bool, error) {
+	file := data.Path{FolderBranch: data.FolderBranch{
+		Tlf:    tlfID,
+		Branch: data.MasterBranch,
+	},
+		Path: []data.PathNode{{
+			BlockPointer: info.BlockPointer,
+			Name: fmt.Sprintf("<MD with block change pointer %s>",
+				info.BlockPointer)},
+		},
+	}
+	getter := func(ctx context.Context, kmd libkey.KeyMetadata, ptr data.BlockPointer,
+		p data.Path, rtype data.BlockReqType) (*data.FileBlock, bool, error) {
 		block, err := getFileBlockForMD(ctx, bcache, bops, ptr, tlfID, kmd)
 		if err != nil {
 			return nil, false, err
 		}
 		return block, false, nil
 	}
-	cacher := func(_ context.Context, ptr BlockPointer, block Block) error {
+	cacher := func(_ context.Context, ptr data.BlockPointer, block data.Block) error {
 		return nil
 	}
 	// Reading doesn't use crypto or the block splitter, so for now
 	// just pass in nil.  Also, reading doesn't depend on the UID, so
 	// it's ok to be empty.
 	var id keybase1.UserOrTeamID
-	fd := newFileData(file, id, nil, nil, rmdWithKeys, getter, cacher, log)
+	fd := data.NewFileData(file, id, nil, rmdWithKeys, getter, cacher, log)
 
-	buf, err := fd.getBytes(ctx, 0, -1)
+	buf, err := fd.GetBytes(ctx, 0, -1)
 	if err != nil {
 		return err
 	}
@@ -550,7 +557,7 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 
 	// The changes block pointers are implicit ref blocks.
 	unembeddedChanges.Ops[0].AddRefBlock(info.BlockPointer)
-	iptrs, err := fd.getIndirectFileBlockInfos(ctx)
+	iptrs, err := fd.GetIndirectFileBlockInfos(ctx)
 	if err != nil {
 		return err
 	}
@@ -565,7 +572,7 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 
 func reembedBlockChangesIntoCopyIfNeeded(
 	ctx context.Context, codec kbfscodec.Codec,
-	bcache BlockCacheSimple, bops BlockOps, mode InitMode,
+	bcache data.BlockCacheSimple, bops BlockOps, mode InitMode,
 	rmd ImmutableRootMetadata, log logger.Logger) (
 	ImmutableRootMetadata, error) {
 	if rmd.data.Changes.Ops != nil {
@@ -595,7 +602,7 @@ func reembedBlockChangesIntoCopyIfNeeded(
 
 // decryptMDPrivateData does not use uid if the handle is a public one.
 func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
-	crypto Crypto, bcache BlockCache, bops BlockOps,
+	crypto Crypto, bcache data.BlockCache, bops BlockOps,
 	keyGetter mdDecryptionKeyGetter, teamChecker kbfsmd.TeamMembershipChecker,
 	osg idutil.OfflineStatusGetter, mode InitMode, uid keybase1.UID,
 	serializedPrivateMetadata []byte, rmdToDecrypt, rmdWithKeys libkey.KeyMetadata,

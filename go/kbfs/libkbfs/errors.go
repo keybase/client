@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -33,21 +34,10 @@ func (e WrapError) String() string {
 	return e.Err.Error()
 }
 
-// NameExistsError indicates that the user tried to create an entry
-// for a name that already existed in a subdirectory.
-type NameExistsError struct {
-	Name string
-}
-
-// Error implements the error interface for NameExistsError
-func (e NameExistsError) Error() string {
-	return fmt.Sprintf("%s already exists", e.Name)
-}
-
 // InvalidBlockRefError indicates an invalid block reference was
 // encountered.
 type InvalidBlockRefError struct {
-	ref BlockRef
+	ref data.BlockRef
 }
 
 func (e InvalidBlockRefError) Error() string {
@@ -56,7 +46,7 @@ func (e InvalidBlockRefError) Error() string {
 
 // InvalidPathError indicates an invalid path was encountered.
 type InvalidPathError struct {
-	p path
+	p data.Path
 }
 
 // Error implements the error interface for InvalidPathError.
@@ -67,7 +57,7 @@ func (e InvalidPathError) Error() string {
 // InvalidParentPathError indicates a path without a valid parent was
 // encountered.
 type InvalidParentPathError struct {
-	p path
+	p data.Path
 }
 
 // Error implements the error interface for InvalidParentPathError.
@@ -225,9 +215,9 @@ func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
 //
 // ptr and branch should be filled in, but p may be empty.
 type NotFileBlockError struct {
-	ptr    BlockPointer
-	branch BranchName
-	p      path
+	ptr    data.BlockPointer
+	branch data.BranchName
+	p      data.Path
 }
 
 func (e NotFileBlockError) Error() string {
@@ -239,9 +229,9 @@ func (e NotFileBlockError) Error() string {
 //
 // ptr and branch should be filled in, but p may be empty.
 type NotDirBlockError struct {
-	ptr    BlockPointer
-	branch BranchName
-	p      path
+	ptr    data.BlockPointer
+	branch data.BranchName
+	p      data.Path
 }
 
 func (e NotDirBlockError) Error() string {
@@ -251,7 +241,7 @@ func (e NotDirBlockError) Error() string {
 // NotFileError indicates that the user tried to perform a
 // file-specific operation on something that isn't a file.
 type NotFileError struct {
-	path path
+	path data.Path
 }
 
 // Error implements the error interface for NotFileError
@@ -262,7 +252,7 @@ func (e NotFileError) Error() string {
 // NotDirError indicates that the user tried to perform a
 // dir-specific operation on something that isn't a directory.
 type NotDirError struct {
-	path path
+	path data.Path
 }
 
 // Error implements the error interface for NotDirError
@@ -279,26 +269,6 @@ type BlockDecodeError struct {
 // Error implements the error interface for BlockDecodeError
 func (e BlockDecodeError) Error() string {
 	return fmt.Sprintf("Decode error for a block: %v", e.decodeErr)
-}
-
-// BadDataError indicates that KBFS is storing corrupt data for a block.
-type BadDataError struct {
-	ID kbfsblock.ID
-}
-
-// Error implements the error interface for BadDataError
-func (e BadDataError) Error() string {
-	return fmt.Sprintf("Bad data for block %v", e.ID)
-}
-
-// NoSuchBlockError indicates that a block for the associated ID doesn't exist.
-type NoSuchBlockError struct {
-	ID kbfsblock.ID
-}
-
-// Error implements the error interface for NoSuchBlockError
-func (e NoSuchBlockError) Error() string {
-	return fmt.Sprintf("Couldn't get block %v", e.ID)
 }
 
 // BadCryptoError indicates that KBFS performed a bad crypto operation.
@@ -365,7 +335,7 @@ func (e NoSuchMDError) Error() string {
 // InvalidDataVersionError indicates that an invalid data version was
 // used.
 type InvalidDataVersionError struct {
-	DataVer DataVer
+	DataVer data.Ver
 }
 
 // Error implements the error interface for InvalidDataVersionError.
@@ -377,8 +347,8 @@ func (e InvalidDataVersionError) Error() string {
 // been written using a new data version that our client doesn't
 // understand.
 type NewDataVersionError struct {
-	path    path
-	DataVer DataVer
+	path    data.Path
+	DataVer data.Ver
 }
 
 // Error implements the error interface for NewDataVersionError.
@@ -415,15 +385,6 @@ func (e InvalidVersionError) Error() string {
 	return "The version provided is not valid."
 }
 
-// BadSplitError indicates that the BlockSplitter has an error.
-type BadSplitError struct {
-}
-
-// Error implements the error interface for BadSplitError
-func (e BadSplitError) Error() string {
-	return "Unexpected bad block split"
-}
-
 // TooLowByteCountError indicates that size of a block is smaller than
 // the expected size.
 type TooLowByteCountError struct {
@@ -440,7 +401,7 @@ func (e TooLowByteCountError) Error() string {
 // InconsistentEncodedSizeError is raised when a dirty block has a
 // non-zero encoded size.
 type InconsistentEncodedSizeError struct {
-	info BlockInfo
+	info data.BlockInfo
 }
 
 // Error implements the error interface for InconsistentEncodedSizeError
@@ -521,8 +482,8 @@ func (e NoKeysError) Error() string {
 // WrongOpsError indicates that an unexpected path got passed into a
 // FolderBranchOps instance
 type WrongOpsError struct {
-	nodeFB FolderBranch
-	opsFB  FolderBranch
+	nodeFB data.FolderBranch
+	opsFB  data.FolderBranch
 }
 
 // Error implements the error interface for WrongOpsError.
@@ -534,7 +495,7 @@ func (e WrongOpsError) Error() string {
 // NodeNotFoundError indicates that we tried to find a node for the
 // given BlockPointer and failed.
 type NodeNotFoundError struct {
-	ptr BlockPointer
+	ptr data.BlockPointer
 }
 
 // Error implements the error interface for NodeNotFoundError.
@@ -545,7 +506,7 @@ func (e NodeNotFoundError) Error() string {
 // ParentNodeNotFoundError indicates that we tried to update a Node's
 // parent with a BlockPointer that we don't yet know about.
 type ParentNodeNotFoundError struct {
-	parent BlockRef
+	parent data.BlockRef
 }
 
 // Error implements the error interface for ParentNodeNotFoundError.
@@ -556,35 +517,12 @@ func (e ParentNodeNotFoundError) Error() string {
 // EmptyNameError indicates that the user tried to use an empty name
 // for the given BlockRef.
 type EmptyNameError struct {
-	ref BlockRef
+	ref data.BlockRef
 }
 
 // Error implements the error interface for EmptyNameError.
 func (e EmptyNameError) Error() string {
 	return fmt.Sprintf("Cannot use empty name for %v", e.ref)
-}
-
-// PaddedBlockReadError occurs if the number of bytes read do not
-// equal the number of bytes specified.
-type PaddedBlockReadError struct {
-	ActualLen   int
-	ExpectedLen int
-}
-
-// Error implements the error interface of PaddedBlockReadError.
-func (e PaddedBlockReadError) Error() string {
-	return fmt.Sprintf("Reading block data out of padded block resulted in %d bytes, expected %d",
-		e.ActualLen, e.ExpectedLen)
-}
-
-// NotDirectFileBlockError indicates that a direct file block was
-// expected, but something else (e.g., an indirect file block) was
-// given instead.
-type NotDirectFileBlockError struct {
-}
-
-func (e NotDirectFileBlockError) Error() string {
-	return fmt.Sprintf("Unexpected block type; expected a direct file block")
 }
 
 // KeyHalfMismatchError is returned when the key server doesn't return the expected key half.
@@ -635,7 +573,7 @@ func (e NotPermittedWhileDirtyError) Error() string {
 // NoChainFoundError indicates that a conflict resolution chain
 // corresponding to the given pointer could not be found.
 type NoChainFoundError struct {
-	ptr BlockPointer
+	ptr data.BlockPointer
 }
 
 // Error implements the error interface for NoChainFoundError.
@@ -783,15 +721,6 @@ func (e IncompatibleHandleError) Error() string {
 		e.oldName, e.partiallyResolvedOldName, e.newName)
 }
 
-// ShutdownHappenedError indicates that shutdown has happened.
-type ShutdownHappenedError struct {
-}
-
-// Error implements the error interface for ShutdownHappenedError.
-func (e ShutdownHappenedError) Error() string {
-	return "Shutdown happened"
-}
-
 // UnmergedError indicates that fbo is on an unmerged local revision
 type UnmergedError struct {
 }
@@ -866,15 +795,6 @@ type blockNonExistentError struct {
 
 func (e blockNonExistentError) Error() string {
 	return fmt.Sprintf("block %s does not exist", e.id)
-}
-
-type cachePutCacheFullError struct {
-	blockID kbfsblock.ID
-}
-
-func (e cachePutCacheFullError) Error() string {
-	return fmt.Sprintf("failed to put block due to full cache. Block: %s",
-		e.blockID)
 }
 
 // NoMergedMDError indicates that no MDs for this folder have been
@@ -1101,7 +1021,7 @@ func (e NextMDNotCachedError) Error() string {
 // DiskCacheTooFullForBlockError indicates that the disk cache is too
 // full to fetch a block requested with the `StopIfFull` action type.
 type DiskCacheTooFullForBlockError struct {
-	Ptr    BlockPointer
+	Ptr    data.BlockPointer
 	Action BlockRequestAction
 }
 

@@ -8,6 +8,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -26,18 +27,13 @@ import (
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
-type dataVersioner interface {
-	// DataVersion returns the data version for this block
-	DataVersion() DataVer
-}
-
 type logMaker interface {
 	MakeLogger(module string) logger.Logger
 	MakeVLogger(module string) *libkb.VDebugLog
 }
 
 type blockCacher interface {
-	BlockCache() BlockCache
+	BlockCache() data.BlockCache
 }
 
 type keyGetterGetter interface {
@@ -136,83 +132,6 @@ type blockRetrieverGetter interface {
 	BlockRetriever() BlockRetriever
 }
 
-// Offset is a generic representation of an offset to an indirect
-// pointer within an indirect Block.
-type Offset interface {
-	Equals(other Offset) bool
-	Less(other Offset) bool
-}
-
-// Block just needs to be (de)serialized using msgpack
-type Block interface {
-	dataVersioner
-	// GetEncodedSize returns the encoded size of this block, but only
-	// if it has been previously set; otherwise it returns 0.
-	GetEncodedSize() uint32
-	// SetEncodedSize sets the encoded size of this block, locally
-	// caching it.  The encoded size is not serialized.
-	SetEncodedSize(size uint32)
-	// NewEmpty returns a new block of the same type as this block
-	NewEmpty() Block
-	// NewEmptier returns a function that creates a new block of the
-	// same type as this block.
-	NewEmptier() func() Block
-	// Set sets this block to the same value as the passed-in block
-	Set(other Block)
-	// ToCommonBlock retrieves this block as a *CommonBlock.
-	ToCommonBlock() *CommonBlock
-	// IsIndirect indicates whether this block contains indirect pointers.
-	IsIndirect() bool
-	// IsTail returns true if this block doesn't point to any other
-	// blocks, either indirectly or in child directory entries.
-	IsTail() bool
-	// OffsetExceedsData returns true if `off` is greater than the
-	// data contained in a direct block, assuming it starts at
-	// `startOff`.  Note that the offset of the next block isn't
-	// relevant; this function should only indicate whether the offset
-	// is greater than what currently could be stored in this block.
-	OffsetExceedsData(startOff, off Offset) bool
-	// BytesCanBeDirtied returns the number of bytes that should be
-	// marked as dirtied if this block is dirtied.
-	BytesCanBeDirtied() int64
-}
-
-// BlockWithPtrs defines methods needed for interacting with indirect
-// pointers.
-type BlockWithPtrs interface {
-	Block
-
-	// FirstOffset returns the offset of the indirect pointer that
-	// points to the first (left-most) block in a block tree.
-	FirstOffset() Offset
-	// NumIndirectPtrs returns the number of indirect pointers in this
-	// block.  The behavior is undefined when called on a non-indirect
-	// block.
-	NumIndirectPtrs() int
-	// IndirectPtr returns the block info and offset for the indirect
-	// pointer at index `i`. The behavior is undefined when called on
-	// a non-indirect block.
-	IndirectPtr(i int) (BlockInfo, Offset)
-	// AppendNewIndirectPtr appends a new indirect pointer at the
-	// given offset.
-	AppendNewIndirectPtr(ptr BlockPointer, off Offset)
-	// ClearIndirectPtrSize clears the encoded size of the indirect
-	// pointer stored at index `i`.
-	ClearIndirectPtrSize(i int)
-	// SetIndirectPtrType set the type of the indirect pointer stored
-	// at index `i`.
-	SetIndirectPtrType(i int, dt BlockDirectType)
-	// SetIndirectPtrOff set the offset of the indirect pointer stored
-	// at index `i`.
-	SetIndirectPtrOff(i int, off Offset)
-	// SetIndirectPtrInfo sets the block info of the indirect pointer
-	// stored at index `i`.
-	SetIndirectPtrInfo(i int, info BlockInfo)
-	// SwapIndirectPtrs swaps the indirect ptr at `i` in this block
-	// with the one at `otherI` in `other`.
-	SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int)
-}
-
 // NodeID is a unique but transient ID for a Node. That is, two Node
 // objects in memory at the same time represent the same file or
 // directory if and only if their NodeIDs are equal (by pointer).
@@ -231,7 +150,7 @@ type Node interface {
 	// map key instead of the Node itself.
 	GetID() NodeID
 	// GetFolderBranch returns the folder ID and branch for this Node.
-	GetFolderBranch() FolderBranch
+	GetFolderBranch() data.FolderBranch
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() string
@@ -256,7 +175,7 @@ type Node interface {
 	// (`inner`) must return `inner.ShouldCreateMissedLookup()` if it
 	// decides not to return `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name string) (
-		shouldCreate bool, newCtx context.Context, et EntryType, sympath string)
+		shouldCreate bool, newCtx context.Context, et data.EntryType, sympath string)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -292,7 +211,7 @@ type Node interface {
 	// calls on the file.
 	GetFile(ctx context.Context) billy.File
 	// EntryType is the type of the entry represented by this node.
-	EntryType() EntryType
+	EntryType() data.EntryType
 	// GetBlockID returns the block ID of the node.
 	GetBlockID() kbfsblock.ID
 }
@@ -381,33 +300,33 @@ type KBFSOps interface {
 	// permissions to the top-level folder.  This is a
 	// remote-access operation.
 	GetOrCreateRootNode(
-		ctx context.Context, h *tlfhandle.Handle, branch BranchName) (
-		node Node, ei EntryInfo, err error)
+		ctx context.Context, h *tlfhandle.Handle, branch data.BranchName) (
+		node Node, ei data.EntryInfo, err error)
 	// GetRootNode is like GetOrCreateRootNode but if the root node
 	// does not exist it will return a nil Node and not create it.
 	GetRootNode(
-		ctx context.Context, h *tlfhandle.Handle, branch BranchName) (
-		node Node, ei EntryInfo, err error)
+		ctx context.Context, h *tlfhandle.Handle, branch data.BranchName) (
+		node Node, ei data.EntryInfo, err error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
 	// operation.
-	GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error)
+	GetDirChildren(ctx context.Context, dir Node) (map[string]data.EntryInfo, error)
 	// Lookup returns the Node and entry info associated with a
 	// given name in a directory, if the logged-in user has read
 	// permissions to the top-level folder.  The returned Node is nil
 	// if the name is a symlink.  This is a remote-access operation.
-	Lookup(ctx context.Context, dir Node, name string) (Node, EntryInfo, error)
+	Lookup(ctx context.Context, dir Node, name string) (Node, data.EntryInfo, error)
 	// Stat returns the entry info associated with a
 	// given Node, if the logged-in user has read permissions to the
 	// top-level folder.  This is a remote-access operation.
-	Stat(ctx context.Context, node Node) (EntryInfo, error)
+	Stat(ctx context.Context, node Node) (data.EntryInfo, error)
 	// CreateDir creates a new subdirectory under the given node, if
 	// the logged-in user has write permission to the top-level
 	// folder.  Returns the new Node for the created subdirectory, and
 	// its new entry info.  This is a remote-sync operation.
 	CreateDir(ctx context.Context, dir Node, name string) (
-		Node, EntryInfo, error)
+		Node, data.EntryInfo, error)
 	// CreateFile creates a new file under the given node, if the
 	// logged-in user has write permission to the top-level folder.
 	// Returns the new Node for the created file, and its new
@@ -417,13 +336,13 @@ type KBFSOps interface {
 	//
 	// This is a remote-sync operation.
 	CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl Excl) (
-		Node, EntryInfo, error)
+		Node, data.EntryInfo, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
 	// Returns the new entry info for the created symlink.  This
 	// is a remote-sync operation.
 	CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (
-		EntryInfo, error)
+		data.EntryInfo, error)
 	// RemoveDir removes the subdirectory represented by the given
 	// node, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is
@@ -489,11 +408,11 @@ type KBFSOps interface {
 	// If done through a file system interface, this may include
 	// modifications done via multiple file handles.  This is a
 	// remote-sync operation.
-	SyncAll(ctx context.Context, folderBranch FolderBranch) error
+	SyncAll(ctx context.Context, folderBranch data.FolderBranch) error
 	// FolderStatus returns the status of a particular folder/branch, along
 	// with a channel that will be closed when the status has been
 	// updated (to eliminate the need for polling this method).
-	FolderStatus(ctx context.Context, folderBranch FolderBranch) (
+	FolderStatus(ctx context.Context, folderBranch data.FolderBranch) (
 		FolderBranchStatus, <-chan StatusUpdate, error)
 	// Status returns the status of KBFS, along with a channel that will be
 	// closed when the status has been updated (to eliminate the need for
@@ -506,7 +425,7 @@ type KBFSOps interface {
 	// UnstageForTesting clears out this device's staged state, if
 	// any, and fast-forwards to the current head of this
 	// folder-branch.
-	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
+	UnstageForTesting(ctx context.Context, folderBranch data.FolderBranch) error
 	// RequestRekey requests to rekey this folder. Note that this asynchronously
 	// requests a rekey, so canceling ctx doesn't cancel the rekey.
 	RequestRekey(ctx context.Context, id tlf.ID)
@@ -518,18 +437,18 @@ type KBFSOps interface {
 	// lockBeforeGet is non-nil, it blocks on idempotently taking the
 	// lock from server at the time it gets any metadata.
 	SyncFromServer(ctx context.Context,
-		folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error
+		folderBranch data.FolderBranch, lockBeforeGet *keybase1.LockID) error
 	// GetUpdateHistory returns a complete history of all the merged
 	// updates of the given folder, in a data structure that's
 	// suitable for encoding directly into JSON.  This is an expensive
 	// operation, and should only be used for ocassional debugging.
 	// Note that the history does not include any unmerged changes or
 	// outstanding writes from the local device.
-	GetUpdateHistory(ctx context.Context, folderBranch FolderBranch) (
+	GetUpdateHistory(ctx context.Context, folderBranch data.FolderBranch) (
 		history TLFUpdateHistory, err error)
 	// GetEditHistory returns the edit history of the TLF, clustered
 	// by writer.
-	GetEditHistory(ctx context.Context, folderBranch FolderBranch) (
+	GetEditHistory(ctx context.Context, folderBranch data.FolderBranch) (
 		tlfHistory keybase1.FSFolderEditHistory, err error)
 
 	// GetNodeMetadata gets metadata associated with a Node.
@@ -825,7 +744,7 @@ type KeyMetadataWithRootDirEntry interface {
 
 	// GetRootDirEntry returns the root directory entry for the
 	// associated MD.
-	GetRootDirEntry() DirEntry
+	GetRootDirEntry() data.DirEntry
 }
 
 type encryptionKeyGetter interface {
@@ -852,7 +771,7 @@ type blockDecryptionKeyGetter interface {
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
 	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd libkey.KeyMetadata,
-		blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error)
+		blockPtr data.BlockPointer) (kbfscrypto.TLFCryptKey, error)
 }
 
 type blockKeyGetter interface {
@@ -960,184 +879,6 @@ type KeyCache interface {
 	GetTLFCryptKey(tlf.ID, kbfsmd.KeyGen) (kbfscrypto.TLFCryptKey, error)
 	// PutTLFCryptKey stores the crypt key for the given TLF.
 	PutTLFCryptKey(tlf.ID, kbfsmd.KeyGen, kbfscrypto.TLFCryptKey) error
-}
-
-// BlockCacheLifetime denotes the lifetime of an entry in BlockCache.
-type BlockCacheLifetime int
-
-func (l BlockCacheLifetime) String() string {
-	switch l {
-	case NoCacheEntry:
-		return "NoCacheEntry"
-	case TransientEntry:
-		return "TransientEntry"
-	case PermanentEntry:
-		return "PermanentEntry"
-	}
-	return "Unknown"
-}
-
-const (
-	// NoCacheEntry means that the entry will not be cached.
-	NoCacheEntry BlockCacheLifetime = iota
-	// TransientEntry means that the cache entry may be evicted at
-	// any time.
-	TransientEntry
-	// PermanentEntry means that the cache entry must remain until
-	// explicitly removed from the cache.
-	PermanentEntry
-)
-
-// BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
-// a cache.  These blocks are immutable and identified by their
-// content hash.
-type BlockCacheSimple interface {
-	// Get gets the block associated with the given block ID.
-	Get(ptr BlockPointer) (Block, error)
-	// Put stores the final (content-addressable) block associated
-	// with the given block ID. If lifetime is TransientEntry,
-	// then it is assumed that the block exists on the server and
-	// the entry may be evicted from the cache at any time. If
-	// lifetime is PermanentEntry, then it is assumed that the
-	// block doesn't exist on the server and must remain in the
-	// cache until explicitly removed. As an intermediary state,
-	// as when a block is being sent to the server, the block may
-	// be put into the cache both with TransientEntry and
-	// PermanentEntry -- these are two separate entries. This is
-	// fine, since the block should be the same.
-	Put(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime) error
-}
-
-// BlockCache specifies the interface of BlockCacheSimple, and also more
-// advanced and internal methods.
-type BlockCache interface {
-	BlockCacheSimple
-	// CheckForKnownPtr sees whether this cache has a transient
-	// entry for the given file block, which must be a direct file
-	// block containing data).  Returns the full BlockPointer
-	// associated with that ID, including key and data versions.
-	// If no ID is known, return an uninitialized BlockPointer and
-	// a nil error.
-	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
-	// DeleteTransient removes the transient entry for the given
-	// ID from the cache, as well as any cached IDs so the block
-	// won't be reused.
-	DeleteTransient(id kbfsblock.ID, tlf tlf.ID) error
-	// Delete removes the permanent entry for the non-dirty block
-	// associated with the given block ID from the cache.  No
-	// error is returned if no block exists for the given ID.
-	DeletePermanent(id kbfsblock.ID) error
-	// DeleteKnownPtr removes the cached ID for the given file
-	// block. It does not remove the block itself.
-	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
-	// GetWithLifetime retrieves a block from the cache, along with
-	// the block's lifetime.
-	GetWithLifetime(ptr BlockPointer) (
-		block Block, lifetime BlockCacheLifetime, err error)
-
-	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
-	// cache.
-	SetCleanBytesCapacity(capacity uint64)
-
-	// GetCleanBytesCapacity atomically gets clean bytes capacity for block
-	// cache.
-	GetCleanBytesCapacity() (capacity uint64)
-}
-
-// DirtyPermChan is a channel that gets closed when the holder has
-// permission to write.  We are forced to define it as a type due to a
-// bug in mockgen that can't handle return values with a chan
-// struct{}.
-type DirtyPermChan <-chan struct{}
-
-// DirtyBlockCacheSimple is a bare-bones interface for a dirty block
-// cache.
-type DirtyBlockCacheSimple interface {
-	// Get gets the block associated with the given block ID.  Returns
-	// the dirty block for the given ID, if one exists.
-	Get(
-		ctx context.Context, tlfID tlf.ID, ptr BlockPointer,
-		branch BranchName) (Block, error)
-	// Put stores a dirty block currently identified by the
-	// given block pointer and branch name.
-	Put(
-		ctx context.Context, tlfID tlf.ID, ptr BlockPointer, branch BranchName,
-		block Block) error
-}
-
-type isDirtyProvider interface {
-	// IsDirty states whether or not the block associated with the
-	// given block pointer and branch name is dirty in this cache.
-	IsDirty(tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool
-}
-
-// DirtyBlockCache gets and puts plaintext dir blocks and file blocks
-// into a cache, which have been modified by the application and not
-// yet committed on the KBFS servers.  They are identified by a
-// (potentially random) ID that may not have any relationship with
-// their context, along with a Branch in case the same TLF is being
-// modified via multiple branches.  Dirty blocks are never evicted,
-// they must be deleted explicitly.
-type DirtyBlockCache interface {
-	isDirtyProvider
-	DirtyBlockCacheSimple
-
-	// Delete removes the dirty block associated with the given block
-	// pointer and branch from the cache.  No error is returned if no
-	// block exists for the given ID.
-	Delete(tlfID tlf.ID, ptr BlockPointer, branch BranchName) error
-	// IsAnyDirty returns whether there are any dirty blocks in the
-	// cache. tlfID may be ignored.
-	IsAnyDirty(tlfID tlf.ID) bool
-	// RequestPermissionToDirty is called whenever a user wants to
-	// write data to a file.  The caller provides an estimated number
-	// of bytes that will become dirty -- this is difficult to know
-	// exactly without pre-fetching all the blocks involved, but in
-	// practice we can just use the number of bytes sent in via the
-	// Write. It returns a channel that blocks until the cache is
-	// ready to receive more dirty data, at which point the channel is
-	// closed.  The user must call
-	// `UpdateUnsyncedBytes(-estimatedDirtyBytes)` once it has
-	// completed its write and called `UpdateUnsyncedBytes` for all
-	// the exact dirty block sizes.
-	RequestPermissionToDirty(ctx context.Context, tlfID tlf.ID,
-		estimatedDirtyBytes int64) (DirtyPermChan, error)
-	// UpdateUnsyncedBytes is called by a user, who has already been
-	// granted permission to write, with the delta in block sizes that
-	// were dirtied as part of the write.  So for example, if a
-	// newly-dirtied block of 20 bytes was extended by 5 bytes, they
-	// should send 25.  If on the next write (before any syncs), bytes
-	// 10-15 of that same block were overwritten, they should send 0
-	// over the channel because there were no new bytes.  If an
-	// already-dirtied block is truncated, or if previously requested
-	// bytes have now been updated more accurately in previous
-	// requests, newUnsyncedBytes may be negative.  wasSyncing should
-	// be true if `BlockSyncStarted` has already been called for this
-	// block.
-	UpdateUnsyncedBytes(tlfID tlf.ID, newUnsyncedBytes int64, wasSyncing bool)
-	// UpdateSyncingBytes is called when a particular block has
-	// started syncing, or with a negative number when a block is no
-	// longer syncing due to an error (and BlockSyncFinished will
-	// never be called).
-	UpdateSyncingBytes(tlfID tlf.ID, size int64)
-	// BlockSyncFinished is called when a particular block has
-	// finished syncing, though the overall sync might not yet be
-	// complete.  This lets the cache know it might be able to grant
-	// more permission to writers.
-	BlockSyncFinished(tlfID tlf.ID, size int64)
-	// SyncFinished is called when a complete sync has completed and
-	// its dirty blocks have been removed from the cache.  This lets
-	// the cache know it might be able to grant more permission to
-	// writers.
-	SyncFinished(tlfID tlf.ID, size int64)
-	// ShouldForceSync returns true if the sync buffer is full enough
-	// to force all callers to sync their data immediately.
-	ShouldForceSync(tlfID tlf.ID) bool
-
-	// Shutdown frees any resources associated with this instance.  It
-	// returns an error if there are any unsynced blocks.
-	Shutdown() error
 }
 
 // DiskBlockCacheType specifies a type of an on-disk block cache.
@@ -1368,7 +1109,7 @@ type cryptoPure interface {
 	// block; EncryptBlock() must guarantee that plainSize <=
 	// len(encryptedBlock).
 	EncryptBlock(
-		block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+		block data.Block, tlfCryptKey kbfscrypto.TLFCryptKey,
 		blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 		plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error)
 
@@ -1378,7 +1119,7 @@ type cryptoPure interface {
 	DecryptBlock(
 		encryptedBlock kbfscrypto.EncryptedBlock,
 		tlfCryptKey kbfscrypto.TLFCryptKey,
-		blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error
+		blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block data.Block) error
 }
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
@@ -1531,8 +1272,8 @@ type PrefetchProgress struct {
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
 	// ProcessBlockForPrefetch potentially triggers and monitors a prefetch.
-	ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block,
-		kmd libkey.KeyMetadata, priority int, lifetime BlockCacheLifetime,
+	ProcessBlockForPrefetch(ctx context.Context, ptr data.BlockPointer, block data.Block,
+		kmd libkey.KeyMetadata, priority int, lifetime data.BlockCacheLifetime,
 		prefetchStatus PrefetchStatus, action BlockRequestAction)
 	// WaitChannelForBlockPrefetch returns a channel that can be used
 	// to wait for a block to finish prefetching or be canceled.  If
@@ -1540,14 +1281,14 @@ type Prefetcher interface {
 	// already-closed channel.  When the channel is closed, the caller
 	// should still verify that the prefetch status of the block is
 	// what they expect it to be, in case there was an error.
-	WaitChannelForBlockPrefetch(ctx context.Context, ptr BlockPointer) (
+	WaitChannelForBlockPrefetch(ctx context.Context, ptr data.BlockPointer) (
 		<-chan struct{}, error)
 	// Status returns the current status of the prefetch for the block
 	// tree rooted at the given pointer.
-	Status(ctx context.Context, ptr BlockPointer) (PrefetchProgress, error)
+	Status(ctx context.Context, ptr data.BlockPointer) (PrefetchProgress, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
-	CancelPrefetch(BlockPointer)
+	CancelPrefetch(data.BlockPointer)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -1560,6 +1301,7 @@ type Prefetcher interface {
 // the necessary crypto operations on each block.
 type BlockOps interface {
 	blockRetrieverGetter
+	data.ReadyProvider
 
 	// Get gets the block associated with the given block pointer
 	// (which belongs to the TLF with the given key metadata),
@@ -1567,39 +1309,31 @@ type BlockOps interface {
 	// object with its contents, if the logged-in user has read
 	// permission for that block. cacheLifetime controls the behavior of the
 	// write-through cache once a Get completes.
-	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer,
-		block Block, cacheLifetime BlockCacheLifetime) error
+	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer,
+		block data.Block, cacheLifetime data.BlockCacheLifetime) error
 
 	// GetEncodedSize gets the encoded size of the block associated
 	// with the given block pointer (which belongs to the TLF with the
 	// given key metadata).
 	GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata,
-		blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error)
-
-	// Ready turns the given block (which belongs to the TLF with
-	// the given key metadata) into encoded (and encrypted) data,
-	// and calculates its ID and size, so that we can do a bunch
-	// of block puts in parallel for every write. Ready() must
-	// guarantee that plainSize <= readyBlockData.QuotaSize().
-	Ready(ctx context.Context, kmd libkey.KeyMetadata, block Block) (
-		id kbfsblock.ID, plainSize int, readyBlockData ReadyBlockData, err error)
+		blockPtr data.BlockPointer) (uint32, keybase1.BlockStatus, error)
 
 	// Delete instructs the server to delete the given block references.
 	// It returns the number of not-yet deleted references to
 	// each block reference
-	Delete(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) (
+	Delete(ctx context.Context, tlfID tlf.ID, ptrs []data.BlockPointer) (
 		liveCounts map[kbfsblock.ID]int, err error)
 
 	// Archive instructs the server to mark the given block references
 	// as "archived"; that is, they are not being used in the current
 	// view of the folder, and shouldn't be served to anyone other
 	// than folder writers.
-	Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error
+	Archive(ctx context.Context, tlfID tlf.ID, ptrs []data.BlockPointer) error
 
 	// GetLiveCount returns the number of "live"
 	// (non-archived, non-deleted) references for each given block.
 	GetLiveCount(
-		ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) (
+		ctx context.Context, tlfID tlf.ID, ptrs []data.BlockPointer) (
 		liveCounts map[kbfsblock.ID]int, err error)
 
 	// TogglePrefetcher activates or deactivates the prefetcher.
@@ -1938,38 +1672,6 @@ type blockServerLocal interface {
 		map[kbfsblock.ID]blockRefMap, error)
 }
 
-// BlockSplitter decides when a file block needs to be split
-type BlockSplitter interface {
-	// CopyUntilSplit copies data into the block until we reach the
-	// point where we should split, but only if writing to the end of
-	// the last block.  If this is writing into the middle of a file,
-	// just copy everything that will fit into the block, and assume
-	// that block boundaries will be fixed later. Return how much was
-	// copied.
-	CopyUntilSplit(
-		block *FileBlock, lastBlock bool, data []byte, off int64) int64
-
-	// CheckSplit, given a block, figures out whether it ends at the
-	// right place.  If so, return 0.  If not, return either the
-	// offset in the block where it should be split, or -1 if more
-	// bytes from the next block should be appended.
-	CheckSplit(block *FileBlock) int64
-
-	// MaxPtrsPerBlock describes the number of indirect pointers we
-	// can fit into one indirect block.
-	MaxPtrsPerBlock() int
-
-	// ShouldEmbedBlockChanges decides whether we should keep the
-	// block changes embedded in the MD or not.
-	ShouldEmbedBlockChanges(bc *BlockChanges) bool
-
-	// SplitDirIfNeeded splits a direct DirBlock into multiple blocks
-	// if needed.  It may modify `block`.  If a split isn't needed, it
-	// returns a one-element slice containing `block`.  If a split is
-	// needed, it returns a non-nil offset for the new block.
-	SplitDirIfNeeded(block *DirBlock) ([]*DirBlock, *StringOffset)
-}
-
 // NodeChange represents a change made to a node as part of an atomic
 // file system operation.
 type NodeChange struct {
@@ -2012,11 +1714,11 @@ type Observer interface {
 type Notifier interface {
 	// RegisterForChanges declares that the given Observer wants to
 	// subscribe to updates for the given top-level folders.
-	RegisterForChanges(folderBranches []FolderBranch, obs Observer) error
+	RegisterForChanges(folderBranches []data.FolderBranch, obs Observer) error
 	// UnregisterFromChanges declares that the given Observer no
 	// longer wants to subscribe to updates for the given top-level
 	// folders.
-	UnregisterFromChanges(folderBranches []FolderBranch, obs Observer) error
+	UnregisterFromChanges(folderBranches []data.FolderBranch, obs Observer) error
 }
 
 // Clock is an interface for getting the current time
@@ -2151,7 +1853,7 @@ type blockCryptVersioner interface {
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
 type Config interface {
-	dataVersioner
+	data.Versioner
 	blockCryptVersioner
 	logMaker
 	blockCacher
@@ -2193,9 +1895,9 @@ type Config interface {
 	SetKeyBundleCache(kbfsmd.KeyBundleCache)
 	KeyBundleCache() kbfsmd.KeyBundleCache
 	SetKeyCache(KeyCache)
-	SetBlockCache(BlockCache)
-	DirtyBlockCache() DirtyBlockCache
-	SetDirtyBlockCache(DirtyBlockCache)
+	SetBlockCache(data.BlockCache)
+	DirtyBlockCache() data.DirtyBlockCache
+	SetDirtyBlockCache(data.DirtyBlockCache)
 	SetCrypto(Crypto)
 	SetChat(Chat)
 	SetCodec(kbfscodec.Codec)
@@ -2211,8 +1913,8 @@ type Config interface {
 	SetKeyServer(libkey.KeyServer)
 	KeybaseService() KeybaseService
 	SetKeybaseService(KeybaseService)
-	BlockSplitter() BlockSplitter
-	SetBlockSplitter(BlockSplitter)
+	BlockSplitter() data.BlockSplitter
+	SetBlockSplitter(data.BlockSplitter)
 	Notifier() Notifier
 	SetNotifier(Notifier)
 	SetClock(Clock)
@@ -2246,7 +1948,7 @@ type Config interface {
 	RekeyWithPromptWaitTime() time.Duration
 	SetRekeyWithPromptWaitTime(time.Duration)
 	// PrefetchStatus returns the prefetch status of a block.
-	PrefetchStatus(context.Context, tlf.ID, BlockPointer) PrefetchStatus
+	PrefetchStatus(context.Context, tlf.ID, data.BlockPointer) PrefetchStatus
 
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving
@@ -2330,15 +2032,15 @@ type NodeCache interface {
 	// "parent" parameters here.  name must not be empty. Returns
 	// an error if parent cannot be found.
 	GetOrCreate(
-		ptr BlockPointer, name string, parent Node, et EntryType) (Node, error)
+		ptr data.BlockPointer, name string, parent Node, et data.EntryType) (Node, error)
 	// Get returns the Node associated with the given ptr if one
 	// already exists.  Otherwise, it returns nil.
-	Get(ref BlockRef) Node
+	Get(ref data.BlockRef) Node
 	// UpdatePointer updates the BlockPointer for the corresponding
 	// Node.  NodeCache ignores this call when oldRef is not cached in
 	// any Node. Returns whether the ID of the node that was updated,
 	// or `nil` if nothing was updated.
-	UpdatePointer(oldRef BlockRef, newPtr BlockPointer) NodeID
+	UpdatePointer(oldRef data.BlockRef, newPtr data.BlockPointer) NodeID
 	// Move swaps the parent node for the corresponding Node, and
 	// updates the node's name.  NodeCache ignores the call when ptr
 	// is not cached.  If newParent is nil, it treats the ptr's
@@ -2347,7 +2049,7 @@ type NodeCache interface {
 	// called to undo the effect of the move (or `nil` if nothing
 	// needs to be done); if newParent cannot be found, it returns an
 	// error and a `nil` undo function.
-	Move(ref BlockRef, newParent Node, newName string) (
+	Move(ref data.BlockRef, newParent Node, newName string) (
 		undoFn func(), err error)
 	// Unlink set the corresponding node's parent to nil and caches
 	// the provided path in case the node is still open. NodeCache
@@ -2356,18 +2058,18 @@ type NodeCache interface {
 	// already that shouldn't be reflected in the cached path.  It
 	// returns a function that can be called to undo the effect of the
 	// unlink (or `nil` if nothing needs to be done).
-	Unlink(ref BlockRef, oldPath path, oldDe DirEntry) (undoFn func())
+	Unlink(ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (undoFn func())
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool
 	// UnlinkedDirEntry returns a directory entry if `Unlink` has been
 	// called for the reference behind this node.
-	UnlinkedDirEntry(node Node) DirEntry
+	UnlinkedDirEntry(node Node) data.DirEntry
 	// UpdateUnlinkedDirEntry modifies a cached directory entry for a
 	// node that has already been unlinked.
-	UpdateUnlinkedDirEntry(node Node, newDe DirEntry)
+	UpdateUnlinkedDirEntry(node Node, newDe data.DirEntry)
 	// PathFromNode creates the path up to a given Node.
-	PathFromNode(node Node) path
+	PathFromNode(node Node) data.Path
 	// AllNodes returns the complete set of nodes currently in the
 	// cache.  The returned Nodes are not wrapped, and shouldn't be
 	// used for data access.
@@ -2387,8 +2089,8 @@ type NodeCache interface {
 // (duplicating pointer for any indirect blocks) and generates a new
 // random temporary block ID for it.  It returns the new BlockPointer,
 // and internally saves the block for future uses.
-type fileBlockDeepCopier func(context.Context, string, BlockPointer) (
-	BlockPointer, error)
+type fileBlockDeepCopier func(context.Context, string, data.BlockPointer) (
+	data.BlockPointer, error)
 
 // crAction represents a specific action to take as part of the
 // conflict resolution process.
@@ -2400,7 +2102,7 @@ type crAction interface {
 	// (and true is returned), just swap in the regular mergedBlock.
 	swapUnmergedBlock(
 		ctx context.Context, unmergedChains, mergedChains *crChains,
-		unmergedDir *dirData) (bool, BlockPointer, error)
+		unmergedDir *data.DirData) (bool, data.BlockPointer, error)
 	// do modifies the given merged `dirData` in place to resolve the
 	// conflict, and potentially uses the provided
 	// `fileBlockDeepCopier`s to obtain copies of other blocks (along
@@ -2409,7 +2111,7 @@ type crAction interface {
 	// part of this conflict resolution.
 	do(
 		ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-		unmergedDir, mergedDir *dirData) (unrefs []BlockInfo, err error)
+		unmergedDir, mergedDir *data.DirData) (unrefs []data.BlockInfo, err error)
 	// updateOps potentially modifies, in place, the slices of
 	// unmerged and merged operations stored in the corresponding
 	// crChains for the given unmerged and merged most recent
@@ -2428,8 +2130,8 @@ type crAction interface {
 	//   each of those ops; that must happen in a later phase.
 	// * mergedDir can be nil if the chain is for a file.
 	updateOps(
-		ctx context.Context, unmergedMostRecent, mergedMostRecent BlockPointer,
-		unmergedDir, mergedDir *dirData,
+		ctx context.Context, unmergedMostRecent, mergedMostRecent data.BlockPointer,
+		unmergedDir, mergedDir *data.DirData,
 		unmergedChains, mergedChains *crChains) error
 	// String returns a string representation for this crAction, used
 	// for debugging.
@@ -2480,12 +2182,12 @@ type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.  `action` determines
 	// what happens after the block is fetched successfully.
 	Request(ctx context.Context, priority int, kmd libkey.KeyMetadata,
-		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
+		ptr data.BlockPointer, block data.Block, lifetime data.BlockCacheLifetime,
 		action BlockRequestAction) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that
 	// the disk cache metadata is updated.
-	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,
-		block Block, lifetime BlockCacheLifetime,
+	PutInCaches(ctx context.Context, ptr data.BlockPointer, tlfID tlf.ID,
+		block data.Block, lifetime data.BlockCacheLifetime,
 		prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error
 	// TogglePrefetcher creates a new prefetcher.
 	TogglePrefetcher(enable bool, syncCh <-chan struct{}, doneCh chan<- struct{}) <-chan struct{}
@@ -2544,16 +2246,13 @@ type Chat interface {
 // blockPutState is an interface for keeping track of readied blocks
 // before putting them to the bserver.
 type blockPutState interface {
-	addNewBlock(
-		ctx context.Context, blockPtr BlockPointer, block Block,
-		readyBlockData ReadyBlockData, syncedCb func() error) error
-	saveOldPtr(ctx context.Context, oldPtr BlockPointer) error
-	oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error)
-	ptrs() []BlockPointer
-	getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
+	data.BlockPutState
+	oldPtr(ctx context.Context, blockPtr data.BlockPointer) (data.BlockPointer, error)
+	ptrs() []data.BlockPointer
+	getBlock(ctx context.Context, blockPtr data.BlockPointer) (data.Block, error)
 	getReadyBlockData(
-		ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error)
-	synced(blockPtr BlockPointer) error
+		ctx context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error)
+	synced(blockPtr data.BlockPointer) error
 	numBlocks() int
 }
 
@@ -2566,26 +2265,26 @@ type blockPutStateCopiable interface {
 	removeOtherBps(ctx context.Context, other blockPutStateCopiable) error
 	deepCopy(ctx context.Context) (blockPutStateCopiable, error)
 	deepCopyWithBlacklist(
-		ctx context.Context, blacklist map[BlockPointer]bool) (
+		ctx context.Context, blacklist map[data.BlockPointer]bool) (
 		blockPutStateCopiable, error)
 }
 
 type fileBlockMap interface {
 	putTopBlock(
-		ctx context.Context, parentPtr BlockPointer, childName string,
-		topBlock *FileBlock) error
-	getTopBlock(
-		ctx context.Context, parentPtr BlockPointer, childName string) (
-		*FileBlock, error)
-	getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error)
+		ctx context.Context, parentPtr data.BlockPointer, childName string,
+		topBlock *data.FileBlock) error
+	GetTopBlock(
+		ctx context.Context, parentPtr data.BlockPointer, childName string) (
+		*data.FileBlock, error)
+	getFilenames(ctx context.Context, parentPtr data.BlockPointer) ([]string, error)
 }
 
 type dirBlockMap interface {
 	putBlock(
-		ctx context.Context, ptr BlockPointer, block *DirBlock) error
+		ctx context.Context, ptr data.BlockPointer, block *data.DirBlock) error
 	getBlock(
-		ctx context.Context, ptr BlockPointer) (*DirBlock, error)
-	hasBlock(ctx context.Context, ptr BlockPointer) (bool, error)
-	deleteBlock(ctx context.Context, ptr BlockPointer) error
+		ctx context.Context, ptr data.BlockPointer) (*data.DirBlock, error)
+	hasBlock(ctx context.Context, ptr data.BlockPointer) (bool, error)
+	deleteBlock(ctx context.Context, ptr data.BlockPointer) error
 	numBlocks() int
 }

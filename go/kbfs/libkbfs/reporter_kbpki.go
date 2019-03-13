@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -326,7 +327,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 
 // writeNotification creates FSNotifications from paths for file
 // write events.
-func writeNotification(file path, finish bool) *keybase1.FSNotification {
+func writeNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_SIGNING
@@ -338,7 +339,7 @@ func writeNotification(file path, finish bool) *keybase1.FSNotification {
 
 // readNotification creates FSNotifications from paths for file
 // read events.
-func readNotification(file path, finish bool) *keybase1.FSNotification {
+func readNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_VERIFYING
@@ -364,7 +365,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Han
 	}
 }
 
-func baseFileEditNotification(file path, writer keybase1.UID,
+func baseFileEditNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseNotification(file, true)
 	n.WriterUid = writer
@@ -374,7 +375,7 @@ func baseFileEditNotification(file path, writer keybase1.UID,
 
 // fileCreateNotification creates FSNotifications from paths for file
 // create events.
-func fileCreateNotification(file path, writer keybase1.UID,
+func fileCreateNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_CREATED
@@ -383,7 +384,7 @@ func fileCreateNotification(file path, writer keybase1.UID,
 
 // fileModifyNotification creates FSNotifications from paths for file
 // modification events.
-func fileModifyNotification(file path, writer keybase1.UID,
+func fileModifyNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
@@ -392,7 +393,7 @@ func fileModifyNotification(file path, writer keybase1.UID,
 
 // fileDeleteNotification creates FSNotifications from paths for file
 // delete events.
-func fileDeleteNotification(file path, writer keybase1.UID,
+func fileDeleteNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_DELETED
@@ -401,7 +402,7 @@ func fileDeleteNotification(file path, writer keybase1.UID,
 
 // fileRenameNotification creates FSNotifications from paths for file
 // rename events.
-func fileRenameNotification(oldFile path, newFile path, writer keybase1.UID,
+func fileRenameNotification(oldFile data.Path, newFile data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(newFile, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
@@ -421,7 +422,7 @@ func connectionNotification(status keybase1.FSStatusCode) *keybase1.FSNotificati
 
 // baseNotification creates a basic FSNotification without a
 // NotificationType from a path.
-func baseNotification(file path, finish bool) *keybase1.FSNotification {
+func baseNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	code := keybase1.FSStatusCode_START
 	if finish {
 		code = keybase1.FSStatusCode_FINISH
