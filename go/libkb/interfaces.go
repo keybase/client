@@ -106,6 +106,7 @@ type configGetter interface {
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
+	GetExtraNetLogging() (bool, bool)
 }
 
 type CommandLine interface {

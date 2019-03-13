@@ -20,6 +20,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -282,8 +283,8 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	// context.WithDeadline uses clock from `time` package, so we are not using
 	// f.config.Clock() here
 	start := time.Now()
-	ctx, err := libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 			ctx = context.WithValue(ctx, libfs.CtxAppIDKey, f)
 			logTags := make(logger.CtxLogTags)
 			logTags[CtxIDKey] = CtxOpID

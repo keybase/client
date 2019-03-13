@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -24,7 +25,7 @@ import (
 
 func makeFSWithBranch(t *testing.T, branch libkbfs.BranchName, subdir string) (
 	context.Context, *libkbfs.TlfHandle, *FS) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	h, err := libkbfs.ParseTlfHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
@@ -42,7 +43,7 @@ func makeFS(t *testing.T, subdir string) (
 
 func makeFSWithJournal(t *testing.T, subdir string) (
 	context.Context, *libkbfs.TlfHandle, *FS, func()) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1")
 
@@ -703,7 +704,7 @@ func TestArchivedByRevision(t *testing.T) {
 }
 
 func TestEmptyFS(t *testing.T) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 

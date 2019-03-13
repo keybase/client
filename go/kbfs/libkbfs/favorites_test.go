@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
-
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func favTestInit(t *testing.T, testingDiskCache bool) (
@@ -52,7 +52,14 @@ func TestFavoritesAddTwice(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, FavoriteData{}, false}
+	fav1 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: false,
+	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Return(nil)
@@ -73,7 +80,14 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, FavoriteData{}, false}
+	fav1 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: false,
+	}
 	expected1 := keybase1.Folder{
 		Name:       "test",
 		FolderType: keybase1.FolderType_PUBLIC,
@@ -86,7 +100,14 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
 
-	fav2 := favToAdd{Favorite{"test", tlf.Public}, FavoriteData{}, true}
+	fav2 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: true,
+	}
 	expected2 := keybase1.Folder{
 		Name:       "test",
 		FolderType: keybase1.FolderType_PUBLIC,
@@ -105,7 +126,14 @@ func TestFavoritesAddCreated(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add with created = true
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, FavoriteData{}, true}
+	fav1 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: true,
+	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
 	expected := keybase1.Folder{
@@ -126,7 +154,14 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, FavoriteData{}, false}
+	fav1 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: false,
+	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	folder1 := fav1.ToKBFolder()
 
@@ -140,7 +175,7 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
 
-	if err := f.Delete(ctx, fav1.Favorite); err != nil {
+	if err := f.Delete(ctx, fav1.Folder); err != nil {
 		t.Fatalf("Couldn't delete favorite: %v", err)
 	}
 
@@ -158,7 +193,14 @@ func TestFavoritesAddAsync(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, FavoriteData{}, false}
+	fav1 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: false,
+	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
 
@@ -187,7 +229,14 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, FavoriteData{}, false}
+	fav1 := favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: "test",
+			Type: tlf.Public,
+		},
+		Data:    favorites.Data{},
+		Created: false,
+	}
 
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 
@@ -235,8 +284,12 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 	tlfType := tlf.Private
 
 	// Add a favorite.
-	err := f.Add(ctx, favToAdd{Favorite: Favorite{tlfName, tlfType},
-		created: true})
+	err := f.Add(ctx, favorites.ToAdd{
+		Folder: favorites.Folder{
+			Name: tlfName,
+			Type: tlfType,
+		},
+		Created: true})
 	require.NoError(t, err)
 
 	// Put a thing in user history.
@@ -247,7 +300,7 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 		history, username)
 
 	// Delete the favorite.
-	err = f.Delete(ctx, Favorite{tlfName, tlfType})
+	err = f.Delete(ctx, favorites.Folder{Name: tlfName, Type: tlfType})
 	require.NoError(t, err)
 
 	// Verify that the user history is now empty.
@@ -335,8 +388,12 @@ func TestFavoritesDiskCache(t *testing.T) {
 	f.Initialize(ctx)
 
 	// Add a favorite. Expect that it will be encoded to disk.
-	fav1 := Favorite{"test", tlf.Public}
-	fav1Add := favToAdd{fav1, FavoriteData{}, false}
+	fav1 := favorites.Folder{Name: "test", Type: tlf.Public}
+	fav1Add := favorites.ToAdd{
+		Folder:  fav1,
+		Data:    favorites.Data{},
+		Created: false,
+	}
 
 	var decodedData favoritesCacheForDisk
 	var decodedDataFromDisk favoritesCacheEncryptedForDisk

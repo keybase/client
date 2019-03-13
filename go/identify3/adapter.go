@@ -162,7 +162,7 @@ func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3
 	case lcr.ProofResult.State == keybase1.ProofState_OK && lcr.RemoteDiff != nil && lcr.RemoteDiff.Type == keybase1.TrackDiffType_REMOTE_WORKING:
 		arg.Color = keybase1.Identify3RowColor_BLUE
 		arg.State = keybase1.Identify3RowState_VALID
-		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "upgraded"})
+		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "new"})
 		needUpgrade = true
 
 	// The proof failed, but we didn't track it
