@@ -1,0 +1,10 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {|
+  allowFolders?: boolean,
+  children: React.Node,
+  onAttach: ?(Array<string>) => void,
+|}
+
+export default class DragAndDrop extends React.Component<Props> {}
