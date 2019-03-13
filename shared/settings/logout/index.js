@@ -56,7 +56,7 @@ class OfferToTestPassphrase extends React.Component<TestProps, State> {
           label="Show typing"
           onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
           checked={this.state.showTyping}
-          style={{marginBottom: Styles.globalMargins.medium}}
+          style={styles.checkbox}
         />
 
         <Kb.WaitingButton
@@ -69,7 +69,7 @@ class OfferToTestPassphrase extends React.Component<TestProps, State> {
           }}
         />
 
-        <Kb.Box2 style={{paddingTop: Styles.globalMargins.medium}} direction="vertical">
+        <Kb.Box2 style={styles.logoutbox} direction="vertical">
           <Kb.Button
             label={this.props.testPassphraseIsCorrect ? 'Log out' : 'No thanks, just log me out now.'}
             onClick={() => this.props.onLogout()}
@@ -89,7 +89,6 @@ export default (props: Props) => (
       <UpdatePassphrase
         heading={props.heading}
         onSave={props.onSavePassphrase}
-        saveLabel="Save and log out"
         waitingForResponse={props.waitingForResponse}
       />
     ) : (
@@ -104,7 +103,9 @@ export default (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  checkbox: {marginBottom: Styles.globalMargins.medium},
   input: {
     marginBottom: Styles.globalMargins.small,
   },
+  logoutbox: {paddingTop: Styles.globalMargins.medium},
 })
