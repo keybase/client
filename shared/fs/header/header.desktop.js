@@ -37,7 +37,9 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
                 />
               </Kb.WithTooltip>
             )}
-            <SendInAppAction path={path} sendIconClassName="" />
+            <Kb.WithTooltip text="Send to chat">
+              <SendInAppAction path={path} sendIconClassName="" />
+            </Kb.WithTooltip>
             <Kb.WithTooltip text="Other actions">
               <PathItemAction
                 path={path}
