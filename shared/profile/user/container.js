@@ -64,7 +64,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onSearch: () => {
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'profileSearch'}]}))
   },
 })
 
@@ -107,15 +106,24 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   'Profile2'
 )(Profile2)
 
+const Header = ({onSearch}) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <ProfileSearch onSearch={onSearch} />
+  </Kb.Box2>
+)
+const ConnectedHeader = Container.connect<{||}, _, _, _, _>(
+  () => ({}),
+  dispatch => ({
+    onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)(Header)
+
 // $FlowIssue lets fix this
 connected.navigationOptions = {
   header: undefined,
   headerHideBorder: true,
-  headerTitle: () => (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <ProfileSearch />
-    </Kb.Box2>
-  ),
+  headerTitle: ConnectedHeader,
   headerTitleContainerStyle: {
     left: 60,
     right: 20,

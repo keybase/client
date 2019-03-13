@@ -5,29 +5,27 @@ import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 import Search from './container'
 
-type Props = {||}
+type Props = {|onSearch: () => void|}
 type State = {|show: boolean|}
 
 class ProfileSearch extends React.PureComponent<Props, State> {
   state = {show: false}
 
   _ref = React.createRef()
-  _onShow = () => this.setState({show: true})
+  _onShow = () => {
+    this.setState({show: true})
+    this.props.onSearch()
+  }
   _onHide = () => this.setState({show: false})
   _getAttachmentRef = () => this._ref.current
   render() {
     return (
-      <Kb.Box2
-        style={styles.container}
-        alignSelf={Styles.isMobile ? undefined : 'flex-end'}
-        direction="horizontal"
-        ref={this._ref}
-      >
+      <Kb.Box2 style={styles.container} direction="horizontal" ref={this._ref}>
         <Kb.ClickableBox
           onClick={this._onShow}
           style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}
         >
-          <Kb.Box2 alignSelf={Styles.isMobile ? undefined : 'flex-end'} direction="horizontal">
+          <Kb.Box2 direction="horizontal">
             <Kb.Icon
               color={Styles.globalColors.black_50}
               fontSize={Styles.isMobile ? 20 : 16}
@@ -43,7 +41,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           visible={this.state.show}
           onHidden={this._onHide}
           attachTo={this._getAttachmentRef}
-          position="top left"
+          position={flags.useNewRouter ? 'top left' : 'top center'}
           style={styles.overlay}
         >
           <Search onClose={this._onHide} />
@@ -54,15 +52,17 @@ class ProfileSearch extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {flexGrow: 1},
+  container: {
+    ...(flags.useNewRouter ? {flexGrow: 1, alignSelf: 'flex-end'} : {alignSelf: 'center'}),
+  },
   overlay: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
       ...Styles.globalStyles.flexBoxColumn,
+      ...(flags.useNewRouter ? {marginRight: 12} : {}),
       alignSelf: 'center',
       backgroundColor: Styles.globalColors.white,
       borderRadius: 5,
-      marginRight: 12,
       marginTop: -24,
       minWidth: 400,
     },
@@ -85,13 +85,11 @@ const styles = Styles.styleSheetCreate({
       width: 240,
     },
     isMobile: {
-      padding: 4,
       flexGrow: 1,
+      padding: 4,
     },
   }),
-  searchIcon: {
-    paddingRight: Styles.globalMargins.tiny,
-  },
+  searchIcon: {paddingRight: Styles.globalMargins.tiny},
   searchText: {
     color: Styles.globalColors.black_50,
     maxWidth: flags.useNewRouter ? 240 : undefined,

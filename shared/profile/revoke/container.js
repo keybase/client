@@ -29,7 +29,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(RouteTreeGen.createClearModals())
   },
   onRevoke: () => {
-    dispatch(ProfileGen.createSubmitRevokeProof({proofId: getRouteProps(ownProps, 'proofId')}))
+    const proofId = getRouteProps(ownProps, 'proofId')
+    proofId && dispatch(ProfileGen.createSubmitRevokeProof({proofId}))
     dispatch(RouteTreeGen.createClearModals())
   },
 })
