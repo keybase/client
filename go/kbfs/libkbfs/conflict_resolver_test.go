@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -52,7 +53,7 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 		}
 	}()
 
-	ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
+	ctx, err := libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		timeoutCtx, func(c context.Context) context.Context {
 			return c
 		}))
@@ -66,7 +67,7 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 
 func crTestShutdown(ctx context.Context, cancel context.CancelFunc,
 	mockCtrl *gomock.Controller, config *ConfigMock, cr *ConflictResolver) {
-	CleanupCancellationDelayer(ctx)
+	libcontext.CleanupCancellationDelayer(ctx)
 	config.ctr.CheckForFailures()
 	cr.fbo.Shutdown(ctx)
 	cancel()
@@ -297,8 +298,8 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 	expectedUnmergedPaths []path, expectedMergedPaths map[BlockPointer]path,
 	expectedRecreateOps []*createOp,
 	expectedActions map[BlockPointer]crActionList) {
-	ctx := BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx)
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	defer libcontext.CleanupCancellationDelayer(ctx)
 	lState := makeFBOLockState()
 
 	// Step 1 -- check the chains and paths
