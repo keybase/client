@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -29,13 +30,13 @@ func (o keybaseServiceSelfOwner) KeybaseService() KeybaseService {
 }
 
 func makeTestKBPKIClient(t *testing.T) (
-	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser,
-	teams []TeamInfo) {
+	client *KBPKIClient, currentUID keybase1.UID, users []idutil.LocalUser,
+	teams []idutil.TeamInfo) {
 	currentUID = keybase1.MakeTestUID(1)
 	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
-	users = MakeLocalUsers(names)
+	users = idutil.MakeLocalUsers(names)
 	teamNames := []kbname.NormalizedUsername{"test_team1", "test_team2"}
-	teams = MakeLocalTeams(teamNames)
+	teams = idutil.MakeLocalTeams(teamNames)
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, teams, codec)
 	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
@@ -43,18 +44,19 @@ func makeTestKBPKIClient(t *testing.T) (
 }
 
 func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
-	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser) {
+	client *KBPKIClient, currentUID keybase1.UID, users []idutil.LocalUser) {
 	currentUID = keybase1.MakeTestUID(1)
 	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
-	users = MakeLocalUsers(names)
+	users = idutil.MakeLocalUsers(names)
 	// Give each user a revoked key
 	for i, user := range users {
 		index := 99
 		keySalt := keySaltForUserDevice(user.Name, index)
-		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
-		user.RevokedVerifyingKeys = map[kbfscrypto.VerifyingKey]revokedKeyInfo{
-			newVerifyingKey: {Time: keybase1.ToTime(revokeTime)},
-		}
+		newVerifyingKey := idutil.MakeLocalUserVerifyingKeyOrBust(keySalt)
+		user.RevokedVerifyingKeys =
+			map[kbfscrypto.VerifyingKey]idutil.RevokedKeyInfo{
+				newVerifyingKey: {Time: keybase1.ToTime(revokeTime)},
+			}
 		users[i] = user
 	}
 	codec := kbfscodec.NewMsgpack()
@@ -153,16 +155,16 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	}()
 
 	u := keybase1.MakeTestUID(1)
-	key1 := MakeLocalUserVerifyingKeyOrBust("u_1")
-	key2 := MakeLocalUserVerifyingKeyOrBust("u_2")
-	info1 := UserInfo{
+	key1 := idutil.MakeLocalUserVerifyingKeyOrBust("u_1")
+	key2 := idutil.MakeLocalUserVerifyingKeyOrBust("u_2")
+	info1 := idutil.UserInfo{
 		VerifyingKeys: []kbfscrypto.VerifyingKey{key1},
 	}
 	config.mockKbs.EXPECT().LoadUserPlusKeys(
 		gomock.Any(), u, gomock.Any(), gomock.Any()).Return(info1, nil)
 
 	config.mockKbs.EXPECT().FlushUserFromLocalCache(gomock.Any(), u)
-	info2 := UserInfo{
+	info2 := idutil.UserInfo{
 		VerifyingKeys: []kbfscrypto.VerifyingKey{key1, key2},
 	}
 	config.mockKbs.EXPECT().LoadUserPlusKeys(

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -34,7 +35,7 @@ type blockServerRemoteClientHandler struct {
 	name          string
 	log           logger.Logger
 	deferLog      logger.Logger
-	csg           CurrentSessionGetter
+	csg           idutil.CurrentSessionGetter
 	authToken     *kbfscrypto.AuthToken
 	srvRemote     rpc.Remote
 	connOpts      rpc.ConnectionOpts
@@ -47,7 +48,8 @@ type blockServerRemoteClientHandler struct {
 }
 
 func newBlockServerRemoteClientHandler(name string, log logger.Logger,
-	signer kbfscrypto.Signer, csg CurrentSessionGetter, srvRemote rpc.Remote,
+	signer kbfscrypto.Signer, csg idutil.CurrentSessionGetter,
+	srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
 	deferLog := log.CloneWithAddedDepth(1)
 	b := &blockServerRemoteClientHandler{

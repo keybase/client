@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -25,7 +27,7 @@ type mdRange struct {
 }
 
 func makeRekeyReadErrorHelper(
-	err error, kmd KeyMetadata, resolvedHandle *TlfHandle,
+	err error, kmd KeyMetadata, resolvedHandle *tlfhandle.Handle,
 	uid keybase1.UID, username kbname.NormalizedUsername) error {
 	if resolvedHandle.Type() == tlf.Public {
 		panic("makeRekeyReadError called on public folder")
@@ -33,7 +35,8 @@ func makeRekeyReadErrorHelper(
 	// If the user is not a legitimate reader of the folder, this is a
 	// normal read access error.
 	if !resolvedHandle.IsReader(uid) {
-		return NewReadAccessError(resolvedHandle, username, resolvedHandle.GetCanonicalPath())
+		return tlfhandle.NewReadAccessError(
+			resolvedHandle, username, resolvedHandle.GetCanonicalPath())
 	}
 
 	// Otherwise, this folder needs to be rekeyed for this device.
@@ -388,9 +391,9 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 // merged MD of `handle` with a server timestamp greater or equal to
 // `serverTime`.
 func GetMDRevisionByTime(
-	ctx context.Context, config Config, handle *TlfHandle,
+	ctx context.Context, config Config, handle *tlfhandle.Handle,
 	serverTime time.Time) (kbfsmd.Revision, error) {
-	id := handle.tlfID
+	id := handle.TlfID()
 	if id == tlf.NullID {
 		return kbfsmd.RevisionUninitialized, errors.Errorf(
 			"No ID set in handle %s", handle.GetCanonicalPath())
@@ -593,7 +596,7 @@ func reembedBlockChangesIntoCopyIfNeeded(
 func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache BlockCache, bops BlockOps,
 	keyGetter mdDecryptionKeyGetter, teamChecker kbfsmd.TeamMembershipChecker,
-	osg OfflineStatusGetter, mode InitMode, uid keybase1.UID,
+	osg idutil.OfflineStatusGetter, mode InitMode, uid keybase1.UID,
 	serializedPrivateMetadata []byte, rmdToDecrypt, rmdWithKeys KeyMetadata,
 	log logger.Logger) (PrivateMetadata, error) {
 	handle := rmdToDecrypt.GetTlfHandle()

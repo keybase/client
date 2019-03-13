@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -220,7 +221,7 @@ func TestList(t *testing.T) {
 	testList(t, ctx, sfs, path1)
 
 	t.Log("Shouldn't have created the TLF")
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetRootNode(
@@ -721,7 +722,7 @@ type fsBlockerMaker struct {
 
 func (maker fsBlockerMaker) makeNewBlocker(
 	ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	create bool) (billy.Filesystem, error) {
 	fsMaker := libfs.NewFS
 	if !create {
