@@ -2,30 +2,29 @@
 
 buildscript {
     ext {
-         buildToolsVersion = "27.0.3"
-         minSdkVersion = 16
-         compileSdkVersion = 28
-         targetSdkVersion = 28
-         supportLibVersion = "27.1.1"
-         googlePlayServicesVersion = "15.0.1"
+        buildToolsVersion = "28.0.3"
+        minSdkVersion = 16
+        compileSdkVersion = 28
+        targetSdkVersion = 28
+        supportLibVersion = "28.0.0"
+        // KB: needed?
+        googlePlayServicesVersion = "15.0.1"
      }
 
     repositories {
+        google()
         jcenter()
-        mavenCentral()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.3.1'
+        // KB: this is an old version, could look into updating
         classpath 'com.github.triplet.gradle:play-publisher:1.1.5' // To publish from gradle
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
+// KB
 // Work around dependencies with old gradle versions depending on
 // com.android.tools:common:25.3.3 , which disappeared from jcenter.
 // Once these dependencies update their gradle version or otherwise fix
@@ -45,10 +44,7 @@ subprojects {project ->
 allprojects {
     repositories {
         mavenLocal()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
+        google()
         jcenter()
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
@@ -59,23 +55,24 @@ allprojects {
 
 
 subprojects {
-    project.configurations.all {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'com.android.support'
-              && !details.requested.name.contains('multidex') ) {
-                details.useVersion "27.1.1"
-            }
-        }
-    }
+    // KB maybe needed by modules
+    // project.configurations.all {
+        // resolutionStrategy.eachDependency { details ->
+            // if (details.requested.group == 'com.android.support'
+              // && !details.requested.name.contains('multidex') ) {
+                // details.useVersion "27.1.1"
+            // }
+        // }
+    // }
 
-    afterEvaluate {
-        project -> if (project.hasProperty("android")) {
-            android {
-              compileSdkVersion rootProject.ext.compileSdkVersion
-              defaultConfig {
-                  targetSdkVersion rootProject.ext.targetSdkVersion
-              }
-            }
-        }
-    }
+    // afterEvaluate {
+        // project -> if (project.hasProperty("android")) {
+            // android {
+              // compileSdkVersion rootProject.ext.compileSdkVersion
+              // defaultConfig {
+                  // targetSdkVersion rootProject.ext.targetSdkVersion
+              // }
+            // }
+        // }
+    // }
 }

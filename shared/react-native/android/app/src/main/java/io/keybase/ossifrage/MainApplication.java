@@ -98,6 +98,10 @@ public class MainApplication extends Application implements ReactApplication {
                     new RNScreensPackage()
             );
         }
+        @Override
+        protected String getJSMainModuleName() {
+            return "index";
+        }
 
     };
 
