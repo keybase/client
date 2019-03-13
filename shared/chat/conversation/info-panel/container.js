@@ -194,7 +194,7 @@ class InfoPanelSelector extends React.PureComponent<Props> {
 
 const clickCatcherStyle = {
   bottom: 0,
-  left: flags.useNewRouter ? 160 : 80,
+  left: flags.useNewRouter ? 0 : 80,
   position: 'absolute',
   right: 0,
   top: flags.useNewRouter ? 44 : 38,
