@@ -400,10 +400,17 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 			require.Len(t, sres.Incremental().Items, 2)
-			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[0].Conv.MemberStatus)
-			require.Equal(t, chanID.String(), sres.Incremental().Items[1].Conv.ConvID)
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[1].Conv.MemberStatus)
+			var foundConv, foundChan bool
+			for _, item := range sres.Incremental().Items {
+				if convID.String() == item.Conv.ConvID {
+					foundConv = true
+				} else if chanID.String() == item.Conv.ConvID {
+					foundChan = true
+				}
+				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, item.Conv.MemberStatus)
+			}
+			require.True(t, foundConv)
+			require.True(t, foundChan)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
 		}
