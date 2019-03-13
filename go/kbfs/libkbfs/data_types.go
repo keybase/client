@@ -331,66 +331,6 @@ func (r ReadyBlockData) GetEncodedSize() int {
 	return len(r.buf)
 }
 
-// Favorite is a top-level favorited folder name.
-type Favorite struct {
-	Name string
-	Type tlf.Type
-}
-
-// NewFavoriteFromFolder creates a Favorite from a
-// keybase1.Folder.
-func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
-	name := folder.Name
-	if !folder.Private {
-		// Old versions of the client still use an outdated "#public"
-		// suffix for favorited public folders. TODO: remove this once
-		// those old versions of the client are retired.
-		const oldPublicSuffix = tlf.ReaderSep + "public"
-		name = strings.TrimSuffix(folder.Name, oldPublicSuffix)
-	}
-
-	var t tlf.Type
-	if folder.FolderType == keybase1.FolderType_UNKNOWN {
-		// Use deprecated boolean
-		if folder.Private {
-			t = tlf.Private
-		} else {
-			t = tlf.Public
-		}
-	} else {
-		switch folder.FolderType {
-		case keybase1.FolderType_PRIVATE:
-			t = tlf.Private
-		case keybase1.FolderType_PUBLIC:
-			t = tlf.Public
-		case keybase1.FolderType_TEAM:
-			// TODO: if we ever support something other than single
-			// teams in the favorites list, we'll have to figure out
-			// which type the favorite is from its name.
-			t = tlf.SingleTeam
-		default:
-			// This shouldn't happen, but just in case the service
-			// sends us bad info....
-			t = tlf.Private
-		}
-	}
-
-	return &Favorite{
-		Name: name,
-		Type: t,
-	}
-}
-
-// ToKBFolder creates a keybase1.Folder from a Favorite.
-func (f Favorite) ToKBFolder(created bool) keybase1.Folder {
-	return keybase1.Folder{
-		Name:       f.Name,
-		FolderType: f.Type.FolderType(),
-		Private:    f.Type != tlf.Public, // deprecated
-		Created:    created,
-	}
-}
-
 // BranchName is the name given to a KBFS branch, for a particular
 // top-level folder.  Currently, the notion of a "branch" is
 // client-side only, and can be used to specify which root to use for
