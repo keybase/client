@@ -30,6 +30,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   dbCleanEnabled: true,
   moveOrCopy: true,
   outOfDateBanner: true,
+  sendAttachmentToChat: true,
 }
 
 // load overrides
