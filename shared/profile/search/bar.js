@@ -53,7 +53,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    ...(flags.useNewRouter ? {flexGrow: 1, alignSelf: 'flex-end'} : {alignSelf: 'center'}),
+    ...(flags.useNewRouter ? {alignSelf: 'flex-end', flexGrow: 1} : {alignSelf: 'center'}),
   },
   overlay: Styles.platformStyles({
     isElectron: {
