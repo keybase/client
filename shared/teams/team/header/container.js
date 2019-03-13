@@ -43,7 +43,9 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     ),
   onEditIcon: (image?: Response) =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}]})
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}],
+      })
     ),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
 })

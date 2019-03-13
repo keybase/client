@@ -2331,6 +2331,10 @@
         },
         {
           "type": "boolean",
+          "name": "changeChannelAvatar"
+        },
+        {
+          "type": "boolean",
           "name": "setTeamShowcase"
         },
         {
