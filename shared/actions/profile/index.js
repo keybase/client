@@ -61,6 +61,10 @@ const showUserProfile = (state, action) => {
     state.entities.search.searchResults,
     userId
   )
+
+  if (flags.useNewRouter) {
+    return RouteTreeGen.createNavigateTo({path: [{props: {username}, selected: 'profile'}]})
+  }
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
   const path = Constants.getProfilePath(peopleRouteProps, username, state.config.username, state)

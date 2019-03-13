@@ -24,10 +24,10 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
 )
 
 // TODO remove
-const OldScreen = ({children, onCancel}: Props) => (
+const OldScreen = ({children, onCancel, skipButton}: Props) => (
   <Kb.StandardScreen onCancel={onCancel} style={{maxWidth: 512}}>
     {children}
-    {onCancel && (
+    {onCancel && !skipButton && (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
         <Kb.Button type="Secondary" label="Cancel" onClick={onCancel} />
       </Kb.Box2>
@@ -42,7 +42,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     minHeight: Styles.isMobile ? undefined : 450,
-    padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium,
+    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
     width: Styles.isMobile ? undefined : 560,
   },
   content: {

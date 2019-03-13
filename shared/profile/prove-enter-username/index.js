@@ -34,7 +34,7 @@ class EnterUsername extends React.Component<Props, State> {
     const {headerText, floatingLabelText, hintText} = pt
     return (
       <Modal onCancel={this.props.onCancel} skipButton={true}>
-        {this.props.errorText && (
+        {!!this.props.errorText && (
           <Kb.Box2 direction="vertical" gap="small" style={styles.error} fullWidth={true}>
             <Kb.Text center={true} negative={true} type="BodySemibold">
               {this.props.errorText}
@@ -85,10 +85,8 @@ class EnterUsername extends React.Component<Props, State> {
 const UsernameTips = ({platform}) =>
   platform === 'hackernews' ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tips}>
-      <Kb.Text type="BodySmallSemibold">
-        &bull; You must have karma &ge; 2<br />
-        &bull; You must enter your uSeRName with exact case
-      </Kb.Text>
+      <Kb.Text type="BodySmallSemibold">&bull; You must have karma &ge; 2</Kb.Text>
+      <Kb.Text type="BodySmallSemibold">&bull; You must enter your uSeRName with exact case</Kb.Text>
     </Kb.Box2>
   ) : null
 
@@ -150,11 +148,10 @@ const styles = Styles.styleSheetCreate({
   error: {
     backgroundColor: Styles.globalColors.red,
     borderRadius: Styles.borderRadius,
+    marginBottom: Styles.globalMargins.small,
     padding: Styles.globalMargins.medium,
   },
-  tips: {
-    padding: Styles.globalMargins.small,
-  },
+  tips: {padding: Styles.globalMargins.small},
 })
 
 export default EnterUsername

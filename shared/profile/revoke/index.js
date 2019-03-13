@@ -88,7 +88,7 @@ const styleContentContainer = {
   alignItems: 'center',
   flexGrow: 1,
   justifyContent: 'center',
-  margin: Styles.globalMargins.large,
+  margin: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
   maxWidth: 512,
   ...(Styles.isMobile ? {} : {textAlign: 'center'}),
 }

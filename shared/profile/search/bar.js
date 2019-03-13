@@ -17,20 +17,27 @@ class ProfileSearch extends React.PureComponent<Props, State> {
   _getAttachmentRef = () => this._ref.current
   render() {
     return (
-      <Kb.Box2 alignSelf="flex-end" direction="vertical" ref={this._ref}>
+      <Kb.Box2
+        style={styles.container}
+        alignSelf={Styles.isMobile ? undefined : 'flex-end'}
+        direction="horizontal"
+        ref={this._ref}
+      >
         <Kb.ClickableBox
           onClick={this._onShow}
           style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}
         >
-          <Kb.Icon
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-            style={styles.searchIcon}
-            type="iconfont-search"
-          />
-          <Kb.Text style={styles.searchText} type="BodySemibold">
-            Search people
-          </Kb.Text>
+          <Kb.Box2 alignSelf={Styles.isMobile ? undefined : 'flex-end'} direction="horizontal">
+            <Kb.Icon
+              color={Styles.globalColors.black_50}
+              fontSize={Styles.isMobile ? 20 : 16}
+              style={styles.searchIcon}
+              type="iconfont-search"
+            />
+            <Kb.Text style={styles.searchText} type="BodySemibold">
+              Search{Styles.isMobile ? '' : ' people'}
+            </Kb.Text>
+          </Kb.Box2>
         </Kb.ClickableBox>
         <Kb.Overlay
           visible={this.state.show}
@@ -47,6 +54,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  container: {flexGrow: 1},
   overlay: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
@@ -77,14 +85,12 @@ const styles = Styles.styleSheetCreate({
       width: 240,
     },
     isMobile: {
-      height: 32,
-      width: '100%',
+      padding: 4,
+      flexGrow: 1,
     },
   }),
   searchIcon: {
     paddingRight: Styles.globalMargins.tiny,
-    position: 'relative',
-    top: 1,
   },
   searchText: {
     color: Styles.globalColors.black_50,

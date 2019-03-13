@@ -129,7 +129,13 @@ class PostProof extends React.Component<Props, State> {
 
     return (
       <Modal onCancel={props.onCancel} skipButton={true}>
-        <Kb.ScrollView style={styles.scroll}>
+        <Kb.ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          key={
+            props.errorMessage || 'scroll' /* if we get an error redraw entirely so we're not scrolled down */
+          }
+        >
           {/* $FlowIssue  copyCapture not in box2 */}
           <Kb.Box2
             direction="vertical"
@@ -170,7 +176,7 @@ class PostProof extends React.Component<Props, State> {
                 {noteText}
               </Kb.Text>
             )}
-            <Kb.Box2 direction="horizontal" gap="small">
+            <Kb.Box2 direction={Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
               <Kb.Button type="Secondary" onClick={props.onCancel} label="Cancel" />
               {this.state.showSubmit ? (
                 <Kb.WaitingButton
@@ -211,6 +217,7 @@ const styles = Styles.styleSheetCreate({
     minHeight: 116,
   },
   scroll: {width: '100%'},
+  scrollContent: {width: '100%'},
 })
 
 export default PostProof

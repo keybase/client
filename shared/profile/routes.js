@@ -104,12 +104,21 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  profileConfirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
+  profileConfirmOrPending: {
+    getScreen: () => require('./confirm-or-pending/container').default,
+    upgraded: true,
+  },
   profileEdit: {getScreen: () => require('./edit-profile/container').default},
-  profilePostProof: {getScreen: () => require('./post-proof/container').default},
-  profileProveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
-  profileProveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
-  profileRevoke: {getScreen: () => require('./revoke/container').default},
+  profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
+  profileProveEnterUsername: {
+    getScreen: () => require('./prove-enter-username/container').default,
+    upgraded: true,
+  },
+  profileProveWebsiteChoice: {
+    getScreen: () => require('./prove-website-choice/container').default,
+    upgraded: true,
+  },
+  profileRevoke: {getScreen: () => require('./revoke/container').default, upgraded: true},
   profileSearch: {getScreen: () => require('./search/container').default},
   ...require('./pgp/routes').newRoutes,
 }

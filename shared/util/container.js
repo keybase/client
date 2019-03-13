@@ -13,6 +13,18 @@ export const networkErrorCodes = [
   constantsStatusCode.sctimeout,
 ]
 
+export const getRouteProps = (ownProps: any, key: string) => {
+  if (ownProps.navigation) {
+    return ownProps.navigation.getParam(key)
+  }
+
+  if (ownProps.routeProps) {
+    return ownProps.routeProps.get(key)
+  }
+
+  return undefined
+}
+
 type TypedDispatch = (action: TypedActions) => void
 type Dispatch = TypedDispatch
 

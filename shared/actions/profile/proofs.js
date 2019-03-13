@@ -8,6 +8,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import {peopleTab} from '../../constants/tabs'
+import flags from '../../util/feature-flags'
 
 const checkProof = (state, action) => {
   const sigID = state.profile.sigID
@@ -209,7 +210,8 @@ function* addProof(_, action) {
   submitUsernameTask.cancel()
 }
 
-const cancelAddProof = state => ProfileGen.createShowUserProfile({username: state.config.username})
+const cancelAddProof = state =>
+  !flags.useNewRouter && ProfileGen.createShowUserProfile({username: state.config.username})
 
 const submitCryptoAddress = (state, action) => {
   if (!state.profile.usernameValid) {
