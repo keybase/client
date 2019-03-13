@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -190,7 +191,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
-	var favs []libkbfs.Favorite
+	var favs []favorites.Folder
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
 		if err != nil {

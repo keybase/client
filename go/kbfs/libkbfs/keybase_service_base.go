@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -1344,7 +1345,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	}
 	// Making a favorite here to reuse the code that converts from
 	// `keybase1.FolderType` into `tlf.Type`.
-	fav := NewFavoriteFromFolder(folder)
+	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
@@ -1357,7 +1358,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder) (err error) {
-	fav := NewFavoriteFromFolder(folder)
+	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
