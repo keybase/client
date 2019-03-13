@@ -407,6 +407,10 @@ def testGo(prefix, packagesToTest) {
         'github.com/keybase/client/go/kbfs/libfuse': [
           disable: true,
         ],
+        'github.com/keybase/client/go/kbfs/idutil': [
+          flags: '-race',
+          timeout: '30s',
+        ],
         'github.com/keybase/client/go/kbfs/kbfsblock': [
           flags: '-race',
           timeout: '30s',
@@ -443,6 +447,10 @@ def testGo(prefix, packagesToTest) {
           flags: '-race',
           timeout: '30s',
         ],
+        'github.com/keybase/client/go/kbfs/libcontext': [
+          flags: '-race',
+          timeout: '10m',
+        ],
         'github.com/keybase/client/go/kbfs/libfs': [
           flags: '-race',
           timeout: '10m',
@@ -477,6 +485,10 @@ def testGo(prefix, packagesToTest) {
           timeout: '12m',
         ],
         'github.com/keybase/client/go/kbfs/tlf': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/tlfhandle': [
           flags: '-race',
           timeout: '30s',
         ],

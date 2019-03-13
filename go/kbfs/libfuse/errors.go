@@ -13,9 +13,11 @@ import (
 	"github.com/pkg/errors"
 
 	"bazil.org/fuse"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 )
 
 type errorWithErrno struct {
@@ -41,15 +43,15 @@ func filterError(err error) error {
 	case kbfsmd.MetadataIsFinalError:
 		return errorWithErrno{err, syscall.EACCES}
 
-	case libkbfs.NoSuchUserError:
+	case idutil.NoSuchUserError:
 		return errorWithErrno{err, syscall.ENOENT}
-	case libkbfs.NoSuchTeamError:
+	case idutil.NoSuchTeamError:
 		return errorWithErrno{err, syscall.ENOENT}
 	case libkbfs.DirNotEmptyError:
 		return errorWithErrno{err, syscall.ENOTEMPTY}
-	case libkbfs.ReadAccessError:
+	case tlfhandle.ReadAccessError:
 		return errorWithErrno{err, syscall.EACCES}
-	case libkbfs.WriteAccessError:
+	case tlfhandle.WriteAccessError:
 		return errorWithErrno{err, syscall.EACCES}
 	case libkbfs.WriteUnsupportedError:
 		return errorWithErrno{err, syscall.ENOENT}
@@ -65,7 +67,7 @@ func filterError(err error) error {
 		return errorWithErrno{err, syscall.EINVAL}
 	case libkbfs.NameTooLongError:
 		return errorWithErrno{err, syscall.ENAMETOOLONG}
-	case libkbfs.NoCurrentSessionError:
+	case idutil.NoCurrentSessionError:
 		return errorWithErrno{err, syscall.EACCES}
 	case libkbfs.NoSuchFolderListError:
 		return errorWithErrno{err, syscall.ENOENT}

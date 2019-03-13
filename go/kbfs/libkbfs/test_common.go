@@ -13,9 +13,11 @@ import (
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -141,7 +143,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
-	localUsers := MakeLocalUsers(users)
+	localUsers := idutil.MakeLocalUsers(users)
 	loggedInUser := localUsers[loggedInIndex]
 
 	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
@@ -154,8 +156,9 @@ func MakeTestConfigOrBustLoggedInWithMode(
 
 	kbfsOps.favs.Initialize(context.TODO())
 
-	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
-	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser.Name)
+	signingKey := idutil.MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
+	cryptPrivateKey := idutil.MakeLocalUserCryptPrivateKeyOrBust(
+		loggedInUser.Name)
 	crypto := NewCryptoLocal(
 		config.Codec(), signingKey, cryptPrivateKey, config)
 	config.SetCrypto(crypto)
@@ -260,23 +263,20 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	}
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
-	loggedInUID, ok := daemon.asserts[string(loggedInUser)]
+	loggedInUID, ok := daemon.GetIDForAssertion(string(loggedInUser))
 	if !ok {
 		panic("bad test: unknown user: " + loggedInUser)
 	}
 
-	var localUsers []LocalUser
-	for _, u := range daemon.localUsers {
-		localUsers = append(localUsers, u)
-	}
+	localUsers := daemon.GetLocalUsers()
 	newDaemon := NewKeybaseDaemonMemory(
 		loggedInUID.AsUserOrBust(), localUsers, nil, c.Codec())
 	c.SetKeybaseService(newDaemon)
 	c.SetKBPKI(NewKBPKIClient(c, c.MakeLogger("")))
 	kbfsOps.favs.InitForTest()
 
-	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
-	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
+	signingKey := idutil.MakeLocalUserSigningKeyOrBust(loggedInUser)
+	cryptPrivateKey := idutil.MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
 	crypto := NewCryptoLocal(
 		config.Codec(), signingKey, cryptPrivateKey, config)
 	c.SetCrypto(crypto)
@@ -369,8 +369,8 @@ func keySaltForUserDevice(name kbname.NormalizedUsername,
 func makeFakeKeys(name kbname.NormalizedUsername, index int) (
 	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey) {
 	keySalt := keySaltForUserDevice(name, index)
-	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)
-	newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
+	newCryptPublicKey := idutil.MakeLocalUserCryptPublicKeyOrBust(keySalt)
+	newVerifyingKey := idutil.MakeLocalUserVerifyingKeyOrBust(keySalt)
 	return newCryptPublicKey, newVerifyingKey
 }
 
@@ -426,8 +426,8 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 	}
 
 	keySalt := keySaltForUserDevice(session.Name, index)
-	signingKey := MakeLocalUserSigningKeyOrBust(keySalt)
-	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(keySalt)
+	signingKey := idutil.MakeLocalUserSigningKeyOrBust(keySalt)
+	cryptPrivateKey := idutil.MakeLocalUserCryptPrivateKeyOrBust(keySalt)
 	config.SetCrypto(
 		NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey, config))
 }
@@ -444,7 +444,7 @@ func AddNewAssertionForTest(
 		return errors.New("Bad keybase daemon")
 	}
 
-	uid, err := kbd.addNewAssertionForTest(oldAssertion, newAssertion)
+	uid, err := kbd.AddNewAssertionForTest(oldAssertion, newAssertion)
 	if err != nil {
 		return err
 	}
@@ -556,10 +556,10 @@ func AddTeamKeyForTest(config Config, tid keybase1.TeamID) error {
 		return err
 	}
 	newKeyGen := ti.LatestKeyGen + 1
-	newKey := MakeLocalTLFCryptKeyOrBust(
-		buildCanonicalPathForTlfType(tlf.SingleTeam, string(ti.Name)),
+	newKey := idutil.MakeLocalTLFCryptKeyOrBust(
+		tlf.SingleTeam.String()+"/"+string(ti.Name),
 		newKeyGen)
-	return kbd.addTeamKeyForTest(tid, newKeyGen, newKey)
+	return kbd.AddTeamKeyForTest(tid, newKeyGen, newKey)
 }
 
 // AddTeamKeyForTestOrBust is like AddTeamKeyForTest, but
@@ -575,8 +575,8 @@ func AddTeamKeyForTestOrBust(t logger.TestLogBackend, config Config,
 // AddEmptyTeamsForTest creates teams for the given names with empty
 // membership lists.
 func AddEmptyTeamsForTest(
-	config Config, teams ...kbname.NormalizedUsername) ([]TeamInfo, error) {
-	teamInfos := MakeLocalTeams(teams)
+	config Config, teams ...kbname.NormalizedUsername) ([]idutil.TeamInfo, error) {
+	teamInfos := idutil.MakeLocalTeams(teams)
 
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
@@ -590,7 +590,7 @@ func AddEmptyTeamsForTest(
 // AddEmptyTeamsForTestOrBust is like AddEmptyTeamsForTest, but dies
 // if there's an error.
 func AddEmptyTeamsForTestOrBust(t logger.TestLogBackend,
-	config Config, teams ...kbname.NormalizedUsername) []TeamInfo {
+	config Config, teams ...kbname.NormalizedUsername) []idutil.TeamInfo {
 	teamInfos, err := AddEmptyTeamsForTest(config, teams...)
 	if err != nil {
 		t.Fatal(err)
@@ -631,7 +631,7 @@ func ChangeTeamNameForTest(
 		return errors.New("Bad keybase daemon")
 	}
 
-	tid, err := kbd.changeTeamNameForTest(oldName, newName)
+	tid, err := kbd.ChangeTeamNameForTest(oldName, newName)
 	if err != nil {
 		return err
 	}
@@ -658,7 +658,7 @@ func SetGlobalMerkleRootForTest(
 		return errors.New("Bad keybase daemon")
 	}
 
-	kbd.setCurrentMerkleRoot(root, rootTime)
+	kbd.SetCurrentMerkleRoot(root, rootTime)
 	return nil
 }
 
@@ -838,7 +838,7 @@ func CheckConfigAndShutdown(
 func GetRootNodeForTest(
 	ctx context.Context, config Config, name string,
 	t tlf.Type) (Node, error) {
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, name, t)
 	if err != nil {
 		return nil, err

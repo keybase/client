@@ -7,10 +7,10 @@ package libfs
 import (
 	"fmt"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"golang.org/x/net/context"
 )
 
 // JournalAction enumerates all the possible actions to take on a
@@ -60,7 +60,7 @@ func (a JournalAction) String() string {
 // given TLF.
 func (a JournalAction) Execute(
 	ctx context.Context, jManager *libkbfs.JournalManager,
-	tlfID tlf.ID, h *libkbfs.TlfHandle) error {
+	tlfID tlf.ID, h *tlfhandle.Handle) error {
 	// These actions don't require TLF IDs.
 	switch a {
 	case JournalEnableAuto:

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package tlfhandle
 
 // This file has the online resolving functionality for TlfHandles.
 
@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -90,10 +91,10 @@ func getNames(idToName map[keybase1.UserOrTeamID]kbname.NormalizedUsername) []kb
 	return names
 }
 
-func makeTlfHandleHelper(
+func makeHandleHelper(
 	ctx context.Context, t tlf.Type, writers, readers []resolvableUser,
-	extensions []tlf.HandleExtension, idGetter tlfIDGetter) (
-	*TlfHandle, error) {
+	extensions []tlf.HandleExtension, idGetter IDGetter) (
+	*Handle, error) {
 	if t != tlf.Private && len(readers) > 0 {
 		return nil, errors.New("public or team folder cannot have readers")
 	} else if t == tlf.SingleTeam && len(writers) != 1 {
@@ -237,7 +238,7 @@ func makeTlfHandleHelper(
 		panic(fmt.Sprintf("Unknown TLF type: %s", t))
 	}
 
-	h := &TlfHandle{
+	h := &Handle{
 		tlfType:           t,
 		resolvedWriters:   usedWNames,
 		resolvedReaders:   usedRNames,
@@ -268,9 +269,9 @@ func makeTlfHandleHelper(
 }
 
 type resolvableID struct {
-	resolver resolver
-	idGetter tlfIDGetter
-	nug      normalizedUsernameGetter
+	resolver idutil.Resolver
+	idGetter IDGetter
+	nug      idutil.NormalizedUsernameGetter
 	id       keybase1.UserOrTeamID
 	tlfType  tlf.Type
 	offline  keybase1.OfflineAvailability
@@ -324,15 +325,15 @@ func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (
 	return nameIDPair{}, keybase1.SocialAssertion(rsa), tlf.NullID, nil
 }
 
-// MakeTlfHandle creates a TlfHandle from the given tlf.Handle and the
-// given normalizedUsernameGetter (which is usually a KBPKI). `t` is
+// MakeHandle creates a Handle from the given tlf.Handle and the
+// given NormalizedUsernameGetter (which is usually a KBPKI). `t` is
 // the `tlf.Type` of the new handle.  (Note this could be different
 // from `bareHandle.Type()`, if this is an implicit team TLF.)
-func MakeTlfHandle(
+func MakeHandle(
 	ctx context.Context, bareHandle tlf.Handle, t tlf.Type,
-	resolver resolver, nug normalizedUsernameGetter, idGetter tlfIDGetter,
-	offline keybase1.OfflineAvailability) (
-	*TlfHandle, error) {
+	resolver idutil.Resolver, nug idutil.NormalizedUsernameGetter,
+	idGetter IDGetter, offline keybase1.OfflineAvailability) (
+	*Handle, error) {
 	writers := make([]resolvableUser, 0, len(bareHandle.Writers)+len(bareHandle.UnresolvedWriters))
 	for _, w := range bareHandle.Writers {
 		writers = append(
@@ -354,7 +355,7 @@ func MakeTlfHandle(
 		}
 	}
 
-	h, err := makeTlfHandleHelper(
+	h, err := makeHandleHelper(
 		ctx, t, writers, readers, bareHandle.Extensions(), idGetter)
 	if err != nil {
 		return nil, err
@@ -383,9 +384,9 @@ func (rp resolvableNameUIDPair) resolve(ctx context.Context) (
 // optimization, if h contains no unresolved assertions, it just
 // returns itself.  If uid != keybase1.UID(""), it only allows
 // assertions that resolve to uid.
-func (h *TlfHandle) ResolveAgainForUser(
-	ctx context.Context, resolver resolver, idGetter tlfIDGetter,
-	osg OfflineStatusGetter, uid keybase1.UID) (*TlfHandle, error) {
+func (h *Handle) ResolveAgainForUser(
+	ctx context.Context, resolver idutil.Resolver, idGetter IDGetter,
+	osg idutil.OfflineStatusGetter, uid keybase1.UID) (*Handle, error) {
 	if len(h.unresolvedWriters)+len(h.unresolvedReaders) == 0 {
 		return h, nil
 	}
@@ -416,7 +417,7 @@ func (h *TlfHandle) ResolveAgainForUser(
 		}
 	}
 
-	newH, err := makeTlfHandleHelper(
+	newH, err := makeHandleHelper(
 		ctx, h.Type(), writers, readers, h.Extensions(), idGetter)
 	if err != nil {
 		return nil, err
@@ -429,9 +430,9 @@ func (h *TlfHandle) ResolveAgainForUser(
 // given handle and returns a new handle with the results. As an
 // optimization, if h contains no unresolved assertions, it just
 // returns itself.
-func (h *TlfHandle) ResolveAgain(
-	ctx context.Context, resolver resolver, idGetter tlfIDGetter,
-	osg OfflineStatusGetter) (*TlfHandle, error) {
+func (h *Handle) ResolveAgain(
+	ctx context.Context, resolver idutil.Resolver, idGetter IDGetter,
+	osg idutil.OfflineStatusGetter) (*Handle, error) {
 	if h.IsFinal() {
 		// Don't attempt to further resolve final handles.
 		return h, nil
@@ -441,7 +442,7 @@ func (h *TlfHandle) ResolveAgain(
 }
 
 type partialResolver struct {
-	resolver
+	idutil.Resolver
 	unresolvedAssertions map[string]bool
 }
 
@@ -452,19 +453,19 @@ func (pr partialResolver) Resolve(
 	if pr.unresolvedAssertions[assertion] {
 		// Force an unresolved assertion.
 		return kbname.NormalizedUsername(""),
-			keybase1.UserOrTeamID(""), NoSuchUserError{assertion}
+			keybase1.UserOrTeamID(""), idutil.NoSuchUserError{Input: assertion}
 	}
-	return pr.resolver.Resolve(ctx, assertion, offline)
+	return pr.Resolver.Resolve(ctx, assertion, offline)
 }
 
 // ResolvesTo returns whether this handle resolves to the given one.
 // It also returns the partially-resolved version of h, i.e. h
 // resolved except for unresolved assertions in other; this should
 // equal other if and only if true is returned.
-func (h TlfHandle) ResolvesTo(
-	ctx context.Context, codec kbfscodec.Codec, resolver resolver,
-	idGetter tlfIDGetter, osg OfflineStatusGetter, other TlfHandle) (
-	resolvesTo bool, partialResolvedH *TlfHandle, err error) {
+func (h Handle) ResolvesTo(
+	ctx context.Context, codec kbfscodec.Codec, resolver idutil.Resolver,
+	idGetter IDGetter, osg idutil.OfflineStatusGetter, other Handle) (
+	resolvesTo bool, partialResolvedH *Handle, err error) {
 	// Check the conflict extension.
 	var conflictAdded, finalizedAdded bool
 	if !h.IsConflict() && other.IsConflict() {
@@ -477,7 +478,7 @@ func (h TlfHandle) ResolvesTo(
 	if h.IsFinal() {
 		if conflictAdded {
 			// Can't add conflict info to a finalized handle.
-			return false, nil, TlfHandleFinalizedError{}
+			return false, nil, HandleFinalizedError{}
 		}
 	} else if other.IsFinal() {
 		finalizedAdded = true
@@ -488,7 +489,7 @@ func (h TlfHandle) ResolvesTo(
 	if h.TypeForKeying() == tlf.TeamKeying {
 		// Nothing to resolve for team-based TLFs, just use `other` by
 		// itself.
-		partialResolvedH = other.deepCopy()
+		partialResolvedH = other.DeepCopy()
 	} else {
 		unresolvedAssertions := make(map[string]bool)
 		for _, uw := range other.unresolvedWriters {
@@ -499,7 +500,7 @@ func (h TlfHandle) ResolvesTo(
 		}
 
 		// TODO: Once we keep track of the original assertions in
-		// TlfHandle, restrict the resolver to use other's assertions
+		// Handle, restrict the resolver to use other's assertions
 		// only, so that we don't hit the network at all.
 		partialResolvedH, err = h.ResolveAgain(
 			ctx, partialResolver{resolver, unresolvedAssertions}, idGetter,
@@ -542,11 +543,11 @@ func (h TlfHandle) ResolvesTo(
 
 // MutuallyResolvesTo checks that the target handle, and the provided
 // `other` handle, resolve to each other.
-func (h TlfHandle) MutuallyResolvesTo(
+func (h Handle) MutuallyResolvesTo(
 	ctx context.Context, codec kbfscodec.Codec,
-	resolver resolver, idGetter tlfIDGetter, osg OfflineStatusGetter,
-	other TlfHandle, rev kbfsmd.Revision, tlfID tlf.ID,
-	log logger.Logger) error {
+	resolver idutil.Resolver, idGetter IDGetter,
+	osg idutil.OfflineStatusGetter, other Handle, rev kbfsmd.Revision,
+	tlfID tlf.ID, log logger.Logger) error {
 	handleResolvesToOther, partialResolvedHandle, err :=
 		h.ResolvesTo(ctx, codec, resolver, idGetter, osg, other)
 	if err != nil {
@@ -563,7 +564,7 @@ func (h TlfHandle) MutuallyResolvesTo(
 	handlePath := h.GetCanonicalPath()
 	otherPath := other.GetCanonicalPath()
 	if !handleResolvesToOther && !otherResolvesToHandle {
-		return MDMismatchError{
+		return HandleMismatchError{
 			rev, h.GetCanonicalPath(), tlfID,
 			fmt.Errorf(
 				"MD contained unexpected handle path %s (%s -> %s) (%s -> %s)",
@@ -612,9 +613,9 @@ func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
 }
 
 type resolvableAssertion struct {
-	resolver   resolver
-	identifier identifier // only needed until KBFS-2022 is fixed
-	idGetter   tlfIDGetter
+	resolver   idutil.Resolver
+	identifier idutil.Identifier // only needed until KBFS-2022 is fixed
+	idGetter   IDGetter
 	assertion  string
 	mustBeUser keybase1.UID
 	offline    keybase1.OfflineAvailability
@@ -622,7 +623,7 @@ type resolvableAssertion struct {
 
 func (ra resolvableAssertion) resolve(ctx context.Context) (
 	nameIDPair, keybase1.SocialAssertion, tlf.ID, error) {
-	if ra.assertion == PublicUIDName {
+	if ra.assertion == idutil.PublicUIDName {
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID,
 			fmt.Errorf("Invalid name %s", ra.assertion)
 	}
@@ -630,7 +631,7 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 	if err == nil && ra.mustBeUser != keybase1.UID("") &&
 		ra.mustBeUser.AsUserOrTeam() != id {
 		// Force an unresolved assertion sinced the forced user doesn't match
-		err = NoSuchUserError{ra.assertion}
+		err = idutil.NoSuchUserError{Input: ra.assertion}
 	}
 	// The service's Resolve2 doesn't handle compound assertions
 	// correctly because it would rely too much on server trust.  It
@@ -676,7 +677,7 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 			name: name,
 			id:   id,
 		}, keybase1.SocialAssertion{}, tlfID, nil
-	case NoSuchUserError:
+	case idutil.NoSuchUserError:
 		socialAssertion, serr := ra.resolver.NormalizeSocialAssertion(ctx, ra.assertion)
 		if serr != nil {
 			// NOTE: we return the original `err` here since callers depend on
@@ -688,7 +689,7 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 }
 
 type resolvableImplicitTeam struct {
-	resolver resolver
+	resolver idutil.Resolver
 	name     string
 	tlfType  tlf.Type
 	offline  keybase1.OfflineAvailability
@@ -718,14 +719,14 @@ func doResolveImplicit(_ context.Context, t tlf.Type) bool {
 	return t != tlf.SingleTeam
 }
 
-// parseTlfHandleLoose parses a TLF handle but leaves some of the canonicality
-// checking to public routines like ParseTlfHandle and ParseTlfHandlePreferred.
-func parseTlfHandleLoose(
-	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter,
-	osg OfflineStatusGetter, name string, t tlf.Type) (
-	*TlfHandle, error) {
+// parseHandleLoose parses a TLF handle but leaves some of the canonicality
+// checking to public routines like ParseHandle and ParseHandlePreferred.
+func parseHandleLoose(
+	ctx context.Context, kbpki idutil.KBPKI, idGetter IDGetter,
+	osg idutil.OfflineStatusGetter, name string, t tlf.Type) (
+	*Handle, error) {
 	writerNames, readerNames, extensionSuffix, err :=
-		splitAndNormalizeTLFName(name, t)
+		idutil.SplitAndNormalizeTLFName(name, t)
 	if err != nil {
 		return nil, err
 	}
@@ -740,13 +741,13 @@ func parseTlfHandleLoose(
 
 	offline := keybase1.OfflineAvailability_NONE
 	if osg != nil {
-		normalizedName, _, err := normalizeNamesInTLF(
+		normalizedName, _, err := idutil.NormalizeNamesInTLF(
 			writerNames, readerNames, t, extensionSuffix)
 		if err != nil {
 			return nil, err
 		}
 		offline = osg.OfflineAvailabilityForPath(
-			buildCanonicalPathForTlfName(t, tlf.CanonicalName(normalizedName)))
+			BuildCanonicalPathForTlfName(t, tlf.CanonicalName(normalizedName)))
 
 		// Make sure we always pass the normalized name to the
 		// service, so it can use its cache effectively.
@@ -755,10 +756,10 @@ func parseTlfHandleLoose(
 
 	// First try resolving this full name as an implicit team.  If
 	// that doesn't work, fall through to individual name resolution.
-	var iteamHandle *TlfHandle
+	var iteamHandle *Handle
 	if doResolveImplicit(ctx, t) {
 		rit := resolvableImplicitTeam{kbpki, name, t, offline}
-		iteamHandle, err = makeTlfHandleHelper(
+		iteamHandle, err = makeHandleHelper(
 			ctx, t, []resolvableUser{rit}, nil, nil, idGetter)
 		if err == nil && iteamHandle.tlfID != tlf.NullID {
 			// The iteam already has a TLF ID, let's use it.
@@ -819,7 +820,7 @@ func parseTlfHandleLoose(
 			kbpki, kbpki, idGetter, r, keybase1.UID(""), offline}, changesCh}
 	}
 
-	h, err := makeTlfHandleHelper(
+	h, err := makeHandleHelper(
 		ctx, t, writers, readers, extensions, idGetter)
 	if err != nil {
 		return nil, err
@@ -864,14 +865,17 @@ func parseTlfHandleLoose(
 			canonExtensionString = extensionList.Suffix()
 		}
 		_, _, currExtensionSuffix, _ :=
-			splitAndNormalizeTLFName(canonicalName, t)
+			idutil.SplitAndNormalizeTLFName(canonicalName, t)
 		canonicalName = strings.Replace(
 			canonicalName, tlf.HandleExtensionSep+currExtensionSuffix,
 			canonExtensionString, 1)
 		h.name = tlf.CanonicalName(canonicalName)
 		if canonExtensionString != tlf.HandleExtensionSep+extensionSuffix {
 			return nil, errors.WithStack(
-				TlfNameNotCanonical{name, canonicalName})
+				idutil.TlfNameNotCanonical{
+					Name:      name,
+					NameToTry: canonicalName,
+				})
 		}
 	}
 
@@ -883,47 +887,54 @@ func parseTlfHandleLoose(
 	}
 
 	// Otherwise, identify before returning the canonical name.
-	err = identifyHandle(ctx, kbpki, kbpki, osg, h)
+	err = IdentifyHandle(ctx, kbpki, kbpki, osg, h)
 	if err != nil {
 		return nil, err
 	}
 
 	// In this case return both the handle and the error,
-	// ParseTlfHandlePreferred uses this to make the redirection
+	// ParseHandlePreferred uses this to make the redirection
 	// better.
-	return h, errors.WithStack(TlfNameNotCanonical{name, canonicalName})
+	return h, errors.WithStack(idutil.TlfNameNotCanonical{
+		Name:      name,
+		NameToTry: canonicalName,
+	})
 }
 
-// ParseTlfHandle parses a TlfHandle from an encoded string. See
-// TlfHandle.GetCanonicalName() for the opposite direction.
+// ParseHandle parses a Handle from an encoded string. See
+// Handle.GetCanonicalName() for the opposite direction.
 //
 // Some errors that may be returned and can be specially handled:
 //
-// TlfNameNotCanonical: Returned when the given name is not canonical
-// -- another name to try (which itself may not be canonical) is in
-// the error. Usually, you want to treat this as a symlink to the name
-// to try.
+// idutil.TlfNameNotCanonical: Returned when the given name is not
+// canonical -- another name to try (which itself may not be
+// canonical) is in the error. Usually, you want to treat this as a
+// symlink to the name to try.
 //
-// NoSuchNameError: Returned when public is set and the given folder
-// has no public folder.
+// idutil.NoSuchNameError: Returned when public is set and the given
+// folder has no public folder.
 //
 // TODO In future perhaps all code should switch over to preferred handles,
 // and rename TlfNameNotCanonical to TlfNameNotPreferred.
-func ParseTlfHandle(
-	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter,
-	osg OfflineStatusGetter, name string, t tlf.Type) (
-	*TlfHandle, error) {
-	h, err := parseTlfHandleLoose(ctx, kbpki, idGetter, osg, name, t)
+func ParseHandle(
+	ctx context.Context, kbpki idutil.KBPKI, idGetter IDGetter,
+	osg idutil.OfflineStatusGetter, name string, t tlf.Type) (
+	*Handle, error) {
+	h, err := parseHandleLoose(ctx, kbpki, idGetter, osg, name, t)
 	if err != nil {
 		return nil, err
 	}
 	if name != string(h.GetCanonicalName()) {
-		return nil, errors.WithStack(TlfNameNotCanonical{name, string(h.GetCanonicalName())})
+		return nil, errors.WithStack(
+			idutil.TlfNameNotCanonical{
+				Name:      name,
+				NameToTry: string(h.GetCanonicalName()),
+			})
 	}
 	return h, nil
 }
 
-// ParseTlfHandlePreferred returns TlfNameNotCanonical if not
+// ParseHandlePreferred returns idutil.TlfNameNotCanonical if not
 // in the preferred format.
 // Preferred format means that the users own username (from kbpki)
 // as a writer is put before other usernames in the tlf name.
@@ -931,14 +942,15 @@ func ParseTlfHandle(
 // Canon            Preferred
 // myname,other     myname,other
 // another,myname   myname,another
-// This function also can return NoSuchNameError or TlfNameNotCanonical.
-// TlfNameNotCanonical is returned from this function when the name is
-// not the *preferred* name.
-func ParseTlfHandlePreferred(
-	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter,
-	osg OfflineStatusGetter, name string, t tlf.Type) (
-	*TlfHandle, error) {
-	h, err := parseTlfHandleLoose(ctx, kbpki, idGetter, osg, name, t)
+// This function also can return idutil.NoSuchNameError or
+// idutil.TlfNameNotCanonical.  idutil.TlfNameNotCanonical is
+// returned from this function when the name is not the *preferred*
+// name.
+func ParseHandlePreferred(
+	ctx context.Context, kbpki idutil.KBPKI, idGetter IDGetter,
+	osg idutil.OfflineStatusGetter, name string, t tlf.Type) (
+	*Handle, error) {
+	h, err := parseHandleLoose(ctx, kbpki, idGetter, osg, name, t)
 	// Return an early if there is an error, except in the case
 	// where both h is not nil and it is a TlfNameNotCanonicalError.
 	// In that case continue and return TlfNameNotCanonical later
@@ -946,43 +958,47 @@ func ParseTlfHandlePreferred(
 	if err != nil && (h == nil || !isTlfNameNotCanonical(err)) {
 		return nil, err
 	}
-	session, err := GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, kbpki, h.Type() == tlf.Public)
 	if err != nil {
 		return nil, err
 	}
 	pref := h.GetPreferredFormat(session.Name)
 	if string(pref) != name {
-		return nil, errors.WithStack(TlfNameNotCanonical{name, string(pref)})
+		return nil, errors.WithStack(
+			idutil.TlfNameNotCanonical{
+				Name:      name,
+				NameToTry: string(pref),
+			})
 	}
 	return h, nil
 }
 
 func isTlfNameNotCanonical(err error) bool {
-	_, ok := errors.Cause(err).(TlfNameNotCanonical)
+	_, ok := errors.Cause(err).(idutil.TlfNameNotCanonical)
 	return ok
 }
 
 type noImplicitTeamKBPKI struct {
-	KBPKI
+	idutil.KBPKI
 }
 
 // ResolveImplicitTeam implements the KBPKI interface for noImplicitTeamKBPKI.
 func (nitk noImplicitTeamKBPKI) ResolveImplicitTeam(
 	_ context.Context, _, _ string, _ tlf.Type,
-	_ keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
-	return ImplicitTeamInfo{},
+	_ keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
+	return idutil.ImplicitTeamInfo{},
 		errors.New("Skipping implicit team lookup for quick handle parsing")
 }
 
-// ParseTlfHandlePreferredQuick parses a handle from a name, without
+// ParseHandlePreferredQuick parses a handle from a name, without
 // doing this time consuming checks needed for implicit-team checking
 // or TLF-ID-fetching.
-func ParseTlfHandlePreferredQuick(
-	ctx context.Context, kbpki KBPKI, osg OfflineStatusGetter,
-	name string, ty tlf.Type) (handle *TlfHandle, err error) {
+func ParseHandlePreferredQuick(
+	ctx context.Context, kbpki idutil.KBPKI, osg idutil.OfflineStatusGetter,
+	name string, ty tlf.Type) (handle *Handle, err error) {
 	// Override the KBPKI with one that doesn't try to resolve
 	// implicit teams.
 	kbpki = noImplicitTeamKBPKI{kbpki}
-	return ParseTlfHandlePreferred(ctx, kbpki, nil, osg, name, ty)
+	return ParseHandlePreferred(ctx, kbpki, nil, osg, name, ty)
 }

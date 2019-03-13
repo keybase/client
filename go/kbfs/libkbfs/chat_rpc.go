@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -358,7 +359,7 @@ func (c *ChatRPC) SendTextMessage(
 
 func (c *ChatRPC) getLastSelfWrittenHandles(
 	ctx context.Context, chatType chat1.TopicType, seen map[string]bool) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	selfConvID, _, err := c.getSelfConvInfo(ctx)
 	if err != nil {
 		return nil, err
@@ -407,7 +408,7 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 // GetGroupedInbox implements the Chat interface.
 func (c *ChatRPC) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	// First get the latest TLFs written by this user.
 	seen := make(map[string]bool)
 	results, err = c.getLastSelfWrittenHandles(ctx, chatType, seen)

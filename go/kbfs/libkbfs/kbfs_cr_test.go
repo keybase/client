@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,7 +53,7 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 }
 
 func (t *testCRObserver) TlfHandleChange(ctx context.Context,
-	newHandle *TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	return
 }
 
@@ -258,7 +259,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
-	tlfHandle, err := ParseTlfHandle(
+	tlfHandle, err := tlfhandle.ParseHandle(
 		ctx, config1B.KBPKI(), config1B.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 

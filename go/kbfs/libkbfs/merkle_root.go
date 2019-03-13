@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -35,7 +36,7 @@ type cachedMerkleRoot struct {
 type EventuallyConsistentMerkleRoot struct {
 	config  Config
 	log     logger.Logger
-	getter  merkleRootGetter
+	getter  idutil.MerkleRootGetter
 	fetcher *fetchDecider
 
 	mu     sync.RWMutex
@@ -45,7 +46,7 @@ type EventuallyConsistentMerkleRoot struct {
 // NewEventuallyConsistentMerkleRoot creates a new
 // EventuallyConsistentMerkleRoot object.
 func NewEventuallyConsistentMerkleRoot(
-	config Config, getter merkleRootGetter) *EventuallyConsistentMerkleRoot {
+	config Config, getter idutil.MerkleRootGetter) *EventuallyConsistentMerkleRoot {
 	ecmr := &EventuallyConsistentMerkleRoot{
 		config: config,
 		log:    config.MakeLogger(ECMRID),

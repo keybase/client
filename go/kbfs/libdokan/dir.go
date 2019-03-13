@@ -10,9 +10,11 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"golang.org/x/net/context"
 )
 
@@ -25,7 +27,7 @@ type Folder struct {
 	list *FolderList
 
 	handleMu       sync.RWMutex
-	h              *libkbfs.TlfHandle
+	h              *tlfhandle.Handle
 	hPreferredName tlf.PreferredName
 
 	folderBranchMu sync.Mutex
@@ -55,7 +57,7 @@ type Folder struct {
 	noForget bool
 }
 
-func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
+func newFolder(fl *FolderList, h *tlfhandle.Handle,
 	hPreferredName tlf.PreferredName) *Folder {
 	f := &Folder{
 		fs:             fl.fs,
@@ -159,7 +161,7 @@ func (f *Folder) BatchChanges(
 // Note that newHandle may be nil. Then the handle in the folder is used.
 // This is used on e.g. logout/login.
 func (f *Folder) TlfHandleChange(ctx context.Context,
-	newHandle *libkbfs.TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	f.fs.log.CDebugf(ctx, "TlfHandleChange called on %q",
 		canonicalNameIfNotNil(newHandle))
 
@@ -167,7 +169,7 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	// the notification
 	f.fs.queueNotification(func() {
 		ctx := context.Background()
-		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
+		session, err := idutil.GetCurrentSessionIfPossible(ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
 		// Here we get an error, but there is little that can be done.
 		// session will be empty in the error case in which case we will default to the
 		// canonical format.
@@ -192,17 +194,17 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	})
 }
 
-func canonicalNameIfNotNil(h *libkbfs.TlfHandle) string {
+func canonicalNameIfNotNil(h *tlfhandle.Handle) string {
 	if h == nil {
 		return "(nil)"
 	}
 	return string(h.GetCanonicalName())
 }
 
-func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
+func (f *Folder) resolve(ctx context.Context) (*tlfhandle.Handle, error) {
 	if f.h.TlfID() == tlf.NullID {
 		// If the handle doesn't have a TLF ID yet, fetch it now.
-		handle, err := libkbfs.ParseTlfHandlePreferred(
+		handle, err := tlfhandle.ParseHandlePreferred(
 			ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(), f.fs.config,
 			string(f.hPreferredName), f.h.Type())
 		if err != nil {
@@ -266,7 +268,7 @@ func (d *Dir) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAtt
 
 // isNoSuchNameError checks for libkbfs.NoSuchNameError.
 func isNoSuchNameError(err error) bool {
-	_, ok := err.(libkbfs.NoSuchNameError)
+	_, ok := err.(idutil.NoSuchNameError)
 	return ok
 }
 
