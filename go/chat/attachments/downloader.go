@@ -27,6 +27,8 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	filename string) (string, io.WriteCloser, error) {
 	var sink io.WriteCloser
 	var err error
+	const openFlag int = os.O_RDWR | os.O_CREATE | os.O_TRUNC
+	const openFileMode os.FileMode = 0600
 	if filename == "" {
 		// No filename means we will create one in the OS temp dir
 		// Get the sent file name first
@@ -50,14 +52,14 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		if err != nil {
 			return "", nil, err
 		}
-		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		f, err := os.OpenFile(fullpath, openFlag, openFileMode)
 		if err != nil {
 			return "", nil, err
 		}
 		filename = fullpath
 		sink = f
 	} else {
-		if sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+		if sink, err = os.OpenFile(filename, openFlag, openFileMode); err != nil {
 			return "", nil, err
 		}
 	}
