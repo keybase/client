@@ -856,7 +856,6 @@ func getUnrefPointersFromMD(
 			// See syncInfo.replaceRemovedBlock for an example
 			// of how this can happen.
 			if ptr != zeroPtr && !ptrMap[ptr] {
-				ptrs = append(ptrs, ptr)
 				ptrMap[ptr] = true
 			}
 		}
@@ -866,10 +865,13 @@ func getUnrefPointersFromMD(
 			// conflict resolution), so ignore that for quota
 			// reclamation purposes.
 			if update.Ref != update.Unref && !ptrMap[update.Unref] {
-				ptrs = append(ptrs, update.Unref)
 				ptrMap[update.Unref] = true
 			}
 		}
+	}
+	ptrs = make([]BlockPointer, 0, len(ptrMap))
+	for ptr := range ptrMap {
+		ptrs = append(ptrs, ptr)
 	}
 	return ptrs
 }
