@@ -1,9 +1,22 @@
 // @flow
 import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
-import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {Box2} from '../../../../../common-adapters/box'
+import Text from '../../../../../common-adapters/text'
+import Icon from '../../../../../common-adapters/icon'
+import Avatar from '../../../../../common-adapters/avatar'
+import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
+
+// This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
+const Kb = {
+  Avatar,
+  Box2,
+  ConnectedUsernames,
+  Icon,
+  Text,
+}
 
 const sendIcon = Styles.isMobile
   ? 'icon-fancy-stellar-sending-mobile-149-129'
