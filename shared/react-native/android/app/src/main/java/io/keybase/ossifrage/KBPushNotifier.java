@@ -27,7 +27,8 @@ public class KBPushNotifier implements PushNotifier {
             .setContentTitle("Keybase")
             .setContentText(msg)
             .setContentIntent(pending_intent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH);
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
         notificationManager.notify(1, mBuilder.build());
     }
