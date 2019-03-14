@@ -105,21 +105,8 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
     }
     case RouteTreeGen.navigateUp:
       return [StackActions.pop()]
-    case RouteTreeGen.popToScreen: {
-      const modals = getNumModals(navigation)
-      const appPath = Constants._getAppStackForNavigator(navigation.state)
-      if (!appPath.length) {
-        return []
-      }
-      let numAdditional = 0
-      const isInStack = appPath.reverse().some(r => {
-        if (r.routeName === action.payload.routeName) {
-          return true
-        }
-        numAdditional++
-        return false
-      })
-      return isInStack && modals + numAdditional ? [StackActions.pop({n: modals + numAdditional})] : []
+    case RouteTreeGen.goToScreen: {
+      return [NavigationActions.navigate({params: undefined, routeName: action.payload.routeName})]
     }
   }
 }

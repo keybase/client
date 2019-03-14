@@ -28,15 +28,6 @@ const findModalRoute = (arr, s) => {
   return loggedInOut.routes.slice(1)
 }
 
-const findAppRoute = (arr, s) => {
-  const loggedInOut = s.routes[s.index]
-  if (!loggedInOut) {
-    return []
-  }
-  const mainRoute = loggedInOut.routes.slice(0, 1)
-  return mainRoute[0].routes
-}
-
 // Private API used by navigator itself
 export const _getVisiblePathForNavigator = (navState: any) => {
   if (!navState) return []
@@ -48,11 +39,6 @@ export const _getModalStackForNavigator = (navState: any) => {
   return findModalRoute([], navState)
 }
 
-export const _getAppStackForNavigator = (navState: any) => {
-  if (!navState) return []
-  return findAppRoute([], navState)
-}
-
 // Public API
 export const getVisiblePath = () => {
   if (!_navigator) return []
@@ -62,11 +48,6 @@ export const getVisiblePath = () => {
 export const getModalStack = () => {
   if (!_navigator) return []
   return findModalRoute([], _navigator.getNavState())
-}
-
-export const getAppStack = () => {
-  if (!_navigator) return []
-  return findAppRoute([], _navigator.getNavState())
 }
 
 export const getVisibleScreen = () => {
