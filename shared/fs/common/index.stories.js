@@ -451,6 +451,6 @@ const load = () => {
   )
 }
 
-const pathItemIconSizes: Array<Size> = [12, 16, 32, 48, 64]
+const pathItemIconSizes: Array<Size> = [12, 16, 32, 48, 64, 96]
 
 export default load
