@@ -18,16 +18,15 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
+  const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   let lastMessageIsOurs = false
-  let containsLastOrdinal = true
   if (lastOrdinal) {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
     lastMessageIsOurs = m && m.author === state.config.username
-    containsLastOrdinal = m && m.id >= meta.maxVisibleMsgID
   }
 
   return {
-    containsLastOrdinal,
+    containsLatestMessage,
     conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     lastMessageIsOurs,
@@ -46,7 +45,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   _loadNewerMessages: dispatchProps._loadNewerMessages,
   _loadOlderMessages: dispatchProps._loadOlderMessages,
-  containsLastOrdinal: stateProps.containsLastOrdinal,
+  containsLatestMessage: stateProps.containsLatestMessage,
   conversationIDKey: stateProps.conversationIDKey,
   copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,

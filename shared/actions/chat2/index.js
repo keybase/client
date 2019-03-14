@@ -959,11 +959,11 @@ function* loadMoreMessages(state, action) {
       key = action.payload.conversationIDKey
       reason = 'scroll forward'
       break
-    case Chat2Gen.loadMessagesAtID:
+    case Chat2Gen.loadMessagesFromSearchHit:
       key = action.payload.conversationIDKey
-      reason = 'messages at id'
+      reason = 'search hit'
       messageIDControl = {
-        mode: RPCChatTypes.localMessageIDControlMode.oldermessages,
+        mode: RPCChatTypes.localMessageIDControlMode.searchhit,
         num: Constants.numMessagesOnInitialLoad,
         pivot: action.payload.messageID,
       }
@@ -1026,7 +1026,7 @@ function* loadMoreMessages(state, action) {
     const actions = []
 
     let shouldClearOthers = false
-    if ((forceClear || sd !== 'none') && !calledClear) {
+    if ((forceClear || sd === 'none') && !calledClear) {
       shouldClearOthers = true
       calledClear = true
     }
@@ -2809,7 +2809,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
-    | Chat2Gen.LoadMessagesAtIDPayload
+    | Chat2Gen.LoadMessagesFromSearchHitPayload
     | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
@@ -2820,7 +2820,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationExistingConversationIDKey,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,
-      Chat2Gen.loadMessagesAtID,
+      Chat2Gen.loadMessagesFromSearchHit,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,

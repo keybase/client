@@ -320,6 +320,10 @@
         {
           "type": "boolean",
           "name": "last"
+        },
+        {
+          "type": "boolean",
+          "name": "forceFirstPage"
         }
       ]
     },

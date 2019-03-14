@@ -238,7 +238,7 @@
     "loadNewerMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "loadMessagesAtID": {
+    "loadMessagesFromSearchHit": {
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
     },

@@ -283,7 +283,6 @@ export {
 
 export {
   allMessageTypes,
-  containsLatestMsgID,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,

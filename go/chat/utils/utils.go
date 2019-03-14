@@ -1653,6 +1653,11 @@ func MessageIDControlToPagination(ctx context.Context, logger DebugLabeler, cont
 			res.Next, err = pag.MakeIndex(pm)
 		case chat1.MessageIDControlMode_NEWERMESSAGES:
 			res.Previous, err = pag.MakeIndex(pm)
+		case chat1.MessageIDControlMode_SEARCHHIT:
+			res.Next, err = pag.MakeIndex(pm)
+			if err == nil {
+				res.ForceFirstPage = true
+			}
 		case chat1.MessageIDControlMode_UNREADLINE:
 			if conv == nil {
 				// just bail out of here with no conversation

@@ -370,6 +370,14 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
   }
 }
 
+const containsLatestMsgID = (state, conversationIDKey, messages) => {
+  const meta = state.metaMap.get(conversationIDKey, null)
+  const topMsgID = messages.reduce((top, m) => {
+    return m.id > top ? m.id : top
+  }, 0)
+  return meta ? topMsgID >= meta.maxVisibleMsgID : false
+}
+
 const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop)
 
 const rootReducer = (
@@ -576,7 +584,6 @@ const rootReducer = (
       let oldMessageOrdinals = state.messageOrdinals
       let oldPendingOutboxToOrdinal = state.pendingOutboxToOrdinal
       let oldMessageMap = state.messageMap
-      let oldContainsLatestMessageMap = state.containsLatestMessageMap
 
       // so we can keep messages if they haven't mutated
       const previousMessageMap = state.messageMap
@@ -595,10 +602,10 @@ const rootReducer = (
         return map
       }, {})
 
+      let containsLatestMessageMap = state.containsLatestMessageMap
       if (shouldClearOthers) {
-        const conversationIDKey = Types.stringToConversationIDKey(cid)
         oldMessageOrdinals = oldMessageOrdinals.withMutations(map => {
-          Object.keys(convoToMessages).forEach(cid => map.delete())
+          Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
         })
         oldPendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(map => {
           Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
@@ -606,8 +613,15 @@ const rootReducer = (
         oldMessageMap = oldMessageMap.withMutations(map => {
           Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
         })
-        oldContainsLatestMessageMap = oldContainsLatestMessageMap.set(Types.stringToConversationIDKey(cid),
-          Constants.containsLatestMsgID(state, Types.stringToConversationIDKey(cid),
+        containsLatestMessageMap = containsLatestMessageMap.withMutations(map => {
+          Object.keys(convoToMessages).forEach(cid => {
+            const conversationIDKey = Types.stringToConversationIDKey(cid)
+            map.set(
+              conversationIDKey,
+              containsLatestMsgID(state, conversationIDKey, convoToMessages[conversationIDKey])
+            )
+          })
+        })
       }
 
       // Types we can send and have to deal with outbox ids
@@ -738,6 +752,7 @@ const rootReducer = (
 
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
+        s.set('containsLatestMessageMap', containsLatestMessageMap)
         // only if different
         if (!state.messageOrdinals.equals(messageOrdinals)) {
           s.set('messageOrdinals', messageOrdinals)

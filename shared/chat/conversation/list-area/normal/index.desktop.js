@@ -269,9 +269,11 @@ class Thread extends React.PureComponent<Props, State> {
         if (list.scrollTop < listEdgeSlop) {
           this.props.loadOlderMessages()
         } else if (
+          !this.props.containsLatestMessage &&
           !this.state.isLockedToBottom &&
           list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
         ) {
+          console.log('scroll: getting newer messages')
           this.props.loadNewerMessages()
         }
       }

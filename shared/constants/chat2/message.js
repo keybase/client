@@ -17,6 +17,7 @@ import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 import logger from '../../logger'
+import {getMeta} from './meta'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -1242,15 +1243,3 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {seconds: 86400 * 7, text: '7 days'},
   {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()
-
-export const containsLatestMsgID = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey,
-  messages: Array<Types.Message>
-) => {
-  const meta = getMeta(state, conversationIDKey)
-  const topMsgID = messages.reduce((top, m) => {
-    return m.id > top ? m.id : top
-  }, 0)
-  return meta ? topMsgID >= meta.maxVisibleMsgID : false
-}
