@@ -16,6 +16,7 @@ import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
 import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import com.dylanvann.fastimage.FastImageViewPackage;
 
@@ -90,7 +91,8 @@ public class MainApplication extends Application implements ReactApplication {
                         new LottiePackage(),
                         new RNGestureHandlerPackage(),
                         new RNScreensPackage(),
-                        new NetInfoPackage()
+                        new NetInfoPackage(),
+                        new RNCWebViewPackage()
                 );
             }
 
@@ -106,7 +108,8 @@ public class MainApplication extends Application implements ReactApplication {
                     new LottiePackage(),
                     new RNGestureHandlerPackage(),
                     new RNScreensPackage(),
-                    new NetInfoPackage()
+                    new NetInfoPackage(),
+                    new RNCWebViewPackage()
             );
         }
         @Override
