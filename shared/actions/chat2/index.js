@@ -289,6 +289,7 @@ const onIncomingMessage = (state, incoming) => {
 
   if (convID && cMsg) {
     const conversationIDKey = Types.conversationIDToKey(convID)
+    const shouldAddMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
     const message = Constants.uiMessageToMessage(state, conversationIDKey, cMsg)
     if (message) {
       // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
@@ -306,7 +307,7 @@ const onIncomingMessage = (state, incoming) => {
             placeholderID: cMsg.valid.messageBody.attachmentuploaded.messageID,
           })
         )
-      } else {
+      } else if (shouldAddMessage) {
         // A normal message
         actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
       }
@@ -764,11 +765,6 @@ const onNewChatActivity = (state, action) => {
     case RPCChatTypes.notifyChatChatActivityType.incomingMessage: {
       const incomingMessage = activity.incomingMessage
       if (incomingMessage) {
-        const conversationIDKey = Types.conversationIDToKey(incomingMessage.convID)
-        // ignore this if we don't currently have the latest message
-        if (!state.chat2.containsLatestMessageMap.get(conversationIDKey, false)) {
-          return []
-        }
         actions = [
           ...onIncomingMessage(state, incomingMessage),
           ...chatActivityToMetasAction(incomingMessage),
