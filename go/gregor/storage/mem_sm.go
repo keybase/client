@@ -474,10 +474,10 @@ func (m *MemEngine) Outbox(ctx context.Context, u gregor.UID) ([]gregor.Message,
 	return m.getUser(u).outbox, nil
 }
 
-func (m *MemEngine) InitOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {
+func (m *MemEngine) PrependToOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {
 	m.Lock()
 	defer m.Unlock()
-	m.getUser(u).outbox = msgs
+	m.getUser(u).outbox = append(msgs, m.getUser(u).outbox...)
 	return nil
 }
 
