@@ -86,6 +86,9 @@ func setupChatTest(t *testing.T, name string) (*kbtest.ChatTestContext, *Boxer) 
 		TestContext: tc,
 		ChatG:       &globals.ChatContext{},
 	}
+	g := globals.NewContext(tc.G, ctc.ChatG)
+	g.KeyFinder = NewKeyFinder(g)
+	g.UPAKFinder = NewCachingUPAKFinder(g)
 	return &ctc, NewBoxer(ctc.Context())
 }
 
