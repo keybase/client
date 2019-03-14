@@ -131,3 +131,6 @@
 .box2_alignItems_flex-end {
   align-items: flex-end;
 }
+.box2_pointerEvents_none {
+  pointer-events: none;
+}

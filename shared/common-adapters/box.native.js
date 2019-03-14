@@ -60,7 +60,7 @@ const box2 = (props: Box2Props) => {
     props.style,
   ])
   return (
-    <View style={style} onLayout={props.onLayout}>
+    <View style={style} onLayout={props.onLayout} pointerEvents={props.pointerEvents || 'auto'}>
       {injectGaps(horizontal ? HBoxGap : VBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </View>
   )
