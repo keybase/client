@@ -849,6 +849,7 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
       return false
     case 'group-tlf':
     case 'team-tlf':
+      return false
     case 'in-group-tlf':
     case 'in-team-tlf':
       return parsedPath.tlfType !== 'public'
