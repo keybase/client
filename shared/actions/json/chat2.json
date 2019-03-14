@@ -325,7 +325,8 @@
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
       "message": "Types.Message",
-      "path?": "string"
+      "path?": "string",
+      "canError": {"error": "string", "message": "Types.Message"}
     },
     // We want to upload some attachments
     "attachmentsUpload": {

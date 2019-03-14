@@ -11,6 +11,7 @@ type Props = {
   progress: number,
   progressLabel: string,
   hasProgress: boolean,
+  errorMsg: string,
 }
 
 class FileAttachment extends React.PureComponent<Props> {
@@ -38,6 +39,13 @@ class FileAttachment extends React.PureComponent<Props> {
                 {this.props.progressLabel}
               </Kb.Text>
               {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
+            </Kb.Box>
+          )}
+          {!!this.props.errorMsg && (
+            <Kb.Box style={styles.progressContainerStyle}>
+              <Kb.Text type="BodySmall" style={styles.fail}>
+                {this.props.errorMsg}
+              </Kb.Text>
             </Kb.Box>
           )}
           {this.props.onShowInFinder && (
@@ -69,6 +77,7 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
+  fail: {color: Styles.globalColors.red},
   fullWidth: {width: '100%'},
   iconStyle: {
     height: 32,
