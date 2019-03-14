@@ -1,3 +1,4 @@
 // @flow
 // DONT import this from anywhere, only the server side does this
-import '@storybook/addon-actions'
+// doesn't work with storybook 5 yet
+// import '@storybook/addon-actions'
