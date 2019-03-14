@@ -111,11 +111,6 @@ def Integer timestamp() {
 }
 
 android {
-    // KB: Need to enable this so our go code compiles in
-    dexOptions {
-        jumboMode true
-    }
-
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     compileOptions {
@@ -132,6 +127,10 @@ android {
         versionCode timestamp()
     // KB:
         versionName "3.2.0"
+    // KB: for react native camera
+        missingDimensionStrategy 'react-native-camera', 'general'
+    // KB: our binary is too big
+        multiDexEnabled true
     }
 
     // KB:
@@ -209,8 +208,8 @@ dependencies {
     implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation project(':react-native-push-notification')
     implementation 'org.slf4j:slf4j-api:1.7.21'
-    implementation 'com.facebook.fresco:animated-gif:1.10.0'
-    implementation 'com.facebook.fresco:fresco:1.10.0'
+    implementation 'com.facebook.fresco:animated-gif:1.13.0'
+    implementation 'com.facebook.fresco:fresco:1.13.0'
     debugImplementation 'com.hanhuy.android:viewserver:1.0.3'
     implementation  project(':keybaselib')
     testImplementation 'junit:junit:4.12'
@@ -225,6 +224,7 @@ dependencies {
     implementation project(':react-native-webview')
     implementation project(':react-native-community-netinfo')
     implementation 'com.evernote:android-job:1.2.6'
+    implementation 'com.android.support:multidex:1.0.3'
 }
 
 // Run this once to be able to run the application with BUCK

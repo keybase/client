@@ -1,6 +1,9 @@
 package io.keybase.ossifrage;
 
 import android.app.Application;
+import android.content.Context;
+import android.support.multidex.MultiDex;
+
 import com.reactnativecommunity.netinfo.NetInfoPackage;
 import com.evernote.android.job.JobManager;
 import com.facebook.react.ReactApplication;
@@ -34,6 +37,12 @@ import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.modules.NativeLogger;
 
 public class MainApplication extends Application implements ReactApplication {
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
+
     @Override
     public void onCreate() {
         NativeLogger.info("MainApplication created");
