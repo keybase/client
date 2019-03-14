@@ -172,10 +172,17 @@ export const newModalRoutes = {
     getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
     upgraded: true,
   },
-  chatCreateChannel: {getScreen: () => require('./create-channel/container').default},
-  chatDeleteHistoryWarning: {getScreen: () => require('./delete-history-warning/container').default},
-  chatEditChannel: {getScreen: () => require('./manage-channels/edit-channel-container').default},
-  chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default},
+  chatCreateChannel: {getScreen: () => require('./create-channel/container').default}, // TODO upgrade / figure out route introspection in there
+  chatDeleteHistoryWarning: {
+    getScreen: () => require('./delete-history-warning/container').default,
+    upgraded: true,
+  },
+  chatEditChannel: {
+    getScreen: () => require('./manage-channels/edit-channel-container').default,
+    upgraded: true,
+  },
+  chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default, upgraded: true},
+  // TODO upgrade the ones below
   chatManageChannels: {getScreen: () => require('./manage-channels/container').default},
   chatNewChat: {getScreen: () => require('../team-building/container').default},
   chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},

@@ -1,23 +1,27 @@
 // @flow
 import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import DeleteHistoryWarning from '.'
-import {type RouteProps} from '../../route-tree/render-route'
-import {compose, connect, isMobile} from '../../util/container'
+import {compose, connect, isMobile, getRouteProps, type RouteProps} from '../../util/container'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => ({})
+const mapStateToProps = () => ({})
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
-  onBack: isMobile ? null : () => dispatch(navigateUp()),
-  onCancel: () => dispatch(navigateUp()),
-  onDeleteHistory: () => {
-    const conversationIDKey = routeProps.get('conversationIDKey')
-    dispatch(navigateUp())
-    dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
-  },
-})
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
+  const navUpAction = flags.useNewRouter ? RouteTreeGen.createNavigateUp : ownProps.navigateUp
+  return {
+    onBack: isMobile ? null : () => dispatch(navUpAction()),
+    onCancel: () => dispatch(navUpAction()),
+    onDeleteHistory: () => {
+      const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
+      dispatch(navUpAction())
+      dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
+    },
+  }
+}
 
 const mergeProps = (stateProps, dispatchProps) => ({
   onBack: dispatchProps.onBack,

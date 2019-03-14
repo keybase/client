@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import flags from '../../../util/feature-flags'
 import {InfoPanel} from '.'
-import {connect, isMobile, type RouteProps} from '../../../util/container'
+import {connect, getRouteProps, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
@@ -137,7 +137,7 @@ const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
 type SelectorOwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
-  const conversationIDKey: Types.ConversationIDKey = ownProps.routeProps.get('conversationIDKey')
+  const conversationIDKey: Types.ConversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     conversationIDKey,
@@ -147,7 +147,8 @@ const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
 
 const mapDispatchToSelectorProps = (dispatch, {navigateUp}: SelectorOwnProps) => ({
   // Used by HeaderHoc.
-  onBack: () => navigateUp && dispatch(navigateUp()),
+  onBack: () =>
+    flags.useNewRouter ? dispatch(RouteTreeGen.createNavigateUp()) : navigateUp && dispatch(navigateUp()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
 })
 

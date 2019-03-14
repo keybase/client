@@ -36,13 +36,13 @@ const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
   const ordinal = getRouteProps(ownProps, 'ordinal')
-  const navUpAction = flags.useNewRouter ? RouteTreeGen.createNavigateUp() : ownProps.navigateUp()
+  const navUpAction = flags.useNewRouter ? RouteTreeGen.createNavigateUp : ownProps.navigateUp
   return {
     onAddReaction: (emoji: string) => {
       dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
-      dispatch(navUpAction)
+      dispatch(navUpAction())
     },
-    onCancel: () => dispatch(navUpAction),
+    onCancel: () => dispatch(navUpAction()),
   }
 }
 

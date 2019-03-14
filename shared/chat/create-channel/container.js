@@ -7,6 +7,7 @@ import {
   lifecycle,
   withStateHandlers,
   connect,
+  getRouteProps,
   type RouteProps,
 } from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -15,10 +16,10 @@ import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
+const mapStateToProps = (state, ownProps) => {
   return {
     errorText: upperFirst(state.teams.channelCreationError),
-    teamname: routeProps.get('teamname'),
+    teamname: getRouteProps(ownProps, 'teamname'),
   }
 }
 
@@ -37,10 +38,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
   onBack: () =>
     dispatch(
       flags.useNewRouter
-        ? navigateUp()
+        ? RouteTreeGen.createNavigateUp()
         : RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['chatManageChannels']})
     ),
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => dispatch(flags.useNewRouter ? RouteTreeGen.createNavigateUp() : navigateUp()),
 })
 
 export default compose(
