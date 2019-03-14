@@ -174,6 +174,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     if (this.props.scrollListToBottomCounter !== prevProps.scrollListToBottomCounter) {
+      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
       this._scrollToBottom('componentDidUpdate-requested')
       return
     }
