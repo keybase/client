@@ -17,7 +17,7 @@ import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import {isIOS} from '../../constants/platform'
+import {isIOS, isAndroid} from '../../constants/platform'
 
 let lastCount = -1
 const updateAppBadge = (_, action) => {
@@ -96,6 +96,29 @@ const listenForPushNotificationsFromJS = emitter => {
   }
 
   const onNotification = n => {
+    if (isAndroid && n.type === 'chat.newmessageSilent_2') {
+      const convID = n.c
+      const payload = n.m
+      const membersType = parseInt(n.t)
+      const displayPlaintext = n.n === 'true'
+      const messageId = parseInt(n.d)
+      const pushId = JSON.parse(n.p)[0]
+      const badgeCount = parseInt(n.b)
+      const unixTime = parseInt(n.x)
+      const soundName = n.s
+      NativeModules.PushHandler.handlePushNotification(
+        convID,
+        payload,
+        membersType,
+        displayPlaintext,
+        messageId,
+        pushId,
+        badgeCount,
+        unixTime,
+        soundName,
+      )
+      return
+    }
     const notification = Constants.normalizePush(n)
     if (!notification) {
       return
@@ -177,6 +200,9 @@ function* handlePush(_, action) {
         break
       case 'chat.newmessageSilent_2':
         // entirely handled by go on ios and not being sent on android. TODO eventually make android like ios and plumb this through native land
+        if (isAndroid) {
+          yield* handleLoudMessage(notification)
+        }
         break
       case 'chat.newmessage':
         yield* handleLoudMessage(notification)
