@@ -28,6 +28,14 @@ const findModalRoute = (arr, s) => {
   return loggedInOut.routes.slice(1)
 }
 
+const findFullRoute = s => {
+  const loggedInOut = s.routes[s.index]
+  if (loggedInOut.routeName === 'loggedIn') {
+    return [...loggedInOut.routes[0].routes, loggedInOut.routes[1]]
+  }
+  return loggedInOut.routes
+}
+
 // Private API used by navigator itself
 export const _getVisiblePathForNavigator = (navState: any) => {
   if (!navState) return []
@@ -37,6 +45,11 @@ export const _getVisiblePathForNavigator = (navState: any) => {
 export const _getModalStackForNavigator = (navState: any) => {
   if (!navState) return []
   return findModalRoute([], navState)
+}
+
+export const _getFullRouteForNavigator = (navState: any) => {
+  if (!navState) return []
+  return findFullRoute(navState)
 }
 
 // Public API
@@ -53,4 +66,9 @@ export const getModalStack = () => {
 export const getVisibleScreen = () => {
   const visible = getVisiblePath()
   return visible[visible.length - 1]
+}
+
+export const getFullRoute = () => {
+  if (!_navigator) return []
+  return findFullRoute(_navigator.getNavState())
 }

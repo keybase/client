@@ -105,8 +105,17 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
     }
     case RouteTreeGen.navigateUp:
       return [StackActions.pop()]
-    case RouteTreeGen.goToScreen: {
-      return [NavigationActions.navigate({params: undefined, routeName: action.payload.routeName})]
+    case RouteTreeGen.navUpToScreen: {
+      const fullPath = Constants._getFullRouteForNavigator(navigation.state)
+      const popActions = []
+      const isInStack = fullPath.reverse().some(r => {
+        if (r.routeName === action.payload.routeName) {
+          return true
+        }
+        popActions.push(StackActions.pop())
+        return false
+      })
+      return isInStack ? popActions : []
     }
   }
 }

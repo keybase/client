@@ -1971,7 +1971,7 @@ const navigateToInbox = (state, action) => {
     return
   }
   if (flags.useNewRouter) {
-    return RouteTreeGen.createGoToScreen({routeName: Tabs.chatTab})
+    return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
   }
   let resetRouteAction = RouteTreeGen.createNavigateTo({
     path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
