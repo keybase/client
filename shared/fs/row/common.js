@@ -32,9 +32,7 @@ export const StillCommon = (
       Types.getPathLevel(props.path) > 2 && (
         <Kb.Box2 direction="horizontal">
           <OpenInSystemFileManager path={props.path} />
-          {Types.getPathLevel(props.path) > 2 && (
-            <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
-          )}
+          <SendInAppAction path={props.path} />
           <Kb.WithTooltip text="Other actions">
             <PathItemAction
               path={props.path}
