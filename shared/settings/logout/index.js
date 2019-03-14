@@ -84,20 +84,31 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
 
 export default (props: Props) => (
   <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
-    <Kb.Text type="Body">{props.heading}</Kb.Text>
     {props.hasRandomPW ? (
-      <UpdatePassphrase
-        heading={props.heading}
-        onSave={props.onSavePassphrase}
-        waitingForResponse={props.waitingForResponse}
-      />
+      <>
+        <Kb.Text type="Body">
+          You don't have a passphrase set -- you should set one before logging out, so that you can log in
+          again later.
+        </Kb.Text>
+        <UpdatePassphrase
+          heading={props.heading}
+          onSave={props.onSavePassphrase}
+          waitingForResponse={props.waitingForResponse}
+        />
+      </>
     ) : (
-      <OfferToCheckPassphrase
-        checkPassphraseIsCorrect={props.checkPassphraseIsCorrect}
-        heading={props.heading}
-        onCheckPassphrase={props.onCheckPassphrase}
-        onLogout={props.onLogout}
-      />
+      <>
+        <Kb.Text type="Body">
+          Would you like to make sure that you know your passphrase before logging out? You'll need it to log
+          back in.
+        </Kb.Text>
+        <OfferToCheckPassphrase
+          checkPassphraseIsCorrect={props.checkPassphraseIsCorrect}
+          heading={props.heading}
+          onCheckPassphrase={props.onCheckPassphrase}
+          onLogout={props.onLogout}
+        />
+      </>
     )}
   </Kb.ScrollView>
 )

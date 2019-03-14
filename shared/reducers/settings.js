@@ -159,6 +159,11 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         },
       }
     }
+    case SettingsGen.checkPassphrase:
+      return {
+        ...state,
+        checkPassphraseIsCorrect: null,
+      }
     case SettingsGen.onUpdatedPGPSettings:
       const {hasKeys} = action.payload
       return {
@@ -263,7 +268,6 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:
     case SettingsGen.loadHasRandomPw:
-    case SettingsGen.checkPassphrase:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
