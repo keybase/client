@@ -260,7 +260,8 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	require.Equal(t, teamEK, keybase1.TeamEk{})
 	t.Logf("before expectedTeamEkGen: %v", expectedTeamEKGen)
 	select {
-	case <-ch:
+	case created := <-ch:
+		require.True(t, created)
 	case <-time.After(time.Second * 20):
 		t.Fatalf("teamEK background creation failed")
 	}
@@ -302,7 +303,8 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	// Wait until background generation completes
 	select {
-	case <-ch:
+	case created := <-ch:
+		require.True(t, created)
 	case <-time.After(time.Second * 20):
 		t.Fatalf("teamEK background creation failed")
 	}
