@@ -23,7 +23,6 @@ const babelRule = {
 }
 
 module.exports = ({config, mode}) => {
-  debugger
   config.resolve = {
     extensions: ['.desktop.js', '.js', '.jsx', '.json'],
   }
@@ -88,54 +87,3 @@ module.exports = ({config, mode}) => {
 
   return config
 }
-
-// module.exports = {
-// plugins: [
-// new webpack.DefinePlugin({
-// __DEV__: true,
-// __STORYBOOK__: true,
-// __STORYSHOT__: false,
-// 'process.platform': JSON.stringify('darwin'),
-// }),
-// new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.js'),
-// new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.js'),
-// new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.js'),
-// new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.js'),
-// new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.js'),
-// ],
-// resolve: {
-// extensions: ['.desktop.js', '.js', '.jsx', '.json'],
-// },
-// module: {
-// rules: [
-// {
-// // Don't include large mock images in a prod build
-// include: path.resolve(__dirname, '../images/mock'),
-// test: /\.jpg$/,
-// use: [fileLoaderRule],
-// },
-// {
-// include: path.resolve(__dirname, '../images/icons'),
-// test: /\.(flow|native\.js|gif|png|jpg)$/,
-// use: ['null-loader'],
-// },
-// {
-// include: path.resolve(__dirname, '../images/illustrations'),
-// test: [/.*\.(gif|png)$/],
-// use: [fileLoaderRule],
-// },
-// {
-// test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
-// use: [fileLoaderRule],
-// },
-// // {
-// // test: /\.css$/,
-// // use: ['style-loader', 'css-loader'],
-// // },
-// ],
-// },
-// node: {
-// __dirname: true,
-// fs: 'empty',
-// },
-// }
