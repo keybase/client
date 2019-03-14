@@ -655,17 +655,31 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			uid := m.UID().Bytes()
 
-			// We need to get this conversation and then localize it
+			// If the topic type is not CHAT, skip the localization step
 			var inbox types.Inbox
-			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-				types.InboxSourceDataSourceRemoteOnly,
-				nil, &chat1.GetInboxLocalQuery{
-					ConvIDs:      []chat1.ConversationID{nm.ConvID},
-					MemberStatus: chat1.AllConversationMemberStatuses(),
-				}, nil); err != nil {
-				g.Debug(ctx, "chat activity: unable to read conversation: %v", err)
-				return
+			switch nm.TopicType {
+			case chat1.TopicType_CHAT:
+				if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+					types.InboxSourceDataSourceRemoteOnly,
+					nil, &chat1.GetInboxLocalQuery{
+						ConvIDs:      []chat1.ConversationID{nm.ConvID},
+						MemberStatus: chat1.AllConversationMemberStatuses(),
+					}, nil); err != nil {
+					g.Debug(ctx, "chat activity: unable to read conversation: %v", err)
+					return
+				}
+			default:
+				if inbox, err = g.G().InboxSource.ReadUnverified(ctx, uid,
+					types.InboxSourceDataSourceRemoteOnly,
+					&chat1.GetInboxQuery{
+						ConvIDs:      []chat1.ConversationID{nm.ConvID},
+						MemberStatus: chat1.AllConversationMemberStatuses(),
+					}, nil); err != nil {
+					g.Debug(ctx, "chat activity: unable to read unverified conversation: %v", err)
+					return
+				}
 			}
+
 			if len(inbox.Convs) != 1 {
 				g.Debug(ctx, "chat activity: unable to find conversation, found: %d, expected 1", len(inbox.Convs))
 				return
