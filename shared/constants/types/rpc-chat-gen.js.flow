@@ -623,7 +623,6 @@ export const localMessageIDControlMode = {
   newermessages: 1,
   centered: 2,
   unreadline: 3,
-  searchhit: 4,
 }
 
 export const localMessageSystemType = {
@@ -1021,7 +1020,6 @@ export type MessageIDControlMode =
   | 1 // NEWERMESSAGES_1
   | 2 // CENTERED_2
   | 3 // UNREADLINE_3
-  | 4 // SEARCHHIT_4
 
 export type MessageJoin = $ReadOnly<{}>
 export type MessageLeave = $ReadOnly<{}>

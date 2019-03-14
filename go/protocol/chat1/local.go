@@ -3177,7 +3177,6 @@ const (
 	MessageIDControlMode_NEWERMESSAGES MessageIDControlMode = 1
 	MessageIDControlMode_CENTERED      MessageIDControlMode = 2
 	MessageIDControlMode_UNREADLINE    MessageIDControlMode = 3
-	MessageIDControlMode_SEARCHHIT     MessageIDControlMode = 4
 )
 
 func (o MessageIDControlMode) DeepCopy() MessageIDControlMode { return o }
@@ -3187,7 +3186,6 @@ var MessageIDControlModeMap = map[string]MessageIDControlMode{
 	"NEWERMESSAGES": 1,
 	"CENTERED":      2,
 	"UNREADLINE":    3,
-	"SEARCHHIT":     4,
 }
 
 var MessageIDControlModeRevMap = map[MessageIDControlMode]string{
@@ -3195,7 +3193,6 @@ var MessageIDControlModeRevMap = map[MessageIDControlMode]string{
 	1: "NEWERMESSAGES",
 	2: "CENTERED",
 	3: "UNREADLINE",
-	4: "SEARCHHIT",
 }
 
 func (e MessageIDControlMode) String() string {

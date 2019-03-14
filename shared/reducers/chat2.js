@@ -476,6 +476,20 @@ const rootReducer = (
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
+    case Chat2Gen.loadMessagesFromSearchHit: {
+      let ordinal = messageIDToOrdinal(
+        state.messageMap,
+        state.pendingOutboxToOrdinal,
+        action.payload.conversationIDKey,
+        action.payload.messageID
+      )
+      if (!ordinal) {
+        ordinal = Types.numberToOrdinal(Types.messageIDToNumber(action.payload.messageID))
+      }
+      return ordinal
+        ? state.setIn(['messageCenterOrdinals', action.payload.conversationIDKey], ordinal)
+        : state
+    }
     case Chat2Gen.setPendingMode:
       return state.withMutations(_s => {
         const s = (_s: Types.State)
@@ -1071,7 +1085,6 @@ const rootReducer = (
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
     case Chat2Gen.loadNewerMessagesDueToScroll:
-    case Chat2Gen.loadMessagesFromSearchHit:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:

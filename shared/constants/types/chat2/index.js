@@ -66,6 +66,7 @@ export type _State = {
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
+  messageCenterOrdinals: I.Map<Common.ConversationIDKey, Message.Ordinal>, // ordinals to center threads on
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: MetaMap, // metadata about a thread, There is a special node for the pending conversation

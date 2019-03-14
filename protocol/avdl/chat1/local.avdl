@@ -572,8 +572,7 @@ protocol local {
     OLDERMESSAGES_0,
     NEWERMESSAGES_1,
     CENTERED_2,
-    UNREADLINE_3,
-    SEARCHHIT_4
+    UNREADLINE_3
   }
 
   record MessageIDControl {

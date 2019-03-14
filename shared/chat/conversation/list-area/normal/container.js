@@ -18,6 +18,7 @@ type OwnProps = {
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
+  const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)
   const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   let lastMessageIsOurs = false
   if (lastOrdinal) {
@@ -26,6 +27,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   }
 
   return {
+    centeredOrdinal,
     containsLatestMessage,
     conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
@@ -45,6 +47,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   _loadNewerMessages: dispatchProps._loadNewerMessages,
   _loadOlderMessages: dispatchProps._loadOlderMessages,
+  centeredOrdinal: stateProps.centeredOrdinal,
   containsLatestMessage: stateProps.containsLatestMessage,
   conversationIDKey: stateProps.conversationIDKey,
   copyToClipboard: dispatchProps.copyToClipboard,

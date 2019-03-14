@@ -231,7 +231,6 @@ export const localMessageIDControlMode = {
   newermessages: 1,
   centered: 2,
   unreadline: 3,
-  searchhit: 4,
 }
 
 export const localMessageSystemType = {

@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 
 export type Props = {|
+  centeredOrdinal: ?Types.Ordinal,
   copyToClipboard: string => void,
   containsLatestMessage: boolean,
   conversationIDKey: Types.ConversationIDKey,

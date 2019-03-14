@@ -313,6 +313,7 @@ class ThreadWrapper extends React.Component<Props, State> {
         </ButtonBar>
         <Thread
           {...props}
+          centeredOrdinal={null}
           containsLatestMessage={true}
           conversationIDKey={this.state.conversationIDKey}
           messageOrdinals={this.state.messageOrdinals}

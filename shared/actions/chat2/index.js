@@ -764,6 +764,11 @@ const onNewChatActivity = (state, action) => {
     case RPCChatTypes.notifyChatChatActivityType.incomingMessage: {
       const incomingMessage = activity.incomingMessage
       if (incomingMessage) {
+        const conversationIDKey = Types.conversationIDToKey(incomingMessage.convID)
+        // ignore this if we don't currently have the latest message
+        if (!state.chat2.containsLatestMessageMap.get(conversationIDKey, false)) {
+          return []
+        }
         actions = [
           ...onIncomingMessage(state, incomingMessage),
           ...chatActivityToMetasAction(incomingMessage),
@@ -964,7 +969,7 @@ function* loadMoreMessages(state, action) {
       key = action.payload.conversationIDKey
       reason = 'search hit'
       messageIDControl = {
-        mode: RPCChatTypes.localMessageIDControlMode.searchhit,
+        mode: RPCChatTypes.localMessageIDControlMode.centered,
         num: Constants.numMessagesOnInitialLoad,
         pivot: action.payload.messageID,
       }
