@@ -1,12 +1,14 @@
 // @flow
 import * as React from 'react'
-import {connect} from '../../../../../util/container'
+import {connect, getRouteProps} from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import EmojiPicker from '.'
+import flags from '../../../../../util/feature-flags'
 
 // Directly routable version of EmojiPicker for mobile custom emoji
 // Provide conversationIDKey and ordinal and this adds reactions
@@ -32,14 +34,15 @@ type WrapperState = {|
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
-  const ordinal = ownProps.routeProps.get('ordinal')
+  const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
+  const ordinal = getRouteProps(ownProps, 'ordinal')
+  const navUpAction = flags.useNewRouter ? RouteTreeGen.createNavigateUp() : ownProps.navigateUp()
   return {
     onAddReaction: (emoji: string) => {
       dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
-      dispatch(ownProps.navigateUp())
+      dispatch(navUpAction)
     },
-    onCancel: () => dispatch(ownProps.navigateUp()),
+    onCancel: () => dispatch(navUpAction),
   }
 }
 
