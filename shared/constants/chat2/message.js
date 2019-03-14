@@ -356,7 +356,7 @@ const makeMessageSystemChangeRetention: I.RecordFactory<MessageTypes._MessageSys
     isInherit: false,
     isTeam: false,
     membersType: 0,
-    policy: RPCChatTypes.RetentionPolicy,
+    policy: RPCChatTypes.commonRetentionPolicyType.none,
     reactions: I.Map(),
     type: 'systemChangeRetention',
     user: '',
