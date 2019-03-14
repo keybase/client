@@ -597,7 +597,6 @@ func (h *Server) applyPagerModeIncoming(ctx context.Context, convID chat1.Conver
 			return &chat1.Pagination{
 				Num:      pagination.Num,
 				Previous: oldStored.Previous,
-				Last:     oldStored.Last,
 			}
 		}
 	}

@@ -31,15 +31,15 @@ const ordinalsInAWaypoint = 10
 const listEdgeSlop = 10
 
 type State = {
-  isLockedToBottom: boolean,
+  lockedToBottom: boolean,
 }
 
 type Snapshot = ?number
 
-const debug = __STORYBOOK__
+const debug = __STORYBOOK__ || true
 
 class Thread extends React.PureComponent<Props, State> {
-  state = {isLockedToBottom: true}
+  state = {lockedToBottom: true}
   _listRef = React.createRef()
   // so we can turn pointer events on / off
   _pointerWrapperRef = React.createRef()
@@ -95,6 +95,10 @@ class Thread extends React.PureComponent<Props, State> {
       }
     : (list, name, fn) => fn()
 
+  _isLockedToBottom = () => {
+    return this.state.lockedToBottom && this.props.containsLatestMessage
+  }
+
   _scrollToBottom = reason => {
     const list = this._listRef.current
     if (list) {
@@ -129,7 +133,7 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   componentDidMount() {
-    if (this.state.isLockedToBottom) {
+    if (this._isLockedToBottom()) {
       setImmediate(() => this._scrollToBottom('componentDidMount'))
     }
   }
@@ -156,7 +160,7 @@ class Thread extends React.PureComponent<Props, State> {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
       this._scrollHeight = 0
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+      this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
       this._scrollToBottom('componentDidUpdate-change-convo')
       return
     }
@@ -173,33 +177,41 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
+    // someone requested we scroll to bottom and lock
     if (this.props.scrollListToBottomCounter !== prevProps.scrollListToBottomCounter) {
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+      this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
       this._scrollToBottom('componentDidUpdate-requested')
-      return
-    }
-
-    // we send something last
-    if (
-      this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last() &&
-      this.props.lastMessageIsOurs
-    ) {
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom('componentDidUpdate-sent-something')
       return
     }
 
     // Adjust scrolling
     const list = this._listRef.current
-    // Prepending some messages?
-    if (snapshot && list && !this.state.isLockedToBottom) {
+    // if locked to the bottom, and we have the most recent message, then scroll to the bottom
+    if (this._isLockedToBottom() && this.props.conversationIDKey === prevProps.conversationIDKey) {
+      // maintain scroll to bottom?
+      this._scrollToBottom('componentDidUpdate-maintain-scroll')
+    }
+
+    // Are we appending newer messages?
+    if (
+      this.props.messageOrdinals.size !== prevProps.messageOrdinals.size &&
+      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first() &&
+      !this.props.containsLatestMessage
+    ) {
+      // do nothing do scroll position if this is true
+      this._scrollHeight = 0 // setting this causes us to skip next resize
+      return
+    }
+
+    // Are we prepending older messages?
+    if (snapshot && list && !this._isLockedToBottom()) {
       // onResize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
       this._scrollHeight = snapshot
       this._onResize({scroll: {height: list.scrollHeight}})
-    } else if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
-      // maintain scroll to bottom?
-      this._scrollToBottom('componentDidUpdate-maintain-scroll')
-    } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
+    } else if (
+      this.props.containsLatestMessage &&
+      this.props.messageOrdinals.size !== prevProps.messageOrdinals.size
+    ) {
       // someone else sent something? then ignore next resize
       this._scrollHeight = 0
     }
@@ -259,8 +271,8 @@ class Thread extends React.PureComponent<Props, State> {
       this._onAfterScroll()
 
       // not locked to bottom while scrolling
-      const isLockedToBottom = false
-      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+      const lockedToBottom = false
+      this.setState(p => (p.lockedToBottom === lockedToBottom ? null : {lockedToBottom}))
     },
     100,
     {leading: true, trailing: true}
@@ -276,7 +288,7 @@ class Thread extends React.PureComponent<Props, State> {
           this.props.loadOlderMessages()
         } else if (
           !this.props.containsLatestMessage &&
-          !this.state.isLockedToBottom &&
+          !this._isLockedToBottom() &&
           list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
         ) {
           console.log('scroll: getting newer messages')
@@ -305,8 +317,8 @@ class Thread extends React.PureComponent<Props, State> {
       if (debug) {
         logger.debug('SCROLL', '_onAfterScroll', 'scrollTop', list.scrollTop)
       }
-      const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
-      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+      const lockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
+      this.setState(p => (p.lockedToBottom === lockedToBottom ? null : {lockedToBottom}))
     }
   }, 200)
 
@@ -393,7 +405,7 @@ class Thread extends React.PureComponent<Props, State> {
   _onResize = ({scroll}) => {
     if (this._scrollHeight) {
       // if the size changes adjust our scrolltop
-      if (this.state.isLockedToBottom) {
+      if (this._isLockedToBottom()) {
         this._scrollToBottom('_onResize')
       } else {
         const list = this._listRef.current
@@ -412,7 +424,7 @@ class Thread extends React.PureComponent<Props, State> {
     const items = this._makeItems()
 
     const debugInfo = debug ? (
-      <div>Debug info: {this.state.isLockedToBottom ? 'Locked to bottom' : 'Not locked to bottom'}</div>
+      <div>Debug info: {this._isLockedToBottom() ? 'Locked to bottom' : 'Not locked to bottom'}</div>
     ) : null
 
     return (
