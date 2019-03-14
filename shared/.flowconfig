@@ -14,6 +14,7 @@
 <PROJECT_ROOT>/desktop/release/.*
 <PROJECT_ROOT>/node_modules/electron-packager
 <PROJECT_ROOT>/node_modules/react-window
+<PROJECT_ROOT>/node_modules/react-native-camera
 <PROJECT_ROOT>/node_modules/react-native/Libraries/Components/View/ViewPropTypes.js
 <PROJECT_ROOT>/node_modules/react-native/Libraries/EventEmitter/__mocks__
 <PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js

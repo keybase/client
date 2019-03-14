@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		00ECF9E0316E4A55A233DEBA /* libRNCWebView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D14D63043FE44114B5101E02 /* libRNCWebView.a */; };
 		12F4B45D43FA443E93CC4D30 /* libRNScreens.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EBD58D856E94E219F42802B /* libRNScreens.a */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB59F2139AB6A005E4864 /* ShareViewController.m */; };
@@ -175,6 +176,20 @@
 			proxyType = 2;
 			remoteGlobalIDString = 3D383D621EBD27B9005632C8;
 			remoteInfo = "double-conversion-tvOS";
+		};
+		DB0B2E0B223A934B0048FB32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F9F3DBE057644E129CA45B58 /* RNGestureHandler.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = B5C32A36220C603B000FFB8D;
+			remoteInfo = "RNGestureHandler-tvOS";
+		};
+		DB0B2E12223A934B0048FB32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D3ACA8646FB94F1F93E23684 /* RNCWebView.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RNCWebView;
 		};
 		DB276B3621EFE8F400D67DB1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -552,6 +567,8 @@
 		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		C57EB246A82A498E96C1AD22 /* RNCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RNCamera.xcodeproj"; sourceTree = "<group>"; };
 		CA71E64FA7CA4493ADFC607E /* RNCNetInfo.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNCNetInfo.xcodeproj; path = "../../node_modules/@react-native-community/netinfo/ios/RNCNetInfo.xcodeproj"; sourceTree = "<group>"; };
+		D14D63043FE44114B5101E02 /* libRNCWebView.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNCWebView.a; sourceTree = "<group>"; };
+		D3ACA8646FB94F1F93E23684 /* RNCWebView.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNCWebView.xcodeproj; path = "../../node_modules/react-native-webview/ios/RNCWebView.xcodeproj"; sourceTree = "<group>"; };
 		DB0500F31F10114D000B54AD /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
@@ -638,6 +655,7 @@
 				8828A757521849ACB90150D0 /* libRNGestureHandler.a in Frameworks */,
 				12F4B45D43FA443E93CC4D30 /* libRNScreens.a in Frameworks */,
 				D6F56BD64EF142CDB89654C8 /* libRNCNetInfo.a in Frameworks */,
+				00ECF9E0316E4A55A233DEBA /* libRNCWebView.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -748,6 +766,7 @@
 				F9F3DBE057644E129CA45B58 /* RNGestureHandler.xcodeproj */,
 				8D1F643AB3B646C08A6F2B7E /* RNScreens.xcodeproj */,
 				CA71E64FA7CA4493ADFC607E /* RNCNetInfo.xcodeproj */,
+				D3ACA8646FB94F1F93E23684 /* RNCWebView.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -822,14 +841,24 @@
 				9B47606285394777AF241164 /* libRNGestureHandler.a */,
 				1EBD58D856E94E219F42802B /* libRNScreens.a */,
 				C1770B372F56457BB3A43574 /* libRNCNetInfo.a */,
+				D14D63043FE44114B5101E02 /* libRNCWebView.a */,
 			);
 			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		DB0B2E0F223A934B0048FB32 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB0B2E13223A934B0048FB32 /* libRNCWebView.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		DB276B3321EFE8F400D67DB1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				DB276B3721EFE8F400D67DB1 /* libRNGestureHandler.a */,
+				DB0B2E0C223A934B0048FB32 /* libRNGestureHandler-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1301,6 +1330,10 @@
 					ProjectRef = CA71E64FA7CA4493ADFC607E /* RNCNetInfo.xcodeproj */;
 				},
 				{
+					ProductGroup = DB0B2E0F223A934B0048FB32 /* Products */;
+					ProjectRef = D3ACA8646FB94F1F93E23684 /* RNCWebView.xcodeproj */;
+				},
+				{
 					ProductGroup = DB5E9BAD212A0C9700F903B3 /* Products */;
 					ProjectRef = DB5E9BAC212A0C9700F903B3 /* RNFetchBlob.xcodeproj */;
 				},
@@ -1409,6 +1442,20 @@
 			fileType = archive.ar;
 			path = "libdouble-conversion.a";
 			remoteRef = DB0501251F10114D000B54AD /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB0B2E0C223A934B0048FB32 /* libRNGestureHandler-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libRNGestureHandler-tvOS.a";
+			remoteRef = DB0B2E0B223A934B0048FB32 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB0B2E13223A934B0048FB32 /* libRNCWebView.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNCWebView.a;
+			remoteRef = DB0B2E12223A934B0048FB32 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		DB276B3721EFE8F400D67DB1 /* libRNGestureHandler.a */ = {
@@ -1926,6 +1973,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
 					"$(SRCROOT)/../../node_modules/@react-native-community/netinfo/ios",
+					"$(SRCROOT)/../../node_modules/react-native-webview/ios",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1934,6 +1982,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
@@ -1989,6 +2038,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
 					"$(SRCROOT)/../../node_modules/@react-native-community/netinfo/ios",
+					"$(SRCROOT)/../../node_modules/react-native-webview/ios",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1997,6 +2047,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
+					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase\"",
@@ -2224,6 +2275,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
 					"$(SRCROOT)/../../node_modules/@react-native-community/netinfo/ios",
+					"$(SRCROOT)/../../node_modules/react-native-webview/ios",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -2277,6 +2329,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-gesture-handler/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-screens/ios",
 					"$(SRCROOT)/../../node_modules/@react-native-community/netinfo/ios",
+					"$(SRCROOT)/../../node_modules/react-native-webview/ios",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
