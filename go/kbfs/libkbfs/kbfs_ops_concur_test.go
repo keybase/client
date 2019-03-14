@@ -16,6 +16,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
@@ -1673,7 +1674,7 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 
 	putCtx, cancel2 := context.WithCancel(putCtx)
 
-	putCtx, err := NewContextWithCancellationDelayer(putCtx)
+	putCtx, err := libcontext.NewContextWithCancellationDelayer(putCtx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1704,8 +1705,8 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 	require.NoError(t, err, "Create returned error: %v", err)
-	ctx2 := BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx2)
+	ctx2 := libcontext.BackgroundContextWithCancellationDelayer()
+	defer libcontext.CleanupCancellationDelayer(ctx2)
 	if _, _, err = kbfsOps.Lookup(
 		ctx2, rootNode, "a"); err != nil {
 		t.Fatalf("Lookup returned error: %v", err)
@@ -1729,7 +1730,7 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 
 	putCtx, cancel2 := context.WithCancel(putCtx)
 
-	putCtx, err := NewContextWithCancellationDelayer(putCtx)
+	putCtx, err := libcontext.NewContextWithCancellationDelayer(putCtx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1777,8 +1778,8 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 			" Got %v; expecting context.Canceled", err)
 	}
 
-	ctx2 := BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx2)
+	ctx2 := libcontext.BackgroundContextWithCancellationDelayer()
+	defer libcontext.CleanupCancellationDelayer(ctx2)
 	// do another Op, which generates a new revision, to make sure
 	// CheckConfigAndShutdown doesn't get stuck
 	if _, _, err = kbfsOps.CreateFile(ctx2,

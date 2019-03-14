@@ -227,7 +227,8 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(
 	}
 
 	if flags&getTLFCryptKeyAnyDevice != 0 {
-		publicKeys, err := kbpki.GetCryptPublicKeys(ctx, uid)
+		publicKeys, err := kbpki.GetCryptPublicKeys(
+			ctx, uid, km.config.OfflineAvailabilityForID(kmd.TlfID()))
 		if err != nil {
 			return kbfscrypto.TLFCryptKeyClientHalf{},
 				kbfscrypto.TLFCryptKeyServerHalfID{},
@@ -458,7 +459,8 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 // the given list of users. Note that keyless users are retained in
 // the returned kbfsmd.UserDevicePublicKeys object.
 func (km *KeyManagerStandard) generateKeyMapForUsers(
-	ctx context.Context, users []keybase1.UserOrTeamID) (
+	ctx context.Context, users []keybase1.UserOrTeamID,
+	offline keybase1.OfflineAvailability) (
 	kbfsmd.UserDevicePublicKeys, error) {
 	keyMap := make(kbfsmd.UserDevicePublicKeys)
 
@@ -467,7 +469,8 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(
 		uid := w.AsUserOrBust() // only private TLFs should call this
 		// HACK: clear cache
 		km.config.KeybaseService().FlushUserFromLocalCache(ctx, uid)
-		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, uid)
+		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(
+			ctx, uid, offline)
 		if err != nil {
 			return nil, err
 		}
@@ -586,15 +589,17 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, NewReadAccessError(resolvedHandle, session.Name, resolvedHandle.GetCanonicalPath())
 	}
 
+	offline := km.config.OfflineAvailabilityForID(md.TlfID())
+
 	// All writer keys in the desired keyset
 	updatedWriterKeys, err := km.generateKeyMapForUsers(
-		ctx, resolvedHandle.ResolvedWriters())
+		ctx, resolvedHandle.ResolvedWriters(), offline)
 	if err != nil {
 		return false, nil, err
 	}
 	// All reader keys in the desired keyset
 	updatedReaderKeys, err := km.generateKeyMapForUsers(
-		ctx, resolvedHandle.ResolvedReaders())
+		ctx, resolvedHandle.ResolvedReaders(), offline)
 	if err != nil {
 		return false, nil, err
 	}

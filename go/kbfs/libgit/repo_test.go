@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
@@ -22,7 +23,7 @@ import (
 func initConfig(t *testing.T) (
 	ctx context.Context, cancel context.CancelFunc,
 	config *libkbfs.ConfigLocal, tempdir string) {
-	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx = libcontext.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1", "user2")
 	success := false

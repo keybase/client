@@ -21,14 +21,21 @@ type Props = {
   body: React.Node,
   firstItem: boolean,
   action?: React.Node,
+  onlyShowActionOnHover?: ?boolean,
   onClick?: () => void,
 }
 
 const HoverBox = Styles.isMobile
   ? Box2
   : Styles.styled(Box2)({
+      '.hidden-no-hover': {
+        opacity: 0,
+      },
       ':hover': {
         backgroundColor: Styles.globalColors.blue4,
+      },
+      ':hover .hidden-no-hover': {
+        opacity: 1,
       },
     })
 
@@ -64,6 +71,7 @@ const ListItem = (props: Props) => (
         </Kb.BoxGrow>
         <Kb.Box2
           direction="horizontal"
+          className={props.onlyShowActionOnHover ? 'hidden-no-hover' : null}
           style={props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer}
         >
           {props.action}
@@ -73,8 +81,8 @@ const ListItem = (props: Props) => (
   </Kb.ClickableBox>
 )
 
-const smallHeight = Styles.isMobile ? 48 : 40
-const largeHeight = Styles.isMobile ? 64 : 56
+export const smallHeight = Styles.isMobile ? 56 : 48
+export const largeHeight = Styles.isMobile ? 64 : 56
 const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
 

@@ -464,6 +464,18 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 	}, nil
 }
 
+func (h *Server) messageIDControlToPagination(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgIDControl chat1.MessageIDControl) *chat1.Pagination {
+	var mcconv *types.RemoteConversation
+	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		h.Debug(ctx, "messageIDControlToPagination: failed to get conversation: %s", err)
+	} else {
+		mcconv = &conv
+	}
+	return utils.MessageIDControlToPagination(ctx, h.DebugLabeler, &msgIDControl, mcconv)
+}
+
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -478,7 +490,8 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		arg.Pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
+			*arg.Query.MessageIDControl)
 	}
 
 	// Get messages from the source
@@ -723,13 +736,17 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	arg.Query.EnableDeletePlaceholders = true
 
-	// Xlate pager control into pagination if given
+	// Parse out options
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		// Pager control into pagination if given
+		h.Debug(ctx, "GetThreadNonblock: using message ID control for pagination: %v",
+			*arg.Query.MessageIDControl)
+		pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
+			*arg.Query.MessageIDControl)
+	} else {
+		// Apply any pager mode transformations
+		pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
 	}
-
-	// Apply any pager mode transformations
-	pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
 	if pagination != nil && pagination.Last {
 		return res, nil
 	}

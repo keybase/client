@@ -98,6 +98,7 @@ class CoinFlip extends React.Component<Props, State> {
         direction="vertical"
         style={Styles.collapseStyles([!this.props.errorInfo && styles.container])}
         fullWidth={true}
+        gap="tiny"
       >
         {this.props.errorInfo ? (
           <CoinFlipError error={this.props.errorInfo} />

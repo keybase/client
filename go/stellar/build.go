@@ -252,8 +252,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				case cmp == -1:
 					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", availableToSendFormatted)
-
+					res.AmountErrMsg = fmt.Sprintf("You have *%s* available to send.", availableToSendFormatted)
 				default:
 					// Welcome back. How was your stay at the error handling hotel?
 					res.AmountAvailable = availableToSendFormatted + " available"

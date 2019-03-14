@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
@@ -425,14 +426,14 @@ func (c *ChatRPC) GetGroupedInbox(
 		return nil, err
 	}
 
-	favorites, err := c.config.KBFSOps().GetFavorites(ctx)
+	favs, err := c.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		c.log.CWarningf(ctx,
 			"Unable to fetch favorites while making GroupedInbox: %v",
 			err)
 	}
-	favMap := make(map[Favorite]bool)
-	for _, fav := range favorites {
+	favMap := make(map[favorites.Folder]bool)
+	for _, fav := range favs {
 		favMap[fav] = true
 	}
 
@@ -454,7 +455,7 @@ func (c *ChatRPC) GetGroupedInbox(
 			tlfType = tlf.SingleTeam
 		}
 
-		tlfIsFavorite := favMap[Favorite{Name: info.TlfName, Type: tlfType}]
+		tlfIsFavorite := favMap[favorites.Folder{Name: info.TlfName, Type: tlfType}]
 		if !tlfIsFavorite {
 			continue
 		}

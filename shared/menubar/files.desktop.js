@@ -39,10 +39,7 @@ type FilesPreviewProps = {|
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
-      <Kb.Icon
-        type={props.tlfType === 'public' ? 'icon-file-public-16' : 'icon-file-private-16'}
-        style={Kb.iconCastPlatformStyles(styles.iconStyle)}
-      />
+      <Kb.Icon type="icon-file-16" style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
       {props.uploading && (
         <Kb.Box style={styles.iconBadgeBox}>
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
@@ -88,11 +85,7 @@ type ShowAllProps = FileUpdatesHocProps & {|
 const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonContainer}>
     <Kb.Button
-      label={
-        props.isShowingAll
-          ? 'Collapse'
-          : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`
-      }
+      label={`+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
       onClick={props.onShowAll}
       small={true}
       type="Secondary"
@@ -107,7 +100,7 @@ const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
       <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
     ))}
-    {props.updates.length > defaultNumFileOptionsShown && (
+    {props.updates.length > defaultNumFileOptionsShown && !props.isShowingAll && (
       // $FlowIssue ¯\_(ツ)_/¯
       <FileUpdatesShowAll
         onShowAll={props.onShowAll}
@@ -175,7 +168,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 
 const styles = Styles.styleSheetCreate({
   buttonContainer: {
-    marginTop: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   fileUpdateRow: {
     alignItems: 'center',
@@ -221,7 +214,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
   },
   tlfSectionHeader: {
-    backgroundColor: Styles.globalColors.blue5,
+    backgroundColor: Styles.globalColors.blueGrey,
     color: Styles.globalColors.black_50,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,

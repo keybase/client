@@ -11,6 +11,7 @@ export type FeatureFlags = {|
   outOfDateBanner: boolean,
   plansEnabled: boolean,
   proofProviders: boolean,
+  sendAttachmentToChat: boolean,
   useNewRouter: boolean,
 |}
 

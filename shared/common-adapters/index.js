@@ -27,6 +27,7 @@ export {default as CopyableText} from './copyable-text'
 export {default as DesktopStyle} from './desktop-style'
 export {default as Divider} from './divider'
 export {default as Dropdown, DropdownButton} from './dropdown'
+export {default as DragAndDrop} from './drag-and-drop'
 export {default as Emoji} from './emoji'
 export {EmojiIfExists} from './markdown/react'
 export {default as ErrorBoundary} from './error-boundary'
@@ -50,7 +51,11 @@ export {default as List} from './list'
 export {default as List2} from './list2'
 export {default as LoadingLine} from './loading-line'
 export {default as ListItem} from './list-item'
-export {default as ListItem2} from './list-item2'
+export {
+  default as ListItem2,
+  largeHeight as largeListItem2Height,
+  smallHeight as smallListItem2Height,
+} from './list-item2'
 export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc} from './maybe-popup'
 export type {MenuItem, MenuItems} from './floating-menu/menu-layout'

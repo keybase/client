@@ -879,6 +879,10 @@ func (f *JSONConfigFile) GetEnableBotLiteMode() (bool, bool) {
 	return f.GetBoolAtPath("enable_bot_lite_mode")
 }
 
+func (f *JSONConfigFile) GetExtraNetLogging() (bool, bool) {
+	return f.GetBoolAtPath("extra_net_logging")
+}
+
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s

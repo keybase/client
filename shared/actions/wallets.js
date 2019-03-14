@@ -249,8 +249,8 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(accepted =>
-    WalletsGen.createWalletDisclaimerReceived({accepted}),
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(
+    accepted => WalletsGen.createWalletDisclaimerReceived({accepted})
   )
 
 const loadAccounts = (state, action) => {
@@ -645,7 +645,7 @@ const navigateToAccount = (state, action) => {
   }
   const wallet = isMobile
     ? [Tabs.settingsTab, SettingsConstants.walletsTab]
-    : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
+    : [{props: {}, selected: Tabs.walletsTab}]
 
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
@@ -706,7 +706,7 @@ const cancelRequest = (state, action) =>
 
 const maybeNavigateAwayFromSendForm = state => {
   if (flags.useNewRouter) {
-    const path = Router2Constants.getVisiblePath()
+    const path = Router2Constants.getModalStack()
     const actions = []
     // pop off any routes that are part of the popup
     path.reverse().some(p => {

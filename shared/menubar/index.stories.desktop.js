@@ -29,7 +29,7 @@ const props = {
   fileName: null,
   files: 0,
   folderProps: null,
-  kbfsDaemonConnected: true,
+  kbfsDaemonStatus: 'connected',
   kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,

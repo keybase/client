@@ -140,7 +140,6 @@ export const newRoutes = {
   editTeamDescription: {
     getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
   },
-  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default},
   member: {getScreen: () => require('./team/member/container').default},
   showJoinTeamDialog: {getScreen: () => require('./join-team/container').default},
   showNewTeamDialog: {getScreen: () => require('./new-team/container').default},
@@ -150,6 +149,7 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   addPeople: {getScreen: () => require('./add-people/container').default},
+  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default},
   reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default},
   reallyRemoveMember: {getScreen: () => require('./team/really-remove-member/container').default},
   retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},

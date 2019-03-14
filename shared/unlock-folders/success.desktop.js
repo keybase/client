@@ -5,7 +5,7 @@ import {Text, Button, Icon, Box, ButtonBar} from '../common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={containerStyle}>
-    <Icon type="icon-folders-private-success-48" />
+    <Icon type="icon-folder-success-48" />
     <Box style={globalStyles.flexBoxColumn}>
       <Text center={true} type="BodySemibold">
         Success!

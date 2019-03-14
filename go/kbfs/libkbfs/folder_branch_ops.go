@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -2842,14 +2843,22 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	return retChildren, nil
 }
 
-func (fbo *folderBranchOps) makeFakeDirEntry(
-	ctx context.Context, lState *lockState, dir Node, name string) (
-	de DirEntry, err error) {
-	fbo.log.CDebugf(ctx, "Faking directory entry for %s", name)
+func (fbo *folderBranchOps) makeFakeEntryID(
+	ctx context.Context, dir Node, name string) (
+	id kbfsblock.ID, err error) {
+	// Use the path of the node to generate the node ID, which will be
+	// unique and deterministic within `fbo.nodeCache`.
 	dirPath := fbo.nodeCache.PathFromNode(dir)
-	id, err := kbfsblock.MakePermanentID(
+	return kbfsblock.MakePermanentID(
 		[]byte(dirPath.ChildPathNoPtr(name).String()),
 		fbo.config.BlockCryptVersion())
+}
+
+func (fbo *folderBranchOps) makeFakeDirEntry(
+	ctx context.Context, dir Node, name string) (
+	de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "Faking directory entry for %s", name)
+	id, err := fbo.makeFakeEntryID(ctx, dir, name)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -2872,6 +2881,43 @@ func (fbo *folderBranchOps) makeFakeDirEntry(
 	return de, nil
 }
 
+func (fbo *folderBranchOps) makeFakeFileEntry(
+	ctx context.Context, dir Node, name string) (de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "Faking file entry for %s", name)
+	id, err := fbo.makeFakeEntryID(ctx, dir, name)
+	if err != nil {
+		return DirEntry{}, err
+	}
+
+	fs := dir.GetFS(ctx)
+	if fs == nil {
+		return DirEntry{}, errors.New("No FS")
+	}
+
+	fi, err := fs.Lstat(name)
+	if err != nil {
+		return DirEntry{}, err
+	}
+
+	de = DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				ID:      id,
+				DataVer: FirstValidDataVer,
+			},
+		},
+		EntryInfo: EntryInfoFromFileInfo(fi),
+	}
+	if de.Type == Sym {
+		target, err := fs.Readlink(name)
+		if err != nil {
+			return DirEntry{}, err
+		}
+		de.SymPath = target
+	}
+	return de, nil
+}
+
 func (fbo *folderBranchOps) processMissedLookup(
 	ctx context.Context, lState *lockState, dir Node, name string,
 	missErr error) (node Node, ei EntryInfo, err error) {
@@ -2882,7 +2928,17 @@ func (fbo *folderBranchOps) processMissedLookup(
 	}
 
 	if et == FakeDir {
-		de, err := fbo.makeFakeDirEntry(ctx, lState, dir, name)
+		de, err := fbo.makeFakeDirEntry(ctx, dir, name)
+		if err != nil {
+			return nil, EntryInfo{}, missErr
+		}
+		node, err := fbo.blocks.GetChildNode(lState, dir, name, de)
+		if err != nil {
+			return nil, EntryInfo{}, err
+		}
+		return node, de.EntryInfo, nil
+	} else if et == FakeFile {
+		de, err := fbo.makeFakeFileEntry(ctx, dir, name)
 		if err != nil {
 			return nil, EntryInfo{}, missErr
 		}
@@ -2925,7 +2981,7 @@ func (fbo *folderBranchOps) statUsingFS(
 	// First check if this is needs to be a faked-out node.
 	autocreate, _, et, _ := node.ShouldCreateMissedLookup(ctx, name)
 	if autocreate && et == FakeDir {
-		de, err := fbo.makeFakeDirEntry(ctx, lState, node, name)
+		de, err := fbo.makeFakeDirEntry(ctx, node, name)
 		if err != nil {
 			return DirEntry{}, false, err
 		}
@@ -2939,36 +2995,9 @@ func (fbo *folderBranchOps) statUsingFS(
 
 	fbo.log.CDebugf(ctx, "Using an FS to satisfy stat of %s", name)
 
-	fi, err := fs.Lstat(name)
+	de, err = fbo.makeFakeFileEntry(ctx, node, name)
 	if err != nil {
-		return DirEntry{}, false, err
-	}
-
-	// Convert the FileInfo to a DirEntry.  Using the path of the node
-	// to generate the node ID, which will be unique and deterministic
-	// within `fbo.nodeCache`.
-	nodePath := fbo.nodeCache.PathFromNode(node)
-	id, err := kbfsblock.MakePermanentID(
-		[]byte(nodePath.ChildPathNoPtr(name).String()),
-		fbo.config.BlockCryptVersion())
-	if err != nil {
-		return DirEntry{}, false, err
-	}
-	de = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{
-				ID:      id,
-				DataVer: FirstValidDataVer,
-			},
-		},
-		EntryInfo: EntryInfoFromFileInfo(fi),
-	}
-	if de.Type == Sym {
-		target, err := fs.Readlink(name)
-		if err != nil {
-			return DirEntry{}, false, err
-		}
-		de.SymPath = target
+		return DirEntry{}, false, nil
 	}
 	return de, true, nil
 }
@@ -3303,7 +3332,7 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	}
 	if isResolution || TLFJournalEnabled(fbo.config, fbo.id()) {
 		chains, err := newCRChainsForIRMDs(
-			ctx, fbo.config.Codec(), []ImmutableRootMetadata{rmd},
+			ctx, fbo.config.Codec(), fbo.config, []ImmutableRootMetadata{rmd},
 			&fbo.blocks, true)
 		if err != nil {
 			return nil, err
@@ -3440,7 +3469,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	// Ctrl-C, this might not be a big deal. However, it also happens for other
 	// interrupts.  For applications that use signals to communicate, e.g.
 	// SIGALRM and SIGUSR1, this can happen pretty often, which renders broken.
-	if err = EnableDelayedCancellationWithGracePeriod(
+	if err = libcontext.EnableDelayedCancellationWithGracePeriod(
 		ctx, fbo.config.DelayedCancellationGracePeriod()); err != nil {
 		return err
 	}
@@ -4816,7 +4845,7 @@ func (fbo *folderBranchOps) Read(
 		if _, isSet := os.LookupEnv("KBFS_DISABLE_GIT_SPECIAL_CASE"); !isSet {
 			for _, n := range filePath.path {
 				if n.Name == ".git" {
-					EnableDelayedCancellationWithGracePeriod(ctx, fbo.config.DelayedCancellationGracePeriod())
+					libcontext.EnableDelayedCancellationWithGracePeriod(ctx, fbo.config.DelayedCancellationGracePeriod())
 					break
 				}
 			}
@@ -5523,7 +5552,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// the file and directory blocks that need to change during this
 	// sync.
 	syncChains, err := newCRChains(
-		ctx, fbo.config.Codec(), []chainMetadata{tempIRMD}, &fbo.blocks, false)
+		ctx, fbo.config.Codec(), fbo.config, []chainMetadata{tempIRMD},
+		&fbo.blocks, false)
 	if err != nil {
 		return err
 	}
@@ -6854,9 +6884,19 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
 		return err
 	}
-	if err := fbo.editActivity.Wait(ctx); err != nil {
-		return err
+
+	// For tests where the service is offline, we can't wait forever
+	// for the edit activity to complete.
+	editCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if err := fbo.editActivity.Wait(editCtx); err != nil {
+		if err == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Couldn't wait for edit activity")
+		} else {
+			return err
+		}
 	}
+
 	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
 		return err
 	}
@@ -6894,7 +6934,7 @@ func (fbo *folderBranchOps) newCtxWithFBOID() (context.Context, context.CancelFu
 	// ctxWithRandomIDReplayable, which attaches replayably.
 	ctx := fbo.ctxWithFBOID(context.Background())
 	ctx, cancelFunc := context.WithCancel(ctx)
-	ctx, err := NewContextWithCancellationDelayer(ctx)
+	ctx, err := libcontext.NewContextWithCancellationDelayer(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -7354,7 +7394,7 @@ func (fbo *folderBranchOps) backgroundFlusher() {
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.
-			ctx = NewContextReplayable(ctx,
+			ctx = libcontext.NewContextReplayable(ctx,
 				func(ctx context.Context) context.Context {
 					return context.WithValue(ctx, CtxBackgroundSyncKey, "1")
 				})
@@ -7705,7 +7745,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	var newName kbname.NormalizedUsername
 	if fbo.id().Type() != tlf.SingleTeam {
 		iteamInfo, err := fbo.config.KBPKI().ResolveImplicitTeamByID(
-			ctx, tid, fbo.id().Type())
+			ctx, tid, fbo.id().Type(), fbo.oa())
 		if err == nil {
 			newName = iteamInfo.Name
 		}

@@ -50,6 +50,9 @@ const box2 = (props: Box2Props) => {
   // }
   return (
     <div
+      onDragLeave={props.onDragLeave}
+      onDragOver={props.onDragOver}
+      onDrop={props.onDrop}
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
       className={className}

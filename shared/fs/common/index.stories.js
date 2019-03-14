@@ -70,7 +70,7 @@ export const commonProvider = {
   PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
-    type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
+    type: Types.getPathElements(ownProps.path).length > 4 ? 'file' : 'folder',
     username: 'songgao_test',
   }),
   PathItemInfo: ({path, mode}: PathItemInfoOwnProps) => ({

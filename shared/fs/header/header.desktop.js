@@ -17,9 +17,7 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
             <Kb.Text type="BodyBig">Keybase Files</Kb.Text>
           </Kb.Box>
           <Kb.Box style={styles.folderHeaderEnd}>
-            <Kb.WithTooltip text="Show in Finder">
-              <OpenInSystemFileManager path={path} />
-            </Kb.WithTooltip>
+            <OpenInSystemFileManager path={path} />
           </Kb.Box>
         </Kb.Box>
       ) : (
@@ -27,25 +25,22 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
           <Breadcrumb path={path} routePath={routePath} />
           <Kb.Box style={styles.folderHeaderEnd}>
             <AddNew path={path} />
-            <Kb.WithTooltip text="Show in Finder">
-              <OpenInSystemFileManager path={path} />
-            </Kb.WithTooltip>
+            <OpenInSystemFileManager path={path} />
             {onChat && (
-              <Kb.Icon
-                type="iconfont-chat"
-                color={Styles.globalColors.black_50}
-                fontSize={16}
-                onClick={onChat}
-                style={styles.headerIcon}
-              />
+              <Kb.WithTooltip text="Chat with users in this folder">
+                <Kb.Icon
+                  type="iconfont-chat"
+                  color={Styles.globalColors.black_50}
+                  fontSize={16}
+                  onClick={onChat}
+                  style={styles.headerIcon}
+                />
+              </Kb.WithTooltip>
             )}
             <SendInAppAction path={path} sendIconClassName="" />
-            <PathItemAction
-              path={path}
-              clickable={{actionIconClassName: '', type: 'icon'}}
-              routePath={routePath}
-              initView="root"
-            />
+            <Kb.WithTooltip text="Other actions">
+              <PathItemAction path={path} clickable={{type: 'icon'}} routePath={routePath} initView="root" />
+            </Kb.WithTooltip>
           </Kb.Box>
         </Kb.Box>
       )}

@@ -5,9 +5,10 @@ package engine
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"time"
 )
 
 type PGPPullEngineArg struct {
@@ -257,7 +258,8 @@ func (e *PGPPullEngine) exportKeysToGPG(m libkb.MetaContext, user *libkb.User, t
 		}
 
 		if err := e.gpgClient.ExportKey(*bundle, false /* export public key only */, false /* no batch */); err != nil {
-			return err
+			m.Warning("Failed to import %'s public key %s: %s", user.GetName(), bundle.GetFingerprint(), err.Error())
+			continue
 		}
 
 		m.Info("Imported key for %s.", user.GetName())

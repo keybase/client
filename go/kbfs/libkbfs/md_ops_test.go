@@ -74,8 +74,8 @@ func mdOpsInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controlle
 
 	// Don't test implicit teams.
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
-		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
-		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(ImplicitTeamInfo{}, errors.New("No such team"))
 	// Don't cache IDs.
 	config.mockMdcache.EXPECT().GetIDForHandle(gomock.Any()).AnyTimes().
 		Return(tlf.NullID, NoSuchTlfIDError{nil})
@@ -138,8 +138,9 @@ func newRMDS(t *testing.T, config Config, h *TlfHandle) (
 
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	hasVerifyingKeyErr error) {
-	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
+	config.mockKbpki.EXPECT().HasVerifyingKey(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
 		config.mockMdcache.EXPECT().Put(gomock.Any())
 	}
@@ -193,8 +194,9 @@ func verifyMDForPrivateHelper(
 		gomock.Any(), kbfscrypto.TLFCryptKey{}).
 		MinTimes(minTimes).MaxTimes(maxTimes).Return(pmd, nil)
 
-	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+	config.mockKbpki.EXPECT().HasVerifyingKey(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(nil)
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes()
 }
 

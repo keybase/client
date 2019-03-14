@@ -406,6 +406,10 @@ func (p CommandLine) GetEnableBotLiteMode() (bool, bool) {
 	return p.GetBool("enable-bot-lite-mode", true)
 }
 
+func (p CommandLine) GetExtraNetLogging() (bool, bool) {
+	return p.GetBool("extra-net-logging", true)
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {

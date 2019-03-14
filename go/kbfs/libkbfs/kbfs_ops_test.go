@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -98,8 +99,8 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 
 	// Don't test implicit teams.
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
-		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
-		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(ImplicitTeamInfo{}, errors.New("No such team"))
 
 	// None of these tests depend on time
 	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
@@ -162,7 +163,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	id := rand.Int()
-	ctx, err = NewContextWithCancellationDelayer(NewContextReplayable(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		timeoutCtx, func(ctx context.Context) context.Context {
 			return context.WithValue(ctx, tCtxID, id)
 		}))
@@ -184,7 +185,7 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
 		}
 	}
 	cancel()
-	if err := CleanupCancellationDelayer(ctx); err != nil {
+	if err := libcontext.CleanupCancellationDelayer(ctx); err != nil {
 		panic(err)
 	}
 	config.mockBops.Prefetcher().Shutdown()
@@ -222,7 +223,7 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 		}
 	}()
 
-	ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
+	ctx, err := libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		timeoutCtx, func(c context.Context) context.Context {
 			return c
 		}))
@@ -243,7 +244,7 @@ func kbfsTestShutdownNoMocks(t *testing.T, config *ConfigLocal,
 	ctx context.Context, cancel context.CancelFunc) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
-	CleanupCancellationDelayer(ctx)
+	libcontext.CleanupCancellationDelayer(ctx)
 }
 
 // TODO: Get rid of all users of this.
@@ -251,7 +252,7 @@ func kbfsTestShutdownNoMocksNoCheck(t *testing.T, config *ConfigLocal,
 	ctx context.Context, cancel context.CancelFunc) {
 	config.Shutdown(ctx)
 	cancel()
-	CleanupCancellationDelayer(ctx)
+	libcontext.CleanupCancellationDelayer(ctx)
 }
 
 func checkBlockCache(
