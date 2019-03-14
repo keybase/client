@@ -371,14 +371,13 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
 }
 
 const containsLatestMsgID = (state, conversationIDKey, messages) => {
+  if (messages.length === 0) {
+    return false
+  }
   const meta = state.metaMap.get(conversationIDKey, null)
-  const topMsgID = messages.reduce((top, m) => {
-    if (!m) {
-      return 0
-    }
-    return m.id > top ? m.id : top
-  }, 0)
-  return meta ? topMsgID >= meta.maxVisibleMsgID : false
+  const lastMessage = messages[messages.length - 1]
+  const lastMessageID = lastMessage ? lastMessage.id : 0
+  return meta ? lastMessageID >= meta.maxVisibleMsgID : false
 }
 
 const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop)
@@ -760,8 +759,8 @@ const rootReducer = (
       let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
         Object.keys(convoToMessages).forEach(cid => {
           const conversationIDKey = Types.stringToConversationIDKey(cid)
-          const ordinals = messageOrdinals.get(conversationIDKey, null)
-          const messages = (ordinals || []).map(ord => {
+          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet())
+          const messages = ordinals.toArray().map(ord => {
             return messageMap.getIn([conversationIDKey, ord])
           })
           map.set(conversationIDKey, containsLatestMsgID(state, conversationIDKey, messages))
