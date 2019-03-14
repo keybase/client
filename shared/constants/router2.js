@@ -31,7 +31,7 @@ const findModalRoute = (arr, s) => {
 const findFullRoute = s => {
   const loggedInOut = s.routes[s.index]
   if (loggedInOut.routeName === 'loggedIn') {
-    return [...loggedInOut.routes[0].routes, loggedInOut.routes[1]]
+    return [...loggedInOut.routes[0].routes, loggedInOut.routes[1]].filter(Boolean)
   }
   return loggedInOut.routes
 }
