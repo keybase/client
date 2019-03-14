@@ -28,7 +28,7 @@ export type Props = {
   // Temporary hack that let's you override the color directly in the style instead of using css class names
   colorOverride?: Color,
   color?: Color,
-  hoverColor?: string,
+  hoverColor?: ?string,
   fontSize?: number,
   // TODO cleanup how this container stuff works, this is to allow you to style the box that sometimes exists
   boxStyle?: StylesCrossPlatform,

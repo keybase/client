@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import {
   Box,
   Button,
-  ClickableBox,
   Icon,
   iconCastPlatformStyles,
   Text,
@@ -28,21 +27,23 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
       style={iconCastPlatformStyles(styles.pathItemActionIcon)}
       fontSize={16}
       onClick={openInSystemFileManager}
-      className="fs-path-item-hover-icon"
+      color={Styles.globalColors.black_50}
+      hoverColor={Styles.globalColors.black}
     />
   </WithTooltip>
 )
 
 const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
-  <Box>
-    <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-      <Icon
-        type="iconfont-finder"
-        style={iconCastPlatformStyles(styles.pathItemActionIcon)}
-        fontSize={16}
-        className="fs-path-item-hover-icon"
-      />
-    </ClickableBox>
+  <>
+    <Icon
+      type="iconfont-finder"
+      style={iconCastPlatformStyles(styles.pathItemActionIcon)}
+      fontSize={16}
+      color={Styles.globalColors.black_50}
+      hoverColor={Styles.globalColors.black}
+      onClick={props.toggleShowingMenu}
+      ref={props.setAttachmentRef}
+    />
     <Overlay
       style={styles.popup}
       attachTo={props.getAttachmentRef}
@@ -64,7 +65,7 @@ const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
         </Box>
       </Box>
     </Overlay>
-  </Box>
+  </>
 ))
 
 export default (props: Props) =>

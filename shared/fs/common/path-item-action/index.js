@@ -17,7 +17,6 @@ type ClickableComponent = {|
 |}
 
 type ClickableIcon = {|
-  actionIconClassName?: string,
   actionIconFontSize?: number,
   actionIconWhite?: boolean,
   type: 'icon',
@@ -34,15 +33,15 @@ type Props = {|
 |}
 
 const IconClickable = props => (
-  <Kb.ClickableBox onClick={props.onClick} ref={props.setRef}>
-    <Kb.Icon
-      type="iconfont-ellipsis"
-      color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
-      style={Kb.iconCastPlatformStyles(styles.actionIcon)}
-      fontSize={props.actionIconFontSize}
-      className={props.actionIconClassName}
-    />
-  </Kb.ClickableBox>
+  <Kb.Icon
+    type="iconfont-ellipsis"
+    color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
+    hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
+    style={Kb.iconCastPlatformStyles(styles.actionIcon)}
+    fontSize={props.actionIconFontSize}
+    onClick={props.onClick}
+    ref={props.setRef}
+  />
 )
 
 const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
@@ -72,7 +71,6 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
         <IconClickable
           onClick={onClick}
           setRef={props.setAttachmentRef}
-          actionIconClassName={props.clickable.actionIconClassName}
           actionIconFontSize={props.clickable.actionIconFontSize}
           actionIconWhite={props.clickable.actionIconWhite}
         />
