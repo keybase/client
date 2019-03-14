@@ -8404,8 +8404,9 @@ func (fbo *folderBranchOps) reResolveAndIdentify(
 
 	fbo.config.KeybaseService().ClearCaches(ctx)
 
-	// Once with the iteam-resolver, and once without it, to cache the
-	// individual users of the folder, and once with it.
+	// Once with the iteam-resolver (to cause all the iteam data to be
+	// cached in the service), and once without it (to cause all the
+	// individual users of the folder to be cached in the service).
 	tlfName := string(oldHandle.GetCanonicalName())
 	h, err := ParseTlfHandle(
 		ctx, fbo.config.KBPKI(), fbo.config.MDOps(), fbo.config,
