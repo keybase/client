@@ -876,6 +876,7 @@ type scrollDirection = 'none' | 'back' | 'forward'
 const scrollDirectionToPagination = (sd: scrollDirection, numberOfMessagesToLoad) => {
   let pagination = {
     last: false,
+    next: '',
     num: numberOfMessagesToLoad,
     previous: '',
   }
@@ -968,6 +969,7 @@ function* loadMoreMessages(state, action) {
         pivot: action.payload.messageID,
       }
       forceClear = true
+      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
       key = action.payload.conversationIDKey

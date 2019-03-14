@@ -11,11 +11,11 @@ type OwnProps = {
   debug?: boolean,
   onFocusInput: () => void,
   scrollListDownCounter: number,
+  scrollListToBottomCounter: number,
   scrollListUpCounter: number,
 }
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
   const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
@@ -54,6 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
   scrollListDownCounter: ownProps.scrollListDownCounter,
+  scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
   scrollListUpCounter: ownProps.scrollListUpCounter,
 })
 

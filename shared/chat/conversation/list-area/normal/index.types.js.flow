@@ -14,5 +14,6 @@ export type Props = {|
   lastMessageIsOurs: boolean,
   lastLoadMoreOrdinal: ?Types.Ordinal,
   scrollListDownCounter: number,
+  scrollListToBottomCounter: number,
   scrollListUpCounter: number,
 |}

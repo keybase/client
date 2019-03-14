@@ -12,6 +12,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   onRequestScrollDown: () => void,
+  onRequestScrollToBottom: () => void,
   onRequestScrollUp: () => void,
 }
 
@@ -133,6 +134,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     } else {
       dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
     }
+    ownProps.onRequestScrollToBottom()
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,

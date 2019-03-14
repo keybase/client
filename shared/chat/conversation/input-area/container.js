@@ -11,6 +11,7 @@ type OwnProps = {|
   focusInputCounter: number,
   isPending: boolean,
   onRequestScrollDown: () => void,
+  onRequestScrollToBottom: () => void,
   onRequestScrollUp: () => void,
 |}
 type Props = {|
@@ -50,6 +51,7 @@ class InputArea extends React.PureComponent<Props> {
       <Normal
         focusInputCounter={this.props.focusInputCounter}
         onRequestScrollDown={this.props.onRequestScrollDown}
+        onRequestScrollToBottom={this.props.onRequestScrollToBottom}
         onRequestScrollUp={this.props.onRequestScrollUp}
         conversationIDKey={this.props.conversationIDKey}
       />

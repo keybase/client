@@ -173,6 +173,11 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
+    if (this.props.scrollListToBottomCounter !== prevProps.scrollListToBottomCounter) {
+      this._scrollToBottom('componentDidUpdate-requested')
+      return
+    }
+
     // we send something last
     if (
       this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last() &&

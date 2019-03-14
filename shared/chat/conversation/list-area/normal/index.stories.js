@@ -49,6 +49,7 @@ const props = {
   lastMessageIsOurs: false,
   onFocusInput: Sb.action('onFocusInput'),
   scrollListDownCounter: 0,
+  scrollListToBottomCounter: 0,
   scrollListUpCounter: 0,
 }
 
@@ -219,6 +220,7 @@ type State = {|
   messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
   scrollListDownCounter: number,
+  scrollListToBottomCounter: number,
   scrollListUpCounter: number,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
@@ -233,6 +235,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       messageInjectionEnabled: false,
       messageOrdinals: makeMoreOrdinals(I.List(), 'append'),
       scrollListDownCounter: 0,
+      scrollListToBottomCounter: 0,
       scrollListUpCounter: 0,
     }
   }
@@ -310,10 +313,13 @@ class ThreadWrapper extends React.Component<Props, State> {
         </ButtonBar>
         <Thread
           {...props}
+          containsLatestMessage={true}
           conversationIDKey={this.state.conversationIDKey}
           messageOrdinals={this.state.messageOrdinals}
-          loadMoreMessages={this.onLoadMoreMessages}
+          loadOlderMessages={this.onLoadMoreMessages}
+          loadNewerMessages={this.onLoadMoreMessages}
           scrollListUpCounter={this.state.scrollListUpCounter}
+          scrollListToBottomCounter={this.state.scrollListToBottomCounter}
           scrollListDownCounter={this.state.scrollListDownCounter}
         />
       </React.Fragment>

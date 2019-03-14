@@ -373,6 +373,9 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
 const containsLatestMsgID = (state, conversationIDKey, messages) => {
   const meta = state.metaMap.get(conversationIDKey, null)
   const topMsgID = messages.reduce((top, m) => {
+    if (!m) {
+      return 0
+    }
     return m.id > top ? m.id : top
   }, 0)
   return meta ? topMsgID >= meta.maxVisibleMsgID : false
@@ -602,7 +605,6 @@ const rootReducer = (
         return map
       }, {})
 
-      let containsLatestMessageMap = state.containsLatestMessageMap
       if (shouldClearOthers) {
         oldMessageOrdinals = oldMessageOrdinals.withMutations(map => {
           Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
@@ -612,15 +614,6 @@ const rootReducer = (
         })
         oldMessageMap = oldMessageMap.withMutations(map => {
           Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
-        })
-        containsLatestMessageMap = containsLatestMessageMap.withMutations(map => {
-          Object.keys(convoToMessages).forEach(cid => {
-            const conversationIDKey = Types.stringToConversationIDKey(cid)
-            map.set(
-              conversationIDKey,
-              containsLatestMsgID(state, conversationIDKey, convoToMessages[conversationIDKey])
-            )
-          })
         })
       }
 
@@ -749,6 +742,17 @@ const rootReducer = (
           })
         }
       )
+
+      let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          const ordinals = messageOrdinals.get(conversationIDKey, null)
+          const messages = (ordinals || []).map(ord => {
+            return messageMap.getIn([conversationIDKey, ord])
+          })
+          map.set(conversationIDKey, containsLatestMsgID(state, conversationIDKey, messages))
+        })
+      })
 
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
@@ -1067,7 +1071,7 @@ const rootReducer = (
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
     case Chat2Gen.loadNewerMessagesDueToScroll:
-    case Chat2Gen.loadMessagesAtID:
+    case Chat2Gen.loadMessagesFromSearchHit:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
