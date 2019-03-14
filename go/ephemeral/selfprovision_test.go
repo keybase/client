@@ -19,8 +19,9 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	teamID := createTeam(tc)
 
 	ekLib := g.GetEKLib()
-	teamEK1, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK1, created, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	// Publish a few deviceEKs on the cloned account and make sure the self
 	// provision goes through successfully and we can continue to generate
@@ -33,7 +34,7 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	_, err = publishNewDeviceEK(ctx, g, merkleRoot)
 	require.NoError(t, err)
 	deviceEKStorage := g.GetDeviceEKStorage()
-	maxGen, err := deviceEKStorage.MaxGeneration(ctx)
+	maxGen, err := deviceEKStorage.MaxGeneration(ctx, false)
 	require.NoError(t, err)
 	require.EqualValues(t, 3, maxGen)
 
@@ -61,13 +62,13 @@ func TestEphemeralSelfProvision(t *testing.T) {
 
 	// After self provisioning we should only have a single deviceEK, and have
 	// no issues producing new ones.
-	maxGen, err = deviceEKStorage.MaxGeneration(ctx)
+	maxGen, err = deviceEKStorage.MaxGeneration(ctx, false)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, maxGen)
 
 	_, err = publishNewDeviceEK(ctx, g, merkleRoot)
 	require.NoError(t, err)
-	maxGen, err = deviceEKStorage.MaxGeneration(ctx)
+	maxGen, err = deviceEKStorage.MaxGeneration(ctx, false)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, maxGen)
 }

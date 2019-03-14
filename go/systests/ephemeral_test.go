@@ -25,8 +25,9 @@ func TestEphemeralNewTeamEKNotif(t *testing.T) {
 	ephemeral.ServiceInit(user1.tc.G)
 	ekLib := user1.tc.G.GetEKLib()
 
-	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	expectedArg := keybase1.NewTeamEkArg{
 		Id:         teamID,
@@ -84,8 +85,9 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 	var expectedGeneration keybase1.EkGeneration
 	if createTeamEK {
 		ekLib := annG.GetEKLib()
-		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+		teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 		require.NoError(t, err)
+		require.True(t, created)
 
 		expectedMetadata = teamEK.Metadata
 		expectedGeneration = expectedMetadata.Generation
@@ -143,8 +145,9 @@ func TestEphemeralResetMember(t *testing.T) {
 	bob.reset()
 
 	annEkLib := annG.GetEKLib()
-	teamEK, err := annEkLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	teamEK, created, err := annEkLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	expectedMetadata := teamEK.Metadata
 	expectedGeneration := expectedMetadata.Generation
@@ -167,9 +170,10 @@ func TestEphemeralResetMember(t *testing.T) {
 	ann.addWriter(team, bob)
 	ann.addWriter(team, joe)
 
-	// ann now makes a new teamEk which joe can access but bob cannot
-	teamEK2, err := annEkLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	// ann gets the new teamEk which joe can access but bob cannot after he reset.
+	teamEK2, created, err := annEkLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
+	require.False(t, created)
 
 	expectedMetadata2 := teamEK2.Metadata
 	expectedGeneration2 := expectedMetadata2.Generation
@@ -216,8 +220,9 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	var expectedGeneration keybase1.EkGeneration
 	if createTeamEK {
 		ekLib := annG.GetEKLib()
-		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+		teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 		require.NoError(t, err)
+		require.True(t, created)
 		expectedGeneration = teamEK.Metadata.Generation + 1
 	} else {
 		expectedGeneration = 1
@@ -258,8 +263,9 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	// Get our ephemeral keys before the revoke and ensure we can still access
 	// them after.
 	ekLib := annG.GetEKLib()
-	teamEKPreRoll, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	teamEKPreRoll, created, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	// This is a hack to skip the teamEK generation during the PTK roll.
 	// We want to validate that we can create a new teamEK after this roll even
@@ -306,10 +312,11 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	ephemeral.ServiceInit(annG)
 	ekLib := annG.GetEKLib()
 
-	_, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	_, created, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 	userEKBoxStorage := annG.GetUserEKBoxStorage()
-	gen, err := userEKBoxStorage.MaxGeneration(context.Background())
+	gen, err := userEKBoxStorage.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	userEKPreRevoke, err := userEKBoxStorage.Get(context.Background(), gen, nil)
 	require.NoError(t, err)
@@ -373,8 +380,9 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 
 	ephemeral.ServiceInit(user1.tc.G)
 	ekLib := user1.tc.G.GetEKLib()
-	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	currentGen := teamEK.Metadata.Generation
 	var expectedGen keybase1.EkGeneration

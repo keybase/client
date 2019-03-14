@@ -23,17 +23,23 @@ func TestUserEKBoxStorage(t *testing.T) {
 
 	// Login hooks should have run
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
-	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(context.Background())
+	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(context.Background(), false)
 	require.True(t, deviceEKMaxGen > 0)
 	require.NoError(t, err)
 
 	s := tc.G.GetUserEKBoxStorage()
-	userEKMaxGen, err := s.MaxGeneration(context.Background())
+	userEKMaxGen, err := s.MaxGeneration(context.Background(), false)
 	require.True(t, userEKMaxGen > 0)
 	require.NoError(t, err)
 
 	userEKMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
+
+	// Test get valid & unbox
+	userEK, err := s.Get(context.Background(), userEKMetadata.Generation, nil)
+	require.NoError(t, err)
+
+	verifyUserEK(t, userEKMetadata, userEK)
 
 	// Test Get nonexistent
 	nonexistent, err := s.Get(context.Background(), userEKMetadata.Generation+1, nil)
@@ -43,15 +49,13 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
-	// Test get valid & unbox
-	s.ClearCache()
-	userEK, err := s.Get(context.Background(), userEKMetadata.Generation, nil)
+	// include the cached error in the max
+	maxGeneration, err := s.MaxGeneration(context.Background(), true)
 	require.NoError(t, err)
-
-	verifyUserEK(t, userEKMetadata, userEK)
+	require.Equal(t, userEKMetadata.Generation+1, maxGeneration)
 
 	// Test MaxGeneration
-	maxGeneration, err := s.MaxGeneration(context.Background())
+	maxGeneration, err = s.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	require.True(t, maxGeneration > 0)
 
@@ -98,7 +102,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 
 	s.ClearCache()
 
-	maxGeneration, err = s.MaxGeneration(context.Background())
+	maxGeneration, err = s.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	require.EqualValues(t, userEKMaxGen, maxGeneration)
 
