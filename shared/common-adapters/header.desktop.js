@@ -2,17 +2,22 @@
 import React, {Component} from 'react'
 import Text from './text'
 import type {Props, DefaultProps} from './header'
-import {Icon} from '../common-adapters'
-import {globalStyles, globalColors, desktopStyles, platformStyles, collapseStyles} from '../styles'
+import Icon from './icon'
+import * as Styles from '../styles'
+
+const Kb = {
+  Text,
+  Icon,
+}
 
 class Header extends Component<Props> {
   static defaultProps: DefaultProps
 
   renderDefault() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? desktopStyles.windowDragging : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? Styles.desktopStyles.windowDragging : {}
     return (
       <div
-        style={collapseStyles([
+        style={Styles.collapseStyles([
           styles.container,
           maybeWindowDraggingStyle,
           styles.defaultContainer,
@@ -20,22 +25,22 @@ class Header extends Component<Props> {
         ])}
       >
         {this.props.children}
-        {this.props.icon && <Icon type="icon-keybase-logo-24" />}
-        <Text type="Body" style={{flex: 1, paddingLeft: 6}}>
+        {this.props.icon && <Kb.Icon type="icon-keybase-logo-24" />}
+        <Kb.Text type="Body" style={{flex: 1, paddingLeft: 6}}>
           {this.props.title}
-        </Text>
+        </Kb.Text>
         {this.props.onClose && (
-          <Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />
+          <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />
         )}
       </div>
     )
   }
 
   renderStrong() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? desktopStyles.windowDragging : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? Styles.desktopStyles.windowDragging : {}
     return (
       <div
-        style={collapseStyles([
+        style={Styles.collapseStyles([
           styles.container,
           maybeWindowDraggingStyle,
           styles.strongContainer,
@@ -43,20 +48,20 @@ class Header extends Component<Props> {
         ])}
       >
         {this.props.title && (
-          <Text
+          <Kb.Text
             type="Header"
             negative={true}
-            style={platformStyles({
-              common: {flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6},
+            style={Styles.platformStyles({
+              common: {flex: 1, ...Styles.globalStyles.flexBoxCenter, paddingTop: 6},
               isElectron: {cursor: 'default'},
             })}
           >
             {this.props.title}
-          </Text>
+          </Kb.Text>
         )}
         {this.props.children}
         {this.props.onClose && (
-          <Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />
+          <Kb.Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />
         )}
       </div>
     )
@@ -76,10 +81,13 @@ class Header extends Component<Props> {
 Header.defaultProps = {type: 'Default', windowDragging: true}
 
 const styles = {
-  closeIcon: collapseStyles([desktopStyles.windowDraggingClickable, desktopStyles.clickable]),
-  container: collapseStyles([
-    globalStyles.flexBoxRow,
-    desktopStyles.noSelect,
+  closeIcon: Styles.collapseStyles([
+    Styles.desktopStyles.windowDraggingClickable,
+    Styles.desktopStyles.clickable,
+  ]),
+  container: Styles.collapseStyles([
+    Styles.globalStyles.flexBoxRow,
+    Styles.desktopStyles.noSelect,
     {
       paddingLeft: 10,
       paddingRight: 10,
@@ -95,7 +103,7 @@ const styles = {
     width: 22,
   },
   strongContainer: {
-    backgroundColor: globalColors.blue,
+    backgroundColor: Styles.globalColors.blue,
     paddingBottom: 12,
     paddingTop: 6,
   },
