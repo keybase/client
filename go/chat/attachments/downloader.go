@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
@@ -28,7 +29,6 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	var sink io.WriteCloser
 	var err error
 	const openFlag int = os.O_RDWR | os.O_CREATE | os.O_TRUNC
-	const openFileMode os.FileMode = 0600
 	if filename == "" {
 		// No filename means we will create one in the OS temp dir
 		// Get the sent file name first
@@ -52,14 +52,14 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		if err != nil {
 			return "", nil, err
 		}
-		f, err := os.OpenFile(fullpath, openFlag, openFileMode)
+		f, err := os.OpenFile(fullpath, openFlag, libkb.PermFile)
 		if err != nil {
 			return "", nil, err
 		}
 		filename = fullpath
 		sink = f
 	} else {
-		if sink, err = os.OpenFile(filename, openFlag, openFileMode); err != nil {
+		if sink, err = os.OpenFile(filename, openFlag, libkb.PermFile); err != nil {
 			return "", nil, err
 		}
 	}
