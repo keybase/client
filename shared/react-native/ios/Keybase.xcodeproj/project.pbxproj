@@ -28,15 +28,15 @@
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
 		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
+		661EA797223ADD1D00471C8C /* keybase-medium-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */; };
+		661EA798223ADD1D00471C8C /* keybase-medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA791223ADD1C00471C8C /* keybase-medium.ttf */; };
+		661EA799223ADD1D00471C8C /* keybase-semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA792223ADD1C00471C8C /* keybase-semibold.ttf */; };
+		661EA79A223ADD1D00471C8C /* keybase-bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA793223ADD1C00471C8C /* keybase-bold.ttf */; };
+		661EA79B223ADD1D00471C8C /* keybase-semibold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA794223ADD1C00471C8C /* keybase-semibold-italic.ttf */; };
+		661EA79C223ADD1D00471C8C /* keybase-extrabold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA795223ADD1D00471C8C /* keybase-extrabold.ttf */; };
+		661EA79D223ADD1D00471C8C /* keybase-bold-italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */; };
 		664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */; };
 		664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */; };
-		664ACA3B222F0B9500D0407E /* keybase-bold-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 664ACA07222F0B9500D0407E /* keybase-bold-italic.otf */; };
-		665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */; };
-		665BAD152209FC4D00E3CC93 /* keybase-semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */; };
-		665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */; };
-		665BAD172209FC4D00E3CC93 /* keybase-medium-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */; };
-		665BAD182209FC4D00E3CC93 /* keybase-semibold-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */; };
-		665BAD192209FC4D00E3CC93 /* keybase-bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD132209FC4D00E3CC93 /* keybase-bold.otf */; };
 		8828A757521849ACB90150D0 /* libRNGestureHandler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B47606285394777AF241164 /* libRNGestureHandler.a */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
@@ -522,15 +522,15 @@
 		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
+		661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.ttf"; sourceTree = "<group>"; };
+		661EA791223ADD1C00471C8C /* keybase-medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.ttf"; sourceTree = "<group>"; };
+		661EA792223ADD1C00471C8C /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.ttf"; sourceTree = "<group>"; };
+		661EA793223ADD1C00471C8C /* keybase-bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold.ttf"; sourceTree = "<group>"; };
+		661EA794223ADD1C00471C8C /* keybase-semibold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold-italic.ttf"; sourceTree = "<group>"; };
+		661EA795223ADD1D00471C8C /* keybase-extrabold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.ttf"; sourceTree = "<group>"; };
+		661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold-italic.ttf"; sourceTree = "<group>"; };
 		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
 		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
-		664ACA07222F0B9500D0407E /* keybase-bold-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold-italic.otf"; sourceTree = "<group>"; };
-		665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.otf"; sourceTree = "<group>"; };
-		665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.otf"; sourceTree = "<group>"; };
-		665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.otf"; sourceTree = "<group>"; };
-		665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.otf"; sourceTree = "<group>"; };
-		665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold-italic.otf"; sourceTree = "<group>"; };
-		665BAD132209FC4D00E3CC93 /* keybase-bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold.otf"; sourceTree = "<group>"; };
 		8D1F643AB3B646C08A6F2B7E /* RNScreens.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNScreens.xcodeproj; path = "../../node_modules/react-native-screens/ios/RNScreens.xcodeproj"; sourceTree = "<group>"; };
 		9B47606285394777AF241164 /* libRNGestureHandler.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNGestureHandler.a; sourceTree = "<group>"; };
 		A76C0DB4F73E4C83A1521058 /* FastImage.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = FastImage.xcodeproj; path = "../../node_modules/react-native-fast-image/ios/FastImage.xcodeproj"; sourceTree = "<group>"; };
@@ -958,13 +958,13 @@
 			isa = PBXGroup;
 			children = (
 				DBDC80031DE7CC8E005387B3 /* kb.ttf */,
-				664ACA07222F0B9500D0407E /* keybase-bold-italic.otf */,
-				665BAD132209FC4D00E3CC93 /* keybase-bold.otf */,
-				665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */,
-				665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */,
-				665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */,
-				665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */,
-				665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */,
+				661EA796223ADD1D00471C8C /* keybase-bold-italic.ttf */,
+				661EA793223ADD1C00471C8C /* keybase-bold.ttf */,
+				661EA795223ADD1D00471C8C /* keybase-extrabold.ttf */,
+				661EA790223ADD1C00471C8C /* keybase-medium-italic.ttf */,
+				661EA791223ADD1C00471C8C /* keybase-medium.ttf */,
+				661EA794223ADD1C00471C8C /* keybase-semibold-italic.ttf */,
+				661EA792223ADD1C00471C8C /* keybase-semibold.ttf */,
 				664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */,
 				664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */,
 			);
@@ -1669,20 +1669,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				661EA79D223ADD1D00471C8C /* keybase-bold-italic.ttf in Resources */,
+				661EA79A223ADD1D00471C8C /* keybase-bold.ttf in Resources */,
 				DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */,
+				661EA79B223ADD1D00471C8C /* keybase-semibold-italic.ttf in Resources */,
 				C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */,
-				665BAD192209FC4D00E3CC93 /* keybase-bold.otf in Resources */,
+				661EA799223ADD1D00471C8C /* keybase-semibold.ttf in Resources */,
+				661EA797223ADD1D00471C8C /* keybase-medium-italic.ttf in Resources */,
 				664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */,
-				665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */,
-				664ACA3B222F0B9500D0407E /* keybase-bold-italic.otf in Resources */,
-				665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */,
-				665BAD182209FC4D00E3CC93 /* keybase-semibold-italic.otf in Resources */,
 				664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */,
-				665BAD172209FC4D00E3CC93 /* keybase-medium-italic.otf in Resources */,
+				661EA79C223ADD1D00471C8C /* keybase-extrabold.ttf in Resources */,
 				DBDC800B1DE7CC8E005387B3 /* kb.ttf in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
+				661EA798223ADD1D00471C8C /* keybase-medium.ttf in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
-				665BAD152209FC4D00E3CC93 /* keybase-semibold.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
