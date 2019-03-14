@@ -1422,10 +1422,6 @@ func (r *GetNextAttachmentMessageLocalRes) SetOffline() {
 	r.Offline = true
 }
 
-func (r *DownloadAttachmentLocalRes) SetOffline() {
-	r.Offline = true
-}
-
 func (r *DownloadFileAttachmentLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1731,14 +1727,6 @@ func (r *PostLocalNonblockRes) GetRateLimit() []RateLimit {
 }
 
 func (r *PostLocalNonblockRes) SetRateLimits(rl []RateLimit) {
-	r.RateLimits = rl
-}
-
-func (r *DownloadAttachmentLocalRes) GetRateLimit() []RateLimit {
-	return r.RateLimits
-}
-
-func (r *DownloadAttachmentLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

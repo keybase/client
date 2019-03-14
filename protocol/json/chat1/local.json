@@ -2476,30 +2476,6 @@
     },
     {
       "type": "record",
-      "name": "DownloadAttachmentLocalRes",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "offline"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "keybase1.TLFIdentifyFailure"
-          },
-          "name": "identifyFailures"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "DownloadFileAttachmentLocalRes",
       "fields": [
         {
@@ -3708,36 +3684,6 @@
         }
       ],
       "response": "GetNextAttachmentMessageLocalRes"
-    },
-    "DownloadAttachmentLocal": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "messageID",
-          "type": "MessageID"
-        },
-        {
-          "name": "sink",
-          "type": "keybase1.Stream"
-        },
-        {
-          "name": "preview",
-          "type": "boolean"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "DownloadAttachmentLocalRes",
-      "lint": "ignore"
     },
     "DownloadFileAttachmentLocal": {
       "request": [

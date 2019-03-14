@@ -4127,40 +4127,6 @@ func (o GetNextAttachmentMessageLocalRes) DeepCopy() GetNextAttachmentMessageLoc
 	}
 }
 
-type DownloadAttachmentLocalRes struct {
-	Offline          bool                          `codec:"offline" json:"offline"`
-	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-}
-
-func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
-	return DownloadAttachmentLocalRes{
-		Offline: o.Offline,
-		RateLimits: (func(x []RateLimit) []RateLimit {
-			if x == nil {
-				return nil
-			}
-			ret := make([]RateLimit, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.RateLimits),
-		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
-			if x == nil {
-				return nil
-			}
-			ret := make([]keybase1.TLFIdentifyFailure, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.IdentifyFailures),
-	}
-}
-
 type DownloadFileAttachmentLocalRes struct {
 	Filename         string                        `codec:"filename" json:"filename"`
 	Offline          bool                          `codec:"offline" json:"offline"`
@@ -5075,15 +5041,6 @@ type GetNextAttachmentMessageLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type DownloadAttachmentLocalArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	MessageID        MessageID                    `codec:"messageID" json:"messageID"`
-	Sink             keybase1.Stream              `codec:"sink" json:"sink"`
-	Preview          bool                         `codec:"preview" json:"preview"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
 type DownloadFileAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
@@ -5306,7 +5263,6 @@ type LocalInterface interface {
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
 	PostFileAttachmentLocalNonblock(context.Context, PostFileAttachmentLocalNonblockArg) (PostLocalNonblockRes, error)
 	GetNextAttachmentMessageLocal(context.Context, GetNextAttachmentMessageLocalArg) (GetNextAttachmentMessageLocalRes, error)
-	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
@@ -5790,21 +5746,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetNextAttachmentMessageLocal(ctx, typedArgs[0])
-					return
-				},
-			},
-			"DownloadAttachmentLocal": {
-				MakeArg: func() interface{} {
-					var ret [1]DownloadAttachmentLocalArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]DownloadAttachmentLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]DownloadAttachmentLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.DownloadAttachmentLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6475,11 +6416,6 @@ func (c LocalClient) PostFileAttachmentLocalNonblock(ctx context.Context, __arg 
 
 func (c LocalClient) GetNextAttachmentMessageLocal(ctx context.Context, __arg GetNextAttachmentMessageLocalArg) (res GetNextAttachmentMessageLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getNextAttachmentMessageLocal", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg DownloadAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.DownloadAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }
 

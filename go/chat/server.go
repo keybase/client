@@ -82,10 +82,6 @@ func (h *Server) getChatUI(sessionID int) libkb.ChatUI {
 	return h.uiSource.GetChatUI(sessionID)
 }
 
-func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
-	return h.uiSource.GetStreamUICli()
-}
-
 func (h *Server) shouldSquashError(err error) bool {
 	// these are not offline errors, but we never want the JS to receive them and potentially
 	// display a black bar
@@ -1573,30 +1569,6 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	}, nil
 }
 
-// DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
-func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "DownloadAttachmentLocal")()
-	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
-	darg := downloadAttachmentArg{
-		SessionID:        arg.SessionID,
-		ConversationID:   arg.ConversationID,
-		MessageID:        arg.MessageID,
-		Preview:          arg.Preview,
-		IdentifyBehavior: arg.IdentifyBehavior,
-	}
-	cli := h.getStreamUICli()
-	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-
-	return h.downloadAttachmentLocal(ctx, uid, darg)
-}
-
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1643,7 +1615,7 @@ type downloadAttachmentArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
-func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1668,7 +1640,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	}
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
-	return chat1.DownloadAttachmentLocalRes{
+	return chat1.DownloadFileAttachmentLocalRes{
 		IdentifyFailures: identBreaks,
 	}, nil
 }

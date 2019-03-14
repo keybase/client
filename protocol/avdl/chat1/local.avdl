@@ -822,16 +822,6 @@ protocol local {
   }
   GetNextAttachmentMessageLocalRes getNextAttachmentMessageLocal(ConversationID convID, MessageID messageID, boolean backInTime, array<AssetMetadataType> assetTypes, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record DownloadAttachmentLocalRes {
-    boolean offline;
-    array<RateLimit> rateLimits;
-    array<keybase1.TLFIdentifyFailure> identifyFailures;
-  }
-
-  // Download an attachment from a message into sink stream.
-  @lint("ignore")
-  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
-
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
   record DownloadFileAttachmentLocalRes {
