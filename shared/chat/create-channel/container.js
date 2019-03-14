@@ -23,7 +23,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   _onCreateChannel: ({channelname, description, teamname}) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
@@ -41,7 +41,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
         ? RouteTreeGen.createNavigateUp()
         : RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['chatManageChannels']})
     ),
-  onClose: () => dispatch(flags.useNewRouter ? RouteTreeGen.createNavigateUp() : navigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default compose(

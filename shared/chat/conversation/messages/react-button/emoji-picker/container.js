@@ -8,7 +8,6 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import EmojiPicker from '.'
-import flags from '../../../../../util/feature-flags'
 
 // Directly routable version of EmojiPicker for mobile custom emoji
 // Provide conversationIDKey and ordinal and this adds reactions
@@ -36,13 +35,12 @@ const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
   const ordinal = getRouteProps(ownProps, 'ordinal')
-  const navUpAction = flags.useNewRouter ? RouteTreeGen.createNavigateUp : ownProps.navigateUp
   return {
     onAddReaction: (emoji: string) => {
       dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
-      dispatch(navUpAction())
+      dispatch(RouteTreeGen.createNavigateUp())
     },
-    onCancel: () => dispatch(navUpAction()),
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   }
 }
 

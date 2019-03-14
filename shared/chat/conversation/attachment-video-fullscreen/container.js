@@ -5,7 +5,6 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {compose, connect, getRouteProps} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 import VideoFullscreen from './'
-import flags from '../../../util/feature-flags'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal}, {}>
 
@@ -20,9 +19,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   onClose: () => {
-    dispatch(flags.useNewRouter ? RouteTreeGen.createNavigateUp() : navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

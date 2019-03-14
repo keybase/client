@@ -5,7 +5,6 @@ import * as Types from '../../constants/types/chat2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EditChannel, {type Props} from './edit-channel'
 import {connect, getRouteProps, type RouteProps} from '../../util/container'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<
   {
@@ -56,11 +55,11 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => {
+const mapDispatchToProps = dispatch => {
   return {
     _loadChannelInfo: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createGetChannelInfo({conversationIDKey, teamname})),
-    _navigateUp: () => dispatch(flags.useNewRouter ? RouteTreeGen.createNavigateUp() : navigateUp()),
+    _navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
     _onConfirmedDelete: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamname})),
     _updateChannelName: (

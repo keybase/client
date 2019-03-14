@@ -145,10 +145,9 @@ const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
   }
 }
 
-const mapDispatchToSelectorProps = (dispatch, {navigateUp}: SelectorOwnProps) => ({
+const mapDispatchToSelectorProps = dispatch => ({
   // Used by HeaderHoc.
-  onBack: () =>
-    flags.useNewRouter ? dispatch(RouteTreeGen.createNavigateUp()) : navigateUp && dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
 })
 

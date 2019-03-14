@@ -4,20 +4,18 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import DeleteHistoryWarning from '.'
 import {compose, connect, isMobile, getRouteProps, type RouteProps} from '../../util/container'
-import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
-  const navUpAction = flags.useNewRouter ? RouteTreeGen.createNavigateUp : ownProps.navigateUp
   return {
-    onBack: isMobile ? null : () => dispatch(navUpAction()),
-    onCancel: () => dispatch(navUpAction()),
+    onBack: isMobile ? null : () => dispatch(RouteTreeGen.createNavigateUp()),
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onDeleteHistory: () => {
       const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
-      dispatch(navUpAction())
+      dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
     },
   }
