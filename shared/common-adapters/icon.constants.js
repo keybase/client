@@ -466,6 +466,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-folder-copy-48.png'),
   },
+  'icon-folder-default-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-default-96.png'),
+  },
   'icon-folder-move-32': {
     extension: 'png',
     isFont: false,
@@ -501,6 +506,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-folder-private-64.png'),
   },
+  'icon-folder-private-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-private-96.png'),
+  },
   'icon-folder-public-16': {
     extension: 'png',
     isFont: false,
@@ -520,6 +530,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-folder-public-64.png'),
+  },
+  'icon-folder-public-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-public-96.png'),
   },
   'icon-folder-success-48': {
     extension: 'png',
@@ -545,6 +560,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-folder-team-64.png'),
+  },
+  'icon-folder-team-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-team-96.png'),
   },
   'icon-follow-me-21': {
     extension: 'png',
