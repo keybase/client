@@ -13,6 +13,7 @@ import Divider from '../../../../../common-adapters/divider'
 import FloatingMenu from '../../../../../common-adapters/floating-menu'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
+// TODO could make this more dynamic to avoid this (aka register with markdown what custom stuff you want)
 const Kb = {
   Avatar,
   Box2,
