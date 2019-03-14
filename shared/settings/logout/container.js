@@ -31,9 +31,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
-  heading: stateProps.hasRandomPW
-    ? "You don't have a passphrase set -- you should set one before logging out, so that you can log in again later."
-    : "Would you like to make sure that you know your passphrase before logging out? You'll need it to log back in.",
 })
 
 export default connect<OwnProps, _, _, _, _>(

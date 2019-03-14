@@ -8,7 +8,6 @@ import {UpdatePassphrase} from '../../settings/passphrase'
 export type Props = {|
   checkPassphraseIsCorrect: ?boolean,
   hasRandomPW: ?boolean,
-  heading: string,
   onCancel: () => void,
   onCheckPassphrase: (passphrase: string) => void,
   onLogout: () => void,
@@ -18,7 +17,6 @@ export type Props = {|
 
 type TestProps = {|
   checkPassphraseIsCorrect: ?boolean,
-  heading: string,
   onCheckPassphrase: (passphrase: string) => void,
   onLogout: () => void,
 |}
@@ -38,85 +36,103 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
   render() {
     const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
     return (
-      <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Input
-          errorText={
-            this.props.checkPassphraseIsCorrect === false
-              ? 'Your passphrase was incorrect, please try again.'
-              : ''
-          }
-          hintText="Enter your passphrase"
-          type={inputType}
-          value={this.state.passphrase}
-          onChangeText={passphrase => this.setState({passphrase})}
-          uncontrolled={false}
-          style={styles.input}
-        />
-        <Kb.Checkbox
-          label="Show typing"
-          onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
-          checked={this.state.showTyping}
-          style={styles.checkbox}
-        />
-
-        <Kb.WaitingButton
-          waitingKey={Constants.checkPassphraseWaitingKey}
-          type="Primary"
-          disabled={!!this.props.checkPassphraseIsCorrect}
-          label={this.props.checkPassphraseIsCorrect ? 'Passphrase is correct!' : 'Test my passphrase'}
-          onClick={() => {
-            this.props.onCheckPassphrase(this.state.passphrase)
-          }}
-        />
-
-        <Kb.Box2 style={styles.logoutbox} direction="vertical">
+      <>
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Input
+            errorText={
+              this.props.checkPassphraseIsCorrect === false
+                ? 'Your passphrase was incorrect, please try again.'
+                : ''
+            }
+            hintText="Enter your passphrase"
+            type={inputType}
+            value={this.state.passphrase}
+            onChangeText={passphrase => this.setState({passphrase})}
+            uncontrolled={false}
+            style={styles.input}
+          />
+          <Kb.Checkbox
+            label="Show typing"
+            onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+            checked={this.state.showTyping}
+          />
+          <Kb.Text style={{marginBottom: Styles.globalMargins.small}} type="BodySmall">
+            (Password must be at least 8 characters.)
+          </Kb.Text>
+          {this.props.checkPassphraseIsCorrect && (
+            <Kb.Box2 direction="horizontal" gap="xtiny">
+              <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+              <Kb.Text style={{color: Styles.globalColors.green}} type="BodySmall">
+                Your password is correct.
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonbar}>
           <Kb.Button
-            label={this.props.checkPassphraseIsCorrect ? 'Log out' : 'No thanks, just log me out now.'}
+            fullWidth={true}
+            label={this.props.checkPassphraseIsCorrect ? 'Safely sign out' : 'Just sign out'}
             onClick={() => this.props.onLogout()}
-            small={true}
             type={this.props.checkPassphraseIsCorrect ? 'PrimaryGreen' : 'Danger'}
           />
-        </Kb.Box2>
-      </Kb.Box2>
+
+          {!this.props.checkPassphraseIsCorrect && (
+            <Kb.WaitingButton
+              fullWidth={true}
+              waitingKey={Constants.checkPassphraseWaitingKey}
+              type={this.props.checkPassphraseIsCorrect ? 'PrimaryGreen' : 'Primary'}
+              disabled={!!this.props.checkPassphraseIsCorrect}
+              label="Test password"
+              onClick={() => {
+                this.props.onCheckPassphrase(this.state.passphrase)
+              }}
+            />
+          )}
+        </Kb.ButtonBar>
+      </>
     )
   }
 }
 
 export default (props: Props) => (
-  <Kb.ScrollView contentContainerStyle={{padding: Styles.globalMargins.large}}>
+  <Kb.ScrollView contentContainerStyle={styles.container}>
     {props.hasRandomPW ? (
-      <>
+      <Kb.Box2 centerChildren={true} direction="vertical">
         <Kb.Text type="Body">
           You don't have a passphrase set -- you should set one before logging out, so that you can log in
           again later.
         </Kb.Text>
-        <UpdatePassphrase
-          heading={props.heading}
-          onSave={props.onSavePassphrase}
-          waitingForResponse={props.waitingForResponse}
-        />
-      </>
+        <UpdatePassphrase onSave={props.onSavePassphrase} waitingForResponse={props.waitingForResponse} />
+      </Kb.Box2>
     ) : (
-      <>
+      <Kb.Box2 centerChildren={true} direction="vertical">
         <Kb.Text type="Body">
-          Would you like to make sure that you know your passphrase before logging out? You'll need it to log
-          back in.
+          Would you like to make sure that you know your passphrase before signing out?
         </Kb.Text>
+        <Kb.Text type="Body">You'll need it to log back in.</Kb.Text>
         <OfferToCheckPassphrase
           checkPassphraseIsCorrect={props.checkPassphraseIsCorrect}
-          heading={props.heading}
           onCheckPassphrase={props.onCheckPassphrase}
           onLogout={props.onLogout}
         />
-      </>
+      </Kb.Box2>
     )}
   </Kb.ScrollView>
 )
 
 const styles = Styles.styleSheetCreate({
-  checkbox: {marginBottom: Styles.globalMargins.medium},
+  buttonbar: Styles.platformStyles({
+    common: {
+      padding: 16,
+    },
+  }),
+  container: Styles.platformStyles({
+    common: {padding: Styles.globalMargins.medium},
+    isElectron: {
+      width: 560,
+    },
+  }),
   input: {
     marginBottom: Styles.globalMargins.small,
   },
-  logoutbox: {paddingTop: Styles.globalMargins.medium},
 })

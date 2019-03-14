@@ -1,5 +1,6 @@
 // @flow
 import * as SettingsGen from '../../actions/settings-gen'
+import * as Kb from '../../common-adapters'
 import UpdatePassphrase from '.'
 import {compose, lifecycle, connect, type RouteProps} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
@@ -42,4 +43,4 @@ export default compose(
       this.props.onUpdatePGPSettings()
     },
   })
-)(UpdatePassphrase)
+)(Kb.HeaderOrPopup(UpdatePassphrase))
