@@ -200,9 +200,6 @@ function* handlePush(_, action) {
         break
       case 'chat.newmessageSilent_2':
         // entirely handled by go on ios and not being sent on android. TODO eventually make android like ios and plumb this through native land
-        if (isAndroid) {
-          yield* handleLoudMessage(notification)
-        }
         break
       case 'chat.newmessage':
         yield* handleLoudMessage(notification)
