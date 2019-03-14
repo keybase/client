@@ -483,7 +483,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return err
 	}
 	age := time.Since(time.Unix(int64(unixTime), 0))
-	if age >= 15*time.Second {
+	if age >= 2*time.Minute {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
@@ -523,6 +523,7 @@ func AppWillExit(pusher PushNotifier) {
 // [iOS] returning true will request about ~3mins from iOS to continue execution
 func AppDidEnterBackground() bool {
 	if !isInited() {
+		kbCtx.Log.Debug("AppDidEnterBackground: not inited")
 		return false
 	}
 	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
