@@ -6,21 +6,21 @@ import * as Constants from '../../constants/settings'
 import {UpdatePassphrase} from '../../settings/passphrase'
 
 export type Props = {|
+  checkPassphraseIsCorrect: ?boolean,
   hasRandomPW: ?boolean,
   heading: string,
   onCancel: () => void,
+  onCheckPassphrase: (passphrase: string) => void,
   onLogout: () => void,
-  onTestPassphrase: (passphrase: string) => void,
   onSavePassphrase: (passphrase: string, passphraseConfirm: string) => void,
-  testPassphraseIsCorrect: ?boolean,
   waitingForResponse: boolean,
 |}
 
 type TestProps = {|
+  checkPassphraseIsCorrect: ?boolean,
   heading: string,
+  onCheckPassphrase: (passphrase: string) => void,
   onLogout: () => void,
-  onTestPassphrase: (passphrase: string) => void,
-  testPassphraseIsCorrect: ?boolean,
 |}
 
 type State = {|
@@ -28,7 +28,7 @@ type State = {|
   showTyping: boolean,
 |}
 
-class OfferToTestPassphrase extends React.Component<TestProps, State> {
+class OfferToCheckPassphrase extends React.Component<TestProps, State> {
   state: State
   state = {
     passphrase: '',
@@ -41,7 +41,7 @@ class OfferToTestPassphrase extends React.Component<TestProps, State> {
       <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Input
           errorText={
-            this.props.testPassphraseIsCorrect === false
+            this.props.checkPassphraseIsCorrect === false
               ? 'Your passphrase was incorrect, please try again.'
               : ''
           }
@@ -60,21 +60,21 @@ class OfferToTestPassphrase extends React.Component<TestProps, State> {
         />
 
         <Kb.WaitingButton
-          waitingKey={Constants.testPassphraseWaitingKey}
+          waitingKey={Constants.checkPassphraseWaitingKey}
           type="Primary"
-          disabled={!!this.props.testPassphraseIsCorrect}
-          label={this.props.testPassphraseIsCorrect ? 'Passphrase is correct!' : 'Test my passphrase'}
+          disabled={!!this.props.checkPassphraseIsCorrect}
+          label={this.props.checkPassphraseIsCorrect ? 'Passphrase is correct!' : 'Test my passphrase'}
           onClick={() => {
-            this.props.onTestPassphrase(this.state.passphrase)
+            this.props.onCheckPassphrase(this.state.passphrase)
           }}
         />
 
         <Kb.Box2 style={styles.logoutbox} direction="vertical">
           <Kb.Button
-            label={this.props.testPassphraseIsCorrect ? 'Log out' : 'No thanks, just log me out now.'}
+            label={this.props.checkPassphraseIsCorrect ? 'Log out' : 'No thanks, just log me out now.'}
             onClick={() => this.props.onLogout()}
             small={true}
-            type={this.props.testPassphraseIsCorrect ? 'PrimaryGreen' : 'Danger'}
+            type={this.props.checkPassphraseIsCorrect ? 'PrimaryGreen' : 'Danger'}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -92,11 +92,11 @@ export default (props: Props) => (
         waitingForResponse={props.waitingForResponse}
       />
     ) : (
-      <OfferToTestPassphrase
+      <OfferToCheckPassphrase
+        checkPassphraseIsCorrect={props.checkPassphraseIsCorrect}
         heading={props.heading}
+        onCheckPassphrase={props.onCheckPassphrase}
         onLogout={props.onLogout}
-        onTestPassphrase={props.onTestPassphrase}
-        testPassphraseIsCorrect={props.testPassphraseIsCorrect}
       />
     )}
   </Kb.ScrollView>

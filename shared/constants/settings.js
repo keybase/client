@@ -9,6 +9,7 @@ const initialState: Types.State = {
   chat: {
     unfurl: {},
   },
+  checkPassphraseIsCorrect: null,
   email: {
     emails: null,
     error: null,
@@ -39,7 +40,6 @@ const initialState: Types.State = {
     randomPW: null,
     rememberPassphrase: true,
   },
-  testPassphraseIsCorrect: null,
   waitingForResponse: false,
 }
 
@@ -75,7 +75,7 @@ export const walletsTab = 'settingsTabs.walletsTab'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
-export const testPassphraseWaitingKey = 'settings:testPassphrase'
+export const checkPassphraseWaitingKey = 'settings:checkPassphrase'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export {
   initialState,

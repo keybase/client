@@ -111,11 +111,11 @@
     "loadedHasRandomPw": {
       "randomPW": "boolean"
     },
-    "testPassphrase": {
+    "checkPassphrase": {
       "passphrase": "HiddenString"
     },
-    "loadedTestPassphrase": {
-      "testPassphraseIsCorrect": "?boolean"
+    "loadedCheckPassphrase": {
+      "checkPassphraseIsCorrect": "?boolean"
     }
   }
 }

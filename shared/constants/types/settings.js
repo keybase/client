@@ -92,7 +92,7 @@ export type State = {
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
-  testPassphraseIsCorrect: ?boolean,
+  checkPassphraseIsCorrect: ?boolean,
 }
 
 type AboutTab = 'settingsTabs.aboutTab'

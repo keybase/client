@@ -237,11 +237,11 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
           randomPW,
         },
       }
-    case SettingsGen.loadedTestPassphrase:
-      const {testPassphraseIsCorrect} = action.payload
+    case SettingsGen.loadedCheckPassphrase:
+      const {checkPassphraseIsCorrect} = action.payload
       return {
         ...state,
-        testPassphraseIsCorrect,
+        checkPassphraseIsCorrect,
       }
     // Saga only actions
     case SettingsGen.dbNuke:
@@ -263,7 +263,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:
     case SettingsGen.loadHasRandomPw:
-    case SettingsGen.testPassphrase:
+    case SettingsGen.checkPassphrase:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

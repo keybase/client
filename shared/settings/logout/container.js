@@ -9,13 +9,15 @@ import LogOut from '.'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state, {routeProps}) => ({
+  checkPassphraseIsCorrect: state.settings.checkPassphraseIsCorrect,
   hasRandomPW: state.settings.passphrase.randomPW,
-  testPassphraseIsCorrect: state.settings.testPassphraseIsCorrect,
   waitingForResponse: state.settings.waitingForResponse,
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
+  onCheckPassphrase: passphrase =>
+    dispatch(SettingsGen.createCheckPassphrase({passphrase: new HiddenString(passphrase)})),
   onLogout: () => dispatch(ConfigGen.createLogout()),
   onSavePassphrase: (passphrase: string, passphraseConfirm: string) => {
     dispatch(SettingsGen.createOnChangeNewPassphrase({passphrase: new HiddenString(passphrase)}))
@@ -24,8 +26,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
     )
     dispatch(SettingsGen.createOnSubmitNewPassphrase())
   },
-  onTestPassphrase: passphrase =>
-    dispatch(SettingsGen.createTestPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
