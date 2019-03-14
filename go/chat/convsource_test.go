@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -1090,7 +1091,7 @@ func TestConversationLocking(t *testing.T) {
 
 	t.Logf("Trace 1 can get multiple locks")
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx = globals.RequestContext(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
 	acquires := 5
 	for i := 0; i < acquires; i++ {
@@ -1103,7 +1104,7 @@ func TestConversationLocking(t *testing.T) {
 	require.Zero(t, hcs.lockTab.NumLocks())
 
 	t.Logf("Trace 2 properly blocked by Trace 1")
-	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	ctx2 := globals.RequestContext(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		&breaks, NewCachingIdentifyNotifier(tc.Context()))
 	blockCb := make(chan struct{}, 5)
 	hcs.lockTab.SetBlockCb(&blockCb)
@@ -1173,11 +1174,11 @@ func TestConversationLockingDeadlock(t *testing.T) {
 		chat1.ConversationMembersType_KBFS)
 
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx = globals.RequestContext(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
-	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx2 := globals.RequestContext(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
-	ctx3 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx3 := globals.RequestContext(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
 
 	blocked, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())

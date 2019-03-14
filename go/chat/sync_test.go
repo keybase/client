@@ -418,7 +418,7 @@ func TestSyncerNeverJoined(t *testing.T) {
 		// simulate an old client that doesn't understand NEVER_JOINED
 		userAgent := libkb.UserAgent
 		libkb.UserAgent = "old:ua:2.12.1"
-		ctx = Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+		ctx = globals.RequestContext(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 		libkb.UserAgent = userAgent // reset user agent for future tests.
 		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {

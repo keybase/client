@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -219,7 +218,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	var breaks []keybase1.TLFIdentifyFailure
 	ident := keybase1.TLFIdentifyBehavior_CHAT_GUI
 	notifier := NewCachingIdentifyNotifier(h.G())
-	ctx := Context(context.Background(), h.G(), ident, &breaks, notifier)
+	ctx := globals.RequestContext(context.Background(), h.G(), ident, &breaks, notifier)
 
 	// Find a TLF name from the local inbox that includes the user sent to us
 	tlfName, _, err := h.getTLFtoCrypt(ctx, uid.ToBytes())
@@ -261,8 +260,8 @@ func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 
 func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
 	getTLFID func() keybase1.TLFID, getCanonicalName func() keybase1.CanonicalTlfName) (res []keybase1.TLFIdentifyFailure, err error) {
-	idNotifier := CtxIdentifyNotifier(ctx)
-	identBehavior, breaks, ok := types.IdentifyMode(ctx)
+	idNotifier := globals.CtxIdentifyNotifier(ctx)
+	identBehavior, breaks, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -276,7 +275,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, names []string, private b
 	}
 
 	// need new context as errgroup will cancel it.
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
+	group, ectx := errgroup.WithContext(globals.BackgroundRequestContext(ctx, t.G()))
 	assertions := make(chan string)
 
 	group.Go(func() error {

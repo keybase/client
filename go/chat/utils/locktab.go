@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -85,7 +84,7 @@ func (c *ConversationLockTab) deadlockDetect(ctx context.Context, trace string, 
 
 func (c *ConversationLockTab) doAcquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool, err error) {
 	key := c.key(uid, convID)
-	trace, ok := types.CtxTrace(ctx)
+	trace, ok := globals.CtxTrace(ctx)
 	if !ok {
 		c.Debug(ctx, "Acquire: failed to find trace value, not using a lock: convID: %s", convID)
 		return false, nil
@@ -157,7 +156,7 @@ func (c *ConversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 func (c *ConversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (released bool) {
 	c.Lock()
 	defer c.Unlock()
-	trace, ok := types.CtxTrace(ctx)
+	trace, ok := globals.CtxTrace(ctx)
 	if !ok {
 		c.Debug(ctx, "Release: failed to find trace value, doing nothing: convID: %s", convID)
 		return false

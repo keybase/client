@@ -4,9 +4,10 @@
 package service
 
 import (
-	"github.com/keybase/client/go/encrypteddb"
 	"path/filepath"
 	"strings"
+
+	"github.com/keybase/client/go/encrypteddb"
 
 	"golang.org/x/net/context"
 
@@ -114,7 +115,7 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 	public := findFolderList(filename) == "public"
 
 	g := globals.NewContext(h.G(), h.ChatG())
-	ctx := chat.Context(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
+	ctx := globals.RequestContext(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		nil, chat.NewCachingIdentifyNotifier(g))
 	h.ChatG().FetchRetrier.Rekey(ctx, tlf, chat1.ConversationMembersType_KBFS, public)
 }

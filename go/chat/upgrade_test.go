@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -67,7 +68,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
 	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
-	ctx = CtxAddOverrideNameInfoSource(ctx, nil)
+	ctx = globals.CtxAddOverrideNameInfoSource(ctx, nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
 		TlfName:     u.Username,
@@ -115,7 +116,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(iteam.KBFSTLFIDs()))
-	CtxKeyFinder(ctx, tc.Context()).Reset()
+	globals.NewContext(tc.G, tc.ChatG).KeyFinder.Reset()
 	checkUnbox()
 }
 
