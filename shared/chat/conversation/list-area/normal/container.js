@@ -42,6 +42,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   _markInitiallyLoadedThreadAsRead: () =>
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
+  onJumpToRecent: () => dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
@@ -56,6 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
+  onJumpToRecent: dispatchProps.onJumpToRecent,
   scrollListDownCounter: ownProps.scrollListDownCounter,
   scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
   scrollListUpCounter: ownProps.scrollListUpCounter,

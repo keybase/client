@@ -970,6 +970,12 @@ function* loadMoreMessages(state, action) {
         pivot: action.payload.messageID,
       }
       forceClear = true
+      yield Saga.put(Chat2Gen.createSetContainsLastMessage({contains: false, conversationIDKey: key}))
+      break
+    case Chat2Gen.jumpToRecent:
+      key = action.payload.conversationIDKey
+      reason = 'jump to recent'
+      forceClear = true
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
@@ -2810,6 +2816,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.SetPendingConversationExistingConversationIDKeyPayload
+    | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesFromSearchHitPayload
@@ -2821,6 +2828,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [
       Chat2Gen.selectConversation,
       Chat2Gen.setPendingConversationExistingConversationIDKey,
+      Chat2Gen.jumpToRecent,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,
       Chat2Gen.loadMessagesFromSearchHit,

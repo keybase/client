@@ -20,6 +20,7 @@ import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
+import JumpToRecent from './jumptorecent'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -38,7 +39,7 @@ type State = {
 
 type Snapshot = ?number
 
-const debug = __STORYBOOK__
+const debug = __STORYBOOK__ || true
 
 class Thread extends React.PureComponent<Props, State> {
   state = {lockedToBottom: true}
@@ -58,8 +59,8 @@ class Thread extends React.PureComponent<Props, State> {
   // simulating user-driven scroll events, e.g. page up/page down.
   _ignoreScrollRefCount = 0
 
-  // Set to ignore the scroll event after centering the view on the center ordinal
-  _ignoreCenterScroll = false
+  // Set to ignore the the next scroll event
+  _ignoreScrollOnetime = false
 
   _lastCenteredOrdinal = 0
 
@@ -69,7 +70,7 @@ class Thread extends React.PureComponent<Props, State> {
   _logIgnoreScroll = debug
     ? (name, fn) => {
         const oldIgnore = this._ignoreScrollRefCount
-        const oldCenter = this._ignoreCenterScroll
+        const oldCenter = this._ignoreScrollOnetime
         fn()
         logger.debug(
           'SCROLL',
@@ -81,7 +82,7 @@ class Thread extends React.PureComponent<Props, State> {
           'ignoreCenterScroll',
           oldCenter,
           '->',
-          this._ignoreCenterScroll
+          this._ignoreScrollOnetime
         )
       }
     : (name, fn) => fn()
@@ -121,8 +122,8 @@ class Thread extends React.PureComponent<Props, State> {
         // grab the waypoint we made for the centered ordinal and scroll to it
         const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
         if (scrollWaypoint.length > 0) {
-          this._ignoreCenterScroll = true
-          scrollWaypoint[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'})
+          this._ignoreScrollOnetime = true
+          scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
         }
       })
     }
@@ -164,6 +165,13 @@ class Thread extends React.PureComponent<Props, State> {
         list.scrollTop -= list.clientHeight
       })
     }
+  }
+
+  _jumpToRecent = () => {
+    this._ignoreScrollOnetime = true
+    this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
+    this._scrollToBottom('jump to recent')
+    this.props.onJumpToRecent()
   }
 
   componentDidMount() {
@@ -297,9 +305,9 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   _onScroll = e => {
-    if (this._ignoreCenterScroll) {
+    if (this._ignoreScrollOnetime) {
       this._logIgnoreScroll('_onScroll', () => {
-        this._ignoreCenterScroll = false
+        this._ignoreScrollOnetime = false
       })
       return
     }
@@ -524,6 +532,9 @@ class Thread extends React.PureComponent<Props, State> {
               )}
             </Measure>
           </div>
+          {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
+            <JumpToRecent onClick={this._jumpToRecent} style={jumpToRecentStyle} />
+          )}
         </div>
       </ErrorBoundary>
     )
@@ -738,6 +749,11 @@ const listStyle = {
   paddingBottom: globalMargins.small,
   // get our own layer so we can scroll faster
   willChange: 'transform',
+}
+
+const jumpToRecentStyle = {
+  bottom: 0,
+  position: 'absolute',
 }
 
 export default Thread
