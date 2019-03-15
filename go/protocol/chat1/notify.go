@@ -861,7 +861,8 @@ func (o ChatSyncIncrementalConv) DeepCopy() ChatSyncIncrementalConv {
 }
 
 type ChatSyncIncrementalInfo struct {
-	Items []ChatSyncIncrementalConv `codec:"items" json:"items"`
+	Items    []ChatSyncIncrementalConv `codec:"items" json:"items"`
+	Removals []string                  `codec:"removals" json:"removals"`
 }
 
 func (o ChatSyncIncrementalInfo) DeepCopy() ChatSyncIncrementalInfo {
@@ -877,6 +878,17 @@ func (o ChatSyncIncrementalInfo) DeepCopy() ChatSyncIncrementalInfo {
 			}
 			return ret
 		})(o.Items),
+		Removals: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Removals),
 	}
 }
 

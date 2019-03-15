@@ -594,9 +594,10 @@ const onChatInboxSynced = (state, action) => {
         }
         return arr
       }, [])
+      const removals = syncRes.incremental && syncRes.incremental.removals || []
       // Update new untrusted
-      if (metas.length) {
-        actions.push(Chat2Gen.createMetasReceived({metas}))
+      if (metas.length || removals.length) {
+        actions.push(Chat2Gen.createMetasReceived({metas, removals}))
       }
       // Unbox items
       actions.push(

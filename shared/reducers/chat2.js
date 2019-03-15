@@ -115,6 +115,9 @@ const metaMapReducer = (metaMap, action) => {
           map.clear().set(Constants.pendingConversationIDKey, pending)
         }
         const neverCreate = !!action.payload.neverCreate
+        action.payload.removals && action.payload.removals.forEach(convId => {
+          map.delete(Types.stringToConversationIDKey(convId))
+        })
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
