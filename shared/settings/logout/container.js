@@ -15,10 +15,16 @@ const mapStateToProps = (state, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => {
+    dispatch(SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: null}))
+    dispatch(navigateUp())
+  },
   onCheckPassphrase: passphrase =>
     dispatch(SettingsGen.createCheckPassphrase({passphrase: new HiddenString(passphrase)})),
-  onLogout: () => dispatch(ConfigGen.createLogout()),
+  onLogout: () => {
+    dispatch(ConfigGen.createLogout())
+    dispatch(SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: null}))
+  },
   onSavePassphrase: (passphrase: string, passphraseConfirm: string) => {
     dispatch(SettingsGen.createOnChangeNewPassphrase({passphrase: new HiddenString(passphrase)}))
     dispatch(

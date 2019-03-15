@@ -37,7 +37,7 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
     const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
     return (
       <>
-        <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.offer}>
           <Kb.Input
             errorText={
               this.props.checkPassphraseIsCorrect === false
@@ -123,7 +123,9 @@ export default (props: Props) => (
 const styles = Styles.styleSheetCreate({
   buttonbar: Styles.platformStyles({
     common: {
-      padding: 16,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
     },
   }),
   container: Styles.platformStyles({
@@ -135,4 +137,6 @@ const styles = Styles.styleSheetCreate({
   input: {
     marginBottom: Styles.globalMargins.small,
   },
+  // Avoid moving the buttons down when an errorText is added
+  offer: Styles.platformStyles({isElectron: {minHeight: 200}}),
 })
