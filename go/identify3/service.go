@@ -15,7 +15,6 @@ func Identify3(mctx libkb.MetaContext, ui3 keybase1.Identify3UiInterface, arg ke
 	i2arg := keybase1.Identify2Arg{
 		UserAssertion:    string(arg.Assertion),
 		ForceRemoteCheck: arg.IgnoreCache,
-		IgnoreCache:      arg.IgnoreCache,
 		ForceDisplay:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI_PROFILE,
 		NoSkipSelf:       true,

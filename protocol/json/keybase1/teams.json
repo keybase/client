@@ -2331,6 +2331,10 @@
         },
         {
           "type": "boolean",
+          "name": "editTeamDescription"
+        },
+        {
+          "type": "boolean",
           "name": "setTeamShowcase"
         },
         {

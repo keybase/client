@@ -29,7 +29,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   if (meta.teamname) {
     const yourOperations = getCanPerform(state, meta.teamname)
     admin = yourOperations.manageMembers
-    canEditChannel = yourOperations.editChannelDescription
+    canEditChannel = yourOperations.editTeamDescription
     canSetMinWriterRole = yourOperations.setMinWriterRole
     canSetRetention = yourOperations.setRetentionPolicy
     canDeleteHistory = yourOperations.deleteChatHistory
