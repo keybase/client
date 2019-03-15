@@ -1625,13 +1625,13 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 			h.Debug(ctx, "DownloadFileAttachmentLocal: deleteFileIfEmpty: %v", deleteFileIfEmpty(filename))
 		}
 	}()
+	if err := attachments.Quarantine(ctx, filename); err != nil {
+		h.Debug(ctx, "DownloadFileAttachmentLocal: failed to quarantine download: %s", err)
+	}
 	darg.Sink = sink
 	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
 	if err != nil {
 		return res, err
-	}
-	if err := attachments.Quarantine(ctx, filename); err != nil {
-		h.Debug(ctx, "DownloadFileAttachmentLocal: failed to quarantine download: %s", err)
 	}
 	return chat1.DownloadFileAttachmentLocalRes{
 		Filename:         filename,
