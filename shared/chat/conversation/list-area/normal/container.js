@@ -11,12 +11,15 @@ type OwnProps = {
   debug?: boolean,
   onFocusInput: () => void,
   scrollListDownCounter: number,
+  scrollListToBottomCounter: number,
   scrollListUpCounter: number,
 }
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
+  const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)
+  const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   let lastMessageIsOurs = false
   if (lastOrdinal) {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
@@ -24,6 +27,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   }
 
   return {
+    centeredOrdinal,
+    containsLatestMessage,
     conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     lastMessageIsOurs,
@@ -32,14 +37,18 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
+  _loadNewerMessages: () => dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey})),
+  _loadOlderMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  _loadMoreMessages: dispatchProps._loadMoreMessages,
+  _loadNewerMessages: dispatchProps._loadNewerMessages,
+  _loadOlderMessages: dispatchProps._loadOlderMessages,
+  centeredOrdinal: stateProps.centeredOrdinal,
+  containsLatestMessage: stateProps.containsLatestMessage,
   conversationIDKey: stateProps.conversationIDKey,
   copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,
@@ -48,12 +57,29 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
   scrollListDownCounter: ownProps.scrollListDownCounter,
+  scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
   scrollListUpCounter: ownProps.scrollListUpCounter,
 })
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
 let markedInitiallyLoaded = false
+
+const loadMoreMessages = (state, props, loadFn) => ordinal => {
+  if (state._conversationIDKey === props.conversationIDKey) {
+    if (state._lastLoadMoreOrdinalTime + 1000 > Date.now()) {
+      // ignore a load if its too recent for the same ordinal
+      return
+    }
+  }
+
+  loadFn()
+  return {
+    _conversationIDKey: props.conversationIDKey,
+    _lastLoadMoreOrdinalTime: Date.now(),
+    lastLoadMoreOrdinal: ordinal,
+  }
+}
 
 export default compose(
   connect<OwnProps, _, _, _, _>(
@@ -70,21 +96,8 @@ export default compose(
     },
     {
       // We don't let you try and load more within a second. Used to use the ordinal but maybe we just never want a super quick load
-      loadMoreMessages: (state, props) => ordinal => {
-        if (state._conversationIDKey === props.conversationIDKey) {
-          if (state._lastLoadMoreOrdinalTime + 1000 > Date.now()) {
-            // ignore a load if its too recent for the same ordinal
-            return
-          }
-        }
-
-        props._loadMoreMessages()
-        return {
-          _conversationIDKey: props.conversationIDKey,
-          _lastLoadMoreOrdinalTime: Date.now(),
-          lastLoadMoreOrdinal: ordinal,
-        }
-      },
+      loadNewerMessages: (state, props) => loadMoreMessages(state, props, props._loadNewerMessages),
+      loadOlderMessages: (state, props) => loadMoreMessages(state, props, props._loadOlderMessages),
     }
   ),
   lifecycle({

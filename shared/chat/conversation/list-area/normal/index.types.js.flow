@@ -3,14 +3,18 @@ import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 
 export type Props = {|
+  centeredOrdinal: ?Types.Ordinal,
   copyToClipboard: string => void,
+  containsLatestMessage: boolean,
   conversationIDKey: Types.ConversationIDKey,
   messageOrdinals: I.List<Types.Ordinal>,
   onFocusInput: () => void,
-  loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
+  loadNewerMessages: (ordinal: ?Types.Ordinal) => void,
+  loadOlderMessages: (ordinal: ?Types.Ordinal) => void,
   editingOrdinal: ?Types.Ordinal,
   lastMessageIsOurs: boolean,
   lastLoadMoreOrdinal: ?Types.Ordinal,
   scrollListDownCounter: number,
+  scrollListToBottomCounter: number,
   scrollListUpCounter: number,
 |}

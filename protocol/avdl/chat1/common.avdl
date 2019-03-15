@@ -158,6 +158,7 @@
     bytes previous;
     int num; // Number of items requested when argument, and number returned when result
     boolean last; // Will be true if the number of results is less than requested
+    boolean forceFirstPage; // Let downstream consumers of this Pagination know this is an initial request
   }
 
   record RateLimit {

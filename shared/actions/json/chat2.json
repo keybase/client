@@ -235,6 +235,13 @@
     "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    "loadNewerMessagesDueToScroll": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadMessagesFromSearchHit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
     // Show a desktop notification
     "desktopNotification": {
       "conversationIDKey": "Types.ConversationIDKey",
