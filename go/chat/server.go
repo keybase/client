@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1618,6 +1619,12 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	if err != nil {
 		return res, err
 	}
+	defer func() {
+		// In the event of any error delete the file if it's empty.
+		if err != nil {
+			h.Debug(ctx, "DownloadFileAttachmentLocal: deleteFileIfEmpty: %v", deleteFileIfEmpty(filename))
+		}
+	}()
 	darg.Sink = sink
 	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
 	if err != nil {
@@ -1630,6 +1637,17 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Filename:         filename,
 		IdentifyFailures: ires.IdentifyFailures,
 	}, nil
+}
+
+func deleteFileIfEmpty(filename string) (err error) {
+	f, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	if f.Size() == 0 {
+		return os.Remove(filename)
+	}
+	return nil
 }
 
 type downloadAttachmentArg struct {
