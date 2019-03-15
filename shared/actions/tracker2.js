@@ -136,19 +136,12 @@ function* load(state, action) {
           guiID: action.payload.guiID,
           ignoreCache: !!action.payload.ignoreCache,
         },
-        waitingKey: Constants.waitingKey,
+        waitingKey: Constants.profileLoadWaitingKey,
       })
     )
   } catch (err) {
-    // trigger custom error display instead of reloadable
+    // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
-    yield Saga.put(
-      Tracker2Gen.createUpdateResult({
-        guiID: action.payload.guiID,
-        reason: 'Error loading entire profile',
-        result: 'error',
-      })
-    )
   }
 }
 
@@ -164,19 +157,17 @@ const loadFollow = (_, action) => {
   return (
     !action.payload.inTracker &&
     Promise.all([
-      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: false}).then(convert),
-      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: true}).then(convert),
+      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: false}, Constants.profileLoadWaitingKey).then(
+        convert
+      ),
+      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: true}, Constants.profileLoadWaitingKey).then(
+        convert
+      ),
     ])
       .then(([followers, following]) =>
         Tracker2Gen.createUpdateFollowers({followers, following, username: action.payload.assertion})
       )
-      .catch(_ =>
-        Tracker2Gen.createUpdateResult({
-          guiID: action.payload.guiID,
-          reason: 'Error loading followers',
-          result: 'error',
-        })
-      )
+      .catch(err => logger.error(`Error loading follow info: ${err.message}`))
   )
 }
 
