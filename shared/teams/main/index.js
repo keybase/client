@@ -144,11 +144,13 @@ class Teams extends React.PureComponent<Props, State> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Header
-          loaded={this.props.loaded}
-          onCreateTeam={this.props.onCreateTeam}
-          onJoinTeam={this.props.onJoinTeam}
-        />
+        {Styles.isMobile && (
+          <Header
+            loaded={this.props.loaded}
+            onCreateTeam={this.props.onCreateTeam}
+            onJoinTeam={this.props.onJoinTeam}
+          />
+        )}
         <Kb.List
           items={this._teamsAndExtras(this.state.sawChatBanner, this.props.teamnames)}
           renderItem={this._renderItem}

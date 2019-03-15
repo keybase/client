@@ -6,7 +6,9 @@ import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
+import * as Styles from '../styles'
 import Teams from './main'
+import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {compose, isMobile, lifecycle, connect, type RouteProps} from '../util/container'
@@ -28,8 +30,8 @@ const mapStateToProps = state => ({
   teamnames: Constants.getSortedTeamnames(state),
 })
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
-  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+// share some between headerRightActions on desktop and component on mobile
+const headerActions = dispatch => ({
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -37,10 +39,14 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
       })
     )
   },
-  onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onJoinTeam: () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['showJoinTeamDialog']}))
   },
+})
+const mapDispatchToProps = (dispatch, {routePath}) => ({
+  ...headerActions(dispatch),
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onManageChat: (teamname: Teamname) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
@@ -110,9 +116,20 @@ const Connected = compose(
   })
 )(Reloadable)
 
+const ConnectedHeaderRightActions = connect<{}, _, _, _, _>(
+  () => ({}),
+  headerActions,
+  (s, d, o) => ({...o, ...s, ...d})
+)(HeaderRightActions)
+
 // $FlowIssue lets fix this
 Connected.navigationOptions = {
-  header: undefined,
+  headerRightActions: () => <ConnectedHeaderRightActions />,
+  headerTitle: () => (
+    <Kb.Text type="Header" style={{marginLeft: Styles.globalMargins.xsmall}}>
+      Teams
+    </Kb.Text>
+  ),
   title: 'Teams',
 }
 
