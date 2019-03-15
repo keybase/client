@@ -331,7 +331,7 @@ class Assertion extends React.PureComponent<Props, State> {
         fullWidth={true}
       >
         <Kb.Box2
-          alignItems="center"
+          alignItems="flex-start"
           direction="horizontal"
           gap="tiny"
           fullWidth={true}
@@ -347,7 +347,7 @@ class Assertion extends React.PureComponent<Props, State> {
               </Kb.Text>
             )}
           </Kb.Text>
-          <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof}>
+          <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof} style={styles.statusContainer}>
             <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
               <Kb.Icon
                 type={stateToIcon(p.state)}
@@ -409,11 +409,14 @@ const styles = Styles.styleSheetCreate({
   positionRelative: {position: 'relative'},
   site: {color: Styles.globalColors.black_20},
   siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
+  statusContainer: Styles.platformStyles({
+    isMobile: {position: 'relative', top: -2},
+  }),
   strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
   username: Styles.platformStyles({
-    isElectron: {display: 'inline-block', wordBreak: 'break-all'},
+    isElectron: {wordBreak: 'break-all'},
   }),
 })
 

@@ -152,7 +152,7 @@ const styles = Styles.styleSheetCreate({
       paddingBottom: Styles.globalMargins.small,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   youPublishTeam: {

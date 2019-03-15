@@ -20,8 +20,12 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
+  addBottomPadding: boolean,
   hasText: boolean,
 }
+
+// keep min input height here, if it's increased we know this is a multiline message.
+let minimumInputHeight = -1
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _input: null | Kb.PlainInput
@@ -31,6 +35,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   constructor(props: PlatformInputPropsInternal) {
     super(props)
     this.state = {
+      addBottomPadding: false,
       hasText: false,
     }
   }
@@ -124,7 +129,18 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     nativeEvent: {
       layout: {x, y, width, height},
     },
-  }) => this.props.setHeight(height)
+  }) => {
+    if (minimumInputHeight < 0 || height < minimumInputHeight) {
+      minimumInputHeight = height
+    }
+    this.setState(s => {
+      if (s.addBottomPadding ? height <= minimumInputHeight : height > minimumInputHeight) {
+        return {addBottomPadding: !s.addBottomPadding}
+      }
+      return null
+    })
+    this.props.setHeight(height)
+  }
 
   _insertMentionMarker = () => {
     if (this._input) {
@@ -186,7 +202,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             onChangeText={this._onChangeText}
             onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
-            style={styles.input}
+            style={Styles.collapseStyles([
+              styles.input,
+              this.state.addBottomPadding && styles.inputBottomPadding,
+            ])}
             textType="BodyBig"
             rowsMax={3}
             rowsMin={1}
@@ -334,6 +353,9 @@ const styles = Styles.styleSheetCreate({
           marginBottom: -4, // android has a bug where the lineheight isn't respected
           marginTop: -4, // android has a bug where the lineheight isn't respected
         }),
+  },
+  inputBottomPadding: {
+    paddingBottom: Styles.globalMargins.xtiny,
   },
   marginRightSmall: {
     marginRight: Styles.globalMargins.small,

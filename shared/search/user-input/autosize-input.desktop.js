@@ -31,6 +31,13 @@ class AutosizeInput extends Component<Props, State> {
   componentDidMount() {
     this._mounted = true
     this._measure()
+    if (this.props.autoFocus && this._inputEl) {
+      const el = this._inputEl
+      // needs to be delayed for some reason, todo figure this out
+      setTimeout(() => {
+        el && el.focus && el.focus()
+      }, 100)
+    }
   }
 
   componentDidUpdate() {

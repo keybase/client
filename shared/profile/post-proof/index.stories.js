@@ -6,20 +6,19 @@ import * as Styles from '../../styles'
 import Render from '.'
 
 const props = {
-  allowProofCheck: true,
   copyToClipboard: action('copyToClipboard'),
-  onAllowProofCheck: action('onAllowProofCheck'),
+  errorMessage: '',
   onCancel: action('onCancel'),
-  onCancelText: 'Cancel',
-  onComplete: action('onComplete'),
+  onSubmit: action('onSubmit'),
+  openLinkBeforeSubmit: true,
   platformUserName: 'awendland',
+  url: 'a url',
 }
 
 const propsTwitter = {
   ...props,
   platform: 'twitter',
   platformUserName: 'alexrwendland',
-  proofAction: action('proofAction'),
   proofText:
     'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
 }
@@ -38,7 +37,6 @@ const load = () => {
       <PostProof {...propsTwitter} errorMessage={"We couldn't find your proof. Please retry!"} />
     ))
     .add('Reddit', () => <PostProof {...props} platform={'reddit'} />)
-    .add('Facebook', () => <PostProof {...props} platform={'facebook'} />)
     .add('GitHub', () => (
       <PostProof
         {...props}

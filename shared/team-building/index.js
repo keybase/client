@@ -139,6 +139,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             items={showRecs ? props.recommendations || [] : props.searchResults || []}
             selectedIndex={props.highlightedIndex || 0}
             style={styles.list}
+            contentContainerStyle={styles.listContentContainer}
             keyProperty={'userId'}
             onEndReached={props.onSearchForMore}
             renderItem={(index, result) => (
@@ -195,8 +196,10 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
     },
+  }),
+  listContentContainer: Styles.platformStyles({
     isMobile: {
-      marginTop: Styles.globalMargins.xtiny,
+      paddingTop: Styles.globalMargins.xtiny,
     },
   }),
   loadingContainer: {

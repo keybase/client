@@ -76,23 +76,21 @@ const ServiceIconDesktop = (props: IconProps) => (
 const ServiceIconMobile = (props: IconProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.serviceIconContainer}>
-      {!!props.showCount && !Number.isInteger(props.count) ? (
+      <Kb.Icon
+        fontSize={18}
+        type={serviceIdToIconFont(props.service)}
+        style={Styles.collapseStyles([
+          styles.serviceIcon,
+          {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
+        ])}
+      />
+      {!!props.showCount && !Number.isInteger(props.count) && (
         <Kb.Icon
           type="icon-progress-grey-animated"
           color={Styles.globalColors.grey}
           style={styles.pendingIcon}
         />
-      ) : (
-        <Kb.Icon
-          fontSize={22}
-          type={serviceIdToIconFont(props.service)}
-          style={Styles.collapseStyles([
-            styles.serviceIcon,
-            {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
-          ])}
-        />
       )}
-
       {!!props.showCount && Number.isInteger(props.count) && (
         <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
           {props.count && props.count === 11 ? '10+' : props.count}
@@ -141,12 +139,14 @@ const styles = Styles.styleSheetCreate({
   },
   pendingIcon: Styles.platformStyles({
     isElectron: {height: 10, width: 10},
-    isMobile: {height: 18, width: 18},
+    isMobile: {height: 17, width: 17},
   }),
   resultCount: {},
-  serviceIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
+  serviceIcon: Styles.platformStyles({
+    isElectron: {
+      marginRight: Styles.globalMargins.xtiny,
+    },
+  }),
   serviceIconContainer: {
     flex: 1,
     marginLeft: Styles.globalMargins.xtiny,

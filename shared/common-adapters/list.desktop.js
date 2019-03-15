@@ -93,7 +93,10 @@ class List extends PureComponent<Props<any>, void> {
     return (
       <div style={collapseStyles([styles.outerDiv, this.props.style])}>
         <div style={globalStyles.fillAbsolute}>
-          <div style={styles.innerDiv} onScroll={this.props.onEndReached ? this._onScroll : undefined}>
+          <div
+            style={collapseStyles([styles.innerDiv, this.props.contentContainerStyle])}
+            onScroll={this.props.onEndReached ? this._onScroll : undefined}
+          >
             <ReactList
               ref={this._setListRef}
               useTranslate3d={false}

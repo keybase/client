@@ -50,7 +50,7 @@ class AppView extends React.PureComponent<any> {
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
-          <Header options={descriptor.options} onPop={childNav.pop} allowBack={index !== 0} />
+          <Header options={descriptor.options} onPop={() => childNav.pop()} allowBack={index !== 0} />
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}
@@ -119,7 +119,13 @@ const LoggedInStackNavigator = createNavigator(
 
 const LoggedOutStackNavigator = createNavigator(
   AppView,
-  StackRouter({...Shim.shim(loggedOutRoutes)}, {initialRouteName: 'login'}),
+  StackRouter(
+    {...Shim.shim(loggedOutRoutes)},
+    {
+      defaultNavigationOptions: p => ({headerHideBorder: true}),
+      initialRouteName: 'login',
+    }
+  ),
   {}
 )
 
@@ -278,6 +284,7 @@ const styles = Styles.styleSheetCreate({
   }),
   modalContainer: {
     ...Styles.globalStyles.fillAbsolute,
+    zIndex: 99999,
   },
 })
 

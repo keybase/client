@@ -1058,6 +1058,7 @@ protocol teams {
     boolean deleteChannel;
     boolean renameChannel;
     boolean editChannelDescription;
+    boolean editTeamDescription;
     boolean setTeamShowcase;
     boolean setMemberShowcase;
     boolean setRetentionPolicy;

@@ -7,6 +7,7 @@ export type Props<Item> = {
   indexAsKey?: boolean,
   items: Array<Item>,
   style?: StylesCrossPlatform,
+  contentContainerStyle?: StylesCrossPlatform,
   fixedHeight?: ?number,
   renderItem: (index: number, item: Item) => React.Node,
   keyProperty?: string, // if passed uses item[keyProperty] for the item keys

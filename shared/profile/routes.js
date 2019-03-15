@@ -6,7 +6,7 @@ const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
   const Profile = require('./user/container').default
   const AddToTeam = require('./add-to-team/container').default
-  const EditProfile2 = require('./edit-profile2/container').default
+  const EditProfile = require('./edit-profile/container').default
   const EditAvatar = require('./edit-avatar/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
   const ProveWebsiteChoice = require('./prove-website-choice/container').default
@@ -23,14 +23,10 @@ const profileRoute = () => {
 
   const proveEnterUsername = makeRouteDefNode({
     children: {
-      confirmOrPending: {
-        component: ConfirmOrPending,
-      },
-      postProof: {
+      profileConfirmOrPending: {component: ConfirmOrPending},
+      profilePostProof: {
         children: {
-          confirmOrPending: {
-            component: ConfirmOrPending,
-          },
+          profileConfirmOrPending: {component: ConfirmOrPending},
         },
         component: PostProof,
       },
@@ -51,38 +47,32 @@ const profileRoute = () => {
         component: AddToTeam,
         tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
       },
-      editAvatar: {
+      profile: profileRoute,
+      profileEdit: {
+        component: EditProfile,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
+      profileEditAvatar: {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      editProfile2: {
-        component: EditProfile2,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-      },
-      nonUserProfile: {
-        children: {
-          profile: profileRoute,
-        },
+      profileNonUser: {
+        children: {profile: profileRoute},
         component: NonUserProfile,
       },
-      pgp: pgpRoutes,
-      profile: profileRoute,
-      proveEnterUsername,
-      proveWebsiteChoice: {
-        children: {
-          proveEnterUsername,
-        },
+      profilePgp: pgpRoutes,
+      profileProveEnterUsername: proveEnterUsername,
+      profileProveWebsiteChoice: {
+        children: {proveEnterUsername},
         component: ProveWebsiteChoice,
       },
-      revoke: {
-        component: RevokeContainer,
-      },
-      search: {
+      profileRevoke: {component: RevokeContainer},
+      profileSearch: {
         children: {},
         component: SearchPopup,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      showcaseTeamOffer: {
+      profileShowcaseTeamOffer: {
         children: {},
         component: ShowcaseTeamOffer,
         tags: makeLeafTags({layerOnTop: !isMobile}),
@@ -96,22 +86,31 @@ const profileRoute = () => {
 }
 
 export const newRoutes = {
-  addToTeam: {getScreen: () => require('./add-to-team/container').default},
-  confirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
-  editAvatar: {getScreen: () => require('./edit-avatar/container').default},
-  editProfile2: {getScreen: () => require('./edit-profile2/container').default},
-  nonUserProfile: {getScreen: () => require('./non-user-profile/container').default},
-  postProof: {getScreen: () => require('./post-proof/container').default},
   profile: {getScreen: () => require('./user/container').default, upgraded: true},
-  proveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
-  proveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
-  revoke: {getScreen: () => require('./revoke/container').default},
-  showcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
-  ...require('./pgp/routes').newRoutes,
+  profileAddToTeam: {getScreen: () => require('./add-to-team/container').default},
+  profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default},
+  profileNonUser: {getScreen: () => require('./non-user-profile/container').default},
+  profileShowcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
 }
 
 export const newModalRoutes = {
-  search: {getScreen: () => require('./search/container').default},
+  profileConfirmOrPending: {
+    getScreen: () => require('./confirm-or-pending/container').default,
+    upgraded: true,
+  },
+  profileEdit: {getScreen: () => require('./edit-profile/container').default},
+  profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
+  profileProveEnterUsername: {
+    getScreen: () => require('./prove-enter-username/container').default,
+    upgraded: true,
+  },
+  profileProveWebsiteChoice: {
+    getScreen: () => require('./prove-website-choice/container').default,
+    upgraded: true,
+  },
+  profileRevoke: {getScreen: () => require('./revoke/container').default, upgraded: true},
+  profileSearch: {getScreen: () => require('./search/container').default},
+  ...require('./pgp/routes').newRoutes,
 }
 
 export default profileRoute
