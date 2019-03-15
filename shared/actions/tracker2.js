@@ -140,6 +140,8 @@ function* load(state, action) {
       })
     )
   } catch (err) {
+    // trigger custom error display instead of reloadable
+    logger.error(`Error loading profile: ${err.message}`)
     yield Saga.put(
       Tracker2Gen.createUpdateResult({
         guiID: action.payload.guiID,
@@ -179,11 +181,13 @@ const loadFollow = (_, action) => {
 }
 
 const getProofSuggestions = () =>
-  RPCTypes.userProofSuggestionsRpcPromise().then(({suggestions, showMore}) =>
-    Tracker2Gen.createProofSuggestionsUpdated({
-      suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
-    })
-  )
+  RPCTypes.userProofSuggestionsRpcPromise(undefined, Constants.profileLoadWaitingKey)
+    .then(({suggestions, showMore}) =>
+      Tracker2Gen.createProofSuggestionsUpdated({
+        suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
+      })
+    )
+    .catch(e => logger.error(`Error loading proof suggestions: ${e.message}`))
 
 const showUser = (_, action) =>
   Tracker2Gen.createLoad({

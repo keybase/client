@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
 import {chunk} from 'lodash-es'
@@ -353,9 +354,6 @@ class User extends React.Component<Props, State> {
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
 
-  componentDidMount() {
-    this.props.onReload()
-  }
   componentDidUpdate(prevProps: Props) {
     if (this.props.username !== prevProps.username) {
       this.props.onReload()
@@ -377,37 +375,44 @@ class User extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-          {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
-          <Kb.SafeAreaViewTop
-            style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
-          />
-          {!!this.state.width && (
-            <Kb.SectionList
-              key={this.props.username + this.state.width /* forc render on user change or width change */}
-              stickySectionHeadersEnabled={true}
-              renderSectionHeader={this._renderSectionHeader}
-              keyExtractor={this._keyExtractor}
-              sections={[
-                this._bioTeamProofsSection,
-                {
-                  data: chunks,
-                  itemWidth,
-                  renderItem: this._renderOtherUsers,
-                },
-              ]}
-              style={Styles.collapseStyles([
-                styles.sectionList,
-                Styles.isMobile
-                  ? colorTypeToStyle(this.props.backgroundColorType)
-                  : {backgroundColor: Styles.globalColors.white},
-              ])}
-              contentContainerStyle={styles.sectionListContentStyle}
+      <Kb.Reloadable
+        reloadOnMount={true}
+        onReload={this.props.onReload}
+        onBack={this.props.onBack}
+        waitingKeys={[Constants.profileLoadWaitingKey]}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+          <Kb.Box2 direction="vertical" style={styles.innerContainer}>
+            {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
+            <Kb.SafeAreaViewTop
+              style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
             />
-          )}
+            {!!this.state.width && (
+              <Kb.SectionList
+                key={this.props.username + this.state.width /* forc render on user change or width change */}
+                stickySectionHeadersEnabled={true}
+                renderSectionHeader={this._renderSectionHeader}
+                keyExtractor={this._keyExtractor}
+                sections={[
+                  this._bioTeamProofsSection,
+                  {
+                    data: chunks,
+                    itemWidth,
+                    renderItem: this._renderOtherUsers,
+                  },
+                ]}
+                style={Styles.collapseStyles([
+                  styles.sectionList,
+                  Styles.isMobile
+                    ? colorTypeToStyle(this.props.backgroundColorType)
+                    : {backgroundColor: Styles.globalColors.white},
+                ])}
+                contentContainerStyle={styles.sectionListContentStyle}
+              />
+            )}
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.Reloadable>
     )
   }
 }
