@@ -958,6 +958,10 @@
             null,
             "TLFIdentifyBehavior"
           ]
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": "Dirent",
