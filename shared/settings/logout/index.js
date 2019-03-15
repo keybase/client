@@ -107,10 +107,12 @@ export default (props: Props) => (
       </Kb.Box2>
     ) : (
       <Kb.Box2 centerChildren={true} direction="vertical">
-        <Kb.Text type="Body">
+        <Kb.Text style={styles.bodyText} type="Body">
           Would you like to make sure that you know your passphrase before signing out?
         </Kb.Text>
-        <Kb.Text type="Body">You'll need it to log back in.</Kb.Text>
+        <Kb.Text style={styles.bodyText} type="Body">
+          You'll need it to log back in.
+        </Kb.Text>
         <OfferToCheckPassphrase
           checkPassphraseIsCorrect={props.checkPassphraseIsCorrect}
           onCheckPassphrase={props.onCheckPassphrase}
@@ -122,6 +124,9 @@ export default (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  bodyText: {
+    textAlign: 'center',
+  },
   buttonbar: {
     padding: Styles.globalMargins.small,
   },
