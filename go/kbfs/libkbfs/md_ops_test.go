@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -151,11 +152,11 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 // kmdMatcher implements the gomock.Matcher interface to compare
 // KeyMetadata objects.
 type kmdMatcher struct {
-	kmd KeyMetadata
+	kmd libkey.KeyMetadata
 }
 
 func (m kmdMatcher) Matches(x interface{}) bool {
-	kmd, ok := x.(KeyMetadata)
+	kmd, ok := x.(libkey.KeyMetadata)
 	if !ok {
 		return false
 	}
@@ -168,13 +169,13 @@ func (m kmdMatcher) String() string {
 		m.kmd.TlfID(), m.kmd.LatestKeyGeneration())
 }
 
-func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd KeyMetadata) {
+func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd libkey.KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(gomock.Any(),
 		kmdMatcher{kmd}).Return(kbfscrypto.TLFCryptKey{}, nil)
 }
 
 func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
-	kmd KeyMetadata) {
+	kmd libkey.KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
 		kmdMatcher{kmd}, kmdMatcher{kmd}).MaxTimes(1).Return(
 		kbfscrypto.TLFCryptKey{}, nil)

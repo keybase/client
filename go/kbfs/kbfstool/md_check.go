@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"golang.org/x/net/context"
 )
 
@@ -24,7 +25,7 @@ descending order, regardless of whether rev1 <= rev2 or rev1 > rev2.
 // TODO: Factor out common code with StateChecker.findAllBlocksInPath.
 
 func checkDirBlock(ctx context.Context, config libkbfs.Config,
-	name string, kmd libkbfs.KeyMetadata, info libkbfs.BlockInfo,
+	name string, kmd libkey.KeyMetadata, info libkbfs.BlockInfo,
 	verbose bool) (err error) {
 	if verbose {
 		fmt.Printf("Checking %s (dir block %v)...\n", name, info)
@@ -70,7 +71,7 @@ func checkDirBlock(ctx context.Context, config libkbfs.Config,
 }
 
 func checkFileBlock(ctx context.Context, config libkbfs.Config,
-	name string, kmd libkbfs.KeyMetadata, info libkbfs.BlockInfo,
+	name string, kmd libkey.KeyMetadata, info libkbfs.BlockInfo,
 	verbose bool) (err error) {
 	if verbose {
 		fmt.Printf("Checking %s (file block %v)...\n", name, info)

@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -45,7 +46,7 @@ func (fup *folderUpdatePrepper) nowUnixNano() int64 {
 }
 
 func (fup *folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
-	kmd KeyMetadata, currBlock Block, chargedTo keybase1.UserOrTeamID,
+	kmd libkey.KeyMetadata, currBlock Block, chargedTo keybase1.UserOrTeamID,
 	bps blockPutState, bType keybase1.BlockType) (
 	info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
@@ -92,7 +93,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	// Simple dirty bcaches don't need to be shut down.
 
-	getter := func(ctx context.Context, _ KeyMetadata, ptr BlockPointer,
+	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
 		_ path, _ blockReqType) (*FileBlock, bool, error) {
 		block, err := dirtyBcache.Get(ctx, fup.id(), ptr, fup.branch())
 		if err != nil {
@@ -934,7 +935,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 }
 
 func (fup *folderUpdatePrepper) setChildrenNodes(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata, p path,
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata, p path,
 	indexInPath int, dbm dirBlockMap, nextNode *pathTreeNode, currPath path,
 	names []string) {
 	dd, cleanupFn := fup.blocks.newDirDataWithDBM(
@@ -979,7 +980,7 @@ func (fup *folderUpdatePrepper) setChildrenNodes(
 
 func (fup *folderUpdatePrepper) makeSyncTree(
 	ctx context.Context, lState *kbfssync.LockState,
-	resolvedPaths map[BlockPointer]path, kmd KeyMetadata, dbm dirBlockMap,
+	resolvedPaths map[BlockPointer]path, kmd libkey.KeyMetadata, dbm dirBlockMap,
 	newFileBlocks fileBlockMap) *pathTreeNode {
 	var root *pathTreeNode
 	var cleanupFn func()

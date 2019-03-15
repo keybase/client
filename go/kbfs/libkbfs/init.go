@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -405,12 +406,14 @@ func makeMDServer(config Config, mdserverAddr string,
 	return mdServer, nil
 }
 
-func makeKeyServer(config Config, keyserverAddr string,
-	log logger.Logger) (KeyServer, error) {
+func makeKeyServer(
+	config Config, keyserverAddr string, log logger.Logger) (
+	libkey.KeyServer, error) {
+	kConfig := keyOpsConfigWrapper{config}
 	if keyserverAddr == memoryAddr {
 		log.Debug("Using in-memory keyserver")
 		// local in-memory key server
-		return NewKeyServerMemory(config)
+		return libkey.NewKeyServerMemory(kConfig, log)
 	}
 
 	if len(keyserverAddr) == 0 {
@@ -421,12 +424,12 @@ func makeKeyServer(config Config, keyserverAddr string,
 		log.Debug("Using on-disk keyserver at %s", serverRootDir)
 		// local persistent key server
 		keyPath := filepath.Join(serverRootDir, "kbfs_key")
-		return NewKeyServerDir(config, keyPath)
+		return libkey.NewKeyServerDir(kConfig, log, keyPath)
 	}
 
 	log.Debug("Using remote keyserver %s (same as mdserver)", keyserverAddr)
 	// currently the MD server also acts as the key server.
-	keyServer, ok := config.MDServer().(KeyServer)
+	keyServer, ok := config.MDServer().(libkey.KeyServer)
 	if !ok {
 		return nil, errors.New("MD server is not a key server")
 	}
@@ -688,7 +691,8 @@ func doInit(
 		config.SetKeyCache(keyCache)
 
 		keyBundleCache := config.KeyBundleCache()
-		keyBundleCache = NewKeyBundleCacheMeasured(keyBundleCache, registry)
+		keyBundleCache = libkey.NewKeyBundleCacheMeasured(
+			keyBundleCache, registry)
 		config.SetKeyBundleCache(keyBundleCache)
 	}
 
@@ -762,7 +766,7 @@ func doInit(
 		return nil, fmt.Errorf("problem creating key server: %+v", err)
 	}
 	if registry := config.MetricsRegistry(); registry != nil {
-		keyServer = NewKeyServerMeasured(keyServer, registry)
+		keyServer = libkey.NewKeyServerMeasured(keyServer, registry)
 	}
 	config.SetKeyServer(keyServer)
 

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -27,7 +28,7 @@ type mdRange struct {
 }
 
 func makeRekeyReadErrorHelper(
-	err error, kmd KeyMetadata, resolvedHandle *tlfhandle.Handle,
+	err error, kmd libkey.KeyMetadata, resolvedHandle *tlfhandle.Handle,
 	uid keybase1.UID, username kbname.NormalizedUsername) error {
 	if resolvedHandle.Type() == tlf.Public {
 		panic("makeRekeyReadError called on public folder")
@@ -50,7 +51,7 @@ func makeRekeyReadErrorHelper(
 
 func makeRekeyReadError(
 	ctx context.Context, err error, kbpki KBPKI,
-	syncGetter syncedTlfGetterSetter, kmd KeyMetadata,
+	syncGetter syncedTlfGetterSetter, kmd libkey.KeyMetadata,
 	uid keybase1.UID, username kbname.NormalizedUsername) error {
 	h := kmd.GetTlfHandle()
 	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki, nil, syncGetter)
@@ -468,7 +469,7 @@ func encryptMDPrivateData(
 }
 
 func getFileBlockForMD(ctx context.Context, bcache BlockCacheSimple, bops BlockOps,
-	ptr BlockPointer, tlfID tlf.ID, rmdWithKeys KeyMetadata) (
+	ptr BlockPointer, tlfID tlf.ID, rmdWithKeys libkey.KeyMetadata) (
 	*FileBlock, error) {
 	// We don't have a convenient way to fetch the block from here via
 	// folderBlockOps, so just go directly via the
@@ -491,7 +492,7 @@ func getFileBlockForMD(ctx context.Context, bcache BlockCacheSimple, bops BlockO
 
 func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	bcache BlockCacheSimple, bops BlockOps, mode InitMode, tlfID tlf.ID,
-	pmd *PrivateMetadata, rmdWithKeys KeyMetadata, log logger.Logger) error {
+	pmd *PrivateMetadata, rmdWithKeys libkey.KeyMetadata, log logger.Logger) error {
 	info := pmd.Changes.Info
 	if info.BlockPointer == zeroPtr {
 		return nil
@@ -513,7 +514,7 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 		[]pathNode{{
 			info.BlockPointer, fmt.Sprintf("<MD with block change pointer %s>",
 				info.BlockPointer)}}}
-	getter := func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+	getter := func(ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
 		p path, rtype blockReqType) (*FileBlock, bool, error) {
 		block, err := getFileBlockForMD(ctx, bcache, bops, ptr, tlfID, kmd)
 		if err != nil {
@@ -597,7 +598,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache BlockCache, bops BlockOps,
 	keyGetter mdDecryptionKeyGetter, teamChecker kbfsmd.TeamMembershipChecker,
 	osg idutil.OfflineStatusGetter, mode InitMode, uid keybase1.UID,
-	serializedPrivateMetadata []byte, rmdToDecrypt, rmdWithKeys KeyMetadata,
+	serializedPrivateMetadata []byte, rmdToDecrypt, rmdWithKeys libkey.KeyMetadata,
 	log logger.Logger) (PrivateMetadata, error) {
 	handle := rmdToDecrypt.GetTlfHandle()
 
