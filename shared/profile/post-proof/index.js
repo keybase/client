@@ -52,7 +52,7 @@ const WebDescription = ({platformUserName}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={root}
+        onClickURL={`https://${root}`}
         style={{color: Styles.globalColors.blue, marginTop: Styles.globalMargins.tiny}}
       >
         {root}
@@ -60,7 +60,7 @@ const WebDescription = ({platformUserName}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClickURL={wellKnown}
+        onClickURL={`https://${wellKnown}`}
         style={{color: Styles.globalColors.blue}}
       >
         {wellKnown}
