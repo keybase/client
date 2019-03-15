@@ -227,6 +227,11 @@
           "name": "actLoggedOut",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "ignoreCache",
+          "type": "boolean",
+          "default": false
         }
       ],
       "response": "Identify2Res"

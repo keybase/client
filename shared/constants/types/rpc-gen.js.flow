@@ -481,7 +481,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify.identify2': {|
-    inParam: $ReadOnly<{|uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, actLoggedOut?: Boolean|}>,
+    inParam: $ReadOnly<{|uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, actLoggedOut?: Boolean, ignoreCache?: Boolean|}>,
     outParam: Identify2Res,
   |},
   'keybase.1.identify3.identify3': {|
