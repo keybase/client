@@ -16,6 +16,7 @@ import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
 import {type Teamname} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
+import flags from '../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -53,7 +54,10 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     ),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(
-      FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})
+      FsGen.createOpenPathInFilesTab({
+        path: FsTypes.stringToPath(`/keybase/team/${teamname}`),
+        routePath: flags.useNewRouter ? undefined : routePath,
+      })
     ),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
