@@ -82,8 +82,8 @@ public class MainActivity extends ReactFragmentActivity {
     }
 
     private void handleNotificationIntent(Intent intent) {
-        Bundle bundle = intent.getExtras();
-        if (bundle == null || !bundle.containsKey("notification")) return;
+        if (!intent.getBooleanExtra("isNotification", false)) return;
+        intent.removeExtra("isNotification");
 
         ReactContext reactContext = getReactContext();
         if (reactContext == null) return;
@@ -91,7 +91,11 @@ public class MainActivity extends ReactFragmentActivity {
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
         if (emitter != null) {
-            emitter.emit("androidIntentNotification", "");
+            WritableMap evt = Arguments.createMap();
+            evt.putString("convID", intent.getStringExtra("convID"));
+            evt.putString("type", "chat.newmessage");
+            evt.putBoolean("userInteraction", true);
+            emitter.emit("androidIntentNotification", evt);
         }
     }
 

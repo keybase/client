@@ -43,10 +43,16 @@ let lastPushForAndroid = null
 const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   // If android launched due to push
-  RNEmitter.addListener('androidIntentNotification', () => {
+  RNEmitter.addListener('androidIntentNotification', (evt) => {
     logger.info('[PushAndroidIntent]', lastPushForAndroid && lastPushForAndroid.type)
     if (!lastPushForAndroid) {
-      return
+      if (!evt) {
+        return
+      }
+      lastPushForAndroid = Constants.normalizePush(evt)
+      if (!lastPushForAndroid) {
+        return
+      }
     }
 
     switch (lastPushForAndroid.type) {
@@ -199,7 +205,7 @@ function* handlePush(_, action) {
         }
         break
       case 'chat.newmessageSilent_2':
-        // entirely handled by go on ios and not being sent on android. TODO eventually make android like ios and plumb this through native land
+        // entirely handled by go on ios and in onNotification on Android
         break
       case 'chat.newmessage':
         yield* handleLoudMessage(notification)

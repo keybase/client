@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.app.PendingIntent;
 import android.content.Context;
 import keybase.PushNotifier;
+
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
@@ -19,8 +20,11 @@ public class KBPushNotifier implements PushNotifier {
     public void localNotification(String ident, String msg, long badgeCount, String soundName, String convID,
             String typ) {
         Intent open_activity_intent = new Intent(this.context, MainActivity.class);
+        open_activity_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        open_activity_intent.putExtra("isNotification", true);
+        open_activity_intent.putExtra("convID", convID);
         PendingIntent pending_intent = PendingIntent.getActivity(this.context, 0, open_activity_intent,
-            PendingIntent.FLAG_CANCEL_CURRENT);
+            PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder mBuilder =
             new NotificationCompat.Builder(this.context, RNPushNotificationHelper.NOTIFICATION_CHANNEL_ID )
             .setSmallIcon(R.drawable.ic_notif)
