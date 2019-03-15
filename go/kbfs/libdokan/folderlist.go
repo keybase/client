@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
-	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
@@ -129,7 +129,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			continue
 		}
 
-		h, err := libfs.ParseTlfHandlePreferredQuick(
+		h, err := libkbfs.ParseTlfHandlePreferredQuick(
 			ctx, fl.fs.config.KBPKI(), fl.fs.config, name, fl.tlfType)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
 		switch e := errors.Cause(err).(type) {
@@ -190,7 +190,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
-	var favs []libkbfs.Favorite
+	var favs []favorites.Folder
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
 		if err != nil {

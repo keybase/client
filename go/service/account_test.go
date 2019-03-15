@@ -39,3 +39,35 @@ func TestCheckPassphrase(t *testing.T) {
 	})
 	require.Error(t, err)
 }
+
+func TestRecoverUsername(t *testing.T) {
+	tc := libkb.SetupTest(t, "recu", 3)
+	defer tc.Cleanup()
+
+	fu, err := kbtest.CreateAndSignupFakeUser("rcu", tc.G)
+	require.NoError(t, err)
+
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+
+	// We are not going to check if the email was sent, but we
+	// are testing if we can call this RPC on both logged and
+	// unlogged session.
+
+	err = handler.RecoverUsername(ctx, keybase1.RecoverUsernameArg{
+		Email: fu.Email,
+	})
+	require.NoError(t, err)
+
+	kbtest.Logout(tc)
+
+	err = handler.RecoverUsername(ctx, keybase1.RecoverUsernameArg{
+		Email: fu.Email,
+	})
+	require.NoError(t, err)
+
+	err = handler.RecoverUsername(ctx, keybase1.RecoverUsernameArg{
+		Email: "bad+" + fu.Email,
+	})
+	require.Error(t, err)
+}

@@ -146,11 +146,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dns-48.png'),
   },
-  'icon-dropping-file-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-dropping-file-48.png'),
-  },
   'icon-facebook-continue': {
     extension: 'png',
     isFont: false,
@@ -396,6 +391,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-file-64.png'),
   },
+  'icon-file-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-file-96.png'),
+  },
   'icon-file-delete-48': {
     extension: 'png',
     isFont: false,
@@ -466,6 +466,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-folder-copy-48.png'),
   },
+  'icon-folder-default-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-default-96.png'),
+  },
   'icon-folder-move-32': {
     extension: 'png',
     isFont: false,
@@ -501,6 +506,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-folder-private-64.png'),
   },
+  'icon-folder-private-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-private-96.png'),
+  },
   'icon-folder-public-16': {
     extension: 'png',
     isFont: false,
@@ -520,6 +530,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-folder-public-64.png'),
+  },
+  'icon-folder-public-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-public-96.png'),
   },
   'icon-folder-success-48': {
     extension: 'png',
@@ -545,6 +560,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-folder-team-64.png'),
+  },
+  'icon-folder-team-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-folder-team-96.png'),
   },
   'icon-follow-me-21': {
     extension: 'png',
@@ -1471,30 +1491,30 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-securing-static-266.png'),
   },
-  'icon-shh-16': {
+  'icon-shh-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-16.png'),
+    require: require('../images/icons/icon-shh-19-16.png'),
   },
-  'icon-shh-24': {
+  'icon-shh-26-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-24.png'),
+    require: require('../images/icons/icon-shh-26-21.png'),
   },
-  'icon-shh-active-16': {
+  'icon-shh-active-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-active-16.png'),
+    require: require('../images/icons/icon-shh-active-19-16.png'),
   },
-  'icon-shh-active-24': {
+  'icon-shh-active-26-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-active-24.png'),
+    require: require('../images/icons/icon-shh-active-26-21.png'),
   },
-  'icon-shh-hover-16': {
+  'icon-shh-hover-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-hover-16.png'),
+    require: require('../images/icons/icon-shh-hover-19-16.png'),
   },
   'icon-skull-48': {
     extension: 'png',
@@ -1530,16 +1550,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
-  },
-  'icon-stellar-logo-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-16.png'),
-  },
-  'icon-stellar-logo-grey-16': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-stellar-logo-grey-16.png'),
   },
   'icon-team-git-16': {
     extension: 'png',

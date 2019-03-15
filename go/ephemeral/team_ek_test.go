@@ -54,7 +54,7 @@ func TestNewTeamEK(t *testing.T) {
 
 	// We've stored the result in local storage
 	teamEKBoxStorage := tc.G.GetTeamEKBoxStorage()
-	maxGeneration, err := teamEKBoxStorage.MaxGeneration(context.Background(), teamID)
+	maxGeneration, err := teamEKBoxStorage.MaxGeneration(context.Background(), teamID, false)
 	require.NoError(t, err)
 	ek, err := teamEKBoxStorage.Get(context.Background(), teamID, maxGeneration, nil)
 	require.NoError(t, err)

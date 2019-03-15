@@ -249,8 +249,8 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = () =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(accepted =>
-    WalletsGen.createWalletDisclaimerReceived({accepted}),
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(undefined, Constants.checkOnlineWaitingKey).then(
+    accepted => WalletsGen.createWalletDisclaimerReceived({accepted})
   )
 
 const loadAccounts = (state, action) => {
@@ -368,16 +368,10 @@ const loadPayments = (state, action) => {
     logger.error('Tried to loadPayments while not logged in')
     return
   }
-  if (!action.payload.accountID) {
-    const account = Constants.getAccount(state, action.payload.accountID)
-    logger.error(
-      `Tried to call load with no account ID, found matching account name: ${
-        account.name
-      } isDefault: ${String(account.isDefault)}`
-    )
+  if (actionHasError(action)) {
+    return
   }
   return (
-    !actionHasError(action) &&
     (!!(
       action.type === WalletsGen.selectAccount &&
       action.payload.accountID &&
@@ -645,7 +639,7 @@ const navigateToAccount = (state, action) => {
   }
   const wallet = isMobile
     ? [Tabs.settingsTab, SettingsConstants.walletsTab]
-    : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
+    : [{props: {}, selected: Tabs.walletsTab}]
 
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
@@ -706,7 +700,7 @@ const cancelRequest = (state, action) =>
 
 const maybeNavigateAwayFromSendForm = state => {
   if (flags.useNewRouter) {
-    const path = Router2Constants.getVisiblePath()
+    const path = Router2Constants.getModalStack()
     const actions = []
     // pop off any routes that are part of the popup
     path.reverse().some(p => {

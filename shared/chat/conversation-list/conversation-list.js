@@ -8,18 +8,16 @@ import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {rowHeight} from '../selectable-big-team-channel'
 import {rowHeight as shouldEqualToRowHeight} from '../selectable-small-team'
-import ConversationFilterInput, {
-  type Props as ConversationFilterInputProps,
-} from '../conversation-filter-input'
+import ConversationFilterInput from '../conversation-filter-input'
 
-type SmallTeamRowItem = {|
+export type SmallTeamRowItem = {|
   conversationIDKey: Types.ConversationIDKey,
   isSelected: boolean,
   onSelectConversation: () => void,
   type: 'small',
 |}
 
-type BigTeamChannelRowItem = {|
+export type BigTeamChannelRowItem = {|
   conversationIDKey: Types.ConversationIDKey,
   isSelected: boolean,
   onSelectConversation: () => void,
@@ -36,7 +34,16 @@ type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem
 
 type Props = {|
   rows: Array<RowItem>,
-  filter?: ConversationFilterInputProps,
+  filter?: {
+    isLoading: boolean,
+    filter: string,
+    onSetFilter: (filter: string) => void,
+  },
+  focusFilterOnMount?: ?boolean,
+  onBack: () => void,
+  onEnsureSelection: () => void,
+  onSelectDown: () => void,
+  onSelectUp: () => void,
 |}
 
 const _itemRenderer = (index, row) => {
@@ -81,8 +88,24 @@ const ConversationList = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      {!!props.filter && <ConversationFilterInput style={styles.filter} {...props.filter} />}
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      {!!props.filter && (
+        <ConversationFilterInput
+          onBack={props.onBack}
+          style={styles.filter}
+          isLoading={props.filter.isLoading}
+          filter={props.filter.filter}
+          onSetFilter={props.filter.onSetFilter}
+          filterFocusCount={0}
+          focusOnMount={props.focusFilterOnMount}
+          noShortcut={true}
+          onBlur={() => {}}
+          onFocus={() => {}}
+          onSelectDown={props.onSelectDown}
+          onSelectUp={props.onSelectUp}
+          onEnsureSelection={props.onEnsureSelection}
+        />
+      )}
       <Kb.List2
         itemHeight={{height: rowHeight, type: 'fixed'}}
         items={props.rows}
@@ -94,12 +117,6 @@ const ConversationList = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 350,
-      width: 240,
-    },
-  }),
   filter: {
     backgroundColor: Styles.globalColors.fastBlank,
   },

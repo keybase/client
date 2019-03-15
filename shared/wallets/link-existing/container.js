@@ -5,6 +5,7 @@ import * as Constants from '../../constants/wallets'
 import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 
@@ -36,7 +37,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
-  onDone: (sk: string, name: string) =>
+  onDone: (sk: string, name: string) => {
     dispatch(
       WalletsGen.createLinkExistingAccount({
         name,
@@ -44,7 +45,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
         setBuildingTo: routeProps.get('fromSendForm'),
         showOnCreation: routeProps.get('showOnCreation'),
       })
-    ),
+    )
+
+    if (flags.useNewRouter) {
+      dispatch(navigateUp())
+    }
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

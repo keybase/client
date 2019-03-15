@@ -1,9 +1,9 @@
 // @flow
 import React from 'react'
+import GoButton from './go-button'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import TeamBox from './team-box'
-import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 import flags from '../util/feature-flags'
@@ -55,19 +55,37 @@ class TeamBuilding extends React.PureComponent<Props, void> {
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        {Styles.isMobile && (
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <TeamBox
+              onChangeText={props.onChangeText}
+              onDownArrowKeyDown={props.onDownArrowKeyDown}
+              onUpArrowKeyDown={props.onUpArrowKeyDown}
+              onEnterKeyDown={props.onEnterKeyDown}
+              onFinishTeamBuilding={props.onFinishTeamBuilding}
+              onRemove={props.onRemove}
+              teamSoFar={props.teamSoFar}
+              onBackspace={props.onBackspace}
+              searchString={props.searchString}
+            />
+            {!!props.teamSoFar.length && !Styles.isMobile && (
+              <GoButton onClick={props.onFinishTeamBuilding} />
+            )}
+          </Kb.Box2>
+        )}
+        {!Styles.isMobile && (
           <TeamBox
             onChangeText={props.onChangeText}
             onDownArrowKeyDown={props.onDownArrowKeyDown}
             onUpArrowKeyDown={props.onUpArrowKeyDown}
             onEnterKeyDown={props.onEnterKeyDown}
+            onFinishTeamBuilding={props.onFinishTeamBuilding}
             onRemove={props.onRemove}
             teamSoFar={props.teamSoFar}
             onBackspace={props.onBackspace}
             searchString={props.searchString}
           />
-          {!!props.teamSoFar.length && !Styles.isMobile && <GoButton onClick={props.onFinishTeamBuilding} />}
-        </Kb.Box2>
+        )}
         {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?
@@ -151,10 +169,9 @@ const styles = Styles.styleSheetCreate({
       minHeight: 200,
     },
     isElectron: {
+      borderRadius: 4,
       height: 434,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
+      overflow: 'hidden',
       width: 470,
     },
   }),
@@ -174,6 +191,10 @@ const styles = Styles.styleSheetCreate({
     common: {
       paddingBottom: Styles.globalMargins.small,
     },
+    isElectron: {
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+    },
     isMobile: {
       marginTop: Styles.globalMargins.xtiny,
     },
@@ -192,6 +213,9 @@ const styles = Styles.styleSheetCreate({
       height: 48,
       width: 48,
     },
+  }),
+  mobileFlex: Styles.platformStyles({
+    isMobile: {flex: 1},
   }),
 })
 

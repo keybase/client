@@ -21,7 +21,7 @@ type DefaultViewProps = {
 
 const DefaultView = (props: DefaultViewProps) => (
   <Kb.Box style={stylesContainer}>
-    <PathItemIcon path={props.path} size={32} />
+    <PathItemIcon path={props.path} size={96} />
     <Kb.Text type="BodyBig" style={stylesFilename(Constants.getPathTextColor(props.path))}>
       {props.pathItem.name}
     </Kb.Text>

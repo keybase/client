@@ -568,9 +568,16 @@ protocol local {
     union { null, Pagination } pagination;
   }
 
+  enum MessageIDControlMode {
+    OLDERMESSAGES_0,
+    NEWERMESSAGES_1,
+    CENTERED_2,
+    UNREADLINE_3
+  }
+
   record MessageIDControl {
     union { null, MessageID } pivot;
-    boolean recent;
+    MessageIDControlMode mode;
     int num;
   }
 

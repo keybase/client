@@ -14,7 +14,7 @@ import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 
 const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
-  kbfsDaemonConnected: state.fs.kbfsDaemonConnected,
+  kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
 })
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
@@ -29,6 +29,7 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
       })
     ),
   _loadPathMetadata: (path: Types.Path) => dispatch(FsGen.createLoadPathMetadata({path})),
+  waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
@@ -37,23 +38,25 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
   const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   return {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),
-    kbfsDaemonConnected: stateProps.kbfsDaemonConnected,
+    kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
     loadPathMetadata: () => dispatchProps._loadPathMetadata(path),
     mimeType: !isDefinitelyFolder && pathItem.type === 'file' ? pathItem.mimeType : null,
     path,
     pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItems.get(path, Constants.unknownPathItem).type,
     routePath,
+    waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
   }
 }
 
 type ChooseComponentProps = {|
   emitBarePreview: () => void,
-  kbfsDaemonConnected: boolean,
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
   loadPathMetadata: () => void,
   mimeType: ?Types.Mime,
   path: Types.Path,
   pathType: Types.PathType,
   routePath: I.List<string>,
+  waitForKbfsDaemon: () => void,
 |}
 
 const useBare = isMobile
@@ -78,9 +81,14 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     if (this.props.path !== prevProps.path) {
       this.props.loadPathMetadata()
     }
+    if (this.props.kbfsDaemonStatus !== 'connected') {
+      // Always triggers whenever something changes if we are not connected.
+      // Saga deduplicates redundant checks.
+      this.props.waitForKbfsDaemon()
+    }
   }
   render() {
-    if (!this.props.kbfsDaemonConnected) {
+    if (this.props.kbfsDaemonStatus !== 'connected') {
       return <KbfsDaemonNotRunning />
     }
     switch (this.props.pathType) {

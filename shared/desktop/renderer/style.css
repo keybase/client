@@ -163,46 +163,46 @@ table {
 @font-face {
   font-family: 'Keybase';
   font-weight: 500;
-  src: url('../../fonts/keybase-medium.otf') format('opentype');
+  src: url('../../fonts/keybase-medium.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 500;
   font-style: italic;
-  src: url('../../fonts/keybase-medium-italic.otf') format('opentype');
+  src: url('../../fonts/keybase-medium-italic.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 600;
-  src: url('../../fonts/keybase-semibold.otf') format('opentype');
+  src: url('../../fonts/keybase-semibold.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 600;
   font-style: italic;
-  src: url('../../fonts/keybase-semibold-italic.otf') format('opentype');
+  src: url('../../fonts/keybase-semibold-italic.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 700;
-  src: url('../../fonts/keybase-bold.otf') format('opentype');
+  src: url('../../fonts/keybase-bold.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 700;
   font-style: italic;
-  src: url('../../fonts/keybase-bold-italic.otf') format('opentype');
+  src: url('../../fonts/keybase-bold-italic.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Keybase';
   font-weight: 800;
-  src: url('../../fonts/keybase-extrabold.otf') format('opentype');
+  src: url('../../fonts/keybase-extrabold.ttf') format('truetype');
 }
 /* End Keybase */
 

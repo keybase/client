@@ -21,6 +21,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -624,8 +625,8 @@ func (e *fsEngine) SyncAll(
 	u := user.(*fsUser)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
 			ctx, func(ctx context.Context) context.Context { return ctx }))
 	if err != nil {
 		return err

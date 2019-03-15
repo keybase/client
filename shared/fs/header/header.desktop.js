@@ -39,12 +39,7 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
             )}
             <SendInAppAction path={path} sendIconClassName="" />
             <Kb.WithTooltip text="Other actions">
-              <PathItemAction
-                path={path}
-                clickable={{actionIconClassName: '', type: 'icon'}}
-                routePath={routePath}
-                initView="root"
-              />
+              <PathItemAction path={path} clickable={{type: 'icon'}} routePath={routePath} initView="root" />
             </Kb.WithTooltip>
           </Kb.Box>
         </Kb.Box>
