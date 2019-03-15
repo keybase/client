@@ -27,8 +27,8 @@ const UnreadShortcut = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   unreadShortcut: {
     backgroundColor: Styles.globalColors.orange,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
 })
 
