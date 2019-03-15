@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
@@ -123,7 +124,7 @@ type RootMetadata struct {
 	tlfHandle *tlfhandle.Handle
 }
 
-var _ KeyMetadata = (*RootMetadata)(nil)
+var _ libkey.KeyMetadata = (*RootMetadata)(nil)
 
 // makeRootMetadata makes a RootMetadata object from the given
 // parameters.
@@ -525,7 +526,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 		}},
 	}
 	fd := newFileData(file, id, nil, nil, md.ReadOnly(),
-		func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
+		func(_ context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
 			_ path, _ blockReqType) (*FileBlock, bool, error) {
 			fblock, ok := fileBlocks[ptr]
 			if !ok {

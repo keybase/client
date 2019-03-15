@@ -13,6 +13,7 @@ import (
 	kbfscrypto "github.com/keybase/client/go/kbfs/kbfscrypto"
 	kbfsedits "github.com/keybase/client/go/kbfs/kbfsedits"
 	kbfsmd "github.com/keybase/client/go/kbfs/kbfsmd"
+	libkey "github.com/keybase/client/go/kbfs/libkey"
 	tlf "github.com/keybase/client/go/kbfs/tlf"
 	tlfhandle "github.com/keybase/client/go/kbfs/tlfhandle"
 	kbun "github.com/keybase/client/go/kbun"
@@ -4258,7 +4259,7 @@ func (m *MockencryptionKeyGetter) EXPECT() *MockencryptionKeyGetterMockRecorder 
 }
 
 // GetTLFCryptKeyForEncryption mocks base method
-func (m *MockencryptionKeyGetter) GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockencryptionKeyGetter) GetTLFCryptKeyForEncryption(ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForEncryption", ctx, kmd)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4296,7 +4297,7 @@ func (m *MockmdDecryptionKeyGetter) EXPECT() *MockmdDecryptionKeyGetterMockRecor
 }
 
 // GetTLFCryptKeyForMDDecryption mocks base method
-func (m *MockmdDecryptionKeyGetter) GetTLFCryptKeyForMDDecryption(ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockmdDecryptionKeyGetter) GetTLFCryptKeyForMDDecryption(ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForMDDecryption", ctx, kmdToDecrypt, kmdWithKeys)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4334,7 +4335,7 @@ func (m *MockblockDecryptionKeyGetter) EXPECT() *MockblockDecryptionKeyGetterMoc
 }
 
 // GetTLFCryptKeyForBlockDecryption mocks base method
-func (m *MockblockDecryptionKeyGetter) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockblockDecryptionKeyGetter) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForBlockDecryption", ctx, kmd, blockPtr)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4372,7 +4373,7 @@ func (m *MockblockKeyGetter) EXPECT() *MockblockKeyGetterMockRecorder {
 }
 
 // GetTLFCryptKeyForEncryption mocks base method
-func (m *MockblockKeyGetter) GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockblockKeyGetter) GetTLFCryptKeyForEncryption(ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForEncryption", ctx, kmd)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4387,7 +4388,7 @@ func (mr *MockblockKeyGetterMockRecorder) GetTLFCryptKeyForEncryption(ctx, kmd i
 }
 
 // GetTLFCryptKeyForBlockDecryption mocks base method
-func (m *MockblockKeyGetter) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockblockKeyGetter) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForBlockDecryption", ctx, kmd, blockPtr)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4425,7 +4426,7 @@ func (m *MockKeyManager) EXPECT() *MockKeyManagerMockRecorder {
 }
 
 // GetTLFCryptKeyForEncryption mocks base method
-func (m *MockKeyManager) GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockKeyManager) GetTLFCryptKeyForEncryption(ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForEncryption", ctx, kmd)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4440,7 +4441,7 @@ func (mr *MockKeyManagerMockRecorder) GetTLFCryptKeyForEncryption(ctx, kmd inter
 }
 
 // GetTLFCryptKeyForBlockDecryption mocks base method
-func (m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForBlockDecryption", ctx, kmd, blockPtr)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4455,7 +4456,7 @@ func (mr *MockKeyManagerMockRecorder) GetTLFCryptKeyForBlockDecryption(ctx, kmd,
 }
 
 // GetTLFCryptKeyForMDDecryption mocks base method
-func (m *MockKeyManager) GetTLFCryptKeyForMDDecryption(ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockKeyManager) GetTLFCryptKeyForMDDecryption(ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForMDDecryption", ctx, kmdToDecrypt, kmdWithKeys)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -4470,7 +4471,7 @@ func (mr *MockKeyManagerMockRecorder) GetTLFCryptKeyForMDDecryption(ctx, kmdToDe
 }
 
 // GetTLFCryptKeyOfAllGenerations mocks base method
-func (m *MockKeyManager) GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd KeyMetadata) ([]kbfscrypto.TLFCryptKey, error) {
+func (m *MockKeyManager) GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd libkey.KeyMetadata) ([]kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyOfAllGenerations", ctx, kmd)
 	ret0, _ := ret[0].([]kbfscrypto.TLFCryptKey)
@@ -6659,7 +6660,7 @@ func (m *MockPrefetcher) EXPECT() *MockPrefetcherMockRecorder {
 }
 
 // ProcessBlockForPrefetch mocks base method
-func (m *MockPrefetcher) ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus, action BlockRequestAction) {
+func (m *MockPrefetcher) ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd libkey.KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus, action BlockRequestAction) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ProcessBlockForPrefetch", ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, action)
 }
@@ -6764,7 +6765,7 @@ func (mr *MockBlockOpsMockRecorder) BlockRetriever() *gomock.Call {
 }
 
 // Get mocks base method
-func (m *MockBlockOps) Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block, cacheLifetime BlockCacheLifetime) error {
+func (m *MockBlockOps) Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer, block Block, cacheLifetime BlockCacheLifetime) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, kmd, blockPtr, block, cacheLifetime)
 	ret0, _ := ret[0].(error)
@@ -6778,7 +6779,7 @@ func (mr *MockBlockOpsMockRecorder) Get(ctx, kmd, blockPtr, block, cacheLifetime
 }
 
 // GetEncodedSize mocks base method
-func (m *MockBlockOps) GetEncodedSize(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error) {
+func (m *MockBlockOps) GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEncodedSize", ctx, kmd, blockPtr)
 	ret0, _ := ret[0].(uint32)
@@ -6794,7 +6795,7 @@ func (mr *MockBlockOpsMockRecorder) GetEncodedSize(ctx, kmd, blockPtr interface{
 }
 
 // Ready mocks base method
-func (m *MockBlockOps) Ready(ctx context.Context, kmd KeyMetadata, block Block) (kbfsblock.ID, int, ReadyBlockData, error) {
+func (m *MockBlockOps) Ready(ctx context.Context, kmd libkey.KeyMetadata, block Block) (kbfsblock.ID, int, ReadyBlockData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Ready", ctx, kmd, block)
 	ret0, _ := ret[0].(kbfsblock.ID)
@@ -9941,10 +9942,10 @@ func (mr *MockConfigMockRecorder) SetMDOps(arg0 interface{}) *gomock.Call {
 }
 
 // KeyOps mocks base method
-func (m *MockConfig) KeyOps() KeyOps {
+func (m *MockConfig) KeyOps() libkey.KeyOps {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "KeyOps")
-	ret0, _ := ret[0].(KeyOps)
+	ret0, _ := ret[0].(libkey.KeyOps)
 	return ret0
 }
 
@@ -9955,7 +9956,7 @@ func (mr *MockConfigMockRecorder) KeyOps() *gomock.Call {
 }
 
 // SetKeyOps mocks base method
-func (m *MockConfig) SetKeyOps(arg0 KeyOps) {
+func (m *MockConfig) SetKeyOps(arg0 libkey.KeyOps) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetKeyOps", arg0)
 }
@@ -10017,10 +10018,10 @@ func (mr *MockConfigMockRecorder) SetBlockServer(arg0 interface{}) *gomock.Call 
 }
 
 // KeyServer mocks base method
-func (m *MockConfig) KeyServer() KeyServer {
+func (m *MockConfig) KeyServer() libkey.KeyServer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "KeyServer")
-	ret0, _ := ret[0].(KeyServer)
+	ret0, _ := ret[0].(libkey.KeyServer)
 	return ret0
 }
 
@@ -10031,7 +10032,7 @@ func (mr *MockConfigMockRecorder) KeyServer() *gomock.Call {
 }
 
 // SetKeyServer mocks base method
-func (m *MockConfig) SetKeyServer(arg0 KeyServer) {
+func (m *MockConfig) SetKeyServer(arg0 libkey.KeyServer) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetKeyServer", arg0)
 }
@@ -11033,7 +11034,7 @@ func (m *MockBlockRetriever) EXPECT() *MockBlockRetrieverMockRecorder {
 }
 
 // Request mocks base method
-func (m *MockBlockRetriever) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
+func (m *MockBlockRetriever) Request(ctx context.Context, priority int, kmd libkey.KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Request", ctx, priority, kmd, ptr, block, lifetime, action)
 	ret0, _ := ret[0].(<-chan error)

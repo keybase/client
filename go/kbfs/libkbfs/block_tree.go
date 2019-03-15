@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -25,7 +26,7 @@ const maxBlockFetchWorkers = 100
 // or writing, and also returns whether the block was already dirty.
 // It may be called from new goroutines, and must handle any required
 // locks accordingly.
-type blockGetterFn func(context.Context, KeyMetadata, BlockPointer,
+type blockGetterFn func(context.Context, libkey.KeyMetadata, BlockPointer,
 	path, blockReqType) (block BlockWithPtrs, wasDirty bool, err error)
 
 // dirtyBlockCacher writes dirty blocks to a cache.
@@ -36,7 +37,7 @@ type blockTree struct {
 	file      path
 	chargedTo keybase1.UserOrTeamID
 	crypto    cryptoPure
-	kmd       KeyMetadata
+	kmd       libkey.KeyMetadata
 	bsplit    BlockSplitter
 	getter    blockGetterFn
 	cacher    dirtyBlockCacher

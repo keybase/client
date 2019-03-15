@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -59,7 +60,7 @@ func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer,
 
 // getBlock implements the interface for realBlockGetter.
 func (bg *fakeBlockGetter) getBlock(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer,
 	block Block, _ DiskBlockCacheType) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
@@ -91,7 +92,7 @@ func (bg *fakeBlockGetter) getBlock(
 }
 
 func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
-	kmd KeyMetadata, ptr BlockPointer, block Block, buf []byte,
+	kmd libkey.KeyMetadata, ptr BlockPointer, block Block, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()

@@ -469,6 +469,10 @@ def testGo(prefix, packagesToTest) {
           flags: '-race',
           timeout: '30s',
         ],
+        'github.com/keybase/client/go/kbfs/libkey': [
+          flags: '-race',
+          timeout: '5m',
+        ],
         'github.com/keybase/client/go/kbfs/libkbfs': [
           flags: '-race',
           timeout: '5m',

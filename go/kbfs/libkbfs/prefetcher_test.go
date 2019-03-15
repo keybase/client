@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -629,7 +630,7 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 func testPrefetcherForSyncedTLF(
 	t *testing.T, q *blockRetrievalQueue, bg *fakeBlockGetter,
 	config *testBlockRetrievalConfig, prefetchSyncCh chan struct{},
-	kmd KeyMetadata, explicitSync bool) {
+	kmd libkey.KeyMetadata, explicitSync bool) {
 	t.Log("Initialize a direct dir block with entries pointing to 2 files " +
 		"and 1 directory. The directory has an entry pointing to another " +
 		"file, which has 2 indirect blocks.")

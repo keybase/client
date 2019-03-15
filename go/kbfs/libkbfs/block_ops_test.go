@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -28,12 +29,12 @@ import (
 type fakeKeyMetadata struct {
 	// Embed a KeyMetadata that's always empty, so that all
 	// methods besides TlfID() panic.
-	KeyMetadata
+	libkey.KeyMetadata
 	tlfID tlf.ID
 	keys  []kbfscrypto.TLFCryptKey
 }
 
-var _ KeyMetadata = fakeKeyMetadata{}
+var _ libkey.KeyMetadata = fakeKeyMetadata{}
 
 // makeFakeKeyMetadata returns a fakeKeyMetadata with keys for each
 // KeyGen up to latestKeyGen. The key for KeyGen i is a deterministic
@@ -56,7 +57,7 @@ func (kmd fakeKeyMetadata) TlfID() tlf.ID {
 type fakeBlockKeyGetter struct{}
 
 func (kg fakeBlockKeyGetter) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	fkmd := kmd.(fakeKeyMetadata)
 	if len(fkmd.keys) == 0 {
 		return kbfscrypto.TLFCryptKey{}, errors.New(
@@ -66,7 +67,7 @@ func (kg fakeBlockKeyGetter) GetTLFCryptKeyForEncryption(
 }
 
 func (kg fakeBlockKeyGetter) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (
 	kbfscrypto.TLFCryptKey, error) {
 	fkmd := kmd.(fakeKeyMetadata)
 	i := int(blockPtr.KeyGen - kbfsmd.FirstValidKeyGen)

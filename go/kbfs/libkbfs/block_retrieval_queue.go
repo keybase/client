@@ -14,6 +14,7 @@ import (
 
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -71,7 +72,7 @@ type blockRetrieval struct {
 	// the block pointer to retrieve
 	blockPtr BlockPointer
 	// the key metadata for the request
-	kmd KeyMetadata
+	kmd libkey.KeyMetadata
 	// the context encapsulating all request contexts
 	ctx *CoalescingContext
 	// cancel function for the context
@@ -354,7 +355,7 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 
 // checkCaches copies a block into `block` if it's in one of our caches.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
-	kmd KeyMetadata, ptr BlockPointer, block Block, action BlockRequestAction) (
+	kmd libkey.KeyMetadata, ptr BlockPointer, block Block, action BlockRequestAction) (
 	PrefetchStatus, error) {
 	dbc := brq.config.DiskBlockCache()
 	preferredCacheType := action.CacheType()
@@ -401,7 +402,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 
 // request retrieves blocks asynchronously.
 func (brq *blockRetrievalQueue) request(ctx context.Context,
-	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	priority int, kmd libkey.KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	brq.vlog.CLogf(ctx, libkb.VLog1,
 		"Request of %v, action=%s, priority=%d", ptr, action, priority)
@@ -537,7 +538,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 
 // Request implements the BlockRetriever interface for blockRetrievalQueue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
-	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	priority int, kmd libkey.KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	if brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()

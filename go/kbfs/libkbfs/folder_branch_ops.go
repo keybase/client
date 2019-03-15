@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -806,7 +807,7 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 }
 
 func (fbo *folderBranchOps) getProtocolSyncConfig(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata) (
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.AssertAnyLocked(lState)
 
@@ -846,7 +847,7 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 }
 
 func (fbo *folderBranchOps) getProtocolSyncConfigUnlocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata) (
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.RLock(lState)
 	defer fbo.syncLock.RUnlock(lState)
@@ -4520,7 +4521,7 @@ func (fbo *folderBranchOps) CreateLink(
 // unrefEntry modifies md to unreference all relevant blocks for the
 // given entry.
 func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
-	lState *kbfssync.LockState, kmd KeyMetadata, ro op, dir path, de DirEntry,
+	lState *kbfssync.LockState, kmd libkey.KeyMetadata, ro op, dir path, de DirEntry,
 	name string) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 	if de.Type == Sym {
@@ -8315,7 +8316,7 @@ func (fbo *folderBranchOps) GetSyncConfig(
 }
 
 func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata,
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata,
 	paths []string) (FolderSyncEncryptedPartialPaths, error) {
 	fbo.syncLock.AssertLocked(lState)
 

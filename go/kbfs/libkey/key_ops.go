@@ -2,30 +2,45 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package libkey
 
 import (
+	"context"
+
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
+
+// KeyOpsConfig is a config object containing the outside helper
+// instances needed by KeyOps.
+type KeyOpsConfig interface {
+	KeyServer() KeyServer
+	KBPKI() idutil.KBPKI
+}
 
 // KeyOpsStandard implements the KeyOps interface and relays get/put
 // requests for server-side key halves from/to the key server.
 type KeyOpsStandard struct {
-	config Config
+	config KeyOpsConfig
+}
+
+// NewKeyOpsStandard creates a new KeyOpsStandard instance.
+func NewKeyOpsStandard(config KeyOpsConfig) *KeyOpsStandard {
+	return &KeyOpsStandard{config}
 }
 
 // Test that KeyOps standard fully implements the KeyOps interface.
 var _ KeyOps = (*KeyOpsStandard)(nil)
 
 // GetTLFCryptKeyServerHalf is an implementation of the KeyOps interface.
-func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
-	kbfscrypto.TLFCryptKeyServerHalf, error) {
+func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(
+	ctx context.Context, serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
+	key kbfscrypto.CryptPublicKey) (kbfscrypto.TLFCryptKeyServerHalf, error) {
 	// get the key half from the server
-	serverHalf, err := k.config.KeyServer().GetTLFCryptKeyServerHalf(ctx, serverHalfID, key)
+	serverHalf, err := k.config.KeyServer().GetTLFCryptKeyServerHalf(
+		ctx, serverHalfID, key)
 	if err != nil {
 		return kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
@@ -36,7 +51,8 @@ func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
 	}
 
 	// verify we got the expected key
-	err = kbfscrypto.VerifyTLFCryptKeyServerHalfID(serverHalfID, session.UID, key, serverHalf)
+	err = kbfscrypto.VerifyTLFCryptKeyServerHalfID(
+		serverHalfID, session.UID, key, serverHalf)
 	if err != nil {
 		return kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
@@ -44,15 +60,16 @@ func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
 }
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyOps interface.
-func (k *KeyOpsStandard) PutTLFCryptKeyServerHalves(ctx context.Context,
+func (k *KeyOpsStandard) PutTLFCryptKeyServerHalves(
+	ctx context.Context,
 	keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error {
 	// upload the keys
 	return k.config.KeyServer().PutTLFCryptKeyServerHalves(ctx, keyServerHalves)
 }
 
 // DeleteTLFCryptKeyServerHalf is an implementation of the KeyOps interface.
-func (k *KeyOpsStandard) DeleteTLFCryptKeyServerHalf(ctx context.Context,
-	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
+func (k *KeyOpsStandard) DeleteTLFCryptKeyServerHalf(
+	ctx context.Context, uid keybase1.UID, key kbfscrypto.CryptPublicKey,
 	serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error {
 	return k.config.KeyServer().DeleteTLFCryptKeyServerHalf(
 		ctx, uid, key, serverHalfID)
