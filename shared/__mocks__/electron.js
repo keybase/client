@@ -32,3 +32,5 @@ export const screen = {}
 
 export const BrowserWindow = {}
 export const Menu = {}
+export const powerMonitor = {}
+export const powerSaveBlocker = {}
