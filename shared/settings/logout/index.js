@@ -125,6 +125,7 @@ export default (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   bodyText: {
+    paddingBottom: Styles.globalMargins.tiny,
     textAlign: 'center',
   },
   buttonbar: {
