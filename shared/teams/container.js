@@ -128,6 +128,7 @@ const ConnectedHeaderRightActions = connect<{}, _, _, _, _>(
 
 // $FlowIssue lets fix this
 Connected.navigationOptions = {
+  header: undefined,
   headerRightActions: () => <ConnectedHeaderRightActions />,
   headerTitle: () => (
     <Kb.Text type="Header" style={{marginLeft: Styles.globalMargins.xsmall}}>
