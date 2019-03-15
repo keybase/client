@@ -190,7 +190,7 @@ func (t TrackDiffNone) IsSameAsTracked() bool {
 }
 
 func (t TrackDiffNone) ToDisplayString() string {
-	return "tracked"
+	return "followed"
 }
 func (t TrackDiffNone) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
