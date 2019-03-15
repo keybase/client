@@ -39,6 +39,7 @@ class AppView extends React.PureComponent<any> {
     const index = navigation.state.index
     const activeKey = navigation.state.routes[index].key
     const descriptor = this.props.descriptors[activeKey]
+    const params = descriptor.state.params
     const childNav = descriptor.navigation
     const selectedTab = nameToTab[descriptor.state.routeName]
 
@@ -50,7 +51,12 @@ class AppView extends React.PureComponent<any> {
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
-          <Header options={descriptor.options} onPop={() => childNav.pop()} allowBack={index !== 0} />
+          <Header
+            params={params}
+            options={descriptor.options}
+            onPop={() => childNav.pop()}
+            allowBack={index !== 0}
+          />
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}

@@ -21,13 +21,13 @@ class Header extends React.PureComponent<Props> {
       title = <Kb.Text type="BodySemibold">{opt.headerTitle}</Kb.Text>
     } else if (typeof opt.headerTitle === 'function') {
       const CustomTitle = opt.headerTitle
-      title = <CustomTitle>{opt.title}</CustomTitle>
+      title = <CustomTitle params={this.props.params}>{opt.title}</CustomTitle>
     }
 
     let rightActions = null
     if (typeof opt.headerRightActions === 'function') {
       const CustomActions = opt.headerRightActions
-      rightActions = <CustomActions />
+      rightActions = <CustomActions params={this.props.params} />
     }
 
     let style = null
@@ -54,12 +54,13 @@ class Header extends React.PureComponent<Props> {
             color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
             onClick={this.props.onPop}
           />
+          {!title && rightActions}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
           <Kb.Box2 direction="horizontal" style={styles.flexOne}>
             {title}
           </Kb.Box2>
-          {rightActions}
+          {!!title && rightActions}
         </Kb.Box2>
       </Kb.Box2>
     )
