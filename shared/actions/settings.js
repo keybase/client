@@ -49,10 +49,9 @@ function* onSubmitNewPassphrase(state, action) {
       oldPassphrase: '',
       passphrase: newPassphrase.stringValue(),
     })
+    yield Saga.put(RouteTreeGen.createNavigateUp())
     if (action.payload.thenSignOut) {
       yield Saga.put(ConfigGen.createLogout())
-    } else {
-      yield Saga.put(RouteTreeGen.createNavigateUp())
     }
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
