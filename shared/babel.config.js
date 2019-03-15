@@ -5,18 +5,6 @@ let isElectron = null
 let isReactNative = null
 
 module.exports = function(api /*: any */) {
-  api.caller(c => {
-    // so noisy during tests
-    if (c.name !== 'babel-jest') {
-      console.log('KB: Babel config detected caller: ', c.name)
-    }
-    if (c.name === 'metro') {
-      isReactNative = true
-    } else {
-      isElectron = true
-    }
-  })
-
   if (api.env() === 'test') {
     return {
       plugins: [
@@ -30,6 +18,16 @@ module.exports = function(api /*: any */) {
       presets: [['@babel/preset-env', {targets: {node: 'current'}}], '@babel/preset-react'],
     }
   }
+
+  api.caller(c => {
+    console.log('KB: Babel config detected caller: ', c.name)
+    if (c.name === 'metro') {
+      isReactNative = true
+    } else {
+      isElectron = true
+    }
+  })
+
   api.cache(true)
 
   if (!isElectron && !isReactNative) {
