@@ -50,10 +50,7 @@ export class UpdatePassphrase extends Component<Props, State> {
   }
 
   _errorSaving(passphrase: string, passphraseConfirm: string): string {
-    if (this.state.passphrase.length < 8) {
-      return 'Your new passphrase must have at least 8 characters.'
-    }
-    if (passphrase !== passphraseConfirm) {
+    if (passphrase && passphraseConfirm && passphrase !== passphraseConfirm) {
       return 'Passphrases must match.'
     }
     if (this.props.hasPGPKeyOnServer === null) {
@@ -69,7 +66,7 @@ export class UpdatePassphrase extends Component<Props, State> {
         <Kb.Input
           hintText="New passphrase"
           type={inputType}
-          errorText={this.state.errorSaving || this.props.newPassphraseError}
+          errorText={this.props.newPassphraseError}
           value={this.state.passphrase}
           onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
           uncontrolled={false}
@@ -79,7 +76,7 @@ export class UpdatePassphrase extends Component<Props, State> {
           hintText="Confirm new passphrase"
           type={inputType}
           value={this.state.passphraseConfirm}
-          errorText={this.props.newPassphraseConfirmError}
+          errorText={this.state.errorSaving || this.props.newPassphraseConfirmError}
           onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
           uncontrolled={false}
           style={styleInput}
@@ -88,12 +85,14 @@ export class UpdatePassphrase extends Component<Props, State> {
           label="Show typing"
           onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
           checked={this.state.showTyping || !!this.props.showTyping}
-          style={{marginBottom: Styles.globalMargins.medium}}
         />
+        <Kb.Text style={{marginBottom: Styles.globalMargins.medium}} type="BodySmall">
+          (Passphrase must be at least 8 characters.)
+        </Kb.Text>
         <Kb.Button
           type="Primary"
           label="Save"
-          disabled={!!this.state.errorSaving}
+          disabled={!!this.state.errorSaving || this.state.passphrase.length < 8}
           onClick={() => this.props.onSave(this.state.passphrase, this.state.passphraseConfirm)}
           waiting={this.props.waitingForResponse}
         />
@@ -117,7 +116,7 @@ const UpdatePassphraseWrapper = (props: Props) => {
       }
     : null
   return (
-    <Kb.StandardScreen onBack={props.onBack} notification={notification} style={{alignItems: 'center'}}>
+    <Kb.StandardScreen notification={notification} style={{alignItems: 'center'}}>
       <UpdatePassphrase {...props} />
     </Kb.StandardScreen>
   )

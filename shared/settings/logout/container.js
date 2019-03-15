@@ -1,5 +1,5 @@
 // @flow
-import {HeaderOrPopup} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {connect, type RouteProps} from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as SettingsGen from '../../actions/settings-gen'
@@ -43,4 +43,4 @@ export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(HeaderOrPopup(LogOut))
+)(Kb.HeaderOrPopup(LogOut))

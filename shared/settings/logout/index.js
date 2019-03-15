@@ -56,9 +56,6 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
             onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping}
           />
-          <Kb.Text style={{marginBottom: Styles.globalMargins.small}} type="BodySmall">
-            (Password must be at least 8 characters.)
-          </Kb.Text>
           {this.props.checkPassphraseIsCorrect && (
             <Kb.Box2 direction="horizontal" gap="xtiny">
               <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
