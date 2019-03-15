@@ -140,13 +140,27 @@ show_cryptosquirrel() {
   [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
 }
 
+warn_if_unwritable() {
+  if [ -w "$1" ]; then
+      return
+  fi
+  echo "WARNING: Cannot write to $1. Did you previously run 'run_keybase' with sudo?"
+  echo "         Keybase does not need root privileges to run."
+  echo "         Permissions can be restored by running 'sudo chown -R $(whoami):$(whoami) $1',"
+  echo "         after which 'run_keybase' can be run again."
+}
+
 init() {
-  # Cannot do in go due to background processes being piped to log in bash
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+  runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
+
+  warn_if_unwritable "$logdir"
+  warn_if_unwritable "$runtime_dir"
+
+  # Cannot do in go due to background processes being piped to log in bash
   mkdir -p "$logdir"
 
   # Cannot do in go due to flock using a file in this directory
-  runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
   mkdir -p "$runtime_dir"
 
   keybase ctl init
