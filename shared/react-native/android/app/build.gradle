@@ -101,8 +101,7 @@ def enableSeparateBuildPerCPUArchitecture = true
 /**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
-// KB: enable proguard
-def enableProguardInReleaseBuilds = true
+def enableProguardInReleaseBuilds = false
 
 // KB: Returns minutes from January 1 2016
 def Integer timestamp() {
