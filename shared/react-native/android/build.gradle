@@ -16,7 +16,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.1'
         // KB: this is an old version, could look into updating
-        classpath 'com.github.triplet.gradle:play-publisher:1.1.5' // To publish from gradle
+        classpath 'com.github.triplet.gradle:play-publisher:1.2.2' // To publish from gradle
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
