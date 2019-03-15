@@ -148,7 +148,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   icon: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     height: 32,
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
