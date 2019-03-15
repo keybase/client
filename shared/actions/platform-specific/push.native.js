@@ -39,46 +39,20 @@ const updateAppBadge = (_, action) => {
 // If we're backgrounded we get the silent or the silent and real. To work around this we:
 // 1. Plumb through the intent from the java side if we relaunch due to push
 // 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
-let lastPushForAndroid = null
 const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   // If android launched due to push
   RNEmitter.addListener('androidIntentNotification', (evt) => {
-    logger.info('[PushAndroidIntent]', lastPushForAndroid && lastPushForAndroid.type)
-    if (!lastPushForAndroid) {
-      if (!evt) {
-        return
-      }
-      lastPushForAndroid = Constants.normalizePush(evt)
-      if (!lastPushForAndroid) {
-        return
-      }
+    logger.info('[PushAndroidIntent]', evt && evt.type)
+    if (!evt) {
+      return
+    }
+    const notification = Constants.normalizePush(evt)
+    if (!notification) {
+      return
     }
 
-    switch (lastPushForAndroid.type) {
-      // treat this like a loud message
-      case 'chat.newmessageSilent_2':
-        lastPushForAndroid = {
-          conversationIDKey: lastPushForAndroid.conversationIDKey,
-          membersType: lastPushForAndroid.membersType,
-          type: 'chat.newmessage',
-          unboxPayload: lastPushForAndroid.unboxPayload,
-          userInteraction: true,
-        }
-        break
-      case 'chat.newmessage':
-        lastPushForAndroid.userInteraction = true
-        break
-      case 'follow':
-        lastPushForAndroid.userInteraction = true
-        break
-      default:
-        lastPushForAndroid = null
-        return
-    }
-
-    emitter(PushGen.createNotification({notification: lastPushForAndroid}))
-    lastPushForAndroid = null
+    emitter(PushGen.createNotification({notification}))
   })
 
   // TODO: move this out of this file.
@@ -129,8 +103,6 @@ const listenForPushNotificationsFromJS = emitter => {
     if (!notification) {
       return
     }
-    // bookkeep for android special handling
-    lastPushForAndroid = notification
     emitter(PushGen.createNotification({notification}))
   }
 
