@@ -19,8 +19,11 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
     dispatch(SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: null}))
     dispatch(navigateUp())
   },
-  onCheckPassphrase: passphrase =>
-    dispatch(SettingsGen.createCheckPassphrase({passphrase: new HiddenString(passphrase)})),
+  onCheckPassphrase: passphrase => {
+    if (passphrase) {
+      dispatch(SettingsGen.createCheckPassphrase({passphrase: new HiddenString(passphrase)}))
+    }
+  },
   onLogout: () => {
     dispatch(ConfigGen.createLogout())
     dispatch(SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: null}))
