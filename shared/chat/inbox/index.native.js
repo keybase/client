@@ -133,8 +133,8 @@ class Inbox extends React.PureComponent<Props, State> {
       return
     }
     const {viewableItems} = data
-    const lastIdx = viewableItems[viewableItems.length - 1].index
-    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > lastIdx)
+    const lastIdx = viewableItems[viewableItems.length - 1]?.index
+    const firstOffscreenIdx = lastIdx && this.props.unreadIndices.find(idx => idx > lastIdx)
     if (firstOffscreenIdx) {
       this.setState(s => (s.showUnread ? null : {showUnread: true}))
       this._firstOffscreenIdx = firstOffscreenIdx
