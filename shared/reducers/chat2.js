@@ -370,16 +370,6 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
   }
 }
 
-const containsLatestMsgID = (state, conversationIDKey, messages) => {
-  if (messages.length === 0) {
-    return false
-  }
-  const meta = state.metaMap.get(conversationIDKey, null)
-  const lastMessage = messages[messages.length - 1]
-  const lastMessageID = lastMessage ? lastMessage.id : 0
-  return meta ? lastMessageID >= meta.maxVisibleMsgID : false
-}
-
 const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop)
 
 const rootReducer = (
@@ -759,11 +749,18 @@ const rootReducer = (
       let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
         Object.keys(convoToMessages).forEach(cid => {
           const conversationIDKey = Types.stringToConversationIDKey(cid)
-          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet())
-          const messages = ordinals.toArray().map(ord => {
-            return messageMap.getIn([conversationIDKey, ord])
-          })
-          map.set(conversationIDKey, containsLatestMsgID(state, conversationIDKey, messages))
+          const meta = state.metaMap.get(conversationIDKey, null)
+          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
+          let maxMsgID = 0
+          for (let i = ordinals.length - 1; i >= 0; i--) {
+            const ordinal = ordinals[i]
+            const message = messageMap.getIn([conversationIDKey, ordinal])
+            if (message && message.id > 0) {
+              maxMsgID = message.id
+              break
+            }
+          }
+          map.set(conversationIDKey, meta ? maxMsgID >= meta.maxVisibleMsgID : false)
         })
       })
 
