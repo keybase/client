@@ -133,9 +133,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     if (minimumInputHeight < 0 || height < minimumInputHeight) {
       minimumInputHeight = height
     }
-    if (this.state.addBottomPadding ? height <= minimumInputHeight : height > minimumInputHeight) {
-      this.setState({addBottomPadding: !this.state.addBottomPadding})
-    }
+    this.setState(s => {
+      if (s.addBottomPadding ? height <= minimumInputHeight : height > minimumInputHeight) {
+        return {addBottomPadding: !s.addBottomPadding}
+      }
+      return null
+    })
     this.props.setHeight(height)
   }
 
