@@ -4,6 +4,8 @@ apply plugin: 'com.github.triplet.play'
 
 import com.android.build.OutputFile
 
+def VERSION_NAME = "3.1.3"
+
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
  * and bundleReleaseJsAndAssets).
@@ -126,7 +128,7 @@ android {
     // KB:
         versionCode timestamp()
     // KB:
-        versionName "3.2.0"
+        versionName VERSION_NAME
     // KB: for react native camera
         missingDimensionStrategy 'react-native-camera', 'general'
     // KB: our binary is too big
