@@ -52,9 +52,12 @@ const networkErrorCodes = [
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let error = ''
   if (stateProps.error) {
-    error = networkErrorCodes.includes(stateProps.error.code)
-      ? "We're having trouble connecting to the internet. Check your network and try again."
-      : "We don't support this type of image, try a different one."
+    error =
+      stateProps.error.code === RPCTypes.constantsStatusCode.scgeneric
+        ? stateProps.error.desc
+        : networkErrorCodes.includes(stateProps.error.code)
+        ? "We're having trouble connecting to the internet. Check your network and try again."
+        : "We don't support this type of image, try a different one."
   }
   return {
     createdTeam: stateProps.createdTeam,

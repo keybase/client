@@ -185,6 +185,12 @@ export const makeDestinationPicker: I.RecordFactory<Types._DestinationPicker> = 
   source: makeNoSource(),
 })
 
+export const makeSendAttachmentToChat: I.RecordFactory<Types._SendAttachmentToChat> = I.Record({
+  convID: ChatConstants.noConversationIDKey,
+  filter: '',
+  path: Types.stringToPath('/keybase'),
+})
+
 export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
   channels: I.Map(),
   convID: ChatConstants.noConversationIDKey,
@@ -230,12 +236,13 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
-  kbfsDaemonConnected: false,
+  kbfsDaemonStatus: 'unknown',
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
   tlfUpdates: I.List(),
@@ -842,6 +849,7 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
       return false
     case 'group-tlf':
     case 'team-tlf':
+      return false
     case 'in-group-tlf':
     case 'in-team-tlf':
       return parsedPath.tlfType !== 'public'
@@ -865,15 +873,15 @@ const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   }
 }
 
-export const getDestinationPickerPathName =
-  (picker: Types.DestinationPicker): string =>
-    picker.source.type === 'move-or-copy'
+export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
+  picker.source.type === 'move-or-copy'
     ? Types.getPathName(picker.source.path)
     : picker.source.type === 'incoming-share'
-      ? Types.getLocalPathName(picker.source.localPath)
-      : ''
+    ? Types.getLocalPathName(picker.source.localPath)
+    : ''
 
-export const splitFileNameAndExtension = (fileName: string) => ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
+export const splitFileNameAndExtension = (fileName: string) =>
+  ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   const errorIsTimeout = error.includes('context deadline exceeded')

@@ -12,6 +12,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/ioutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -19,7 +20,7 @@ import (
 
 func makeTestKBFSConfig(t *testing.T) (
 	kbfsConfig libkbfs.Config, shutdown func()) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	cfg := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "bot", "user")
 

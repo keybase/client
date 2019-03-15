@@ -314,6 +314,12 @@ func (k KeybaseServiceMeasured) FlushUserFromLocalCache(
 	k.delegate.FlushUserFromLocalCache(ctx, uid)
 }
 
+// ClearCaches implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) ClearCaches(ctx context.Context) {
+	k.delegate.ClearCaches(ctx)
+}
+
 // EstablishMountDir implements the KeybaseDaemon interface for KeybaseDaemonLocal.
 func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, error) {
 	return k.delegate.EstablishMountDir(ctx)

@@ -48,7 +48,7 @@ const Participants = (props: ParticipantsProps) => {
       }
       toFieldContent = (
         <Kb.Box2 direction="horizontal" gap="xtiny">
-          <Kb.Icon type="icon-stellar-logo-16" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
+          <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
           <Kb.Text type="BodySemibold" style={styles.stellarAddressConfirmText}>
             {props.recipientStellarAddress}
           </Kb.Text>

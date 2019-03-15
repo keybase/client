@@ -180,3 +180,17 @@ func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.Passp
 	err = eng.Run(mctx.WithUIs(uis))
 	return eng.GetResult(), err
 }
+
+func (h *AccountHandler) RecoverUsername(ctx context.Context, arg keybase1.RecoverUsernameArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsername(%q)", arg.Email), func() error { return err })()
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/recover_username",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
+			"email": libkb.S{Val: arg.Email},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}

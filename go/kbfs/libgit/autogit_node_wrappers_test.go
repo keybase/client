@@ -5,9 +5,11 @@
 package libgit
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -15,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	gogit "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 func TestAutogitNodeWrappersNoRepos(t *testing.T) {
@@ -250,4 +253,99 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	require.NoError(t, err)
 
 	checkAutogitTwoFiles(t, rootFS2)
+}
+
+func TestAutogitCommitFile(t *testing.T) {
+	ctx, config, cancel, tempdir := initConfigForAutogit(t)
+	defer cancel()
+	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	am := NewAutogitManager(config, 25)
+	defer am.Shutdown()
+	rw := rootWrapper{am}
+	config.AddRootNodeWrapper(rw.wrap)
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
+	require.NoError(t, err)
+	rootFS, err := libfs.NewFS(
+		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+	require.NoError(t, err)
+
+	t.Log("Init a new repo directly into KBFS.")
+	dotgitFS, _, err := GetOrCreateRepoAndID(ctx, config, h, "test", "")
+	require.NoError(t, err)
+	err = rootFS.MkdirAll("worktree", 0600)
+	require.NoError(t, err)
+	worktreeFS, err := rootFS.Chroot("worktree")
+	require.NoError(t, err)
+	dotgitStorage, err := NewGitConfigWithoutRemotesStorer(dotgitFS)
+	require.NoError(t, err)
+	repo, err := gogit.Init(dotgitStorage, worktreeFS)
+	require.NoError(t, err)
+
+	msg1 := "commit1"
+	user1 := "user1"
+	email1 := "user1@keyba.se"
+	time1 := time.Now()
+	hash1 := addFileToWorktreeWithInfo(
+		t, repo, worktreeFS, "foo", "hello", msg1, user1, email1, time1)
+	commitWorktree(t, ctx, config, h, worktreeFS)
+
+	t.Log("Check the first commit -- no diff")
+	headerFormat := "commit %s\nAuthor: %s <%s>\nDate:   %s\n\n    %s\n"
+	expectedCommit1 := fmt.Sprintf(
+		headerFormat, hash1.String(), user1, email1,
+		time1.Format(object.DateFormat), msg1)
+
+	f1, err := rootFS.Open(
+		".kbfs_autogit/test.git/" + AutogitCommitPrefix + hash1.String())
+	require.NoError(t, err)
+	defer f1.Close()
+	data1, err := ioutil.ReadAll(f1)
+	require.NoError(t, err)
+	require.Equal(t, expectedCommit1, string(data1))
+
+	t.Log("Make and check a new commit")
+	msg2 := "commit2"
+	user2 := "user2"
+	email2 := "user2@keyba.se"
+	time2 := time1.Add(1 * time.Minute)
+	hash2 := addFileToWorktreeWithInfo(
+		t, repo, worktreeFS, "foo", "hello world", msg2, user2, email2, time2)
+	commitWorktree(t, ctx, config, h, worktreeFS)
+
+	commit1, err := repo.CommitObject(hash1)
+	require.NoError(t, err)
+	tree1, err := commit1.Tree()
+	require.NoError(t, err)
+	commit2, err := repo.CommitObject(hash2)
+	require.NoError(t, err)
+	tree2, err := commit2.Tree()
+	require.NoError(t, err)
+
+	entry1, err := tree1.FindEntry("foo")
+	require.NoError(t, err)
+	entry2, err := tree2.FindEntry("foo")
+	require.NoError(t, err)
+
+	expectedCommit2 := fmt.Sprintf(
+		headerFormat, hash2.String(), user2, email2,
+		time2.Format(object.DateFormat), msg2) +
+		fmt.Sprintf(`diff --git a/foo b/foo
+index %s..%s 100644
+--- a/foo
++++ b/foo
+@@ -1 +1 @@
+-hello
++hello world
+`, entry1.Hash.String(), entry2.Hash.String())
+	f2, err := rootFS.Open(
+		".kbfs_autogit/test.git/" + AutogitCommitPrefix + hash2.String())
+	require.NoError(t, err)
+	defer f2.Close()
+	data2, err := ioutil.ReadAll(f2)
+	require.NoError(t, err)
+	require.Equal(t, expectedCommit2, string(data2))
 }

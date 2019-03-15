@@ -139,7 +139,7 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 	client, found := api.clients[key]
 	if !found {
 		api.G().Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
-		client = NewClient(api.G().Env, api.config, cookied)
+		client = NewClient(api.G(), api.config, cookied)
 		api.clients[key] = client
 	}
 	api.clientsMu.Unlock()
@@ -364,7 +364,10 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 // retry them arg.RetryCount times. It returns 3 values: the HTTP response, if all goes
 // well; a canceler function func() that the caller should call after all work is completed
 // on this request; and an error. The canceler function is to clean up the timeout.
-func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.Response, func(), error) {
+func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *http.Response, cancel func(), err error) {
+	if m.G().Env.GetExtraNetLogging() {
+		defer m.TraceTimed("api.doRetry", func() error { return err })()
+	}
 
 	// This serves as a proxy for checking the status of the Gregor connection. If we are not
 	// connected to Gregor, then it is likely the case we are totally offline, or on a very bad
@@ -376,8 +379,8 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 	}
 
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
-		resp, err := ctxhttp.Do(m.Ctx(), cli.cli, req)
-		return resp, nil, err
+		res, err = ctxhttp.Do(m.Ctx(), cli.cli, req)
+		return res, nil, err
 	}
 
 	timeout := cli.cli.Timeout
@@ -400,9 +403,9 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 		if i > 0 {
 			m.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
-		resp, canc, err := doTimeout(m, cli, req, timeout)
+		res, cancel, err = doTimeout(m, cli, req, timeout)
 		if err == nil {
-			return resp, canc, nil
+			return res, cancel, nil
 		}
 		lastErr = err
 		timeout = time.Duration(float64(timeout) * multiplier)
@@ -429,7 +432,10 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 // doTimeout does the http request with a timeout. It returns the response from making the HTTP request,
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
-func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (res *http.Response, cancel func(), err error) {
+	if m.G().Env.GetExtraNetLogging() {
+		defer m.TraceTimed("api.doTimeout", func() error { return err })()
+	}
 	// check to see if the current context is canceled
 	select {
 	case <-m.Ctx().Done():
@@ -437,8 +443,8 @@ func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Durat
 	default:
 	}
 	ctx, cancel := context.WithTimeout(m.Ctx(), timeout*CITimeMultiplier(m.G()))
-	resp, err := ctxhttp.Do(ctx, cli.cli, req)
-	return resp, cancel, err
+	res, err = ctxhttp.Do(ctx, cli.cli, req)
+	return res, cancel, err
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {

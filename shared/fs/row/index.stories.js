@@ -59,15 +59,15 @@ export const rowsProvider = {
         path: Types.stringToPath('/keybase/private/me,abc,ghi'),
         rowType: 'still',
       },
-      {key: '1', name: '1', path: Types.stringToPath('/keybase/private/1'), rowType: 'still'},
-      {key: '2', name: '2', path: Types.stringToPath('/keybase/private/2'), rowType: 'still'},
-      {key: '3', name: '3', path: Types.stringToPath('/keybase/private/3'), rowType: 'still'},
-      {key: '4', name: '4', path: Types.stringToPath('/keybase/private/4'), rowType: 'still'},
-      {key: '5', name: '5', path: Types.stringToPath('/keybase/private/5'), rowType: 'still'},
-      {key: '6', name: '6', path: Types.stringToPath('/keybase/private/6'), rowType: 'still'},
-      {key: '7', name: '7', path: Types.stringToPath('/keybase/private/7'), rowType: 'still'},
-      {key: '8', name: '8', path: Types.stringToPath('/keybase/private/8'), rowType: 'still'},
-      {key: '9', name: '9', path: Types.stringToPath('/keybase/private/9'), rowType: 'still'},
+      {key: '1', name: '1', path: Types.stringToPath('/keybase/private/meatball/1'), rowType: 'still'},
+      {key: '2', name: '2', path: Types.stringToPath('/keybase/private/meatball/2'), rowType: 'still'},
+      {key: '3', name: '3', path: Types.stringToPath('/keybase/private/meatball/3'), rowType: 'still'},
+      {key: '4', name: '4', path: Types.stringToPath('/keybase/private/meatball/4'), rowType: 'still'},
+      {key: '5', name: '5', path: Types.stringToPath('/keybase/private/meatball/5'), rowType: 'still'},
+      {key: '6', name: '6', path: Types.stringToPath('/keybase/private/meatball/dir/6'), rowType: 'still'},
+      {key: '7', name: '7', path: Types.stringToPath('/keybase/private/meatball/dir/7'), rowType: 'still'},
+      {key: '8', name: '8', path: Types.stringToPath('/keybase/private/meatball/dir/8'), rowType: 'still'},
+      {key: '9', name: '9', path: Types.stringToPath('/keybase/private/meatball/dir/9'), rowType: 'still'},
       ...(!isMobile && typeof o.destinationPickerIndex === 'number'
         ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
         : []),
@@ -86,6 +86,7 @@ export const rowsProvider = {
       destinationPickerIndex,
       isEmpty: pathStr.includes('empty'),
       name: Types.getPathName(path),
+      path,
       type: 'folder',
     }
   },
@@ -124,8 +125,8 @@ const load = () =>
         <WrapRow key="1">
           <ConnectedStillRow
             name="a"
-            path={Types.stringToPath('/keybase/private/a')}
-            routeProps={I.Map({path: '/keybase/private/a'})}
+            path={Types.stringToPath('/keybase/private/meatball/a')}
+            routeProps={I.Map({path: '/keybase/private/meatball/a'})}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -172,7 +173,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="7">
           <UploadingRow
-            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type="file"
             name="foo"
             writingToJournal={true}
@@ -181,7 +182,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="8">
           <UploadingRow
-            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type="file"
             name="foo"
             writingToJournal={true}
@@ -190,7 +191,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="9">
           <UploadingRow
-            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type="file"
             name="foo"
             writingToJournal={false}
@@ -199,7 +200,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="10">
           <UploadingRow
-            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type="file"
             name="foo"
             writingToJournal={false}
@@ -208,7 +209,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="11">
           <UploadingRow
-            path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+            path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type="file"
             name="foo"
             writingToJournal={false}
@@ -218,7 +219,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="download-normal">
           <StillRow
-            path={Types.stringToPath('/keybase/private/foo/bar')}
+            path={Types.stringToPath('/keybase/private/foo/dir/bar')}
             name="bar"
             type="file"
             intentIfDownloading="none"
@@ -230,7 +231,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="download-save">
           <StillRow
-            path={Types.stringToPath('/keybase/private/foo/bar')}
+            path={Types.stringToPath('/keybase/private/foo/dir/bar')}
             name="bar"
             type="file"
             intentIfDownloading="camera-roll"
@@ -242,7 +243,7 @@ const load = () =>
         </WrapRow>
         <WrapRow key="download-share">
           <StillRow
-            path={Types.stringToPath('/keybase/private/foo/bar')}
+            path={Types.stringToPath('/keybase/private/foo/dir/bar')}
             name="bar"
             type="file"
             intentIfDownloading="share"
@@ -261,8 +262,8 @@ const load = () =>
         <WrapRow key="15">
           <ConnectedStillRow
             name="empty"
-            path={Types.stringToPath('/keybase/private/empty')}
-            routeProps={I.Map({path: '/keybase/private/empty'})}
+            path={Types.stringToPath('/keybase/private/meatball/empty')}
+            routeProps={I.Map({path: '/keybase/private/meatball/empty'})}
             routePath={I.List([])}
           />
         </WrapRow>
