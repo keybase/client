@@ -6,8 +6,8 @@ import Icon from './icon'
 import * as Styles from '../styles'
 
 const Kb = {
-  Text,
   Icon,
+  Text,
 }
 
 class Header extends Component<Props> {

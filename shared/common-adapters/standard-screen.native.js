@@ -9,8 +9,8 @@ import Text from './text'
 
 const Kb = {
   Box,
-  Text,
   NativeScrollView,
+  Text,
 }
 
 const StandardScreen = (props: Props) => {
