@@ -144,7 +144,7 @@ warn_if_unwritable() {
   if [ -w "$1" ]; then
       return
   fi
-  echo "WARNING: Cannot write to $1. Did you run 'run_keybase' with sudo?"
+  echo "WARNING: Cannot write to $1. Did you previously run 'run_keybase' with sudo?"
   echo "         Keybase does not need root privileges to run."
   echo "         Permissions can be restored by running 'sudo chown -R $(whoami):$(whoami) $1',"
   echo "         after which 'run_keybase' can be run again."
