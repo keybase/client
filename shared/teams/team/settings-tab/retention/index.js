@@ -199,19 +199,12 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={labelStyle}>
             {this._label()}
           </Kb.Box2>
-          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType='Tiny' />
+          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
         </Kb.ClickableBox>
         {this.props.policyIsExploding && (
           <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
-            <Kb.Box style={boomIconBoxStyle}>
-              <Kb.Icon
-                color={Styles.globalColors.black}
-                fontSize={Styles.isMobile ? 44 : 35}
-                style={Kb.iconCastPlatformStyles(boomIconStyle)}
-                type="iconfont-boom"
-              />
-            </Kb.Box>
+            <Kb.Icon color={Styles.globalColors.black_50} sizeType="Big" type="iconfont-boom" />
           </Kb.Box2>
         )}
         {this.props.showOverrideNotice && (
@@ -262,25 +255,6 @@ const headingStyle = {
   alignItems: 'center',
   marginBottom: Styles.globalMargins.tiny,
 }
-
-const boomIconBoxStyle = {
-  position: 'relative',
-}
-
-const boomIconStyle = Styles.platformStyles({
-  common: {
-    opacity: 0.4,
-    position: 'absolute',
-  },
-  isElectron: {
-    left: 0,
-    top: -16,
-  },
-  isMobile: {
-    left: 0,
-    top: -22,
-  },
-})
 
 const displayHeadingStyle = {
   ...headingStyle,

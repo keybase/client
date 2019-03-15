@@ -170,6 +170,7 @@ type Identify2Arg struct {
 	IdentifyBehavior      TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	ForceDisplay          bool                `codec:"forceDisplay" json:"forceDisplay"`
 	ActLoggedOut          bool                `codec:"actLoggedOut" json:"actLoggedOut"`
+	IgnoreCache           bool                `codec:"ignoreCache" json:"ignoreCache"`
 }
 
 type IdentifyLiteArg struct {

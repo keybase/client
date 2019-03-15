@@ -736,7 +736,7 @@ type DeviceEKStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
 	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
 	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
-	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
+	MaxGeneration(ctx context.Context, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 	// Dangerous! Only for deprovisioning.
@@ -750,7 +750,7 @@ type DeviceEKStorage interface {
 type UserEKBoxStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
 	Get(ctx context.Context, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
-	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
+	MaxGeneration(ctx context.Context, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 }
@@ -758,7 +758,7 @@ type UserEKBoxStorage interface {
 type TeamEKBoxStorage interface {
 	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
 	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
+	MaxGeneration(ctx context.Context, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
 	Delete(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
@@ -767,7 +767,7 @@ type TeamEKBoxStorage interface {
 
 type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
-	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
+	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
 	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)

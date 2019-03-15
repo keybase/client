@@ -148,7 +148,7 @@ func (c *Client) Restore(ctx context.Context) error {
 		return fmt.Errorf("Restore(): failed to init local dismissals: %s", err)
 	}
 
-	if err := c.Sm.InitOutbox(ctx, c.User, outbox); err != nil {
+	if err := c.Sm.PrependToOutbox(ctx, c.User, outbox); err != nil {
 		c.Log.CDebugf(ctx, "Restore(): failed to init outbox: %s", err)
 	}
 
@@ -493,8 +493,8 @@ func (c *Client) outboxSend() {
 		newOutbox = append(newOutbox, msgs[i])
 	}
 	c.Log.Debug("outboxSend: adding back: %d outbox items", len(newOutbox))
-	if err := c.Sm.InitOutbox(ctx, c.User, newOutbox); err != nil {
-		c.Log.Debug("outboxSend: failed to init outbox with new items: %s", err)
+	if err := c.Sm.PrependToOutbox(ctx, c.User, newOutbox); err != nil {
+		c.Log.Debug("outboxSend: failed to put items back into outbox: %s", err)
 	}
 	if err := c.Save(ctx); err != nil {
 		c.Log.Debug("outboxSend: failed to save state: %s", err)

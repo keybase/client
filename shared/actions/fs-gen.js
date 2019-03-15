@@ -37,8 +37,7 @@ export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const journalUpdate = 'fs:journalUpdate'
-export const kbfsDaemonConnected = 'fs:kbfsDaemonConnected'
-export const kbfsDaemonDisconnected = 'fs:kbfsDaemonDisconnected'
+export const kbfsDaemonStatusChanged = 'fs:kbfsDaemonStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadingPath = 'fs:loadingPath'
@@ -70,11 +69,14 @@ export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
+export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
+export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
 export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const shareNative = 'fs:shareNative'
 export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
+export const showSendAttachmentToChat = 'fs:showSendAttachmentToChat'
 export const showSendLinkToChat = 'fs:showSendLinkToChat'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
@@ -84,6 +86,7 @@ export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
+export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
@@ -113,8 +116,7 @@ type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<T
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
-type _KbfsDaemonConnectedPayload = void
-type _KbfsDaemonDisconnectedPayload = void
+type _KbfsDaemonStatusChangedPayload = $ReadOnly<{|kbfsDaemonStatus: Types.KbfsDaemonStatus|}>
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
 type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path|}>
 type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
@@ -146,11 +148,14 @@ type _SetIncomingShareLocalPathPayload = $ReadOnly<{|localPath: Types.LocalPath|
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _SetPathItemActionMenuDownloadKeyPayload = $ReadOnly<{|key: ?string|}>
 type _SetPathItemActionMenuViewPayload = $ReadOnly<{|view: Types.PathItemActionMenuView|}>
+type _SetSendAttachmentToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
+type _SetSendAttachmentToChatFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetSendLinkToChatChannelsPayload = $ReadOnly<{|channels: I.Map<ChatTypes.ConversationIDKey, string>|}>
 type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
+type _ShowSendAttachmentToChatPayload = $ReadOnly<{|path: Types.Path, routePath?: ?I.List<string>|}>
 type _ShowSendLinkToChatPayload = $ReadOnly<{|path: Types.Path, routePath?: ?I.List<string>|}>
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
@@ -160,6 +165,7 @@ type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
 type _UploadWritingSuccessPayload = $ReadOnly<{|path: Types.Path|}>
 type _UserFileEditsLoadPayload = void
 type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|}>
+type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
@@ -189,8 +195,7 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({p
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
 export const createHideSystemFileManagerIntegrationBanner = (payload: _HideSystemFileManagerIntegrationBannerPayload) => ({payload, type: hideSystemFileManagerIntegrationBanner})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
-export const createKbfsDaemonConnected = (payload: _KbfsDaemonConnectedPayload) => ({payload, type: kbfsDaemonConnected})
-export const createKbfsDaemonDisconnected = (payload: _KbfsDaemonDisconnectedPayload) => ({payload, type: kbfsDaemonDisconnected})
+export const createKbfsDaemonStatusChanged = (payload: _KbfsDaemonStatusChangedPayload) => ({payload, type: kbfsDaemonStatusChanged})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({payload, type: letResetUserBackIn})
 export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({payload, type: loadPathMetadata})
 export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
@@ -222,11 +227,14 @@ export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalP
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
 export const createSetPathItemActionMenuView = (payload: _SetPathItemActionMenuViewPayload) => ({payload, type: setPathItemActionMenuView})
+export const createSetSendAttachmentToChatConvID = (payload: _SetSendAttachmentToChatConvIDPayload) => ({payload, type: setSendAttachmentToChatConvID})
+export const createSetSendAttachmentToChatFilter = (payload: _SetSendAttachmentToChatFilterPayload) => ({payload, type: setSendAttachmentToChatFilter})
 export const createSetSendLinkToChatChannels = (payload: _SetSendLinkToChatChannelsPayload) => ({payload, type: setSendLinkToChatChannels})
 export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDPayload) => ({payload, type: setSendLinkToChatConvID})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
 export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({payload, type: showIncomingShare})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
+export const createShowSendAttachmentToChat = (payload: _ShowSendAttachmentToChatPayload) => ({payload, type: showSendAttachmentToChat})
 export const createShowSendLinkToChat = (payload: _ShowSendLinkToChatPayload) => ({payload, type: showSendLinkToChat})
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
@@ -236,6 +244,7 @@ export const createUploadStarted = (payload: _UploadStartedPayload) => ({payload
 export const createUploadWritingSuccess = (payload: _UploadWritingSuccessPayload) => ({payload, type: uploadWritingSuccess})
 export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload) => ({payload, type: userFileEditsLoad})
 export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) => ({payload, type: userFileEditsLoaded})
+export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload) => ({payload, type: waitForKbfsDaemon})
 
 // Action Payloads
 export type CancelDownloadPayload = {|+payload: _CancelDownloadPayload, +type: 'fs:cancelDownload'|}
@@ -265,8 +274,7 @@ export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +typ
 export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
 export type HideSystemFileManagerIntegrationBannerPayload = {|+payload: _HideSystemFileManagerIntegrationBannerPayload, +type: 'fs:hideSystemFileManagerIntegrationBanner'|}
 export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
-export type KbfsDaemonConnectedPayload = {|+payload: _KbfsDaemonConnectedPayload, +type: 'fs:kbfsDaemonConnected'|}
-export type KbfsDaemonDisconnectedPayload = {|+payload: _KbfsDaemonDisconnectedPayload, +type: 'fs:kbfsDaemonDisconnected'|}
+export type KbfsDaemonStatusChangedPayload = {|+payload: _KbfsDaemonStatusChangedPayload, +type: 'fs:kbfsDaemonStatusChanged'|}
 export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, +type: 'fs:letResetUserBackIn'|}
 export type LoadPathMetadataPayload = {|+payload: _LoadPathMetadataPayload, +type: 'fs:loadPathMetadata'|}
 export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loadingPath'|}
@@ -298,11 +306,14 @@ export type SetIncomingShareLocalPathPayload = {|+payload: _SetIncomingShareLoca
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
 export type SetPathItemActionMenuDownloadKeyPayload = {|+payload: _SetPathItemActionMenuDownloadKeyPayload, +type: 'fs:setPathItemActionMenuDownloadKey'|}
 export type SetPathItemActionMenuViewPayload = {|+payload: _SetPathItemActionMenuViewPayload, +type: 'fs:setPathItemActionMenuView'|}
+export type SetSendAttachmentToChatConvIDPayload = {|+payload: _SetSendAttachmentToChatConvIDPayload, +type: 'fs:setSendAttachmentToChatConvID'|}
+export type SetSendAttachmentToChatFilterPayload = {|+payload: _SetSendAttachmentToChatFilterPayload, +type: 'fs:setSendAttachmentToChatFilter'|}
 export type SetSendLinkToChatChannelsPayload = {|+payload: _SetSendLinkToChatChannelsPayload, +type: 'fs:setSendLinkToChatChannels'|}
 export type SetSendLinkToChatConvIDPayload = {|+payload: _SetSendLinkToChatConvIDPayload, +type: 'fs:setSendLinkToChatConvID'|}
 export type ShareNativePayload = {|+payload: _ShareNativePayload, +type: 'fs:shareNative'|}
 export type ShowIncomingSharePayload = {|+payload: _ShowIncomingSharePayload, +type: 'fs:showIncomingShare'|}
 export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: 'fs:showMoveOrCopy'|}
+export type ShowSendAttachmentToChatPayload = {|+payload: _ShowSendAttachmentToChatPayload, +type: 'fs:showSendAttachmentToChat'|}
 export type ShowSendLinkToChatPayload = {|+payload: _ShowSendLinkToChatPayload, +type: 'fs:showSendLinkToChat'|}
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
 export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
@@ -312,6 +323,7 @@ export type UploadStartedPayload = {|+payload: _UploadStartedPayload, +type: 'fs
 export type UploadWritingSuccessPayload = {|+payload: _UploadWritingSuccessPayload, +type: 'fs:uploadWritingSuccess'|}
 export type UserFileEditsLoadPayload = {|+payload: _UserFileEditsLoadPayload, +type: 'fs:userFileEditsLoad'|}
 export type UserFileEditsLoadedPayload = {|+payload: _UserFileEditsLoadedPayload, +type: 'fs:userFileEditsLoaded'|}
+export type WaitForKbfsDaemonPayload = {|+payload: _WaitForKbfsDaemonPayload, +type: 'fs:waitForKbfsDaemon'|}
 
 // All Actions
 // prettier-ignore
@@ -343,8 +355,7 @@ export type Actions =
   | FsErrorPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | JournalUpdatePayload
-  | KbfsDaemonConnectedPayload
-  | KbfsDaemonDisconnectedPayload
+  | KbfsDaemonStatusChangedPayload
   | LetResetUserBackInPayload
   | LoadPathMetadataPayload
   | LoadingPathPayload
@@ -376,11 +387,14 @@ export type Actions =
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
   | SetPathItemActionMenuViewPayload
+  | SetSendAttachmentToChatConvIDPayload
+  | SetSendAttachmentToChatFilterPayload
   | SetSendLinkToChatChannelsPayload
   | SetSendLinkToChatConvIDPayload
   | ShareNativePayload
   | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload
+  | ShowSendAttachmentToChatPayload
   | ShowSendLinkToChatPayload
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
@@ -390,4 +404,5 @@ export type Actions =
   | UploadWritingSuccessPayload
   | UserFileEditsLoadPayload
   | UserFileEditsLoadedPayload
+  | WaitForKbfsDaemonPayload
   | {type: 'common:resetStore', payload: null}

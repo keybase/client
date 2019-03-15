@@ -37,7 +37,7 @@ func TestNewDeviceEK(t *testing.T) {
 	for _, fetchedDeviceMetadata := range fetchedDevices {
 		require.Equal(t, publishedMetadata, fetchedDeviceMetadata)
 	}
-	maxGeneration, err := s.MaxGeneration(context.Background())
+	maxGeneration, err := s.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 
 	require.EqualValues(t, maxGeneration, publishedMetadata.Generation)

@@ -8,6 +8,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -115,7 +116,7 @@ func (r *Root) MakeFS(
 			log.Warn("root.MakeFS", append(zapFields, zap.Error(err))...)
 		}
 	}()
-	fsCtx, err = libkbfs.NewContextWithCancellationDelayer(
+	fsCtx, err = libcontext.NewContextWithCancellationDelayer(
 		libkbfs.CtxWithRandomIDReplayable(
 			fsCtx, ctxIDKey, ctxOpID, nil))
 	if err != nil {

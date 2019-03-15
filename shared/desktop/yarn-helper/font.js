@@ -77,6 +77,20 @@ const getSvgPaths = skipUnmatchedFile =>
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
 function updateIconFont(web) {
+  if (!web) {
+    // Check if fontforge is installed, required to generate the font
+    try {
+      execSync('fontforge')
+    } catch (e) {
+      if (e.message.includes('not found')) {
+        throw new Error(
+          'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.'
+        )
+      }
+      throw e
+    }
+  }
+
   let webfontsGenerator
   try {
     webfontsGenerator = require('webfonts-generator')

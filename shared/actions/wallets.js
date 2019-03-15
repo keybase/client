@@ -368,16 +368,10 @@ const loadPayments = (state, action) => {
     logger.error('Tried to loadPayments while not logged in')
     return
   }
-  if (!action.payload.accountID) {
-    const account = Constants.getAccount(state, action.payload.accountID)
-    logger.error(
-      `Tried to call load with no account ID, found matching account name: ${
-        account.name
-      } isDefault: ${String(account.isDefault)}`
-    )
+  if (actionHasError(action)) {
+    return
   }
   return (
-    !actionHasError(action) &&
     (!!(
       action.type === WalletsGen.selectAccount &&
       action.payload.accountID &&

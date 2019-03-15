@@ -21,6 +21,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: __DEV__,
+  sendAttachmentToChat: false,
   useNewRouter: false,
 }
 
@@ -29,6 +30,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   dbCleanEnabled: true,
   moveOrCopy: true,
   outOfDateBanner: true,
+  sendAttachmentToChat: true,
 }
 
 // load overrides

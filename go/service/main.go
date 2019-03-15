@@ -318,14 +318,13 @@ func (d *Service) Run() (err error) {
 }
 
 func (d *Service) SetupCriticalSubServices() error {
-	epick := libkb.FirstErrorPicker{}
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
 	ephemeral.ServiceInit(d.G())
 	avatars.ServiceInit(d.G(), d.avatarLoader)
-	return epick.Error()
+	return nil
 }
 
 func (d *Service) RunBackgroundOperations(uir *UIRouter) {

@@ -96,6 +96,18 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         },
       ]
     : []),
+  ...(props.sendAttachmentToChat
+    ? [
+        {
+          onClick: () => {
+            props.floatingMenuProps.hideOnce()
+            // $FlowIssue doens't know sendAttachmentToChat can't be null here
+            props.sendAttachmentToChat()
+          },
+          title: 'Send as attachment to chat',
+        },
+      ]
+    : []),
   ...(props.sendToOtherApp
     ? [
         {

@@ -2,7 +2,12 @@
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLabel, inactiveServiceAccentColor} from './shared'
+import {
+  serviceIdToIconFont,
+  serviceIdToAccentColor,
+  serviceIdToLabel,
+  inactiveServiceAccentColor,
+} from './shared'
 import * as Constants from '../constants/team-building'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
@@ -156,6 +161,8 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       minHeight: 30,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
     isMobile: {
       height: 58,

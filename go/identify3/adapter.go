@@ -99,7 +99,9 @@ func (i *UIAdapter) Start(mctx libkb.MetaContext, user string, reason keybase1.I
 
 func (i *UIAdapter) initPriorityMap(mctx libkb.MetaContext) {
 	i.priorityMap = make(map[string]int)
+	var haveDisplayConfigs bool
 	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
+		haveDisplayConfigs = true
 		i.priorityMap[displayConfig.Key] = displayConfig.Priority
 		var altKey string
 		switch displayConfig.Key {
@@ -115,6 +117,22 @@ func (i *UIAdapter) initPriorityMap(mctx libkb.MetaContext) {
 				i.priorityMap[altKey] = displayConfig.Priority
 			}
 		}
+	}
+	if !haveDisplayConfigs {
+		i.priorityMap["twitter"] = 1
+		i.priorityMap["https"] = 100
+		i.priorityMap["http"] = 101
+		i.priorityMap["dns"] = 102
+		i.priorityMap["pgp"] = 103
+		i.priorityMap["bitcoin"] = 104
+		i.priorityMap["zcash.s"] = 105
+		i.priorityMap["zcash.z"] = 106
+		i.priorityMap["zcash.t"] = 107
+		i.priorityMap["stellar"] = 108
+		i.priorityMap["github"] = 2
+		i.priorityMap["reddit"] = 3
+		i.priorityMap["hackernews"] = 4
+		i.priorityMap["facebook"] = 5
 	}
 }
 

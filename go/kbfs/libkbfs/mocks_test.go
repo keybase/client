@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	favorites "github.com/keybase/client/go/kbfs/favorites"
 	kbfsblock "github.com/keybase/client/go/kbfs/kbfsblock"
 	kbfscodec "github.com/keybase/client/go/kbfs/kbfscodec"
 	kbfscrypto "github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -1891,10 +1892,10 @@ func (m *MockKBFSOps) EXPECT() *MockKBFSOpsMockRecorder {
 }
 
 // GetFavorites mocks base method
-func (m *MockKBFSOps) GetFavorites(ctx context.Context) ([]Favorite, error) {
+func (m *MockKBFSOps) GetFavorites(ctx context.Context) ([]favorites.Folder, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]Favorite)
+	ret0, _ := ret[0].([]favorites.Folder)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1945,7 +1946,7 @@ func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(ctx interface{}) *gomock
 }
 
 // AddFavorite mocks base method
-func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error {
+func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav favorites.Folder, data favorites.Data) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav, data)
 	ret0, _ := ret[0].(error)
@@ -1959,7 +1960,7 @@ func (mr *MockKBFSOpsMockRecorder) AddFavorite(ctx, fav, data interface{}) *gomo
 }
 
 // DeleteFavorite mocks base method
-func (m *MockKBFSOps) DeleteFavorite(ctx context.Context, fav Favorite) error {
+func (m *MockKBFSOps) DeleteFavorite(ctx context.Context, fav favorites.Folder) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteFavorite", ctx, fav)
 	ret0, _ := ret[0].(error)
@@ -1985,7 +1986,7 @@ func (mr *MockKBFSOpsMockRecorder) SetFavoritesHomeTLFInfo(ctx, info interface{}
 }
 
 // RefreshEditHistory mocks base method
-func (m *MockKBFSOps) RefreshEditHistory(fav Favorite) {
+func (m *MockKBFSOps) RefreshEditHistory(fav favorites.Folder) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RefreshEditHistory", fav)
 }
@@ -3028,6 +3029,18 @@ func (m *MockKeybaseService) FlushUserFromLocalCache(ctx context.Context, uid ke
 func (mr *MockKeybaseServiceMockRecorder) FlushUserFromLocalCache(ctx, uid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlushUserFromLocalCache", reflect.TypeOf((*MockKeybaseService)(nil).FlushUserFromLocalCache), ctx, uid)
+}
+
+// ClearCaches mocks base method
+func (m *MockKeybaseService) ClearCaches(ctx context.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ClearCaches", ctx)
+}
+
+// ClearCaches indicates an expected call of ClearCaches
+func (mr *MockKeybaseServiceMockRecorder) ClearCaches(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCaches", reflect.TypeOf((*MockKeybaseService)(nil).ClearCaches), ctx)
 }
 
 // EstablishMountDir mocks base method

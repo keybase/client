@@ -16,7 +16,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
@@ -188,7 +188,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, fuse.ENOENT
 	}
 
-	h, err := libfs.ParseTlfHandlePreferredQuick(
+	h, err := libkbfs.ParseTlfHandlePreferredQuick(
 		ctx, fl.fs.config.KBPKI(), fl.fs.config, req.Name, fl.tlfType)
 	switch e := errors.Cause(err).(type) {
 	case nil:
@@ -249,7 +249,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
-	var favs []libkbfs.Favorite
+	var favs []favorites.Folder
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
 		if err != nil {
@@ -283,7 +283,7 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
 	defer func() { err = fl.fs.processError(ctx, libkbfs.WriteMode, err) }()
 
-	h, err := libfs.ParseTlfHandlePreferredQuick(
+	h, err := libkbfs.ParseTlfHandlePreferredQuick(
 		ctx, fl.fs.config.KBPKI(), fl.fs.config, req.Name, fl.tlfType)
 
 	switch err := errors.Cause(err).(type) {

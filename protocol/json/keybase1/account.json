@@ -169,6 +169,19 @@
         }
       ],
       "response": null
+    },
+    "recoverUsername": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

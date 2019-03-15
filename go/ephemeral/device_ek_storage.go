@@ -398,7 +398,7 @@ func (s *DeviceEKStorage) listAllForUser(ctx context.Context, username libkb.Nor
 	return all, nil
 }
 
-func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {
+func (s *DeviceEKStorage) MaxGeneration(ctx context.Context, includeErrs bool) (maxGeneration keybase1.EkGeneration, err error) {
 	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#MaxGeneration", func() error { return err })()
 
 	s.Lock()
@@ -410,7 +410,7 @@ func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keyb
 		return maxGeneration, err
 	}
 	for generation, cacheItem := range cache {
-		if cacheItem.Err != nil {
+		if cacheItem.Err != nil && !includeErrs {
 			continue
 		}
 		if generation > maxGeneration {

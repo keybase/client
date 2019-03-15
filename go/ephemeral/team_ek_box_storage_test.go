@@ -23,12 +23,12 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	// Login hooks should have run
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
-	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(context.Background())
+	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(context.Background(), false)
 	require.True(t, deviceEKMaxGen > 0)
 	require.NoError(t, err)
 
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
-	userEKMaxGen, err := userEKBoxStorage.MaxGeneration(context.Background())
+	userEKMaxGen, err := userEKBoxStorage.MaxGeneration(context.Background(), false)
 	require.True(t, userEKMaxGen > 0)
 	require.NoError(t, err)
 
@@ -39,14 +39,6 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.NoError(t, err)
 
 	s := tc.G.GetTeamEKBoxStorage()
-
-	// Test Get nonexistent
-	nonexistent, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation+1, nil)
-	require.Error(t, err)
-	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr := err.(EphemeralKeyError)
-	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
-	require.Equal(t, keybase1.TeamEk{}, nonexistent)
 
 	// Test invalid teamID
 	nonexistent2, err := s.Get(context.Background(), invalidID, teamEKMetadata.Generation+1, nil)
@@ -61,13 +53,26 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	verifyTeamEK(t, teamEKMetadata, teamEK)
 
+	// Test Get nonexistent
+	nonexistent, err := s.Get(context.Background(), teamID, teamEKMetadata.Generation+1, nil)
+	require.Error(t, err)
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr := err.(EphemeralKeyError)
+	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
+	require.Equal(t, keybase1.TeamEk{}, nonexistent)
+
+	// include the cached error in the max
+	maxGeneration, err := s.MaxGeneration(context.Background(), teamID, true)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, maxGeneration)
+
 	// Test MaxGeneration
-	maxGeneration, err := s.MaxGeneration(context.Background(), teamID)
+	maxGeneration, err = s.MaxGeneration(context.Background(), teamID, false)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, maxGeneration)
 
 	// Invalid id
-	maxGeneration2, err := s.MaxGeneration(context.Background(), invalidID)
+	maxGeneration2, err := s.MaxGeneration(context.Background(), invalidID, false)
 	require.NoError(t, err)
 	require.EqualValues(t, -1, maxGeneration2)
 
@@ -132,7 +137,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	s.ClearCache()
 
-	maxGeneration3, err := s.MaxGeneration(context.Background(), teamID)
+	maxGeneration3, err := s.MaxGeneration(context.Background(), teamID, false)
 	require.NoError(t, err)
 	require.EqualValues(t, -1, maxGeneration3)
 

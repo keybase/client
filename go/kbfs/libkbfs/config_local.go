@@ -1638,7 +1638,7 @@ func (c *ConfigLocal) OfflineAvailabilityForPath(
 // interface for ConfigLocal.
 func (c *ConfigLocal) OfflineAvailabilityForID(
 	tlfID tlf.ID) keybase1.OfflineAvailability {
-	if c.IsSyncedTlf(tlfID) {
+	if c.GetTlfSyncState(tlfID).Mode != keybase1.FolderSyncMode_DISABLED {
 		return keybase1.OfflineAvailability_BEST_EFFORT
 	}
 	return keybase1.OfflineAvailability_NONE
