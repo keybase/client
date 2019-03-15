@@ -10,6 +10,7 @@ import TeamsDivider from './row/teams-divider/container'
 import {virtualListMarks} from '../../local-debug'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
+import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
 
 import type {Props, RowItem, RowItemSmall} from './index.types'
@@ -29,23 +30,6 @@ const NoChats = () => (
       All conversations are end-to-end encrypted.
     </Kb.Text>
   </Kb.Box>
-)
-
-const UnreadShortcut = props => (
-  <Kb.ClickableBox onClick={props.onClick} style={{backgroundColor: Styles.globalColors.transparent}}>
-    <Kb.Box2
-      direction="horizontal"
-      gap="xtiny"
-      centerChildren={true}
-      fullWidth={true}
-      style={styles.unreadShortcut}
-    >
-      <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Styles.globalColors.white} />
-      <Kb.Text negative={true} type="BodySmallSemibold">
-        Unread messages
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.ClickableBox>
 )
 
 type State = {
@@ -282,11 +266,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.fastBlank,
     flex: 1,
     position: 'relative',
-  },
-  unreadShortcut: {
-    backgroundColor: Styles.globalColors.orange,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
   },
 })
 

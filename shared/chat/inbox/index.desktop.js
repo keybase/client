@@ -11,6 +11,7 @@ import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
+import UnreadShortcut from './unread-shortcut'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
@@ -19,16 +20,19 @@ import {inboxWidth, getRowHeight} from './row/sizes'
 
 type State = {
   showFloating: boolean,
+  showUnread: boolean,
 }
 
 class Inbox extends React.PureComponent<Props, State> {
   state = {
     showFloating: false,
+    showUnread: false,
   }
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
   _clearedFilterCount: number = 0
+  _firstOffscreenIdx: number = -1
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -141,10 +145,26 @@ class Inbox extends React.PureComponent<Props, State> {
       showFloating = false
     }
 
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > visibleStopIndex)
+    if (firstOffscreenIdx) {
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this._firstOffscreenIdx = firstOffscreenIdx
+    } else {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      this._firstOffscreenIdx = -1
+    }
+
     this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
 
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
+
+  _scrollToUnread = () => {
+    if (this._firstOffscreenIdx <= 0 || !this._list) {
+      return
+    }
+    this._list.scrollToItem(this._firstOffscreenIdx)
+  }
 
   _setRef = (list: ?VariableSizeList<any>) => {
     this._list = list
@@ -195,6 +215,9 @@ class Inbox extends React.PureComponent<Props, State> {
           </div>
           {owl}
           {floatingDivider || <BuildTeam />}
+          {this.state.showUnread && !this.state.showFloating && (
+            <UnreadShortcut onClick={this._scrollToUnread} />
+          )}
         </div>
       </ErrorBoundary>
     )
