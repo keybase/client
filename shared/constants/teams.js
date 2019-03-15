@@ -149,6 +149,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   deleteChatHistory: false,
   deleteOtherMessages: false,
   editChannelDescription: false,
+  editTeamDescription: false,
   joinTeam: false,
   leaveTeam: false,
   listFirst: false,
