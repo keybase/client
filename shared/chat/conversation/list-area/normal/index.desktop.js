@@ -58,7 +58,10 @@ class Thread extends React.PureComponent<Props, State> {
   // simulating user-driven scroll events, e.g. page up/page down.
   _ignoreScrollRefCount = 0
 
+  // Set to ignore the scroll event after centering the view on the center ordinal
   _ignoreCenterScroll = false
+
+  _lastCenteredOrdinal = 0
 
   // last height we saw from resize
   _scrollHeight: number = 0
@@ -111,14 +114,11 @@ class Thread extends React.PureComponent<Props, State> {
       }
     : (list, name, fn) => fn()
 
-  _shouldScrollToCenter = () => {
-    return this.props.centeredOrdinal && this.props.centeredOrdinal !== this.props.messageOrdinals.last()
-  }
-
   _scrollToCentered = () => {
     const list = this._listRef.current
     if (list) {
       this._logAll(list, `_scrollToCentered()`, () => {
+        // grab the waypoint we made for the centered ordinal and scroll to it
         const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
         if (scrollWaypoint.length > 0) {
           this._ignoreCenterScroll = true
@@ -129,6 +129,7 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   _isLockedToBottom = () => {
+    // if we don't have the latest message, we can't be locked to the bottom
     return this.state.lockedToBottom && this.props.containsLatestMessage
   }
 
@@ -220,7 +221,7 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
-    // Adjust scrolling
+    // Adjust scrolling if locked to the bottom
     const list = this._listRef.current
     // if locked to the bottom, and we have the most recent message, then scroll to the bottom
     if (this._isLockedToBottom() && this.props.conversationIDKey === prevProps.conversationIDKey) {
@@ -228,7 +229,8 @@ class Thread extends React.PureComponent<Props, State> {
       this._scrollToBottom('componentDidUpdate-maintain-scroll')
     }
 
-    // Are we appending newer messages?
+    // Check if we just added new messages from the future. In this case, we don't want to adjust scroll
+    // position at all, so just bail out if we detect this case.
     if (
       this.props.messageOrdinals.size !== prevProps.messageOrdinals.size &&
       this.props.messageOrdinals.first() === prevProps.messageOrdinals.first() &&
@@ -239,16 +241,18 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
-    // Jumped around
+    // Check to see if we jumped to some other set of ordinals, or that our centered ordinal is different
+    // than what we scroll to previously
     if (
-      this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() &&
-      this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last() &&
+      !!this.props.centeredOrdinal &&
+      (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
+        this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() ||
+        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last()) &&
       !this.props.containsLatestMessage
     ) {
-      if (this._shouldScrollToCenter()) {
-        this._scrollHeight = 0 // setting this causes us to skip next resize
-        this._scrollToCentered()
-      }
+      this._lastCenteredOrdinal = this.props.centeredOrdinal
+      this._scrollHeight = 0 // setting this causes us to skip next resize
+      this._scrollToCentered()
       return
     }
 
@@ -414,9 +418,11 @@ class Thread extends React.PureComponent<Props, State> {
     let ordinals = []
     let previous = null
     let lastBucket = null
-    let baseIndex = 0
+    let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
     messageOrdinals.forEach((ordinal, idx) => {
+      // Centered ordinal is where we want the view to be centered on when jumping around in the thread.
       const isCenteredOrdinal = ordinal === this.props.centeredOrdinal
+
       // We want to keep the mapping of ordinal to bucket fixed always
       const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
       if (lastBucket === null) {
@@ -426,6 +432,7 @@ class Thread extends React.PureComponent<Props, State> {
       const isLastItem = idx === numOrdinals - 1
       if (needNextWaypoint || isLastItem || isCenteredOrdinal) {
         if (isLastItem && !isCenteredOrdinal) {
+          // we don't want to add the centered ordinal here, since it will go into its own waypoint
           ordinals.push(ordinal)
         }
         if (ordinals.length) {
@@ -462,7 +469,7 @@ class Thread extends React.PureComponent<Props, State> {
         )
         previous = ordinal
         lastBucket = 0
-        baseIndex++
+        baseIndex++ // push this up if we drop the centered ordinal waypoint
       } else {
         ordinals.push(ordinal)
       }
