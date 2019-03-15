@@ -24,7 +24,7 @@ export const Header = (props: Props) => (
         label: 'Avatar',
       },
     ]}
-    titleComponent={<ProfileSearch />}
+    titleComponent={<ProfileSearch onSearch={props.onSearch} />}
   />
 )
 

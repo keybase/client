@@ -13,30 +13,26 @@ export const Header = flags.useNewRouter
         <Kb.Text type="Header" style={styles.sectionTitle}>
           People
         </Kb.Text>
-        <ProfileSearch />
+        <ProfileSearch onSearch={props.onSearch} />
       </Kb.Box2>
     )
   : (props: Props) => (
       <Kb.HeaderHocHeader
         headerStyle={styles.header}
-        rightActions={
-          flags.useNewRouter
-            ? []
-            : [
-                {
-                  custom: (
-                    <Kb.Avatar
-                      key="avatar"
-                      username={props.myUsername}
-                      onClick={() => props.onClickUser(props.myUsername)}
-                      size={32}
-                    />
-                  ),
-                  label: 'Avatar',
-                },
-              ]
-        }
-        titleComponent={<ProfileSearch />}
+        rightActions={[
+          {
+            custom: (
+              <Kb.Avatar
+                key="avatar"
+                username={props.myUsername}
+                onClick={() => props.onClickUser(props.myUsername)}
+                size={32}
+              />
+            ),
+            label: 'Avatar',
+          },
+        ]}
+        titleComponent={<ProfileSearch onSearch={props.onSearch} />}
       />
     )
 const People = (props: Props) => (
@@ -44,7 +40,7 @@ const People = (props: Props) => (
     {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
     {!flags.useNewRouter && (
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.searchContainer}>
-        <ProfileSearch />
+        <ProfileSearch onSearch={props.onSearch} />
       </Kb.Box2>
     )}
     <PeoplePageList {...props} />

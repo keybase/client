@@ -48,10 +48,10 @@ const finishRevoking = state => [
     assertion: state.config.username,
     guiID: TrackerConstants.generateGUIID(),
     inTracker: false,
-    reason: 'justRevoked',
+    reason: '',
   }),
   ProfileGen.createRevokeFinish(),
-  RouteTreeGen.createNavigateUp(),
+  ...(flags.useNewRouter ? [] : [RouteTreeGen.createNavigateUp()]),
 ]
 
 const showUserProfile = (state, action) => {
@@ -61,6 +61,10 @@ const showUserProfile = (state, action) => {
     state.entities.search.searchResults,
     userId
   )
+
+  if (flags.useNewRouter) {
+    return RouteTreeGen.createNavigateTo({path: [{props: {username}, selected: 'profile'}]})
+  }
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
   const path = Constants.getProfilePath(peopleRouteProps, username, state.config.username, state)
@@ -107,41 +111,6 @@ const submitRevokeProof = (state, action) => {
   }
 }
 
-const openURLIfNotNull = (nullableThing, url, metaText) => {
-  if (nullableThing == null) {
-    logger.warn("Can't open URL because we have a null", metaText)
-    return
-  }
-  openURL(url)
-}
-
-const outputInstructionsActionLink = (state, action) => {
-  const profile = state.profile
-  switch (profile.platform) {
-    case 'twitter':
-      openURLIfNotNull(
-        profile.proofText,
-        `https://twitter.com/home?status=${profile.proofText || ''}`,
-        'twitter url'
-      )
-      break
-    case 'github':
-      openURL('https://gist.github.com/')
-      break
-    case 'reddit':
-      openURLIfNotNull(profile.proofText, profile.proofText, 'reddit url')
-      break
-    case 'facebook':
-      openURLIfNotNull(profile.proofText, profile.proofText, 'facebook url')
-      break
-    case 'hackernews':
-      openURL(`https://news.ycombinator.com/user?id=${profile.username}`)
-      break
-    default:
-      break
-  }
-}
-
 const editAvatar = () =>
   isMobile
     ? undefined // handled in platform specific
@@ -162,10 +131,6 @@ function* _profileSaga() {
   yield* Saga.chainAction<ProfileGen.UploadAvatarPayload>(ProfileGen.uploadAvatar, uploadAvatar)
   yield* Saga.chainAction<ProfileGen.FinishRevokingPayload>(ProfileGen.finishRevoking, finishRevoking)
   yield* Saga.chainAction<ProfileGen.OnClickAvatarPayload>(ProfileGen.onClickAvatar, onClickAvatar)
-  yield* Saga.chainAction<ProfileGen.OutputInstructionsActionLinkPayload>(
-    ProfileGen.outputInstructionsActionLink,
-    outputInstructionsActionLink
-  )
   yield* Saga.chainAction<ProfileGen.ShowUserProfilePayload>(ProfileGen.showUserProfile, showUserProfile)
   yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
 }

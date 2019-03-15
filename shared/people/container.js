@@ -6,7 +6,6 @@ import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
 import People, {Header} from '.'
 import * as PeopleGen from '../actions/people-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {connect, type RouteProps, isMobile} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
@@ -22,7 +21,6 @@ const mapDispatchToPropsHeader = dispatch => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileSearch']}))
   },
 })
 
@@ -91,7 +89,6 @@ const mapDispatchToProps = dispatch => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileSearch']}))
   },
 })
 

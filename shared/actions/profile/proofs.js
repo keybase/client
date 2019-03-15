@@ -8,6 +8,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import {peopleTab} from '../../constants/tabs'
+import flags from '../../util/feature-flags'
 
 const checkProof = (state, action) => {
   const sigID = state.profile.sigID
@@ -44,31 +45,28 @@ const recheckProof = (state, action) =>
     Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
   )
 
-const addProof = (_, action) => {
+function* addProof(_, action) {
+  const service = action.payload.platform
   // Special cases
   switch (action.payload.platform) {
     case 'dnsOrGenericWebSite':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
+      yield Saga.put(
+        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
+      )
+      return
     case 'zcash':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+      yield Saga.put(
+        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+      )
+      return
     case 'btc':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+      yield Saga.put(
+        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+      )
+      return
     case 'pgp':
-      return RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePgp']})
-    default:
-      // handled by addServiceProof
-      break
-  }
-}
-
-function* addServiceProof(_, action) {
-  const service = action.payload.platform
-  switch (service) {
-    case 'dnsOrGenericWebSite': // fallthrough
-    case 'btc':
-    case 'zcash':
-    case 'pgp':
-      return // already handled by addProof
+      yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePgp']}))
+      return
   }
 
   let _promptUsernameResponse
@@ -85,6 +83,7 @@ function* addServiceProof(_, action) {
   // TODO maybe remove engine cancelrpc?
   const cancelResponse = r => r.error(inputCancelError)
 
+  // We fork off some tasks for watch for events that come from the ui
   const cancelTask = yield Saga._fork(function*() {
     yield Saga.take(ProfileGen.cancelAddProof)
     canceled = true
@@ -100,26 +99,31 @@ function* addServiceProof(_, action) {
   })
 
   const checkProofTask = yield Saga._fork(function*() {
-    yield Saga.take(ProfileGen.checkProof)
-    if (_outputInstructionsResponse) {
-      _outputInstructionsResponse.result()
-      _outputInstructionsResponse = null
+    while (true) {
+      yield Saga.take(ProfileGen.checkProof)
+      if (_outputInstructionsResponse) {
+        _outputInstructionsResponse.result()
+        _outputInstructionsResponse = null
+      }
     }
   })
 
   const submitUsernameTask = yield Saga._fork(function*() {
-    yield Saga.take(ProfileGen.submitUsername)
-    yield Saga.put(ProfileGen.createCleanupUsername())
-    if (_promptUsernameResponse) {
-      yield Saga.put(
-        ProfileGen.createUpdateErrorText({
-          errorCode: null,
-          errorText: '',
-        })
-      )
-      const state = yield* Saga.selectState()
-      _promptUsernameResponse.result(state.profile.username)
-      _promptUsernameResponse = null
+    // loop since if we get errors we can get these events multiple times
+    while (true) {
+      yield Saga.take(ProfileGen.submitUsername)
+      yield Saga.put(ProfileGen.createCleanupUsername())
+      if (_promptUsernameResponse) {
+        yield Saga.put(
+          ProfileGen.createUpdateErrorText({
+            errorCode: null,
+            errorText: '',
+          })
+        )
+        const state = yield* Saga.selectState()
+        _promptUsernameResponse.result(state.profile.username)
+        _promptUsernameResponse = null
+      }
     }
   })
 
@@ -206,7 +210,8 @@ function* addServiceProof(_, action) {
   submitUsernameTask.cancel()
 }
 
-const cancelAddProof = state => ProfileGen.createShowUserProfile({username: state.config.username})
+const cancelAddProof = state =>
+  !flags.useNewRouter && ProfileGen.createShowUserProfile({username: state.config.username})
 
 const submitCryptoAddress = (state, action) => {
   if (!state.profile.usernameValid) {
@@ -247,8 +252,7 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
     submitCryptoAddress
   )
   yield* Saga.chainAction<ProfileGen.CancelAddProofPayload>(ProfileGen.cancelAddProof, cancelAddProof)
-  yield* Saga.chainAction<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
-  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addServiceProof)
+  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
   yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
 }

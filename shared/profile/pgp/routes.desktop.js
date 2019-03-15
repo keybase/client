@@ -8,16 +8,12 @@ import Finished from './finished.desktop'
 
 const routeTree = makeRouteDefNode({
   children: {
-    profileImport: {
-      component: Import,
-    },
+    profileImport: {component: Import},
     profileProvideInfo: {
       children: {
         profileGenerate: {
           children: {
-            profileFinished: {
-              component: Finished,
-            },
+            profileFinished: {component: Finished},
           },
           component: Generate,
         },
@@ -29,10 +25,10 @@ const routeTree = makeRouteDefNode({
 })
 
 export const newRoutes = {
-  profileFinished: {getScreen: () => Finished},
-  profileGenerate: {getScreen: () => Generate},
-  profileImport: {getScreen: () => Import},
-  profilePgp: {getScreen: () => Choice},
-  profileProvideInfo: {getScreen: () => Info},
+  profileFinished: {getScreen: () => Finished, upgraded: true},
+  profileGenerate: {getScreen: () => Generate, upgraded: true},
+  profileImport: {getScreen: () => Import, upgraded: true},
+  profilePgp: {getScreen: () => Choice, upgraded: true},
+  profileProvideInfo: {getScreen: () => Info, upgraded: true},
 }
 export default routeTree

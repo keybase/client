@@ -6,7 +6,7 @@ const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
   const Profile = require('./user/container').default
   const AddToTeam = require('./add-to-team/container').default
-  const EditProfile2 = require('./edit-profile2/container').default
+  const EditProfile = require('./edit-profile/container').default
   const EditAvatar = require('./edit-avatar/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
   const ProveWebsiteChoice = require('./prove-website-choice/container').default
@@ -23,14 +23,10 @@ const profileRoute = () => {
 
   const proveEnterUsername = makeRouteDefNode({
     children: {
-      confirmOrPending: {
-        component: ConfirmOrPending,
-      },
-      postProof: {
+      profileConfirmOrPending: {component: ConfirmOrPending},
+      profilePostProof: {
         children: {
-          confirmOrPending: {
-            component: ConfirmOrPending,
-          },
+          profileConfirmOrPending: {component: ConfirmOrPending},
         },
         component: PostProof,
       },
@@ -53,7 +49,7 @@ const profileRoute = () => {
       },
       profile: profileRoute,
       profileEdit: {
-        component: EditProfile2,
+        component: EditProfile,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       profileEditAvatar: {
@@ -61,22 +57,16 @@ const profileRoute = () => {
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
       profileNonUser: {
-        children: {
-          profile: profileRoute,
-        },
+        children: {profile: profileRoute},
         component: NonUserProfile,
       },
       profilePgp: pgpRoutes,
       profileProveEnterUsername: proveEnterUsername,
       profileProveWebsiteChoice: {
-        children: {
-          proveEnterUsername,
-        },
+        children: {proveEnterUsername},
         component: ProveWebsiteChoice,
       },
-      profileRevoke: {
-        component: RevokeContainer,
-      },
+      profileRevoke: {component: RevokeContainer},
       profileSearch: {
         children: {},
         component: SearchPopup,
@@ -98,18 +88,27 @@ const profileRoute = () => {
 export const newRoutes = {
   profile: {getScreen: () => require('./user/container').default, upgraded: true},
   profileAddToTeam: {getScreen: () => require('./add-to-team/container').default},
-  profileConfirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
   profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default},
   profileNonUser: {getScreen: () => require('./non-user-profile/container').default},
-  profilePostProof: {getScreen: () => require('./post-proof/container').default},
-  profileProveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
-  profileProveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
   profileShowcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
 }
 
 export const newModalRoutes = {
-  profileEdit: {getScreen: () => require('./edit-profile2/container').default},
-  profileRevoke: {getScreen: () => require('./revoke/container').default},
+  profileConfirmOrPending: {
+    getScreen: () => require('./confirm-or-pending/container').default,
+    upgraded: true,
+  },
+  profileEdit: {getScreen: () => require('./edit-profile/container').default},
+  profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
+  profileProveEnterUsername: {
+    getScreen: () => require('./prove-enter-username/container').default,
+    upgraded: true,
+  },
+  profileProveWebsiteChoice: {
+    getScreen: () => require('./prove-website-choice/container').default,
+    upgraded: true,
+  },
+  profileRevoke: {getScreen: () => require('./revoke/container').default, upgraded: true},
   profileSearch: {getScreen: () => require('./search/container').default},
   ...require('./pgp/routes').newRoutes,
 }
