@@ -422,6 +422,7 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
       })
     case Chat2Gen.updateUnreadline:
@@ -749,6 +750,9 @@ const rootReducer = (
       let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
         Object.keys(convoToMessages).forEach(cid => {
           const conversationIDKey = Types.stringToConversationIDKey(cid)
+          if (map.get(conversationIDKey, false)) {
+            return
+          }
           const meta = state.metaMap.get(conversationIDKey, null)
           const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
           let maxMsgID = 0
@@ -760,7 +764,9 @@ const rootReducer = (
               break
             }
           }
-          map.set(conversationIDKey, meta ? maxMsgID >= meta.maxVisibleMsgID : false)
+          if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+            map.set(conversationIDKey, true)
+          }
         })
       })
 
@@ -774,6 +780,13 @@ const rootReducer = (
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
+    case Chat2Gen.jumpToRecent:
+      return state.setIn(['containsLatestMessageMap', action.payload.conversationIDKey], true)
+    case Chat2Gen.setContainsLastMessage:
+      return state.setIn(
+        ['containsLatestMessageMap', action.payload.conversationIDKey],
+        action.payload.contains
+      )
     case Chat2Gen.messageRetry: {
       const {conversationIDKey, outboxID} = action.payload
       const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])

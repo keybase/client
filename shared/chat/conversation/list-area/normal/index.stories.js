@@ -14,6 +14,7 @@ import {type _Props as ExplodingMetaViewProps} from '../../messages/wrapper/expl
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
+import JumpToRecent from './jumptorecent'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
@@ -319,6 +320,7 @@ class ThreadWrapper extends React.Component<Props, State> {
           messageOrdinals={this.state.messageOrdinals}
           loadOlderMessages={this.onLoadMoreMessages}
           loadNewerMessages={this.onLoadMoreMessages}
+          onJumpToRecent={Sb.action('jump to recent')}
           scrollListUpCounter={this.state.scrollListUpCounter}
           scrollListToBottomCounter={this.state.scrollListToBottomCounter}
           scrollListDownCounter={this.state.scrollListDownCounter}
@@ -342,6 +344,7 @@ const load = () => {
         If you load Normal directly on start the fonts wont be loaded so it'll measure wrong
       </Text>
     ))
+    .add('Jump to Recent', () => <JumpToRecent onClick={Sb.action('onClick')} />)
 }
 
 export default load

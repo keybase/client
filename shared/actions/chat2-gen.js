@@ -39,6 +39,7 @@ export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
+export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadMessagesFromSearchHit = 'chat2:loadMessagesFromSearchHit'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
@@ -85,6 +86,7 @@ export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
+export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
@@ -145,6 +147,7 @@ type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.Conversati
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
+type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
 type _LoadMessagesFromSearchHitPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _LoadNewerMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -194,6 +197,7 @@ type _SelectConversationPayload = $ReadOnly<{|
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
 type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, md: ?RPCChatTypes.UICommandMarkdown|}>
+type _SetContainsLastMessagePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, contains: boolean|}>
 type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
@@ -254,6 +258,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({payload, type: updateTeamRetentionPolicy})
 /**
+ * Explicitly set whether a threasd is loaded to the most recent message
+ */
+export const createSetContainsLastMessage = (payload: _SetContainsLastMessagePayload) => ({payload, type: setContainsLastMessage})
+/**
  * Exploding messages expired or were manually detonated.
  */
 export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({payload, type: messagesExploded})
@@ -265,6 +273,10 @@ export const createGiphyGotSearchResult = (payload: _GiphyGotSearchResultPayload
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({payload, type: updateConvExplodingModes})
+/**
+ * Jump to most recent messages in a conversation
+ */
+export const createJumpToRecent = (payload: _JumpToRecentPayload) => ({payload, type: jumpToRecent})
 /**
  * Prime data to fulfill this message's request and navigate to the send form.
  */
@@ -476,6 +488,7 @@ export type GiphyToggleWindowPayload = {|+payload: _GiphyToggleWindowPayload, +t
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
+export type JumpToRecentPayload = {|+payload: _JumpToRecentPayload, +type: 'chat2:jumpToRecent'|}
 export type LeaveConversationPayload = {|+payload: _LeaveConversationPayload, +type: 'chat2:leaveConversation'|}
 export type LoadMessagesFromSearchHitPayload = {|+payload: _LoadMessagesFromSearchHitPayload, +type: 'chat2:loadMessagesFromSearchHit'|}
 export type LoadNewerMessagesDueToScrollPayload = {|+payload: _LoadNewerMessagesDueToScrollPayload, +type: 'chat2:loadNewerMessagesDueToScroll'|}
@@ -522,6 +535,7 @@ export type SaveMinWriterRolePayload = {|+payload: _SaveMinWriterRolePayload, +t
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
 export type SetCommandMarkdownPayload = {|+payload: _SetCommandMarkdownPayload, +type: 'chat2:setCommandMarkdown'|}
+export type SetContainsLastMessagePayload = {|+payload: _SetContainsLastMessagePayload, +type: 'chat2:setContainsLastMessage'|}
 export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePayload, +type: 'chat2:setConvExplodingMode'|}
 export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyPayload, +type: 'chat2:setConvRetentionPolicy'|}
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
@@ -585,6 +599,7 @@ export type Actions =
   | HandleSeeingWalletsPayload
   | InboxRefreshPayload
   | JoinConversationPayload
+  | JumpToRecentPayload
   | LeaveConversationPayload
   | LoadMessagesFromSearchHitPayload
   | LoadNewerMessagesDueToScrollPayload
@@ -631,6 +646,7 @@ export type Actions =
   | SelectConversationPayload
   | SendTypingPayload
   | SetCommandMarkdownPayload
+  | SetContainsLastMessagePayload
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
