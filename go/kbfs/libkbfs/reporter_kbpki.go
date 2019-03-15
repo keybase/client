@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/idutil"
@@ -83,6 +84,9 @@ type ReporterKBPKI struct {
 	notifyPathBuffer chan string
 	notifySyncBuffer chan *keybase1.FSPathSyncStatus
 	canceler         func()
+
+	lastNotifyPathLock sync.Mutex
+	lastNotifyPath     string
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
@@ -202,17 +206,37 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 	}
 }
 
+func (r *ReporterKBPKI) setLastNotifyPath(p string) (same bool) {
+	r.lastNotifyPathLock.Lock()
+	defer r.lastNotifyPathLock.Unlock()
+	same = p == r.lastNotifyPath
+	r.lastNotifyPath = p
+	return same
+}
+
 // NotifyPathUpdated implements the Reporter interface for ReporterKBPKI.
 //
 // TODO: might be useful to get the debug tags out of ctx and store
 //       them in the notifyPathBuffer as well so that send() can put
 //       them back in its context.
 func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
+	sameAsLast := r.setLastNotifyPath(path)
 	select {
 	case r.notifyPathBuffer <- path:
 	default:
-		r.log.CDebugf(ctx,
-			"ReporterKBPKI: notify path buffer full, dropping %s", path)
+		if sameAsLast {
+			r.log.CDebugf(ctx,
+				"ReporterKBPKI: notify path buffer full, dropping %s", path)
+		} else {
+			// This should be rare; it only happens when user switches from one
+			// TLF to another, and we happen to have an update from the old TLF
+			// in the buffer before switching subscribed TLF.
+			r.log.CDebugf(ctx,
+				"ReporterKBPKI: notify path buffer full, but path is "+
+					"different from last one, so send in a goroutine %s", path)
+			go func() { r.notifyPathBuffer <- path }()
+
+		}
 	}
 }
 
