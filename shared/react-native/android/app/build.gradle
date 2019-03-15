@@ -94,12 +94,14 @@ apply from: "../../../node_modules/react-native/react.gradle"
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-def enableSeparateBuildPerCPUArchitecture = false
+// KB: split it
+def enableSeparateBuildPerCPUArchitecture = true
 
 /**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
-def enableProguardInReleaseBuilds = false
+// KB: enable proguard
+def enableProguardInReleaseBuilds = true
 
 // KB: Returns minutes from January 1 2016
 def Integer timestamp() {
