@@ -1,11 +1,12 @@
 // @flow
 import * as Tracker2Gen from './tracker2-gen'
-// import {getProfile as getProfileOLD, type GetProfilePayload as GetProfilePayloadOLD} from './tracker-gen'
+import * as ProfileGen from './profile-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
+import flags from '../util/feature-flags'
 
 const identify3Result = (_, action) => {
   const {guiID, result} = action.payload.params
@@ -180,16 +181,40 @@ const getProofSuggestions = () =>
     )
     .catch(e => logger.error(`Error loading proof suggestions: ${e.message}`))
 
-const showUser = (_, action) =>
-  Tracker2Gen.createLoad({
+const showUser = (_, action) => {
+  const load = Tracker2Gen.createLoad({
     assertion: action.payload.username,
-    forceDisplay: action.payload.asTracker,
+    // with new nav we never show trackers from inside the app
+    forceDisplay: flags.useNewRouter ? false : action.payload.asTracker,
     fromDaemon: false,
     guiID: Constants.generateGUIID(),
     ignoreCache: true,
     inTracker: action.payload.asTracker,
     reason: '',
   })
+
+  if (flags.useNewRouter) {
+    // go to profile page
+    return [load, ProfileGen.createShowUserProfile({username: action.payload.username})]
+  } else {
+    return load
+  }
+}
+
+// if we mutated somehow reload ourselves and reget the suggestions
+const refreshSelf = (state, action) =>
+  state.config.uid === action.payload.params.uid && [
+    Tracker2Gen.createLoad({
+      assertion: state.config.username,
+      forceDisplay: false,
+      fromDaemon: false,
+      guiID: Constants.generateGUIID(),
+      ignoreCache: false,
+      inTracker: false,
+      reason: '',
+    }),
+    Tracker2Gen.createGetProofSuggestions(),
+  ]
 
 function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(
@@ -228,6 +253,10 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
   yield* Saga.chainAction<Tracker2Gen.ShowUserPayload>(Tracker2Gen.showUser, showUser)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersUserChangedPayload>(
+    EngineGen.keybase1NotifyUsersUserChanged,
+    refreshSelf
+  )
 }
 
 export default tracker2Saga

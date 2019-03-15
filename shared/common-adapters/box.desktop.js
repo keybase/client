@@ -56,6 +56,7 @@ const box2 = (props: Box2Props) => {
       onDrop={props.onDrop}
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
+      onCopyCapture={props.onCopyCapture}
       className={className}
       style={style}
     >

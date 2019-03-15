@@ -1,18 +1,14 @@
 // @flow
 import Search from '.'
-import {type RouteProps} from '../../route-tree/render-route'
 import {createShowUserProfile} from '../../actions/profile-gen'
 import {connect} from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {|onClose: () => void|}
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onClick: username => {
-    dispatch(navigateUp())
+    ownProps.onClose()
     dispatch(createShowUserProfile({username}))
-  },
-  onClose: () => {
-    dispatch(navigateUp())
   },
 })
 

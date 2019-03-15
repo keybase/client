@@ -1,14 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Kb from '../common-adapters/mobile.native'
+import * as Styles from '../styles'
 import PushPrompt from './push-prompt.native'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
 import {GatewayDest} from 'react-gateway'
-import {NativeBackHandler} from '../common-adapters/mobile.native'
 import {View} from 'react-native'
-import {globalStyles} from '../styles'
-import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
 import flags from '../util/feature-flags'
 
@@ -25,8 +24,8 @@ type Props = {
 
 class Main extends React.Component<Props> {
   componentDidMount() {
-    if (!flags.useNewRouter && isAndroid) {
-      NativeBackHandler.addEventListener('hardwareBackPress', () => {
+    if (!flags.useNewRouter && Styles.isAndroid) {
+      Kb.NativeBackHandler.addEventListener('hardwareBackPress', () => {
         if (getPath(this.props.routeState).size === 1) {
           return false
         }
@@ -54,13 +53,31 @@ class Main extends React.Component<Props> {
           name="popup-root"
           component={ViewForGatewayDest}
           pointerEvents="box-none"
-          style={globalStyles.fillAbsolute}
+          style={Styles.globalStyles.fillAbsolute}
         />
+        {flags.useNewRouter && (
+          <Kb.NativeKeyboardAvoidingView
+            style={Styles.globalStyles.fillAbsolute}
+            pointerEvents="box-none"
+            behavior={Styles.isIOS ? 'padding' : undefined}
+          >
+            <GatewayDest
+              name="keyboard-avoiding-root"
+              component={ViewForGatewayDest}
+              pointerEvents="box-none"
+              style={styles.gatewayDest}
+            />
+          </Kb.NativeKeyboardAvoidingView>
+        )}
       </React.Fragment>
     )
   }
 }
 const ViewForGatewayDest = <T>(props: T) => <View {...props} />
+
+const styles = Styles.styleSheetCreate({
+  gatewayDest: {flexGrow: 1, width: '100%'},
+})
 
 const mapStateToProps = state => ({
   routeDef: state.routeTree.routeDef,

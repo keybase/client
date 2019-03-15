@@ -45,7 +45,7 @@ const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
     _onConfirm: username => {
       // make sure we have tracker state & profile is up to date
       dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
-      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.profileTab, 'editAvatar']}))
+      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.profileTab, 'profileEditAvatar']}))
     },
     onDismiss: () => {},
   }),
@@ -62,7 +62,7 @@ const BioConnector = connect<TodoOwnProps, _, _, _, _>(
     _onConfirm: (username: string) => {
       // make sure we have tracker state & profile is up to date
       dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
-      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['editProfile2']}))
+      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['profileEdit']}))
     },
     onDismiss: () => {},
   }),
@@ -99,7 +99,7 @@ const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () =>
-      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['search']})),
+      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['profileSearch']})),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
