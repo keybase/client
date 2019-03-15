@@ -1,15 +1,19 @@
 // @flow
-/*:: type Api = {
-  cache: boolean => void,
-  env: () => string,
-}
-*/
 
 // Cache in the module. This can get called from multiple places and env vars can get lost
-let isElectron = process.env.BABEL_PLATFORM === 'Electron'
-let isReactNative = process.env.BABEL_PLATFORM === 'ReactNative'
+let isElectron = null
+let isReactNative = null
 
-module.exports = function(api /*: Api */) {
+module.exports = function(api /*: any */) {
+  api.caller(c => {
+    console.log('KB: Babel config detected caller: ', c.name)
+    if (c.name === 'metro') {
+      isReactNative = true
+    } else {
+      isElectron = true
+    }
+  })
+
   if (api.env() !== 'test') {
     api.cache(true)
   }

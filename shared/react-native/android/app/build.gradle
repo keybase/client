@@ -4,6 +4,7 @@ apply plugin: 'com.github.triplet.play'
 
 import com.android.build.OutputFile
 
+// KB: app version
 def VERSION_NAME = "3.1.3"
 
 /**
