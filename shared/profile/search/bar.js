@@ -25,7 +25,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           onClick={this._onShow}
           style={Styles.collapseStyles([styles.searchContainer, this.state.show && {opacity: 0}])}
         >
-          <Kb.Box2 direction="horizontal">
+          <Kb.Box2 direction="horizontal" alignItems="center">
             <Kb.Icon
               color={Styles.globalColors.black_50}
               fontSize={Styles.isMobile ? 20 : 16}
@@ -38,6 +38,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
           </Kb.Box2>
         </Kb.ClickableBox>
         <Kb.Overlay
+          dest="keyboard-avoiding-root"
           visible={this.state.show}
           onHidden={this._onHide}
           attachTo={this._getAttachmentRef}

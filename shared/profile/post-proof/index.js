@@ -52,7 +52,7 @@ const WebDescription = ({platformUserName}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClick={() => openUrl(root)}
+        onClickURL={root}
         style={{color: Styles.globalColors.blue, marginTop: Styles.globalMargins.tiny}}
       >
         {root}
@@ -60,7 +60,7 @@ const WebDescription = ({platformUserName}) => {
       <Kb.Text
         type="BodyPrimaryLink"
         center={true}
-        onClick={() => openUrl(wellKnown)}
+        onClickURL={wellKnown}
         style={{color: Styles.globalColors.blue}}
       >
         {wellKnown}
@@ -136,7 +136,6 @@ class PostProof extends React.Component<Props, State> {
             props.errorMessage || 'scroll' /* if we get an error redraw entirely so we're not scrolled down */
           }
         >
-          {/* $FlowIssue  copyCapture not in box2 */}
           <Kb.Box2
             direction="vertical"
             gap="small"

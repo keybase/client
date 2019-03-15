@@ -63,7 +63,7 @@ const Header = p => (
       <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
     )}
     {!flags.useNewRouter && (
-      <Kb.Box2 direction="vertical" style={{paddingRight: Styles.isMobile ? 16 : 0, flexGrow: 1}}>
+      <Kb.Box2 direction="vertical" style={{flexGrow: 1, paddingRight: Styles.isMobile ? 16 : 0}}>
         <Kb.Box2 direction="vertical" alignSelf="flex-end">
           <PeopleSearch onSearch={p.onSearch} />
         </Kb.Box2>
