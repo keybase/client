@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -86,7 +87,7 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 
 	// Assign a unique ID to each remote-helper instance, since
 	// they'll all share the same log.
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
 		libkbfs.CtxWithRandomIDReplayable(
 			ctx, ctxGitIDKey, ctxGitOpID, log))
 	if err != nil {

@@ -117,6 +117,7 @@ func (n NullConfiguration) GetDisableMerkleAuditor() (bool, bool)           { re
 func (n NullConfiguration) GetDisableSearchIndexer() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
+func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -951,6 +952,14 @@ func (e *Env) GetEnableBotLiteMode() bool {
 		e.cmd.GetEnableBotLiteMode,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_ENABLE_BOT_LITE_MODE") },
 		e.GetConfig().GetEnableBotLiteMode,
+	)
+}
+
+func (e *Env) GetExtraNetLogging() bool {
+	return e.GetBool(false,
+		e.cmd.GetExtraNetLogging,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_EXTRA_NET_LOGGING") },
+		e.GetConfig().GetExtraNetLogging,
 	)
 }
 

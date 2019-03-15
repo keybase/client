@@ -1286,20 +1286,24 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const routeName = 'chatPaymentsConfirm'
+  const confirmRouteName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
       RouteTreeGen.createNavigateAppend({
-        path: [routeName],
+        path: [confirmRouteName],
       })
     ),
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
       const state = yield* Saga.selectState()
-      if (getPath(state.routeTree.routeState).last() === routeName) {
+      if (!flags.useNewRouter && getPath(state.routeTree.routeState).last() === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createNavigateUp())
+      } else if (flags.useNewRouter) {
+        if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
+          yield Saga.put(RouteTreeGen.createClearModals())
+        }
       }
       if (canceled) {
         yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
@@ -2531,8 +2535,7 @@ const unfurlResolvePrompt = (state, action) => {
 
 const toggleInfoPanel = (state, action) => {
   if (flags.useNewRouter) {
-    const visible = Router2Constants.getVisiblePath()
-    if (visible[visible.length - 1]?.routeName === 'chatInfoPanel') {
+    if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
       return RouteTreeGen.createNavigateUp()
     } else {
       return RouteTreeGen.createNavigateAppend({

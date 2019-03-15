@@ -727,7 +727,7 @@ func (e *Identify2WithUID) useAnyAssertions() bool {
 }
 
 func (e *Identify2WithUID) allowCaching() bool {
-	return e.arg.IdentifyBehavior.AllowCaching()
+	return e.arg.IdentifyBehavior.AllowCaching() && !e.arg.IgnoreCache
 }
 
 func (e *Identify2WithUID) useLocalAssertions() bool {

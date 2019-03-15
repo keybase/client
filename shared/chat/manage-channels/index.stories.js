@@ -126,51 +126,51 @@ const load = () => {
     .add('EditChannel', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={'takeover'}
           topic={''}
+          title="Edit #takeover"
           onCancel={Sb.action('onCancel')}
           onSave={Sb.action('onSave')}
           onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={false}
-          waitingKey="test"
+          loadChannelInfo={Sb.action('loadChannelInfo')}
         />
       </Box>
     ))
     .add('EditChannel - general', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={'general'}
           topic={''}
+          title="Edit #general"
           onCancel={Sb.action('onCancel')}
           onSave={Sb.action('onSave')}
           onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
           waitingForGetInfo={false}
-          waitingKey="test"
+          loadChannelInfo={Sb.action('loadChannelInfo')}
         />
       </Box>
     ))
     .add('EditChannel - loading', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          onBack={Sb.action('onBack')}
           teamname={'stripe.usa'}
           channelName={''}
           topic={''}
+          title="Edit #"
           onCancel={Sb.action('onCancel')}
           onSave={Sb.action('onSave')}
           onConfirmedDelete={Sb.action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
           waitingForGetInfo={true}
-          waitingKey="test"
+          loadChannelInfo={Sb.action('loadChannelInfo')}
         />
       </Box>
     ))

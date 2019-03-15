@@ -824,7 +824,8 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 		require.NoError(t, err)
 
 		userInfo, err := config.KeybaseService().LoadUserPlusKeys(
-			context.Background(), uid, keybase1.KID(""))
+			context.Background(), uid, keybase1.KID(""),
+			keybase1.OfflineAvailability_NONE)
 		require.NoError(t, err)
 
 		return uid, userInfo.VerifyingKeys[0]

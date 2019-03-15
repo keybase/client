@@ -173,7 +173,7 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
-        ...(previousStatusType === 'disabled' ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for newly enabled
+        ...((previousStatusType === 'disabled' || status.installAction === 2) ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for newly enabled
       ]
     : [
         FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
@@ -199,7 +199,8 @@ const windowsCheckMountFromOtherDokanInstall = status =>
       : status
   )
 
-const refreshDriverStatus = state =>
+const refreshDriverStatus = (state, action) =>
+  (action.type !== FsGen.kbfsDaemonStatusChanged || action.payload.kbfsDaemonStatus === 'connected') &&
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
     .then(status =>
       isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed
@@ -383,8 +384,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainAction<FsGen.KbfsDaemonConnectedPayload | FsGen.RefreshDriverStatusPayload>(
-    [FsGen.kbfsDaemonConnected, FsGen.refreshDriverStatus],
+  yield* Saga.chainAction<FsGen.KbfsDaemonStatusChangedPayload | FsGen.RefreshDriverStatusPayload>(
+    [FsGen.kbfsDaemonStatusChanged, FsGen.refreshDriverStatus],
     refreshDriverStatus
   )
   yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)

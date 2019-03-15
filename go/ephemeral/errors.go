@@ -58,7 +58,7 @@ func humanMsgWithPrefix(humanMsg string) string {
 	if humanMsg == "" {
 		humanMsg = DefaultHumanErrMsg
 	} else if !strings.Contains(humanMsg, DefaultHumanErrMsg) {
-		humanMsg = fmt.Sprintf("%s. %s", DefaultHumanErrMsg, humanMsg)
+		humanMsg = fmt.Sprintf("%s, %s", DefaultHumanErrMsg, humanMsg)
 	}
 	return humanMsg
 }

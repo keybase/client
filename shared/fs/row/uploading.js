@@ -29,31 +29,48 @@ const getStatusText = ({writingToJournal, syncing}: UploadingProps): string => {
 }
 
 const Uploading = (props: UploadingProps) => (
-  <Kb.Box style={rowStyles.rowBox}>
-    <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon_30} badge="upload" />
-    <Kb.Box key="main" style={rowStyles.itemBox}>
-      <Kb.Text
-        type={Constants.pathTypeToTextType(props.type)}
-        style={Styles.collapseStyles([rowStyles.rowText_30, {color: Constants.getPathTextColor(props.path)}])}
-        lineClamp={Styles.isMobile ? 1 : undefined}
-      >
-        {Types.getPathName(props.path)}
-      </Kb.Text>
-      {props.errorRetry ? (
-        <Kb.Text type="BodySmall" style={styles.textFailed}>
-          Upload has failed.{' '}
-          <Kb.Text type="BodySmall" onClick={props.errorRetry} underline={true} style={styles.textFailed}>
-            Retry
-          </Kb.Text>
+  <Kb.ListItem2
+    type="Small"
+    firstItem={true /* we add divider in Rows */}
+    icon={
+      <PathItemIcon
+        path={props.path}
+        size={32}
+        style={Styles.collapseStyles([rowStyles.pathItemIcon, styles.opacity30])}
+        badge="upload"
+      />
+    }
+    body={
+      <Kb.Box key="main" style={rowStyles.itemBox}>
+        <Kb.Text
+          type={Constants.pathTypeToTextType(props.type)}
+          style={Styles.collapseStyles([
+            rowStyles.rowText_30,
+            {color: Constants.getPathTextColor(props.path)},
+          ])}
+          lineClamp={Styles.isMobile ? 1 : undefined}
+        >
+          {Types.getPathName(props.path)}
         </Kb.Text>
-      ) : (
-        <Kb.Meta title={getStatusText(props)} backgroundColor={Styles.globalColors.blue} />
-      )}
-    </Kb.Box>
-  </Kb.Box>
+        {props.errorRetry ? (
+          <Kb.Text type="BodySmall" style={styles.textFailed}>
+            Upload has failed.{' '}
+            <Kb.Text type="BodySmall" onClick={props.errorRetry} underline={true} style={styles.textFailed}>
+              Retry
+            </Kb.Text>
+          </Kb.Text>
+        ) : (
+          <Kb.Meta title={getStatusText(props)} backgroundColor={Styles.globalColors.blue} />
+        )}
+      </Kb.Box>
+    }
+  />
 )
 
 const styles = Styles.styleSheetCreate({
+  opacity30: {
+    opacity: 0.3,
+  },
   textFailed: {
     color: Styles.globalColors.red,
   },

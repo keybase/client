@@ -414,7 +414,8 @@ func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfNam
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK, _, err = t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
+	return teamEK, err
 }
 
 func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -713,7 +714,8 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK, _, err = t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
+	return teamEK, err
 }
 
 func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,

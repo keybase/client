@@ -8,7 +8,7 @@ import Icon, {castPlatformStyles, type IconType} from '../icon'
 import Text, {type TextType} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
-type Size = 'small' | 'default' | 'large'
+type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {|
@@ -19,8 +19,10 @@ export type NameWithIconProps = {|
   notFollowingColorOverride?: string,
   containerStyle?: Styles.StylesCrossPlatform,
   editableIcon?: boolean,
+  hideFollowingOverlay?: boolean,
   horizontal?: boolean,
   icon?: IconType,
+  iconBoxStyle?: Styles.StylesCrossPlatform,
   isYou?: boolean,
   metaOne?: string | React.Node,
   metaStyle?: Styles.StylesCrossPlatform,
@@ -52,10 +54,10 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       throw new Error('Can only use username or teamname in NameWithIcon; got both')
     }
 
-    const isAvatar = !!(this.props.username || this.props.teamname)
+    const isAvatar = !!(this.props.username || this.props.teamname) && !this.props.icon
     const commonHeight = Styles.isMobile ? 48 : 32
     const BoxComponent = this.props.onClick ? ClickableBox : Box
-    const adapterProps = getAdapterProps(this.props.size || 'default', !!this.props.username)
+    const adapterProps = getAdapterProps(this.props.size || 'default')
 
     let avatarOrIcon
     if (isAvatar) {
@@ -64,7 +66,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
           size={this.props.avatarSize || (this.props.horizontal ? commonHeight : adapterProps.iconSize)}
-          showFollowingStatus={this.props.horizontal ? undefined : true}
+          showFollowingStatus={this.props.horizontal ? undefined : !this.props.hideFollowingOverlay}
           username={this.props.username}
           teamname={this.props.teamname}
           style={Styles.collapseStyles([
@@ -76,6 +78,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     } else if (this.props.icon) {
       avatarOrIcon = (
         <Icon
+          boxStyle={this.props.iconBoxStyle}
           type={this.props.icon}
           style={
             this.props.horizontal
@@ -86,24 +89,26 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         />
       )
     }
-    const usernameOrTitle = this.props.username ? (
+    const username = this.props.username || ''
+    const usernameOrTitle = username ? (
       <ConnectedUsernames
         onUsernameClicked={
           this.props.clickType === 'tracker' || this.props.clickType === 'profile' ? undefined : 'profile'
         }
         type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
-        containerStyle={
-          this.props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
-        }
+        containerStyle={Styles.collapseStyles([
+          !this.props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
+          this.props.size === 'smaller' && styles.smallerWidthTextContainer,
+        ])}
         inline={!this.props.horizontal}
         underline={this.props.underline}
         selectable={this.props.selectable}
-        usernames={[this.props.username]}
+        usernames={[username]}
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
         colorYou={this.props.notFollowingColorOverride}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
-        style={styles.fullWidthText}
+        style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
       />
     ) : (
       <Text
@@ -123,7 +128,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     )
     const metaTwo = (
       <TextOrComponent
-        textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
+        textType="BodySmall"
         val={this.props.metaTwo || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
@@ -155,10 +160,14 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
             this.props.horizontal
               ? Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, this.props.metaStyle])
               : Styles.collapseStyles([
+                  Styles.globalStyles.flexBoxRow,
                   styles.metaStyle,
-                  styles.fullWidthTextContainer,
+                  this.props.size === 'smaller'
+                    ? styles.smallerWidthTextContainer
+                    : styles.fullWidthTextContainer,
                   {marginTop: adapterProps.metaMargin},
                   this.props.metaStyle,
+                  this.props.size === 'smaller' ? styles.smallerWidthTextContainer : {},
                 ])
           }
         >
@@ -215,6 +224,14 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
+  smallerWidthTextContainer: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.black_50,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      width: 48,
+    },
+  }),
   vContainerStyle: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -227,31 +244,43 @@ const styles = Styles.styleSheetCreate({
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
-const getAdapterProps = (size: Size, isUser: boolean) => {
+const getAdapterProps = (size: Size) => {
   switch (size) {
+    case 'smaller':
+      return {
+        iconSize: 48,
+        metaMargin: 6,
+        metaOneType: 'BodySmall',
+        titleType: 'BodyTinySemibold',
+      }
     case 'small':
       return {
-        iconSize: isUser ? 64 : 48,
-        metaMargin: isUser ? 4 : 8,
+        iconSize: 48,
+        metaMargin: Styles.globalMargins.tiny,
         metaOneType: 'BodySmall',
         titleType: 'BodySemibold',
       }
-    case 'large':
-      if (isUser) {
-        return {
-          iconSize: 128,
-          metaMargin: 8,
-          metaOneType: 'BodySemibold',
-          titleType: 'HeaderBig',
-        }
+    case 'big':
+      return {
+        iconSize: 96,
+        metaMargin: Styles.globalMargins.tiny,
+        metaOneType: 'BodySemibold',
+        titleType: 'HeaderBig',
+      }
+    case 'huge':
+      return {
+        iconSize: 128,
+        metaMargin: Styles.globalMargins.tiny,
+        metaOneType: 'BodySemibold',
+        titleType: 'HeaderBig',
       }
   }
   // default
   return {
-    iconSize: isUser ? 96 : 64,
-    metaMargin: Styles.isMobile ? 6 : 8,
-    metaOneType: isUser ? 'BodySemibold' : 'BodySmall',
-    titleType: 'HeaderBig',
+    iconSize: 64,
+    metaMargin: Styles.globalMargins.tiny,
+    metaOneType: 'BodySemibold',
+    titleType: 'BodySemibold',
   }
 }
 

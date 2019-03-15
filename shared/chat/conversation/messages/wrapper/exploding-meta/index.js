@@ -107,9 +107,7 @@ class ExplodingMeta extends React.Component<Props, State> {
 
   render() {
     const backgroundColor =
-      this.props.explodesAt - Date.now() < oneMinuteInMs
-        ? Styles.globalColors.red
-        : Styles.globalColors.black
+      this.props.explodesAt - Date.now() < oneMinuteInMs ? Styles.globalColors.red : Styles.globalColors.black
     let children
     switch (this.state.mode) {
       case 'countdown':
@@ -135,25 +133,12 @@ class ExplodingMeta extends React.Component<Props, State> {
                 </Kb.Text>
               </Kb.Box2>
             )}
-            <Kb.Icon
-              type="iconfont-timer"
-              fontSize={stopWatchIconSize}
-              color={Styles.globalColors.black}
-            />
+            <Kb.Icon type="iconfont-timer" fontSize={stopWatchIconSize} color={Styles.globalColors.black} />
           </Kb.Box2>
         )
         break
       case 'boom':
-        children = (
-          <Kb.Box2 direction="horizontal" style={styles.boomIconContainer}>
-            <Kb.Icon
-              type="iconfont-boom"
-              style={Kb.iconCastPlatformStyles(styles.boomIcon)}
-              fontSize={Styles.isMobile ? 44 : 35}
-              color={Styles.globalColors.black}
-            />
-          </Kb.Box2>
-        )
+        children = <Kb.Icon type="iconfont-boom" color={Styles.globalColors.black} />
     }
 
     if (this.props.pending) {
@@ -216,21 +201,6 @@ export const getLoopInterval = (diff: number) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  boomIcon: Styles.platformStyles({
-    common: {position: 'absolute'},
-    isElectron: {
-      left: 0,
-      top: -6,
-    },
-    isMobile: {
-      left: 0,
-      top: -22,
-    },
-  }),
-  boomIconContainer: Styles.platformStyles({
-    isElectron: {width: 35},
-    isMobile: {width: 44},
-  }),
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,

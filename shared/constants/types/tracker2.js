@@ -23,6 +23,7 @@ export type SiteIcon = {
   +path: string, // https://keybase.io/_/icons/twitter.png
   +width: number,
 }
+export type SiteIconSet = $ReadOnlyArray<SiteIcon>
 export type _Assertion = {
   assertionKey: string, // twitter:bob
   color: AssertionColor,

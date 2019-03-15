@@ -304,7 +304,8 @@ func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 // for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	doIdentifies bool, reason string, _ keybase1.OfflineAvailability) (
+	ImplicitTeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return ImplicitTeamInfo{}, err
 	}
@@ -424,8 +425,9 @@ func (k *KeybaseDaemonLocal) ResolveImplicitTeamByID(
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, _ keybase1.KID) (UserInfo, error) {
+func (k *KeybaseDaemonLocal) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, _ keybase1.KID,
+	_ keybase1.OfflineAvailability) (UserInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return UserInfo{}, err
 	}
@@ -946,6 +948,12 @@ func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
 	uid keybase1.UID) {
+	// Do nothing.
+}
+
+// ClearCaches implements the KeybaseDaemon interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) ClearCaches(_ context.Context) {
 	// Do nothing.
 }
 

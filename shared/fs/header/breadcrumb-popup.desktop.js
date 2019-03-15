@@ -25,7 +25,7 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
       onClick={props.toggleShowingMenu}
       ref={props.setAttachmentRef}
     >
-      <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} fontSize={16} />
+      <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} />
     </ClickableBox>
     <FloatingMenu
       containerStyle={stylePopup}

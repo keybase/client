@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -35,7 +36,7 @@ type KBFSOpsStandard struct {
 	log             logger.Logger
 	deferLog        logger.Logger
 	ops             map[FolderBranch]*folderBranchOps
-	opsByFav        map[Favorite]*folderBranchOps
+	opsByFav        map[favorites.Folder]*folderBranchOps
 	opsLock         sync.RWMutex
 	// reIdentifyControlChan controls reidentification.
 	// Sending a value to this channel forces all fbos
@@ -68,7 +69,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		log:                   log,
 		deferLog:              log.CloneWithAddedDepth(1),
 		ops:                   make(map[FolderBranch]*folderBranchOps),
-		opsByFav:              make(map[Favorite]*folderBranchOps),
+		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		favs:       NewFavorites(config),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
@@ -252,7 +253,7 @@ func (fs *KBFSOpsStandard) InvalidateNodeAndChildren(
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
-	[]Favorite, error) {
+	[]favorites.Folder, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -289,7 +290,7 @@ func (fs *KBFSOpsStandard) ClearCachedFavorites(ctx context.Context) {
 
 // AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
-	fav Favorite, data FavoriteData) error {
+	fav favorites.Folder, data favorites.Data) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -298,8 +299,11 @@ func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	isLoggedIn := err == nil
 
 	if isLoggedIn {
-		err := fs.favs.Add(ctx, favToAdd{Favorite: fav,
-			Data: data, created: false})
+		err := fs.favs.Add(ctx, favorites.ToAdd{
+			Folder:  fav,
+			Data:    data,
+			Created: false,
+		})
 		if err != nil {
 			return err
 		}
@@ -314,14 +318,14 @@ func (fs *KBFSOpsStandard) SetFavoritesHomeTLFInfo(ctx context.Context,
 	fs.favs.setHomeTLFInfo(ctx, info)
 }
 
-func (fs *KBFSOpsStandard) getOpsByFav(fav Favorite) *folderBranchOps {
+func (fs *KBFSOpsStandard) getOpsByFav(fav favorites.Folder) *folderBranchOps {
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	return fs.opsByFav[fav]
 }
 
 // RefreshEditHistory implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) RefreshEditHistory(fav Favorite) {
+func (fs *KBFSOpsStandard) RefreshEditHistory(fav favorites.Folder) {
 	fbo := fs.getOpsByFav(fav)
 	if fbo != nil {
 		fbo.refreshEditHistory()
@@ -331,7 +335,7 @@ func (fs *KBFSOpsStandard) RefreshEditHistory(fav Favorite) {
 // DeleteFavorite implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
-	fav Favorite) error {
+	fav favorites.Folder) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1390,7 +1394,7 @@ func (fs *KBFSOpsStandard) SetSyncConfig(
 }
 
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
-	oldFav Favorite, newHandle *TlfHandle) {
+	oldFav favorites.Folder, newHandle *TlfHandle) {
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	ops, ok := fs.opsByFav[oldFav]
@@ -1528,7 +1532,7 @@ type kbfsOpsFavoriteObserver struct {
 	kbfsOps *KBFSOpsStandard
 
 	lock    sync.Mutex
-	currFav Favorite
+	currFav favorites.Folder
 }
 
 var _ Observer = (*kbfsOpsFavoriteObserver)(nil)

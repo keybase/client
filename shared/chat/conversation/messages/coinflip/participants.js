@@ -19,27 +19,27 @@ const CoinFlipParticipants = (props: Props) => {
     view: (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.container}>
-          <Kb.Text type="Body" style={styles.title}>
-            Participants
-          </Kb.Text>
-          <Kb.Text type="BodySmall">
-            {props.participants.length} total
-          </Kb.Text>
+          <Kb.Text type="BodySmall">{props.participants.length} participants</Kb.Text>
         </Kb.Box2>
         <Kb.Divider />
         <Kb.ScrollView style={styles.partContainer}>
           {props.participants.map(p => (
             <Kb.NameWithIcon
+              colorBroken={true}
+              colorFollowing={true}
               key={`${p.username}${p.deviceName}`}
               horizontal={true}
               username={p.username}
               metaOne={p.deviceName}
+              containerStyle={styles.participants}
             />
           ))}
         </Kb.ScrollView>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/coin-flip">How This Works</Kb.Text>
+          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/coin-flip">
+            How this works
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     ),
@@ -69,7 +69,12 @@ const styles = Styles.styleSheetCreate({
   }),
   partContainer: {
     maxHeight: 200,
-    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  participants: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   title: Styles.platformStyles({
     isElectron: {

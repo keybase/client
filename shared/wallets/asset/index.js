@@ -39,7 +39,7 @@ export default class Asset extends React.Component<Props, State> {
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
               <Kb.Icon
                 type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-                sizeType='Tiny'
+                sizeType="Tiny"
                 style={Kb.iconCastPlatformStyles(styles.caret)}
               />
               <Kb.Box2 direction="vertical">
@@ -160,10 +160,14 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
   },
-  balanceSummaryContainer: {
-    flexBasis: 355,
-    flexShrink: 1,
-  },
+  balanceSummaryContainer: Styles.platformStyles({
+    common: {
+      flexShrink: 1,
+    },
+    isElectron: {
+      flexBasis: '355px',
+    },
+  }),
   caret: Styles.platformStyles({
     isElectron: {lineHeight: '2'},
     isMobile: {marginTop: 6},

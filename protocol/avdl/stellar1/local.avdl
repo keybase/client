@@ -295,7 +295,7 @@ protocol local {
 
     // Optional. Error to show with the amount field.
     // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
-    // Example: "Your available to send is *128.4567890 XLM*."
+    // Example: "You have *128.4567890 XLM* available to send."
     string amountErrMsg;
 
     // Optional. Error to show with the encrypted note field.

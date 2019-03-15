@@ -49,3 +49,8 @@ export const getModalStack = () => {
   if (!_navigator) return []
   return findModalRoute([], _navigator.getNavState())
 }
+
+export const getVisibleScreen = () => {
+  const visible = getVisiblePath()
+  return visible[visible.length - 1]
+}

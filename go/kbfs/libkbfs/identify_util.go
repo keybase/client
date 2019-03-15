@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -162,7 +163,7 @@ func MakeExtendedIdentify(ctx context.Context,
 	}
 
 	if !behavior.WarningInsteadOfErrorOnBrokenTracks() {
-		return NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+		return libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 			return context.WithValue(ctx, ctxExtendedIdentifyKey, &extendedIdentify{
 				behavior: behavior,
 			})
@@ -170,7 +171,7 @@ func MakeExtendedIdentify(ctx context.Context,
 	}
 
 	ch := make(chan keybase1.TLFIdentifyFailure)
-	return NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	return libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, ctxExtendedIdentifyKey, &extendedIdentify{
 			behavior:   behavior,
 			userBreaks: ch,
@@ -241,7 +242,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 			return err
 		}
 		iteamInfo, err := identifier.IdentifyImplicitTeam(
-			ctx, assertions, extensionSuffix, t, reason)
+			ctx, assertions, extensionSuffix, t, reason, offline)
 		if err != nil {
 			return err
 		}

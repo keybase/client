@@ -28,8 +28,8 @@ func fbStatusTestInit(t *testing.T) (*gomock.Controller, *ConfigMock,
 	mockCtrl := gomock.NewController(ctr)
 	config := NewConfigMock(mockCtrl, ctr)
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
-		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
-		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(ImplicitTeamInfo{}, errors.New("No such team"))
 	nodeCache := NewMockNodeCache(mockCtrl)
 	fbsk := newFolderBranchStatusKeeper(config, nodeCache, nil, nil)
 	interposeDaemonKBPKI(config, "alice", "bob")

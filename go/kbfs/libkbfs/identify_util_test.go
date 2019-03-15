@@ -87,8 +87,8 @@ func (ti *testIdentifier) NormalizeSocialAssertion(
 }
 
 func (ti *testIdentifier) IdentifyImplicitTeam(
-	_ context.Context, assertions, suffix string, ty tlf.Type, _ string) (
-	ImplicitTeamInfo, error) {
+	_ context.Context, assertions, suffix string, ty tlf.Type, _ string,
+	_ keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
 	// TODO: canonicalize name.
 	name := assertions
 	if suffix != "" {

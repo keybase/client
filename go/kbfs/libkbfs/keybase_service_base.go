@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -309,7 +310,11 @@ func (k *KeybaseServiceBase) setCachedTeamInfo(
 	}
 }
 
-func (k *KeybaseServiceBase) clearCaches() {
+// ClearCaches implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
+	k.log.CDebugf(ctx, "Clearing KBFS-side user and team caches")
+
 	k.setCachedCurrentSession(SessionInfo{})
 	func() {
 		k.userCacheLock.Lock()
@@ -542,7 +547,8 @@ func (k *KeybaseServiceBase) NormalizeSocialAssertion(
 // for KeybaseServiceBase.
 func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
+	doIdentifies bool, reason string,
+	offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
 	if tlfType != tlf.Private && tlfType != tlf.Public {
 		return ImplicitTeamInfo{}, fmt.Errorf(
 			"Invalid implicit team TLF type: %s", tlfType)
@@ -555,6 +561,7 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 		Reason:       keybase1.IdentifyReason{Reason: reason},
 		Create:       true,
 		IsPublic:     tlfType == tlf.Public,
+		Oa:           offline,
 	}
 
 	ei := getExtendedIdentify(ctx)
@@ -674,8 +681,9 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 
 // LoadUserPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
+func (k *KeybaseServiceBase) LoadUserPlusKeys(
+	ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID,
+	offline keybase1.OfflineAvailability) (UserInfo, error) {
 	cachedUserInfo := k.getCachedUserInfo(uid)
 	if cachedUserInfo.Name != kbname.NormalizedUsername("") {
 		if pollForKID == keybase1.KID("") {
@@ -701,7 +709,11 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		}
 	}
 
-	arg := keybase1.LoadUserPlusKeysV2Arg{Uid: uid, PollForKID: pollForKID}
+	arg := keybase1.LoadUserPlusKeysV2Arg{
+		Uid:        uid,
+		PollForKID: pollForKID,
+		Oa:         offline,
+	}
 	res, err := k.userClient.LoadUserPlusKeysV2(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err
@@ -1041,7 +1053,7 @@ func (k *KeybaseServiceBase) getCurrentSession(
 	// Loop until either we have the session info, or until we are the
 	// sole goroutine that needs to make the RPC.  Avoid holding the
 	// session cache lock during the RPC, since that can result in a
-	// deadlock if the RPC results in a call to `clearCaches()`.
+	// deadlock if the RPC results in a call to `ClearCaches()`.
 	for !doRPC {
 		cachedCurrentSession, inProgressCh, doRPC =
 			k.getCachedCurrentSessionOrInProgressCh()
@@ -1337,7 +1349,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	}
 	// Making a favorite here to reuse the code that converts from
 	// `keybase1.FolderType` into `tlf.Type`.
-	fav := NewFavoriteFromFolder(folder)
+	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
@@ -1350,7 +1362,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder) (err error) {
-	fav := NewFavoriteFromFolder(folder)
+	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {

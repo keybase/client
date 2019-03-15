@@ -39,9 +39,7 @@ const CreateChannel = (props: Props) => (
     <Kb.Box style={_boxStyle}>
       <Kb.Box style={_backStyle} onClick={props.onBack}>
         <Kb.Icon style={_backIcon} type="iconfont-arrow-left" />
-        <Kb.Text type="BodyPrimaryLink" onClick={props.onBack}>
-          Back
-        </Kb.Text>
+        <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
       </Kb.Box>
       <Kb.Box style={_inputStyle}>
         <Kb.Input

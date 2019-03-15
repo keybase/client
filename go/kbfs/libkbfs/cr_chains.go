@@ -866,7 +866,7 @@ type chainMetadata interface {
 // newCRChains builds a new crChains object from the given list of
 // chainMetadatas, which must be non-empty.
 func newCRChains(
-	ctx context.Context, codec kbfscodec.Codec,
+	ctx context.Context, codec kbfscodec.Codec, osg OfflineStatusGetter,
 	chainMDs []chainMetadata, fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
@@ -880,10 +880,15 @@ func newCRChains(
 			continue
 		}
 
+		offline := keybase1.OfflineAvailability_NONE
+		if osg != nil {
+			offline = osg.OfflineAvailabilityForID(chainMD.TlfID())
+		}
+
 		winfo := newWriterInfo(
 			chainMD.LastModifyingWriter(),
 			chainMD.LastModifyingWriterVerifyingKey(),
-			chainMD.Revision())
+			chainMD.Revision(), offline)
 		if err != nil {
 			return nil, err
 		}
@@ -951,14 +956,14 @@ func newCRChains(
 // newCRChainsForIRMDs simply builds a list of chainMetadatas from the
 // given list of ImmutableRootMetadatas and calls newCRChains with it.
 func newCRChainsForIRMDs(
-	ctx context.Context, codec kbfscodec.Codec,
+	ctx context.Context, codec kbfscodec.Codec, osg OfflineStatusGetter,
 	irmds []ImmutableRootMetadata, fbo *folderBlockOps,
 	identifyTypes bool) (ccs *crChains, err error) {
 	chainMDs := make([]chainMetadata, len(irmds))
 	for i, irmd := range irmds {
 		chainMDs[i] = irmd
 	}
-	return newCRChains(ctx, codec, chainMDs, fbo, identifyTypes)
+	return newCRChains(ctx, codec, osg, chainMDs, fbo, identifyTypes)
 }
 
 type crChainSummary struct {

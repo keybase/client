@@ -76,13 +76,13 @@ const MutedIcon = ({isHovered, isSelected}) => (
     type={
       Styles.isMobile
         ? isSelected
-          ? 'icon-shh-active-24'
-          : 'icon-shh-24'
+          ? 'icon-shh-active-26-21'
+          : 'icon-shh-26-21'
         : isSelected
-        ? 'icon-shh-active-16'
+        ? 'icon-shh-active-19-16'
         : isHovered
-        ? 'icon-shh-hover-16'
-        : 'icon-shh-16'
+        ? 'icon-shh-hover-19-16'
+        : 'icon-shh-19-16'
     }
     style={mutedStyle}
   />
