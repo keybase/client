@@ -67,7 +67,9 @@
     },
     "onChangeShowPassphrase": {},
     "onSubmitNewEmail": {},
-    "onSubmitNewPassphrase": {},
+    "onSubmitNewPassphrase": {
+      "thenSignOut": "boolean"
+    },
     "onUpdateEmailError": {
       "error": "Error"
     },

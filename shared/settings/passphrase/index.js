@@ -10,7 +10,7 @@ type Props = {
   hasPGPKeyOnServer?: boolean,
   onBack?: () => void,
   onSave: (passphrase: string, passphraseConfirm: string) => void,
-  saveLabel: string,
+  saveLabel?: string,
   showTyping?: boolean,
   waitingForResponse?: boolean,
   onUpdatePGPSettings?: () => void,

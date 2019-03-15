@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
     dispatch(
       SettingsGen.createOnChangeNewPassphraseConfirm({passphrase: new HiddenString(passphraseConfirm)})
     )
-    dispatch(SettingsGen.createOnSubmitNewPassphrase())
+    dispatch(SettingsGen.createOnSubmitNewPassphrase({thenSignOut: true}))
   },
 })
 

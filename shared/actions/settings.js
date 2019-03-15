@@ -36,7 +36,7 @@ function* onSubmitNewEmail(state) {
   }
 }
 
-function* onSubmitNewPassphrase(state) {
+function* onSubmitNewPassphrase(state, action) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
@@ -49,7 +49,11 @@ function* onSubmitNewPassphrase(state) {
       oldPassphrase: '',
       passphrase: newPassphrase.stringValue(),
     })
-    yield Saga.put(RouteTreeGen.createNavigateUp())
+    if (action.payload.thenSignOut) {
+      yield Saga.put(ConfigGen.createLogout())
+    } else {
+      yield Saga.put(RouteTreeGen.createNavigateUp())
+    }
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
   } finally {
