@@ -30,6 +30,7 @@ const mapStateToProps = state => {
   const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
 
   return {
+    _badgeMap: state.chat2.badgeMap,
     _canRefreshOnMount,
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
@@ -104,6 +105,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   selectedConversationIDKey: isMobile ? Constants.noConversationIDKey : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
   smallTeamsExpanded: stateProps.smallTeamsExpanded,
   toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+  unreadIndices: stateProps.rows
+    .map((r, idx) => {
+      if (r.conversationIDKey && stateProps._badgeMap.get(r.conversationIDKey)) {
+        return idx
+      }
+      return undefined
+    })
+    .filter(Boolean),
 })
 
 type Props = $Diff<

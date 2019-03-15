@@ -31,8 +31,26 @@ const NoChats = () => (
   </Kb.Box>
 )
 
+const UnreadShortcut = props => (
+  <Kb.ClickableBox onClick={props.onClick} style={{backgroundColor: Styles.globalColors.transparent}}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      centerChildren={true}
+      fullWidth={true}
+      style={styles.unreadShortcut}
+    >
+      <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Styles.globalColors.white} />
+      <Kb.Text negative={true} type="BodySmallSemibold">
+        Unread messages
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
+)
+
 type State = {
   showFloating: boolean,
+  showUnread: boolean,
 }
 
 class Inbox extends React.PureComponent<Props, State> {
@@ -41,8 +59,10 @@ class Inbox extends React.PureComponent<Props, State> {
   _dividerIndex: number = -1
   // 2 different sizes
   _dividerShowButton: boolean = false
+  // stash first offscreen index for callback
+  _firstOffscreenIdx: number = -1
 
-  state = {showFloating: false}
+  state = {showFloating: false, showUnread: false}
 
   _renderItem = ({item, index}) => {
     const row = item
@@ -99,15 +119,44 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _onViewChanged = data => {
-    this._onScrollUnbox(data)
-    this._updateShowFloating(data)
-  }
-
-  _updateShowFloating = data => {
     if (!data) {
       return
     }
+    this._onScrollUnbox(data)
+    this._updateShowFloating(data)
+    this._updateShowUnread(data)
+  }
 
+  _updateShowUnread = data => {
+    if (!this.props.unreadIndices.length) {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      return
+    }
+    const {viewableItems} = data
+    const lastIdx = viewableItems[viewableItems.length - 1].index
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > lastIdx)
+    if (firstOffscreenIdx) {
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this._firstOffscreenIdx = firstOffscreenIdx
+    } else {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      this._firstOffscreenIdx = -1
+    }
+  }
+
+  _scrollToUnread = () => {
+    if (this._firstOffscreenIdx <= 0 || !this._list) {
+      return
+    }
+    this._list.scrollToIndex({
+      animated: true,
+      index: this._firstOffscreenIdx,
+      viewOffset: -40,
+      viewPosition: 1,
+    })
+  }
+
+  _updateShowFloating = data => {
     let showFloating = true
     const {viewableItems} = data
     const item = viewableItems && viewableItems[viewableItems.length - 1]
@@ -126,9 +175,6 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _onScrollUnbox = debounce(data => {
-    if (!data) {
-      return
-    }
     const {viewableItems} = data
     const item = viewableItems && viewableItems[0]
     if (item && item.hasOwnProperty('index')) {
@@ -207,7 +253,7 @@ class Inbox extends React.PureComponent<Props, State> {
     return (
       <Kb.ErrorBoundary>
         <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
-        <Kb.Box style={boxStyle}>
+        <Kb.Box style={styles.container}>
           <Kb.NativeFlatList
             ListHeaderComponent={HeadComponent}
             data={this.props.rows}
@@ -223,18 +269,26 @@ class Inbox extends React.PureComponent<Props, State> {
           {noChats}
           {owl}
           {floatingDivider || <BuildTeam />}
+          {this.state.showUnread && <UnreadShortcut onClick={this._scrollToUnread} />}
         </Kb.Box>
       </Kb.ErrorBoundary>
     )
   }
 }
 
-const boxStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  backgroundColor: Styles.globalColors.fastBlank,
-  flex: 1,
-  position: 'relative',
-}
+const styles = Styles.styleSheetCreate({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.fastBlank,
+    flex: 1,
+    position: 'relative',
+  },
+  unreadShortcut: {
+    backgroundColor: Styles.globalColors.orange,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
+})
 
 export default Inbox
 export type {RowItem, RowItemSmall}
