@@ -8,7 +8,7 @@ type Props = {
 }
 
 const UnreadShortcut = (props: Props) => (
-  <Kb.ClickableBox onClick={props.onClick} style={{backgroundColor: Styles.globalColors.transparent}}>
+  <Kb.ClickableBox onClick={props.onClick} style={styles.container}>
     <Kb.Box2
       direction="horizontal"
       gap="xtiny"
@@ -25,8 +25,14 @@ const UnreadShortcut = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  container: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
   unreadShortcut: {
-    backgroundColor: Styles.globalColors.orange,
+    backgroundColor: Styles.globalColors.orange_90,
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
