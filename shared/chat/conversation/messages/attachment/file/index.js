@@ -43,8 +43,8 @@ class FileAttachment extends React.PureComponent<Props> {
           )}
           {!!this.props.errorMsg && (
             <Kb.Box style={styles.progressContainerStyle}>
-              <Kb.Text type="BodySmall" style={styles.fail}>
-                {this.props.errorMsg}
+              <Kb.Text type="BodySmall" style={styles.error}>
+                Failed to download attachment, please retry
               </Kb.Text>
             </Kb.Box>
           )}
@@ -77,7 +77,7 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
-  fail: {color: Styles.globalColors.red},
+  error: {color: Styles.globalColors.red},
   fullWidth: {width: '100%'},
   iconStyle: {
     height: 32,
