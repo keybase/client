@@ -99,7 +99,11 @@ export default (props: Props) => (
           You don't have a passphrase set -- you should set one before logging out, so that you can log in
           again later.
         </Kb.Text>
-        <UpdatePassphrase onSave={props.onSavePassphrase} waitingForResponse={props.waitingForResponse} />
+        <UpdatePassphrase
+          onSave={props.onSavePassphrase}
+          saveLabel="Create passphrase and sign out"
+          waitingForResponse={props.waitingForResponse}
+        />
       </Kb.Box2>
     ) : (
       <Kb.Box2 centerChildren={true} direction="vertical">
@@ -118,15 +122,15 @@ export default (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonbar: Styles.platformStyles({
-    common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
-    },
-  }),
+  buttonbar: {
+    padding: Styles.globalMargins.small,
+  },
   container: Styles.platformStyles({
-    common: {padding: Styles.globalMargins.medium},
+    common: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
+    },
     isElectron: {
       width: 560,
     },

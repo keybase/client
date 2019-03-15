@@ -16,6 +16,7 @@ const mapStateToProps = state => ({
   newPassphraseError: state.settings.passphrase.newPassphraseError
     ? state.settings.passphrase.newPassphraseError.stringValue()
     : null,
+  saveLabel: state.settings.passphrase.randomPW ? 'Create passphrase' : 'Save',
   waitingForResponse: state.settings.waitingForResponse,
 })
 
