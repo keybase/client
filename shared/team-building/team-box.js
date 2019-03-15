@@ -61,7 +61,6 @@ const TeamInput = (props: Props) => (
 const TeamBox = (props: Props) =>
   (Styles.isMobile && (
     <Kb.Box2 direction="horizontal" style={styles.container}>
-      <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />
       <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
       <TeamInput {...props} />
     </Kb.Box2>
@@ -106,7 +105,7 @@ const styles = Styles.styleSheetCreate({
       borderBottomWidth: 1,
       borderStyle: 'solid',
       flex: 1,
-      minHeight: 45,
+      minHeight: 48,
     },
   }),
   floatingBubbles: Styles.platformStyles({
@@ -133,7 +132,7 @@ const styles = Styles.styleSheetCreate({
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
       borderStyle: 'solid',
-      minHeight: 45,
+      minHeight: 48,
     },
   }),
   searchIcon: {
