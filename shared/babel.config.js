@@ -6,7 +6,10 @@ let isReactNative = null
 
 module.exports = function(api /*: any */) {
   api.caller(c => {
-    console.log('KB: Babel config detected caller: ', c.name)
+    // so noisy during tests
+    if (c.name !== 'babel-jest') {
+      console.log('KB: Babel config detected caller: ', c.name)
+    }
     if (c.name === 'metro') {
       isReactNative = true
     } else {
@@ -14,9 +17,20 @@ module.exports = function(api /*: any */) {
     }
   })
 
-  if (api.env() !== 'test') {
-    api.cache(true)
+  if (api.env() === 'test') {
+    return {
+      plugins: [
+        '@babel/plugin-proposal-optional-catch-binding',
+        '@babel/plugin-proposal-nullish-coalescing-operator',
+        '@babel/plugin-proposal-optional-chaining',
+        '@babel/plugin-proposal-object-rest-spread',
+        '@babel/transform-flow-strip-types',
+        '@babel/plugin-proposal-class-properties',
+      ],
+      presets: [['@babel/preset-env', {targets: {node: 'current'}}], '@babel/preset-react'],
+    }
   }
+  api.cache(true)
 
   if (!isElectron && !isReactNative) {
     throw new Error('MUST have env var BABEL_PLATFORM to all babel')
