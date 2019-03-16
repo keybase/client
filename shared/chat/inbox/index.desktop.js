@@ -1,5 +1,6 @@
 // @flow
 import * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
@@ -18,17 +19,23 @@ import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
 
 type State = {
+  isHovered: boolean,
   showFloating: boolean,
 }
 
 class Inbox extends React.PureComponent<Props, State> {
   state = {
+    isHovered: false,
     showFloating: false,
   }
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
   _clearedFilterCount: number = 0
+  _selectedVisible: boolean = false
+
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseEnter = () => this.setState({isHovered: true})
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -84,9 +91,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _itemRenderer = (index, style) => {
     const row = this.props.rows[index]
-    const divStyle = virtualListMarks
-      ? Styles.collapseStyles([style, {backgroundColor: 'purple', overflow: 'hidden'}])
-      : style
+    const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
       return (
         <div style={divStyle}>
@@ -100,12 +105,14 @@ class Inbox extends React.PureComponent<Props, State> {
       )
     }
 
-    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey
-    const teamname = row.teamname
+    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+    const teamname = row.teamname || ''
+    const isHighlighted =
+      index === 0 && !!this.props.filter && !this._selectedVisible && !this.state.isHovered
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}, isHighlighted && styles.hover])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
@@ -160,6 +167,11 @@ class Inbox extends React.PureComponent<Props, State> {
   _onSelectDown = () => this.props.onSelectDown()
 
   render() {
+    this._selectedVisible =
+      !!this.props.filter &&
+      !!this.props.rows.find(
+        r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
+      )
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
@@ -176,7 +188,7 @@ class Inbox extends React.PureComponent<Props, State> {
             onSelectDown={this._onSelectDown}
           />
           <NewConversation />
-          <div style={styles.list}>
+          <div style={styles.list} onMouseLeave={this._onMouseLeave} onMouseEnter={this._onMouseEnter}>
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
@@ -213,6 +225,13 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
+  divider: {
+    backgroundColor: 'purple',
+    overflow: 'hidden',
+  },
+  hover: {
+    backgroundColor: Styles.globalColors.blueGrey2,
+  },
   list: {flex: 1},
 })
 
