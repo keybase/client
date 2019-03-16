@@ -26,25 +26,13 @@
       "public": "I.Map<string, Types.Tlf>",
       "team": "I.Map<string, Types.Tlf>"
     },
-    "pathItemLoad": {
-      "path": "Types.Path",
-      "identifyBehavior?": "?RPCTypes.TLFIdentifyBehavior",
-      "silenceErrors?": "?boolean"
-    },
     "pathItemLoaded": {
       "path": "Types.Path",
-      "meta": "Types.PathItem"
+      "pathItem": "Types.PathItem"
     },
     "loadPathMetadata": {
-      "path": "Types.Path"
-    },
-    "mimeTypeLoad": {
       "path": "Types.Path",
-      "refreshTag?": "Types.RefreshTag"
-    },
-    "mimeTypeLoaded": {
-      "path": "Types.Path",
-      "mimeType": "Types.Mime"
+      "refreshTag?": "?Types.RefreshTag"
     },
     "sortSetting": {
       "path": "Types.Path",

@@ -590,22 +590,6 @@ export const showIgnoreFolder = (path: Types.Path, username?: string): boolean =
 export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
   isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
 
-// shouldUseOldMimeType determines if mimeType from newItem should reuse
-// what's in oldItem.
-export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
-  if (!oldItem.mimeType || newItem.mimeType) {
-    return false
-  }
-
-  return (
-    oldItem.type === newItem.type &&
-    oldItem.lastModifiedTimestamp === newItem.lastModifiedTimestamp &&
-    oldItem.lastWriter.uid === newItem.lastWriter.uid &&
-    oldItem.name === newItem.name &&
-    oldItem.size === newItem.size
-  )
-}
-
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
 
@@ -898,7 +882,7 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return 'Failed to load TLF lists.' + suffix
     case FsGen.refreshLocalHTTPServerInfo:
       return 'Failed to get information about internal HTTP server.' + suffix
-    case FsGen.pathItemLoad:
+    case FsGen.loadPathMetadata:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
@@ -910,8 +894,6 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return `Failed to save: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.upload:
       return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.` + suffix
-    case FsGen.mimeTypeLoad:
-      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.favoriteIgnore:
       return `Failed to ignore: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.openPathInSystemFileManager:

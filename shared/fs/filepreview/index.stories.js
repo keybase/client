@@ -25,7 +25,7 @@ export const filepreviewProvider = {
     sfmiEnabled: false,
   }),
   FilePreviewHeader: ({path}: {path: Types.Path}) => ({
-    loadPathItem: () => {},
+    loadPathMetadata: () => {},
     name: Types.getPathName(path),
     onAction: () => {},
     onBack: () => {},
@@ -39,10 +39,10 @@ export const filepreviewProvider = {
   }),
   ViewContainer: ({path}: {path: Types.Path}) => {
     const common = {
-      isSymlink: false,
-      onInvalidToken: Sb.action('onInvalidToken'),
+      lastModifiedTimestamp: 0,
       onLoadingStateChange: Sb.action('onLoadingStateChange'),
       path,
+      type: 'file',
       url: '',
     }
     if (Types.pathToString(path).endsWith('/loading')) {
@@ -51,14 +51,14 @@ export const filepreviewProvider = {
     if (Types.pathToString(path).endsWith('.txt')) {
       return {
         ...common,
-        mimeType: Constants.makeMime({displayPreview: true, mimeType: 'text/plain'}),
+        mime: Constants.makeMime({displayPreview: true, mimeType: 'text/plain'}),
         url: 'http://localhost:6006/sb_dll/storybook_ui_dll.js',
       }
     }
     if (Types.pathToString(path).endsWith('.jpg')) {
       return {
         ...common,
-        mimeType: Constants.makeMime({displayPreview: true, mimeType: 'image/jpeg'}),
+        mime: Constants.makeMime({displayPreview: true, mimeType: 'image/jpeg'}),
         url: Types.pathToString(path).endsWith('small.jpg')
           ? 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png'
           : 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
