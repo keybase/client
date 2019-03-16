@@ -91,7 +91,7 @@ func (c *Client) Save(ctx context.Context) error {
 	}
 
 	// Marshal outbox
-	outbox, err := c.Sm.PeekOutbox(ctx, c.User)
+	outbox, err := c.Sm.Outbox(ctx, c.User)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func (c *Client) Restore(ctx context.Context) error {
 		return fmt.Errorf("Restore(): failed to init local dismissals: %s", err)
 	}
 
-	if err := c.Sm.PrependToOutbox(ctx, c.User, outbox); err != nil {
+	if err := c.Sm.InitOutbox(ctx, c.User, outbox); err != nil {
 		c.Log.CDebugf(ctx, "Restore(): failed to init outbox: %s", err)
 	}
 
@@ -416,7 +416,7 @@ func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) 
 }
 
 func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t gregor.TimeOrOffset) gregor.State {
-	msgs, err := c.Sm.PeekOutbox(ctx, c.User)
+	msgs, err := c.Sm.Outbox(ctx, c.User)
 	if err != nil {
 		c.Log.CDebugf(ctx, "applyOutboxMessages: failed to read outbox: %s", err)
 		return state
@@ -457,8 +457,7 @@ func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
 func (c *Client) outboxSend() {
 	c.Log.Debug("outboxSend: running")
 	ctx := context.Background()
-	var newOutbox []gregor.Message
-	msgs, err := c.Sm.GetOutboxAndClear(ctx, c.User)
+	msgs, err := c.Sm.Outbox(ctx, c.User)
 	if err != nil {
 		c.Log.Debug("outboxSend: failed to get outbox messages: %s", err)
 		return
@@ -475,7 +474,8 @@ func (c *Client) outboxSend() {
 	for index = 0; index < len(msgs); index++ {
 		m := msgs[index]
 		// Look for a message that we already have in our state and skip
-		if ibm := m.ToInBandMessage(); ibm != nil {
+		ibm := m.ToInBandMessage()
+		if ibm != nil {
 			if _, ok := st.GetItem(ibm.Metadata().MsgID()); ok {
 				c.Log.Debug("outboxSend: skipping message already in state: %s", ibm.Metadata().MsgID())
 				continue
@@ -485,21 +485,14 @@ func (c *Client) outboxSend() {
 			c.Log.Debug("outboxSend: failed to consume message: %s", err)
 			break
 		}
+		c.Sm.RemoveFromOutbox(ctx, c.User, ibm.Metadata().MsgID())
 		if c.TestingEvents != nil {
 			c.TestingEvents.OutboxSend <- m.(gregor1.Message)
 		}
 	}
-	for i := index; i < len(msgs); i++ {
-		newOutbox = append(newOutbox, msgs[i])
-	}
-	c.Log.Debug("outboxSend: adding back: %d outbox items", len(newOutbox))
-	if err := c.Sm.PrependToOutbox(ctx, c.User, newOutbox); err != nil {
-		c.Log.Debug("outboxSend: failed to put items back into outbox: %s", err)
-	}
 	if err := c.Save(ctx); err != nil {
 		c.Log.Debug("outboxSend: failed to save state: %s", err)
 	}
-
 }
 
 func (c *Client) outboxSendLoop() {
