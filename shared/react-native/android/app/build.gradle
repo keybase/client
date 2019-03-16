@@ -5,7 +5,7 @@ apply plugin: 'com.github.triplet.play'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "3.1.3"
+def VERSION_NAME = "3.2.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
