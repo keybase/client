@@ -439,14 +439,13 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       return null
   }
 }
-export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
-  const strPath = pathToString(path)
-  const strTlfPath = pathToString(tlfPath)
-  return (
-    strPath.startsWith(strTlfPath) &&
-    (strPath.length === strTlfPath.length || strPath[strTlfPath.length] === '/')
-  )
-}
+export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
+  getPathElements(path1)
+    .slice(0, 3)
+    .join('/') ===
+  getPathElements(path2)
+    .slice(0, 3)
+    .join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]

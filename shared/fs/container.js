@@ -107,7 +107,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     }
     return (
       <>
-        <LoadPathMetadataWhenNeeded path={this.props.path} />
+        <LoadPathMetadataWhenNeeded path={this.props.path} refreshTag="main" />
         {this.getContent()}
       </>
     )

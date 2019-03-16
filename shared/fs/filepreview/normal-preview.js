@@ -32,14 +32,14 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
           <Header path={this.props.path} routePath={this.props.routePath} />
           <Kbfs.Errs />
           <Kb.Divider />
-          <Kb.Box style={styles.greyContainer}>
+          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
             <View
               path={this.props.path}
               routePath={this.props.routePath}
               onLoadingStateChange={this._onLoadingStateChange}
             />
             {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
-          </Kb.Box>
+          </Kb.Box2>
           <Footer />
         </Kb.Box2>
       </Kb.BoxGrow>
@@ -61,12 +61,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   greyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.flexGrow,
-    alignItems: 'center',
     backgroundColor: Styles.globalColors.blue5,
     flex: 1,
-    justifyContent: 'center',
+    flexShrink: 1,
   },
   loading: Styles.platformStyles({
     common: {
