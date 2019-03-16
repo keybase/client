@@ -480,6 +480,9 @@ func (c *Client) outboxSend() {
 				c.Log.Debug("outboxSend: skipping message already in state: %s", ibm.Metadata().MsgID())
 				continue
 			}
+		} else {
+			c.Log.Debug("outboxSend: not an inband message, skipping")
+			continue
 		}
 		if err := c.incomingClient().ConsumeMessage(ctx, m.(gregor1.Message)); err != nil {
 			c.Log.Debug("outboxSend: failed to consume message: %s", err)
