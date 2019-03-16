@@ -216,7 +216,8 @@ type StateMachine interface {
 	ConsumeLocalDismissal(context.Context, UID, MsgID) error
 
 	// Outbox gives all of the pending messages in the outbox
-	Outbox(context.Context, UID) ([]Message, error)
+	PeekOutbox(context.Context, UID) ([]Message, error)
+	GetOutboxAndClear(context.Context, UID) ([]Message, error)
 
 	// PrependToOutbox adds a slice of messages to the beginning of the outbox
 	PrependToOutbox(context.Context, UID, []Message) error

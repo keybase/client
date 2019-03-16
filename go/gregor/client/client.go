@@ -91,7 +91,7 @@ func (c *Client) Save(ctx context.Context) error {
 	}
 
 	// Marshal outbox
-	outbox, err := c.Sm.Outbox(ctx, c.User)
+	outbox, err := c.Sm.PeekOutbox(ctx, c.User)
 	if err != nil {
 		return err
 	}
@@ -416,7 +416,7 @@ func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) 
 }
 
 func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t gregor.TimeOrOffset) gregor.State {
-	msgs, err := c.Sm.Outbox(ctx, c.User)
+	msgs, err := c.Sm.PeekOutbox(ctx, c.User)
 	if err != nil {
 		c.Log.CDebugf(ctx, "applyOutboxMessages: failed to read outbox: %s", err)
 		return state
@@ -458,7 +458,7 @@ func (c *Client) outboxSend() {
 	c.Log.Debug("outboxSend: running")
 	ctx := context.Background()
 	var newOutbox []gregor.Message
-	msgs, err := c.Sm.Outbox(ctx, c.User)
+	msgs, err := c.Sm.GetOutboxAndClear(ctx, c.User)
 	if err != nil {
 		c.Log.Debug("outboxSend: failed to get outbox messages: %s", err)
 		return

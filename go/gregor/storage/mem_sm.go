@@ -468,10 +468,18 @@ func (m *MemEngine) InBandMessagesSince(ctx context.Context, u gregor.UID, d gre
 	return msgs, nil
 }
 
-func (m *MemEngine) Outbox(ctx context.Context, u gregor.UID) ([]gregor.Message, error) {
+func (m *MemEngine) PeekOutbox(ctx context.Context, u gregor.UID) ([]gregor.Message, error) {
 	m.Lock()
 	defer m.Unlock()
 	return m.getUser(u).outbox, nil
+}
+
+func (m *MemEngine) GetOutboxAndClear(ctx context.Context, u gregor.UID) ([]gregor.Message, error) {
+	m.Lock()
+	defer m.Unlock()
+	outbox := m.getUser(u).outbox
+	m.getUser(u).outbox = nil
+	return outbox, nil
 }
 
 func (m *MemEngine) PrependToOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {
