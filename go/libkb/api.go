@@ -218,7 +218,8 @@ func (c *countingReader) numRead() int {
 func noopFinisher() {}
 
 func getNIST(m MetaContext, sessType APISessionType) *NIST {
-	if sessType == APISessionTypeNONE {
+	switch sessType {
+	case APISessionTypeNONE, APISessionTypeNONIST:
 		return nil
 	}
 

@@ -33,6 +33,7 @@ protocol NotifyBadges {
     array<string> newTeamAccessRequests;
     array<TeamMemberOutReset> teamsWithResetUsers;
     array<WalletAccountInfo> unreadWalletAccounts;
+    string resetInProgressMessage;
   }
 
   record BadgeConversationInfo {

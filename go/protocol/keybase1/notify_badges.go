@@ -62,6 +62,7 @@ type BadgeState struct {
 	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
+	ResetInProgressMessage    string                  `codec:"resetInProgressMessage" json:"resetInProgressMessage"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -159,6 +160,7 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.UnreadWalletAccounts),
+		ResetInProgressMessage: o.ResetInProgressMessage,
 	}
 }
 

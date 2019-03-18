@@ -134,6 +134,10 @@
             "items": "WalletAccountInfo"
           },
           "name": "unreadWalletAccounts"
+        },
+        {
+          "type": "string",
+          "name": "resetInProgressMessage"
         }
       ]
     },

@@ -150,6 +150,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
 	b.state.TeamsWithResetUsers = nil
+	b.state.ResetInProgressMessage = ""
 
 	var hsb *homeStateBody
 
@@ -294,6 +295,20 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				b.state.TeamsWithResetUsers = append(b.state.TeamsWithResetUsers, m)
 				teamsWithResets[key] = true
 			}
+		case "autoreset.notify":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'autoreset.notify' item: %v", err)
+				continue
+			}
+			msg, err := jsw.AtKey("msg").GetString()
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered gregor 'autoreset.notify' item without 'msg': %v", err)
+				continue
+			}
+			b.state.ResetInProgressMessage = msg
+		case "autoreset.cancel":
+			b.state.ResetInProgressMessage = ""
 		}
 	}
 
