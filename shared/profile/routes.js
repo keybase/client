@@ -88,7 +88,6 @@ const profileRoute = () => {
 export const newRoutes = {
   profile: {getScreen: () => require('./user/container').default, upgraded: true},
   profileNonUser: {getScreen: () => require('./non-user-profile/container').default},
-  profileShowcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
 }
 
 export const newModalRoutes = {
@@ -111,6 +110,10 @@ export const newModalRoutes = {
   },
   profileRevoke: {getScreen: () => require('./revoke/container').default, upgraded: true},
   profileSearch: {getScreen: () => require('./search/container').default},
+  profileShowcaseTeamOffer: {
+    getScreen: () => require('./showcase-team-offer/container').default,
+    upgraded: true,
+  },
   ...require('./pgp/routes').newRoutes,
 }
 
