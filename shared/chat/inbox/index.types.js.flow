@@ -50,5 +50,5 @@ export type Props = {|
   selectedConversationIDKey: ConversationIDKey,
   smallTeamsExpanded: boolean,
   toggleSmallTeamsExpanded: () => void,
-  unreadIndices: Array<number>,
+  unreadIndices: I.List<number>,
 |}

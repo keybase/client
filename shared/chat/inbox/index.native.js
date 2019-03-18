@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
@@ -45,8 +46,15 @@ class Inbox extends React.PureComponent<Props, State> {
   _dividerShowButton: boolean = false
   // stash first offscreen index for callback
   _firstOffscreenIdx: number = -1
+  _lastVisibleIdx: number = -1
 
   state = {showFloating: false, showUnread: false}
+
+  componentDidUpdate(prevProps: Props) {
+    if (!I.is(prevProps.unreadIndices, this.props.unreadIndices)) {
+      this._updateShowUnread()
+    }
+  }
 
   _renderItem = ({item, index}) => {
     const row = item
@@ -108,17 +116,19 @@ class Inbox extends React.PureComponent<Props, State> {
     }
     this._onScrollUnbox(data)
     this._updateShowFloating(data)
-    this._updateShowUnread(data)
+
+    const lastVisibleIdx = data.viewableItems[data.viewableItems.length - 1]?.index
+    this._lastVisibleIdx = lastVisibleIdx || -1
+    this._updateShowUnread()
   }
 
-  _updateShowUnread = data => {
-    if (!this.props.unreadIndices.length) {
+  _updateShowUnread = () => {
+    if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
     }
-    const {viewableItems} = data
-    const lastIdx = viewableItems[viewableItems.length - 1]?.index
-    const firstOffscreenIdx = lastIdx && this.props.unreadIndices.find(idx => idx > lastIdx)
+
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this._lastVisibleIdx)
     if (firstOffscreenIdx) {
       this.setState(s => (s.showUnread ? null : {showUnread: true}))
       this._firstOffscreenIdx = firstOffscreenIdx

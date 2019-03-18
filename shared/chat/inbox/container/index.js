@@ -120,7 +120,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-    unreadIndices,
+    unreadIndices: I.List(unreadIndices),
   }
 }
 
