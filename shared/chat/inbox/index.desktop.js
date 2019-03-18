@@ -19,13 +19,11 @@ import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
 
 type State = {
-  isHovered: boolean,
   showFloating: boolean,
 }
 
 class Inbox extends React.PureComponent<Props, State> {
   state = {
-    isHovered: false,
     showFloating: false,
   }
 
@@ -33,9 +31,14 @@ class Inbox extends React.PureComponent<Props, State> {
   _list: ?VariableSizeList<any>
   _clearedFilterCount: number = 0
   _selectedVisible: boolean = false
+  _isHovered: boolean = false
 
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseEnter = () => this.setState({isHovered: true})
+  _onMouseLeave = () => {
+    this._isHovered = false
+  }
+  _onMouseEnter = () => {
+    this._isHovered = true
+  }
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -107,8 +110,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
-    const isHighlighted =
-      index === 0 && !!this.props.filter && !this._selectedVisible && !this.state.isHovered
+    const isHighlighted = index === 0 && !!this.props.filter && !this._selectedVisible && !this._isHovered
 
     // pointer events on so you can click even right after a scroll
     return (
