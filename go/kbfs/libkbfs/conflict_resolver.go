@@ -3358,7 +3358,7 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 		_ = cr.config.(*ConfigLocal).EnableDiskLimiter(os.TempDir())
 
 		dbc, err = newDiskBlockCacheLocalForTest(
-			cr.config, syncCacheLimitTrackerType)
+			cr.config, crDirtyBlockCacheLimitTrackerType)
 		if err != nil {
 			return nil, nil, err
 		}
