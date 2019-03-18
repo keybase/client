@@ -166,6 +166,7 @@ export type _MessageAttachment = {
   title: string,
   transferProgress: number, // 0-1 // only for the file
   transferState: 'uploading' | 'downloading' | 'remoteUploading' | 'mobileSaving' | null,
+  transferErrMsg: ?string,
   type: 'attachment',
   videoDuration: ?string,
 }

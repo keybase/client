@@ -223,6 +223,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   showPlayButton: false,
   submitState: null,
   title: '',
+  transferErrMsg: null,
   transferProgress: 0,
   transferState: null,
   type: 'attachment',
