@@ -6,7 +6,7 @@
 import {call} from 'redux-saga/effects'
 import {getEngine as engine, getEngineSaga} from '../../engine/require'
 
-export const appStateAppState = {
+export const appStateMobileAppState = {
   foreground: 0,
   background: 1,
   inactive: 2,

@@ -7,28 +7,27 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// AppState tracks the state of foreground/background status of the app in which the service
+// MobileAppState tracks the state of foreground/background status of the app in which the service
 // is running in.
-type AppState struct {
+type MobileAppState struct {
 	Contextified
 	sync.Mutex
-	state     keybase1.AppState
-	updateChs []chan keybase1.AppState
+	state     keybase1.MobileAppState
+	updateChs []chan keybase1.MobileAppState
 }
 
-// NewAppState returns a new AppState
-func NewAppState(g *GlobalContext) *AppState {
-	return &AppState{
+func NewMobileAppState(g *GlobalContext) *MobileAppState {
+	return &MobileAppState{
 		Contextified: NewContextified(g),
-		state:        keybase1.AppState_FOREGROUND,
+		state:        keybase1.MobileAppState_FOREGROUND,
 	}
 }
 
 // NextUpdate returns a channel that triggers when the app state changes
-func (a *AppState) NextUpdate(lastState *keybase1.AppState) chan keybase1.AppState {
+func (a *MobileAppState) NextUpdate(lastState *keybase1.MobileAppState) chan keybase1.MobileAppState {
 	a.Lock()
 	defer a.Unlock()
-	ch := make(chan keybase1.AppState, 1)
+	ch := make(chan keybase1.MobileAppState, 1)
 	if lastState != nil && *lastState != a.state {
 		ch <- a.state
 	} else {
@@ -38,12 +37,12 @@ func (a *AppState) NextUpdate(lastState *keybase1.AppState) chan keybase1.AppSta
 }
 
 // Update updates the current app state, and notifies any waiting calls from NextUpdate
-func (a *AppState) Update(state keybase1.AppState) {
+func (a *MobileAppState) Update(state keybase1.MobileAppState) {
 	a.Lock()
 	defer a.Unlock()
-	defer a.G().Trace(fmt.Sprintf("AppState.Update(%v)", state), func() error { return nil })()
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), func() error { return nil })()
 	if a.state != state {
-		a.G().Log.Debug("AppState.Update: useful update: %v, we are currently in state: %v",
+		a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
 			state, a.state)
 		a.state = state
 		for _, ch := range a.updateChs {
@@ -53,18 +52,39 @@ func (a *AppState) Update(state keybase1.AppState) {
 
 		// cancel RPCs if we go into the background
 		switch a.state {
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.MobileAppState_BACKGROUND:
 			a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
 		}
 	} else {
-		a.G().Log.Debug("AppState.Update: ignoring update: %v, we are currently in state: %v",
+		a.G().Log.Debug("MobileAppState.Update: ignoring update: %v, we are currently in state: %v",
 			state, a.state)
 	}
 }
 
 // State returns the current app state
-func (a *AppState) State() keybase1.AppState {
+func (a *MobileAppState) State() keybase1.MobileAppState {
 	a.Lock()
 	defer a.Unlock()
 	return a.state
+}
+
+type DesktopAppState struct {
+	sync.Mutex
+}
+
+func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
+	return &DesktopAppState{}
+}
+
+// event from power monitor
+// https://electronjs.org/docs/api/power-monitor
+func (a *DesktopAppState) Update(mctx MetaContext, event string) {
+	mctx.G().Trace(fmt.Sprintf("DesktopAppState.Update(%v)", event), func() error { return nil })
+	switch event {
+	case "suspend":
+	case "resume":
+	case "shutdown":
+	case "lock-screen":
+	case "unlock-screen":
+	}
 }

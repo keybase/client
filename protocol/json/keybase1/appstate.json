@@ -4,7 +4,7 @@
   "types": [
     {
       "type": "enum",
-      "name": "AppState",
+      "name": "MobileAppState",
       "symbols": [
         "FOREGROUND_0",
         "BACKGROUND_1",
@@ -18,7 +18,7 @@
       "request": [
         {
           "name": "state",
-          "type": "AppState"
+          "type": "MobileAppState"
         }
       ],
       "response": null

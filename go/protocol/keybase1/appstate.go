@@ -8,40 +8,40 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type AppState int
+type MobileAppState int
 
 const (
-	AppState_FOREGROUND       AppState = 0
-	AppState_BACKGROUND       AppState = 1
-	AppState_INACTIVE         AppState = 2
-	AppState_BACKGROUNDACTIVE AppState = 3
+	MobileAppState_FOREGROUND       MobileAppState = 0
+	MobileAppState_BACKGROUND       MobileAppState = 1
+	MobileAppState_INACTIVE         MobileAppState = 2
+	MobileAppState_BACKGROUNDACTIVE MobileAppState = 3
 )
 
-func (o AppState) DeepCopy() AppState { return o }
+func (o MobileAppState) DeepCopy() MobileAppState { return o }
 
-var AppStateMap = map[string]AppState{
+var MobileAppStateMap = map[string]MobileAppState{
 	"FOREGROUND":       0,
 	"BACKGROUND":       1,
 	"INACTIVE":         2,
 	"BACKGROUNDACTIVE": 3,
 }
 
-var AppStateRevMap = map[AppState]string{
+var MobileAppStateRevMap = map[MobileAppState]string{
 	0: "FOREGROUND",
 	1: "BACKGROUND",
 	2: "INACTIVE",
 	3: "BACKGROUNDACTIVE",
 }
 
-func (e AppState) String() string {
-	if v, ok := AppStateRevMap[e]; ok {
+func (e MobileAppState) String() string {
+	if v, ok := MobileAppStateRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
 type UpdateAppStateArg struct {
-	State AppState `codec:"state" json:"state"`
+	State MobileAppState `codec:"state" json:"state"`
 }
 
 type PowerMonitorEventArg struct {
@@ -49,7 +49,7 @@ type PowerMonitorEventArg struct {
 }
 
 type AppStateInterface interface {
-	UpdateAppState(context.Context, AppState) error
+	UpdateAppState(context.Context, MobileAppState) error
 	PowerMonitorEvent(context.Context, string) error
 }
 
@@ -95,7 +95,7 @@ type AppStateClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c AppStateClient) UpdateAppState(ctx context.Context, state AppState) (err error) {
+func (c AppStateClient) UpdateAppState(ctx context.Context, state MobileAppState) (err error) {
 	__arg := UpdateAppStateArg{State: state}
 	err = c.Cli.Call(ctx, "keybase.1.appState.updateAppState", []interface{}{__arg}, nil)
 	return

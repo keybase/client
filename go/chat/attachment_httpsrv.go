@@ -92,13 +92,13 @@ func (r *AttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {
 func (r *AttachmentHTTPSrv) monitorAppState() {
 	ctx := context.Background()
 	r.Debug(ctx, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-r.G().AppState.NextUpdate(&state)
+		state = <-r.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND:
+		case keybase1.MobileAppState_FOREGROUND:
 			r.startHTTPSrv()
-		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
+		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			r.httpSrv.Stop()
 		}
 	}

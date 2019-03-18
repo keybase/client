@@ -24,23 +24,16 @@ func newAppStateHandler(xp rpc.Transporter, g *libkb.GlobalContext) *appStateHan
 	}
 }
 
-func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.AppState) (err error) {
+func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.MobileAppState) (err error) {
 	a.G().Trace(fmt.Sprintf("UpdateAppState(%v)", state), func() error { return err })()
 
 	// Update app state
-	a.G().AppState.Update(state)
+	a.G().MobileAppState.Update(state)
 	return nil
 }
 
 func (a *appStateHandler) PowerMonitorEvent(ctx context.Context, event string) (err error) {
 	a.G().Trace(fmt.Sprintf("PowerMonitorEvent(%v)", event), func() error { return err })()
-
-	switch event {
-	case "suspend":
-	case "resume":
-	case "shutdown":
-	case "lock-screen":
-	case "unlock-screen":
-	}
+	a.G().DesktopAppState.Update(a.MetaContext(ctx), event)
 	return nil
 }

@@ -1212,12 +1212,12 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			timerChan = make(chan time.Time)
 		}
 
-		state := keybase1.AppState_FOREGROUND
+		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.shutdownChan:
 			return
 		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
-			for state != keybase1.AppState_FOREGROUND {
+			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", state)
 				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
@@ -1475,13 +1475,13 @@ func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
 	// While in the foreground, clean the disk caches every time we learn about
 	// a newer latest merged revision for this TLF.
 	for {
-		state := keybase1.AppState_FOREGROUND
+		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.latestMergedChan:
 		case <-fbm.shutdownChan:
 			return
 		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
-			for state != keybase1.AppState_FOREGROUND {
+			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing sync-cache cleaning while not foregrounded: "+
 						"state=%s", state)

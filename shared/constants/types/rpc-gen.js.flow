@@ -1046,7 +1046,7 @@ export type MessageTypes = {|
   |},
 |}
 
-export const appStateAppState = {
+export const appStateMobileAppState = {
   foreground: 0,
   background: 1,
   inactive: 2,
@@ -1927,12 +1927,6 @@ export type AppLinkType =
   | 7 // SETTINGS_7
   | 8 // TEAMS_8
 
-export type AppState =
-  | 0 // FOREGROUND_0
-  | 1 // BACKGROUND_1
-  | 2 // INACTIVE_2
-  | 3 // BACKGROUNDACTIVE_3
-
 export type AsyncOps =
   | 0 // LIST_0
   | 1 // LIST_RECURSIVE_1
@@ -2389,6 +2383,12 @@ export type MerkleTreeID =
 
 export type MerkleTreeLocation = $ReadOnly<{leaf: UserOrTeamID, loc: SigChainLocation}>
 export type MetadataResponse = $ReadOnly<{folderID: String, mdBlocks?: ?Array<MDBlock>}>
+export type MobileAppState =
+  | 0 // FOREGROUND_0
+  | 1 // BACKGROUND_1
+  | 2 // INACTIVE_2
+  | 3 // BACKGROUNDACTIVE_3
+
 export type MoveArgs = $ReadOnly<{opID: OpID, src: Path, dest: Path}>
 export type NaclDHKeyPrivate = ?string
 export type NaclDHKeyPublic = ?string

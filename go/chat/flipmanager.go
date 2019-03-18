@@ -1043,8 +1043,9 @@ func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipCo
 		return false
 	}
 	// Ignore any flip messages for non-active games when not in the foreground
+	// CORE-10364: hook in here
 	appBkg := m.G().GetAppType() == libkb.MobileAppType &&
-		m.G().AppState.State() != keybase1.AppState_FOREGROUND
+		m.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND
 	partViolation := m.isConvParticipationViolation(ctx, hostConvID)
 	return appBkg || partViolation
 }
