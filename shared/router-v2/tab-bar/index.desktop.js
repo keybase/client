@@ -105,20 +105,23 @@ class TabBar extends React.PureComponent<Props, State> {
                   username={p.username}
                   style={styles.avatar}
                 />
-                <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
-                  Hi {p.username}!
-                </Kb.Text>
-                <Kb.Icon
-                  type="iconfont-arrow-down"
-                  color={Styles.globalColors.blue3}
-                  fontSize={12}
-                  style={styles.caret}
-                />
+                <>
+                  <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
+                    Hi {p.username}!
+                  </Kb.Text>
+                  <Kb.Icon
+                    type="iconfont-arrow-down"
+                    color={Styles.globalColors.blue3}
+                    fontSize={12}
+                    style={styles.caret}
+                  />
+                </>
               </Kb.Box2>
             </Kb.ClickableBox>
             <Kb.Divider style={styles.divider} />
             <Kb.FloatingMenu
               position="bottom left"
+              containerStyle={styles.menu}
               header={this._menuHeader()}
               closeOnSelect={true}
               visible={this.state.showingMenu}
@@ -157,6 +160,7 @@ const styles = Styles.styleSheetCreate({
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
   header: {height: 80, marginBottom: 20},
+  menu: {marginLeft: Styles.globalMargins.tiny},
   nameContainer: {height: 24},
   osButtons: Styles.platformStyles({
     isElectron: {
