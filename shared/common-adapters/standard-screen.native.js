@@ -3,12 +3,19 @@ import * as React from 'react'
 import type {Props} from './standard-screen'
 import {NativeScrollView} from './native-wrappers.native'
 import HeaderHoc from './header-hoc'
-import * as Kb from '.'
 import * as Styles from '../styles'
+import Box from './box'
+import Text from './text'
+
+const Kb = {
+  Box,
+  NativeScrollView,
+  Text,
+}
 
 const StandardScreen = (props: Props) => {
   return (
-    <NativeScrollView scrollEnabled={props.scrollEnabled}>
+    <Kb.NativeScrollView scrollEnabled={props.scrollEnabled}>
       {!!props.notification && (
         <Kb.Box
           style={Styles.collapseStyles([
@@ -35,7 +42,7 @@ const StandardScreen = (props: Props) => {
       >
         {props.children}
       </Kb.Box>
-    </NativeScrollView>
+    </Kb.NativeScrollView>
   )
 }
 
@@ -64,7 +71,7 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
   },
-  contentMargin: { marginTop: MIN_BANNER_HEIGHT },
+  contentMargin: {marginTop: MIN_BANNER_HEIGHT},
 })
 
 export default HeaderHoc(StandardScreen)

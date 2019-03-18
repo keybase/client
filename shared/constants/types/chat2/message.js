@@ -369,7 +369,7 @@ export type _MessageSystemChangeRetention = {
   isInherit: boolean,
   isTeam: boolean,
   membersType: RPCChatTypes.ConversationMembersType,
-  policy: RPCChatTypes.RetentionPolicy,
+  policy: ?RPCChatTypes.RetentionPolicy,
   ordinal: Ordinal,
   reactions: Reactions,
   timestamp: number,

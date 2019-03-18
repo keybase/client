@@ -4,6 +4,7 @@ import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
+// TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
