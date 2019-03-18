@@ -145,6 +145,8 @@ class Inbox extends React.PureComponent<Props, State> {
       showFloating = false
     }
 
+    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+
     const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > visibleStopIndex)
     if (firstOffscreenIdx) {
       this.setState(s => (s.showUnread ? null : {showUnread: true}))
@@ -154,8 +156,6 @@ class Inbox extends React.PureComponent<Props, State> {
       this._firstOffscreenIdx = -1
     }
 
-    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
-
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
@@ -163,7 +163,7 @@ class Inbox extends React.PureComponent<Props, State> {
     if (this._firstOffscreenIdx <= 0 || !this._list) {
       return
     }
-    this._list.scrollToItem(this._firstOffscreenIdx)
+    this._list.scrollToItem(this._firstOffscreenIdx, 'center')
   }
 
   _setRef = (list: ?VariableSizeList<any>) => {

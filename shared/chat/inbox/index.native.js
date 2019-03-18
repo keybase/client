@@ -135,8 +135,7 @@ class Inbox extends React.PureComponent<Props, State> {
     this._list.scrollToIndex({
       animated: true,
       index: this._firstOffscreenIdx,
-      viewOffset: -40,
-      viewPosition: 1,
+      viewPosition: 0.5,
     })
   }
 
@@ -253,7 +252,9 @@ class Inbox extends React.PureComponent<Props, State> {
           {noChats}
           {owl}
           {floatingDivider || <BuildTeam />}
-          {this.state.showUnread && <UnreadShortcut onClick={this._scrollToUnread} />}
+          {this.state.showUnread && !this.state.showFloating && (
+            <UnreadShortcut onClick={this._scrollToUnread} />
+          )}
         </Kb.Box>
       </Kb.ErrorBoundary>
     )
