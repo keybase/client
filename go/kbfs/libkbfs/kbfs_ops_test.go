@@ -296,7 +296,7 @@ func checkBlockCache(
 }
 
 // parseTlfHandleOrBust parses the given TLF name, which must be
-// canonical, into a TLF handle, and failing if there's an error.
+// canonical, into a TLF handle, failing if there's an error.
 func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
 	name string, ty tlf.Type, id tlf.ID) *tlfhandle.Handle {
 	ctx := context.Background()
