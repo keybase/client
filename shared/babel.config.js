@@ -20,8 +20,8 @@ module.exports = function(api /*: any */) {
   }
 
   api.caller(c => {
-    console.log('KB: Babel config detected caller: ', c.name)
-    if (c.name === 'metro') {
+    console.log('KB: Babel config detected caller: ', c && c.name)
+    if (!c || c.name === 'metro') {
       isReactNative = true
     } else {
       isElectron = true
