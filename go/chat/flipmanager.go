@@ -1043,8 +1043,7 @@ func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipCo
 		return false
 	}
 	// Ignore any flip messages for non-active games when not in the foreground
-	// CORE-10364: hook in here
-	appBkg := m.G().GetAppType() == libkb.MobileAppType &&
+	appBkg := m.G().IsMobileAppType() &&
 		m.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND
 	partViolation := m.isConvParticipationViolation(ctx, hostConvID)
 	return appBkg || partViolation
@@ -1506,6 +1505,10 @@ func (m *FlipManager) Me() flip.UserDevice {
 		U: gregor1.UID(ad.UID().ToBytes()),
 		D: gregor1.DeviceID(hdid),
 	}
+}
+
+func (m *FlipManager) ShouldCommit(ctx context.Context) bool {
+	return true
 }
 
 // clearGameCache should only be used by tests
