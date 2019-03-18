@@ -41,7 +41,7 @@ jobs:
         working_directory: shared
         environment:
           REACT_NATIVE_MAX_WORKERS: 1
-        command: yarn run react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+        command: yarn run react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
 
     # Build app.
     #
