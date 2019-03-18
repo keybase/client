@@ -351,26 +351,17 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 func (g *GlobalContext) ConfigureLogging() error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
-	logFile := g.Env.GetLogFile()
-	if logFile == "" {
-		filePrefix := g.Env.GetLogPrefix()
-		if filePrefix != "" {
-			filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
-			logFile = filePrefix + ".log"
-		}
-	}
-	// Configure the log file, setting a default one if not specified and LogPrefix is not specified
-	// Does not redirect logs to file until g.Log.RotateLogFile is called
-	if logFile == "" {
-		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
-	} else {
-		g.Log.Configure(style, debug, logFile)
-	}
+
+	logFile := g.Env.GetEffectiveLogFile()
+	g.Log.Configure(style, debug, logFile)
 
 	// If specified or explicitly requested to use default log file, redirect logs.
 	// If not called, prints logs to stdout.
-	if logFile != "" || g.Env.GetUseDefaultLogFile() {
-		g.Log.RotateLogFile()
+	if logFile != "" {
+		err := logger.SetLogFileConfig(g.Env.GetLogFileConfig(logFile))
+		if err != nil {
+			return err
+		}
 	}
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
