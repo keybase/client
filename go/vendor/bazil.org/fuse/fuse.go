@@ -282,6 +282,9 @@ func (h HandleID) String() string {
 // The RootID identifies the root directory of a FUSE file system.
 const RootID NodeID = rootID
 
+const PollHackName = ".bazil-fuse-epoll-hack"
+const PollHackInode = NodeID(^uint64(0))
+
 // A Header describes the basic information sent in every request.
 type Header struct {
 	Conn *Conn     `json:"-"` // connection this request was received on
