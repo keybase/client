@@ -331,7 +331,9 @@ function* startPowerMonitor() {
   while (true) {
     const type = yield Saga.take(channel)
     logger.info('Got power change: ', type)
-    // RPCTypes.configSomethingSomethingTODOCORE()
+    RPCTypes.appStatePowerMonitorEventRpcPromise({event: type}).catch(err => {
+      console.warn('Error sending powerMonitorEvent', err)
+    })
   }
 }
 

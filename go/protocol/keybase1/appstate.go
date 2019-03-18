@@ -44,8 +44,13 @@ type UpdateAppStateArg struct {
 	State AppState `codec:"state" json:"state"`
 }
 
+type PowerMonitorEventArg struct {
+	Event string `codec:"event" json:"event"`
+}
+
 type AppStateInterface interface {
 	UpdateAppState(context.Context, AppState) error
+	PowerMonitorEvent(context.Context, string) error
 }
 
 func AppStateProtocol(i AppStateInterface) rpc.Protocol {
@@ -67,6 +72,21 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 					return
 				},
 			},
+			"powerMonitorEvent": {
+				MakeArg: func() interface{} {
+					var ret [1]PowerMonitorEventArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PowerMonitorEventArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PowerMonitorEventArg)(nil), args)
+						return
+					}
+					err = i.PowerMonitorEvent(ctx, typedArgs[0].Event)
+					return
+				},
+			},
 		},
 	}
 }
@@ -78,5 +98,11 @@ type AppStateClient struct {
 func (c AppStateClient) UpdateAppState(ctx context.Context, state AppState) (err error) {
 	__arg := UpdateAppStateArg{State: state}
 	err = c.Cli.Call(ctx, "keybase.1.appState.updateAppState", []interface{}{__arg}, nil)
+	return
+}
+
+func (c AppStateClient) PowerMonitorEvent(ctx context.Context, event string) (err error) {
+	__arg := PowerMonitorEventArg{Event: event}
+	err = c.Cli.Call(ctx, "keybase.1.appState.powerMonitorEvent", []interface{}{__arg}, nil)
 	return
 }

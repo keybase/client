@@ -22,6 +22,15 @@
         }
       ],
       "response": null
+    },
+    "powerMonitorEvent": {
+      "request": [
+        {
+          "name": "event",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

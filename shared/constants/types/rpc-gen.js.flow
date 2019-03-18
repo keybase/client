@@ -252,6 +252,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>|}>,
     outParam: APIRes,
   |},
+  'keybase.1.appState.powerMonitorEvent': {|
+    inParam: $ReadOnly<{|event: String|}>,
+    outParam: void,
+  |},
   'keybase.1.avatars.loadTeamAvatars': {|
     inParam: $ReadOnly<{|names?: ?Array<String>, formats?: ?Array<AvatarFormat>|}>,
     outParam: LoadAvatarsRes,
@@ -3372,6 +3376,7 @@ declare export function apiserverGetRpcPromise(params: $PropertyType<$PropertyTy
 declare export function apiserverGetWithSessionRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.apiserver.GetWithSession'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.apiserver.GetWithSession'>, 'outParam'>>
 declare export function apiserverPostJSONRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.apiserver.PostJSON'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.apiserver.PostJSON'>, 'outParam'>>
 declare export function apiserverPostRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.apiserver.Post'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.apiserver.Post'>, 'outParam'>>
+declare export function appStatePowerMonitorEventRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.appState.powerMonitorEvent'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.appState.powerMonitorEvent'>, 'outParam'>>
 declare export function avatarsLoadTeamAvatarsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.avatars.loadTeamAvatars'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.avatars.loadTeamAvatars'>, 'outParam'>>
 declare export function avatarsLoadUserAvatarsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.avatars.loadUserAvatars'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.avatars.loadUserAvatars'>, 'outParam'>>
 declare export function configGetAllProvisionedUsernamesRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getAllProvisionedUsernames'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getAllProvisionedUsernames'>, 'outParam'>>

@@ -12,7 +12,6 @@ import (
 type AppState struct {
 	Contextified
 	sync.Mutex
-
 	state     keybase1.AppState
 	updateChs []chan keybase1.AppState
 }

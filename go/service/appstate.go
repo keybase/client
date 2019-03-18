@@ -31,3 +31,16 @@ func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.App
 	a.G().AppState.Update(state)
 	return nil
 }
+
+func (a *appStateHandler) PowerMonitorEvent(ctx context.Context, event string) (err error) {
+	a.G().Trace(fmt.Sprintf("PowerMonitorEvent(%v)", event), func() error { return err })()
+
+	switch event {
+	case "suspend":
+	case "resume":
+	case "shutdown":
+	case "lock-screen":
+	case "unlock-screen":
+	}
+	return nil
+}
