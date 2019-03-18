@@ -7,6 +7,7 @@
 package libfuse
 
 import (
+	"os"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -75,5 +76,10 @@ func filterError(err error) error {
 	case libkbfs.RevGarbageCollectedError:
 		return errorWithErrno{err, syscall.ENOENT}
 	}
+
+	if os.IsNotExist(errors.Cause(err)) {
+		return errorWithErrno{err, syscall.ENOENT}
+	}
+
 	return err
 }

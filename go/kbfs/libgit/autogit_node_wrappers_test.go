@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	gogit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -69,6 +70,9 @@ func checkAutogitTwoFiles(t *testing.T, rootFS *libfs.FS) {
 	data2, err := ioutil.ReadAll(f2)
 	require.NoError(t, err)
 	require.Equal(t, "hello2", string(data2))
+	// Make sure a non-existent file gives the right error.
+	_, err = rootFS.Open(".kbfs_autogit/test/missing")
+	require.True(t, os.IsNotExist(errors.Cause(err)))
 }
 
 func TestAutogitRepoNode(t *testing.T) {

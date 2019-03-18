@@ -3046,7 +3046,7 @@ func (fbo *folderBranchOps) statUsingFS(
 
 	de, err = fbo.makeFakeFileEntry(ctx, node, name)
 	if err != nil {
-		return DirEntry{}, false, nil
+		return DirEntry{}, false, err
 	}
 	return de, true, nil
 }
