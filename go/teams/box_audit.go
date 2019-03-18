@@ -866,10 +866,9 @@ func retrieveAndVerifySigchainSummary(mctx libkb.MetaContext, team *Team) (summa
 		"generation": libkb.I{Val: int(g)},
 		"public":     libkb.B{Val: team.IsPublic()},
 	}
-	a.NetContext = mctx.Ctx()
 	a.SessionType = libkb.APISessionTypeREQUIRED
 	var response summaryAuditResponse
-	err = mctx.G().API.GetDecode(a, &response)
+	err = mctx.G().API.GetDecode(mctx, a, &response)
 	if err != nil {
 		return nil, err
 	}
