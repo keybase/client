@@ -75,13 +75,11 @@ const TabBar = KeyHandler(
                 style={styles.tab}
               >
                 <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-                <Kb.Icon className="tab-icon" type={data[t].icon} />
+                <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
                 <Kb.Text className="tab-label" type="BodySmallSemibold">
                   {data[t].label}
                 </Kb.Text>
-                {!!p.badgeNumbers[t] && (
-                  <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />
-                )}
+                {!!p.badgeNumbers[t] && <Kb.Badge className="tab-badge" badgeNumber={p.badgeNumbers[t]} />}
               </Kb.Box2>
             </Kb.WithTooltip>
           </Kb.ClickableBox>
@@ -92,14 +90,9 @@ const TabBar = KeyHandler(
 
 const styles = Styles.styleSheetCreate({
   avatar: {marginLeft: 14},
-  badge: {
-    left: 43,
-    position: 'absolute',
-    top: 3,
-  },
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
-  header: {height: 80},
+  header: {height: 80, marginBottom: 20},
   nameContainer: {height: 24},
   osButtons: Styles.platformStyles({
     isElectron: {
@@ -109,7 +102,7 @@ const styles = Styles.styleSheetCreate({
   }),
   tab: {
     alignItems: 'center',
-    height: 40,
+    paddingRight: 12,
     position: 'relative',
   },
   username: {color: Styles.globalColors.blue3, flexGrow: 1},

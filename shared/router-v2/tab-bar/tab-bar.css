@@ -3,11 +3,15 @@
   flex-shrink: 0;
   width: 160px;
 }
+.tab {
+  height: 40px;
+}
 .tab-selected {
-  transition-property: background-color;
-  transition-duration: 0.4s;
   background-color: rgba(76, 142, 255, 0.4);
   color: #ffffff;
+  height: 40px;
+  transition-duration: 0.4s;
+  transition-property: background-color;
 }
 .tab .tab-icon {
   color: #1036ac;
@@ -22,10 +26,12 @@
 }
 .tab .tab-label {
   color: #a8ccff;
+  flex-grow: 1;
 }
 .tab:hover .tab-label,
 .tab-selected .tab-label {
   color: #ffffff;
+  flex-grow: 1;
 }
 
 .tab-highlight {
@@ -43,10 +49,18 @@
 .tab-tooltip {
   display: none !important;
 }
+.tab-badge {
+}
 
 @media all and (max-width: 700px) and (min-width: 0px) {
   .tab-container {
     width: 80px;
+  }
+  .tab {
+    height: 48px;
+  }
+  .tab-selected {
+    height: 48px;
   }
   .tab-label,
   .username {
@@ -54,5 +68,10 @@
   }
   .tab-tooltip {
     display: flex !important;
+  }
+  .tab-badge {
+    position: absolute;
+    top: 4px;
+    left: 44px;
   }
 }
