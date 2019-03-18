@@ -1971,7 +1971,10 @@ const navigateToInbox = (state, action) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  const resetRouteAction = RouteTreeGen.createNavigateTo({
+  if (flags.useNewRouter) {
+    return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
+  }
+  let resetRouteAction = RouteTreeGen.createNavigateTo({
     path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
   })
   if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {

@@ -27,7 +27,7 @@
     },
     "navigateAppend": {
       "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path",
+      "parentPath?": "?RCConstants.Path"
     },
     "navigateUp": {},
     "putActionIfOnPath": {
@@ -44,6 +44,10 @@
     },
     "clearModals": {
       "_description": "ONLY used by the new nav. use this to clear any modal routes"
+    },
+    "navUpToScreen": {
+      "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
+      "routeName": "string"
     }
   }
 }

@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles from './'
-import {connect} from '../../../util/container'
+import {connect, getRouteProps} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../route-tree/render-route'
 import type {PathToInfo} from '.'
@@ -14,9 +14,9 @@ type OwnProps = RouteProps<
   {}
 >
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => ({
-  _conversationIDKey: routeProps.get('conversationIDKey'),
-  pathAndOutboxIDs: routeProps.get('pathAndOutboxIDs'),
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  _conversationIDKey: getRouteProps(ownProps, 'conversationIDKey'),
+  pathAndOutboxIDs: getRouteProps(ownProps, 'pathAndOutboxIDs'),
 })
 
 const mapDispatchToProps = dispatch => ({
