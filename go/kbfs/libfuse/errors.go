@@ -75,6 +75,10 @@ func filterError(err error) error {
 		return errorWithErrno{err, syscall.ENOSPC}
 	case libkbfs.RevGarbageCollectedError:
 		return errorWithErrno{err, syscall.ENOENT}
+	case libkbfs.NoSuchNameError:
+		return errorWithErrno{err, syscall.ENOENT}
+	case libkbfs.NameExistsError:
+		return errorWithErrno{err, syscall.EEXIST}
 	}
 
 	if os.IsNotExist(errors.Cause(err)) {
