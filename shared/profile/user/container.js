@@ -91,7 +91,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showOtherIdentities: stateProps.userIsYou, // TODO: gate on available providers
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
-    ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
+    ? stateProps._suggestionKeys
+        .filter(s => !s.belowFold)
+        .map(s => s.assertionKey)
+        .toArray()
     : null,
   userIsYou: stateProps.userIsYou,
   username: stateProps.username,
