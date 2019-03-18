@@ -30,6 +30,7 @@ const mapStateToProps = state => {
   const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
 
   return {
+    _badgeMap: state.chat2.badgeMap,
     _canRefreshOnMount,
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
@@ -77,34 +78,51 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  _canRefreshOnMount: stateProps._canRefreshOnMount,
-  _hasLoadedTrusted: stateProps._hasLoadedTrusted,
-  _onInitialLoad: dispatchProps._onInitialLoad,
-  _refreshInbox: dispatchProps._refreshInbox,
-  allowShowFloatingButton: stateProps.allowShowFloatingButton,
-  filter: stateProps.filter,
-  neverLoaded: stateProps.neverLoaded,
-  onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
-  onEnsureSelection: () => {
-    // $ForceType
-    if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
-      return
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const unreadIndices = []
+  for (let i = stateProps.rows.length - 1; i >= 0; i--) {
+    const row = stateProps.rows[i]
+    if (!['big', 'bigHeader'].includes(row.type)) {
+      // only check big teams for large inbox perf
+      break
     }
-    const first = stateProps.rows[0]
-    if ((first && first.type === 'small') || first.type === 'big') {
-      dispatchProps._onSelect(first.conversationIDKey)
+    if (row.conversationIDKey && stateProps._badgeMap.get(row.conversationIDKey)) {
+      unreadIndices.unshift(i)
     }
-  },
-  onNewChat: dispatchProps.onNewChat,
-  onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
-  onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
-  onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-  rows: stateProps.rows,
-  selectedConversationIDKey: isMobile ? Constants.noConversationIDKey : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
-  smallTeamsExpanded: stateProps.smallTeamsExpanded,
-  toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-})
+  }
+  return {
+    _canRefreshOnMount: stateProps._canRefreshOnMount,
+    _hasLoadedTrusted: stateProps._hasLoadedTrusted,
+    _onInitialLoad: dispatchProps._onInitialLoad,
+    _refreshInbox: dispatchProps._refreshInbox,
+    allowShowFloatingButton: stateProps.allowShowFloatingButton,
+    filter: stateProps.filter,
+    neverLoaded: stateProps.neverLoaded,
+    onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
+    onEnsureSelection: () => {
+      // $ForceType
+      if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
+        return
+      }
+      const first = stateProps.rows[0]
+      if ((first && first.type === 'small') || first.type === 'big') {
+        dispatchProps._onSelect(first.conversationIDKey)
+      }
+    },
+    onNewChat: dispatchProps.onNewChat,
+    onSelectDown: () =>
+      dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
+    onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
+    onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+    rows: stateProps.rows,
+    selectedConversationIDKey: isMobile
+      ? Constants.noConversationIDKey
+      : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
+    smallTeamsExpanded: stateProps.smallTeamsExpanded,
+    toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+    unreadIndices: I.List(unreadIndices),
+  }
+}
 
 type Props = $Diff<
   {|
