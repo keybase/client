@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -309,7 +310,11 @@ func (k *KeybaseServiceBase) setCachedTeamInfo(
 	}
 }
 
-func (k *KeybaseServiceBase) clearCaches() {
+// ClearCaches implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
+	k.log.CDebugf(ctx, "Clearing KBFS-side user and team caches")
+
 	k.setCachedCurrentSession(SessionInfo{})
 	func() {
 		k.userCacheLock.Lock()
@@ -1048,7 +1053,7 @@ func (k *KeybaseServiceBase) getCurrentSession(
 	// Loop until either we have the session info, or until we are the
 	// sole goroutine that needs to make the RPC.  Avoid holding the
 	// session cache lock during the RPC, since that can result in a
-	// deadlock if the RPC results in a call to `clearCaches()`.
+	// deadlock if the RPC results in a call to `ClearCaches()`.
 	for !doRPC {
 		cachedCurrentSession, inProgressCh, doRPC =
 			k.getCachedCurrentSessionOrInProgressCh()
@@ -1344,7 +1349,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	}
 	// Making a favorite here to reuse the code that converts from
 	// `keybase1.FolderType` into `tlf.Type`.
-	fav := NewFavoriteFromFolder(folder)
+	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {
@@ -1357,7 +1362,7 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder) (err error) {
-	fav := NewFavoriteFromFolder(folder)
+	fav := favorites.NewFolderFromProtocol(folder)
 	handle, err := GetHandleFromFolderNameAndType(
 		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, fav.Name, fav.Type)
 	if err != nil {

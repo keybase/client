@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
+import {SiteIcon} from '../../profile/generic/shared'
 import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
 type Props = {|
@@ -21,8 +22,8 @@ type Props = {|
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
-  siteIcon: $ReadOnlyArray<Types.SiteIcon>,
-  siteIconFull: $ReadOnlyArray<Types.SiteIcon>,
+  siteIcon: Types.SiteIconSet,
+  siteIconFull: Types.SiteIconSet,
   siteURL: string,
   state: Types.AssertionState,
   timestamp: number,
@@ -203,15 +204,6 @@ const Value = p => {
   return content
 }
 
-const siteIconToSrcSet = siteIcon =>
-  `-webkit-image-set(${siteIcon
-    .slice()
-    .sort((a, b) => a.width - b.width)
-    .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
-    .join(', ')})`
-const siteIconToNativeSrcSet = siteIcon =>
-  siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
-
 const HoverOpacity = Styles.styled(Kb.Box)({
   '&:hover': {
     opacity: 1,
@@ -310,28 +302,14 @@ class Assertion extends React.PureComponent<Props, State> {
     }
   }
   _siteIcon = (full: boolean) => {
-    const set = full ? this.props.siteIconFull : this.props.siteIcon
-    const style = full ? styles.siteIconFull : styles.siteIcon
-    // on mobile use `Kb.RequireImage`, desktop a box with background-image
-    let child
-    if (Styles.isMobile) {
-      child = <Kb.RequireImage src={siteIconToNativeSrcSet(set)} style={style} />
-    } else {
-      const Container = this.props.isSuggestion ? HoverOpacity : Kb.Box
-      child = (
-        <Container
-          style={Styles.collapseStyles([
-            style,
-            {
-              backgroundImage: siteIconToSrcSet(set),
-            },
-          ])}
-        />
-      )
+    let child = <SiteIcon full={full} set={full ? this.props.siteIconFull : this.props.siteIcon} />
+    if (full) {
+      return child
     }
-    return full ? (
-      child
-    ) : (
+    if (!Styles.isMobile && this.props.isSuggestion) {
+      child = <HoverOpacity>{child}</HoverOpacity>
+    }
+    return (
       <Kb.ClickableBox
         onClick={this.props.onCreateProof || this.props.onShowProof}
         style={this.props.isSuggestion ? styles.halfOpacity : null}
@@ -353,7 +331,7 @@ class Assertion extends React.PureComponent<Props, State> {
         fullWidth={true}
       >
         <Kb.Box2
-          alignItems="center"
+          alignItems="flex-start"
           direction="horizontal"
           gap="tiny"
           fullWidth={true}
@@ -369,7 +347,7 @@ class Assertion extends React.PureComponent<Props, State> {
               </Kb.Text>
             )}
           </Kb.Text>
-          <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof}>
+          <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof} style={styles.statusContainer}>
             <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
               <Kb.Icon
                 type={stateToIcon(p.state)}
@@ -430,27 +408,15 @@ const styles = Styles.styleSheetCreate({
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   positionRelative: {position: 'relative'},
   site: {color: Styles.globalColors.black_20},
-  siteIcon: {flexShrink: 0, height: 16, width: 16},
-  siteIconFull: Styles.platformStyles({
-    common: {
-      flexShrink: 0,
-    },
-    isElectron: {
-      backgroundSize: 'contain',
-      height: 48,
-      width: 48,
-    },
-    isMobile: {
-      height: 64,
-      width: 64,
-    },
-  }),
   siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
+  statusContainer: Styles.platformStyles({
+    isMobile: {position: 'relative', top: -2},
+  }),
   strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
   username: Styles.platformStyles({
-    isElectron: {display: 'inline-block', wordBreak: 'break-all'},
+    isElectron: {wordBreak: 'break-all'},
   }),
 })
 

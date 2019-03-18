@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
@@ -405,8 +406,8 @@ func (h *TlfHandle) GetCanonicalPath() string {
 
 // ToFavorite converts a TlfHandle into a Favorite, suitable for
 // Favorites calls.
-func (h *TlfHandle) ToFavorite() Favorite {
-	return Favorite{
+func (h *TlfHandle) ToFavorite() favorites.Folder {
+	return favorites.Folder{
 		Name: string(h.GetCanonicalName()),
 		Type: h.Type(),
 	}
@@ -414,8 +415,8 @@ func (h *TlfHandle) ToFavorite() Favorite {
 
 // FavoriteData converts a TlfHandle into FavoriteData, suitable for
 // Favorites calls.
-func (h *TlfHandle) FavoriteData() FavoriteData {
-	fd := FavoriteData{
+func (h *TlfHandle) FavoriteData() favorites.Data {
+	fd := favorites.Data{
 		Name:         string(h.GetCanonicalName()),
 		FolderType:   h.Type().FolderType(),
 		Private:      h.Type() != tlf.Public,
@@ -431,11 +432,11 @@ func (h *TlfHandle) FavoriteData() FavoriteData {
 // ToFavorite converts a TlfHandle into a Favorite, and sets internal
 // state about whether the corresponding folder was just created or
 // not.
-func (h *TlfHandle) toFavToAdd(created bool) favToAdd {
-	return favToAdd{
-		Favorite: h.ToFavorite(),
-		Data:     h.FavoriteData(),
-		created:  created,
+func (h *TlfHandle) toFavToAdd(created bool) favorites.ToAdd {
+	return favorites.ToAdd{
+		Folder:  h.ToFavorite(),
+		Data:    h.FavoriteData(),
+		Created: created,
 	}
 }
 

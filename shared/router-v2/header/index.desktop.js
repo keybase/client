@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {LeftAction} from '../../common-adapters/header-hoc'
 
 // A mobile-like header for desktop
 
@@ -30,25 +29,27 @@ class Header extends React.PureComponent<Props> {
       style = {position: 'absolute', zIndex: 9999}
     }
 
+    let showDivider = true
+    if (opt.headerHideBorder) {
+      showDivider = false
+    }
+
     return (
       <Kb.Box2
         noShrink={true}
         direction="vertical"
         fullWidth={true}
-        style={Styles.collapseStyles([styles.headerContainer, style])}
-        gap="xtiny"
-        gapEnd={true}
+        style={Styles.collapseStyles([styles.headerContainer, showDivider && styles.headerBorder, style])}
       >
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack}>
-          <LeftAction
-            badgeNumber={0}
-            leftAction="back"
-            hideBackLabel={true}
-            onLeftAction={this.props.onPop}
-            disabled={!this.props.allowBack}
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
+          <Kb.Icon
+            type="iconfont-arrow-left"
+            style={this.props.allowBack ? styles.icon : styles.disabledIcon}
+            color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
+            onClick={this.props.onPop}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
           {title}
         </Kb.Box2>
       </Kb.Box2>
@@ -57,18 +58,34 @@ class Header extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  bottom: {minHeight: 40 - 1}, // for border
+  disabledIcon: Styles.platformStyles({
+    isElectron: {
+      cursor: 'default',
+      marginRight: 6,
+    },
+  }),
   headerBack: Styles.platformStyles({
     isElectron: {
       alignItems: 'center',
-      minHeight: 36,
+      height: 40,
+      padding: 12,
     },
   }),
+  headerBorder: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+  },
   headerContainer: Styles.platformStyles({
     isElectron: {
-      alignItems: 'center',
       ...Styles.desktopStyles.windowDragging,
+      alignItems: 'center',
     },
   }),
+  icon: {
+    marginRight: 6,
+  },
 })
 
 export default Header

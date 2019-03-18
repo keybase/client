@@ -629,6 +629,48 @@ func TestSyncDismissal(t *testing.T) {
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
 
+func TestMessagesAddedDuringProcessing(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+	defer h.Shutdown()
+
+	totalNumberOfMessages := 10
+	numberToDoAsync := 5
+	// create a bunch of messages to be processed
+	var msgs []gregor1.Message
+	for i := 1; i <= totalNumberOfMessages; i++ {
+		msg := server.newIbm(uid)
+		msgs = append(msgs, msg)
+	}
+
+	blockUntilDone := make(chan struct{})
+	// fire off some of them asynchronously
+	go func() {
+		for i := 0; i < numberToDoAsync; i++ {
+			server.ConsumeMessage(context.TODO(), msgs[i])
+		}
+		blockUntilDone <- struct{}{}
+	}()
+	// do the rest synchronously
+	for i := numberToDoAsync; i < totalNumberOfMessages; i++ {
+		server.ConsumeMessage(context.TODO(), msgs[i])
+	}
+
+	// block until everything has had a chance to get called
+	select {
+	case <-blockUntilDone:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "async messages not consumed")
+	}
+
+	// all of the messages should have been consumed
+	_, consumedMessages := doServerSync(t, h, server)
+	require.Equal(t, len(consumedMessages), totalNumberOfMessages)
+}
+
 type dummyRemoteClient struct {
 	chat1.RemoteClient
 }

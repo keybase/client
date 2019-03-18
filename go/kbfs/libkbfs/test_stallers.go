@@ -12,9 +12,9 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
-
 	"golang.org/x/net/context"
 )
 
@@ -261,7 +261,7 @@ func StallBlockOp(ctx context.Context, config Config,
 			unstall: unstallCh,
 		},
 	})
-	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	newCtx = libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
 	})
 	return onStalledCh, unstallCh, newCtx
@@ -287,7 +287,7 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 		},
 		delegate: config.MDOps(),
 	})
-	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	newCtx = libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
 	})
 	return onStalledCh, unstallCh, newCtx

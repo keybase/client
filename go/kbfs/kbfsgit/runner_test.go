@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -36,7 +37,7 @@ func (te testErrput) Write(buf []byte) (int, error) {
 }
 
 func TestRunnerCapabilities(t *testing.T) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
@@ -58,7 +59,7 @@ func TestRunnerCapabilities(t *testing.T) {
 
 func initConfigForRunner(t *testing.T) (
 	ctx context.Context, config *libkbfs.ConfigLocal, tempdir string) {
-	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx = libcontext.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1", "user2")
 	success := false

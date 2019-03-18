@@ -618,6 +618,13 @@ export const localHeaderPlaintextVersion = {
   v10: 10,
 }
 
+export const localMessageIDControlMode = {
+  oldermessages: 0,
+  newermessages: 1,
+  centered: 2,
+  unreadline: 3,
+}
+
 export const localMessageSystemType = {
   addedtoteam: 0,
   inviteaddedtoteam: 1,
@@ -883,8 +890,8 @@ export type ConversationUpdate = $ReadOnly<{convID: ConversationID, existence: C
 export type ConversationVers = Uint64
 export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
-export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
-export type DownloadFileAttachmentLocalRes = $ReadOnly<{filename: String, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type DownloadAttachmentLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type DownloadFileAttachmentLocalRes = $ReadOnly<{filename: String, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type EditTarget = $ReadOnly<{messageID?: ?MessageID, outboxID?: ?OutboxID}>
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type EphemeralPurgeInfo = $ReadOnly<{c /* convID */: ConversationID, a /* isActive */: Boolean, n /* nextPurgeTime */: Gregor1.Time, e /* minUnexplodedID */: MessageID}>
@@ -1007,7 +1014,13 @@ export type MessageEdit = $ReadOnly<{messageID: MessageID, body: String}>
 export type MessageFlip = $ReadOnly<{text: String, gameID: FlipGameID, flipConvID: ConversationID}>
 export type MessageHeadline = $ReadOnly<{headline: String}>
 export type MessageID = Uint
-export type MessageIDControl = $ReadOnly<{pivot?: ?MessageID, recent: Boolean, num: Int}>
+export type MessageIDControl = $ReadOnly<{pivot?: ?MessageID, mode: MessageIDControlMode, num: Int}>
+export type MessageIDControlMode =
+  | 0 // OLDERMESSAGES_0
+  | 1 // NEWERMESSAGES_1
+  | 2 // CENTERED_2
+  | 3 // UNREADLINE_3
+
 export type MessageJoin = $ReadOnly<{}>
 export type MessageLeave = $ReadOnly<{}>
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody, supersedesOutboxID?: ?OutboxID}>

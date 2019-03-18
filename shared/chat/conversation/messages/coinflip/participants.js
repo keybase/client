@@ -25,6 +25,8 @@ const CoinFlipParticipants = (props: Props) => {
         <Kb.ScrollView style={styles.partContainer}>
           {props.participants.map(p => (
             <Kb.NameWithIcon
+              colorBroken={true}
+              colorFollowing={true}
               key={`${p.username}${p.deviceName}`}
               horizontal={true}
               username={p.username}

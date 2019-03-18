@@ -34,13 +34,15 @@ export function PopupDialog({
         onMouseMove={onMouseMove}
       >
         <Box style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}>
-          <Icon
-            type="iconfont-close"
-            style={Styles.collapseStyles([styles.close, styleClose])}
-            color={Styles.globalColors.white}
-            onClick={onClose}
-            hoverColor={Styles.globalColors.white_40}
-          />
+          {onClose && (
+            <Icon
+              type="iconfont-close"
+              style={Styles.collapseStyles([styles.close, styleClose])}
+              color={Styles.globalColors.white}
+              onClick={onClose}
+              hoverColor={Styles.globalColors.white_40}
+            />
+          )}
           <Box
             style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
             onClick={allowClipBubbling ? undefined : stopBubbling}

@@ -48,7 +48,7 @@ export const getProfilePath = (
   state: TypedState
 ) => {
   const onlyProfilesProps = peopleRouteProps.filter(segment =>
-    [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
+    [peopleTab, 'profile', 'profileNonUserProfile'].includes(segment.node)
   )
   const onlyProfilesPath: Array<{selected: ?string, props: any}> = onlyProfilesProps
     .map(segment => ({
@@ -102,7 +102,7 @@ export const getProfilePath = (
       (topProfile.props && topProfile.props.serviceName !== props.serviceName)
     ) {
       // This user is not the top profile, push on top
-      onlyProfilesPath.push({props, selected: 'nonUserProfile'})
+      onlyProfilesPath.push({props, selected: 'profileNonUserProfile'})
     }
   }
   return onlyProfilesPath

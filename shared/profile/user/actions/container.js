@@ -28,7 +28,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onAddToTeam: (username: string) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'addToTeam'}]})),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]})),
   _onBrowsePublicFolder: (username: string) =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/public/${username}`)})),
   _onChat: (username: string) => {
@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClose: (guiID: string) => dispatch(Tracker2Gen.createCloseTracker({guiID})),
-  _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['editProfile2']})),
+  _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']})),
   _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
   _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
   _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>

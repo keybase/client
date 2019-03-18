@@ -951,6 +951,12 @@ func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
 	// Do nothing.
 }
 
+// ClearCaches implements the KeybaseDaemon interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) ClearCaches(_ context.Context) {
+	// Do nothing.
+}
+
 // EstablishMountDir implements the KeybaseDaemon interface for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, error) {
 	return "", nil

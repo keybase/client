@@ -264,31 +264,26 @@ func (e *EKLib) NewDeviceEKNeeded(ctx context.Context) (needed bool, err error) 
 
 func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
 	defer e.G().CTraceTimed(ctx, "newDeviceEKNeeded", func() error { return err })()
-
-	s := e.G().GetDeviceEKStorage()
-	maxGeneration, err := s.MaxGeneration(ctx)
-	if err != nil {
+	defer func() {
 		switch err.(type) {
 		case erasablekv.UnboxError:
-			e.G().Log.Debug("newDeviceEKNeeded: DeviceEKStorage.MaxGeneration failed %v", err)
-			return true, nil
-		default:
-			return false, err
+			e.G().Log.Debug("newDeviceEKNeeded: unable to fetch latest: %v, creating new deviceEK", err)
+			needed = true
+			err = nil
 		}
-	}
-	if maxGeneration < 0 {
+	}()
+
+	s := e.G().GetDeviceEKStorage()
+	maxGeneration, err := s.MaxGeneration(ctx, true)
+	if err != nil {
+		return false, err
+	} else if maxGeneration < 0 {
 		return true, nil
 	}
 
 	ek, err := s.Get(ctx, maxGeneration)
 	if err != nil {
-		switch err.(type) {
-		case erasablekv.UnboxError:
-			e.G().Log.Debug("newDeviceEKNeeded: DeviceEKStorage.Get failed %v", err)
-			return true, nil
-		default:
-			return false, err
-		}
+		return false, err
 	}
 
 	// Ok we can access the ek, check lifetime.
@@ -437,19 +432,19 @@ func (e *EKLib) PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID ke
 	}
 }
 
-func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, created bool, err error) {
 	if err = e.checkLogin(ctx); err != nil {
-		return teamEK, err
+		return teamEK, false, err
 	}
 
 	err = teamEKRetryWrapper(ctx, e.G(), func() error {
-		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
+		teamEK, created, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
 		return err
 	})
-	return teamEK, err
+	return teamEK, created, err
 }
 
-func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, created bool, err error) {
 	defer e.G().CTraceTimed(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
 	e.Lock()
 	defer e.Unlock()
@@ -462,7 +457,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 		if cacheEntry, expired := e.isEntryExpired(val); !expired || cacheEntry.CreationInProgress {
 			teamEK, err = teamEKBoxStorage.Get(ctx, teamID, cacheEntry.Generation, nil)
 			if err == nil {
-				return teamEK, nil
+				return teamEK, false, nil
 			}
 			// kill our cached entry and re-generate below
 			e.teamEKGenCache.Remove(cacheKey)
@@ -471,7 +466,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(e.MetaContext(ctx), libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
-		return teamEK, err
+		return teamEK, false, err
 	}
 	merkleRoot := *merkleRootPtr
 	defer func() { e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot) }()
@@ -481,7 +476,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	// = false so we can run deletion in the background ourselves and not block
 	// this call.
 	if err = e.keygenIfNeeded(ctx, merkleRoot, false /* shouldCleanup */); err != nil {
-		return teamEK, err
+		return teamEK, false, err
 	}
 
 	// newTeamEKNeeded checks that the current teamEKStatement is signed by the
@@ -491,7 +486,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	// encryption.
 	teamEKNeeded, backgroundGenPossible, latestGeneration, err := e.newTeamEKNeeded(ctx, teamID, merkleRoot)
 	if err != nil {
-		return teamEK, err
+		return teamEK, false, err
 	} else if backgroundGenPossible {
 		// Our current teamEK is *almost* expired but otherwise valid, so let's
 		// create the new teamEK in the background. For large teams and an
@@ -509,34 +504,36 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 			// Grab the lock once we finish publishing so we do don't block
 			e.Lock()
 			defer e.Unlock()
+			created := false
 			if err != nil {
 				// Let's just clear the cache and try again later
 				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK in the background: %v", err)
 				e.teamEKGenCache.Remove(cacheKey)
 			} else {
 				e.teamEKGenCache.Add(cacheKey, e.newCacheEntry(publishedMetadata.Generation, false))
+				created = true
 			}
 
 			if e.backgroundCreationTestCh != nil {
-				e.backgroundCreationTestCh <- true
+				e.backgroundCreationTestCh <- created
 			}
 		}()
 	} else if teamEKNeeded {
 		publishedMetadata, err := publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
 		if err != nil {
-			return teamEK, err
+			return teamEK, false, err
 		}
 		latestGeneration = publishedMetadata.Generation
 	}
 
 	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, latestGeneration, nil)
 	if err != nil {
-		return teamEK, err
+		return teamEK, false, err
 	}
 	// Cache the latest generation and signal future callers if we are trying
 	// to create the new key in the background.
 	e.teamEKGenCache.Add(cacheKey, e.newCacheEntry(latestGeneration, backgroundGenPossible))
-	return teamEK, nil
+	return teamEK, teamEKNeeded, nil
 }
 
 // Try to get the TeamEK for the given `generation`. If this fails and the
@@ -555,14 +552,18 @@ func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generatio
 			// off creation of a new key.
 			bgctx := libkb.CopyTagsToBackground(ctx)
 			go func(ctx context.Context) {
-				maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID)
+				maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID, true)
 				if err != nil {
 					e.G().Log.CDebugf(ctx, "Unable to get MaxGeneration: %v", err)
 					return
 				}
 				if generation == maxGeneration {
-					if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
+					_, created, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID)
+					if cerr != nil {
 						e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
+					}
+					if e.backgroundCreationTestCh != nil {
+						e.backgroundCreationTestCh <- created
 					}
 				}
 			}(bgctx)
@@ -601,7 +602,7 @@ func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKey
 	}
 
 	userEKBoxStorage := e.G().GetUserEKBoxStorage()
-	maxGeneration, err := userEKBoxStorage.MaxGeneration(ctx)
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -657,7 +658,7 @@ func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, rec
 	}
 
 	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
-	maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID)
+	maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID, false)
 	if err != nil {
 		return nil, err
 	}

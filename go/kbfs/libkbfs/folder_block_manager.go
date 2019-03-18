@@ -26,7 +26,7 @@ type fbmHelper interface {
 	getMostRecentFullyMergedMD(ctx context.Context) (
 		ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *GCOp) error
-	getLatestMergedRevision(lState *lockState) kbfsmd.Revision
+	getLatestMergedRevision(lState *kbfssync.LockState) kbfsmd.Revision
 }
 
 const (
@@ -846,6 +846,7 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 
 func getUnrefPointersFromMD(
 	rmd ImmutableRootMetadata, includeGC bool) (ptrs []BlockPointer) {
+	ptrMap := make(map[BlockPointer]bool)
 	for _, op := range rmd.data.Changes.Ops {
 		if _, ok := op.(*GCOp); !includeGC && ok {
 			continue
@@ -854,8 +855,8 @@ func getUnrefPointersFromMD(
 			// Can be zeroPtr in weird failed sync scenarios.
 			// See syncInfo.replaceRemovedBlock for an example
 			// of how this can happen.
-			if ptr != zeroPtr {
-				ptrs = append(ptrs, ptr)
+			if ptr != zeroPtr && !ptrMap[ptr] {
+				ptrMap[ptr] = true
 			}
 		}
 		for _, update := range op.allUpdates() {
@@ -863,10 +864,14 @@ func getUnrefPointersFromMD(
 			// two identical pointers (usually because of
 			// conflict resolution), so ignore that for quota
 			// reclamation purposes.
-			if update.Ref != update.Unref {
-				ptrs = append(ptrs, update.Unref)
+			if update.Ref != update.Unref && !ptrMap[update.Unref] {
+				ptrMap[update.Unref] = true
 			}
 		}
+	}
+	ptrs = make([]BlockPointer, 0, len(ptrMap))
+	for ptr := range ptrMap {
+		ptrs = append(ptrs, ptr)
 	}
 	return ptrs
 }

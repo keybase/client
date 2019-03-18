@@ -31,9 +31,9 @@ const MutedIcon = ({isHovered, isMuted, isSelected, isLocked}) => {
   let type
   if (isMuted) {
     if (isMobile) {
-      type = isSelected ? 'icon-shh-active-24' : 'icon-shh-24'
+      type = isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21'
     } else {
-      type = isSelected ? 'icon-shh-active-16' : isHovered ? 'icon-shh-hover-16' : 'icon-shh-16'
+      type = isSelected ? 'icon-shh-active-19-16' : isHovered ? 'icon-shh-hover-19-16' : 'icon-shh-19-16'
     }
     icon = <Icon type={type} style={avatarIconStyle} />
   } else if (isLocked) {

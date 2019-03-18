@@ -13,6 +13,7 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfuse"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
@@ -60,8 +61,8 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	tb.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
 
 	ctx, cancelFn := context.WithCancel(context.Background())
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
 			ctx, func(c context.Context) context.Context {
 				return ctx
 			}))

@@ -962,3 +962,27 @@ func isTlfNameNotCanonical(err error) bool {
 	_, ok := errors.Cause(err).(TlfNameNotCanonical)
 	return ok
 }
+
+type noImplicitTeamKBPKI struct {
+	KBPKI
+}
+
+// ResolveImplicitTeam implements the KBPKI interface for noImplicitTeamKBPKI.
+func (nitk noImplicitTeamKBPKI) ResolveImplicitTeam(
+	_ context.Context, _, _ string, _ tlf.Type,
+	_ keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+	return ImplicitTeamInfo{},
+		errors.New("Skipping implicit team lookup for quick handle parsing")
+}
+
+// ParseTlfHandlePreferredQuick parses a handle from a name, without
+// doing this time consuming checks needed for implicit-team checking
+// or TLF-ID-fetching.
+func ParseTlfHandlePreferredQuick(
+	ctx context.Context, kbpki KBPKI, osg OfflineStatusGetter,
+	name string, ty tlf.Type) (handle *TlfHandle, err error) {
+	// Override the KBPKI with one that doesn't try to resolve
+	// implicit teams.
+	kbpki = noImplicitTeamKBPKI{kbpki}
+	return ParseTlfHandlePreferred(ctx, kbpki, nil, osg, name, ty)
+}

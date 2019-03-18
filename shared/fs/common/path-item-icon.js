@@ -7,9 +7,9 @@ import * as Kb from '../../common-adapters'
 import * as Flow from '../../util/flow'
 import logger from '../../logger'
 
-type RealSize = 64 | 48 | 32 | 16
-type RealSizeString = '64' | '48' | '32' | '16'
-export type Size = 64 | 48 | 32 | 16 | 12
+type RealSize = 96 | 64 | 48 | 32 | 16
+type RealSizeString = '96' | '64' | '48' | '32' | '16'
+export type Size = RealSize | 12
 
 export type Props = {
   badge?: ?Types.PathItemBadge,
@@ -32,6 +32,8 @@ const getIconSizeString = (size: Size): RealSizeString => {
       return '48'
     case 64:
       return '64'
+    case 96:
+      return '96'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(realSize)
       return '32'
@@ -46,12 +48,14 @@ const icons = {
     '32': 'icon-file-32',
     '48': 'icon-file-48',
     '64': 'icon-file-64',
+    '96': 'icon-file-96',
   },
   folder: {
     '16': 'icon-folder-16',
     '32': 'icon-folder-32',
     '48': 'icon-folder-48',
     '64': 'icon-folder-64',
+    '96': 'icon-folder-64', // TODO: use 96 when we have it
   },
   tlfList: {
     private: {
@@ -59,18 +63,21 @@ const icons = {
       '32': 'icon-folder-private-32',
       '48': 'icon-folder-private-48',
       '64': 'icon-folder-private-64',
+      '96': 'icon-folder-private-64', // TODO: use 96 when we have it
     },
     public: {
       '16': 'icon-folder-public-16',
       '32': 'icon-folder-public-32',
       '48': 'icon-folder-public-48',
       '64': 'icon-folder-public-64',
+      '96': 'icon-folder-public-64', // TODO: use 96 when we have it
     },
     team: {
       '16': 'icon-folder-team-16',
       '32': 'icon-folder-team-32',
       '48': 'icon-folder-team-48',
       '64': 'icon-folder-team-64',
+      '96': 'icon-folder-team-64', // TODO: use 96 when we have it
     },
   },
 }

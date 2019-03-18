@@ -56,4 +56,8 @@ protocol account {
   
   GetLockdownResponse getLockdownMode(int sessionID);
   void setLockdownMode(int sessionID, boolean enabled);
+
+  // Call an API handler that will send an e-mail to the user with their
+  // Keybase username.
+  void recoverUsername(int sessionID, string email);
 }

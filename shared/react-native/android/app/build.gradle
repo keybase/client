@@ -5,7 +5,7 @@ apply plugin: 'com.github.triplet.play'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "3.2.0"
+def VERSION_NAME = "3.2.1"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -111,7 +111,7 @@ def Integer timestamp() {
     cal.set(2016,0,1)
     def minutesJan2016 = cal.getTimeInMillis()/(1000 * 60)
 
-    return minutesSinceEpoch - minutesJan2016
+    return minutesSinceEpoch - minutesJan2016 + 4200000 // This is to fix an accidental bumping of the code
 }
 
 android {

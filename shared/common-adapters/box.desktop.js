@@ -37,6 +37,7 @@ const box2 = (props: Box2Props) => {
     props.alignSelf && `box2_alignSelf_${props.alignSelf}`,
     props.alignItems && `box2_alignItems_${props.alignItems}`,
     props.noShrink && 'box2_no_shrink',
+    props.pointerEvents === 'none' && 'box2_pointerEvents_none',
     props.className,
   ]
     .filter(Boolean)
@@ -50,8 +51,12 @@ const box2 = (props: Box2Props) => {
   // }
   return (
     <div
+      onDragLeave={props.onDragLeave}
+      onDragOver={props.onDragOver}
+      onDrop={props.onDrop}
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
+      onCopyCapture={props.onCopyCapture}
       className={className}
       style={style}
     >

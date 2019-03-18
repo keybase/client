@@ -101,7 +101,10 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
 	convs := b.getConvs(inbox, maxLocalize)
-	b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb)
+	if err := b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb); err != nil {
+		b.Debug(ctx, "Localize: failed to queue: %s", err)
+		return res, err
+	}
 
 	res = make([]chat1.ConversationLocal, len(convs))
 	indexMap := make(map[string]int)
@@ -166,11 +169,13 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 		InboxRes: &filteredInbox,
 	}
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
-	bctx := BackgroundContext(ctx, b.G())
-	go func() {
-		b.Debug(bctx, "Localize: starting background localization: convs: %d", len(inbox.ConvsUnverified))
-		b.baseLocalizer.pipeline.queue(bctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb)
-	}()
+	go func(ctx context.Context) {
+		b.Debug(ctx, "Localize: starting background localization: convs: %d", len(inbox.ConvsUnverified))
+		if err := b.baseLocalizer.pipeline.queue(ctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb); err != nil {
+			b.Debug(ctx, "Localize: failed to queue: %s", err)
+			close(b.localizeCb)
+		}
+	}(BackgroundContext(ctx, b.G()))
 	return nil, nil
 }
 
@@ -300,16 +305,20 @@ func (s *localizerPipeline) Disconnected() {
 }
 
 func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
-	retCh chan types.AsyncInboxResult) {
+	retCh chan types.AsyncInboxResult) error {
 	defer s.Trace(ctx, func() error { return nil }, "queue")()
 	s.Lock()
 	defer s.Unlock()
+	if !s.started {
+		return errors.New("localizer not running")
+	}
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
 	job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(ctx, s.G()))
 	if isLocalizerCancelableContext(job.ctx) {
 		s.Debug(job.ctx, "queue: adding cancellable job")
 	}
 	s.jobQueue <- job
+	return nil
 }
 
 func (s *localizerPipeline) clearQueue() {

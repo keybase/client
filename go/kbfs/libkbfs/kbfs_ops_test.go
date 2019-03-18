@@ -22,6 +22,8 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -162,7 +164,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	id := rand.Int()
-	ctx, err = NewContextWithCancellationDelayer(NewContextReplayable(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		timeoutCtx, func(ctx context.Context) context.Context {
 			return context.WithValue(ctx, tCtxID, id)
 		}))
@@ -184,7 +186,7 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
 		}
 	}
 	cancel()
-	if err := CleanupCancellationDelayer(ctx); err != nil {
+	if err := libcontext.CleanupCancellationDelayer(ctx); err != nil {
 		panic(err)
 	}
 	config.mockBops.Prefetcher().Shutdown()
@@ -222,7 +224,7 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 		}
 	}()
 
-	ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
+	ctx, err := libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		timeoutCtx, func(c context.Context) context.Context {
 			return c
 		}))
@@ -243,7 +245,7 @@ func kbfsTestShutdownNoMocks(t *testing.T, config *ConfigLocal,
 	ctx context.Context, cancel context.CancelFunc) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
-	CleanupCancellationDelayer(ctx)
+	libcontext.CleanupCancellationDelayer(ctx)
 }
 
 // TODO: Get rid of all users of this.
@@ -251,7 +253,7 @@ func kbfsTestShutdownNoMocksNoCheck(t *testing.T, config *ConfigLocal,
 	ctx context.Context, cancel context.CancelFunc) {
 	config.Shutdown(ctx)
 	cancel()
-	CleanupCancellationDelayer(ctx)
+	libcontext.CleanupCancellationDelayer(ctx)
 }
 
 func checkBlockCache(
@@ -2177,7 +2179,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 }
 
 func mergeUnrefCache(
-	ops *folderBranchOps, lState *lockState, file path, md *RootMetadata) {
+	ops *folderBranchOps, lState *kbfssync.LockState, file path,
+	md *RootMetadata) {
 	ops.blocks.blockLock.RLock(lState)
 	defer ops.blocks.blockLock.RUnlock(lState)
 	ops.blocks.unrefCache[file.tailPointer().Ref()].mergeUnrefCache(md)
@@ -2779,7 +2782,8 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 }
 
 func getOrCreateSyncInfo(
-	ops *folderBranchOps, lState *lockState, de DirEntry) (*syncInfo, error) {
+	ops *folderBranchOps, lState *kbfssync.LockState, de DirEntry) (
+	*syncInfo, error) {
 	ops.blocks.blockLock.Lock(lState)
 	defer ops.blocks.blockLock.Unlock(lState)
 	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)
@@ -3169,6 +3173,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	require.NoError(t, err)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -3179,10 +3184,10 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	// Shutdown the mdserver explicitly before the state checker tries to run
 	defer config2.MDServer().Shutdown()
 
-	_, err = GetRootNodeForTest(ctx, config2, "test_user", tlf.Private)
-	if _, ok := errors.Cause(err).(kbfshash.HashMismatchError); !ok {
-		t.Fatalf("Could unexpectedly lookup the file: %+v", err)
-	}
+	rootNode2, err := GetRootNodeForTest(ctx, config2, "test_user", tlf.Private)
+	require.NoError(t, err)
+	_, err = config2.KBFSOps().GetDirChildren(ctx, rootNode2)
+	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
 }
 
 // Test that the size of a single empty block doesn't change.  If this

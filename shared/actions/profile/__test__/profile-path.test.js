@@ -27,18 +27,6 @@ describe('getProfilePath', () => {
     {node: 'profile', props: I.Map({username: 'ayoubd'})},
     {node: 'editProfile', props: I.Map({})},
   ])
-  const nonUserOnTop = I.List([
-    {node: peopleTab, props: I.Map({})},
-    {node: 'profile', props: I.Map({username: 'chris'})},
-    {
-      node: 'nonUserProfile',
-      props: I.Map({
-        fullUsername: 'realdonaldtrump@twitter',
-        serviceName: 'Twitter',
-        username: 'realdonaldtrump',
-      }),
-    },
-  ])
   const proofOnTop = I.List([
     {node: peopleTab, props: I.Map({})},
     {node: 'profile', props: I.Map({username: 'chris'})},
@@ -82,20 +70,6 @@ describe('getProfilePath', () => {
       {props: {username: 'mlsteele'}, selected: 'profile'},
     ])
 
-    check(nonUserOnTop, 'ayoubd', 'ayoubd', [
-      {props: {}, selected: peopleTab},
-      {props: {username: 'chris'}, selected: 'profile'},
-      {
-        props: {
-          fullUsername: 'realdonaldtrump@twitter',
-          serviceName: 'Twitter',
-          username: 'realdonaldtrump',
-        },
-        selected: 'nonUserProfile',
-      },
-      {props: {username: 'ayoubd'}, selected: 'profile'},
-    ])
-
     check(proofOnTop, 'chris', 'chris', [
       {props: {}, selected: peopleTab},
       {props: {username: 'chris'}, selected: 'profile'},
@@ -104,64 +78,6 @@ describe('getProfilePath', () => {
       {props: {}, selected: peopleTab},
       {props: {username: 'chris'}, selected: 'profile'},
       {props: {username: 'ayoubd'}, selected: 'profile'},
-    ])
-  })
-
-  it('Navigates correctly to non user profiles', () => {
-    check(baseTab, 'realdonaldtrump@twitter', 'ayoubd', [
-      {props: {}, selected: peopleTab},
-      {
-        props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
-        selected: 'nonUserProfile',
-      },
-    ])
-
-    check(oneProfile, 'realdonaldtrump@twitter', 'ayoubd', [
-      {props: {}, selected: peopleTab},
-      {props: {username: 'chrisnojima'}, selected: 'profile'},
-      {
-        props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
-        selected: 'nonUserProfile',
-      },
-    ])
-
-    check(editProfile, 'realdonaldtrump@twitter', 'ayoubd', [
-      {props: {}, selected: peopleTab},
-      {props: {username: 'ayoubd'}, selected: 'profile'},
-      {
-        props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
-        selected: 'nonUserProfile',
-      },
-    ])
-
-    check(nonUserOnTop, 'realdonaldtrump@twitter', 'ayoubd', [
-      {props: {}, selected: peopleTab},
-      {props: {username: 'chris'}, selected: 'profile'},
-      {
-        props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
-        selected: 'nonUserProfile',
-      },
-    ])
-    check(nonUserOnTop, 'keybaseIO@twitter', 'ayoubd', [
-      {props: {}, selected: peopleTab},
-      {props: {username: 'chris'}, selected: 'profile'},
-      {
-        props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
-        selected: 'nonUserProfile',
-      },
-      {
-        props: {fullUsername: 'keybaseIO@twitter', serviceName: 'Twitter', username: 'keybaseIO'},
-        selected: 'nonUserProfile',
-      },
-    ])
-
-    check(proofOnTop, 'realdonaldtrump@twitter', 'chris', [
-      {props: {}, selected: peopleTab},
-      {props: {username: 'chris'}, selected: 'profile'},
-      {
-        props: {fullUsername: 'realdonaldtrump@twitter', serviceName: 'Twitter', username: 'realdonaldtrump'},
-        selected: 'nonUserProfile',
-      },
     ])
   })
 })

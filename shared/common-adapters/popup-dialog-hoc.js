@@ -12,7 +12,7 @@ function popupDialogHoc<Config: {} & HocExtractProps>(
   return function WrappedPopupDialog(props: Config) {
     const {onClosePopup, ...rest} = props
     return (
-      <PopupDialog onClose={onClosePopup} styleClose={{display: 'none'}}>
+      <PopupDialog onClose={onClosePopup}>
         <Component {...rest} />
       </PopupDialog>
     )

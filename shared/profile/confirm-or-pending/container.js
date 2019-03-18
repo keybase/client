@@ -1,5 +1,6 @@
 // @flow
 import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import ConfirmOrPending from '.'
 import {proveCommonProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
@@ -24,13 +25,15 @@ const mapStateToProps = state => {
     isPending,
     platform: profile.platform,
     platformIconOverlayColor: isGood ? globalColors.green : globalColors.grey,
-    titleColor: isGood ? globalColors.green : globalColors.blue,
     username: profile.username,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
-  onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
+  onCancel: () => {
+    dispatch(ProfileGen.createBackToProfile())
+    dispatch(RouteTreeGen.createClearModals())
+  },
 })
 
 export default connect<OwnProps, _, _, _, _>(

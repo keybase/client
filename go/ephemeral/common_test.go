@@ -51,8 +51,9 @@ func TestEphemeralCloneError(t *testing.T) {
 	teamID := createTeam(tc)
 
 	ekLib := g.GetEKLib()
-	teamEK1, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK1, created, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	// delete all our deviceEKs and make sure the error comes back as a cloning
 	// error since we simulate the cloned state.
@@ -82,8 +83,9 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	teamID := createTeam(tc)
 
 	ekLib := g.GetEKLib()
-	teamEK1, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK1, created, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	deviceEKStorage := g.GetDeviceEKStorage()
 	s := deviceEKStorage.(*DeviceEKStorage)
@@ -100,6 +102,11 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
 	require.Contains(t, ekErr.HumanError(), DeviceProvisionedAfterContentCreationErrMsg)
+
+	// clear out cached error messages
+	g.GetEKLib().ClearCaches()
+	_, err = g.LocalDb.Nuke()
+	require.NoError(t, err)
 
 	// If no creation ctime is specified, we just get the default error message
 	_, err = g.GetTeamEKBoxStorage().Get(ctx, teamID, teamEK1.Metadata.Generation, nil)

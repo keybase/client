@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -101,7 +102,7 @@ func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 	if err != nil && log != nil {
 		log.Warning("Couldn't generate a random request ID: %v", err)
 	}
-	return NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	return libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		logTags := make(logger.CtxLogTags)
 		logTags[tagKey] = tagName
 		newCtx := logger.NewContextWithLogTags(ctx, logTags)
