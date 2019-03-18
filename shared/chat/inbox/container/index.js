@@ -80,7 +80,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const unreadIndices = []
-  for (let i = stateProps.rows.length - 1; i > 0; i--) {
+  for (let i = stateProps.rows.length - 1; i >= 0; i--) {
     const row = stateProps.rows[i]
     if (!['big', 'bigHeader'].includes(row.type)) {
       // only check big teams for large inbox perf
