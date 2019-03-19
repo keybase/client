@@ -4,6 +4,8 @@
 package libkb
 
 import (
+	"errors"
+	"strings"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -245,4 +247,59 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 		return s.mem.GetUsersWithStoredSecrets(m)
 	}
 	return s.disk.GetUsersWithStoredSecrets(m)
+}
+
+// PrimeSecretStore runs a test with current platform's secret store, trying to
+// store, retrieve, and then delete a secret with an arbitrary name. This should
+// be done before provisioning or logging in
+func PrimeSecretStore(mctx MetaContext) (err error) {
+	defer mctx.Trace("PrimeSecretStore", func() error { return err })()
+	ss := mctx.G().SecretStore()
+	if ss == nil {
+		return errors.New("secret store is not available (g.SecretStore() returned nil)")
+	}
+
+	// Generate test username and test secret
+	testUsername, err := RandString("test_ss_", 5)
+	testUsername = strings.Replace(testUsername, "=", "_", -1)
+	if err != nil {
+		return err
+	}
+	randBytes, err := RandBytes(LKSecLen)
+	if err != nil {
+		return err
+	}
+	mctx.Debug("PrimeSecretStore: priming keychain with username %q and secret %v", testUsername, randBytes)
+	testNormUsername := NormalizedUsername(testUsername)
+	var secretF [LKSecLen]byte
+	copy(secretF[:], randBytes[:])
+	testSecret := LKSecFullSecret{f: &secretF}
+
+	// Put secret in secret store through `SecretStore` interface
+	testStore := NewSecretStore(mctx.G(), testNormUsername)
+	err = testStore.StoreSecret(mctx, testSecret)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err2 := ss.ClearSecret(mctx, testNormUsername)
+		mctx.Debug("PrimeSecretStore: Clearing test secret store entry, returned error: %v", err2)
+		if err == nil && err2 != nil {
+			// If something else failed before clearing, return that error. If
+			// not, return error from the clearing, if there was one.
+			err = err2
+		}
+	}()
+
+	// Recreate test store with same username, try to retrieve secret.
+	testStore = NewSecretStore(mctx.G(), testNormUsername)
+	retrSecret, err := testStore.RetrieveSecret(mctx)
+	if err != nil {
+		return err
+	}
+	mctx.Debug("PrimeSecretStore: Retrieved secret: %v", retrSecret.f)
+	if !retrSecret.Equal(testSecret) {
+		return errors.New("managed to retrieve test secret but it didn't match the stored one")
+	}
+	return nil
 }

@@ -111,3 +111,12 @@ func TestSecretStoreDarwin(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, users, 0)
 }
+
+func TestPrimeSecretStoreDarwin(t *testing.T) {
+	tc := SetupTest(t, "secret store darwin", 1)
+	defer tc.Cleanup()
+
+	mctx := NewMetaContextForTest(tc)
+	err := PrimeSecretStore(mctx)
+	require.NoError(t, err)
+}
