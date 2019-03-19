@@ -1,5 +1,6 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import ForgotUsername from '.'
 import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
@@ -10,8 +11,8 @@ const mapStateToProps = state => ({
   forgotUsernameResult: state.provision.forgotUsernameResult,
 })
 
-const dispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
+const dispatchToProps = dispatch => ({
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSubmit: (email: string) => dispatch(ProvisionGen.createForgotUsername({email})),
 })
 

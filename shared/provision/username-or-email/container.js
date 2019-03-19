@@ -1,5 +1,6 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
 import {compose, connect, safeSubmit} from '../../util/container'
@@ -16,9 +17,10 @@ const mapStateToProps = state => ({
   submittedUsername: state.provision.username,
 })
 
-const dispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-  onForgotUsername: () => dispatch(navigateAppend([{props: {}, selected: 'forgotUsername'}])),
+const dispatchToProps = dispatch => ({
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onForgotUsername: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'forgotUsername'}]})),
   onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSubmit: (username: string) => dispatch(ProvisionGen.createSubmitUsername({username})),
 })
