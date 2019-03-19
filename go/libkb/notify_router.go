@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -288,12 +289,14 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	if n == nil {
 		return
 	}
-	n.G().Log.CDebugf(ctx, "+ Sending logout notification")
+	defer CTrace(ctx, n.G().Log, "NotifyRouter#HandleLogout", func() error { return nil })()
 	ctx = CopyTagsToBackground(ctx)
 	// For all connections we currently have open...
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
 		// If the connection wants the `Session` notification type
+		registered := false
 		if n.getNotificationChannels(id).Session {
+			registered = true
 			// In the background do...
 			go func() {
 				// A send of a `LoggedOut` RPC
@@ -302,13 +305,17 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 				}).LoggedOut(ctx)
 			}()
 		}
+		desc := "<nil>"
+		if d != nil {
+			desc = fmt.Sprintf("%+v", *d)
+		}
+		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
 	})
-	n.G().Log.CDebugf(ctx, "- Logout notification sent")
 }
 
 // HandleLogin is called whenever a user logs in. It will broadcast
