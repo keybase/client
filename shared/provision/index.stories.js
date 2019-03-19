@@ -6,6 +6,7 @@ import paperKey from './paper-key/index.stories'
 import passphrase from './passphrase/index.stories'
 import selectOtherDevice from './select-other-device/index.stories'
 import setPublicName from './set-public-name/index.stories'
+import forgotUsername from './forgot-username/index.stories'
 // import success from './succes/index.stories'
 // import usernameOrEmail from './username-or-email/index.stories'
 
@@ -13,6 +14,7 @@ const load = () => {
   ;[
     codePage,
     error,
+    forgotUsername,
     gpgSign,
     paperKey,
     passphrase,

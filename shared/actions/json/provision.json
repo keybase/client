@@ -7,7 +7,7 @@
   "actions": {
     "startProvision": {},
     "provisionError": {"error": "?HiddenString"},
-    "submitUsernameOrEmail": {"usernameOrEmail": "string"},
+    "submitUsername": {"username": "string"},
     "submitPassphrase": {"passphrase": "HiddenString"},
     "submitPaperkey": {"paperkey": "HiddenString"},
     "submitTextCode": {"phrase": "HiddenString"},
@@ -43,6 +43,12 @@
     "showPaperkeyPage": {
       "error": "?HiddenString"
     },
-    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]}
+    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
+    "forgotUsername": {
+      "email": "string"
+    },
+    "forgotUsernameResult": {
+      "result": "string"
+    }
   }
 }
