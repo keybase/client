@@ -42,7 +42,24 @@ class AppView extends React.PureComponent<any> {
     const childNav = descriptor.navigation
     const selectedTab = nameToTab[descriptor.state.routeName]
     // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
-    const direction = descriptor.options.headerTransparent ? 'verticalReverse' : 'vertical'
+    const direction = descriptor.options.headerTransparent ? 'vertical' : 'verticalReverse'
+
+    const sceneView = (
+      <SceneView
+        navigation={childNav}
+        component={descriptor.getComponent()}
+        screenProps={this.props.screenProps}
+        options={descriptor.options}
+      />
+    )
+    // if the header is transparent this needs to be on the same layer
+    const scene = descriptor.options.headerTransparent ? (
+      <Kb.Box2 direction="vertical" style={styles.transparentSceneUnderHeader}>
+        {sceneView}
+      </Kb.Box2>
+    ) : (
+      sceneView
+    )
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
@@ -52,12 +69,8 @@ class AppView extends React.PureComponent<any> {
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
+          {scene}
           <Header options={descriptor.options} onPop={() => childNav.pop()} allowBack={index !== 0} />
-          <SceneView
-            navigation={childNav}
-            component={descriptor.getComponent()}
-            screenProps={this.props.screenProps}
-          />
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -287,6 +300,9 @@ const styles = Styles.styleSheetCreate({
   modalContainer: {
     ...Styles.globalStyles.fillAbsolute,
     zIndex: 99999,
+  },
+  transparentSceneUnderHeader: {
+    ...Styles.globalStyles.fillAbsolute,
   },
 })
 
