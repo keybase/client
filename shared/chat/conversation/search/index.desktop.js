@@ -36,22 +36,24 @@ class ThreadSearch extends React.Component<Props> {
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
             {this.props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
             {this.props.totalResults > 0 && (
-              <Kb.Text type="BodySmall" style={styles.results}>
-                {this.props.selectedResult} of {this.props.totalResults}
-              </Kb.Text>
+              <Kb.Box2 direction="horizontal" gap="tiny">
+                <Kb.Text type="BodySmall" style={styles.results}>
+                  {this.props.selectedResult} of {this.props.totalResults}
+                </Kb.Text>
+                <Kb.Icon
+                  color={Styles.globalColors.black_50}
+                  fontSize={16}
+                  onClick={this.props.onUp}
+                  type="iconfont-arrow-up"
+                />
+                <Kb.Icon
+                  color={Styles.globalColors.black_50}
+                  fontSize={16}
+                  onClick={this.props.onDown}
+                  type="iconfont-arrow-down"
+                />
+              </Kb.Box2>
             )}
-            <Kb.Icon
-              color={Styles.globalColors.black_50}
-              fontSize={16}
-              onClick={this.props.onUp}
-              type="iconfont-arrow-up"
-            />
-            <Kb.Icon
-              color={Styles.globalColors.black_50}
-              fontSize={16}
-              onClick={this.props.onDown}
-              type="iconfont-arrow-down"
-            />
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Button type="Primary" onClick={this._submitSearch} label="Search" />
