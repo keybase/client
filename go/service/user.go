@@ -476,9 +476,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	for i := range suggestions {
 		suggestion := &suggestions[i]
 		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_black", 16)
-		if externals.ServiceHasFullIcon(suggestion.Key) {
-			suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_full", 32)
-		}
+		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_full", 32)
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
