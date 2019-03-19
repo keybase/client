@@ -107,22 +107,17 @@ class Reloadable extends React.PureComponent<{
   }
 }
 
-type NavigationParams = {
-  params: {
-    teamname: string,
-  },
-}
-
 type State = {|selectedTab: string|}
 
 // We don't use route state anymore
 class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, State> {
-  static navigationOptions = {
-    header: undefined,
+  static navigationOptions = ({navigation}: {navigation: any}) => ({
     headerHideBorder: true,
-    headerRightActions: ({params}: NavigationParams) => <HeaderRightActions teamname={params.teamname} />,
-    headerTitle: ({params}: NavigationParams) => <HeaderTitle teamname={params.teamname} />,
-  }
+    headerRightActions: isMobile
+      ? undefined
+      : () => <HeaderRightActions teamname={navigation.getParam('teamname')} />,
+    headerTitle: isMobile ? undefined : () => <HeaderTitle teamname={navigation.getParam('teamname')} />,
+  })
   state = {selectedTab: 'members'}
   _setSelectedTab = selectedTab => {
     this.setState({selectedTab})

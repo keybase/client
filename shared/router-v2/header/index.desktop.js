@@ -21,13 +21,13 @@ class Header extends React.PureComponent<Props> {
       title = <Kb.Text type="BodySemibold">{opt.headerTitle}</Kb.Text>
     } else if (typeof opt.headerTitle === 'function') {
       const CustomTitle = opt.headerTitle
-      title = <CustomTitle params={this.props.params}>{opt.title}</CustomTitle>
+      title = <CustomTitle>{opt.title}</CustomTitle>
     }
 
     let rightActions = null
     if (typeof opt.headerRightActions === 'function') {
       const CustomActions = opt.headerRightActions
-      rightActions = <CustomActions params={this.props.params} />
+      rightActions = <CustomActions />
     }
 
     let style = null

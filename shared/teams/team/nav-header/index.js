@@ -37,7 +37,7 @@ type Props = {|
 |}
 
 const _HeaderRightActions = (props: Props) => (
-  <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.alignSelfFlexEnd}>
+  <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
     {props.canChat && <Kb.Button onClick={props.onChat} type="Primary" label="Chat" />}
     {props.canAddPeople && <AddPeopleButton teamname={props.teamname} />}
     {!Styles.isMobile && props.canViewFolder && (
@@ -55,9 +55,17 @@ const _HeaderRightActions = (props: Props) => (
 export const HeaderRightActions = Kb.OverlayParentHOC(_HeaderRightActions)
 
 const styles = Styles.styleSheetCreate({
-  alignSelfFlexEnd: {
-    alignSelf: 'flex-end',
-  },
+  clickable: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+    },
+  }),
+  rightActionsContainer: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      alignSelf: 'flex-end',
+    },
+  }),
 })
 
 type HeaderTitleProps = {
@@ -82,6 +90,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
         lineClamp={1}
         onClick={props.onEditDescription}
         className={Styles.classNames({'hover-underline': !!props.onEditDescription})}
+        style={styles.clickable}
       >
         {props.description}
       </Kb.Text>
