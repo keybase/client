@@ -1984,7 +1984,7 @@ export type BlockType =
   | 1 // MD_1
   | 2 // GIT_2
 
-export type BootstrapStatus = $ReadOnly<{registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, following?: ?Array<String>, followers?: ?Array<String>, topReacjis?: ?Array<String>}>
+export type BootstrapStatus = $ReadOnly<{registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, fullname: FullName, following?: ?Array<String>, followers?: ?Array<String>, topReacjis?: ?Array<String>}>
 export type BoxNonce = ?string
 export type BoxPublicKey = ?string
 export type BulkRes = $ReadOnly<{invited?: ?Array<String>, alreadyInvited?: ?Array<String>, malformed?: ?Array<String>}>
