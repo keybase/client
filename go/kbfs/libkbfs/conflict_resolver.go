@@ -3254,10 +3254,10 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 //  - in the event of failure, it logs that CR failed and tries to record the
 //    failure to the DB.
 func (cr *ConflictResolver) recordFinishResolve(
-	ctx context.Context, ci conflictInput, receivedErr error) {
+	ctx context.Context, ci conflictInput,
+	panicVar interface{}, receivedErr error) {
 	db := cr.config.GetConflictResolutionDB()
 	key := cr.fbo.id().Bytes()
-	panicVar := recover()
 
 	// If we neither errored nor panicked, this CR succeeded and we can wipe
 	// the DB entry.
@@ -3299,7 +3299,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 		thisCR.ErrorString = fmt.Sprintf("%+v", receivedErr)
 	}
 	if panicVar != nil {
-		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %b", panicVar,
+		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %s", panicVar,
 			debug.Stack())
 	}
 
@@ -3371,13 +3371,17 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
 
 	err = cr.recordStartResolve(ci)
-	switch errors.Cause(err) {
+	errCause := errors.Cause(err)
+	switch errCause {
 	case ErrTooManyCRAttempts:
 		cr.log.CWarningf(ctx,
 			"Too many failed CR attempts for folder: %v", cr.fbo.id())
 		return
 	case nil:
-		defer func() { cr.recordFinishResolve(ctx, ci, err) }()
+		defer func() {
+			r := recover()
+			cr.recordFinishResolve(ctx, ci, r, err)
+		}()
 	default:
 		cr.log.CWarningf(ctx,
 			"Could not record conflict resolution attempt: %+v", err)
