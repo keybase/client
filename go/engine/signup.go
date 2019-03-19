@@ -82,6 +82,25 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	// StoreSecret is required if we are doing NOPW
+	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase {
+		return fmt.Errorf("cannot SignUp with StoreSecret=false and GenerateRandomPassphrase=true")
+	}
+
+	// check if secret store works
+	if s.arg.StoreSecret {
+		if ss := m.G().SecretStore(); ss != nil {
+			err = ss.PrimeSecretStores(m)
+			if err != nil {
+				return fmt.Errorf("secret store is not functional: %s", err)
+			}
+		} else if s.arg.GenerateRandomPassphrase {
+			return fmt.Errorf("secret store is required for no-passphrase but wasn't found")
+		} else {
+			m.Debug("There is no secret store, but we are continuing because this is not a NOPW")
+		}
+	}
+
 	m = m.WithNewProvisionalLoginContext()
 
 	if err = s.genPassphraseStream(m, s.arg.Passphrase, s.arg.GenerateRandomPassphrase); err != nil {
