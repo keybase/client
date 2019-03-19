@@ -64,6 +64,10 @@ export const commonProvider = {
     enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
+  LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
+    loadPathMetadata: Sb.action('loadPathMetadata'),
+    path,
+  }),
   PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
   PathItemActionMenu: PathItemActionMenuProps,
