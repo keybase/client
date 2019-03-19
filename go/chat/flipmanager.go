@@ -1508,6 +1508,9 @@ func (m *FlipManager) Me() flip.UserDevice {
 }
 
 func (m *FlipManager) ShouldCommit(ctx context.Context) bool {
+	if !m.G().IsMobileAppType() {
+		return m.G().DesktopAppState.AwakeAndUnlocked(m.G().MetaContext(ctx))
+	}
 	return true
 }
 

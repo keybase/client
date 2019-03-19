@@ -68,8 +68,12 @@ func (a *MobileAppState) State() keybase1.MobileAppState {
 	return a.state
 }
 
+// --------------------------------------------------
+
 type DesktopAppState struct {
 	sync.Mutex
+	suspended bool
+	locked    bool
 }
 
 func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
@@ -80,11 +84,24 @@ func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
 // https://electronjs.org/docs/api/power-monitor
 func (a *DesktopAppState) Update(mctx MetaContext, event string) {
 	mctx.G().Trace(fmt.Sprintf("DesktopAppState.Update(%v)", event), func() error { return nil })
+	a.Lock()
+	defer a.Unlock()
 	switch event {
 	case "suspend":
+		a.suspended = true
 	case "resume":
+		a.suspended = false
 	case "shutdown":
 	case "lock-screen":
+		a.locked = true
 	case "unlock-screen":
+		a.suspended = false
+		a.locked = false
 	}
+}
+
+func (a *DesktopAppState) AwakeAndUnlocked(mctx MetaContext) bool {
+	a.Lock()
+	defer a.Unlock()
+	return !a.suspended && !a.locked
 }
