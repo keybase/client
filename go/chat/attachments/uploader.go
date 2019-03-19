@@ -389,7 +389,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	}()
 
 	// Stat the file to get size
-	finfo, err := os.Stat(filename)
+	finfo, err := StatOSOrKbfsFile(ctx, u.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}

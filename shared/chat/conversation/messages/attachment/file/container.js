@@ -48,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     message.transferState !== 'mobileSaving'
   return {
     arrowColor,
+    errorMsg: message.transferErrMsg || '',
     hasProgress,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,

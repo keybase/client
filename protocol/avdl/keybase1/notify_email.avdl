@@ -1,0 +1,6 @@
+@namespace("keybase.1")
+protocol NotifyEmailAddress {
+  import idl "common.avdl";
+
+  void emailAddressVerified(EmailAddress emailAddress) oneway;
+}

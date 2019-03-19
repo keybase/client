@@ -10,7 +10,7 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as ConfigGen from '../actions/config-gen'
 
-export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
+export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 type URLType = any
 type DisallowedStyles = {
   borderStyle?: empty,

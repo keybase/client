@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -156,7 +157,7 @@ type unflushedPathMDInfo struct {
 // blocks will need to be fetched.
 func addUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	log logger.Logger, osg OfflineStatusGetter, mdInfos []unflushedPathMDInfo,
+	log logger.Logger, osg idutil.OfflineStatusGetter, mdInfos []unflushedPathMDInfo,
 	cpp chainsPathPopulator, unflushedPaths unflushedPathsMap) error {
 	// Make chains over the entire range to get the unflushed files.
 	chains := newCRChainsEmpty()
@@ -235,7 +236,7 @@ func addUnflushedPaths(ctx context.Context,
 // given revision.
 func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	log logger.Logger, osg OfflineStatusGetter, mdInfo unflushedPathMDInfo) (
+	log logger.Logger, osg idutil.OfflineStatusGetter, mdInfo unflushedPathMDInfo) (
 	unflushedPathsPerRevMap, error) {
 	cpp := func() chainsPathPopulator {
 		upc.lock.Lock()
@@ -365,7 +366,7 @@ func reinitUpcCache(revision kbfsmd.Revision,
 // unflushed path map.
 func (upc *unflushedPathCache) initialize(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	log logger.Logger, osg OfflineStatusGetter, cpp chainsPathPopulator,
+	log logger.Logger, osg idutil.OfflineStatusGetter, cpp chainsPathPopulator,
 	mdInfos []unflushedPathMDInfo) (unflushedPathsMap, bool, error) {
 	// First get all the paths for the given range.  On the first try
 	unflushedPaths := make(unflushedPathsMap)

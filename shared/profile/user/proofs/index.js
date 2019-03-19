@@ -83,6 +83,7 @@ class ProofsList extends React.Component<Props, State> {
           </Kb.Box>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Kb.ScrollView>
+              {/* TODO dont use scroll view like this */}
               <Providers {...this.props} />
               <Kb.Divider />
             </Kb.ScrollView>
@@ -148,7 +149,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   icon: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     height: 32,
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,

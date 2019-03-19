@@ -16,6 +16,7 @@ import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 import {isMobile} from '../../constants/platform'
+import flags from '../../util/feature-flags'
 
 const editProfile = (state, action) =>
   RPCTypes.userProfileEditRpcPromise(
@@ -47,10 +48,10 @@ const finishRevoking = state => [
     assertion: state.config.username,
     guiID: TrackerConstants.generateGUIID(),
     inTracker: false,
-    reason: 'justRevoked',
+    reason: '',
   }),
   ProfileGen.createRevokeFinish(),
-  RouteTreeGen.createNavigateUp(),
+  ...(flags.useNewRouter ? [] : [RouteTreeGen.createNavigateUp()]),
 ]
 
 const showUserProfile = (state, action) => {
@@ -60,6 +61,10 @@ const showUserProfile = (state, action) => {
     state.entities.search.searchResults,
     userId
   )
+
+  if (flags.useNewRouter) {
+    return RouteTreeGen.createNavigateTo({path: [{props: {username}, selected: 'profile'}]})
+  }
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
   const path = Constants.getProfilePath(peopleRouteProps, username, state.config.username, state)
@@ -79,55 +84,37 @@ const onClickAvatar = (_, action) => {
   }
 }
 
-const submitRevokeProof = (_, action) =>
-  RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
-    .then(() => ProfileGen.createFinishRevoking())
-    .catch((error: RPCError) => {
-      logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-      return ProfileGen.createRevokeFinishError({
-        error: 'There was an error revoking your proof. You can click the button to try again.',
-      })
-    })
+const submitRevokeProof = (state, action) => {
+  const you = TrackerConstants.getDetails(state, state.config.username)
+  if (!you || !you.assertions) return null
+  const proof = you.assertions.find(a => a.sigID === action.payload.proofId)
+  if (!proof) return null
 
-const openURLIfNotNull = (nullableThing, url, metaText) => {
-  if (nullableThing == null) {
-    logger.warn("Can't open URL because we have a null", metaText)
-    return
-  }
-  openURL(url)
-}
-
-const outputInstructionsActionLink = (state, action) => {
-  const profile = state.profile
-  switch (profile.platform) {
-    case 'twitter':
-      openURLIfNotNull(
-        profile.proofText,
-        `https://twitter.com/home?status=${profile.proofText || ''}`,
-        'twitter url'
+  if (proof.type === 'pgp') {
+    return RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey)
+      .then(() =>
+        flags.useNewRouter ? null : RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: []})
       )
-      break
-    case 'github':
-      openURL('https://gist.github.com/')
-      break
-    case 'reddit':
-      openURLIfNotNull(profile.proofText, profile.proofText, 'reddit url')
-      break
-    case 'facebook':
-      openURLIfNotNull(profile.proofText, profile.proofText, 'facebook url')
-      break
-    case 'hackernews':
-      openURL(`https://news.ycombinator.com/user?id=${profile.username}`)
-      break
-    default:
-      break
+      .catch(e => {
+        logger.info('error in dropping pgp key', e)
+        return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
+      })
+  } else {
+    return RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
+      .then(() => ProfileGen.createFinishRevoking())
+      .catch((error: RPCError) => {
+        logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
+        return ProfileGen.createRevokeFinishError({
+          error: 'There was an error revoking your proof. You can click the button to try again.',
+        })
+      })
   }
 }
 
 const editAvatar = () =>
   isMobile
     ? undefined // handled in platform specific
-    : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'editAvatar'}]})
+    : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'profileEditAvatar'}]})
 
 const backToProfile = state => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
@@ -144,10 +131,6 @@ function* _profileSaga() {
   yield* Saga.chainAction<ProfileGen.UploadAvatarPayload>(ProfileGen.uploadAvatar, uploadAvatar)
   yield* Saga.chainAction<ProfileGen.FinishRevokingPayload>(ProfileGen.finishRevoking, finishRevoking)
   yield* Saga.chainAction<ProfileGen.OnClickAvatarPayload>(ProfileGen.onClickAvatar, onClickAvatar)
-  yield* Saga.chainAction<ProfileGen.OutputInstructionsActionLinkPayload>(
-    ProfileGen.outputInstructionsActionLink,
-    outputInstructionsActionLink
-  )
   yield* Saga.chainAction<ProfileGen.ShowUserProfilePayload>(ProfileGen.showUserProfile, showUserProfile)
   yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
 }

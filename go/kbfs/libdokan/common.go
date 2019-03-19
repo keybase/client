@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -82,9 +83,9 @@ func addFileAttribute(a *dokan.Stat, fa dokan.FileAttribute) {
 // errToDokan makes some libkbfs errors easier to digest in dokan. Not needed in most places.
 func errToDokan(err error) error {
 	switch err.(type) {
-	case libkbfs.NoSuchNameError:
+	case idutil.NoSuchNameError:
 		return dokan.ErrObjectNameNotFound
-	case libkbfs.NoSuchUserError:
+	case idutil.NoSuchUserError:
 		return dokan.ErrObjectNameNotFound
 	case kbfsmd.ServerErrorUnauthorized:
 		return dokan.ErrAccessDenied

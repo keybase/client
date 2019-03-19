@@ -32,6 +32,7 @@ export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).t
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   assertionKey: '',
   color: 'gray',
+  kid: '',
   metas: [],
   priority: -1,
   proofURL: '',
@@ -117,6 +118,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
   makeAssertion({
     assertionKey: `${row.key}:${row.value}`,
     color: rpcRowColorToColor(row.color),
+    kid: row.kid || ',',
     metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
     priority: row.priority,
     proofURL: row.proofURL,
@@ -130,18 +132,21 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
     value: row.value,
   })
 
-export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion =>
-  makeAssertion({
-    assertionKey: s.key,
+export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion => {
+  const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key
+  return makeAssertion({
+    // we have a special case where we want to differentiate between a dns or web proof, so we have a special pseudo type we use
+    assertionKey: ourKey,
     color: 'gray',
     metas: [],
     proofURL: '',
     siteIcon: s.profileIcon || [],
     siteURL: '',
     state: 'suggestion',
-    type: s.key,
+    type: ourKey,
     value: s.profileText,
   })
+}
 
 const _scoreAssertionKey = a => {
   switch (a) {

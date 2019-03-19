@@ -6,7 +6,7 @@ import CreateTeamNotice from './system-create-team-notice/container'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
-import {Text, Box, Icon} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import {namedConnect} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
@@ -28,31 +28,31 @@ class TopMessage extends React.PureComponent<Props> {
 
   render() {
     return (
-      <Box>
+      <Kb.Box>
         {this.props.loadMoreType === 'noMoreToLoad' && this.props.showRetentionNotice && (
           <RetentionNotice conversationIDKey={this.props.conversationIDKey} measure={this.props.measure} />
         )}
-        <Box style={spacerStyle} />
+        <Kb.Box style={spacerStyle} />
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
         {this.props.loadMoreType === 'noMoreToLoad' && !this.props.showRetentionNotice && (
-          <Box style={secureStyle}>
-            <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
-          </Box>
+          <Kb.Box style={secureStyle}>
+            <Kb.Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
+          </Kb.Box>
         )}
         {this.props.showTeamOffer && (
-          <Box style={moreStyle}>
+          <Kb.Box style={moreStyle}>
             <CreateTeamNotice />
-          </Box>
+          </Kb.Box>
         )}
         {this.props.loadMoreType === 'moreToLoad' && (
-          <Box style={moreStyle}>
-            <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
-            <Text type="BodySmallSemibold">Digging ancient messages...</Text>
-          </Box>
+          <Kb.Box style={moreStyle}>
+            <Kb.Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Kb.Text>
+            <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
+          </Kb.Box>
         )}
-      </Box>
+      </Kb.Box>
     )
   }
 }

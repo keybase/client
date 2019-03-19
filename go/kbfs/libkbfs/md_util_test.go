@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
@@ -105,7 +106,7 @@ func TestGetRevisionByTime(t *testing.T) {
 	config.SetClock(clock)
 
 	t.Log("Create revision 1")
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(u1), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
@@ -132,12 +133,12 @@ func TestGetRevisionByTime(t *testing.T) {
 	rev, err := GetMDRevisionByTime(ctx, config, h, t2)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.Revision(2), rev)
-	_, err = config.MDCache().Get(h.tlfID, rev, kbfsmd.NullBranchID)
+	_, err = config.MDCache().Get(h.TlfID(), rev, kbfsmd.NullBranchID)
 	require.NoError(t, err)
 	rev, err = GetMDRevisionByTime(ctx, config, h, t1)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.Revision(1), rev)
-	_, err = config.MDCache().Get(h.tlfID, rev, kbfsmd.NullBranchID)
+	_, err = config.MDCache().Get(h.TlfID(), rev, kbfsmd.NullBranchID)
 	require.NoError(t, err)
 
 	t.Log(ctx, "Check in-between times")

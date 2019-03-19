@@ -1,54 +1,112 @@
 /* Used by avatar on desktop to speed up perf */
 
 .avatar {
-    user-select: none;
-    flex-shrink: 0;
-    position: relative;
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
 }
 
-.avatar-team-size-128{border-radius: 16px; width: 128px; height: 128px;}
-.avatar-team-size-16 {border-radius: 4px; width: 16px; height: 16px;}
-.avatar-team-size-32 {border-radius: 6px; width: 32px; height: 32px;}
-.avatar-team-size-48 {border-radius: 8px; width: 48px; height: 48px;}
-.avatar-team-size-64 {border-radius: 10px; width: 64px; height: 64px;}
-.avatar-team-size-96 {border-radius: 12px; width: 96px; height: 96px;}
+.avatar-team-size-128 {
+  border-radius: 16px;
+  width: 128px;
+  height: 128px;
+}
+.avatar-team-size-16 {
+  border-radius: 4px;
+  width: 16px;
+  height: 16px;
+}
+.avatar-team-size-24 {
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+}
+.avatar-team-size-32 {
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+}
+.avatar-team-size-48 {
+  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+}
+.avatar-team-size-64 {
+  border-radius: 10px;
+  width: 64px;
+  height: 64px;
+}
+.avatar-team-size-96 {
+  border-radius: 12px;
+  width: 96px;
+  height: 96px;
+}
 
-.avatar-user-size-128{border-radius: 50%; width: 128px; height: 128px;}
-.avatar-user-size-16 {border-radius: 50%; width: 16px; height: 16px;}
-.avatar-user-size-32 {border-radius: 50%; width: 32px; height: 32px;}
-.avatar-user-size-48 {border-radius: 50%; width: 48px; height: 48px;}
-.avatar-user-size-64 {border-radius: 50%; width: 64px; height: 64px;}
-.avatar-user-size-96 {border-radius: 50%; width: 96px; height: 96px;}
+.avatar-user-size-128 {
+  border-radius: 50%;
+  width: 128px;
+  height: 128px;
+}
+.avatar-user-size-16 {
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+}
+.avatar-user-size-24 {
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+}
+.avatar-user-size-32 {
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+}
+.avatar-user-size-48 {
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+}
+.avatar-user-size-64 {
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+}
+.avatar-user-size-96 {
+  border-radius: 50%;
+  width: 96px;
+  height: 96px;
+}
 
 .avatar-background {
-    background-color: #f0f0f0;
-    bottom: 0;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
+  background-color: #f0f0f0;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .avatar-user-image {
-    flex-shrink: 0;
-    background-size: cover;
-    bottom: 0;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
+  flex-shrink: 0;
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .avatar-border-team {
-    background: rgba(0, 0, 0, 0);
-    bottom: 0;
-    flex-shrink: 0;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
+  background: rgba(0, 0, 0, 0);
+  bottom: 0;
+  flex-shrink: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .avatar-border {
-    background: rgba(0, 0, 0, 0);
+  background: rgba(0, 0, 0, 0);
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -41,7 +42,7 @@ var _ keybase1.KBFSGitInterface = (*RPCHandler)(nil)
 
 func (rh *RPCHandler) waitForJournal(
 	ctx context.Context, gitConfig libkbfs.Config,
-	h *libkbfs.TlfHandle) error {
+	h *tlfhandle.Handle) error {
 	err := CleanOldDeletedReposTimeLimited(ctx, gitConfig, h)
 	if err != nil {
 		return err
@@ -96,7 +97,7 @@ func (rh *RPCHandler) waitForJournal(
 func (rh *RPCHandler) getHandleAndConfig(
 	ctx context.Context, folder keybase1.Folder) (
 	newCtx context.Context, gitConfigRet libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, tempDirRet string, err error) {
+	tlfHandle *tlfhandle.Handle, tempDirRet string, err error) {
 	newCtx, gitConfig, tempDir, err := getNewConfig(
 		ctx, rh.config, rh.kbCtx, rh.kbfsInitParams, rh.log)
 	if err != nil {

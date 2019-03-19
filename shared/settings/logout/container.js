@@ -1,23 +1,24 @@
 // @flow
 import * as Kb from '../../common-adapters'
-import {connect, type RouteProps} from '../../util/container'
+import {connect} from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import HiddenString from '../../util/hidden-string'
 import LogOut from '.'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {||}
 
-const mapStateToProps = (state, {routeProps}) => ({
+const mapStateToProps = state => ({
   checkPassphraseIsCorrect: state.settings.checkPassphraseIsCorrect,
   hasRandomPW: state.settings.passphrase.randomPW,
   waitingForResponse: state.settings.waitingForResponse,
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => {
     dispatch(SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: null}))
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onCheckPassphrase: passphrase => {
     if (passphrase) {

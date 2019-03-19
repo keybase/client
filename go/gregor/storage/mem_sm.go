@@ -474,10 +474,28 @@ func (m *MemEngine) Outbox(ctx context.Context, u gregor.UID) ([]gregor.Message,
 	return m.getUser(u).outbox, nil
 }
 
-func (m *MemEngine) PrependToOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {
+func (m *MemEngine) RemoveFromOutbox(ctx context.Context, u gregor.UID, id gregor.MsgID) error {
 	m.Lock()
 	defer m.Unlock()
-	m.getUser(u).outbox = append(msgs, m.getUser(u).outbox...)
+	var newOutbox []gregor.Message
+	idstr := id.String()
+	for _, msg := range m.getUser(u).outbox {
+		msgIbm := msg.ToInBandMessage()
+		if msgIbm == nil {
+			continue
+		}
+		if msgIbm.Metadata().MsgID().String() != idstr {
+			newOutbox = append(newOutbox, msg)
+		}
+	}
+	m.getUser(u).outbox = newOutbox
+	return nil
+}
+
+func (m *MemEngine) InitOutbox(ctx context.Context, u gregor.UID, msgs []gregor.Message) error {
+	m.Lock()
+	defer m.Unlock()
+	m.getUser(u).outbox = msgs
 	return nil
 }
 

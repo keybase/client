@@ -10,7 +10,8 @@ export type VariableItemHeight<Item> = {
     index: number,
     item: Item
   ) => {|
-    height: number,
+    index: number,
+    length: number,
     offset: number,
   |},
   type: 'variable',

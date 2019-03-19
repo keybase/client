@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -572,7 +573,7 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 	}
 	kmd := mergedChains.mostRecentChainMDInfo
 	mergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, mergedPath)
-	if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+	if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -587,7 +588,7 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 		},
 	}
 	unmergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, unmergedPath)
-	if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+	if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -3358,7 +3359,7 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 		_ = cr.config.(*ConfigLocal).EnableDiskLimiter(os.TempDir())
 
 		dbc, err = newDiskBlockCacheLocalForTest(
-			cr.config, syncCacheLimitTrackerType)
+			cr.config, crDirtyBlockCacheLimitTrackerType)
 		if err != nil {
 			return nil, nil, err
 		}

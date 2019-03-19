@@ -9,8 +9,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -109,11 +111,11 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	filename := ""
 	var code keybase1.FSErrorType = -1
 	switch e := errors.Cause(err).(type) {
-	case ReadAccessError:
+	case tlfhandle.ReadAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamMode] = errorModeRead
 		filename = e.Filename
-	case WriteAccessError:
+	case tlfhandle.WriteAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamUsername] = e.User.String()
 		params[errorParamMode] = errorModeWrite
@@ -124,7 +126,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		filename = e.Filename
 	case UnverifiableTlfUpdateError:
 		code = keybase1.FSErrorType_REVOKED_DATA_DETECTED
-	case NoCurrentSessionError:
+	case idutil.NoCurrentSessionError:
 		code = keybase1.FSErrorType_NOT_LOGGED_IN
 	case NeedSelfRekeyError:
 		code = keybase1.FSErrorType_REKEY_NEEDED
@@ -156,7 +158,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		params[errorParamUsageFiles] = strconv.FormatInt(e.usageFiles, 10)
 		params[errorParamLimitFiles] =
 			strconv.FormatFloat(e.limitFiles, 'f', 0, 64)
-	case NoSigChainError:
+	case idutil.NoSigChainError:
 		code = keybase1.FSErrorType_NO_SIG_CHAIN
 		params[errorParamUsername] = e.User.String()
 	case kbfsmd.ServerErrorTooManyFoldersCreated:
@@ -325,7 +327,7 @@ func readNotification(file path, finish bool) *keybase1.FSNotification {
 
 // rekeyNotification creates FSNotifications from TlfHandles for rekey
 // events.
-func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, finish bool) *keybase1.FSNotification {
+func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Handle, finish bool) *keybase1.FSNotification {
 	code := keybase1.FSStatusCode_START
 	if finish {
 		code = keybase1.FSStatusCode_FINISH
@@ -445,7 +447,7 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 	}
 }
 
-func mdReadSuccessNotification(handle *TlfHandle,
+func mdReadSuccessNotification(handle *tlfhandle.Handle,
 	public bool) *keybase1.FSNotification {
 	params := make(map[string]string)
 	if handle != nil {

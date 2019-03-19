@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 )
@@ -14,7 +15,7 @@ import (
 type mdServerLocalConfig interface {
 	Clock() Clock
 	Codec() kbfscodec.Codec
-	currentSessionGetter() CurrentSessionGetter
+	currentSessionGetter() idutil.CurrentSessionGetter
 	MetadataVersion() kbfsmd.MetadataVer
 	logMaker
 	cryptoPureGetter
@@ -27,7 +28,7 @@ type mdServerLocalConfigAdapter struct {
 	Config
 }
 
-func (ca mdServerLocalConfigAdapter) currentSessionGetter() CurrentSessionGetter {
+func (ca mdServerLocalConfigAdapter) currentSessionGetter() idutil.CurrentSessionGetter {
 	return ca.Config.KBPKI()
 }
 

@@ -115,7 +115,7 @@ func (o IncomingMessage) DeepCopy() IncomingMessage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ModifiedMessage),
-		ConvID: o.ConvID.DeepCopy(),
+		ConvID:                     o.ConvID.DeepCopy(),
 		DisplayDesktopNotification: o.DisplayDesktopNotification,
 		DesktopNotificationSnippet: o.DesktopNotificationSnippet,
 		Conv: (func(x *InboxUIItem) *InboxUIItem {

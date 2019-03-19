@@ -52,7 +52,7 @@ function isValidEmail(email: ?string): string {
     }
   }
 
-  return 'Invalid email address.'
+  return email ? 'Invalid email address.' : 'Empty email address.'
 }
 
 // Returns an error string if not valid
