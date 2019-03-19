@@ -1371,6 +1371,8 @@ func (fs *KBFSOpsStandard) Reset(
 	return fs.resetTlfID(ctx, handle)
 }
 
+// ClearConflictView resets a TLF's jounral and conflict DB to a non
+// -conflicting state.
 func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 	tlfID tlf.ID) error {
 	fbo := fs.getOpsNoAdd(ctx, FolderBranch{tlfID, MasterBranch})

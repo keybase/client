@@ -47,6 +47,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSQuota(cl, g),
 			NewCmdSimpleFSRecover(cl, g),
 			NewCmdSimpleFSReset(cl, g),
+			NewCmdSimpleFSClearConflicts(cl, g),
 			NewCmdSimpleFSSync(cl, g),
 		}, getBuildSpecificFSCommands(cl, g)...),
 	}

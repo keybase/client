@@ -69,6 +69,7 @@ const (
 var ErrTooManyCRAttempts = errors.New(
 	"too many attempts at conflict resolution on this TLF")
 
+// ErrCRFailForTest indicates that CR is disabled for a test.
 var ErrCRFailForTest = errors.New(
 	"conflict resolution failed because test requested it")
 

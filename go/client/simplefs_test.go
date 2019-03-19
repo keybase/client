@@ -212,6 +212,11 @@ func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSClearConflictState(_ context.Context,
+	_ keybase1.Path) error {
+	return nil
+}
+
 func (s SimpleFSMock) SimpleFSListFavorites(_ context.Context) (
 	keybase1.FavoritesResult, error) {
 	return keybase1.FavoritesResult{}, nil
