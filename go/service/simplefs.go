@@ -448,6 +448,17 @@ func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)
 }
 
+func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
+	path keybase1.Path) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSClearConflictState(ctx, path)
+}
+
 // SimpleFSPing implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSPing(ctx context.Context) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)

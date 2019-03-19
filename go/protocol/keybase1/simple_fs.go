@@ -1327,6 +1327,10 @@ type SimpleFSWaitArg struct {
 type SimpleFSDumpDebuggingInfoArg struct {
 }
 
+type SimpleFSClearConflictStateArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSSyncStatusArg struct {
 	Filter ListFilter `codec:"filter" json:"filter"`
 }
@@ -1435,6 +1439,8 @@ type SimpleFSInterface interface {
 	SimpleFSWait(context.Context, OpID) error
 	// Instructs KBFS to dump debugging info into its logs.
 	SimpleFSDumpDebuggingInfo(context.Context) error
+	// Clear the conflict state of a TLF.
+	SimpleFSClearConflictState(context.Context, Path) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context, ListFilter) (FSSyncStatus, error)
 	// This RPC generates a random token to be used by a client that needs to
@@ -1825,6 +1831,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSClearConflictState": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSClearConflictStateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSClearConflictStateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSClearConflictStateArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSClearConflictState(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSSyncStatus": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSSyncStatusArg
@@ -2139,6 +2160,13 @@ func (c SimpleFSClient) SimpleFSWait(ctx context.Context, opID OpID) (err error)
 // Instructs KBFS to dump debugging info into its logs.
 func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDumpDebuggingInfo", []interface{}{SimpleFSDumpDebuggingInfoArg{}}, nil)
+	return
+}
+
+// Clear the conflict state of a TLF.
+func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSClearConflictStateArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClearConflictState", []interface{}{__arg}, nil)
 	return
 }
 

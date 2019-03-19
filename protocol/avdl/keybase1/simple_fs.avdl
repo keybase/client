@@ -371,6 +371,11 @@ protocol SimpleFS {
   void simpleFSDumpDebuggingInfo();
 
   /**
+   Clear the conflict state of a TLF.
+   */
+  void simpleFSClearConflictState(Path path);
+
+  /**
    Get sync status.
    */
   FSSyncStatus simpleFSSyncStatus(ListFilter filter);
