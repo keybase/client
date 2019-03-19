@@ -500,7 +500,7 @@ func (mc *MerkleClient) loadRoot(m MetaContext) (err error) {
 	return nil
 }
 
-func (mr *MerkleRoot) Store() error {
+func (mr *MerkleRoot) store() error {
 	dbKeys := []DbKey{merkleHeadKey()}
 	err := mr.G().LocalDb.Put(DbKey{
 		Typ: DBMerkleRoot,
@@ -950,7 +950,7 @@ func (mr MerkleRoot) ExportToAVDL(g *GlobalContext) keybase1.MerkleRootAndTime {
 // Must be called from under a lock.
 func (mc *MerkleClient) storeRoot(m MetaContext, root *MerkleRoot) {
 	m.VLogf(VLog0, "storing merkle root: %d", *root.Seqno())
-	err := root.Store()
+	err := root.store()
 	if err != nil {
 		m.Error("Cannot commit Merkle root to local DB: %s", err)
 	} else {
@@ -1941,27 +1941,6 @@ func (mr *MerkleRoot) Fetched() time.Time {
 		return time.Time{}
 	}
 	return mr.fetched
-}
-
-func (mr *MerkleRoot) KBFSPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
-	if mr == nil {
-		return nil, nil
-	}
-	return mr.payload.kbfsPrivate()
-}
-
-func (mr *MerkleRoot) KBFSPublic() (keybase1.KBFSRootHash, *keybase1.Seqno) {
-	if mr == nil {
-		return nil, nil
-	}
-	return mr.payload.kbfsPublic()
-}
-
-func (mr *MerkleRoot) KBFSPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
-	if mr == nil {
-		return nil, nil
-	}
-	return mr.payload.kbfsPrivateTeam()
 }
 
 func (mrp MerkleRootPayload) skipToSeqno(s keybase1.Seqno) NodeHash {

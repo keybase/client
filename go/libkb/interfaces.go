@@ -122,9 +122,6 @@ type CommandLine interface {
 	GetBool(string, bool) (bool, bool)
 }
 
-type Server interface {
-}
-
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error
