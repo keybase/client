@@ -6,6 +6,7 @@ import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters'
 import Profile2 from '.'
 import {memoize} from '../../util/memoize'
@@ -59,7 +60,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       dispatch(Tracker2Gen.createGetProofSuggestions())
     }
   },
-  onAddIdentity: () => {}, // TODO
+  onAddIdentity: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']})),
   onBack: () => dispatch(ownProps.navigateUp()),
   onSearch: () => {
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
