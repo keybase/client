@@ -1,6 +1,7 @@
 // @flow
 import * as Tabs from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import TabBar from '.'
 import {connect} from '../../util/container'
@@ -16,9 +17,12 @@ const mapStateToProps = state => ({
   username: state.config.username,
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
   _onTabClick: tab => {
+    if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
+      dispatch(PeopleGen.createMarkViewed())
+    }
     dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
 })
