@@ -94,7 +94,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
       alignItems: 'center',
-      borderBottom: `1px solid ${Styles.globalColors.black_10}`,
     },
   }),
   icon: {

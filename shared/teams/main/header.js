@@ -60,7 +60,7 @@ const HeaderRightActions = (props: Props) => (
     gap="tiny"
     direction="horizontal"
     alignItems="center"
-    style={{marginBottom: globalMargins.tiny, paddingRight: globalMargins.small}}
+    style={{marginBottom: globalMargins.xtiny, paddingRight: globalMargins.small}}
   >
     <Button type="Primary" onClick={props.onCreateTeam} label="Create a team" />
     <Button type="Secondary" onClick={props.onJoinTeam} label="Join a team" />
