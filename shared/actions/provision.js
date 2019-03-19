@@ -490,10 +490,7 @@ const forgotUsername = (state, action) =>
     .then(result => ProvisionGen.createForgotUsernameResult({result: 'success'}))
     .catch(error =>
       ProvisionGen.createForgotUsernameResult({
-        result:
-          error.code === RPCTypes.constantsStatusCode.scnotfound
-            ? "We couldn't find an account with that email address. Try again?"
-            : error.desc,
+        result: Constants.decodeForgotUsernameError(error),
       })
     )
 
