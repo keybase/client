@@ -12,6 +12,10 @@ type Props = {|
   onSubmit: (email: string) => void,
 |}
 
+type State = {|
+  email: string,
+|}
+
 class ForgotUsername extends React.Component<Props, State> {
   state = {email: ''}
 
