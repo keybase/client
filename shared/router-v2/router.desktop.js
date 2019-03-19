@@ -41,12 +41,14 @@ class AppView extends React.PureComponent<any> {
     const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
     const selectedTab = nameToTab[descriptor.state.routeName]
+    // transparent headers use position absolute and need to be rendered last so they go on top w/o zindex
+    const direction = descriptor.options.headerTransparent ? 'verticalReverse' : 'vertical'
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <TabBar selectedTab={selectedTab} />
         <Kb.Box2
-          direction="vertical"
+          direction={direction}
           fullHeight={true}
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >

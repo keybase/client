@@ -26,7 +26,7 @@ class Header extends React.PureComponent<Props> {
 
     let style = null
     if (opt.headerTransparent) {
-      style = {position: 'absolute', zIndex: 9999}
+      style = {position: 'absolute'}
     }
 
     let showDivider = true
