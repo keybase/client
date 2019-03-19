@@ -48,9 +48,10 @@ const recheckProof = (state, action) =>
 // only let one of these happen at a time
 let addProofInProgress = false
 function* addProof(_, action) {
+  const isGeneric = action.type === ProfileGen.addGenericProof
   const service = action.payload.platform
   // Special cases
-  switch (action.payload.platform) {
+  switch (service) {
     case 'dnsOrGenericWebSite':
       yield Saga.put(
         RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
@@ -131,6 +132,7 @@ function* addProof(_, action) {
   })
 
   const promptUsername = ({prevError}, response) => {
+    // TODO get parameters from this
     if (canceled) {
       cancelResponse(response)
       return
@@ -150,7 +152,7 @@ function* addProof(_, action) {
         )
       )
     } else {
-      // TODO paramproofs
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']})))
     }
     return actions
   }
@@ -263,7 +265,10 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
     submitCryptoAddress
   )
   yield* Saga.chainAction<ProfileGen.CancelAddProofPayload>(ProfileGen.cancelAddProof, cancelAddProof)
-  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
+  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(
+    [ProfileGen.addProof, ProfileGen.addGenericProof],
+    addProof
+  )
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
   yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
 }

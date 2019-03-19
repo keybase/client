@@ -58,16 +58,18 @@ const profileRoute = () => {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      profileGenericEnterUsername: {
-        component: GenericEnterUsername,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
       profileNonUser: {
         children: {profile: profileRoute},
         component: NonUserProfile,
       },
       profilePgp: pgpRoutes,
       profileProofsList: {
+        children: {
+          profileGenericEnterUsername: {
+            component: GenericEnterUsername,
+            tags: makeLeafTags({layerOnTop: !isMobile}),
+          },
+        },
         component: ProofsList,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
