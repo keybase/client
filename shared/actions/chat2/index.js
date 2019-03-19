@@ -1706,7 +1706,9 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
     return rpcRes.filename
   } catch (e) {
     logger.error(`downloadAttachment error: ${e.message}`)
-    yield Saga.put(Chat2Gen.createAttachmentDownloadedError({error: e.message || 'Error downloading attachment', message}))
+    yield Saga.put(
+      Chat2Gen.createAttachmentDownloadedError({error: e.message || 'Error downloading attachment', message})
+    )
   }
   return fileName
 }
@@ -1975,7 +1977,9 @@ const navigateToInbox = (state, action) => {
     return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
   }
   let resetRouteAction = RouteTreeGen.createNavigateTo({
-    path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
+    path: flags.useNewRouter
+      ? [{props: {}, selected: Tabs.chatTab}]
+      : [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
   })
   if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
     const {context, teamname} = action.payload
