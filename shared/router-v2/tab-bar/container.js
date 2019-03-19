@@ -15,7 +15,7 @@ type OwnProps = {|
 
 const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.navBadges,
-  fullname: TrackerConstants.getDetails(state, state.config.username).fullname,
+  fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
   username: state.config.username,
 })
