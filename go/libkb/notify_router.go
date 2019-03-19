@@ -91,6 +91,7 @@ type NotifyListener interface {
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
+	EmailAddressVerified(emailAddress keybase1.EmailAddress)
 	PasswordChanged()
 	RootAuditError(msg string)
 }
@@ -185,13 +186,14 @@ func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.Acco
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)              {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                  {}
-func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)      {}
-func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)   {}
-func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {}
-func (n *NoopNotifyListener) PasswordChanged()                                       {}
-func (n *NoopNotifyListener) RootAuditError(msg string)                              {}
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)               {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                   {}
+func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)       {}
+func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)    {}
+func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)  {}
+func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
+func (n *NoopNotifyListener) PasswordChanged()                                        {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                               {}
 
 type NotifyListenerID string
 
@@ -1962,6 +1964,26 @@ func (n *NotifyRouter) HandlePhoneNumberSuperseded(ctx context.Context, phoneNum
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.PhoneNumberSuperseded(phoneNumber)
+	})
+}
+
+func (n *NotifyRouter) HandleEmailAddressVerified(ctx context.Context, emailAddress keybase1.EmailAddress) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyEmailAddressClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).EmailAddressVerified(context.Background(), emailAddress)
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.EmailAddressVerified(emailAddress)
 	})
 }
 
