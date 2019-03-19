@@ -487,9 +487,7 @@ const showUsernameEmailPage = () =>
 
 const forgotUsername = (state, action) =>
   RPCTypes.accountRecoverUsernameRpcPromise({email: action.payload.email})
-    .then(result =>
-      ProvisionGen.createForgotUsernameResult({result: 'Your username has been emailed to you!'})
-    )
+    .then(result => ProvisionGen.createForgotUsernameResult({result: 'success'}))
     .catch(error =>
       ProvisionGen.createForgotUsernameResult({
         result:

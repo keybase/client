@@ -16,7 +16,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.provisionError:
     case ProvisionGen.showPassphrasePage: // fallthrough
     case ProvisionGen.showPaperkeyPage: // fallthrough
-      return state.merge({error: action.payload.error || initialState.error})
+      return state.merge({
+        error: action.payload.error || initialState.error,
+        forgotUsernameResult: '',
+      })
     case ProvisionGen.submitPassphrase: // fallthrough
     case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
