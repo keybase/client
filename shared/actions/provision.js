@@ -387,7 +387,7 @@ const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager
 function* startProvisioning(state) {
   makeProvisioningManager(false)
   try {
-    const usernameOrEmail = state.provision.usernameOrEmail
+    const usernameOrEmail = state.provision.username
     if (!usernameOrEmail) {
       return
     }
@@ -485,6 +485,20 @@ const showFinalErrorPage = (state, action) => {
 const showUsernameEmailPage = () =>
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['usernameOrEmail']})
 
+const forgotUsername = (state, action) =>
+  RPCTypes.accountRecoverUsernameRpcPromise({email: action.payload.email})
+    .then(result =>
+      ProvisionGen.createForgotUsernameResult({result: 'Your username has been emailed to you!'})
+    )
+    .catch(error =>
+      ProvisionGen.createForgotUsernameResult({
+        result:
+          error.code === RPCTypes.constantsStatusCode.scnotfound
+            ? "We couldn't find an account with that email address. Try again?"
+            : error.desc,
+      })
+    )
+
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Always ensure we have one live
   makeProvisioningManager(false)
@@ -540,6 +554,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
     ProvisionGen.showFinalErrorPage,
     showFinalErrorPage
   )
+  yield* Saga.chainAction<ProvisionGen.ForgotUsernamePayload>(ProvisionGen.forgotUsername, forgotUsername)
 
   yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeCancelProvision)
 }

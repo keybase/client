@@ -27,10 +27,11 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   error: new HiddenString(''),
   existingDevices: I.List(),
   finalError: null,
+  forgotUsernameResult: '',
   gpgImportError: null,
   inlineError: null,
   selectedDevice: null,
-  usernameOrEmail: '',
+  username: '',
 })
 
 const makeDevice: I.RecordFactory<Types._Device> = I.Record({

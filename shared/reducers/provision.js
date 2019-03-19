@@ -82,13 +82,16 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: initialState.error,
         finalError: null,
         inlineError: null,
-        usernameOrEmail: action.payload.usernameOrEmail,
+        username: action.payload.usernameOrEmail,
       })
     case ProvisionGen.switchToGPGSignOnly:
       return state.merge({gpgImportError: action.payload.importError})
     case ProvisionGen.submitGPGSignOK:
       return state.merge({gpgImportError: null})
+    case ProvisionGen.forgotUsernameResult:
+      return state.merge({forgotUsernameResult: action.payload.result})
     // Saga only actions
+    case ProvisionGen.forgotUsername:
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:
       return state

@@ -13,11 +13,12 @@ const mapStateToProps = state => ({
     !!state.provision.inlineError && state.provision.inlineError.code === constantsStatusCode.scnotfound,
   error: state.provision.error.stringValue(),
   // So we can clear the error if the name is changed
-  submittedUsernameOrEmail: state.provision.usernameOrEmail,
+  submittedUsername: state.provision.username,
 })
 
-const dispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => dispatch(ownProps.navigateUp()),
+const dispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
+  onBack: () => dispatch(navigateUp()),
+  onForgotUsername: () => dispatch(navigateAppend([{props: {}, selected: 'forgotUsername'}])),
   onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSubmit: (usernameOrEmail: string) =>
     dispatch(ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail})),

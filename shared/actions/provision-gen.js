@@ -12,6 +12,8 @@ import {RPCError} from '../util/errors'
 export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'provision:'
 export const addNewDevice = 'provision:addNewDevice'
+export const forgotUsername = 'provision:forgotUsername'
+export const forgotUsernameResult = 'provision:forgotUsernameResult'
 export const provisionError = 'provision:provisionError'
 export const showCodePage = 'provision:showCodePage'
 export const showDeviceListPage = 'provision:showDeviceListPage'
@@ -34,6 +36,8 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Payload Types
 type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'mobile'|}>
+type _ForgotUsernamePayload = $ReadOnly<{|email: string|}>
+type _ForgotUsernameResultPayload = $ReadOnly<{|result: string|}>
 type _ProvisionErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
 type _ShowCodePagePayload = $ReadOnly<{|code: HiddenString, error: ?HiddenString|}>
 type _ShowDeviceListPagePayload = $ReadOnly<{|devices: Array<Types.Device>|}>
@@ -64,6 +68,8 @@ export const createShowNewDeviceNamePage = (payload: _ShowNewDeviceNamePagePaylo
  */
 export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload) => ({payload, type: showDeviceListPage})
 export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({payload, type: addNewDevice})
+export const createForgotUsername = (payload: _ForgotUsernamePayload) => ({payload, type: forgotUsername})
+export const createForgotUsernameResult = (payload: _ForgotUsernameResultPayload) => ({payload, type: forgotUsernameResult})
 export const createProvisionError = (payload: _ProvisionErrorPayload) => ({payload, type: provisionError})
 export const createShowCodePage = (payload: _ShowCodePagePayload) => ({payload, type: showCodePage})
 export const createShowFinalErrorPage = (payload: _ShowFinalErrorPagePayload) => ({payload, type: showFinalErrorPage})
@@ -84,6 +90,8 @@ export const createSwitchToGPGSignOnly = (payload: _SwitchToGPGSignOnlyPayload) 
 
 // Action Payloads
 export type AddNewDevicePayload = {|+payload: _AddNewDevicePayload, +type: 'provision:addNewDevice'|}
+export type ForgotUsernamePayload = {|+payload: _ForgotUsernamePayload, +type: 'provision:forgotUsername'|}
+export type ForgotUsernameResultPayload = {|+payload: _ForgotUsernameResultPayload, +type: 'provision:forgotUsernameResult'|}
 export type ProvisionErrorPayload = {|+payload: _ProvisionErrorPayload, +type: 'provision:provisionError'|}
 export type ShowCodePagePayload = {|+payload: _ShowCodePagePayload, +type: 'provision:showCodePage'|}
 export type ShowDeviceListPagePayload = {|+payload: _ShowDeviceListPagePayload, +type: 'provision:showDeviceListPage'|}
@@ -108,6 +116,8 @@ export type SwitchToGPGSignOnlyPayload = {|+payload: _SwitchToGPGSignOnlyPayload
 // prettier-ignore
 export type Actions =
   | AddNewDevicePayload
+  | ForgotUsernamePayload
+  | ForgotUsernameResultPayload
   | ProvisionErrorPayload
   | ShowCodePagePayload
   | ShowDeviceListPagePayload

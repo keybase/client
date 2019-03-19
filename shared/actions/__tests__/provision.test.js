@@ -643,7 +643,7 @@ describe('Submit user email', () => {
   const {getState, dispatch} = startReduxSaga()
   const action = ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail: 'aaa@example.org'})
   dispatch(action)
-  expect(getState().provision.usernameOrEmail).toEqual(action.payload.usernameOrEmail)
+  expect(getState().provision.username).toEqual(action.payload.usernameOrEmail)
   expect(getState().provision.error).toEqual(noError)
   expect(getState().provision.finalError).toEqual(null)
 })

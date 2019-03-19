@@ -43,6 +43,12 @@
     "showPaperkeyPage": {
       "error": "?HiddenString"
     },
-    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]}
+    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
+    "forgotUsername": {
+      "email": "string"
+    },
+    "forgotUsernameResult": {
+      "result": "string"
+    }
   }
 }

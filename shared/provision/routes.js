@@ -8,6 +8,7 @@ import CodePage from './code-page/container'
 import SetPublicName from './set-public-name/container'
 import RegisterError from './error/container'
 import GPGSign from './gpg-sign/container'
+import ForgotUsername from './forgot-username/container'
 
 const addTags = component => ({
   component,
@@ -21,6 +22,7 @@ const children = {
     tags: makeLeafTags({hideStatusBar: true, underNotch: true}),
   },
   error: addTags(RegisterError),
+  forgotUsername: addTags(ForgotUsername),
   gpgSign: addTags(GPGSign),
   paperkey: addTags(PaperKey),
   passphrase: addTags(Passphrase),
@@ -34,6 +36,7 @@ export default children
 export const newRoutes = {
   codePage: {getScreen: () => CodePage},
   error: {getScreen: () => RegisterError},
+  forgotUsername: {getScreen: () => ForgotUsername},
   gpgSign: {getScreen: () => GPGSign},
   paperkey: {getScreen: () => PaperKey},
   passphrase: {getScreen: () => Passphrase},
@@ -41,4 +44,4 @@ export const newRoutes = {
   setPublicName: {getScreen: () => SetPublicName},
   usernameOrEmail: {getScreen: () => UsernameOrEmail},
 }
-export const newModalRoutes = { }
+export const newModalRoutes = {}
