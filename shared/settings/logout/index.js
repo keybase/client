@@ -96,7 +96,7 @@ export default (props: Props) => (
     {props.hasRandomPW ? (
       <Kb.Box2 centerChildren={true} direction="vertical">
         <Kb.Text type="Body">
-          You don't have a passphrase set -- you should set one before logging out, so that you can log in
+          You don't have a passphrase set -- you should set one before signing out, so that you can sign in
           again later.
         </Kb.Text>
         <UpdatePassphrase
@@ -111,7 +111,7 @@ export default (props: Props) => (
           Would you like to make sure that you know your passphrase before signing out?
         </Kb.Text>
         <Kb.Text style={styles.bodyText} type="Body">
-          You'll need it to log back in.
+          You'll need it to sign back in.
         </Kb.Text>
         <OfferToCheckPassphrase
           checkPassphraseIsCorrect={props.checkPassphraseIsCorrect}
