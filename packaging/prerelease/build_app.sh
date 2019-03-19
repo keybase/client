@@ -35,7 +35,7 @@ if [ ! "$bucket_name" = "" ]; then
   echo "Bucket name: $bucket_name"
 fi
 
-s3host="https://s3.amazonaws.com/$bucket_name/"
+s3host="https://s3.amazonaws.com/$bucket_name"
 
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
