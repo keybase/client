@@ -275,7 +275,8 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir,
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
 	env := kbCtx.Env
-	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
+	sendLogMaxSizeBytes := 10 * 1024 * 1024 // NOTE: If you increase this, check go/libkb/env.go:Env.GetLogFileConfig to make sure we store at least that much.
+	return logSendContext.LogSend(status, feedback, sendLogs, sendLogMaxSizeBytes, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
