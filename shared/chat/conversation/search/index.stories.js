@@ -41,7 +41,7 @@ const complete = {
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/ThreadSearch', module)
-    .addDecorator(story => <Kb.Box style={{maxWidth: 500, padding: 5}}>{story()}</Kb.Box>)
+    .addDecorator(story => <Kb.Box style={{maxWidth: 800, padding: 5}}>{story()}</Kb.Box>)
     .add('Initial', () => <ThreadSearch {...initial} />)
     .add('Started', () => <ThreadSearch {...started} />)
     .add('Partial', () => <ThreadSearch {...partial} />)

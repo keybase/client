@@ -5,52 +5,62 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type {Props} from './index.types'
 
-const ThreadSearch = (props: Props) => {
-  return (
-    <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
-      <Kb.Box2 direction="horizontal" style={styles.inputContainer} fullWidth={true}>
-        <Kb.Box2 direction="horizontal" gap="xtiny">
-          <Kb.Icon
-            type="iconfont-search"
-            color={Styles.globalColors.black_50}
-            fontSize={14}
-            boxStyle={styles.iconBox}
-          />
-          <Kb.Input hideUnderline={true} hintText={'Search...'} small={true} />
+class ThreadSearch extends React.Component<Props> {
+  _input: ?Kb.Input
+  _setInput = (ref: ?Kb.Input) => {
+    this._input = ref
+  }
+  _submitSearch = () => {
+    if (!this._input) {
+      return
+    }
+    this.props.onSearch(this._input.getValue())
+    this._input._clearText()
+  }
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="horizontal" style={styles.inputContainer} fullWidth={true}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.searchContainer}>
+            <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />
+            <Kb.Input
+              hideUnderline={true}
+              hintText={'Search...'}
+              small={true}
+              uncontrolled={true}
+              onEnterKeyDown={this._submitSearch}
+              ref={this._setInput}
+            />
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
+            {this.props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
+            {this.props.totalResults > 0 && (
+              <Kb.Text type="BodySmall" style={styles.results}>
+                {this.props.selectedResult} of {this.props.totalResults}
+              </Kb.Text>
+            )}
+            <Kb.Icon
+              color={Styles.globalColors.black_50}
+              fontSize={16}
+              onClick={this.props.onUp}
+              type="iconfont-arrow-up"
+            />
+            <Kb.Icon
+              color={Styles.globalColors.black_50}
+              fontSize={16}
+              onClick={this.props.onDown}
+              type="iconfont-arrow-down"
+            />
+          </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="tiny">
-          {props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
-          {props.totalResults > 0 && (
-            <Kb.Text type="BodySmall">
-              {props.selectedResult} of {props.totalResults}
-            </Kb.Text>
-          )}
-          <Kb.Icon
-            boxStyle={styles.iconBox}
-            color={Styles.globalColors.black_50}
-            fontSize={14}
-            onClick={props.onUp}
-            type="iconfont-arrow-up"
-          />
-          <Kb.Icon
-            boxStyle={styles.iconBox}
-            color={Styles.globalColors.black_50}
-            fontSize={14}
-            onClick={props.onDown}
-            type="iconfont-arrow-down"
-          />
-        </Kb.Box2>
+        <Kb.Button type="Primary" onClick={this._submitSearch} label="Search" />
+        <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
       </Kb.Box2>
-      <Kb.Button type="Primary" onClick={props.onSearch} label="Search" />
-      <Kb.Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-    </Kb.Box2>
-  )
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({
-  iconBox: {
-    alignSelf: 'center',
-  },
   inputContainer: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_20,
@@ -69,6 +79,16 @@ const styles = Styles.styleSheetCreate({
   },
   progress: {
     height: 14,
+  },
+  results: {
+    color: Styles.globalColors.black_40,
+  },
+  resultsContainer: {
+    flexShrink: 0,
+  },
+  searchContainer: {
+    alignItems: 'center',
+    alignSelf: 'center',
   },
 })
 
