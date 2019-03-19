@@ -4,8 +4,12 @@ import * as Tabs from '../../constants/tabs'
 
 export type Props = {|
   badgeNumbers: {[key: string]: number},
+  fullname: string,
   isWalletsNew?: boolean,
+  onHelp: () => void,
   onProfileClick: () => void,
+  onSettings: () => void,
+  onSignOut: () => void,
   onTabClick: (tab: Tabs.Tab) => void,
   selectedTab: Tabs.Tab,
   username: string,
