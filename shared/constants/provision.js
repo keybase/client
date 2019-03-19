@@ -62,7 +62,7 @@ export const decodeForgotUsernameError = (error: RPCError) => {
     case RPCTypes.constantsStatusCode.scnotfound:
       return "We couldn't find an account with that email address. Try again?"
     case RPCTypes.constantsStatusCode.scinputerror:
-      return "That doesn't look like a valid email address.  Try again?"
+      return "That doesn't look like a valid email address. Try again?"
     default:
       return error.desc
   }
