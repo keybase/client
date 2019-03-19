@@ -715,6 +715,44 @@ func (fbo *folderBranchOps) isUnmergedLocked(lState *kbfssync.LockState) bool {
 	return fbo.unmergedBID != kbfsmd.NullBranchID
 }
 
+var errJournalNotAvailable = errors.New("could not get journal for TLF")
+
+// clearConflictView tells the journal to move any pending writes elsewhere,
+// resets the CR counter, and resets the FBO to have a synced view of the TLF.
+func (fbo *folderBranchOps) clearConflictView(baseCtx context.Context) (
+	err error) {
+	// TODO later: show the cleared conflict view under a special path,
+	//  so users can copy any unmerged files manually back into
+	//  their synced view before nuking it.
+
+	fbo.log.CDebugf(baseCtx, "Clearing conflict view")
+	defer func() {
+		fbo.log.CDebugf(baseCtx, "Done with clearConflictView: %+v", err)
+	}()
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	var ctx context.Context
+	ctx = fbo.ctxWithFBOID(baseCtx)
+	ctx, err = libcontext.NewContextWithCancellationDelayer(ctx)
+	if err != nil {
+		return err
+	}
+
+	journalEnabled := TLFJournalEnabled(fbo.config, fbo.id())
+	if journalEnabled {
+		err = fbo.unstageLocked(ctx, lState, moveJournalsAway)
+	} else {
+		err = fbo.unstageLocked(ctx, lState, doPruneBranches)
+	}
+	if err != nil {
+		return err
+	}
+	return fbo.cr.clearConflictRecords()
+}
+
 func (fbo *folderBranchOps) setBranchIDLocked(
 	lState *kbfssync.LockState, unmergedBID kbfsmd.BranchID) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -6557,12 +6595,26 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 		for _, op := range rmd.data.Changes.Ops {
 			for _, ptr := range op.Refs() {
 				if ptr != zeroPtr {
-					unmergedPtrs = append(unmergedPtrs, ptr)
+					unflushed, err := fbo.config.BlockServer().IsUnflushed(
+						ctx, rmd.tlfHandle.TlfID(), ptr.ID)
+					if err != nil {
+						return nil, err
+					}
+					if !unflushed {
+						unmergedPtrs = append(unmergedPtrs, ptr)
+					}
 				}
 			}
 			for _, update := range op.allUpdates() {
 				if update.Ref != zeroPtr {
-					unmergedPtrs = append(unmergedPtrs, update.Ref)
+					unflushed, err := fbo.config.BlockServer().IsUnflushed(
+						ctx, rmd.tlfHandle.TlfID(), update.Ref.ID)
+					if err != nil {
+						return nil, err
+					}
+					if !unflushed {
+						unmergedPtrs = append(unmergedPtrs, update.Ref)
+					}
 				}
 			}
 		}
@@ -6571,8 +6623,13 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	return unmergedPtrs, nil
 }
 
+const (
+	doPruneBranches  = true
+	moveJournalsAway = false
+)
+
 func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
-	lState *kbfssync.LockState) error {
+	lState *kbfssync.LockState, pruningBehavior bool) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// fetch all of my unstaged updates, and undo them one at a time
@@ -6584,14 +6641,30 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 	}
 
 	// let the server know we no longer have need
-	if wasUnmergedBranch {
+	if wasUnmergedBranch && pruningBehavior == doPruneBranches {
 		err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), unmergedBID)
 		if err != nil {
 			return err
 		}
+	} else {
+		jManager, err := GetJournalManager(fbo.config)
+		if err != nil {
+			return err
+		}
+
+		if tlfJournal, ok := jManager.getTLFJournal(fbo.id(), nil); ok {
+			err = tlfJournal.moveAway(ctx)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errJournalNotAvailable
+		}
 	}
 
 	// now go forward in time, if possible
+	// !isUnmerged is true -> isUnmerged is false -> we are merged but
+	// shouldn't be?
 	err = fbo.getAndApplyMDUpdates(ctx, lState, nil,
 		fbo.applyMDUpdatesLocked)
 	if err != nil {
@@ -6657,7 +6730,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 			lState := makeFBOLockState()
 			c <- fbo.doMDWriteWithRetry(ctx, lState,
 				func(lState *kbfssync.LockState) error {
-					return fbo.unstageLocked(freshCtx, lState)
+					return fbo.unstageLocked(freshCtx, lState, true)
 				})
 		}()
 
