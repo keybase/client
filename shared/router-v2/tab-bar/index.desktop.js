@@ -94,6 +94,7 @@ class TabBar extends React.PureComponent<Props, State> {
               <Kb.Box2
                 direction="horizontal"
                 gap="tiny"
+                centerChildren={true}
                 fullWidth={true}
                 style={styles.nameContainer}
                 alignItems="center"
