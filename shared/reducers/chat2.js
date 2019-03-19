@@ -239,7 +239,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return action.payload.isPreview
           ? message.set('previewTransferState', 'downloading')
-          : message.set('transferProgress', action.payload.ratio).set('transferState', 'downloading')
+          : message.set('transferProgress', action.payload.ratio)
+                   .set('transferState', 'downloading')
+                   .set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
@@ -253,14 +255,14 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         if (!message || message.type !== 'attachment') {
           return message
         }
-        return message.set('transferState', 'mobileSaving')
+        return message.set('transferState', 'mobileSaving').set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentMobileSaved:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
         }
-        return message.set('transferState', null)
+        return message.set('transferState', null).set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentDownload:
       return messageMap.updateIn(
@@ -269,7 +271,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           if (!message || message.type !== 'attachment') {
             return message
           }
-          return message.set('transferState', 'downloading')
+          return message.set('transferState', 'downloading').set('transferErrMsg', null)
         }
       )
     case Chat2Gen.attachmentDownloaded:
@@ -279,11 +281,12 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           if (!message || message.type !== 'attachment') {
             return message
           }
-          const path = actionHasError(action) ? '' : action.payload.path
+          const path = action.payload.path || ''
           return message
             .set('downloadPath', path)
             .set('transferProgress', 0)
             .set('transferState', null)
+            .set('transferErrMsg', actionHasError(action) ? (action.payload.error || 'Error downloading attachment') : null)
             .set('fileURLCached', true) // assume we have this on the service now
         }
       )
@@ -1028,16 +1031,17 @@ const rootReducer = (
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state
     case Chat2Gen.attachmentDownloaded:
-      const {message, path} = action.payload
+      const {message} = action.payload
       let nextState = state
       // check fullscreen attachment message in case we downloaded it
       if (
+        !action.error &&
         state.attachmentFullscreenMessage &&
         state.attachmentFullscreenMessage.conversationIDKey === message.conversationIDKey &&
         state.attachmentFullscreenMessage.id === message.id &&
         message.type === 'attachment'
       ) {
-        nextState = nextState.set('attachmentFullscreenMessage', message.set('downloadPath', path))
+        nextState = nextState.set('attachmentFullscreenMessage', message.set('downloadPath', action.payload.path))
       }
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))

@@ -87,18 +87,18 @@ const profileRoute = () => {
 
 export const newRoutes = {
   profile: {getScreen: () => require('./user/container').default, upgraded: true},
-  profileAddToTeam: {getScreen: () => require('./add-to-team/container').default},
-  profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default},
   profileNonUser: {getScreen: () => require('./non-user-profile/container').default},
-  profileShowcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
 }
 
 export const newModalRoutes = {
+  controlledRolePicker: {getScreen: () => require('../teams/role-picker/controlled-container').default},
+  profileAddToTeam: {getScreen: () => require('./add-to-team/container').default, upgraded: true},
   profileConfirmOrPending: {
     getScreen: () => require('./confirm-or-pending/container').default,
     upgraded: true,
   },
-  profileEdit: {getScreen: () => require('./edit-profile/container').default},
+  profileEdit: {getScreen: () => require('./edit-profile/container').default, upgraded: true},
+  profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default, upgraded: true},
   profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
   profileProveEnterUsername: {
     getScreen: () => require('./prove-enter-username/container').default,
@@ -110,6 +110,10 @@ export const newModalRoutes = {
   },
   profileRevoke: {getScreen: () => require('./revoke/container').default, upgraded: true},
   profileSearch: {getScreen: () => require('./search/container').default},
+  profileShowcaseTeamOffer: {
+    getScreen: () => require('./showcase-team-offer/container').default,
+    upgraded: true,
+  },
   ...require('./pgp/routes').newRoutes,
 }
 

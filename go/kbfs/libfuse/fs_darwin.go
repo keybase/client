@@ -15,6 +15,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/utils"
@@ -68,7 +69,7 @@ func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp
 
 	if r.private.fs.platformParams.UseLocal {
 		if mountRootSpecialPaths[req.Name] {
-			session, err := libkbfs.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			session, err := idutil.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}
@@ -76,7 +77,7 @@ func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp
 		}
 
 		if req.Name == TrashDirName {
-			session, err := libkbfs.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			session, err := idutil.GetCurrentSessionIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}

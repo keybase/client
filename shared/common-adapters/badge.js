@@ -6,6 +6,7 @@ import * as Styles from '../styles'
 
 export type Badge2Props = {|
   badgeNumber: number,
+  className?: string,
   fontSize: number,
   height: number,
   leftRightPadding: number,
@@ -25,6 +26,7 @@ export default class Badge extends React.Component<Badge2Props> {
   render() {
     return (
       <Box
+        className={this.props.className}
         style={Styles.collapseStyles([
           styles.badge,
           {

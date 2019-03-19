@@ -128,7 +128,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	m = m.CommitProvisionalLogin()
 
 	// signup complete, notify anyone interested.
-	m.G().NotifyRouter.HandleLogin(s.arg.Username)
+	m.G().NotifyRouter.HandleLogin(m.Ctx(), s.arg.Username)
 
 	// For instance, setup gregor and friends...
 	m.G().CallLoginHooks()

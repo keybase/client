@@ -1,9 +1,30 @@
 // @flow
 import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
-import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import {Box2} from '../../../../../common-adapters/box'
+import Text from '../../../../../common-adapters/text'
+import Icon, {castPlatformStyles as iconCastPlatformStyles} from '../../../../../common-adapters/icon'
+import Avatar from '../../../../../common-adapters/avatar'
+import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
+import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
+import Divider from '../../../../../common-adapters/divider'
+import FloatingMenu from '../../../../../common-adapters/floating-menu'
+
+// This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
+// TODO could make this more dynamic to avoid this (aka register with markdown what custom stuff you want)
+const Kb = {
+  Avatar,
+  Box2,
+  ConnectedUsernames,
+  Divider,
+  FloatingMenu,
+  Icon,
+  ProgressIndicator,
+  Text,
+  iconCastPlatformStyles,
+}
 
 const sendIcon = Styles.isMobile
   ? 'icon-fancy-stellar-sending-mobile-149-129'

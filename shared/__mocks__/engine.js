@@ -10,5 +10,6 @@ const mockEngine = {
 }
 const makeEngine = () => mockEngine
 const getEngine = () => mockEngine
+const getEngineSaga = () => {}
 export default getEngine
-export {getEngine, makeEngine, Engine, EngineChannel}
+export {getEngine, makeEngine, Engine, EngineChannel, getEngineSaga}

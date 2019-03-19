@@ -31,75 +31,137 @@ const tabs = [
   Tabs.settingsTab,
 ]
 
-// $FlowIssue
-const TabBar = KeyHandler(
-  (p: Props) =>
-    !!p.username && (
-      <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
-        <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
-          <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
-          <Kb.ClickableBox onClick={p.onProfileClick}>
-            <Kb.Box2
-              direction="horizontal"
-              gap="tiny"
-              fullWidth={true}
-              style={styles.nameContainer}
-              alignItems="center"
-            >
-              <Kb.Avatar
-                size={24}
-                borderColor={Styles.globalColors.blue}
-                username={p.username}
-                style={styles.avatar}
-              />
-              <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
-                Hi {p.username}!
-              </Kb.Text>
-              <Kb.Icon
-                type="iconfont-arrow-down"
-                color={Styles.globalColors.blue3}
-                fontSize={12}
-                style={styles.caret}
-              />
-            </Kb.Box2>
-          </Kb.ClickableBox>
-          <Kb.Divider style={styles.divider} />
-        </Kb.Box2>
-        {tabs.map(t => (
-          <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
-            <Kb.WithTooltip text={data[t].label} toastClassName="tab-tooltip">
+type State = {|
+  showingMenu: boolean,
+|}
+
+class TabBar extends React.PureComponent<Props, State> {
+  state = {showingMenu: false}
+
+  _attachmentRef = React.createRef<Kb.Box2>()
+  _getAttachmentRef = () => this._attachmentRef.current
+  _showMenu = () => this.setState({showingMenu: true})
+  _hideMenu = () => this.setState({showingMenu: false})
+  _menuHeader = () => ({
+    onClick: this.props.onProfileClick,
+    title: '',
+    view: (
+      <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true}>
+        <Kb.ConnectedNameWithIcon
+          username={this.props.username}
+          onClick={() => {
+            this._hideMenu()
+            this.props.onProfileClick()
+          }}
+          metaTwo={
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {this.props.fullname}
+            </Kb.Text>
+          }
+        />
+      </Kb.Box2>
+    ),
+  })
+  _menuItems = () => [
+    {
+      onClick: this.props.onProfileClick,
+      title: 'View Profile',
+    },
+    'Divider',
+    {
+      onClick: this.props.onSettings,
+      title: 'Settings',
+    },
+    {
+      onClick: this.props.onHelp,
+      title: 'Help',
+    },
+    {
+      danger: true,
+      onClick: this.props.onSignOut,
+      title: 'Sign out',
+    },
+  ]
+
+  render() {
+    const p = this.props
+    return (
+      !!p.username && (
+        <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
+          <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
+            <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
+            <Kb.ClickableBox onClick={this._showMenu}>
               <Kb.Box2
                 direction="horizontal"
+                gap="tiny"
+                centerChildren={true}
                 fullWidth={true}
-                className={t === p.selectedTab ? 'tab-selected' : 'tab'}
-                style={styles.tab}
+                style={styles.nameContainer}
+                alignItems="center"
+                ref={this._attachmentRef}
               >
-                <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-                <Kb.Icon className="tab-icon" type={data[t].icon} />
-                <Kb.Text className="tab-label" type="BodySmallSemibold">
-                  {data[t].label}
-                </Kb.Text>
-                {!!p.badgeNumbers[t] && (
-                  <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />
-                )}
+                <Kb.Avatar
+                  size={24}
+                  borderColor={Styles.globalColors.blue}
+                  username={p.username}
+                  style={styles.avatar}
+                />
+                <>
+                  <Kb.Text className="username" type="BodyTinySemibold" style={styles.username}>
+                    Hi {p.username}!
+                  </Kb.Text>
+                  <Kb.Icon
+                    type="iconfont-arrow-down"
+                    color={Styles.globalColors.blue3}
+                    fontSize={12}
+                    style={styles.caret}
+                  />
+                </>
               </Kb.Box2>
-            </Kb.WithTooltip>
-          </Kb.ClickableBox>
-        ))}
-      </Kb.Box2>
+            </Kb.ClickableBox>
+            <Kb.Divider style={styles.divider} />
+            <Kb.FloatingMenu
+              position="bottom left"
+              containerStyle={styles.menu}
+              header={this._menuHeader()}
+              closeOnSelect={true}
+              visible={this.state.showingMenu}
+              attachTo={this._getAttachmentRef}
+              items={this._menuItems()}
+              onHidden={this._hideMenu}
+            />
+          </Kb.Box2>
+          {tabs.map(t => (
+            <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
+              <Kb.WithTooltip text={data[t].label} toastClassName="tab-tooltip">
+                <Kb.Box2
+                  direction="horizontal"
+                  fullWidth={true}
+                  className={t === p.selectedTab ? 'tab-selected' : 'tab'}
+                  style={styles.tab}
+                >
+                  <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+                  <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
+                  <Kb.Text className="tab-label" type="BodySmallSemibold">
+                    {data[t].label}
+                  </Kb.Text>
+                  {!!p.badgeNumbers[t] && <Kb.Badge className="tab-badge" badgeNumber={p.badgeNumbers[t]} />}
+                </Kb.Box2>
+              </Kb.WithTooltip>
+            </Kb.ClickableBox>
+          ))}
+        </Kb.Box2>
+      )
     )
-)
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   avatar: {marginLeft: 14},
-  badge: {
-    left: 43,
-    position: 'absolute',
-    top: 3,
-  },
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
-  header: {height: 80},
+  header: {height: 80, marginBottom: 20},
+  menu: {marginLeft: Styles.globalMargins.tiny},
   nameContainer: {height: 24},
   osButtons: Styles.platformStyles({
     isElectron: {
@@ -109,7 +171,7 @@ const styles = Styles.styleSheetCreate({
   }),
   tab: {
     alignItems: 'center',
-    height: 40,
+    paddingRight: 12,
     position: 'relative',
   },
   username: {color: Styles.globalColors.blue3, flexGrow: 1},
@@ -121,12 +183,15 @@ const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
 }, {})
 const hotkeys = Object.keys(keysMap)
 
+// $FlowIssue
+const InsideHotKeyTabBar = KeyHandler(TabBar)
+
 class HotKeyTabBar extends React.Component<Props> {
   _onHotkey = cmd => {
     this.props.onTabClick(keysMap[cmd])
   }
   render() {
-    return <TabBar {...this.props} hotkeys={hotkeys} onHotkey={this._onHotkey} />
+    return <InsideHotKeyTabBar {...this.props} hotkeys={hotkeys} onHotkey={this._onHotkey} />
   }
 }
 

@@ -44,7 +44,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
       itemCount={this.props.items.length}
       itemData={this.props.items}
       itemKey={this._keyExtractor}
-      itemSize={index => getItemLayout(index, this.props.items[index]).height}
+      itemSize={index => getItemLayout(index, this.props.items[index]).length}
       estimatedItemSize={this.props.estimatedItemHeight}
     >
       {this._row}

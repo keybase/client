@@ -18,11 +18,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -105,7 +107,7 @@ const (
 type runner struct {
 	config libkbfs.Config
 	log    logger.Logger
-	h      *libkbfs.TlfHandle
+	h      *tlfhandle.Handle
 	remote string
 	repo   string
 	gitDir string
@@ -165,7 +167,7 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 
 	// Use the device ID and PID to make a unique ID (for generating
 	// temp files in KBFS).
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, config.KBPKI(), h.Type() == tlf.Public)
 	if err != nil {
 		return nil, err

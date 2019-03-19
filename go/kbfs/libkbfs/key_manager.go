@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -444,13 +445,13 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 
 	// Let the service know that we're doing the identifies because of
 	// a rekey, so they can suppress popups in some cases.
-	ctx, err := MakeExtendedIdentify(
+	ctx, err := tlfhandle.MakeExtendedIdentify(
 		ctx, keybase1.TLFIdentifyBehavior_KBFS_REKEY)
 	if err != nil {
 		return err
 	}
 
-	return identifyUserList(
+	return tlfhandle.IdentifyUserList(
 		ctx, kbpki, kbpki, ids, tlfID.Type(),
 		km.config.OfflineAvailabilityForID(tlfID))
 }
@@ -517,7 +518,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, err
 	}
 
-	idGetter := constIDGetter{md.TlfID()}
+	idGetter := tlfhandle.ConstIDGetter{ID: md.TlfID()}
 	resolvedHandle, err := handle.ResolveAgain(
 		ctx, km.config.KBPKI(), idGetter, km.config)
 	if err != nil {
@@ -586,7 +587,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	if !isWriter && incKeyGen {
 		// Readers cannot create the first key generation
-		return false, nil, NewReadAccessError(resolvedHandle, session.Name, resolvedHandle.GetCanonicalPath())
+		return false, nil, tlfhandle.NewReadAccessError(
+			resolvedHandle, session.Name, resolvedHandle.GetCanonicalPath())
 	}
 
 	offline := km.config.OfflineAvailabilityForID(md.TlfID())

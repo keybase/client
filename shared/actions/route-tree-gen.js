@@ -12,6 +12,7 @@ import * as RCConstants from '../route-tree'
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'route-tree:'
 export const clearModals = 'route-tree:clearModals'
+export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateTo = 'route-tree:navigateTo'
 export const navigateUp = 'route-tree:navigateUp'
@@ -25,6 +26,7 @@ export const switchTo = 'route-tree:switchTo'
 
 // Payload Types
 type _ClearModalsPayload = void
+type _NavUpToScreenPayload = $ReadOnly<{|routeName: string|}>
 type _NavigateAppendPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
 type _NavigateToPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
 type _NavigateUpPayload = void
@@ -37,6 +39,10 @@ type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, 
 type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators
+/**
+ * ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.
+ */
+export const createNavUpToScreen = (payload: _NavUpToScreenPayload) => ({payload, type: navUpToScreen})
 /**
  * ONLY used by the new nav. use this to clear any modal routes
  */
@@ -57,6 +63,7 @@ export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: sw
 
 // Action Payloads
 export type ClearModalsPayload = {|+payload: _ClearModalsPayload, +type: 'route-tree:clearModals'|}
+export type NavUpToScreenPayload = {|+payload: _NavUpToScreenPayload, +type: 'route-tree:navUpToScreen'|}
 export type NavigateAppendPayload = {|+payload: _NavigateAppendPayload, +type: 'route-tree:navigateAppend'|}
 export type NavigateToPayload = {|+payload: _NavigateToPayload, +type: 'route-tree:navigateTo'|}
 export type NavigateUpPayload = {|+payload: _NavigateUpPayload, +type: 'route-tree:navigateUp'|}
@@ -72,6 +79,7 @@ export type SwitchToPayload = {|+payload: _SwitchToPayload, +type: 'route-tree:s
 // prettier-ignore
 export type Actions =
   | ClearModalsPayload
+  | NavUpToScreenPayload
   | NavigateAppendPayload
   | NavigateToPayload
   | NavigateUpPayload

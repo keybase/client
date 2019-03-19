@@ -1422,14 +1422,6 @@ func (r *GetNextAttachmentMessageLocalRes) SetOffline() {
 	r.Offline = true
 }
 
-func (r *DownloadAttachmentLocalRes) SetOffline() {
-	r.Offline = true
-}
-
-func (r *DownloadFileAttachmentLocalRes) SetOffline() {
-	r.Offline = true
-}
-
 func (r *FindConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }

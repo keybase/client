@@ -5,6 +5,7 @@ package engine
 
 import (
 	"context"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -42,6 +43,24 @@ func (e *Bootstrap) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 	return nil
+}
+
+func (e *Bootstrap) lookupFullname(m libkb.MetaContext, uv keybase1.UserVersion) {
+	pkgs, err := m.G().UIDMapper.MapUIDsToUsernamePackagesOffline(m.Ctx(), m.G(), []keybase1.UID{uv.Uid}, time.Duration(0))
+	if err != nil {
+		m.Warning("UID -> Username failed lookup: %s", err)
+		return
+	}
+	pkg := pkgs[0]
+	if pkg.NormalizedUsername.IsNil() || pkg.FullName == nil {
+		m.Debug("Empty username for UID=%s", uv.Uid)
+		return
+	}
+	if !uv.EldestSeqno.Eq(pkg.FullName.EldestSeqno) {
+		m.Debug("Wrong eldest for username package; got %d but wanted %d", pkg.FullName.EldestSeqno, uv.EldestSeqno)
+		return
+	}
+	e.status.Fullname = pkg.FullName.FullName
 }
 
 // Run starts the engine.
@@ -102,6 +121,8 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 	if chatHelper := e.G().ChatHelper; chatHelper != nil {
 		e.status.TopReacjis = chatHelper.TopReacjis(m.Ctx(), e.status.Uid.ToBytes())
 	}
+
+	e.lookupFullname(m, uv)
 
 	return nil
 }

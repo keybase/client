@@ -45,6 +45,8 @@ const recheckProof = (state, action) =>
     Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
   )
 
+// only let one of these happen at a time
+let addProofInProgress = false
 function* addProof(_, action) {
   const service = action.payload.platform
   // Special cases
@@ -69,6 +71,11 @@ function* addProof(_, action) {
       return
   }
 
+  if (addProofInProgress) {
+    logger.warn('addProof while one in progress')
+    return
+  }
+  addProofInProgress = true
   let _promptUsernameResponse
   let _outputInstructionsResponse
 
@@ -208,6 +215,7 @@ function* addProof(_, action) {
   cancelTask.cancel()
   checkProofTask.cancel()
   submitUsernameTask.cancel()
+  addProofInProgress = false
 }
 
 const cancelAddProof = state =>

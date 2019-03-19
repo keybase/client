@@ -47,7 +47,7 @@ function SettingsNav(props: Props) {
       />
       {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
-      <SettingsItem text="Sign out" selected={false} onClick={props.onLogout} />
+      <SettingsItem text="Sign out" selected={false} onClick={() => props.onTabChange(Constants.logOutTab)} />
     </Box>
   )
 }

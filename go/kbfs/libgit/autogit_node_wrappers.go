@@ -172,7 +172,7 @@ func (rdn *repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 		return nil
 	}
 
-	if rdn.subdir == "" && rdn.branch == "" {
+	if rdn.subdir == "" {
 		// If this is the root node for the repo, register it exactly once.
 		rdn.once.Do(func() {
 			billyFS, err := rdn.gitRootFS.Chroot(rdn.repo)

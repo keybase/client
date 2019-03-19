@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -31,7 +32,7 @@ func (fn *FakeObserver) BatchChanges(
 }
 
 func (fn *FakeObserver) TlfHandleChange(ctx context.Context,
-	newHandle *TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	return
 }
 

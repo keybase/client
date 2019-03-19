@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -155,6 +156,17 @@ func isKbfsPath(p string) bool {
 		strings.HasPrefix(p, kbfsPrefixTeam)
 }
 
+func makeSimpleFSClientFromGlobalContext(
+	g *libkb.GlobalContext) (*keybase1.SimpleFSClient, error) {
+	xp := g.ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+	if xp == nil {
+		return nil, libkb.KBFSNotRunningError{}
+	}
+	return &keybase1.SimpleFSClient{
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil),
+	}, nil
+}
+
 // NewKbfsReadCloseResetter creates a ReadCloseResetter that uses SimpleFS as source
 // of data. kbfsPath must start with "/keybase/<tlf-type>/".
 func NewKbfsReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
@@ -162,12 +174,10 @@ func NewKbfsReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
 	if !isKbfsPath(kbfsPath) {
 		return nil, errors.New("not a kbfs path")
 	}
-	xp := g.ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
-	if xp == nil {
-		return nil, libkb.KBFSNotRunningError{}
-	}
-	client := &keybase1.SimpleFSClient{
-		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil),
+
+	client, err := makeSimpleFSClientFromGlobalContext(g)
+	if err != nil {
+		return nil, err
 	}
 
 	opid, err := client.SimpleFSMakeOpid(ctx)
@@ -228,6 +238,58 @@ func NewReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
 		return NewKbfsReadCloseResetter(ctx, g, p)
 	}
 	return NewFileReadCloseResetter(p)
+}
+
+type kbfsFileInfo struct {
+	dirent *keybase1.Dirent
+}
+
+func (fi kbfsFileInfo) Name() string { return fi.dirent.Name }
+func (fi kbfsFileInfo) Size() int64  { return int64(fi.dirent.Size) }
+func (fi kbfsFileInfo) Mode() (mode os.FileMode) {
+	mode |= 0400
+	if fi.dirent.Writable {
+		mode |= 0200
+	}
+	switch fi.dirent.DirentType {
+	case keybase1.DirentType_DIR:
+		mode |= os.ModeDir
+	case keybase1.DirentType_SYM:
+		mode |= os.ModeSymlink
+	case keybase1.DirentType_EXEC:
+		mode |= 0100
+	}
+	return mode
+}
+func (fi kbfsFileInfo) ModTime() time.Time {
+	return keybase1.FromTime(fi.dirent.Time)
+}
+func (fi kbfsFileInfo) IsDir() bool {
+	return fi.dirent.DirentType == keybase1.DirentType_DIR
+}
+func (fi kbfsFileInfo) Sys() interface{} { return fi.dirent }
+
+// StatOSOrKbfsFile stats the file located at p, using SimpleFSStat if it's a
+// KBFS path, or os.Stat if not.
+func StatOSOrKbfsFile(ctx context.Context, g *libkb.GlobalContext, p string) (
+	fi os.FileInfo, err error) {
+	if !isKbfsPath(p) {
+		return os.Stat(p)
+	}
+
+	client, err := makeSimpleFSClientFromGlobalContext(g)
+	if err != nil {
+		return nil, err
+	}
+
+	dirent, err := client.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
+		Path: keybase1.NewPathWithKbfs(p[len(kbfsPrefix):]),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return kbfsFileInfo{dirent: &dirent}, nil
 }
 
 type BufReadResetter struct {

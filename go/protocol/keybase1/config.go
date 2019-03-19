@@ -481,6 +481,7 @@ type BootstrapStatus struct {
 	Username   string   `codec:"username" json:"username"`
 	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
 	DeviceName string   `codec:"deviceName" json:"deviceName"`
+	Fullname   FullName `codec:"fullname" json:"fullname"`
 	Following  []string `codec:"following" json:"following"`
 	Followers  []string `codec:"followers" json:"followers"`
 	TopReacjis []string `codec:"topReacjis" json:"topReacjis"`
@@ -494,6 +495,7 @@ func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 		Username:   o.Username,
 		DeviceID:   o.DeviceID.DeepCopy(),
 		DeviceName: o.DeviceName,
+		Fullname:   o.Fullname.DeepCopy(),
 		Following: (func(x []string) []string {
 			if x == nil {
 				return nil

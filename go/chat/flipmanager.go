@@ -1215,6 +1215,10 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox: %s", err)
 		return true
 	}
+	if !msg.IsValid() {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox msg")
+		return true
+	}
 	body := msg.Valid().MessageBody
 	if !body.IsType(chat1.MessageType_FLIP) {
 		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")

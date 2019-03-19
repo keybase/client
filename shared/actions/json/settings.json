@@ -67,7 +67,9 @@
     },
     "onChangeShowPassphrase": {},
     "onSubmitNewEmail": {},
-    "onSubmitNewPassphrase": {},
+    "onSubmitNewPassphrase": {
+      "thenSignOut": "boolean"
+    },
     "onUpdateEmailError": {
       "error": "Error"
     },
@@ -110,6 +112,12 @@
     "loadHasRandomPw": {},
     "loadedHasRandomPw": {
       "randomPW": "boolean"
+    },
+    "checkPassphrase": {
+      "passphrase": "HiddenString"
+    },
+    "loadedCheckPassphrase": {
+      "checkPassphraseIsCorrect": "?boolean"
     }
   }
 }
