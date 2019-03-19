@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
 import Download, {type Props} from './download'
-import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
+import {NativeAnimated, NativeEasing} from '../../common-adapters/mobile.native'
 
 type State = {
   opacity: NativeAnimated.AnimatedValue,
 }
 
-export default class extends React.PureComponent<Props, State> {
+export default class DownloadNativeWrapper extends React.PureComponent<Props, State> {
   _opacity = new NativeAnimated.Value(1)
   _opacityAnimation = NativeAnimated.timing(this._opacity, {
     duration: 3000,
@@ -42,6 +42,10 @@ export default class extends React.PureComponent<Props, State> {
   componentDidUpdate() {
     this._update()
   }
+  componentWillUnmount() {
+    this._ensureStopped()
+  }
+
   render() {
     return (
       <NativeAnimated.View style={{opacity: this._opacity}}>
