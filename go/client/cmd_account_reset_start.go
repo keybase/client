@@ -29,7 +29,7 @@ func NewCmdAccountResetStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "email",
-				Usage: "Specify you account email",
+				Usage: "Specify your account email",
 			},
 			cli.StringFlag{
 				Name:  "username",
