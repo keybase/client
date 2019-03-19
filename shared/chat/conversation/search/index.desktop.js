@@ -12,11 +12,6 @@ class ThreadSearch extends React.Component<Props> {
   }
   _submitSearch = () => {
     this._input && this.props.onSearch(this._input.getValue())
-    this._input &&
-      this._input.transformText(() => ({
-        selection: {end: 0, start: 0},
-        text: '',
-      }))
   }
   render() {
     return (
