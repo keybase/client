@@ -33,7 +33,7 @@ type levelDBOps interface {
 }
 
 func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbKey, value []byte) (err error) {
-	defer convertNoSpaceError(err)
+	defer convertNoSpaceError(&err)
 
 	idb := id.ToBytes(levelDbTableKv)
 	if aliases == nil {
@@ -99,7 +99,7 @@ func levelDbLookup(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (val []byt
 }
 
 func levelDbDelete(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (err error) {
-	defer convertNoSpaceError(err)
+	defer convertNoSpaceError(&err)
 	key := id.ToBytes(levelDbTableKv)
 	if err := ops.Delete(key, nil); err != nil {
 		return err
@@ -389,7 +389,7 @@ func (l LevelDbTransaction) Delete(id DbKey) error {
 }
 
 func (l LevelDbTransaction) Commit() (err error) {
-	defer convertNoSpaceError(err)
+	defer convertNoSpaceError(&err)
 	return l.tr.Commit()
 }
 
@@ -397,11 +397,9 @@ func (l LevelDbTransaction) Discard() {
 	l.tr.Discard()
 }
 
-func convertNoSpaceError(err error) error {
-	if IsNoSpaceOnDeviceError(err) {
-		// embed in exportable error type
-		err = NoSpaceOnDeviceError{Desc: err.Error()}
+func convertNoSpaceError(err *error) {
+	if err != nil && *err != nil && IsNoSpaceOnDeviceError(*err) {
+		// replace with an exportable error type
+		*err = NoSpaceOnDeviceError{Desc: (*err).Error()}
 	}
-
-	return err
 }
