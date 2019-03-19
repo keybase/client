@@ -83,9 +83,12 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
     },
   }),
-  icon: {
-    marginRight: 6,
-  },
+  icon: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      marginRight: 6,
+    },
+  }),
 })
 
 export default Header

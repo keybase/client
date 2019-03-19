@@ -262,11 +262,6 @@ const createElectronApp = Component => {
 const ElectronApp = createElectronApp(RootStackNavigator)
 
 const styles = Styles.styleSheetCreate({
-  back: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-    },
-  }),
   contentArea: {
     flexGrow: 1,
     position: 'relative',
