@@ -65,7 +65,6 @@ function* loadDaemonBootstrapStatus(state, action) {
       deviceName: s.deviceName,
       followers: s.followers ?? [],
       following: s.following ?? [],
-      // $FlowIssue core side isn't plumbed through yet
       fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
