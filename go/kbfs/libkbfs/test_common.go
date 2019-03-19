@@ -776,6 +776,20 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 	return nil
 }
 
+// SetCRFailureForTesting sets whether CR should always fail on the folder
+// branch.
+func SetCRFailureForTesting(ctx context.Context, config Config,
+	folderBranch FolderBranch, fail bool) error {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return errors.New("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOpsNoAdd(ctx, folderBranch)
+	ops.cr.alwaysFailForTest = fail
+	return nil
+}
+
 // ForceQuotaReclamationForTesting kicks off quota reclamation under
 // the given config, for the given folder-branch.
 func ForceQuotaReclamationForTesting(config Config,
