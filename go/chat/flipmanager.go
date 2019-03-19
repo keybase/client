@@ -1509,7 +1509,11 @@ func (m *FlipManager) Me() flip.UserDevice {
 
 func (m *FlipManager) ShouldCommit(ctx context.Context) bool {
 	if !m.G().IsMobileAppType() {
-		return m.G().DesktopAppState.AwakeAndUnlocked(m.G().MetaContext(ctx))
+		should := m.G().DesktopAppState.AwakeAndUnlocked(m.G().MetaContext(ctx))
+		if !should {
+			m.Debug(ctx, "ShouldCommit -> false")
+		}
+		return should
 	}
 	return true
 }

@@ -33,7 +33,7 @@ func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.Mob
 }
 
 func (a *appStateHandler) PowerMonitorEvent(ctx context.Context, event string) (err error) {
-	a.G().Trace(fmt.Sprintf("PowerMonitorEvent(%v)", event), func() error { return err })()
+	a.G().Log.CDebugf(ctx, "PowerMonitorEvent(%v)", event)
 	a.G().DesktopAppState.Update(a.MetaContext(ctx), event)
 	return nil
 }

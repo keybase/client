@@ -83,7 +83,7 @@ func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
 // event from power monitor
 // https://electronjs.org/docs/api/power-monitor
 func (a *DesktopAppState) Update(mctx MetaContext, event string) {
-	mctx.G().Trace(fmt.Sprintf("DesktopAppState.Update(%v)", event), func() error { return nil })
+	mctx.Debug("DesktopAppState.Update(%v)", event)
 	a.Lock()
 	defer a.Unlock()
 	switch event {
