@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import {ClickableBox, Box2, Button, Icon, ProgressIndicator, Text, type IconType} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {
+  desktopStyles,
+  platformStyles,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  isMobile,
+} from '../../styles'
 
 export type HeaderButtonProps = {
   iconType: IconType,
@@ -60,7 +67,10 @@ const HeaderRightActions = (props: Props) => (
     gap="tiny"
     direction="horizontal"
     alignItems="center"
-    style={{marginBottom: globalMargins.xtiny, paddingRight: globalMargins.small}}
+    style={platformStyles({
+      common: {marginBottom: globalMargins.xtiny, paddingRight: globalMargins.small},
+      isElectron: {...desktopStyles.windowDraggingClickable},
+    })}
   >
     <Button type="Primary" onClick={props.onCreateTeam} label="Create a team" />
     <Button type="Secondary" onClick={props.onJoinTeam} label="Join a team" />
