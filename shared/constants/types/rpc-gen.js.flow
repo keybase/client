@@ -1972,7 +1972,7 @@ export type AvatarUpdateType =
 
 export type AvatarUrl = String
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
-export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, newDevices?: ?Array<DeviceID>, revokedDevices?: ?Array<DeviceID>, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>, unreadWalletAccounts?: ?Array<WalletAccountInfo>, resetInProgressMessage: String}>
+export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, newDevices?: ?Array<DeviceID>, revokedDevices?: ?Array<DeviceID>, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>, unreadWalletAccounts?: ?Array<WalletAccountInfo>, resetState: ResetState}>
 export type BinaryKID = Bytes
 export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
 export type BlockIdCount = $ReadOnly<{id: BlockIdCombo, liveCount: Int}>
@@ -2620,6 +2620,7 @@ export type RepoID = String
 export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, prev: ResetPrev, resetSeqno: Seqno, type: ResetType, uid: UID}>
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
 export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, lastSeqno: Seqno, reset: SHA512}>
+export type ResetState = $ReadOnly<{endTime: Time, msg: String}>
 export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, eldestSeqno: Seqno, type: ResetType}>
 export type ResetType =
   | 0 // NONE_0

@@ -29,9 +29,9 @@ func PrintAccountResetWarning(g *libkb.GlobalContext) {
 	if err != nil {
 		return
 	}
-	msg := badgeState.ResetInProgressMessage
-	if msg != "" {
-		g.Log.Warning(msg)
+	resetState := badgeState.ResetState
+	if resetState.EndTime > 0 {
+		g.Log.Warning(resetState.Msg)
 		g.Log.Warning("To cancel the process run `keybase account reset-cancel`")
 	}
 }
