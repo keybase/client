@@ -284,11 +284,12 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a message.
-func (n *NotifyRouter) HandleLogout() {
+func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending logout notification")
+	n.G().Log.CDebugf(ctx, "+ Sending logout notification")
+	ctx = CopyTagsToBackground(ctx)
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
@@ -298,7 +299,7 @@ func (n *NotifyRouter) HandleLogout() {
 				// A send of a `LoggedOut` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedOut(context.Background())
+				}).LoggedOut(ctx)
 			}()
 		}
 		return true
@@ -307,17 +308,18 @@ func (n *NotifyRouter) HandleLogout() {
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
 	})
-	n.G().Log.Debug("- Logout notification sent")
+	n.G().Log.CDebugf(ctx, "- Logout notification sent")
 }
 
 // HandleLogin is called whenever a user logs in. It will broadcast
 // the message to all connections who care about such a message.
-func (n *NotifyRouter) HandleLogin(u string) {
+func (n *NotifyRouter) HandleLogin(ctx context.Context, u string) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending login notification, as user %q", u)
+	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q", u)
 	// For all connections we currently have open...
+	ctx = CopyTagsToBackground(ctx)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
 		if n.getNotificationChannels(id).Session {
@@ -326,7 +328,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 				// A send of a `LoggedIn` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(context.Background(), u)
+				}).LoggedIn(ctx, u)
 			}()
 		}
 		return true
@@ -335,7 +337,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)
 	})
-	n.G().Log.Debug("- Login notification sent")
+	n.G().Log.CDebugf(ctx, "- Login notification sent")
 }
 
 // ClientOutOfDate is called whenever the API server tells us our client is out
