@@ -7,6 +7,7 @@ import HiddenString from '../util/hidden-string'
 import type {CommonResponseHandler, RPCError} from '../engine/types'
 
 export const waitingKey = 'provision:waiting'
+export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
 export const errorCausedByUsCanceling = (e: ?RPCError) =>

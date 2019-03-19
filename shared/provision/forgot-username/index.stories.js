@@ -10,8 +10,13 @@ const props = {
 
 const load = () => {
   Sb.storiesOf('Provision/ForgotUsername', module)
-    .add('Success', () => <ForgotUsername{...props} forgotUsernameResult: 'success' />)
-    .add('Error', () => <ForgotUsername {...props} forgotUsernameResult: "We couldn't find an account with that email address. Try again?" />)
+    .add('Success', () => <ForgotUsername {...props} forgotUsernameResult="success" />)
+    .add('Error', () => (
+      <ForgotUsername
+        {...props}
+        forgotUsernameResult="We couldn't find an account with that email address. Try again?"
+      />
+    ))
 }
 
 export default load

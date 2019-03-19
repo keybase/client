@@ -39,7 +39,7 @@ class ForgotUsername extends React.Component<Props, State> {
             style={styles.button}
             onClick={() => this.props.onSubmit(this.state.email)}
             disabled={!this.state.email || this.props.forgotUsernameResult === 'success'}
-            waitingKey={Constants.waitingKey}
+            waitingKey={Constants.forgotUsernameWaitingKey}
           />
         </Kb.UserCard>
       </Container>
