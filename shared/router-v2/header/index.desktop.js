@@ -67,7 +67,6 @@ const styles = Styles.styleSheetCreate({
   }),
   headerBack: Styles.platformStyles({
     isElectron: {
-      ...Styles.desktopStyles.windowDragging,
       alignItems: 'center',
       height: 40,
       padding: 12,
@@ -80,6 +79,7 @@ const styles = Styles.styleSheetCreate({
   },
   headerContainer: Styles.platformStyles({
     isElectron: {
+      ...Styles.desktopStyles.windowDragging,
       alignItems: 'center',
     },
   }),
