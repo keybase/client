@@ -80,6 +80,14 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
           platform: action.payload.platform,
         })
       )
+    case ProfileGen.addGenericProof:
+      return updateUsername(
+        state.merge({
+          errorCode: null,
+          errorText: '',
+          platformGeneric: action.payload.platform,
+        })
+      )
     case ProfileGen.cancelAddProof: // fallthrough
     case ProfileGen.recheckProof: // fallthrough
     case ProfileGen.checkProof:

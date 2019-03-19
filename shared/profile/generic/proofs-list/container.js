@@ -1,6 +1,7 @@
 // @flow
-import ProofsList from '.'
 import {namedConnect, type RouteProps} from '../../../util/container'
+import * as ProfileGen from '../../../actions/profile-gen'
+import ProofsList from '.'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -10,17 +11,18 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
+  providerClicked: (key: string) => dispatch(ProfileGen.createAddGenericProof({platform: key})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: dispatchProps.onBack,
   onClickLearn: () => {},
-  providerClicked: (name: string) => {},
+  providerClicked: dispatchProps.providerClicked,
   providers: stateProps._proofSuggestions
-    .filter(s => s.belowFold)
     .map(s => ({
       desc: s.pickerSubtext,
       icon: s.pickerIcon,
+      key: s.assertionKey,
       name: s.pickerText,
       new: false, // TODO
     }))

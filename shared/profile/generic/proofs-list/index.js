@@ -9,19 +9,20 @@ export type IdentityProvider = {|
   name: string,
   desc: string,
   icon: Types.SiteIconSet,
+  key: string,
   new: boolean,
 |}
 
 export type Props = {|
   onBack: () => void,
   onClickLearn: () => void,
-  providerClicked: (name: string) => void,
+  providerClicked: (key: string) => void,
   providers: Array<IdentityProvider>, // in sorted order
 |}
 
 const HoverBox = Styles.isMobile
-  ? Kb.Box
-  : Styles.styled(Kb.Box)({
+  ? Kb.ClickableBox
+  : Styles.styled(Kb.ClickableBox)({
       ':hover': {backgroundColor: Styles.globalColors.blue4},
     })
 
@@ -36,7 +37,7 @@ class Providers extends React.Component<ProvidersProps> {
       .map(provider => (
         <React.Fragment key={provider.name}>
           <Kb.Divider />
-          <HoverBox onClick={this.props.providerClicked(provider.name)} style={styles.containerBox}>
+          <HoverBox onClick={() => this.props.providerClicked(provider.key)} style={styles.containerBox}>
             <SiteIcon set={provider.icon} style={styles.icon} full={true} />
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="BodySemibold" style={styles.title}>

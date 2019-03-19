@@ -4,6 +4,7 @@
     "import * as More from '../constants/types/more'"
   ],
   "actions": {
+    "addGenericProof": {"platform": "string"},
     "addProof": {"platform": "More.PlatformsExpandedType"},
     "backToProfile": {},
     "cancelAddProof": {},

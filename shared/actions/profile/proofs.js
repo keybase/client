@@ -56,11 +56,7 @@ function* addProof(_, action) {
         RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
       )
       return
-    case 'zcash':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-      )
-      return
+    case 'zcash': //  fallthrough
     case 'btc':
       yield Saga.put(
         RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
@@ -147,9 +143,15 @@ function* addProof(_, action) {
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
       )
     }
-    actions.push(
-      Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']}))
-    )
+    if (Constants.customAssertions.includes(service)) {
+      actions.push(
+        Saga.put(
+          RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+        )
+      )
+    } else {
+      // TODO paramproofs
+    }
     return actions
   }
 
@@ -193,6 +195,7 @@ function* addProof(_, action) {
         'keybase.1.proveUi.promptUsername': promptUsername,
       },
       incomingCallMap: {
+        'keybase.1.proveUi.checking': () => {},
         'keybase.1.proveUi.displayRecheckWarning': () => {},
         'keybase.1.proveUi.outputPrechecks': () => {},
       },

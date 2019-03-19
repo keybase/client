@@ -27,6 +27,7 @@ export type _State = {
   pgpFullName: string,
   pgpPublicKey: string,
   platform: ?PlatformsExpandedType,
+  platformGeneric: ?string,
   proofFound: boolean,
   proofStatus: ?RPCTypes.ProofStatus,
   proofText: string,

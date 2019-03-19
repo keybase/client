@@ -20,6 +20,7 @@ export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
   pgpFullName: '',
   pgpPublicKey: '',
   platform: null,
+  platformGeneric: null,
   proofFound: false,
   proofStatus: null,
   proofText: '',
@@ -107,3 +108,19 @@ export const getProfilePath = (
   }
   return onlyProfilesPath
 }
+
+// these get special treatment for being first
+export const customAssertions = [
+  'pgp',
+  'twitter',
+  'facebook',
+  'github',
+  'reddit',
+  'hackernews',
+  'https',
+  'http',
+  'dns',
+  'stellar',
+  'btc',
+  'zcash',
+]

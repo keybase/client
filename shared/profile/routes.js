@@ -19,6 +19,7 @@ const profileRoute = () => {
   const ControlledRolePicker = require('../teams/role-picker/controlled-container').default
   const WalletConstants = require('../constants/wallets')
   const ProofsList = require('./generic/proofs-list/container').default
+  const GenericEnterUsername = require('./generic/enter-username/container').default
 
   const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
@@ -55,6 +56,10 @@ const profileRoute = () => {
       },
       profileEditAvatar: {
         component: EditAvatar,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      profileGenericEnterUsername: {
+        component: GenericEnterUsername,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
       profileNonUser: {
@@ -102,8 +107,12 @@ export const newModalRoutes = {
     getScreen: () => require('./confirm-or-pending/container').default,
     upgraded: true,
   },
-  profileEdit: {getScreen: () => require('./edit-profile/container').default, upgraded: true},
+  profileEdit: {getScreen: () => require('./edit-profile/container').default},
   profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default, upgraded: true},
+  profileGenericEnterUsername: {
+    getScreen: () => require('./generic/enter-username/container').default,
+    upgraded: true,
+  },
   profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
   profileProofsList: {getScreen: () => require('./generic/proofs-list/container').default, upgraded: true},
   profileProveEnterUsername: {
