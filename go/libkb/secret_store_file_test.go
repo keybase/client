@@ -218,3 +218,16 @@ func TestSecretStoreFileNoise(t *testing.T) {
 
 	require.False(t, bytes.Equal(lksec.Bytes(), corrupt.Bytes()))
 }
+
+func TestPrimeSecretStoreFile(t *testing.T) {
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	tc := SetupTest(t, "secret_store_file", 1)
+	defer tc.Cleanup()
+
+	mctx := NewMetaContextForTest(tc)
+	secretStore := NewSecretStoreFile(td)
+	err := PrimeSecretStore(mctx, secretStore)
+	require.NoError(t, err)
+}

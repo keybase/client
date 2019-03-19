@@ -249,15 +249,25 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 	return s.disk.GetUsersWithStoredSecrets(m)
 }
 
+func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {
+	if s == nil || s.isNil() {
+		return errors.New("secret store is not available")
+	}
+	if s.disk != nil {
+		err = PrimeSecretStore(mctx, s.disk)
+		if err != nil {
+			return err
+		}
+	}
+	err = PrimeSecretStore(mctx, s.mem)
+	return err
+}
+
 // PrimeSecretStore runs a test with current platform's secret store, trying to
 // store, retrieve, and then delete a secret with an arbitrary name. This should
 // be done before provisioning or logging in
-func PrimeSecretStore(mctx MetaContext) (err error) {
+func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	defer mctx.Trace("PrimeSecretStore", func() error { return err })()
-	ss := mctx.G().SecretStore()
-	if ss == nil {
-		return errors.New("secret store is not available (g.SecretStore() returned nil)")
-	}
 
 	// Generate test username and test secret
 	testUsername, err := RandString("test_ss_", 5)
@@ -269,15 +279,14 @@ func PrimeSecretStore(mctx MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	mctx.Debug("PrimeSecretStore: priming keychain with username %q and secret %v", testUsername, randBytes)
+	mctx.Debug("PrimeSecretStore: priming secret store with username %q and secret %v", testUsername, randBytes)
 	testNormUsername := NormalizedUsername(testUsername)
 	var secretF [LKSecLen]byte
 	copy(secretF[:], randBytes[:])
 	testSecret := LKSecFullSecret{f: &secretF}
 
 	// Put secret in secret store through `SecretStore` interface
-	testStore := NewSecretStore(mctx.G(), testNormUsername)
-	err = testStore.StoreSecret(mctx, testSecret)
+	err = ss.StoreSecret(mctx, testNormUsername, testSecret)
 	if err != nil {
 		return err
 	}
@@ -292,8 +301,7 @@ func PrimeSecretStore(mctx MetaContext) (err error) {
 	}()
 
 	// Recreate test store with same username, try to retrieve secret.
-	testStore = NewSecretStore(mctx.G(), testNormUsername)
-	retrSecret, err := testStore.RetrieveSecret(mctx)
+	retrSecret, err := ss.RetrieveSecret(mctx, testNormUsername)
 	if err != nil {
 		return err
 	}
