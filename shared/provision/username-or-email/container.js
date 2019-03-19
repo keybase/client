@@ -1,7 +1,7 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
-import UsernameOrEmail from '.'
+import Username from '.'
 import {compose, connect, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import {constantsStatusCode} from '../../constants/types/rpc-gen'
@@ -20,8 +20,7 @@ const dispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   onForgotUsername: () => dispatch(navigateAppend([{props: {}, selected: 'forgotUsername'}])),
   onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
-  onSubmit: (usernameOrEmail: string) =>
-    dispatch(ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail})),
+  onSubmit: (username: string) => dispatch(ProvisionGen.createSubmitUsername({username})),
 })
 
 export default compose(
@@ -31,4 +30,4 @@ export default compose(
     (s, d, _) => ({...s, ...d})
   ),
   safeSubmit(['onBack', 'onSubmit'], ['error', 'badUsernameError'])
-)(UsernameOrEmail)
+)(Username)

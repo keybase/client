@@ -387,8 +387,8 @@ const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager
 function* startProvisioning(state) {
   makeProvisioningManager(false)
   try {
-    const usernameOrEmail = state.provision.username
-    if (!usernameOrEmail) {
+    const username = state.provision.username
+    if (!username) {
       return
     }
 
@@ -398,7 +398,7 @@ function* startProvisioning(state) {
       params: {
         clientType: RPCTypes.commonClientType.guiMain,
         deviceType: isMobile ? 'mobile' : 'desktop',
-        usernameOrEmail,
+        usernameOrEmail: username,
       },
       waitingKey: Constants.waitingKey,
     })
@@ -483,7 +483,7 @@ const showFinalErrorPage = (state, action) => {
 }
 
 const showUsernameEmailPage = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['usernameOrEmail']})
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['username']})
 
 const forgotUsername = (state, action) =>
   RPCTypes.accountRecoverUsernameRpcPromise({email: action.payload.email}, Constants.forgotUsernameWaitingKey)
@@ -499,8 +499,8 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   makeProvisioningManager(false)
 
   // Start provision
-  yield* Saga.chainGenerator<ProvisionGen.SubmitUsernameOrEmailPayload>(
-    ProvisionGen.submitUsernameOrEmail,
+  yield* Saga.chainGenerator<ProvisionGen.SubmitUsernamePayload>(
+    ProvisionGen.submitUsername,
     startProvisioning
   )
   yield* Saga.chainGenerator<ProvisionGen.AddNewDevicePayload>(ProvisionGen.addNewDevice, addNewDevice)

@@ -27,7 +27,7 @@ const BadUsernameError = (props: {|onGoToSignup: () => void|}) => (
   </Kb.Box2>
 )
 
-class UsernameOrEmail extends React.Component<Props, State> {
+class Username extends React.Component<Props, State> {
   state = {username: ''}
 
   render() {
@@ -117,4 +117,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default UsernameOrEmail
+export default Username

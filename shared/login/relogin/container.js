@@ -20,8 +20,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onFeedback: () => dispatch(ownProps.navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
-  onLogin: (user: string, passphrase: string) =>
-    dispatch(LoginGen.createLogin({passphrase: new HiddenString(passphrase), usernameOrEmail: user})),
+  onLogin: (username: string, passphrase: string) =>
+    dispatch(LoginGen.createLogin({passphrase: new HiddenString(passphrase), username})),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
 })

@@ -80,12 +80,12 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         codePageIncomingTextCode: action.payload.code,
         error: action.payload.error || initialState.error,
       })
-    case ProvisionGen.submitUsernameOrEmail:
+    case ProvisionGen.submitUsername:
       return state.merge({
         error: initialState.error,
         finalError: null,
         inlineError: null,
-        username: action.payload.usernameOrEmail,
+        username: action.payload.username,
       })
     case ProvisionGen.switchToGPGSignOnly:
       return state.merge({gpgImportError: action.payload.importError})

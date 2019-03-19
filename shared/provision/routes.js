@@ -1,6 +1,6 @@
 // @flow
 import {makeLeafTags} from '../route-tree'
-import UsernameOrEmail from './username-or-email/container'
+import Username from './username-or-email/container'
 import SelectOtherDevice from './select-other-device/container'
 import Passphrase from './passphrase/container'
 import PaperKey from './paper-key/container'
@@ -28,7 +28,7 @@ const children = {
   passphrase: addTags(Passphrase),
   selectOtherDevice: addTags(SelectOtherDevice),
   setPublicName: addTags(SetPublicName),
-  usernameOrEmail: addTags(UsernameOrEmail),
+  username: addTags(Username),
 }
 
 export default children
@@ -42,6 +42,6 @@ export const newRoutes = {
   passphrase: {getScreen: () => Passphrase},
   selectOtherDevice: {getScreen: () => SelectOtherDevice},
   setPublicName: {getScreen: () => SetPublicName},
-  usernameOrEmail: {getScreen: () => UsernameOrEmail},
+  username: {getScreen: () => Username},
 }
 export const newModalRoutes = {}

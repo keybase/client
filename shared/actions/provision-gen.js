@@ -31,7 +31,7 @@ export const submitGPGSignOK = 'provision:submitGPGSignOK'
 export const submitPaperkey = 'provision:submitPaperkey'
 export const submitPassphrase = 'provision:submitPassphrase'
 export const submitTextCode = 'provision:submitTextCode'
-export const submitUsernameOrEmail = 'provision:submitUsernameOrEmail'
+export const submitUsername = 'provision:submitUsername'
 export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Payload Types
@@ -55,7 +55,7 @@ type _SubmitGPGSignOKPayload = $ReadOnly<{|accepted: boolean|}>
 type _SubmitPaperkeyPayload = $ReadOnly<{|paperkey: HiddenString|}>
 type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitTextCodePayload = $ReadOnly<{|phrase: HiddenString|}>
-type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
+type _SubmitUsernamePayload = $ReadOnly<{|username: string|}>
 type _SwitchToGPGSignOnlyPayload = $ReadOnly<{|importError: string|}>
 
 // Action Creators
@@ -85,7 +85,7 @@ export const createSubmitGPGSignOK = (payload: _SubmitGPGSignOKPayload) => ({pay
 export const createSubmitPaperkey = (payload: _SubmitPaperkeyPayload) => ({payload, type: submitPaperkey})
 export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({payload, type: submitPassphrase})
 export const createSubmitTextCode = (payload: _SubmitTextCodePayload) => ({payload, type: submitTextCode})
-export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({payload, type: submitUsernameOrEmail})
+export const createSubmitUsername = (payload: _SubmitUsernamePayload) => ({payload, type: submitUsername})
 export const createSwitchToGPGSignOnly = (payload: _SwitchToGPGSignOnlyPayload) => ({payload, type: switchToGPGSignOnly})
 
 // Action Payloads
@@ -109,7 +109,7 @@ export type SubmitGPGSignOKPayload = {|+payload: _SubmitGPGSignOKPayload, +type:
 export type SubmitPaperkeyPayload = {|+payload: _SubmitPaperkeyPayload, +type: 'provision:submitPaperkey'|}
 export type SubmitPassphrasePayload = {|+payload: _SubmitPassphrasePayload, +type: 'provision:submitPassphrase'|}
 export type SubmitTextCodePayload = {|+payload: _SubmitTextCodePayload, +type: 'provision:submitTextCode'|}
-export type SubmitUsernameOrEmailPayload = {|+payload: _SubmitUsernameOrEmailPayload, +type: 'provision:submitUsernameOrEmail'|}
+export type SubmitUsernamePayload = {|+payload: _SubmitUsernamePayload, +type: 'provision:submitUsername'|}
 export type SwitchToGPGSignOnlyPayload = {|+payload: _SwitchToGPGSignOnlyPayload, +type: 'provision:switchToGPGSignOnly'|}
 
 // All Actions
@@ -135,6 +135,6 @@ export type Actions =
   | SubmitPaperkeyPayload
   | SubmitPassphrasePayload
   | SubmitTextCodePayload
-  | SubmitUsernameOrEmailPayload
+  | SubmitUsernamePayload
   | SwitchToGPGSignOnlyPayload
   | {type: 'common:resetStore', payload: null}
