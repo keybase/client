@@ -60,7 +60,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
       ...Styles.globalStyles.flexBoxColumn,
-      ...Styles.desktopStyles.windowDraggingClickable,
       ...(flags.useNewRouter ? {marginRight: 12} : {}),
       alignSelf: 'center',
       borderRadius: 5,
@@ -79,7 +78,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       ...Styles.desktopStyles.clickable,
-      ...Styles.desktopStyles.windowDraggingClickable,
       height: 24,
       marginLeft: flags.useNewRouter ? 'auto' : Styles.globalMargins.small,
       marginRight: flags.useNewRouter ? Styles.globalMargins.xsmall : Styles.globalMargins.small,
