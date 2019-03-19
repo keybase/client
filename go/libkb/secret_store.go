@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -285,6 +286,14 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	copy(secretF[:], randBytes[:])
 	testSecret := LKSecFullSecret{f: &secretF}
 
+	shouldClear := true
+	defer func() {
+		if shouldClear {
+			err2 := ss.ClearSecret(mctx, testNormUsername)
+			mctx.Debug("PrimeSecretStore: Deferred clearing test secret store entry, returned: %v", err2)
+		}
+	}()
+
 	// Try to fetch first, we should get an error back.
 	_, err = ss.RetrieveSecret(mctx, testNormUsername)
 	if err == nil {
@@ -296,26 +305,24 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	// Put secret in secret store through `SecretStore` interface.
 	err = ss.StoreSecret(mctx, testNormUsername, testSecret)
 	if err != nil {
-		return err
+		return fmt.Errorf("error while storing secret: %s", err)
 	}
-	defer func() {
-		err2 := ss.ClearSecret(mctx, testNormUsername)
-		mctx.Debug("PrimeSecretStore: Clearing test secret store entry, returned error: %v", err2)
-		if err == nil && err2 != nil {
-			// If something else failed before clearing, return that error. If
-			// not, return error from the clearing, if there was one.
-			err = err2
-		}
-	}()
 
 	// Recreate test store with same username, try to retrieve secret.
 	retrSecret, err := ss.RetrieveSecret(mctx, testNormUsername)
 	if err != nil {
-		return err
+		return fmt.Errorf("error while retrieving secret: %s", err)
 	}
 	mctx.Debug("PrimeSecretStore: Retrieved secret: %v", retrSecret.f)
 	if !retrSecret.Equal(testSecret) {
 		return errors.New("managed to retrieve test secret but it didn't match the stored one")
+	}
+
+	mctx.Debug("PrimeSecretStore: success - trying to clear test entry")
+	shouldClear = false
+	err = ss.ClearSecret(mctx, testNormUsername)
+	if err != nil {
+		return fmt.Errorf("error while clearing secret: %s", err)
 	}
 	return nil
 }
