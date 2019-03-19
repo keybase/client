@@ -16,4 +16,9 @@ protocol emails {
     void setVisibilityEmail(int sessionID, EmailAddress email, IdentityVisibility visibility);
     void setVisibilityAllEmail(int sessionID, IdentityVisibility visibility);
     array<Email> getEmails(int sessionID);
+
+    record EmailAddressVerifiedMsg {
+        @jsonkey("email")
+        EmailAddress email;
+    }
 }

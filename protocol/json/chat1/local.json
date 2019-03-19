@@ -2479,10 +2479,6 @@
       "name": "DownloadAttachmentLocalRes",
       "fields": [
         {
-          "type": "boolean",
-          "name": "offline"
-        },
-        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -2505,10 +2501,6 @@
         {
           "type": "string",
           "name": "filename"
-        },
-        {
-          "type": "boolean",
-          "name": "offline"
         },
         {
           "type": {

@@ -9,6 +9,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -866,7 +867,7 @@ type chainMetadata interface {
 // newCRChains builds a new crChains object from the given list of
 // chainMetadatas, which must be non-empty.
 func newCRChains(
-	ctx context.Context, codec kbfscodec.Codec, osg OfflineStatusGetter,
+	ctx context.Context, codec kbfscodec.Codec, osg idutil.OfflineStatusGetter,
 	chainMDs []chainMetadata, fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
@@ -956,7 +957,7 @@ func newCRChains(
 // newCRChainsForIRMDs simply builds a list of chainMetadatas from the
 // given list of ImmutableRootMetadatas and calls newCRChains with it.
 func newCRChainsForIRMDs(
-	ctx context.Context, codec kbfscodec.Codec, osg OfflineStatusGetter,
+	ctx context.Context, codec kbfscodec.Codec, osg idutil.OfflineStatusGetter,
 	irmds []ImmutableRootMetadata, fbo *folderBlockOps,
 	identifyTypes bool) (ccs *crChains, err error) {
 	chainMDs := make([]chainMetadata, len(irmds))

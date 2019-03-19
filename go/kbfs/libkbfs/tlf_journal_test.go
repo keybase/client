@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -87,7 +88,7 @@ type testTLFJournalConfig struct {
 	uid          keybase1.UID
 	verifyingKey kbfscrypto.VerifyingKey
 	ekg          singleEncryptionKeyGetter
-	nug          normalizedUsernameGetter
+	nug          idutil.NormalizedUsernameGetter
 	mdserver     MDServer
 	dlTimeout    time.Duration
 }
@@ -136,11 +137,11 @@ func (c testTLFJournalConfig) mdDecryptionKeyGetter() mdDecryptionKeyGetter {
 	return c.ekg
 }
 
-func (c testTLFJournalConfig) usernameGetter() normalizedUsernameGetter {
+func (c testTLFJournalConfig) usernameGetter() idutil.NormalizedUsernameGetter {
 	return c.nug
 }
 
-func (c testTLFJournalConfig) resolver() resolver {
+func (c testTLFJournalConfig) resolver() idutil.Resolver {
 	return nil
 }
 
@@ -228,7 +229,7 @@ func setupTLFJournalTest(
 	ekg := singleEncryptionKeyGetter{kbfscrypto.MakeTLFCryptKey([32]byte{0x1})}
 
 	cig := singleCurrentSessionGetter{
-		SessionInfo{
+		idutil.SessionInfo{
 			Name:         "fake_user",
 			UID:          uid,
 			VerifyingKey: verifyingKey,

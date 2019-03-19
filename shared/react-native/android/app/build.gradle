@@ -87,7 +87,7 @@ def Integer timestamp() {
     cal.set(2016,0,1)
     def minutesJan2016 = cal.getTimeInMillis()/(1000 * 60)
 
-    return minutesSinceEpoch - minutesJan2016
+    return minutesSinceEpoch - minutesJan2016 + 4200000 // This is to fix an accidental bumping of the code
 }
 
 android {
@@ -103,7 +103,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         applicationId "io.keybase.ossifrage"
         versionCode timestamp()
-        versionName "3.2.0"
+        versionName "3.2.1"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }

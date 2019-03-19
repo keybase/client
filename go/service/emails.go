@@ -1,8 +1,14 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
+
 	"github.com/keybase/client/go/emails"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
@@ -80,4 +86,57 @@ func (h *EmailsHandler) BulkLookupEmails(ctx context.Context, arg keybase1.BulkL
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("EmailsHandler#BulkLookupEmails", func() error { return err })()
 	return emails.BulkLookupEmails(mctx, arg.EmailContacts)
+}
+
+const emailsGregorHandlerName = "emailHandler"
+
+type emailsGregorHandler struct {
+	libkb.Contextified
+}
+
+var _ libkb.GregorInBandMessageHandler = (*emailsGregorHandler)(nil)
+
+func newEmailsGregorHandler(g *libkb.GlobalContext) *emailsGregorHandler {
+	return &emailsGregorHandler{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (r *emailsGregorHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	switch category {
+	case "email.verified":
+		return true, r.handleVerifiedMsg(ctx, cli, item)
+	default:
+		if strings.HasPrefix(category, "email.") {
+			return false, fmt.Errorf("unknown emailsGregorHandler category: %q", category)
+		}
+		return false, nil
+	}
+}
+
+func (r *emailsGregorHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	return false, nil
+}
+
+func (r *emailsGregorHandler) IsAlive() bool {
+	return true
+}
+
+func (r *emailsGregorHandler) Name() string {
+	return emailsGregorHandlerName
+}
+
+func (r *emailsGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	m := libkb.NewMetaContext(ctx, r.G())
+	m.Debug("emailsGregorHandler: email.verified received")
+	var msg keybase1.EmailAddressVerifiedMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		m.Debug("error unmarshaling email.verified item: %s", err)
+		return err
+	}
+	m.Debug("email.verified unmarshaled: %+v", msg)
+
+	r.G().NotifyRouter.HandleEmailAddressVerified(ctx, msg.Email)
+
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

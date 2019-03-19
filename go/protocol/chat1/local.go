@@ -4128,14 +4128,12 @@ func (o GetNextAttachmentMessageLocalRes) DeepCopy() GetNextAttachmentMessageLoc
 }
 
 type DownloadAttachmentLocalRes struct {
-	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 	return DownloadAttachmentLocalRes{
-		Offline: o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil
@@ -4163,7 +4161,6 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 
 type DownloadFileAttachmentLocalRes struct {
 	Filename         string                        `codec:"filename" json:"filename"`
-	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
@@ -4171,7 +4168,6 @@ type DownloadFileAttachmentLocalRes struct {
 func (o DownloadFileAttachmentLocalRes) DeepCopy() DownloadFileAttachmentLocalRes {
 	return DownloadFileAttachmentLocalRes{
 		Filename: o.Filename,
-		Offline:  o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil

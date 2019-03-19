@@ -223,6 +223,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   showPlayButton: false,
   submitState: null,
   title: '',
+  transferErrMsg: null,
   transferProgress: 0,
   transferState: null,
   type: 'attachment',
@@ -352,11 +353,10 @@ const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannel
 const makeMessageSystemChangeRetention: I.RecordFactory<MessageTypes._MessageSystemChangeRetention> = I.Record(
   {
     ...makeMessageMinimum,
-    canChange: false,
     isInherit: false,
     isTeam: false,
     membersType: 0,
-    policy: RPCChatTypes.RetentionPolicy,
+    policy: null,
     reactions: I.Map(),
     type: 'systemChangeRetention',
     user: '',

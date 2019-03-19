@@ -9,10 +9,12 @@ import (
 	pathlib "path"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -1329,7 +1331,7 @@ func (fbo *folderBlockOps) setCachedAttrLocked(
 
 	dd := fbo.newDirDataLocked(lState, dir, chargedTo, kmd)
 	de, err = dd.lookup(ctx, name)
-	if _, noExist := errors.Cause(err).(NoSuchNameError); noExist {
+	if _, noExist := errors.Cause(err).(idutil.NoSuchNameError); noExist {
 		// The node may be unlinked.
 		unlinkedNode = fbo.nodeCache.Get(realEntry.Ref())
 		if unlinkedNode != nil && !fbo.nodeCache.IsUnlinked(unlinkedNode) {
@@ -1458,7 +1460,7 @@ func (fbo *folderBlockOps) getEntryLocked(ctx context.Context,
 	dd := fbo.newDirDataLocked(
 		lState, *file.parentPath(), keybase1.UserOrTeamID(""), kmd)
 	de, err = dd.lookup(ctx, file.tailName())
-	_, noExist := errors.Cause(err).(NoSuchNameError)
+	_, noExist := errors.Cause(err).(idutil.NoSuchNameError)
 	if includeDeleted && (noExist || de.BlockPointer != file.tailPointer()) {
 		unlinkedNode := fbo.nodeCache.Get(file.tailPointer().Ref())
 		if unlinkedNode != nil && fbo.nodeCache.IsUnlinked(unlinkedNode) {
@@ -1484,7 +1486,7 @@ func (fbo *folderBlockOps) updateEntryLocked(ctx context.Context,
 	parentPath := *file.parentPath()
 	dd := fbo.newDirDataLocked(lState, parentPath, chargedTo, kmd)
 	unrefs, err := dd.updateEntry(ctx, file.tailName(), de)
-	_, noExist := errors.Cause(err).(NoSuchNameError)
+	_, noExist := errors.Cause(err).(idutil.NoSuchNameError)
 	if noExist && includeDeleted {
 		unlinkedNode := fbo.nodeCache.Get(file.tailPointer().Ref())
 		if unlinkedNode != nil && fbo.nodeCache.IsUnlinked(unlinkedNode) {
@@ -1786,7 +1788,7 @@ func (fbo *folderBlockOps) PrepRename(
 
 	replacedDe, err = fbo.getEntryLocked(
 		ctx, lState, kmd, newParent.ChildPathNoPtr(newName), false)
-	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
+	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
 		return newDe, DirEntry{}, ro, nil
 	} else if err != nil {
 		return DirEntry{}, DirEntry{}, nil, err
@@ -1957,7 +1959,7 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 		return nil, err
 	}
 	if !isWriter {
-		return nil, NewWriteAccessError(kmd.GetTlfHandle(),
+		return nil, tlfhandle.NewWriteAccessError(kmd.GetTlfHandle(),
 			session.Name, file.String())
 	}
 	fblock, err := fbo.getFileLocked(ctx, lState, kmd, file, blockWrite)

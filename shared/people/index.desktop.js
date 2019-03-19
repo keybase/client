@@ -2,36 +2,45 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
+import {PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import flags from '../util/feature-flags'
+import ProfileSearch from '../profile/search/bar'
 
-export const Header = (props: Props) => (
-  <Kb.HeaderHocHeader
-    headerStyle={styles.header}
-    borderless={true}
-    rightActions={[
-      {
-        custom: (
-          <Kb.Avatar
-            key="avatar"
-            username={props.myUsername}
-            onClick={() => props.onClickUser(props.myUsername)}
-            size={32}
-          />
-        ),
-        label: 'Avatar',
-      },
-    ]}
-    titleComponent={<PeoplePageSearchBar {...props} />}
-  />
-)
+export const Header = flags.useNewRouter
+  ? (props: Props) => (
+      <Kb.Box2 direction="horizontal" style={styles.header}>
+        <Kb.Text type="Header" style={styles.sectionTitle}>
+          People
+        </Kb.Text>
+        <ProfileSearch onSearch={props.onSearch} />
+      </Kb.Box2>
+    )
+  : (props: Props) => (
+      <Kb.HeaderHocHeader
+        headerStyle={styles.header}
+        rightActions={[
+          {
+            custom: (
+              <Kb.Avatar
+                key="avatar"
+                username={props.myUsername}
+                onClick={() => props.onClickUser(props.myUsername)}
+                size={32}
+              />
+            ),
+            label: 'Avatar',
+          },
+        ]}
+        titleComponent={<ProfileSearch onSearch={props.onSearch} />}
+      />
+    )
 const People = (props: Props) => (
   <Kb.ScrollView style={styles.container}>
     {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
     {!flags.useNewRouter && (
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.searchContainer}>
-        <PeoplePageSearchBar {...props} />
+        <ProfileSearch onSearch={props.onSearch} />
       </Kb.Box2>
     )}
     <PeoplePageList {...props} />
@@ -39,12 +48,13 @@ const People = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.fullHeight,
-  },
-  header: {
-    flexGrow: 1,
-  },
+  container: {...Styles.globalStyles.fullHeight},
+  header: flags.useNewRouter
+    ? {
+        flexGrow: 1,
+        marginLeft: Styles.globalMargins.xsmall,
+      }
+    : {flexGrow: 1},
   progress: {
     height: 32,
     left: 96,
@@ -53,9 +63,8 @@ const styles = Styles.styleSheetCreate({
     width: 32,
     zIndex: 2,
   },
-  searchContainer: {
-    paddingBottom: Styles.globalMargins.xsmall,
-  },
+  searchContainer: {paddingBottom: Styles.globalMargins.xsmall},
+  sectionTitle: {flexGrow: 1},
 })
 
 export default People

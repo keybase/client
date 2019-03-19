@@ -65,6 +65,8 @@ function* loadDaemonBootstrapStatus(state, action) {
       deviceName: s.deviceName,
       followers: s.followers ?? [],
       following: s.following ?? [],
+      // $FlowIssue core side isn't plumbed through yet
+      fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
       uid: s.uid,
@@ -497,6 +499,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
       | RouteTreeGen.SwitchToPayload
       | RouteTreeGen.SwitchRouteDefPayload
       | RouteTreeGen.ClearModalsPayload
+      | RouteTreeGen.NavUpToScreenPayload
     >(
       [
         RouteTreeGen.navigateAppend,
@@ -505,6 +508,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
         RouteTreeGen.switchTo,
         RouteTreeGen.switchRouteDef,
         RouteTreeGen.clearModals,
+        RouteTreeGen.navUpToScreen,
       ],
       newNavigation
     )

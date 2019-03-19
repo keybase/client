@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
@@ -146,7 +147,7 @@ func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
 
 	de, ok := block.(*DirBlock).Children[name]
 	if !ok {
-		return DirEntry{}, NoSuchNameError{name}
+		return DirEntry{}, idutil.NoSuchNameError{Name: name}
 	}
 	return de, nil
 }
@@ -275,7 +276,7 @@ func (dd *dirData) addEntryHelper(
 		return nil, NameExistsError{name}
 	} else if errorIfNoMatch &&
 		(!exists || de.BlockPointer != newDe.BlockPointer) {
-		return nil, NoSuchNameError{name}
+		return nil, idutil.NoSuchNameError{Name: name}
 	}
 	dblock.Children[name] = newDe
 

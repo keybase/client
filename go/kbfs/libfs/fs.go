@@ -17,7 +17,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -47,7 +49,7 @@ type fsInner struct {
 	config   libkbfs.Config
 	root     libkbfs.Node
 	rootInfo libkbfs.EntryInfo
-	h        *libkbfs.TlfHandle
+	h        *tlfhandle.Handle
 	subdir   string
 	uniqID   string
 	log      logger.Logger
@@ -121,7 +123,7 @@ const (
 )
 
 func newFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority, unwrap bool,
 	atype accessType) (*FS, error) {
 	rootNodeGetter := config.KBFSOps().GetOrCreateRootNode
@@ -239,7 +241,7 @@ outer:
 // all users of this TLF globally; for example, a device ID combined
 // with a local tempfile name is recommended.
 func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, true,
@@ -258,7 +260,7 @@ func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
 // nodes created via this FS might stay read-only in the libkbfs
 // NodeCache for a while.
 func NewReadonlyFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
@@ -277,7 +279,7 @@ func NewReadonlyFS(ctx context.Context, config libkbfs.Config,
 // If there's a need to re-check the TLF, a new FS must be
 // constructed.
 func NewFSIfExists(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
@@ -291,7 +293,7 @@ func NewFSIfExists(ctx context.Context, config libkbfs.Config,
 // globally; for example, a device ID combined with a local tempfile
 // name is recommended.
 func NewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	uniqID string, priority keybase1.MDPriority) (*FS, error) {
 	return newFS(
 		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false,
@@ -307,7 +309,7 @@ func (fs *FS) lookupOrCreateEntryNoFollow(
 	libkbfs.Node, libkbfs.EntryInfo, error) {
 	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, dir, filename)
 	switch errors.Cause(err).(type) {
-	case libkbfs.NoSuchNameError:
+	case idutil.NoSuchNameError:
 		// The file doesn't exist yet; create if requested
 		if flag&os.O_CREATE == 0 {
 			return nil, libkbfs.EntryInfo{}, err
@@ -367,7 +369,7 @@ func (fs *FS) lookupParentWithDepth(
 		p := parts[i]
 		nextNode, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, p)
 		switch errors.Cause(err).(type) {
-		case libkbfs.NoSuchNameError:
+		case idutil.NoSuchNameError:
 			if exitEarly {
 				parentDir = path.Join(parts[:i]...)
 				base = path.Join(parts[i:]...)
@@ -450,9 +452,9 @@ func (fs *FS) lookupOrCreateEntry(
 
 func translateErr(err error) error {
 	switch errors.Cause(err).(type) {
-	case libkbfs.NoSuchNameError, ErrNotADirectory:
+	case idutil.NoSuchNameError, ErrNotADirectory:
 		return os.ErrNotExist
-	case libkbfs.TlfAccessError, libkbfs.ReadAccessError:
+	case libkbfs.TlfAccessError, tlfhandle.ReadAccessError:
 		return os.ErrPermission
 	case libkbfs.NotDirError, libkbfs.NotFileError:
 		return os.ErrInvalid
@@ -484,7 +486,7 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 		switch errors.Cause(err).(type) {
 		case libkbfs.NameExistsError:
 			// The child directory already exists.
-		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
+		case tlfhandle.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
 			// If the child already exists, this doesn't matter.
 			var lookupErr error
 			child, _, lookupErr = fs.config.KBFSOps().Lookup(fs.ctx, n, p)
@@ -505,7 +507,7 @@ func (fs *FS) ensureParentDir(filename string) error {
 	err := fs.mkdirAll(path.Dir(filename), 0755)
 	if err != nil && !os.IsExist(err) {
 		switch errors.Cause(err).(type) {
-		case libkbfs.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
+		case tlfhandle.WriteAccessError, libkbfs.WriteToReadonlyNodeError:
 			// We're not allowed to create any of the parent
 			// directories automatically, so give back a proper
 			// isNotExist error.
@@ -1056,7 +1058,7 @@ func (folderHandleChangeObserver) BatchChanges(
 	context.Context, []libkbfs.NodeChange, []libkbfs.NodeID) {
 }
 func (o folderHandleChangeObserver) TlfHandleChange(
-	context.Context, *libkbfs.TlfHandle) {
+	context.Context, *tlfhandle.Handle) {
 	o()
 }
 

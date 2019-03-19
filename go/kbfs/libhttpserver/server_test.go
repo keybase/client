@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,7 +43,7 @@ func makeTestKBFSConfig(t *testing.T) (
 		require.NoError(t, err)
 	}
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, cfg.KBPKI(), cfg.MDOps(), cfg, "alice,bob", tlf.Private)
 	require.NoError(t, err)
 

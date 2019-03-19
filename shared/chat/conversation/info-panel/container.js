@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import flags from '../../../util/feature-flags'
 import {InfoPanel} from '.'
-import {connect, isMobile, type RouteProps} from '../../../util/container'
+import {connect, getRouteProps, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
@@ -137,28 +137,40 @@ const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
 type SelectorOwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
-  const conversationIDKey: Types.ConversationIDKey = ownProps.routeProps.get('conversationIDKey')
+  const conversationIDKey: Types.ConversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
+  const meta = Constants.getMeta(state, conversationIDKey)
   return {
     conversationIDKey,
+    shouldNavigateOut: meta.conversationIDKey === Constants.noConversationIDKey,
   }
 }
 
-const mapDispatchToSelectorProps = (dispatch, {navigateUp}: SelectorOwnProps) => ({
+const mapDispatchToSelectorProps = dispatch => ({
   // Used by HeaderHoc.
-  onBack: () => navigateUp && dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
 })
 
 const mergeSelectorProps = (stateProps, dispatchProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   onBack: dispatchProps.onBack,
+  onGoToInbox: dispatchProps.onGoToInbox,
+  shouldNavigateOut: stateProps.shouldNavigateOut,
 })
 
 type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   onBack: () => void,
+  onGoToInbox: () => void,
+  shouldNavigateOut: boolean,
 |}
 
 class InfoPanelSelector extends React.PureComponent<Props> {
+  componentDidUpdate(prevProps) {
+    if (!prevProps.shouldNavigateOut && this.props.shouldNavigateOut) {
+      this.props.onGoToInbox()
+    }
+  }
   render() {
     if (!this.props.conversationIDKey) {
       return null
@@ -182,7 +194,7 @@ class InfoPanelSelector extends React.PureComponent<Props> {
 
 const clickCatcherStyle = {
   bottom: 0,
-  left: flags.useNewRouter ? 160 : 80,
+  left: flags.useNewRouter ? 0 : 80,
   position: 'absolute',
   right: 0,
   top: flags.useNewRouter ? 44 : 38,

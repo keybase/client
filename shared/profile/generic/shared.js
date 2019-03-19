@@ -39,7 +39,19 @@ export const SiteIcon = (props: SiteIconProps) => {
 }
 
 const siteIconStyles = Styles.styleSheetCreate({
-  siteIcon: {flexShrink: 0, height: 16, width: 16},
+  siteIcon: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+    },
+    isElectron: {
+      height: 16,
+      width: 16,
+    },
+    isMobile: {
+      height: 18,
+      width: 18,
+    },
+  }),
   siteIconFull: Styles.platformStyles({
     common: {
       flexShrink: 0,

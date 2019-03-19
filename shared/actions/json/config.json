@@ -65,6 +65,7 @@
       "deviceName": "string",
       "followers": "Array<string>",
       "following": "Array<string>",
+      "fullname": "string",
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",

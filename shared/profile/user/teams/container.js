@@ -20,7 +20,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
+  onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
   onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

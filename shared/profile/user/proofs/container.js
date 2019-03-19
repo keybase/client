@@ -10,13 +10,15 @@ const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
+const providers = []
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filter: '',
   onBack: dispatchProps.onBack,
   onClickLearn: () => {},
   onSetFilter: (filter: string) => {},
   providerClicked: (name: string) => {},
-  providers: [],
+  providers,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

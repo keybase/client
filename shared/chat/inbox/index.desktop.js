@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/chat2'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -11,6 +12,7 @@ import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
+import UnreadShortcut from './unread-shortcut'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
@@ -19,16 +21,22 @@ import {inboxWidth, getRowHeight} from './row/sizes'
 
 type State = {
   showFloating: boolean,
+  showUnread: boolean,
 }
 
 class Inbox extends React.PureComponent<Props, State> {
   state = {
     showFloating: false,
+    showUnread: false,
   }
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
   _clearedFilterCount: number = 0
+
+  // stuff for UnreadShortcut
+  _firstOffscreenIdx: number = -1
+  _lastVisibleIdx: number = -1
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -51,6 +59,10 @@ class Inbox extends React.PureComponent<Props, State> {
 
     if (listRowsResized) {
       this._list && this._list.resetAfterIndex(0)
+    }
+
+    if (!I.is(this.props.unreadIndices, prevProps.unreadIndices)) {
+      this._calculateShowUnreadShortcut()
     }
 
     if (this.props.filter && this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
@@ -117,7 +129,24 @@ class Inbox extends React.PureComponent<Props, State> {
     )
   }
 
+  _calculateShowUnreadShortcut = () => {
+    if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      return
+    }
+
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this._lastVisibleIdx)
+    if (firstOffscreenIdx) {
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this._firstOffscreenIdx = firstOffscreenIdx
+    } else {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      this._firstOffscreenIdx = -1
+    }
+  }
+
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
+    this._lastVisibleIdx = visibleStopIndex
     if (this.props.filter.length) {
       return
     }
@@ -143,8 +172,17 @@ class Inbox extends React.PureComponent<Props, State> {
 
     this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
 
+    this._calculateShowUnreadShortcut()
+
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
+
+  _scrollToUnread = () => {
+    if (this._firstOffscreenIdx <= 0 || !this._list) {
+      return
+    }
+    this._list.scrollToItem(this._firstOffscreenIdx, 'center')
+  }
 
   _setRef = (list: ?VariableSizeList<any>) => {
     this._list = list
@@ -195,6 +233,9 @@ class Inbox extends React.PureComponent<Props, State> {
           </div>
           {owl}
           {floatingDivider || <BuildTeam />}
+          {this.state.showUnread && !this.state.showFloating && (
+            <UnreadShortcut onClick={this._scrollToUnread} />
+          )}
         </div>
       </ErrorBoundary>
     )

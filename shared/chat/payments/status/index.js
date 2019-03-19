@@ -1,11 +1,20 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 import * as WalletTypes from '../../../constants/types/wallets'
 import {SendPaymentPopup} from '../../conversation/messages/message-popup/payment/container'
 import PaymentStatusError from './error'
+import Text from '../../../common-adapters/text'
+import {Box2} from '../../../common-adapters/box'
+import Icon from '../../../common-adapters/icon'
+
+// This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
+const Kb = {
+  Box2,
+  Icon,
+  Text,
+}
 
 type Status = 'error' | 'pending' | 'completed'
 

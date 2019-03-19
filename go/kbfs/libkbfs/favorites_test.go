@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
@@ -27,7 +28,7 @@ func favTestInit(t *testing.T, testingDiskCache bool) (
 	if !testingDiskCache {
 		config.mockKbpki.EXPECT().GetCurrentSession(gomock.
 			Any()).AnyTimes().
-			Return(SessionInfo{
+			Return(idutil.SessionInfo{
 				Name: kbname.NormalizedUsername("tester"),
 				UID:  keybase1.MakeTestUID(16),
 			}, nil)
@@ -377,7 +378,7 @@ func TestFavoritesDiskCache(t *testing.T) {
 	// EXPECT this manually so that we can manually edit the leveldb later
 	config.mockKbpki.EXPECT().GetCurrentSession(gomock.
 		Any()).Times(3).
-		Return(SessionInfo{
+		Return(idutil.SessionInfo{
 			Name: kbname.NormalizedUsername("tester"),
 			UID:  keybase1.MakeTestUID(16),
 		}, nil)
@@ -431,7 +432,7 @@ func TestFavoritesDiskCache(t *testing.T) {
 	// EXPECT this manually so that we can manually edit the leveldb
 	config.mockKbpki.EXPECT().GetCurrentSession(gomock.
 		Any()).Times(1).
-		Return(SessionInfo{
+		Return(idutil.SessionInfo{
 			Name: kbname.NormalizedUsername("tester"),
 			UID:  keybase1.MakeTestUID(16),
 		}, nil).Do(func(_ context.Context) {

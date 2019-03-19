@@ -14,6 +14,7 @@ import Teams from './teams/container'
 import Folders from '../folders/container'
 import flags from '../../util/feature-flags'
 import shallowEqual from 'shallowequal'
+import PeopleSearch from '../search/bar'
 import * as Flow from '../../util/flow'
 
 type BackgroundColorType = 'red' | 'green' | 'blue'
@@ -60,33 +61,14 @@ const Header = p => (
     style={Styles.collapseStyles([styles.header, colorTypeToStyle(p.backgroundColorType)])}
   >
     {!flags.useNewRouter && (
-      <>
-        <Kb.BackButton
-          iconColor={Styles.globalColors.white}
-          textStyle={styles.backButton}
-          onClick={p.onBack}
-        />
-        <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
-          <Kb.Box2
-            direction="horizontal"
-            centerChildren={true}
-            className="hover-opacity"
-            gap="tiny"
-            style={styles.search}
-          >
-            <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
-            <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
-              Search people
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.ClickableBox>
-        <Kb.BackButton
-          iconColor={Styles.globalColors.white}
-          textStyle={styles.backButton}
-          onClick={() => {}}
-          style={styles.invisible}
-        />
-      </>
+      <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
+    )}
+    {!flags.useNewRouter && (
+      <Kb.Box2 direction="vertical" style={{flexGrow: 1, paddingRight: Styles.isMobile ? 16 : 0}}>
+        <Kb.Box2 direction="vertical" alignSelf="flex-end">
+          <PeopleSearch onSearch={p.onSearch} />
+        </Kb.Box2>
+      </Kb.Box2>
     )}
   </Kb.Box2>
 )
@@ -421,7 +403,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = Styles.isMobile ? 48 : 72
+const headerHeight = Styles.isMobile ? 48 : 80
 
 const styles = Styles.styleSheetCreate({
   addIdentityButton: {
@@ -476,7 +458,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
-      marginTop: Styles.globalMargins.small,
+      marginTop: flags.useNewRouter ? Styles.globalMargins.small : 0,
     },
     isElectron: {
       alignSelf: 'stretch',

@@ -134,7 +134,7 @@ export const isUserActivelyLookingAtThisThread = (
   if (flags.useNewRouter) {
     const routePath = Router2.getVisiblePath()
     chatThreadSelected =
-      routePath[routePath.length - 1]?.routeName === isMobile ? 'chatConversation' : 'tabs.chatTab'
+      routePath[routePath.length - 1]?.routeName === (isMobile ? 'chatConversation' : 'tabs.chatTab')
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
@@ -242,6 +242,8 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
 
 export const threadRoute = isMobile
   ? [chatTab, 'chatConversation']
+  : flags.useNewRouter
+  ? [{props: {}, selected: chatTab}]
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100

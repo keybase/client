@@ -166,6 +166,7 @@ export type _MessageAttachment = {
   title: string,
   transferProgress: number, // 0-1 // only for the file
   transferState: 'uploading' | 'downloading' | 'remoteUploading' | 'mobileSaving' | null,
+  transferErrMsg: ?string,
   type: 'attachment',
   videoDuration: ?string,
 }
@@ -368,7 +369,7 @@ export type _MessageSystemChangeRetention = {
   isInherit: boolean,
   isTeam: boolean,
   membersType: RPCChatTypes.ConversationMembersType,
-  policy: RPCChatTypes.RetentionPolicy,
+  policy: ?RPCChatTypes.RetentionPolicy,
   ordinal: Ordinal,
   reactions: Reactions,
   timestamp: number,
