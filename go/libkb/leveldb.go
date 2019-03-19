@@ -19,10 +19,9 @@ import (
 
 // table names
 const (
-	levelDbTableLo = "lo"
-	levelDbTableKv = "kv"
-	// keys with this prefix are ignored by the dbcleaner
-	levelDbTablePerm = "pm"
+	levelDbTableLo   = "lo" // lookup table used by aliases
+	levelDbTableKv   = "kv" // general storage
+	levelDbTablePerm = "pm" // keys with this prefix are ignored by the dbcleaner
 )
 
 type levelDBOps interface {
