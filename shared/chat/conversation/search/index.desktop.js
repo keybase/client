@@ -56,8 +56,18 @@ class ThreadSearch extends React.Component<Props> {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Button type="Primary" onClick={this._submitSearch} label="Search" />
-        <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
+        <Kb.Button
+          type="Primary"
+          disabled={this.props.inProgress}
+          onClick={this._submitSearch}
+          label="Search"
+        />
+        <Kb.Button
+          type="Secondary"
+          disabled={!this.props.inProgress}
+          onClick={this.props.onCancel}
+          label="Cancel"
+        />
       </Kb.Box2>
     )
   }
