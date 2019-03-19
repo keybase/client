@@ -27,7 +27,6 @@ type State = {|
 |}
 
 class OfferToCheckPassphrase extends React.Component<TestProps, State> {
-  state: State
   state = {
     passphrase: '',
     showTyping: false,
@@ -69,7 +68,7 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
           <Kb.Button
             fullWidth={true}
             label={this.props.checkPassphraseIsCorrect ? 'Safely sign out' : 'Just sign out'}
-            onClick={() => this.props.onLogout()}
+            onClick={this.props.onLogout}
             type={this.props.checkPassphraseIsCorrect ? 'PrimaryGreen' : 'Danger'}
           />
 
