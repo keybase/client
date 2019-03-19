@@ -31,14 +31,6 @@ class Inbox extends React.PureComponent<Props, State> {
   _list: ?VariableSizeList<any>
   _clearedFilterCount: number = 0
   _selectedVisible: boolean = false
-  _isHovered: boolean = false
-
-  _onMouseLeave = () => {
-    this._isHovered = false
-  }
-  _onMouseEnter = () => {
-    this._isHovered = true
-  }
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -110,7 +102,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
-    const isHighlighted = index === 0 && !!this.props.filter && !this._selectedVisible && !this._isHovered
+    const isHighlighted = index === 0 && !!this.props.filter && !this._selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
@@ -190,7 +182,7 @@ class Inbox extends React.PureComponent<Props, State> {
             onSelectDown={this._onSelectDown}
           />
           <NewConversation />
-          <div style={styles.list} onMouseLeave={this._onMouseLeave} onMouseEnter={this._onMouseEnter}>
+          <div style={styles.list}>
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
