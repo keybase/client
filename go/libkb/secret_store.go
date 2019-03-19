@@ -267,7 +267,7 @@ func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {
 // store, retrieve, and then delete a secret with an arbitrary name. This should
 // be done before provisioning or logging in
 func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
-	defer mctx.Trace("PrimeSecretStore", func() error { return err })()
+	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
 
 	// Generate test username and test secret
 	testUsername, err := RandString("test_ss_", 5)
@@ -285,7 +285,15 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	copy(secretF[:], randBytes[:])
 	testSecret := LKSecFullSecret{f: &secretF}
 
-	// Put secret in secret store through `SecretStore` interface
+	// Try to fetch first, we should get an error back.
+	_, err = ss.RetrieveSecret(mctx, testNormUsername)
+	if err == nil {
+		return errors.New("managed to retrieve secret before storing it")
+	} else if err != nil {
+		mctx.Debug("PrimeSecretStore: error when retrieving secret that wasn't stored yet: %q, as expected", err)
+	}
+
+	// Put secret in secret store through `SecretStore` interface.
 	err = ss.StoreSecret(mctx, testNormUsername, testSecret)
 	if err != nil {
 		return err

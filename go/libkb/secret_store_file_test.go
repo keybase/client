@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -230,4 +231,30 @@ func TestPrimeSecretStoreFile(t *testing.T) {
 	secretStore := NewSecretStoreFile(td)
 	err := PrimeSecretStore(mctx, secretStore)
 	require.NoError(t, err)
+}
+
+func TestPrimeSecretStoreFileFail(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("this test uses chmod, skipping on Windows")
+	}
+
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	tc := SetupTest(t, "secret_store_file", 1)
+	defer tc.Cleanup()
+
+	// Change mode of test dir to read-only so secret store on this dir can
+	// fail.
+	fi, err := os.Stat(td)
+	require.NoError(t, err)
+	oldMode := fi.Mode()
+	os.Chmod(td, 0400)
+	defer os.Chmod(td, oldMode)
+
+	mctx := NewMetaContextForTest(tc)
+	secretStore := NewSecretStoreFile(td)
+	err = PrimeSecretStore(mctx, secretStore)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "permission denied")
 }
