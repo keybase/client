@@ -140,7 +140,7 @@ show_cryptosquirrel() {
   [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
 }
 
-warn_if_exists_andunwritable() {
+warn_if_exists_and_unwritable() {
   if ! [ -a "$1" ] || [ -w "$1" ]; then
       return
   fi
