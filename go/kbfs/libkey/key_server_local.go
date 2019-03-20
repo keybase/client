@@ -200,8 +200,9 @@ func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	return ks.db.Delete(serverHalfID.ID.Bytes(), nil)
 }
 
-// Copy copies a key server but swaps the config.
-func (ks *KeyServerLocal) Copy(
+// CopyWithConfigAndLogger copies a key server but swaps the config
+// and the logger.
+func (ks *KeyServerLocal) CopyWithConfigAndLogger(
 	config KeyServerConfig, log logger.Logger) *KeyServerLocal {
 	return &KeyServerLocal{
 		config, ks.db, log, ks.shutdownLock, ks.shutdown, ks.shutdownFunc}
