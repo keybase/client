@@ -18,6 +18,8 @@ const props = {
   ],
   serviceName: 'boardgames.social',
   serviceSub: 'Mastodon instance',
+  serviceSuffix: '@boardgames.social',
+  submitButtonLabel: 'Authorize on boardgames.social',
   unreachable: false,
   username: '',
 }

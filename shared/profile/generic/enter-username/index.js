@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {isLargeScreen} from '../../../constants/platform'
 import {SiteIcon} from '../shared'
 import type {SiteIconSet} from '../../../constants/types/tracker2'
 
@@ -10,7 +9,7 @@ type InputProps = {|
   error: boolean,
   onChangeUsername: string => void,
   serviceIcon: SiteIconSet,
-  serviceName: string,
+  serviceSuffix: string,
   username: string,
 |}
 
@@ -76,7 +75,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
                   {this.state.username || 'Your username'}
                 </Kb.Text>
                 <Kb.Text type="BodySemibold" style={styles.placeholderService}>
-                  @{this.props.serviceName}
+                  {this.props.serviceSuffix}
                 </Kb.Text>
               </Kb.Text>
             </Kb.Box2>
@@ -105,7 +104,7 @@ const Unreachable = props => (
         <Kb.Text type="BodySemibold" style={styles.colorRed}>
           {props.username}
         </Kb.Text>
-        @{props.serviceName}
+        {props.serviceSuffix}
       </Kb.Text>
       <Kb.Meta title="unreachable" backgroundColor={Styles.globalColors.red} />
     </Kb.Box2>
@@ -127,6 +126,8 @@ type Props = {|
   serviceIconFull: SiteIconSet,
   serviceName: string,
   serviceSub: string,
+  serviceSuffix: string,
+  submitButtonLabel: string,
   unreachable: boolean,
   username: string,
 |}
@@ -159,14 +160,14 @@ const _EnterUsername = (props: Props) => (
       {props.unreachable ? (
         <Unreachable
           serviceIcon={props.serviceIcon}
-          serviceName={props.serviceName}
+          serviceSuffix={props.serviceSuffix}
           username={props.username}
         />
       ) : (
         <EnterUsernameInput
           error={!!props.error}
           serviceIcon={props.serviceIcon}
-          serviceName={props.serviceName}
+          serviceSuffix={props.serviceSuffix}
           username={props.username}
           onChangeUsername={props.onChangeUsername}
         />
@@ -191,7 +192,7 @@ const _EnterUsername = (props: Props) => (
         <Kb.Button
           type="PrimaryGreen"
           onClick={props.onSubmit}
-          label={`${isLargeScreen ? 'Authorize on' : 'Go to'} ${props.serviceName}`}
+          label={props.submitButtonLabel}
           style={styles.buttonBig}
         />
       </Kb.ButtonBar>
