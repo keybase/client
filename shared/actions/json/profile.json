@@ -5,6 +5,7 @@
   ],
   "actions": {
     "addProof": {"platform": "string"},
+    "proofParamsReceived": {"params": "Types.ProveGenericParams"},
     "backToProfile": {},
     "cancelAddProof": {},
     "cancelPgpGen": {},

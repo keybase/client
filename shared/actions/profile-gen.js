@@ -22,6 +22,7 @@ export const finishRevoking = 'profile:finishRevoking'
 export const finishedWithKeyGen = 'profile:finishedWithKeyGen'
 export const generatePgp = 'profile:generatePgp'
 export const onClickAvatar = 'profile:onClickAvatar'
+export const proofParamsReceived = 'profile:proofParamsReceived'
 export const recheckProof = 'profile:recheckProof'
 export const revokeFinish = 'profile:revokeFinish'
 export const showUserProfile = 'profile:showUserProfile'
@@ -52,6 +53,7 @@ type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = $ReadOnly<{|shouldStoreKeyOnServer: boolean|}>
 type _GeneratePgpPayload = void
 type _OnClickAvatarPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
+type _ProofParamsReceivedPayload = $ReadOnly<{|params: Types.ProveGenericParams|}>
 type _RecheckProofPayload = $ReadOnly<{|sigID: string|}>
 type _RevokeFinishPayload = void
 type _RevokeFinishPayloadError = $ReadOnly<{|error: string|}>
@@ -87,6 +89,7 @@ export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({paylo
 export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({payload, type: finishedWithKeyGen})
 export const createGeneratePgp = (payload: _GeneratePgpPayload) => ({payload, type: generatePgp})
 export const createOnClickAvatar = (payload: _OnClickAvatarPayload) => ({payload, type: onClickAvatar})
+export const createProofParamsReceived = (payload: _ProofParamsReceivedPayload) => ({payload, type: proofParamsReceived})
 export const createRecheckProof = (payload: _RecheckProofPayload) => ({payload, type: recheckProof})
 export const createRevokeFinish = (payload: _RevokeFinishPayload) => ({payload, type: revokeFinish})
 export const createRevokeFinishError = (payload: _RevokeFinishPayloadError) => ({error: true, payload, type: revokeFinish})
@@ -117,6 +120,7 @@ export type FinishRevokingPayload = {|+payload: _FinishRevokingPayload, +type: '
 export type FinishedWithKeyGenPayload = {|+payload: _FinishedWithKeyGenPayload, +type: 'profile:finishedWithKeyGen'|}
 export type GeneratePgpPayload = {|+payload: _GeneratePgpPayload, +type: 'profile:generatePgp'|}
 export type OnClickAvatarPayload = {|+payload: _OnClickAvatarPayload, +type: 'profile:onClickAvatar'|}
+export type ProofParamsReceivedPayload = {|+payload: _ProofParamsReceivedPayload, +type: 'profile:proofParamsReceived'|}
 export type RecheckProofPayload = {|+payload: _RecheckProofPayload, +type: 'profile:recheckProof'|}
 export type RevokeFinishPayload = {|+payload: _RevokeFinishPayload, +type: 'profile:revokeFinish'|}
 export type RevokeFinishPayloadError = {|+error: true, +payload: _RevokeFinishPayloadError, +type: 'profile:revokeFinish'|}
@@ -150,6 +154,7 @@ export type Actions =
   | FinishedWithKeyGenPayload
   | GeneratePgpPayload
   | OnClickAvatarPayload
+  | ProofParamsReceivedPayload
   | RecheckProofPayload
   | RevokeFinishPayload
   | RevokeFinishPayloadError

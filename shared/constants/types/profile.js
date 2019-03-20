@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {PlatformsExpandedType} from './more'
+import type {SiteIconSet} from './tracker2'
 
 export type FriendshipsTab = 'Followers' | 'Following'
 
@@ -12,6 +13,16 @@ export type FriendshipUserInfo = {|
   followsYou: boolean,
   following: boolean,
 |}
+
+export type _ProveGenericParams = {|
+  logoBlack: SiteIconSet,
+  logoFull: SiteIconSet,
+  title: string,
+  subtext: string,
+  suffix: string,
+  buttonLabel: string,
+|}
+export type ProveGenericParams = I.RecordOf<_ProveGenericParams>
 
 export type _State = {
   errorCode: ?number,
@@ -28,6 +39,7 @@ export type _State = {
   pgpPublicKey: string,
   platform: ?PlatformsExpandedType,
   platformGeneric: ?string,
+  platformGenericParams: ?ProveGenericParams,
   proofFound: boolean,
   proofStatus: ?RPCTypes.ProofStatus,
   proofText: string,

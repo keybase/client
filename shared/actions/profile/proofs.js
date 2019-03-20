@@ -49,7 +49,8 @@ const recheckProof = (state, action) =>
 // only let one of these happen at a time
 let addProofInProgress = false
 function* addProof(_, action) {
-  const service = action.payload.platform
+  const service = More.isPlatformsExpandedType(action.payload.platform)
+  const genericService = service ? null : action.payload.platform
   // Special cases
   switch (service) {
     case 'dnsOrGenericWebSite':
@@ -131,7 +132,8 @@ function* addProof(_, action) {
     }
   })
 
-  const promptUsername = ({prevError}, response) => {
+  const promptUsername = (args, response) => {
+    const {parameters, prevError} = args
     // TODO get parameters from this
     if (canceled) {
       cancelResponse(response)
@@ -145,13 +147,16 @@ function* addProof(_, action) {
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
       )
     }
-    if (More.PlatformsExpanded.includes(service)) {
+    if (service) {
       actions.push(
         Saga.put(
           RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
         )
       )
-    } else {
+    } else if (genericService && parameters) {
+      actions.push(
+        Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
+      )
       actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']})))
     }
     return actions
@@ -205,7 +210,7 @@ function* addProof(_, action) {
         auto: false,
         force: true,
         promptPosted: false,
-        service,
+        service: action.payload.platform,
         username: '',
       },
       waitingKey: Constants.waitingKey,

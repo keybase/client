@@ -1,4 +1,5 @@
 // @flow
+import * as RPCGen from './types/rpc-gen'
 import * as Types from './types/profile'
 import * as I from 'immutable'
 import {type TypedState} from '../util/container'
@@ -21,6 +22,7 @@ export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
   pgpPublicKey: '',
   platform: null,
   platformGeneric: null,
+  platformGenericParams: null,
   proofFound: false,
   proofStatus: null,
   proofText: '',
@@ -31,6 +33,25 @@ export const makeInitialState: I.RecordFactory<Types._State> = I.Record({
   username: '',
   usernameValid: true,
 })
+
+export const makeProveGenericParams: I.RecordFactory<Types._ProveGenericParams> = I.Record({
+  buttonLabel: '',
+  logoBlack: [],
+  logoFull: [],
+  subtext: '',
+  suffix: '',
+  title: '',
+})
+
+export const toProveGenericParams = (p: RPCGen.ProveParameters) =>
+  makeProveGenericParams({
+    buttonLabel: p.buttonLabel,
+    logoBlack: p.logoBlack || [],
+    logoFull: p.logoFull || [],
+    subtext: p.subtext,
+    suffix: p.suffix,
+    title: p.title,
+  })
 
 export const waitingKey = 'profile:waiting'
 export const uploadAvatarWaitingKey = 'profile:uploadAvatar'
