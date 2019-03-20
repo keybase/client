@@ -234,9 +234,10 @@ type MerkleClient struct {
 
 type MerkleRoot struct {
 	Contextified
-	sigs    *jsonw.Wrapper
-	payload MerkleRootPayload
-	fetched time.Time
+	sigs        *jsonw.Wrapper
+	sigVerified bool
+	payload     MerkleRootPayload
+	fetched     time.Time
 }
 
 func (mr MerkleRoot) HashMeta() keybase1.HashMeta {
@@ -518,7 +519,11 @@ func (mr *MerkleRoot) HasSkips() bool {
 
 func (mr *MerkleRoot) ToJSON() (jw *jsonw.Wrapper) {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("sigs", mr.sigs)
+	if !mr.sigVerified {
+		// Only store sigs if they have not been verified yet.
+		ret.SetKey("sigs", mr.sigs)
+	}
+	ret.SetKey("sig_verified", jsonw.NewBool(mr.sigVerified))
 	ret.SetKey("payload_json", jsonw.NewString(mr.payload.packed))
 	ret.SetKey("fetched_ns", jsonw.NewInt64(mr.fetched.UnixNano()))
 	return ret
@@ -541,8 +546,14 @@ func NewMerkleRootFromJSON(m MetaContext, jw *jsonw.Wrapper, opts MerkleOpts) (r
 	var sigs *jsonw.Wrapper
 	var payloadJSONString string
 	var mrp MerkleRootPayload
+	var sigVerified bool
 
-	if !opts.noSigCheck {
+	if sigVerified, err = jw.AtKey("sig_verified").GetBool(); err != nil {
+		sigVerified = false
+		err = nil
+	}
+
+	if !(opts.noSigCheck || sigVerified) {
 		if sigs, err = jw.AtKey("sigs").ToDictionary(); err != nil {
 			return nil, err
 		}
@@ -559,6 +570,7 @@ func NewMerkleRootFromJSON(m MetaContext, jw *jsonw.Wrapper, opts MerkleOpts) (r
 	ret = &MerkleRoot{
 		Contextified: NewContextified(m.G()),
 		sigs:         sigs,
+		sigVerified:  sigVerified,
 		payload:      mrp,
 		fetched:      time.Time{},
 	}
@@ -1012,6 +1024,10 @@ func (mc *MerkleClient) getFirstSkipFromServer(m MetaContext) *keybase1.Seqno {
 }
 
 func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, string, error) {
+	var nilKID keybase1.KID
+	if root.sigs == nil {
+		return nilKID, "", MerkleClientError{"root missing sigs", merkleErrorBadRoot}
+	}
 	if v, err := root.sigs.Keys(); err == nil {
 		for _, s := range v {
 			kid := keybase1.KIDFromString(s)
@@ -1022,7 +1038,6 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 			}
 		}
 	}
-	var nilKID keybase1.KID
 	return nilKID, "", MerkleClientError{"no known verifying key", merkleErrorNoKnownKey}
 }
 
@@ -1141,6 +1156,7 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 	// Maybe we've already verified it before.
 	verified, found := mc.verified[*root.Seqno()]
 	if verified && found && !opts.historical {
+		root.sigVerified = true
 		mc.storeRoot(m, root)
 		return nil
 	}
@@ -1165,6 +1181,8 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 	if err != nil {
 		return err
 	}
+
+	root.sigVerified = true
 
 	skips := root.payload.unpacked.Body.Skips
 	if err := verifyRootSkips(*root.Seqno(), skips); err != nil {
