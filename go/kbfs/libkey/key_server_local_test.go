@@ -70,7 +70,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		Daemon: daemon2,
 	}
 	config2 := testConfig{codec, kbpki2, nil}
-	ks2 := ks1.Copy(config2, logger.NewTestLogger(t))
+	ks2 := ks1.CopyWithConfigAndLogger(config2, logger.NewTestLogger(t))
 	defer ks2.Shutdown()
 	config2.keyServer = ks2
 	ko2 := KeyOpsStandard{config2}

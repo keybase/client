@@ -320,7 +320,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 
 		// use the same db but swap configs
 		keyServerToCopy := config.KeyServer().(*libkey.KeyServerLocal)
-		keyServer = keyServerToCopy.Copy(
+		keyServer = keyServerToCopy.CopyWithConfigAndLogger(
 			keyOpsConfigWrapper{c}, c.MakeLogger(""))
 	}
 	c.SetMDServer(mdServer)
