@@ -47,7 +47,7 @@
           "type": "string"
         },
         {
-          "name": "usernameOrEmail",
+          "name": "username",
           "type": "string"
         },
         {
@@ -56,7 +56,7 @@
         }
       ],
       "response": null,
-      "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  usernameOrEmail is optional.\n    If the current device isn't provisioned, this function will\n    provision it.\n\n    Note that if usernameOrEmail is an email address, only provisioning\n    will be attempted.  If the device is already provisioned, login\n    via email address does not work."
+      "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  username is optional. ?????\n    If the current device isn't provisioned, this function will\n    provision it."
     },
     "loginProvisionedDevice": {
       "request": [

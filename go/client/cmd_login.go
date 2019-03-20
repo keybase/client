@@ -82,10 +82,10 @@ func (c *CmdLogin) Run() error {
 
 	err = client.Login(ctx,
 		keybase1.LoginArg{
-			UsernameOrEmail: c.Username,
-			DeviceType:      libkb.DeviceTypeDesktop,
-			ClientType:      c.clientType,
-			SessionID:       c.SessionID,
+			Username:   c.Username,
+			DeviceType: libkb.DeviceTypeDesktop,
+			ClientType: c.clientType,
+			SessionID:  c.SessionID,
 		})
 	c.done <- struct{}{}
 
