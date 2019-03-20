@@ -60,7 +60,7 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 	}
 
 	if first {
-		buf, shutdown := NewAutoFlushingBufferedWriter(w, loggingFrequency)
+		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, loggingFrequency)
 		w.stopFlushing = shutdown
 		fileBackend := logging.NewLogBackend(buf, "", 0)
 		logging.SetBackend(fileBackend)
