@@ -40,16 +40,11 @@ func (e MobileAppState) String() string {
 	return ""
 }
 
-type UpdateAppStateArg struct {
-	State MobileAppState `codec:"state" json:"state"`
-}
-
 type PowerMonitorEventArg struct {
 	Event string `codec:"event" json:"event"`
 }
 
 type AppStateInterface interface {
-	UpdateAppState(context.Context, MobileAppState) error
 	PowerMonitorEvent(context.Context, string) error
 }
 
@@ -57,21 +52,6 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.appState",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"updateAppState": {
-				MakeArg: func() interface{} {
-					var ret [1]UpdateAppStateArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]UpdateAppStateArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]UpdateAppStateArg)(nil), args)
-						return
-					}
-					err = i.UpdateAppState(ctx, typedArgs[0].State)
-					return
-				},
-			},
 			"powerMonitorEvent": {
 				MakeArg: func() interface{} {
 					var ret [1]PowerMonitorEventArg
@@ -93,12 +73,6 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 
 type AppStateClient struct {
 	Cli rpc.GenericClient
-}
-
-func (c AppStateClient) UpdateAppState(ctx context.Context, state MobileAppState) (err error) {
-	__arg := UpdateAppStateArg{State: state}
-	err = c.Cli.Call(ctx, "keybase.1.appState.updateAppState", []interface{}{__arg}, nil)
-	return
 }
 
 func (c AppStateClient) PowerMonitorEvent(ctx context.Context, event string) (err error) {
