@@ -1,6 +1,8 @@
 // @flow
 import * as Container from '../../../util/container'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import flags from '../../../util/feature-flags'
 import EnterUsername from '.'
 
 type OwnProps = Container.RouteProps<{}, {}>
@@ -16,7 +18,12 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(ProfileGen.createCancelAddProof()),
+  onBack: () => {
+    dispatch(ProfileGen.createCancelAddProof())
+    if (flags.useNewRouter) {
+      dispatch(RouteTreeGen.createClearModals())
+    }
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
