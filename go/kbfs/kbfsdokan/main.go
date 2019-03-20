@@ -9,15 +9,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"strconv"
-
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libdokan"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
+	"os"
+	"strconv"
 )
 
 func getDefaultMountFlags() int64 {
@@ -96,6 +96,9 @@ func start() *libfs.Error {
 		fmt.Print(getUsageString(ctx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
+
+	logger.EnableBufferedLogging()
+	defer logger.Shutdown()
 
 	options := libdokan.StartOptions{
 		KbfsParams: *kbfsParams,

@@ -5,10 +5,13 @@ package logger
 
 import (
 	"bufio"
+	"github.com/keybase/go-logging"
 	"io"
 	"sync"
 	"time"
 )
+
+const loggingFrequency = 10 * time.Millisecond
 
 type triggerableTimer struct {
 	C          chan struct{}
@@ -120,4 +123,27 @@ func (writer *autoFlushingBufferedWriter) Write(p []byte) (int, error) {
 	writer.timer.ResetIfStopped(writer.frequency)
 
 	return n, nil
+}
+
+// EnableBufferedLogging turns on buffered logging - this is a performance
+// boost at the expense of not getting all the logs in a crash.
+func EnableBufferedLogging() {
+	writer, shutdown, done := NewAutoFlushingBufferedWriter(ErrorWriter(), loggingFrequency)
+	stdErrLoggingShutdown = shutdown
+	stdErrLoggingShutdownDone = done
+	logBackend := logging.NewLogBackend(writer, "", 0)
+	logging.SetBackend(logBackend)
+}
+
+// Shutdown shuts down logger, flushing remaining logs if a backend with
+// buffering is used.
+func Shutdown() {
+	select {
+	case stdErrLoggingShutdown <- struct{}{}:
+		// Wait till logger is done
+		select {
+		case <-stdErrLoggingShutdownDone:
+		}
+	default:
+	}
 }
