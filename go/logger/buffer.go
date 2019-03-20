@@ -59,10 +59,9 @@ type autoFlushingBufferedWriter struct {
 	bufferedWriter *bufio.Writer
 	backupWriter   *bufio.Writer
 
-	frequency    time.Duration
-	timer        *triggerableTimer
-	shutdown     chan struct{}
-	doneShutdown chan struct{}
+	frequency time.Duration
+	timer     *triggerableTimer
+	shutdown  chan struct{}
 }
 
 var _ io.Writer = &autoFlushingBufferedWriter{}
@@ -81,11 +80,6 @@ func (writer *autoFlushingBufferedWriter) backgroundFlush() {
 		case <-writer.shutdown:
 			writer.timer.shutdownCh <- struct{}{}
 			writer.bufferedWriter.Flush()
-			// If anyone is listening, notify them that we are done shutting down.
-			select {
-			case writer.doneShutdown <- struct{}{}:
-			default:
-			}
 			return
 		}
 	}
@@ -94,17 +88,15 @@ func (writer *autoFlushingBufferedWriter) backgroundFlush() {
 // NewAutoFlushingBufferedWriter returns an io.Writer that buffers its output
 // and flushes automatically after `flushFrequency`.
 func NewAutoFlushingBufferedWriter(baseWriter io.Writer,
-	flushFrequency time.Duration) (w io.Writer, shutdown chan struct{}, done chan struct{}) {
+	flushFrequency time.Duration) (w io.Writer, shutdown chan struct{}) {
 	result := &autoFlushingBufferedWriter{
 		bufferedWriter: bufio.NewWriter(baseWriter),
 		backupWriter:   bufio.NewWriter(baseWriter),
 		frequency:      flushFrequency,
 		timer:          newTriggerableTimer(flushFrequency),
-		shutdown:       make(chan struct{}),
-		doneShutdown:   make(chan struct{}),
 	}
 	go result.backgroundFlush()
-	return result, result.shutdown, result.doneShutdown
+	return result, result.shutdown
 }
 
 func (writer *autoFlushingBufferedWriter) Write(p []byte) (int, error) {
