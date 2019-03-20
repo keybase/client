@@ -19,6 +19,7 @@ import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
 import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
+import {Gateway} from 'react-gateway'
 import flags from '../../util/feature-flags'
 
 type State = {
@@ -209,19 +210,21 @@ class Inbox extends React.PureComponent<Props, State> {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
+
+    const header = (
+      <ChatInboxHeader
+        filterFocusCount={this.props.filterFocusCount}
+        focusFilter={this.props.focusFilter}
+        onNewChat={this._prepareNewChat}
+        onEnsureSelection={this._onEnsureSelection}
+        onSelectUp={this._onSelectUp}
+        onSelectDown={this._onSelectDown}
+      />
+    )
     return (
       <ErrorBoundary>
         <div style={styles.container}>
-          {!flags.useNewRouter && (
-            <ChatInboxHeader
-              filterFocusCount={this.props.filterFocusCount}
-              focusFilter={this.props.focusFilter}
-              onNewChat={this._prepareNewChat}
-              onEnsureSelection={this._onEnsureSelection}
-              onSelectUp={this._onSelectUp}
-              onSelectDown={this._onSelectDown}
-            />
-          )}
+          {flags.useNewRouter ? <Gateway into="chatHeader">{header}</Gateway> : header}
           <NewConversation />
           <div style={styles.list}>
             <AutoSizer>

@@ -2,11 +2,11 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as Types from '../constants/types/chat2'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import InboxHeader from './inbox/row/chat-inbox-header/container'
+import {GatewayDest} from 'react-gateway'
 
 type OwnProps = {||}
 
@@ -19,48 +19,43 @@ type Props = {|
   participants: ?Array<string>,
 |}
 
-// TODO inbox header plumbing
-const Header = (p: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container}>
-    <Kb.Box2 direction="vertical" style={styles.left}>
-      <InboxHeader
-        filterFocusCount={0}
-        focusFilter={() => {}}
-        onNewChat={() => {}}
-        onEnsureSelection={() => {}}
-        onSelectUp={() => {}}
-        onSelectDown={() => {}}
-      />
-    </Kb.Box2>
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.right}
-      gap="small"
-      alignItems="flex-end"
-      alignSelf="flex-end"
-    >
-      <Kb.Box2 direction="vertical" style={styles.grow}>
-        {p.channel ? (
-          <Kb.Text type="Header">{p.channel}</Kb.Text>
-        ) : p.participants ? (
-          <Kb.ConnectedUsernames
-            colorFollowing={true}
-            underline={true}
-            inline={false}
-            commaColor={Styles.globalColors.black_50}
-            type="Header"
-            usernames={p.participants}
-            onUsernameClicked="profile"
-            skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
-          />
-        ) : null}
-        {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
+const Header = (p: Props) => {
+  return (
+    <Kb.Box2 direction="horizontal" style={styles.container}>
+      <Kb.Box2 direction="vertical" style={styles.left}>
+        <GatewayDest name="chatHeader" />
       </Kb.Box2>
-      <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
-      <Kb.Icon type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'} onClick={p.onToggleInfoPanel} />
+      <Kb.Box2
+        direction="horizontal"
+        style={styles.right}
+        gap="small"
+        alignItems="flex-end"
+        alignSelf="flex-end"
+      >
+        <Kb.Box2 direction="vertical" style={styles.grow}>
+          {p.channel ? (
+            <Kb.Text type="Header">{p.channel}</Kb.Text>
+          ) : p.participants ? (
+            <Kb.ConnectedUsernames
+              colorFollowing={true}
+              underline={true}
+              inline={false}
+              commaColor={Styles.globalColors.black_50}
+              type="Header"
+              usernames={p.participants}
+              onUsernameClicked="profile"
+              skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
+            />
+          ) : null}
+          {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
+        </Kb.Box2>
+        <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
+        <Kb.Icon type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'} onClick={p.onToggleInfoPanel} />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
+// }
 
 const styles = Styles.styleSheetCreate({
   container: {
@@ -101,9 +96,9 @@ const mergeProps = (stateProps, dispatchProps) => {
         ? meta.teamname
         : null,
     desc: meta.description,
-    infoPanelOpen: stateProps.infoPanelOpen,
-    onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+    infoPanelOpen: false, // not really needed stateProps.infoPanelOpen,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
+    onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
   }
 }
