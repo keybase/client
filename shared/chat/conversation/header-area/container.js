@@ -13,6 +13,7 @@ type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isPending: boolean,
   onToggleInfoPanel: () => void,
+  onToggleThreadSearch: () => void,
 |}
 
 type Props = {|
@@ -34,6 +35,7 @@ class HeaderArea extends React.PureComponent<Props> {
         isPending={this.props.isPending}
         infoPanelOpen={this.props.infoPanelOpen}
         onToggleInfoPanel={this.props.onToggleInfoPanel}
+        onToggleThreadSearch={this.props.onToggleThreadSearch}
         conversationIDKey={this.props.conversationIDKey}
       />
     )

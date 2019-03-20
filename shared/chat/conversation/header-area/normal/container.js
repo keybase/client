@@ -13,6 +13,7 @@ type OwnProps = {|
   isPending: boolean,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
+  onToggleThreadSearch: () => void,
 |}
 
 const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) => {
@@ -38,13 +39,14 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) =
   }
 }
 
-const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {onToggleInfoPanel, onToggleThreadSearch, conversationIDKey}) => ({
   _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
+  onToggleThreadSearch,
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
@@ -63,6 +65,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onOpenFolder: stateProps.isPending ? null : dispatchProps._onOpenFolder,
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+  onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
   participants: stateProps._participants.toArray(),
   smallTeam: stateProps.smallTeam,
   teamName: stateProps.teamName,

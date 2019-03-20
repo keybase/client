@@ -9,9 +9,11 @@ import * as Styles from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import type {Props} from './index.types'
 import '../conversation.css'
+import ThreadSearch from '../search/container'
 
 type State = {|
   showDropOverlay: boolean,
+  showThreadSearch: boolean,
 |}
 
 const Offline = () => (
@@ -24,7 +26,7 @@ const Offline = () => (
 
 class Conversation extends React.PureComponent<Props, State> {
   _mounted = false
-  state = {showDropOverlay: false}
+  state = {showDropOverlay: false, showThreadSearch: false}
 
   componentWillUnmount() {
     this._mounted = false
@@ -45,6 +47,10 @@ class Conversation extends React.PureComponent<Props, State> {
     })
   }
 
+  _onToggleThreadSearch = () => {
+    this.setState({showThreadSearch: !this.state.showThreadSearch})
+  }
+
   render() {
     return (
       <Kb.Box className="conversation" style={styles.container} onPaste={this._onPaste}>
@@ -53,9 +59,11 @@ class Conversation extends React.PureComponent<Props, State> {
           <HeaderArea
             isPending={this.props.isPending}
             onToggleInfoPanel={this.props.onToggleInfoPanel}
+            onToggleThreadSearch={this._onToggleThreadSearch}
             conversationIDKey={this.props.conversationIDKey}
           />
           {this.props.showLoader && <Kb.LoadingLine />}
+          {this.state.showThreadSearch && <ThreadSearch />}
           <ListArea
             isPending={this.props.isPending}
             onFocusInput={this.props.onFocusInput}
