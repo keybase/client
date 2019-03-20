@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -103,6 +104,8 @@ func (c *CmdLogin) Run() error {
 		err = c.errProvisionUnavailable()
 	case libkb.GPGUnavailableError:
 		err = c.errGPGUnavailable()
+	case libkb.NotFoundError:
+		err = c.errNotFound()
 	}
 
 	return err
@@ -116,8 +119,9 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 
 	if nargs == 1 {
 		c.Username = ctx.Args()[0]
-		if !libkb.CheckEmailOrUsername.F(c.Username) {
-			return errors.New("Invalid username or email address format. Please login again via `keybase login [username or email]`")
+		checker := libkb.CheckUsername
+		if !checker.F(c.Username) {
+			return fmt.Errorf("Invalid username. Valid usernames are: %s", checker.Hint)
 		}
 	}
 
@@ -228,4 +232,10 @@ you're you. We suggest one of the following:
    - install GPG and put your PGP private key on this machine and try again
    - reset your account and start fresh: https://keybase.io/#account-reset
 `)
+}
+
+func (c *CmdLogin) errNotFound() error {
+	return errors.New(`in Login
+
+This username doesn't exist.`)
 }
