@@ -48,6 +48,7 @@ type MerkleAuditArgs struct {
 
 type merkleAuditState struct {
 	RetrySeqno *keybase1.Seqno `json:"retrySeqno"`
+	LastSeqno  *keybase1.Seqno `json:"lastSeqno"`
 }
 
 // NewMerkleAudit creates a new MerkleAudit engine.
@@ -115,19 +116,19 @@ var merkleAuditKey = libkb.DbKey{
 	Key: "root",
 }
 
-func lookupMerkleAuditRetryFromState(m libkb.MetaContext) (*keybase1.Seqno, error) {
+func lookupMerkleAuditRetryFromState(m libkb.MetaContext) (*keybase1.Seqno, *keybase1.Seqno, error) {
 	var state merkleAuditState
 	found, err := m.G().LocalDb.GetInto(&state, merkleAuditKey)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if !found {
 		// Nothing found, no error
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// Can still be nil
-	return state.RetrySeqno, nil
+	return state.RetrySeqno, state.LastSeqno, nil
 }
 
 func saveMerkleAuditState(m libkb.MetaContext, state merkleAuditState) error {
@@ -197,7 +198,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 	defer m.TraceTimed("MerkleAuditRound", func() error { return err })()
 
 	// Look up any previously requested retries
-	startSeqno, err := lookupMerkleAuditRetryFromState(m)
+	startSeqno, prevSeqno, err := lookupMerkleAuditRetryFromState(m)
 	if err != nil {
 		m.Debug("MerkleAudit unable to acquire saved state from localdb")
 		return nil
@@ -222,12 +223,19 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 		}
 
 		// 3. Generate a random seqno for the starting root in the audit.
-		randomSeqno, err := randSeqno(*firstSeqno, lastSeqno)
-		if err != nil {
-			return err
-		}
+		for {
+			randomSeqno, err := randSeqno(*firstSeqno, lastSeqno)
+			if err != nil {
+				return err
+			}
 
-		startSeqno = &randomSeqno
+			startSeqno = &randomSeqno
+
+			// Always make sure that we're selecting a different root than previously.
+			if prevSeqno == nil || *prevSeqno != randomSeqno {
+				break
+			}
+		}
 	}
 
 	// If this time it fails, save it
@@ -236,6 +244,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 		// Early return for fewer ifs
 		return saveMerkleAuditState(m, merkleAuditState{
 			RetrySeqno: nil,
+			LastSeqno:  startSeqno,
 		})
 	}
 
@@ -254,6 +263,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 	// Use another error variable to prevent shadowing
 	if serr := saveMerkleAuditState(m, merkleAuditState{
 		RetrySeqno: startSeqno,
+		LastSeqno:  prevSeqno,
 	}); serr != nil {
 		return serr
 	}
