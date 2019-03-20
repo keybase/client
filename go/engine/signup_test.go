@@ -334,6 +334,13 @@ func TestSignupNOPWBadParams(t *testing.T) {
 	arg.Passphrase = ""
 	_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
 	require.Error(t, err)
+
+	// Make sure user has not signed up - the engine should fail before running
+	// signup_join.
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
+	_, err = libkb.LoadUser(loadArg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }
 
 func TestSignupWithoutSecretStore(t *testing.T) {
@@ -351,6 +358,13 @@ func TestSignupWithoutSecretStore(t *testing.T) {
 	_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "persistent secret store is required")
+
+	// Make sure user has not signed up - the engine should fail before running
+	// signup_join.
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
+	_, err = libkb.LoadUser(loadArg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }
 
 func TestSignupWithBadSecretStore(t *testing.T) {
@@ -376,4 +390,11 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, SecretStoreNotFunctionalError{}, err)
 	require.Contains(t, err.Error(), "permission denied")
+
+	// Make sure user has not signed up - the engine should fail before running
+	// signup_join.
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
+	_, err = libkb.LoadUser(loadArg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }
