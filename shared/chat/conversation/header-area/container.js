@@ -24,6 +24,7 @@ type Props = {|
 
 class HeaderArea extends React.PureComponent<Props> {
   render() {
+    // TODO handle this in new router
     return this.props.isSearching ? (
       <React.Fragment>
         <Search />
@@ -53,8 +54,11 @@ const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   }
 }
 
-export default connect<OwnProps, _, _, _, _>(
+const Connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})
 )(HeaderArea)
+
+const Empty = () => null
+export default (flags.useNewRouter ? Empty : Connected)

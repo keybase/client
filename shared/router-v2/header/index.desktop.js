@@ -94,6 +94,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
       alignItems: 'center',
+      maxHeight: 80,
     },
   }),
   icon: {

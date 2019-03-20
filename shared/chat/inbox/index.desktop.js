@@ -19,6 +19,7 @@ import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
 import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
+import flags from '../../util/feature-flags'
 
 type State = {
   showFloating: boolean,
@@ -211,14 +212,16 @@ class Inbox extends React.PureComponent<Props, State> {
     return (
       <ErrorBoundary>
         <div style={styles.container}>
-          <ChatInboxHeader
-            filterFocusCount={this.props.filterFocusCount}
-            focusFilter={this.props.focusFilter}
-            onNewChat={this._prepareNewChat}
-            onEnsureSelection={this._onEnsureSelection}
-            onSelectUp={this._onSelectUp}
-            onSelectDown={this._onSelectDown}
-          />
+          {!flags.useNewRouter && (
+            <ChatInboxHeader
+              filterFocusCount={this.props.filterFocusCount}
+              focusFilter={this.props.focusFilter}
+              onNewChat={this._prepareNewChat}
+              onEnsureSelection={this._onEnsureSelection}
+              onSelectUp={this._onSelectUp}
+              onSelectDown={this._onSelectDown}
+            />
+          )}
           <NewConversation />
           <div style={styles.list}>
             <AutoSizer>
