@@ -24,7 +24,7 @@ type State = {|
   loadedLastModifiedTimestamp: number,
 |}
 
-export default class extends React.PureComponent<Props, State> {
+export default class FilePreviewView extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -35,6 +35,13 @@ export default class extends React.PureComponent<Props, State> {
     this.setState({
       loadedLastModifiedTimestamp: this.props.lastModifiedTimestamp,
     })
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    // If path changes we need to reset loadedLastModifiedTimestamp. This
+    // probalby never happens since we don't navigate from one file to another
+    // directly (i.e. without unmounting) in file-preview, but just in case.
+    this.props.path !== prevProps.path && this._reload()
   }
 
   render() {
