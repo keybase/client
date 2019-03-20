@@ -56,7 +56,7 @@
         }
       ],
       "response": null,
-      "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  username is optional. If the current\n    device isn't provisioned, this function will provision it."
+      "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile. username is optional. If the current\n    device isn't provisioned, this function will provision it."
     },
     "loginProvisionedDevice": {
       "request": [
