@@ -90,6 +90,12 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	// check if secret store works
 	if s.arg.StoreSecret {
 		if ss := m.G().SecretStore(); ss != nil {
+			if s.arg.GenerateRandomPassphrase && !ss.IsPersistent() {
+				// IsPersistent returns true if SecretStoreLocked is
+				// disk-backed, and false if it's only memory backed.
+				return SecretStoreNotFunctionalError{err: fmt.Errorf("persistent secret store is required for no-passphrase signup")}
+			}
+
 			err = ss.PrimeSecretStores(m)
 			if err != nil {
 				return SecretStoreNotFunctionalError{err}

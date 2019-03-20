@@ -264,6 +264,13 @@ func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {
 	return err
 }
 
+func (s *SecretStoreLocked) IsPersistent() bool {
+	if s == nil || s.isNil() {
+		return false
+	}
+	return s.disk != nil
+}
+
 // PrimeSecretStore runs a test with current platform's secret store, trying to
 // store, retrieve, and then delete a secret with an arbitrary name. This should
 // be done before provisioning or logging in
