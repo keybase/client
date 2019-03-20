@@ -272,7 +272,9 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 
 	// Generate test username and test secret
 	testUsername, err := RandString("test_ss_", 5)
-	testUsername = strings.Replace(testUsername, "=", "_", -1)
+	// RandString returns base32 encoded random bytes, make it look like a
+	// Keybase username. This is not required, though.
+	testUsername = strings.ToLower(strings.Replace(testUsername, "=", "", -1))
 	if err != nil {
 		return err
 	}
@@ -286,11 +288,16 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	copy(secretF[:], randBytes[:])
 	testSecret := LKSecFullSecret{f: &secretF}
 
-	shouldClear := true
 	defer func() {
-		if shouldClear {
-			err2 := ss.ClearSecret(mctx, testNormUsername)
-			mctx.Debug("PrimeSecretStore: Deferred clearing test secret store entry, returned: %v", err2)
+		err2 := ss.ClearSecret(mctx, testNormUsername)
+		mctx.Debug("PrimeSecretStore: clearing test secret store entry")
+		if err2 != nil {
+			mctx.Debug("PrimeSecretStore: clearing secret store entry returned an error: %s", err2)
+			if err == nil {
+				err = err2
+			} else {
+				mctx.Debug("suppressing store clearing error because something else has errored prior")
+			}
 		}
 	}()
 
@@ -313,16 +320,11 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 	if err != nil {
 		return fmt.Errorf("error while retrieving secret: %s", err)
 	}
-	mctx.Debug("PrimeSecretStore: Retrieved secret: %v", retrSecret.f)
+	mctx.Debug("PrimeSecretStore: retrieved secret: %v", retrSecret.f)
 	if !retrSecret.Equal(testSecret) {
 		return errors.New("managed to retrieve test secret but it didn't match the stored one")
 	}
 
-	mctx.Debug("PrimeSecretStore: success - trying to clear test entry")
-	shouldClear = false
-	err = ss.ClearSecret(mctx, testNormUsername)
-	if err != nil {
-		return fmt.Errorf("error while clearing secret: %s", err)
-	}
+	mctx.Debug("PrimeSecretStore: retrieved secret matched!")
 	return nil
 }

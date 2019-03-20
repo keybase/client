@@ -67,7 +67,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if err = m.G().SecretStore().PrimeSecretStores(m); err != nil {
-		return fmt.Errorf("secret store is not functional: %s", err)
+		return SecretStoreNotFunctionalError{err}
 	}
 
 	uv, _ := e.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)

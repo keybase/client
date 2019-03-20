@@ -91,7 +91,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	}
 
 	if err := m.G().SecretStore().PrimeSecretStores(m); err != nil {
-		return fmt.Errorf("secret store is not functional: %s", err)
+		return SecretStoreNotFunctionalError{err}
 	}
 
 	var err error
