@@ -214,6 +214,8 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		EK:      config.GetEKLogFile(),
 	}
 
+	fmt.Printf("Go: Using config: %+v\n", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
+
 	logSendContext = libkb.LogSendContext{
 		Contextified: libkb.NewContextified(kbCtx),
 		Logs:         logs,

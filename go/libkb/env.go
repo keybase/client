@@ -17,6 +17,7 @@ import (
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 type NullConfiguration struct{}
@@ -1795,16 +1796,15 @@ func (e *Env) AllowPTrace() bool {
 }
 
 func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
-	megabyte := int64(1024 * 1024)
 	var maxKeepFiles int
 	var maxSize int64
 
-	if e.GetAppType() == MobileAppType && !e.GetFeatureFlags().Admin() {
+	if e.GetAppType() == MobileAppType && !e.GetFeatureFlags().Admin(e.GetUID()) {
 		maxKeepFiles = 1
-		maxSize = 16 * megabyte // NOTE: If you decrease this, check go/bind/keybase.go:LogSend to make sure we aren't sending more than we store.
+		maxSize = 16 * opt.MiB // NOTE: If you decrease this, check go/bind/keybase.go:LogSend to make sure we aren't sending more than we store.
 	} else {
 		maxKeepFiles = 3
-		maxSize = 128 * megabyte
+		maxSize = 128 * opt.MiB
 	}
 
 	return &logger.LogFileConfig{

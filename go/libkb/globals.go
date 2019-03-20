@@ -1331,7 +1331,7 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
 	return g.Env.GetRunMode() == DevelRunMode ||
 		g.Env.RunningInCI() ||
-		g.Env.GetFeatureFlags().Admin() ||
+		g.Env.GetFeatureFlags().Admin(g.Env.GetUID()) ||
 		g.Env.GetProveBypass() ||
 		g.Env.GetFeatureFlags().HasFeature(ExperimentalGenericProofs)
 }
