@@ -13,6 +13,7 @@ export type FeatureFlags = {|
   proofProviders: boolean,
   sendAttachmentToChat: boolean,
   useNewRouter: boolean,
+  enableDeleteFolder: boolean,
 |}
 
 declare var ff: FeatureFlags
