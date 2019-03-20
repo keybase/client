@@ -319,7 +319,6 @@ func TestSignupNonAsciiDeviceName(t *testing.T) {
 		arg := MakeTestSignupEngineRunArg(fu)
 		arg.DeviceName = testVal.deviceName
 		_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, fu, arg)
-		require.Error(t, err)
 		require.IsType(t, err, testVal.err)
 	}
 }
