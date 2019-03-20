@@ -20,6 +20,7 @@ import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
+import JumpToRecent from './jumptorecent'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -30,16 +31,18 @@ const ordinalsInAWaypoint = 10
 // pixels away from top/bottom to load/be locked
 const listEdgeSlop = 10
 
+const scrollOrdinalKey = 'scroll-ordinal-key'
+
 type State = {
-  isLockedToBottom: boolean,
+  lockedToBottom: boolean,
 }
 
 type Snapshot = ?number
 
-const debug = __STORYBOOK__
+const debug = __STORYBOOK__ || true
 
 class Thread extends React.PureComponent<Props, State> {
-  state = {isLockedToBottom: true}
+  state = {lockedToBottom: true}
   _listRef = React.createRef()
   // so we can turn pointer events on / off
   _pointerWrapperRef = React.createRef()
@@ -56,14 +59,31 @@ class Thread extends React.PureComponent<Props, State> {
   // simulating user-driven scroll events, e.g. page up/page down.
   _ignoreScrollRefCount = 0
 
+  // Set to ignore the the next scroll event
+  _ignoreScrollOnetime = false
+
+  _lastCenteredOrdinal = 0
+
   // last height we saw from resize
   _scrollHeight: number = 0
 
   _logIgnoreScroll = debug
     ? (name, fn) => {
         const oldIgnore = this._ignoreScrollRefCount
+        const oldCenter = this._ignoreScrollOnetime
         fn()
-        logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollRefCount)
+        logger.debug(
+          'SCROLL',
+          name,
+          'ignoreScroll',
+          oldIgnore,
+          '->',
+          this._ignoreScrollRefCount,
+          'ignoreCenterScroll',
+          oldCenter,
+          '->',
+          this._ignoreScrollOnetime
+        )
       }
     : (name, fn) => fn()
 
@@ -94,6 +114,25 @@ class Thread extends React.PureComponent<Props, State> {
         )
       }
     : (list, name, fn) => fn()
+
+  _scrollToCentered = () => {
+    const list = this._listRef.current
+    if (list) {
+      this._logAll(list, `_scrollToCentered()`, () => {
+        // grab the waypoint we made for the centered ordinal and scroll to it
+        const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
+        if (scrollWaypoint.length > 0) {
+          this._ignoreScrollOnetime = true
+          scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
+        }
+      })
+    }
+  }
+
+  _isLockedToBottom = () => {
+    // if we don't have the latest message, we can't be locked to the bottom
+    return this.state.lockedToBottom && this.props.containsLatestMessage
+  }
 
   _scrollToBottom = reason => {
     const list = this._listRef.current
@@ -128,8 +167,15 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
+  _jumpToRecent = () => {
+    this._ignoreScrollOnetime = true
+    this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
+    this._scrollToBottom('jump to recent')
+    this.props.onJumpToRecent()
+  }
+
   componentDidMount() {
-    if (this.state.isLockedToBottom) {
+    if (this._isLockedToBottom()) {
       setImmediate(() => this._scrollToBottom('componentDidMount'))
     }
   }
@@ -156,7 +202,7 @@ class Thread extends React.PureComponent<Props, State> {
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
       this._scrollHeight = 0
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+      this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
       this._scrollToBottom('componentDidUpdate-change-convo')
       return
     }
@@ -173,27 +219,60 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
-    // we send something last
+    // someone requested we scroll to bottom and lock (ignore if we don't have latest)
     if (
-      this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last() &&
-      this.props.lastMessageIsOurs
+      this.props.scrollListToBottomCounter !== prevProps.scrollListToBottomCounter &&
+      this.props.containsLatestMessage
     ) {
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom('componentDidUpdate-sent-something')
+      this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
+      this._scrollToBottom('componentDidUpdate-requested')
       return
     }
 
-    // Adjust scrolling
+    // Adjust scrolling if locked to the bottom
     const list = this._listRef.current
-    // Prepending some messages?
-    if (snapshot && list && !this.state.isLockedToBottom) {
+    // if locked to the bottom, and we have the most recent message, then scroll to the bottom
+    if (this._isLockedToBottom() && this.props.conversationIDKey === prevProps.conversationIDKey) {
+      // maintain scroll to bottom?
+      this._scrollToBottom('componentDidUpdate-maintain-scroll')
+    }
+
+    // Check if we just added new messages from the future. In this case, we don't want to adjust scroll
+    // position at all, so just bail out if we detect this case.
+    if (
+      this.props.messageOrdinals.size !== prevProps.messageOrdinals.size &&
+      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first() &&
+      !this.props.containsLatestMessage
+    ) {
+      // do nothing do scroll position if this is true
+      this._scrollHeight = 0 // setting this causes us to skip next resize
+      return
+    }
+
+    // Check to see if we jumped to some other set of ordinals, or that our centered ordinal is different
+    // than what we scroll to previously
+    if (
+      !!this.props.centeredOrdinal &&
+      (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
+        this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() ||
+        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last()) &&
+      !this.props.containsLatestMessage
+    ) {
+      this._lastCenteredOrdinal = this.props.centeredOrdinal
+      this._scrollHeight = 0 // setting this causes us to skip next resize
+      this._scrollToCentered()
+      return
+    }
+
+    // Are we prepending older messages?
+    if (snapshot && list && !this._isLockedToBottom()) {
       // onResize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
       this._scrollHeight = snapshot
       this._onResize({scroll: {height: list.scrollHeight}})
-    } else if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
-      // maintain scroll to bottom?
-      this._scrollToBottom('componentDidUpdate-maintain-scroll')
-    } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
+    } else if (
+      this.props.containsLatestMessage &&
+      this.props.messageOrdinals.size !== prevProps.messageOrdinals.size
+    ) {
       // someone else sent something? then ignore next resize
       this._scrollHeight = 0
     }
@@ -226,6 +305,12 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   _onScroll = e => {
+    if (this._ignoreScrollOnetime) {
+      this._logIgnoreScroll('_onScroll', () => {
+        this._ignoreScrollOnetime = false
+      })
+      return
+    }
     this._checkForLoadMoreThrottled()
     if (this._ignoreScrollRefCount > 0) {
       this._logIgnoreScroll('_onScroll', () => {
@@ -253,8 +338,8 @@ class Thread extends React.PureComponent<Props, State> {
       this._onAfterScroll()
 
       // not locked to bottom while scrolling
-      const isLockedToBottom = false
-      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+      const lockedToBottom = false
+      this.setState(p => (p.lockedToBottom === lockedToBottom ? null : {lockedToBottom}))
     },
     100,
     {leading: true, trailing: true}
@@ -266,7 +351,13 @@ class Thread extends React.PureComponent<Props, State> {
       const list = this._listRef.current
       if (list) {
         if (list.scrollTop < listEdgeSlop) {
-          this.props.loadMoreMessages()
+          this.props.loadOlderMessages()
+        } else if (
+          !this.props.containsLatestMessage &&
+          !this._isLockedToBottom() &&
+          list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlop
+        ) {
+          this.props.loadNewerMessages()
         }
       }
     },
@@ -291,8 +382,8 @@ class Thread extends React.PureComponent<Props, State> {
       if (debug) {
         logger.debug('SCROLL', '_onAfterScroll', 'scrollTop', list.scrollTop)
       }
-      const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
-      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+      const lockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
+      this.setState(p => (p.lockedToBottom === lockedToBottom ? null : {lockedToBottom}))
     }
   }, 200)
 
@@ -335,7 +426,11 @@ class Thread extends React.PureComponent<Props, State> {
     let ordinals = []
     let previous = null
     let lastBucket = null
+    let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
     messageOrdinals.forEach((ordinal, idx) => {
+      // Centered ordinal is where we want the view to be centered on when jumping around in the thread.
+      const isCenteredOrdinal = ordinal === this.props.centeredOrdinal
+
       // We want to keep the mapping of ordinal to bucket fixed always
       const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
       if (lastBucket === null) {
@@ -343,15 +438,16 @@ class Thread extends React.PureComponent<Props, State> {
       }
       const needNextWaypoint = bucket !== lastBucket
       const isLastItem = idx === numOrdinals - 1
-      if (needNextWaypoint || isLastItem) {
-        if (isLastItem) {
+      if (needNextWaypoint || isLastItem || isCenteredOrdinal) {
+        if (isLastItem && !isCenteredOrdinal) {
+          // we don't want to add the centered ordinal here, since it will go into its own waypoint
           ordinals.push(ordinal)
         }
         if (ordinals.length) {
           // don't allow buckets to be too big
           const chunks = chunk(ordinals, 10)
           chunks.forEach((toAdd, idx) => {
-            const key = `${lastBucket || ''}:${idx}`
+            const key = `${lastBucket || ''}:${idx + baseIndex}`
             items.push(
               <OrdinalWaypoint
                 key={key}
@@ -368,7 +464,23 @@ class Thread extends React.PureComponent<Props, State> {
           lastBucket = bucket
         }
       }
-      ordinals.push(ordinal)
+      // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
+      if (isCenteredOrdinal) {
+        items.push(
+          <OrdinalWaypoint
+            key={scrollOrdinalKey}
+            id={scrollOrdinalKey}
+            rowRenderer={this._rowRenderer}
+            ordinals={[ordinal]}
+            previous={previous}
+          />
+        )
+        previous = ordinal
+        lastBucket = 0
+        baseIndex++ // push this up if we drop the centered ordinal waypoint
+      } else {
+        ordinals.push(ordinal)
+      }
     })
 
     items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} />)
@@ -379,7 +491,7 @@ class Thread extends React.PureComponent<Props, State> {
   _onResize = ({scroll}) => {
     if (this._scrollHeight) {
       // if the size changes adjust our scrolltop
-      if (this.state.isLockedToBottom) {
+      if (this._isLockedToBottom()) {
         this._scrollToBottom('_onResize')
       } else {
         const list = this._listRef.current
@@ -398,7 +510,7 @@ class Thread extends React.PureComponent<Props, State> {
     const items = this._makeItems()
 
     const debugInfo = debug ? (
-      <div>Debug info: {this.state.isLockedToBottom ? 'Locked to bottom' : 'Not locked to bottom'}</div>
+      <div>Debug info: {this._isLockedToBottom() ? 'Locked to bottom' : 'Not locked to bottom'}</div>
     ) : null
 
     return (
@@ -420,6 +532,9 @@ class Thread extends React.PureComponent<Props, State> {
               )}
             </Measure>
           </div>
+          {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
+            <JumpToRecent onClick={this._jumpToRecent} style={jumpToRecentStyle} />
+          )}
         </div>
       </ErrorBoundary>
     )
@@ -634,6 +749,11 @@ const listStyle = {
   paddingBottom: globalMargins.small,
   // get our own layer so we can scroll faster
   willChange: 'transform',
+}
+
+const jumpToRecentStyle = {
+  bottom: 0,
+  position: 'absolute',
 }
 
 export default Thread

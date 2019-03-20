@@ -64,7 +64,7 @@ class ConversationList extends React.PureComponent<Props> {
       const ordinalRecord = viewableItems[viewableItems.length - 2]
       // ignore if we don't have real messages
       if (ordinalRecord && ordinalRecord.item !== 'specialBottom') {
-        this.props.loadMoreMessages(this.props.messageOrdinals.get(ordinalRecord.item))
+        this.props.loadOlderMessages(this.props.messageOrdinals.get(ordinalRecord.item))
       }
     }
   }

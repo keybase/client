@@ -17,6 +17,7 @@ import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 import logger from '../../logger'
+import {getMeta} from './meta'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
