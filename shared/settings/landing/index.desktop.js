@@ -342,16 +342,14 @@ function Account({
       <Email email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider />
       <Passphrase onChangePassphrase={onChangePassphrase} />
+      <Divider />
       {!hasRandomPW && (
-        <>
-          <Divider />
-          <Checkbox
-            checked={rememberPassphrase}
-            label="Remember my passphrase"
-            onCheck={onChangeRememberPassphrase}
-            style={{paddingTop: globalMargins.small}}
-          />
-        </>
+        <Checkbox
+          checked={rememberPassphrase}
+          label="Remember my passphrase"
+          onCheck={onChangeRememberPassphrase}
+          style={{paddingTop: globalMargins.small}}
+        />
       )}
     </Box>
   )

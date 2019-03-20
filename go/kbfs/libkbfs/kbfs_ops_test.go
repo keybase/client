@@ -16,6 +16,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -25,7 +26,9 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
@@ -101,7 +104,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// Don't test implicit teams.
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-		AnyTimes().Return(ImplicitTeamInfo{}, errors.New("No such team"))
+		AnyTimes().Return(idutil.ImplicitTeamInfo{}, errors.New("No such team"))
 
 	// None of these tests depend on time
 	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
@@ -141,7 +144,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// Ignore favorites
 	err := errors.New("Fake error to prevent trying to read favs from disk")
 	config.mockKbpki.EXPECT().GetCurrentSession(gomock.Any()).Return(
-		SessionInfo{}, err)
+		idutil.SessionInfo{}, err)
 	kbfsops.favs.Initialize(ctx)
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
 		Return(keybase1.FavoritesResult{}, nil)
@@ -292,6 +295,20 @@ func checkBlockCache(
 	}
 }
 
+// parseTlfHandleOrBust parses the given TLF name, which must be
+// canonical, into a TLF handle, failing if there's an error.
+func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
+	name string, ty tlf.Type, id tlf.ID) *tlfhandle.Handle {
+	ctx := context.Background()
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), tlfhandle.ConstIDGetter{ID: id}, nil, name, ty)
+	if err != nil {
+		t.Fatalf("Couldn't parse %s (type=%s) into a TLF handle: %v",
+			name, ty, err)
+	}
+	return h
+}
+
 func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice", "bob")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
@@ -301,7 +318,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 		t, config, "alice,bob", tlf.Private, tlf.NullID)
 
 	// dup for testing
-	handles := []*TlfHandle{handle1, handle2, handle2}
+	handles := []*tlfhandle.Handle{handle1, handle2, handle2}
 	for _, h := range handles {
 		config.KeybaseService().FavoriteAdd(
 			context.Background(), h.ToFavorite().ToKBFolder(false))
@@ -349,10 +366,10 @@ func getOps(config Config, id tlf.ID) *folderBranchOps {
 // createNewRMD creates a new RMD for the given name. Returns its ID
 // and handle also.
 func createNewRMD(t *testing.T, config Config, name string, ty tlf.Type) (
-	tlf.ID, *TlfHandle, *RootMetadata) {
+	tlf.ID, *tlfhandle.Handle, *RootMetadata) {
 	id := tlf.FakeID(1, ty)
 	h := parseTlfHandleOrBust(t, config, name, ty, id)
-	h.tlfID = id
+	h.SetTlfID(id)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 	return id, h, rmd
@@ -837,9 +854,9 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	id := tlf.FakeID(1, tlf.Private)
 
 	h := parseTlfHandleOrBust(t, config, "bob#alice", tlf.Private, id)
-	h.tlfID = id
+	h.SetTlfID(id)
 	// Hack around access check in ParseTlfHandle.
-	h.resolvedReaders = nil
+	h.ClearResolvedReaders()
 
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -860,7 +877,8 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
 	ops.headStatus = headTrusted
-	expectedErr := NewReadAccessError(h, "alice", "/keybase/private/bob#alice")
+	expectedErr := tlfhandle.NewReadAccessError(
+		h, "alice", "/keybase/private/bob#alice")
 
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -1053,7 +1071,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 	testPutBlockInCache(t, config, aNode.BlockPointer, id, dirBlock)
 
-	expectedErr := NoSuchNameError{"c"}
+	expectedErr := idutil.NoSuchNameError{Name: "c"}
 	_, _, err := config.KBFSOps().Lookup(ctx, n, "c")
 	if err == nil {
 		t.Error("No error as expected on Lookup")
@@ -1538,7 +1556,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	expectedErr := NoSuchNameError{"nonexistent"}
+	expectedErr := idutil.NoSuchNameError{Name: "nonexistent"}
 	err := config.KBFSOps().RemoveDir(ctx, n, "nonexistent")
 	require.Equal(t, expectedErr, err)
 }
@@ -2707,7 +2725,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	testPutBlockInCache(t, config, node.BlockPointer, id, rootBlock)
-	expectedErr := NoSuchNameError{p.tailName()}
+	expectedErr := idutil.NoSuchNameError{Name: p.tailName()}
 
 	// chmod a+x a
 	if err := config.KBFSOps().SetEx(ctx, n, true); err == nil {
@@ -2771,7 +2789,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	testPutBlockInCache(t, config, node.BlockPointer, id, rootBlock)
-	expectedErr := NoSuchNameError{p.tailName()}
+	expectedErr := idutil.NoSuchNameError{Name: p.tailName()}
 
 	newMtime := time.Now()
 	if err := config.KBFSOps().SetMtime(ctx, n, &newMtime); err == nil {
@@ -2904,7 +2922,7 @@ func (t *testBGObserver) BatchChanges(ctx context.Context,
 }
 
 func (t *testBGObserver) TlfHandleChange(ctx context.Context,
-	newHandle *TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	return
 }
 
@@ -3321,11 +3339,11 @@ func TestForceFastForwardOnEmptyTLF(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
 
 	// Look up bob's public folder.
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "bob", tlf.Public)
 	require.NoError(t, err)
 	_, _, err = config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
-	if _, ok := err.(WriteAccessError); !ok {
+	if _, ok := err.(tlfhandle.WriteAccessError); !ok {
 		t.Fatalf("Unexpected err reading a public TLF: %+v", err)
 	}
 
@@ -3456,7 +3474,7 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	AddTeamReaderForTestOrBust(t, config3, tid, uid3)
 
 	t.Log("Look up bob's public folder.")
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config1.KBPKI(), config1.MDOps(), nil, string(name),
 		tlf.SingleTeam)
 	require.NoError(t, err)
@@ -3503,7 +3521,7 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(data, gotData3))
 	_, _, err = kbfsOps3.CreateFile(ctx, rootNode3, "c", false, NoExcl)
-	require.IsType(t, WriteAccessError{}, errors.Cause(err))
+	require.IsType(t, tlfhandle.WriteAccessError{}, errors.Cause(err))
 
 	// Verify that "a" has the correct writer.
 	ei, err := kbfsOps3.GetNodeMetadata(ctx, nodeA3)
@@ -3606,7 +3624,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 	config2.SetMetadataVersion(initialMDVer)
 
 	t.Log("Create the folder before implicit teams are enabled.")
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config1.KBPKI(), config1.MDOps(), nil, string(name), ty)
 	require.NoError(t, err)
 	require.False(t, h.IsBackedByTeam())
@@ -3638,15 +3656,15 @@ func testKBFSOpsMigrateToImplicitTeam(
 	_ = AddImplicitTeamForTestOrBust(t, config2, name, "", 1, ty)
 	// The service should be adding the team TLF ID to the iteam's
 	// sigchain before they call `StartMigration`.
-	err = config1.KBPKI().CreateTeamTLF(ctx, teamID, h.tlfID)
+	err = config1.KBPKI().CreateTeamTLF(ctx, teamID, h.TlfID())
 	require.NoError(t, err)
-	err = config2.KBPKI().CreateTeamTLF(ctx, teamID, h.tlfID)
+	err = config2.KBPKI().CreateTeamTLF(ctx, teamID, h.TlfID())
 	require.NoError(t, err)
 	config1.SetMetadataVersion(kbfsmd.ImplicitTeamsVer)
 	config2.SetMetadataVersion(kbfsmd.ImplicitTeamsVer)
 
 	t.Log("Starting migration to implicit team")
-	err = kbfsOps1.MigrateToImplicitTeam(ctx, h.tlfID)
+	err = kbfsOps1.MigrateToImplicitTeam(ctx, h.TlfID())
 	require.NoError(t, err)
 	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "b")
 	require.NoError(t, err)
@@ -3710,7 +3728,7 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 
 	t.Log("Create a private folder for the master branch.")
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
@@ -3848,7 +3866,7 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 	err = d.Close()
 
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
@@ -3914,14 +3932,14 @@ func TestKBFSOpsReset(t *testing.T) {
 
 	t.Log("Create a private folder.")
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.NoError(t, err)
 
-	oldID := h.tlfID
+	oldID := h.TlfID()
 	t.Logf("Make a new revision for TLF ID %s", oldID)
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -3934,10 +3952,10 @@ func TestKBFSOpsReset(t *testing.T) {
 	md.override = true
 	err = kbfsOps.Reset(ctx, h)
 	require.NoError(t, err)
-	require.NotEqual(t, oldID, h.tlfID)
+	require.NotEqual(t, oldID, h.TlfID())
 	md.override = false
 
-	t.Logf("Make a new revision for new TLF ID %s", h.tlfID)
+	t.Logf("Make a new revision for new TLF ID %s", h.TlfID())
 	rootNode, _, err = kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.NoError(t, err)
 	children, err := kbfsOps.GetDirChildren(ctx, rootNode)
@@ -3998,7 +4016,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 
 	t.Log("Create a private, unsynced TLF and make sure updates are committed")
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
@@ -4114,7 +4132,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	t.Log("Create a private, synced TLF")
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
@@ -4220,7 +4238,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
@@ -4231,7 +4249,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	_ = enableDiskCacheForTest(t, config, tempdir)
 
 	t.Log("Sync should start off as disabled.")
-	syncConfig, err := kbfsOps.GetSyncConfig(ctx, h.tlfID)
+	syncConfig, err := kbfsOps.GetSyncConfig(ctx, h.TlfID())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.FolderSyncMode_DISABLED, syncConfig.Mode)
 
@@ -4245,7 +4263,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	for p := range pathsMap {
 		syncConfig.Paths = append(syncConfig.Paths, p)
 	}
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.Error(t, err)
 
 	t.Log("Initialize the TLF")
@@ -4255,11 +4273,11 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Set a partial sync config")
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.NoError(t, err)
 
 	t.Log("Make sure the lower-level config is encrypted")
-	lowLevelConfig := config.GetTlfSyncState(h.tlfID)
+	lowLevelConfig := config.GetTlfSyncState(h.TlfID())
 	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, lowLevelConfig.Mode)
 	require.NotEqual(t, zeroPtr, lowLevelConfig.Paths.Ptr)
 	var zeroBytes [32]byte
@@ -4268,7 +4286,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 
 	t.Log("Read it back out unencrypted")
 	config.ResetCaches()
-	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.tlfID)
+	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.TlfID())
 	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, syncConfig.Mode)
 	require.Len(t, syncConfig.Paths, len(pathsMap))
 	for _, p := range syncConfig.Paths {
@@ -4278,16 +4296,16 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 
 	t.Log("Test some failure scenarios")
 	syncConfig.Paths = []string{"a/b/c", "a/b/c"}
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.Error(t, err)
 	syncConfig.Paths = []string{"/a/b/c", "d/e/f"}
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.Error(t, err)
 	syncConfig.Paths = []string{"a/../a/b/c", "a/b/c"}
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.Error(t, err)
 	syncConfig.Paths = []string{"a/../../a/b/c"}
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.Error(t, err)
 
 	t.Log("Make sure the paths are cleaned and ToSlash'd")
@@ -4296,9 +4314,9 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 		"d/e/f": true,
 	}
 	syncConfig.Paths = []string{"a/../a/b/c", filepath.Join("d", "e", "f")}
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.NoError(t, err)
-	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.tlfID)
+	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.TlfID())
 	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, syncConfig.Mode)
 	require.Len(t, syncConfig.Paths, len(pathsMap))
 	for _, p := range syncConfig.Paths {
@@ -4356,7 +4374,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	config.vdebugSetting = "vlog2"
 
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
@@ -4391,7 +4409,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 		Mode:  keybase1.FolderSyncMode_PARTIAL,
 		Paths: []string{"a/b/c"},
 	}
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
@@ -4516,7 +4534,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	t.Log("Sync the new path")
 	syncConfig.Paths = append(syncConfig.Paths, "d")
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
@@ -4530,7 +4548,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	t.Log("Remove a synced path")
 	syncConfig.Paths = syncConfig.Paths[:len(syncConfig.Paths)-1]
-	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
@@ -4576,7 +4594,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	config.vdebugSetting = "vlog2"
 
 	name := "u1"
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, string(name), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()

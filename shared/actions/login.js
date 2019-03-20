@@ -45,11 +45,11 @@ const getPassphraseHandler = passphrase => (params, response) => {
   }
 }
 
-const moveToProvisioning = (usernameOrEmail: string) => (params, response) => {
+const moveToProvisioning = (username: string) => (params, response) => {
   cancelOnCallback(params, response)
   return Saga.put(
-    ProvisionGen.createSubmitUsernameOrEmail({
-      usernameOrEmail,
+    ProvisionGen.createSubmitUsername({
+      username,
     })
   )
 }
@@ -63,7 +63,7 @@ function* login(state, action) {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.PromptNewDeviceName': moveToProvisioning(action.payload.usernameOrEmail),
+          'keybase.1.provisionUi.PromptNewDeviceName': moveToProvisioning(action.payload.username),
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
           'keybase.1.secretUi.getPassphrase': getPassphraseHandler(action.payload.passphrase.stringValue()),
@@ -78,7 +78,7 @@ function* login(state, action) {
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
           deviceType: isMobile ? 'mobile' : 'desktop',
-          usernameOrEmail: action.payload.usernameOrEmail,
+          usernameOrEmail: action.payload.username,
         },
         waitingKey: Constants.waitingKey,
       })

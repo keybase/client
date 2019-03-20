@@ -16,7 +16,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.provisionError:
     case ProvisionGen.showPassphrasePage: // fallthrough
     case ProvisionGen.showPaperkeyPage: // fallthrough
-      return state.merge({error: action.payload.error || initialState.error})
+      return state.merge({
+        error: action.payload.error || initialState.error,
+        forgotUsernameResult: '',
+      })
     case ProvisionGen.submitPassphrase: // fallthrough
     case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
@@ -77,18 +80,21 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         codePageIncomingTextCode: action.payload.code,
         error: action.payload.error || initialState.error,
       })
-    case ProvisionGen.submitUsernameOrEmail:
+    case ProvisionGen.submitUsername:
       return state.merge({
         error: initialState.error,
         finalError: null,
         inlineError: null,
-        usernameOrEmail: action.payload.usernameOrEmail,
+        username: action.payload.username,
       })
     case ProvisionGen.switchToGPGSignOnly:
       return state.merge({gpgImportError: action.payload.importError})
     case ProvisionGen.submitGPGSignOK:
       return state.merge({gpgImportError: null})
+    case ProvisionGen.forgotUsernameResult:
+      return state.merge({forgotUsernameResult: action.payload.result})
     // Saga only actions
+    case ProvisionGen.forgotUsername:
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:
       return state

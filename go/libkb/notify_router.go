@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -91,6 +92,7 @@ type NotifyListener interface {
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
+	EmailAddressVerified(emailAddress keybase1.EmailAddress)
 	PasswordChanged()
 	RootAuditError(msg string)
 }
@@ -185,13 +187,14 @@ func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.Acco
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)              {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                  {}
-func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)      {}
-func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)   {}
-func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {}
-func (n *NoopNotifyListener) PasswordChanged()                                       {}
-func (n *NoopNotifyListener) RootAuditError(msg string)                              {}
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)               {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                   {}
+func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)       {}
+func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)    {}
+func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)  {}
+func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
+func (n *NoopNotifyListener) PasswordChanged()                                        {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                               {}
 
 type NotifyListenerID string
 
@@ -282,40 +285,48 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 
 // HandleLogout is called whenever the current user logged out. It will broadcast
 // the message to all connections who care about such a message.
-func (n *NotifyRouter) HandleLogout() {
+func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending logout notification")
+	defer CTrace(ctx, n.G().Log, "NotifyRouter#HandleLogout", func() error { return nil })()
+	ctx = CopyTagsToBackground(ctx)
 	// For all connections we currently have open...
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+	n.cm.ApplyAllDetails(func(id ConnectionID, xp rpc.Transporter, d *keybase1.ClientDetails) bool {
 		// If the connection wants the `Session` notification type
+		registered := false
 		if n.getNotificationChannels(id).Session {
+			registered = true
 			// In the background do...
 			go func() {
 				// A send of a `LoggedOut` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedOut(context.Background())
+				}).LoggedOut(ctx)
 			}()
 		}
+		desc := "<nil>"
+		if d != nil {
+			desc = fmt.Sprintf("%+v", *d)
+		}
+		n.G().Log.CDebugf(ctx, "| NotifyRouter#HandleLogout: client %s (sent=%v)", desc, registered)
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.Logout()
 	})
-	n.G().Log.Debug("- Logout notification sent")
 }
 
 // HandleLogin is called whenever a user logs in. It will broadcast
 // the message to all connections who care about such a message.
-func (n *NotifyRouter) HandleLogin(u string) {
+func (n *NotifyRouter) HandleLogin(ctx context.Context, u string) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending login notification, as user %q", u)
+	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q", u)
 	// For all connections we currently have open...
+	ctx = CopyTagsToBackground(ctx)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
 		if n.getNotificationChannels(id).Session {
@@ -324,7 +335,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 				// A send of a `LoggedIn` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(context.Background(), u)
+				}).LoggedIn(ctx, u)
 			}()
 		}
 		return true
@@ -333,7 +344,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 	n.runListeners(func(listener NotifyListener) {
 		listener.Login(u)
 	})
-	n.G().Log.Debug("- Login notification sent")
+	n.G().Log.CDebugf(ctx, "- Login notification sent")
 }
 
 // ClientOutOfDate is called whenever the API server tells us our client is out
@@ -1962,6 +1973,26 @@ func (n *NotifyRouter) HandlePhoneNumberSuperseded(ctx context.Context, phoneNum
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.PhoneNumberSuperseded(phoneNumber)
+	})
+}
+
+func (n *NotifyRouter) HandleEmailAddressVerified(ctx context.Context, emailAddress keybase1.EmailAddress) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyEmailAddressClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).EmailAddressVerified(context.Background(), emailAddress)
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.EmailAddressVerified(emailAddress)
 	})
 }
 

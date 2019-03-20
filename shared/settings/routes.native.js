@@ -23,6 +23,7 @@ const routeTree = () => {
   const AdvancedContainer = require('./advanced/container').default
   const ChatContainer = require('./chat/container').default
   const Screenprotector = require('./screenprotector-container.native').default
+  const LogOut = require('./logout/container').default
 
   return makeRouteDefNode({
     children: {
@@ -67,6 +68,9 @@ const routeTree = () => {
         },
         component: DeleteContainer,
       },
+      [Constants.logOutTab]: {
+        component: LogOut,
+      },
     },
     component: Settings,
   })
@@ -88,6 +92,7 @@ export const newRoutes = {
   [Constants.feedbackTab]: {getScreen: () => require('./feedback-container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./about-container').default},
+  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   [Constants.passphraseTab]: {getScreen: () => require('./passphrase/container').default},
   [Constants.screenprotectorTab]: {getScreen: () => require('./screenprotector-container.native').default},

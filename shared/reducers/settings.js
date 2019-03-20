@@ -159,6 +159,11 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         },
       }
     }
+    case SettingsGen.checkPassphrase:
+      return {
+        ...state,
+        checkPassphraseIsCorrect: null,
+      }
     case SettingsGen.onUpdatedPGPSettings:
       const {hasKeys} = action.payload
       return {
@@ -236,6 +241,12 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
           ...state.passphrase,
           randomPW,
         },
+      }
+    case SettingsGen.loadedCheckPassphrase:
+      const {checkPassphraseIsCorrect} = action.payload
+      return {
+        ...state,
+        checkPassphraseIsCorrect,
       }
     // Saga only actions
     case SettingsGen.dbNuke:

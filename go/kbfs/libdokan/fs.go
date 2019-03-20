@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -574,7 +575,7 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	}
 	dstName := dstPath[len(dstPath)-1]
 	// Yes, this is slow, but that is ok here.
-	if _, err := libkbfs.ParseTlfHandlePreferred(
+	if _, err := tlfhandle.ParseHandlePreferred(
 		ctx, f.config.KBPKI(), f.config.MDOps(), f.config, dstName,
 		fl.tlfType); err != nil {
 		return dokan.ErrObjectNameNotFound

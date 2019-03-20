@@ -65,6 +65,7 @@ function* loadDaemonBootstrapStatus(state, action) {
       deviceName: s.deviceName,
       followers: s.followers ?? [],
       following: s.following ?? [],
+      fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
       uid: s.uid,

@@ -21,7 +21,6 @@ describe('goBackAndClearErrors', () => {
       emailError: 'bad email',
       inviteCodeError: 'bad invite',
       nameError: 'bad name',
-      passphraseError: new HiddenString('bad pass'),
       signupError: new HiddenString('bad signup'),
       usernameError: 'bad username',
     })
@@ -32,7 +31,6 @@ describe('goBackAndClearErrors', () => {
     expect(nextState.signup.emailError).toEqual('')
     expect(nextState.signup.inviteCodeError).toEqual('')
     expect(nextState.signup.nameError).toEqual('')
-    expect(nextState.signup.passphraseError.stringValue()).toEqual('')
     expect(nextState.signup.signupError.stringValue()).toEqual('')
     expect(nextState.signup.usernameError).toEqual('')
     expect(_testing.goBackAndClearErrors()).toEqual(RouteTreeGen.createNavigateUp())
@@ -224,7 +222,7 @@ describe('checkedUsernameEmail', () => {
     expect(nextState.signup.usernameError).toEqual(action.payload.usernameError)
   })
 
-  it('shows passphrase page on success', () => {
+  it('shows device name page on success', () => {
     const state = Constants.makeState({email: 'email@email.com', username: 'username'})
     const action = SignupGen.createCheckedUsernameEmail({
       email: state.email,
@@ -232,8 +230,8 @@ describe('checkedUsernameEmail', () => {
     })
     const nextState = makeTypedState(reducer(state, action))
     // doesn't update
-    expect(_testing.showPassphraseOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupPassphrase']})
+    expect(_testing.showDeviceScreenOnNoErrors(nextState)).toEqual(
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
     )
   })
 })
@@ -324,10 +322,6 @@ describe('actually sign up', () => {
     const state = Constants.makeState({usernameError: 'error'})
     expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
-  it('bails on passphraseError', () => {
-    const state = Constants.makeState({passphraseError: new HiddenString('error')})
-    expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
-  })
   it('bails on signupError', () => {
     const state = Constants.makeState({signupError: new HiddenString('error')})
     expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
@@ -337,7 +331,6 @@ describe('actually sign up', () => {
     devicename: 'a valid devicename',
     email: 'test@test.com',
     inviteCode: '1234566',
-    passphrase: new HiddenString('a good passphrase'),
     username: 'testuser',
   })
 
@@ -356,13 +349,6 @@ describe('actually sign up', () => {
   it('bails on missing inviteCode', () => {
     expect(() =>
       _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('inviteCode', ''))).next()
-    ).toThrow(signupError)
-  })
-  it('bails on missing passphrase', () => {
-    expect(() =>
-      _testing
-        .reallySignupOnNoErrors(makeTypedState(validSignup.set('passphrase', new HiddenString(''))))
-        .next()
     ).toThrow(signupError)
   })
   it('bails on missing username', () => {

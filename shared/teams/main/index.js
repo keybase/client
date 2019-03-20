@@ -7,6 +7,7 @@ import Header from './header'
 import Banner from './banner'
 import BetaNote from './beta-note'
 import {memoize} from '../../util/memoize'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   loaded: boolean,
@@ -142,13 +143,16 @@ class Teams extends React.PureComponent<Props, State> {
   }
 
   render() {
+    const renderHeader = flags.useNewRouter ? Styles.isMobile : true
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Header
-          loaded={this.props.loaded}
-          onCreateTeam={this.props.onCreateTeam}
-          onJoinTeam={this.props.onJoinTeam}
-        />
+        {renderHeader && (
+          <Header
+            loaded={this.props.loaded}
+            onCreateTeam={this.props.onCreateTeam}
+            onJoinTeam={this.props.onJoinTeam}
+          />
+        )}
         <Kb.List
           items={this._teamsAndExtras(this.state.sawChatBanner, this.props.teamnames)}
           renderItem={this._renderItem}

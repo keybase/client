@@ -117,7 +117,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	e.clearCaches(m)
-	e.sendNotification()
+	e.sendNotification(m)
 	return nil
 }
 
@@ -261,7 +261,7 @@ func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
 	}
 }
 
-func (e *SelfProvisionEngine) sendNotification() {
+func (e *SelfProvisionEngine) sendNotification(m libkb.MetaContext) {
 	e.G().KeyfamilyChanged(e.User.GetUID())
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+	e.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsername()))
 }

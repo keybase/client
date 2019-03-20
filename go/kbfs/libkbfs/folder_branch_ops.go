@@ -18,6 +18,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
@@ -25,6 +26,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -571,13 +573,13 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) addToFavoritesByHandle(ctx context.Context,
-	favorites *Favorites, handle *TlfHandle, created bool) (err error) {
+	favorites *Favorites, handle *tlfhandle.Handle, created bool) (err error) {
 	if _, err := fbo.config.KBPKI().GetCurrentSession(ctx); err != nil {
 		// Can't favorite while not logged in
 		return nil
 	}
 
-	favorites.AddAsync(ctx, handle.toFavToAdd(created))
+	favorites.AddAsync(ctx, handle.ToFavToAdd(created))
 	return nil
 }
 
@@ -600,7 +602,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) doFavoritesOp(ctx context.Context,
-	favs *Favorites, fop FavoritesOp, handle *TlfHandle) error {
+	favs *Favorites, fop FavoritesOp, handle *tlfhandle.Handle) error {
 	switch fop {
 	case FavoritesOpNoChange:
 		return nil
@@ -942,7 +944,7 @@ pathLoop:
 			currNode, _, err = fbo.blocks.Lookup(
 				ctx, lState, latestMerged.ReadOnly(), currNode, parent)
 			switch errors.Cause(err).(type) {
-			case NoSuchNameError:
+			case idutil.NoSuchNameError:
 				fbo.log.CDebugf(ctx, "Synced path %s doesn't exist yet", p)
 				continue pathLoop
 			case nil:
@@ -964,7 +966,7 @@ pathLoop:
 		elemNode, _, err := fbo.blocks.Lookup(
 			ctx, lState, latestMerged.ReadOnly(), currNode, syncedElem)
 		switch errors.Cause(err).(type) {
-		case NoSuchNameError:
+		case idutil.NoSuchNameError:
 			fbo.log.CDebugf(ctx, "Synced element %s doesn't exist yet", p)
 			continue pathLoop
 		case nil:
@@ -1207,7 +1209,7 @@ pathLoop:
 			// TODO: parallelize the parent fetches and lookups.
 			currNode, _, err = fbo.Lookup(ctx, currNode, parent)
 			switch errors.Cause(err).(type) {
-			case NoSuchNameError:
+			case idutil.NoSuchNameError:
 				fbo.log.CDebugf(ctx, "Synced path %s doesn't exist yet", p)
 				continue pathLoop
 			case nil:
@@ -1225,7 +1227,7 @@ pathLoop:
 		// Now mark everything rooted at this path.
 		currNode, _, err = fbo.Lookup(ctx, currNode, syncedElem)
 		switch errors.Cause(err).(type) {
-		case NoSuchNameError:
+		case idutil.NoSuchNameError:
 			fbo.log.CDebugf(ctx, "Synced element %s doesn't exist yet", p)
 			continue pathLoop
 		case nil:
@@ -1771,7 +1773,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	resolvesTo, partialResolvedOldHandle, err :=
 		oldHandle.ResolvesTo(
 			ctx, fbo.config.Codec(), fbo.config.KBPKI(),
-			constIDGetter{fbo.id()}, fbo.config, *newHandle)
+			tlfhandle.ConstIDGetter{ID: fbo.id()}, fbo.config, *newHandle)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "oldHandle=%+v, newHandle=%+v: err=%+v", oldHandle, newHandle, err)
 		return err
@@ -1876,8 +1878,8 @@ func (fbo *folderBranchOps) identifyOnce(
 	fbo.identifyLock.Lock()
 	defer fbo.identifyLock.Unlock()
 
-	ei := getExtendedIdentify(ctx)
-	if fbo.identifyDone && !ei.behavior.AlwaysRunIdentify() {
+	ei := tlfhandle.GetExtendedIdentify(ctx)
+	if fbo.identifyDone && !ei.Behavior.AlwaysRunIdentify() {
 		// TODO: provide a way for the service to break this cache when identify
 		// state changes on a TLF. For now, we do it this way to make chat work.
 		return nil
@@ -1886,7 +1888,7 @@ func (fbo *folderBranchOps) identifyOnce(
 	h := md.GetTlfHandle()
 	fbo.log.CDebugf(ctx, "Running identifies on %s", h.GetCanonicalPath())
 	kbpki := fbo.config.KBPKI()
-	err := identifyHandle(ctx, kbpki, kbpki, fbo.config, h)
+	err := tlfhandle.IdentifyHandle(ctx, kbpki, kbpki, fbo.config, h)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "Identify finished with error: %v", err)
 		// For now, if the identify fails, let the
@@ -1894,11 +1896,11 @@ func (fbo *folderBranchOps) identifyOnce(
 		return err
 	}
 
-	if ei.behavior.WarningInsteadOfErrorOnBrokenTracks() &&
-		len(ei.getTlfBreakAndClose().Breaks) > 0 {
+	if ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
+		len(ei.GetTlfBreakAndClose().Breaks) > 0 {
 		fbo.log.CDebugf(ctx,
 			"Identify finished with no error but broken proof warnings")
-	} else if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+	} else if ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		fbo.log.CDebugf(ctx, "Identify skipped")
 	} else {
 		fbo.log.CDebugf(ctx, "Identify finished successfully")
@@ -1930,7 +1932,7 @@ func (fbo *folderBranchOps) getMDForRead(
 
 // GetTLFHandle implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, _ Node) (
-	*TlfHandle, error) {
+	*tlfhandle.Handle, error) {
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	return md.GetTlfHandle(), nil
@@ -2036,7 +2038,7 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 			return ImmutableRootMetadata{}, err
 		}
 		if !isReader {
-			return ImmutableRootMetadata{}, NewReadAccessError(
+			return ImmutableRootMetadata{}, tlfhandle.NewReadAccessError(
 				md.GetTlfHandle(), session.Name, md.GetTlfHandle().GetCanonicalPath())
 		}
 	}
@@ -2121,7 +2123,7 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 			return ImmutableRootMetadata{}, err
 		}
 		if !isReader {
-			return ImmutableRootMetadata{}, NewReadAccessError(
+			return ImmutableRootMetadata{}, tlfhandle.NewReadAccessError(
 				md.GetTlfHandle(), session.Name, md.GetTlfHandle().GetCanonicalPath())
 		}
 	}
@@ -2149,7 +2151,7 @@ func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
 		return ImmutableRootMetadata{}, err
 	}
 	if !isWriter {
-		return ImmutableRootMetadata{}, NewWriteAccessError(
+		return ImmutableRootMetadata{}, tlfhandle.NewWriteAccessError(
 			md.GetTlfHandle(), session.Name, filename)
 	}
 
@@ -2339,7 +2341,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 	if !isWriter {
-		return NewWriteAccessError(
+		return tlfhandle.NewWriteAccessError(
 			handle, session.Name, handle.GetCanonicalPath())
 	}
 
@@ -2653,7 +2655,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 // SetInitialHeadToNew creates a brand-new ImmutableRootMetadata
 // object and sets the head to that. This is trusted.
 func (fbo *folderBranchOps) SetInitialHeadToNew(
-	ctx context.Context, id tlf.ID, handle *TlfHandle) (err error) {
+	ctx context.Context, id tlf.ID, handle *tlfhandle.Handle) (err error) {
 	fbo.log.CDebugf(ctx, "SetInitialHeadToNew %s", id)
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "SetInitialHeadToNew %s done: %+v",
@@ -2701,7 +2703,7 @@ func getNodeIDStr(n Node) string {
 }
 
 func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
-	node Node, ei EntryInfo, handle *TlfHandle, err error) {
+	node Node, ei EntryInfo, handle *tlfhandle.Handle, err error) {
 	fbo.log.CDebugf(ctx, "getRootNode")
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "getRootNode done: %s %+v",
@@ -3046,7 +3048,7 @@ func (fbo *folderBranchOps) statUsingFS(
 
 	de, err = fbo.makeFakeFileEntry(ctx, node, name)
 	if err != nil {
-		return DirEntry{}, false, nil
+		return DirEntry{}, false, err
 	}
 	return de, true, nil
 }
@@ -3070,7 +3072,7 @@ func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
 	if fbo.nodeCache.IsUnlinked(dir) {
 		fbo.log.CDebugf(ctx, "Refusing a lookup for unlinked directory %v",
 			fbo.nodeCache.PathFromNode(dir).tailPointer())
-		return nil, DirEntry{}, NoSuchNameError{name}
+		return nil, DirEntry{}, idutil.NoSuchNameError{Name: name}
 	}
 
 	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
@@ -3079,7 +3081,7 @@ func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
 	}
 
 	node, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
-	if _, isMiss := errors.Cause(err).(NoSuchNameError); isMiss {
+	if _, isMiss := errors.Cause(err).(idutil.NoSuchNameError); isMiss {
 		node, de.EntryInfo, err = fbo.processMissedLookup(
 			ctx, lState, dir, name, err)
 		if _, exists := errors.Cause(err).(NameExistsError); exists {
@@ -3117,7 +3119,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	})
 	// Only retry the lookup potentially if the lookup missed.
 	if err != nil {
-		if _, isMiss := errors.Cause(err).(NoSuchNameError); !isMiss {
+		if _, isMiss := errors.Cause(err).(idutil.NoSuchNameError); !isMiss {
 			return nil, EntryInfo{}, err
 		}
 	}
@@ -3324,7 +3326,7 @@ func isRevisionConflict(err error) bool {
 }
 
 func (fbo *folderBranchOps) getConvID(
-	ctx context.Context, handle *TlfHandle) (
+	ctx context.Context, handle *tlfhandle.Handle) (
 	chat1.ConversationID, error) {
 	fbo.convLock.Lock()
 	defer fbo.convLock.Unlock()
@@ -3453,7 +3455,8 @@ func (fbo *folderBranchOps) handleUnflushedEditNotifications(
 	if err != nil {
 		return err
 	}
-	session, err := GetCurrentSessionIfPossible(ctx, fbo.config.KBPKI(), true)
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, fbo.config.KBPKI(), true)
 	if err != nil {
 		return err
 	}
@@ -3905,14 +3908,14 @@ func checkDisallowedPrefixes(ctx context.Context, name string) error {
 }
 
 // PathType returns path type
-func (fbo *folderBranchOps) PathType() PathType {
+func (fbo *folderBranchOps) PathType() tlfhandle.PathType {
 	switch fbo.folderBranch.Tlf.Type() {
 	case tlf.Public:
-		return PublicPathType
+		return tlfhandle.PublicPathType
 	case tlf.Private:
-		return PrivatePathType
+		return tlfhandle.PrivatePathType
 	case tlf.SingleTeam:
-		return SingleTeamPathType
+		return tlfhandle.SingleTeamPathType
 	default:
 		panic(fmt.Sprintf("Unknown TLF type: %s", fbo.folderBranch.Tlf.Type()))
 	}
@@ -3924,7 +3927,8 @@ func (fbo *folderBranchOps) canonicalPath(ctx context.Context, dir Node, name st
 	if err != nil {
 		return "", err
 	}
-	return BuildCanonicalPath(fbo.PathType(), dirPath.String(), name), nil
+	return tlfhandle.BuildCanonicalPath(
+		fbo.PathType(), dirPath.String(), name), nil
 }
 
 func (fbo *folderBranchOps) signalWrite() {
@@ -4000,7 +4004,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 		ctx, lState, md.ReadOnly(), dirPath.ChildPathNoPtr(name))
 	if err == nil {
 		return nil, DirEntry{}, NameExistsError{name}
-	} else if _, notExists := errors.Cause(err).(NoSuchNameError); !notExists {
+	} else if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); !notExists {
 		return nil, DirEntry{}, err
 	}
 
@@ -4441,7 +4445,7 @@ func (fbo *folderBranchOps) createLinkLocked(
 		ctx, lState, md.ReadOnly(), dirPath.ChildPathNoPtr(fromName))
 	if err == nil {
 		return DirEntry{}, NameExistsError{fromName}
-	} else if _, notExists := errors.Cause(err).(NoSuchNameError); !notExists {
+	} else if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); !notExists {
 		return DirEntry{}, err
 	}
 
@@ -4580,8 +4584,8 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	// make sure the entry exists
 	de, err := fbo.blocks.GetEntry(
 		ctx, lState, md, dirPath.ChildPathNoPtr(name))
-	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
-		return NoSuchNameError{name}
+	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
+		return idutil.NoSuchNameError{Name: name}
 	} else if err != nil {
 		return err
 	}
@@ -4642,8 +4646,8 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 
 	de, err := fbo.blocks.GetEntry(
 		ctx, lState, md.ReadOnly(), dirPath.ChildPathNoPtr(dirName))
-	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
-		return NoSuchNameError{dirName}
+	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
+		return idutil.NoSuchNameError{Name: dirName}
 	} else if err != nil {
 		return err
 	}
@@ -7157,7 +7161,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 		fbo.log.CErrorf(ctx, "Couldn't get finalized bare handle: %+v", err)
 		return
 	}
-	handle, err := MakeTlfHandle(
+	handle, err := tlfhandle.MakeHandle(
 		ctx, bareHandle, fbo.id().Type(), fbo.config.KBPKI(),
 		fbo.config.KBPKI(), fbo.config.MDOps(), fbo.oa())
 	if err != nil {
@@ -7758,7 +7762,8 @@ func (fbo *folderBranchOps) handleMDFlush(
 	}
 
 	fbo.editHistory.FlushRevision(rev)
-	session, err := GetCurrentSessionIfPossible(ctx, fbo.config.KBPKI(), true)
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, fbo.config.KBPKI(), true)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Error getting session: %+v", err)
 	}
@@ -7848,9 +7853,9 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	}
 
 	// Make a copy of `head` with the new handle.
-	newHandle := oldHandle.deepCopy()
-	newHandle.name = tlf.CanonicalName(newName)
-	newHandle.resolvedWriters[tid.AsUserOrTeam()] = newName
+	newHandle := oldHandle.DeepCopy()
+	newHandle.SetName(tlf.CanonicalName(newName))
+	newHandle.SetResolvedWriter(tid.AsUserOrTeam(), newName)
 	newHead, err := fbo.head.deepCopy(fbo.config.Codec())
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Error copying head: %+v", err)
@@ -7902,7 +7907,7 @@ func (fbo *folderBranchOps) getMDForMigrationLocked(
 		return ImmutableRootMetadata{}, err
 	}
 	if !isWriter {
-		return ImmutableRootMetadata{}, NewWriteAccessError(
+		return ImmutableRootMetadata{}, tlfhandle.NewWriteAccessError(
 			md.GetTlfHandle(), session.Name, "")
 	}
 
@@ -7954,7 +7959,7 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 
 	name := string(md.GetTlfHandle().GetCanonicalName())
 	fbo.log.CDebugf(ctx, "Looking up implicit team for %s", name)
-	newHandle, err := ParseTlfHandle(
+	newHandle, err := tlfhandle.ParseHandle(
 		ctx, fbo.config.KBPKI(), fbo.config.MDOps(), fbo.config,
 		name, id.Type())
 	if err != nil {
@@ -8227,7 +8232,7 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 
 // Reset implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) Reset(
-	ctx context.Context, handle *TlfHandle) error {
+	ctx context.Context, handle *tlfhandle.Handle) error {
 	currHandle, err := fbo.GetTLFHandle(ctx, nil)
 	if err != nil {
 		return err
@@ -8241,7 +8246,7 @@ func (fbo *folderBranchOps) Reset(
 			currHandle, handle)
 	}
 
-	oldHandle := handle.deepCopy()
+	oldHandle := handle.DeepCopy()
 
 	lState := makeFBOLockState()
 	fbo.mdWriterLock.Lock(lState)
@@ -8398,7 +8403,7 @@ func (fbo *folderBranchOps) triggerMarkAndSweepLocked() {
 }
 
 func (fbo *folderBranchOps) reResolveAndIdentify(
-	ctx context.Context, oldHandle *TlfHandle, rev kbfsmd.Revision) {
+	ctx context.Context, oldHandle *tlfhandle.Handle, rev kbfsmd.Revision) {
 	fbo.log.CDebugf(ctx, "Re-resolving handle")
 	defer func() { fbo.log.CDebugf(ctx, "Done") }()
 
@@ -8408,7 +8413,7 @@ func (fbo *folderBranchOps) reResolveAndIdentify(
 	// cached in the service), and once without it (to cause all the
 	// individual users of the folder to be cached in the service).
 	tlfName := string(oldHandle.GetCanonicalName())
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, fbo.config.KBPKI(), fbo.config.MDOps(), fbo.config,
 		tlfName, fbo.id().Type())
 	if err != nil {
@@ -8418,10 +8423,10 @@ func (fbo *folderBranchOps) reResolveAndIdentify(
 
 outer:
 	for {
-		_, err := ParseTlfHandlePreferredQuick(
+		_, err := tlfhandle.ParseHandlePreferredQuick(
 			ctx, fbo.config.KBPKI(), fbo.config, tlfName, fbo.id().Type())
 		switch e := errors.Cause(err).(type) {
-		case TlfNameNotCanonical:
+		case idutil.TlfNameNotCanonical:
 			tlfName = e.NameToTry
 		case nil:
 			break outer
@@ -8440,7 +8445,7 @@ outer:
 	}
 
 	// Suppress tracker popups.
-	ctx, err = MakeExtendedIdentify(
+	ctx, err = tlfhandle.MakeExtendedIdentify(
 		ctx, keybase1.TLFIdentifyBehavior_KBFS_INIT)
 	if err != nil {
 		fbo.log.CDebugf(
@@ -8448,7 +8453,7 @@ outer:
 		return
 	}
 
-	err = identifyHandle(
+	err = tlfhandle.IdentifyHandle(
 		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), fbo.config, h)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "Couldn't identify handle: %+v", err)
@@ -8458,7 +8463,7 @@ outer:
 	// have been logged.  So just close out the extended identify.  If
 	// the user accesses the TLF directly, another proper identify
 	// should happen that shows errors.
-	_ = getExtendedIdentify(ctx).getTlfBreakAndClose()
+	_ = tlfhandle.GetExtendedIdentify(ctx).GetTlfBreakAndClose()
 }
 
 // SetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
@@ -8614,7 +8619,7 @@ func (fbo *folderBranchOps) getEditMonitoringChannel() <-chan struct{} {
 // NewNotificationChannel implements the KBFSOps interface for
 // folderBranchOps.
 func (fbo *folderBranchOps) NewNotificationChannel(
-	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
+	ctx context.Context, handle *tlfhandle.Handle, convID chat1.ConversationID,
 	channelName string) {
 	monitoringCh := fbo.getEditMonitoringChannel()
 	if monitoringCh == nil {
@@ -8732,7 +8737,8 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 	nameToNextPage map[string][]byte) {
 	gotMore := true
 
-	session, err := GetCurrentSessionIfPossible(ctx, fbo.config.KBPKI(), true)
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, fbo.config.KBPKI(), true)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Error getting session: %+v", err)
 		return

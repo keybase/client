@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -106,7 +107,7 @@ func (am *AutogitManager) Shutdown() {
 }
 
 func (am *AutogitManager) removeOldCheckoutsForHandle(
-	ctx context.Context, h *libkbfs.TlfHandle, branch libkbfs.BranchName) {
+	ctx context.Context, h *tlfhandle.Handle, branch libkbfs.BranchName) {
 	// Make an "unwrapped" FS, so we don't end up recursively entering
 	// the virtual autogit nodes again.
 	fs, err := libfs.NewUnwrappedFS(
@@ -289,7 +290,7 @@ func (am *AutogitManager) BatchChanges(
 // TlfHandleChange implements the libkbfs.Observer interface for
 // AutogitManager.
 func (am *AutogitManager) TlfHandleChange(
-	ctx context.Context, newHandle *libkbfs.TlfHandle) {
+	ctx context.Context, newHandle *tlfhandle.Handle) {
 	// Do nothing.
 }
 

@@ -511,6 +511,10 @@
           "name": "deviceName"
         },
         {
+          "type": "FullName",
+          "name": "fullname"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"

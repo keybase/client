@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -37,7 +38,7 @@ func (a SyncAction) String() string {
 // given TLF.
 func (a SyncAction) Execute(
 	ctx context.Context, c libkbfs.Config, fb libkbfs.FolderBranch,
-	h *libkbfs.TlfHandle) (err error) {
+	h *tlfhandle.Handle) (err error) {
 	if fb == (libkbfs.FolderBranch{}) {
 		panic("zero fb in SyncAction.Execute")
 	}

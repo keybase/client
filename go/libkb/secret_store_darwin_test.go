@@ -20,6 +20,7 @@ func TestSecretStoreDarwin(t *testing.T) {
 	defer func() {
 		err := secretStore.ClearSecret(mctx, nu)
 		require.NoError(tc.T, err)
+		tc.Cleanup()
 	}()
 
 	serviceName := secretStore.serviceName(mctx)

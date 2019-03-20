@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -284,11 +285,12 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			dd, cleanupFn = fup.blocks.newDirDataWithDBM(
 				lState, prevDir, chargedTo, md, dbm)
 			de, err = dd.lookup(ctx, currName)
-			if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+			if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
 				// If this isn't the first time
 				// around, we have an error.
 				if len(newPath.path) > 1 {
-					return path{}, DirEntry{}, NoSuchNameError{currName}
+					return path{}, DirEntry{},
+						idutil.NoSuchNameError{Name: currName}
 				}
 
 				// If this is a file, the size should be 0. (TODO:
@@ -951,7 +953,7 @@ func (fup *folderUpdatePrepper) setChildrenNodes(
 		switch errors.Cause(err).(type) {
 		case nil:
 			filePtr = de.BlockPointer
-		case NoSuchNameError:
+		case idutil.NoSuchNameError:
 		default:
 			fup.log.CWarningf(ctx, "Couldn't look up child: %+v", err)
 			continue

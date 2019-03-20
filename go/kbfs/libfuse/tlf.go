@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -35,7 +36,7 @@ type TLF struct {
 	NoXattrHandler
 }
 
-func newTLF(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle,
+func newTLF(ctx context.Context, fl *FolderList, h *tlfhandle.Handle,
 	name tlf.PreferredName) *TLF {
 	folder := newFolder(ctx, fl, h, name)
 	tlf := &TLF{

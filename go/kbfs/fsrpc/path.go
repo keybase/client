@@ -9,8 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -248,20 +250,20 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 // automatically resolves non-canonical names.
 func ParseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
-	osg libkbfs.OfflineStatusGetter, name string, t tlf.Type) (
-	*libkbfs.TlfHandle, error) {
-	var tlfHandle *libkbfs.TlfHandle
+	osg idutil.OfflineStatusGetter, name string, t tlf.Type) (
+	*tlfhandle.Handle, error) {
+	var tlfHandle *tlfhandle.Handle
 outer:
 	for {
 		var parseErr error
-		tlfHandle, parseErr = libkbfs.ParseTlfHandle(
+		tlfHandle, parseErr = tlfhandle.ParseHandle(
 			ctx, kbpki, mdOps, osg, name, t)
 		switch parseErr := errors.Cause(parseErr).(type) {
 		case nil:
 			// No error.
 			break outer
 
-		case libkbfs.TlfNameNotCanonical:
+		case idutil.TlfNameNotCanonical:
 			// Non-canonical name, so try again.
 			name = parseErr.NameToTry
 

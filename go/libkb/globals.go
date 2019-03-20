@@ -339,7 +339,7 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	}
 
 	// send logout notification
-	g.NotifyRouter.HandleLogout()
+	g.NotifyRouter.HandleLogout(ctx)
 
 	g.FeatureFlags.Clear()
 

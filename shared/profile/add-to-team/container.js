@@ -1,26 +1,20 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {
-  compose,
-  connect,
-  lifecycle,
-  withHandlers,
-  withStateHandlers,
-  type RouteProps,
-} from '../../util/container'
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
 import {HeaderOnMobile} from '../../common-adapters'
 import type {TeamRoleType} from '../../constants/types/teams'
 
-type OwnProps = RouteProps<{username: string}, {}>
+type OwnProps = Container.RouteProps<{username: string}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
+const mapStateToProps = (state, ownProps) => {
   return {
     _teamNameToRole: state.teams.teamNameToRole,
-    _them: routeProps.get('username'),
+    _them: Container.getRouteProps(ownProps, 'username'),
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     addUserToTeamsState: state.teams.addUserToTeamsState,
     teamProfileAddList: state.teams.get('teamProfileAddList'),
@@ -29,7 +23,7 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
   },
@@ -40,25 +34,28 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) 
     styleCover?: Object
   ) => {
     dispatch(
-      navigateAppend([
-        {
-          props: {
-            onComplete,
-            ownerDisabledExp,
-            selectedRole: role,
-            sendNotificationChecked: true,
-            showNotificationCheckbox: false,
-            styleCover,
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              onComplete,
+              ownerDisabledExp,
+              selectedRole: role,
+              sendNotificationChecked: true,
+              showNotificationCheckbox: false,
+              styleCover,
+            },
+            selected: 'controlledRolePicker',
           },
-          selected: 'controlledRolePicker',
-        },
-      ])
+        ],
+      })
     )
   },
   clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
-  loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
+  loadTeamList: () =>
+    dispatch(TeamsGen.createGetTeamProfileAddList({username: Container.getRouteProps(ownProps, 'username')})),
   onBack: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
   },
 })
@@ -103,19 +100,19 @@ const getOwnerDisabledExp = (selected, teamNameToRole) => {
 
 // The data flow in this component is confusing
 // TODO make the component a class and remove recompose
-export default compose(
-  connect<OwnProps, _, _, _, _>(
+export default Container.compose(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  lifecycle({
+  Container.lifecycle({
     componentDidMount() {
       this.props.clearAddUserToTeamsResults()
       this.props.loadTeamList()
     },
   }),
-  withStateHandlers(
+  Container.withStateHandlers(
     {role: 'writer', selectedTeams: {}, sendNotification: true},
     {
       onRoleChange: () => role => ({role}),
@@ -127,7 +124,7 @@ export default compose(
       setSendNotification: () => sendNotification => ({sendNotification}),
     }
   ),
-  withHandlers({
+  Container.withHandlers({
     // Return rows set to true.
     onSave: props => () => {
       props.onAddToTeams(

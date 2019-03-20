@@ -7,16 +7,17 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"golang.org/x/net/context"
 )
 
 type singleCurrentSessionGetter struct {
-	session SessionInfo
+	session idutil.SessionInfo
 }
 
 func (csg singleCurrentSessionGetter) GetCurrentSession(ctx context.Context) (
-	SessionInfo, error) {
+	idutil.SessionInfo, error) {
 	return csg.session, nil
 }
 
@@ -25,11 +26,11 @@ type testMDServerLocalConfig struct {
 	logMaker
 	clock  Clock
 	crypto cryptoPure
-	csg    CurrentSessionGetter
+	csg    idutil.CurrentSessionGetter
 }
 
 func newTestMDServerLocalConfig(
-	t *testing.T, csg CurrentSessionGetter) testMDServerLocalConfig {
+	t *testing.T, csg idutil.CurrentSessionGetter) testMDServerLocalConfig {
 	cg := newTestCodecGetter()
 	return testMDServerLocalConfig{
 		codecGetter: cg,
@@ -48,7 +49,7 @@ func (c testMDServerLocalConfig) cryptoPure() cryptoPure {
 	return c.crypto
 }
 
-func (c testMDServerLocalConfig) currentSessionGetter() CurrentSessionGetter {
+func (c testMDServerLocalConfig) currentSessionGetter() idutil.CurrentSessionGetter {
 	return c.csg
 }
 

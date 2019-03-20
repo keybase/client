@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -957,7 +958,7 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 		gco.AddUnrefBlock(BlockPointer{ID: id})
 	}
 
-	ctx, err := MakeExtendedIdentify(
+	ctx, err := tlfhandle.MakeExtendedIdentify(
 		// TLFIdentifyBehavior_KBFS_QR makes service suppress the tracker popup.
 		ctx, keybase1.TLFIdentifyBehavior_KBFS_QR)
 	if err != nil {
@@ -1067,7 +1068,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	if !isWriter {
-		return NewWriteAccessError(head.GetTlfHandle(), session.Name,
+		return tlfhandle.NewWriteAccessError(head.GetTlfHandle(), session.Name,
 			head.GetTlfHandle().GetCanonicalPath())
 	}
 
@@ -1179,7 +1180,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 
 func isPermanentQRError(err error) bool {
 	switch errors.Cause(err).(type) {
-	case WriteAccessError, kbfsmd.MetadataIsFinalError,
+	case tlfhandle.WriteAccessError, kbfsmd.MetadataIsFinalError,
 		RevokedDeviceVerificationError:
 		return true
 	default:

@@ -7,12 +7,14 @@ package libkbfs
 import (
 	gomock "github.com/golang/mock/gomock"
 	favorites "github.com/keybase/client/go/kbfs/favorites"
+	idutil "github.com/keybase/client/go/kbfs/idutil"
 	kbfsblock "github.com/keybase/client/go/kbfs/kbfsblock"
 	kbfscodec "github.com/keybase/client/go/kbfs/kbfscodec"
 	kbfscrypto "github.com/keybase/client/go/kbfs/kbfscrypto"
 	kbfsedits "github.com/keybase/client/go/kbfs/kbfsedits"
 	kbfsmd "github.com/keybase/client/go/kbfs/kbfsmd"
 	tlf "github.com/keybase/client/go/kbfs/tlf"
+	tlfhandle "github.com/keybase/client/go/kbfs/tlfhandle"
 	kbun "github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
@@ -433,10 +435,10 @@ func (m *MockcurrentSessionGetterGetter) EXPECT() *MockcurrentSessionGetterGette
 }
 
 // CurrentSessionGetter mocks base method
-func (m *MockcurrentSessionGetterGetter) CurrentSessionGetter() CurrentSessionGetter {
+func (m *MockcurrentSessionGetterGetter) CurrentSessionGetter() idutil.CurrentSessionGetter {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentSessionGetter")
-	ret0, _ := ret[0].(CurrentSessionGetter)
+	ret0, _ := ret[0].(idutil.CurrentSessionGetter)
 	return ret0
 }
 
@@ -1998,7 +2000,7 @@ func (mr *MockKBFSOpsMockRecorder) RefreshEditHistory(fav interface{}) *gomock.C
 }
 
 // GetTLFCryptKeys mocks base method
-func (m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) ([]kbfscrypto.TLFCryptKey, tlf.ID, error) {
+func (m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *tlfhandle.Handle) ([]kbfscrypto.TLFCryptKey, tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeys", ctx, tlfHandle)
 	ret0, _ := ret[0].([]kbfscrypto.TLFCryptKey)
@@ -2014,7 +2016,7 @@ func (mr *MockKBFSOpsMockRecorder) GetTLFCryptKeys(ctx, tlfHandle interface{}) *
 }
 
 // GetTLFID mocks base method
-func (m *MockKBFSOps) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (tlf.ID, error) {
+func (m *MockKBFSOps) GetTLFID(ctx context.Context, tlfHandle *tlfhandle.Handle) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFID", ctx, tlfHandle)
 	ret0, _ := ret[0].(tlf.ID)
@@ -2029,10 +2031,10 @@ func (mr *MockKBFSOpsMockRecorder) GetTLFID(ctx, tlfHandle interface{}) *gomock.
 }
 
 // GetTLFHandle mocks base method
-func (m *MockKBFSOps) GetTLFHandle(ctx context.Context, node Node) (*TlfHandle, error) {
+func (m *MockKBFSOps) GetTLFHandle(ctx context.Context, node Node) (*tlfhandle.Handle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFHandle", ctx, node)
-	ret0, _ := ret[0].(*TlfHandle)
+	ret0, _ := ret[0].(*tlfhandle.Handle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2044,7 +2046,7 @@ func (mr *MockKBFSOpsMockRecorder) GetTLFHandle(ctx, node interface{}) *gomock.C
 }
 
 // GetOrCreateRootNode mocks base method
-func (m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
+func (m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *tlfhandle.Handle, branch BranchName) (Node, EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrCreateRootNode", ctx, h, branch)
 	ret0, _ := ret[0].(Node)
@@ -2060,7 +2062,7 @@ func (mr *MockKBFSOpsMockRecorder) GetOrCreateRootNode(ctx, h, branch interface{
 }
 
 // GetRootNode mocks base method
-func (m *MockKBFSOps) GetRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
+func (m *MockKBFSOps) GetRootNode(ctx context.Context, h *tlfhandle.Handle, branch BranchName) (Node, EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRootNode", ctx, h, branch)
 	ret0, _ := ret[0].(Node)
@@ -2541,7 +2543,7 @@ func (mr *MockKBFSOpsMockRecorder) KickoffAllOutstandingRekeys() *gomock.Call {
 }
 
 // NewNotificationChannel mocks base method
-func (m *MockKBFSOps) NewNotificationChannel(ctx context.Context, handle *TlfHandle, convID chat1.ConversationID, channelName string) {
+func (m *MockKBFSOps) NewNotificationChannel(ctx context.Context, handle *tlfhandle.Handle, convID chat1.ConversationID, channelName string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "NewNotificationChannel", ctx, handle, convID, channelName)
 }
@@ -2553,7 +2555,7 @@ func (mr *MockKBFSOpsMockRecorder) NewNotificationChannel(ctx, handle, convID, c
 }
 
 // Reset mocks base method
-func (m *MockKBFSOps) Reset(ctx context.Context, handle *TlfHandle) error {
+func (m *MockKBFSOps) Reset(ctx context.Context, handle *tlfhandle.Handle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Reset", ctx, handle)
 	ret0, _ := ret[0].(error)
@@ -2801,10 +2803,10 @@ func (mr *MockKeybaseServiceMockRecorder) NormalizeSocialAssertion(ctx, assertio
 }
 
 // ResolveIdentifyImplicitTeam mocks base method
-func (m *MockKeybaseService) ResolveIdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, doIdentifies bool, reason string, offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+func (m *MockKeybaseService) ResolveIdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, doIdentifies bool, reason string, offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveIdentifyImplicitTeam", ctx, assertions, suffix, tlfType, doIdentifies, reason, offline)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret0, _ := ret[0].(idutil.ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2860,10 +2862,10 @@ func (mr *MockKeybaseServiceMockRecorder) GetTeamSettings(ctx, teamID, offline i
 }
 
 // LoadUserPlusKeys mocks base method
-func (m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID, offline keybase1.OfflineAvailability) (UserInfo, error) {
+func (m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID, offline keybase1.OfflineAvailability) (idutil.UserInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadUserPlusKeys", ctx, uid, pollForKID, offline)
-	ret0, _ := ret[0].(UserInfo)
+	ret0, _ := ret[0].(idutil.UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2875,10 +2877,10 @@ func (mr *MockKeybaseServiceMockRecorder) LoadUserPlusKeys(ctx, uid, pollForKID,
 }
 
 // LoadTeamPlusKeys mocks base method
-func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (TeamInfo, error) {
+func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey, desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (idutil.TeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", ctx, tid, tlfType, desiredKeyGen, desiredUser, desiredKey, desiredRole, offline)
-	ret0, _ := ret[0].(TeamInfo)
+	ret0, _ := ret[0].(idutil.TeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2890,10 +2892,10 @@ func (mr *MockKeybaseServiceMockRecorder) LoadTeamPlusKeys(ctx, tid, tlfType, de
 }
 
 // CurrentSession mocks base method
-func (m *MockKeybaseService) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
+func (m *MockKeybaseService) CurrentSession(ctx context.Context, sessionID int) (idutil.SessionInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentSession", ctx, sessionID)
-	ret0, _ := ret[0].(SessionInfo)
+	ret0, _ := ret[0].(idutil.SessionInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3178,10 +3180,10 @@ func (mr *MockresolverMockRecorder) Resolve(ctx, assertion, offline interface{})
 }
 
 // ResolveImplicitTeam mocks base method
-func (m *Mockresolver) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+func (m *Mockresolver) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveImplicitTeam", ctx, assertions, suffix, tlfType, offline)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret0, _ := ret[0].(idutil.ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3193,10 +3195,10 @@ func (mr *MockresolverMockRecorder) ResolveImplicitTeam(ctx, assertions, suffix,
 }
 
 // ResolveImplicitTeamByID mocks base method
-func (m *Mockresolver) ResolveImplicitTeamByID(ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type, offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+func (m *Mockresolver) ResolveImplicitTeamByID(ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type, offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveImplicitTeamByID", ctx, teamID, tlfType, offline)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret0, _ := ret[0].(idutil.ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3277,10 +3279,10 @@ func (mr *MockidentifierMockRecorder) Identify(ctx, assertion, reason, offline i
 }
 
 // IdentifyImplicitTeam mocks base method
-func (m *Mockidentifier) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string, offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+func (m *Mockidentifier) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string, offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IdentifyImplicitTeam", ctx, assertions, suffix, tlfType, reason, offline)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret0, _ := ret[0].(idutil.ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3353,10 +3355,10 @@ func (m *MockCurrentSessionGetter) EXPECT() *MockCurrentSessionGetterMockRecorde
 }
 
 // GetCurrentSession mocks base method
-func (m *MockCurrentSessionGetter) GetCurrentSession(ctx context.Context) (SessionInfo, error) {
+func (m *MockCurrentSessionGetter) GetCurrentSession(ctx context.Context) (idutil.SessionInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentSession", ctx)
-	ret0, _ := ret[0].(SessionInfo)
+	ret0, _ := ret[0].(idutil.SessionInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3536,10 +3538,10 @@ func (m *MockKBPKI) EXPECT() *MockKBPKIMockRecorder {
 }
 
 // GetCurrentSession mocks base method
-func (m *MockKBPKI) GetCurrentSession(ctx context.Context) (SessionInfo, error) {
+func (m *MockKBPKI) GetCurrentSession(ctx context.Context) (idutil.SessionInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentSession", ctx)
-	ret0, _ := ret[0].(SessionInfo)
+	ret0, _ := ret[0].(idutil.SessionInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3567,10 +3569,10 @@ func (mr *MockKBPKIMockRecorder) Resolve(ctx, assertion, offline interface{}) *g
 }
 
 // ResolveImplicitTeam mocks base method
-func (m *MockKBPKI) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+func (m *MockKBPKI) ResolveImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveImplicitTeam", ctx, assertions, suffix, tlfType, offline)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret0, _ := ret[0].(idutil.ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3582,10 +3584,10 @@ func (mr *MockKBPKIMockRecorder) ResolveImplicitTeam(ctx, assertions, suffix, tl
 }
 
 // ResolveImplicitTeamByID mocks base method
-func (m *MockKBPKI) ResolveImplicitTeamByID(ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type, offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+func (m *MockKBPKI) ResolveImplicitTeamByID(ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type, offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResolveImplicitTeamByID", ctx, teamID, tlfType, offline)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret0, _ := ret[0].(idutil.ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3643,10 +3645,10 @@ func (mr *MockKBPKIMockRecorder) Identify(ctx, assertion, reason, offline interf
 }
 
 // IdentifyImplicitTeam mocks base method
-func (m *MockKBPKI) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string, offline keybase1.OfflineAvailability) (ImplicitTeamInfo, error) {
+func (m *MockKBPKI) IdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, reason string, offline keybase1.OfflineAvailability) (idutil.ImplicitTeamInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IdentifyImplicitTeam", ctx, assertions, suffix, tlfType, reason, offline)
-	ret0, _ := ret[0].(ImplicitTeamInfo)
+	ret0, _ := ret[0].(idutil.ImplicitTeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3972,10 +3974,10 @@ func (mr *MockKeyMetadataMockRecorder) LatestKeyGeneration() *gomock.Call {
 }
 
 // GetTlfHandle mocks base method
-func (m *MockKeyMetadata) GetTlfHandle() *TlfHandle {
+func (m *MockKeyMetadata) GetTlfHandle() *tlfhandle.Handle {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTlfHandle")
-	ret0, _ := ret[0].(*TlfHandle)
+	ret0, _ := ret[0].(*tlfhandle.Handle)
 	return ret0
 }
 
@@ -3986,7 +3988,7 @@ func (mr *MockKeyMetadataMockRecorder) GetTlfHandle() *gomock.Call {
 }
 
 // IsWriter mocks base method
-func (m *MockKeyMetadata) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+func (m *MockKeyMetadata) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, osg idutil.OfflineStatusGetter, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, osg, uid, verifyingKey)
 	ret0, _ := ret[0].(bool)
@@ -4128,10 +4130,10 @@ func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) LatestKeyGeneration() *go
 }
 
 // GetTlfHandle mocks base method
-func (m *MockKeyMetadataWithRootDirEntry) GetTlfHandle() *TlfHandle {
+func (m *MockKeyMetadataWithRootDirEntry) GetTlfHandle() *tlfhandle.Handle {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTlfHandle")
-	ret0, _ := ret[0].(*TlfHandle)
+	ret0, _ := ret[0].(*tlfhandle.Handle)
 	return ret0
 }
 
@@ -4142,7 +4144,7 @@ func (mr *MockKeyMetadataWithRootDirEntryMockRecorder) GetTlfHandle() *gomock.Ca
 }
 
 // IsWriter mocks base method
-func (m *MockKeyMetadataWithRootDirEntry) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+func (m *MockKeyMetadataWithRootDirEntry) IsWriter(ctx context.Context, checker kbfsmd.TeamMembershipChecker, osg idutil.OfflineStatusGetter, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsWriter", ctx, checker, osg, uid, verifyingKey)
 	ret0, _ := ret[0].(bool)
@@ -4686,7 +4688,7 @@ func (mr *MockMDCacheMockRecorder) MarkPutToServer(tlf, rev, bid interface{}) *g
 }
 
 // GetIDForHandle mocks base method
-func (m *MockMDCache) GetIDForHandle(handle *TlfHandle) (tlf.ID, error) {
+func (m *MockMDCache) GetIDForHandle(handle *tlfhandle.Handle) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIDForHandle", handle)
 	ret0, _ := ret[0].(tlf.ID)
@@ -4701,7 +4703,7 @@ func (mr *MockMDCacheMockRecorder) GetIDForHandle(handle interface{}) *gomock.Ca
 }
 
 // PutIDForHandle mocks base method
-func (m *MockMDCache) PutIDForHandle(handle *TlfHandle, id tlf.ID) error {
+func (m *MockMDCache) PutIDForHandle(handle *tlfhandle.Handle, id tlf.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutIDForHandle", handle, id)
 	ret0, _ := ret[0].(error)
@@ -4715,7 +4717,7 @@ func (mr *MockMDCacheMockRecorder) PutIDForHandle(handle, id interface{}) *gomoc
 }
 
 // ChangeHandleForID mocks base method
-func (m *MockMDCache) ChangeHandleForID(oldHandle, newHandle *TlfHandle) {
+func (m *MockMDCache) ChangeHandleForID(oldHandle, newHandle *tlfhandle.Handle) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ChangeHandleForID", oldHandle, newHandle)
 }
@@ -6336,7 +6338,7 @@ func (m *MocktlfIDGetter) EXPECT() *MocktlfIDGetterMockRecorder {
 }
 
 // GetIDForHandle mocks base method
-func (m *MocktlfIDGetter) GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.ID, error) {
+func (m *MocktlfIDGetter) GetIDForHandle(ctx context.Context, handle *tlfhandle.Handle) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIDForHandle", ctx, handle)
 	ret0, _ := ret[0].(tlf.ID)
@@ -6351,7 +6353,7 @@ func (mr *MocktlfIDGetterMockRecorder) GetIDForHandle(ctx, handle interface{}) *
 }
 
 // ValidateLatestHandleNotFinal mocks base method
-func (m *MocktlfIDGetter) ValidateLatestHandleNotFinal(ctx context.Context, h *TlfHandle) (bool, error) {
+func (m *MocktlfIDGetter) ValidateLatestHandleNotFinal(ctx context.Context, h *tlfhandle.Handle) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ValidateLatestHandleNotFinal", ctx, h)
 	ret0, _ := ret[0].(bool)
@@ -6389,7 +6391,7 @@ func (m *MockMDOps) EXPECT() *MockMDOpsMockRecorder {
 }
 
 // GetIDForHandle mocks base method
-func (m *MockMDOps) GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.ID, error) {
+func (m *MockMDOps) GetIDForHandle(ctx context.Context, handle *tlfhandle.Handle) (tlf.ID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIDForHandle", ctx, handle)
 	ret0, _ := ret[0].(tlf.ID)
@@ -6404,7 +6406,7 @@ func (mr *MockMDOpsMockRecorder) GetIDForHandle(ctx, handle interface{}) *gomock
 }
 
 // ValidateLatestHandleNotFinal mocks base method
-func (m *MockMDOps) ValidateLatestHandleNotFinal(ctx context.Context, h *TlfHandle) (bool, error) {
+func (m *MockMDOps) ValidateLatestHandleNotFinal(ctx context.Context, h *tlfhandle.Handle) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ValidateLatestHandleNotFinal", ctx, h)
 	ret0, _ := ret[0].(bool)
@@ -8417,7 +8419,7 @@ func (mr *MockObserverMockRecorder) BatchChanges(ctx, changes, allAffectedNodeID
 }
 
 // TlfHandleChange mocks base method
-func (m *MockObserver) TlfHandleChange(ctx context.Context, newHandle *TlfHandle) {
+func (m *MockObserver) TlfHandleChange(ctx context.Context, newHandle *tlfhandle.Handle) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "TlfHandleChange", ctx, newHandle)
 }
@@ -9326,10 +9328,10 @@ func (mr *MockConfigMockRecorder) Signer() *gomock.Call {
 }
 
 // CurrentSessionGetter mocks base method
-func (m *MockConfig) CurrentSessionGetter() CurrentSessionGetter {
+func (m *MockConfig) CurrentSessionGetter() idutil.CurrentSessionGetter {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentSessionGetter")
-	ret0, _ := ret[0].(CurrentSessionGetter)
+	ret0, _ := ret[0].(idutil.CurrentSessionGetter)
 	return ret0
 }
 
@@ -11125,10 +11127,10 @@ func (mr *MockChatMockRecorder) SendTextMessage(ctx, tlfName, tlfType, convID, b
 }
 
 // GetGroupedInbox mocks base method
-func (m *MockChat) GetGroupedInbox(ctx context.Context, chatType chat1.TopicType, maxChats int) ([]*TlfHandle, error) {
+func (m *MockChat) GetGroupedInbox(ctx context.Context, chatType chat1.TopicType, maxChats int) ([]*tlfhandle.Handle, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGroupedInbox", ctx, chatType, maxChats)
-	ret0, _ := ret[0].([]*TlfHandle)
+	ret0, _ := ret[0].([]*tlfhandle.Handle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

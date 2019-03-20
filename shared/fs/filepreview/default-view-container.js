@@ -9,7 +9,6 @@ import DefaultView from './default-view'
 type OwnProps = {|
   path: Types.Path,
   routePath: I.List<string>,
-  onLoadingStateChange?: () => void,
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({

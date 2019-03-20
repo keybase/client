@@ -23,6 +23,17 @@
           "name": "uid"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmailAddressVerifiedMsg",
+      "fields": [
+        {
+          "type": "EmailAddress",
+          "name": "email",
+          "jsonkey": "email"
+        }
+      ]
     }
   ],
   "messages": {

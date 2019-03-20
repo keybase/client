@@ -3,13 +3,15 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import Team from '.'
 import CustomTitle from './custom-title/container'
+import {HeaderRightActions, HeaderTitle} from './nav-header/container'
 import * as Kb from '../../common-adapters'
-import {connect, compose} from '../../util/container'
+import {connect, compose, isMobile} from '../../util/container'
 import * as Constants from '../../constants/teams'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
 import type {RouteProps} from '../../route-tree/render-route'
+import flags from '../../util/feature-flags'
 
 // $FlowIssue
 type OwnProps = RouteProps<{teamname: string}, {}> & {selectedTab: string, setSelectedTab: string => void}
@@ -59,7 +61,11 @@ const mergeProps = (stateProps, dispatchProps) => {
       tabSpecificRows = [{type: 'settings'}]
       break
   }
-  const rows = [{type: 'header'}, {type: 'tabs'}, ...tabSpecificRows]
+  const rows = [
+    ...(flags.useNewRouter && !isMobile ? [] : [{type: 'header'}]),
+    {type: 'tabs'},
+    ...tabSpecificRows,
+  ]
   const customComponent = <CustomTitle teamname={stateProps.teamname} />
   return {
     _load: () => dispatchProps._loadTeam(stateProps.teamname),
@@ -105,6 +111,13 @@ type State = {|selectedTab: string|}
 
 // We don't use route state anymore
 class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, State> {
+  static navigationOptions = ({navigation}: {navigation: any}) => ({
+    headerHideBorder: true,
+    headerRightActions: isMobile
+      ? undefined
+      : () => <HeaderRightActions teamname={navigation.getParam('teamname')} />,
+    headerTitle: isMobile ? undefined : () => <HeaderTitle teamname={navigation.getParam('teamname')} />,
+  })
   state = {selectedTab: 'members'}
   _setSelectedTab = selectedTab => {
     this.setState({selectedTab})

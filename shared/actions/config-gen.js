@@ -55,7 +55,7 @@ export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 
 // Payload Types
-type _BootstrapStatusLoadedPayload = $ReadOnly<{|deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
+type _BootstrapStatusLoadedPayload = $ReadOnly<{|deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, fullname: string, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
 type _CheckForUpdatePayload = void

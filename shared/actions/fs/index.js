@@ -63,32 +63,14 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-const silenceErrorHandler = () => {}
-
-const pathItemLoad = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-    path: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
-    },
-    ...(action.payload.identifyBehavior ? {identifyBehavior: action.payload.identifyBehavior} : {}),
-  })
-    .then(dirent =>
-      FsGen.createPathItemLoaded({
-        meta: makeEntry(dirent),
-        path: action.payload.path,
-      })
-    )
-    .catch(action.payload.silenceErrors ? silenceErrorHandler : makeRetriableErrorHandler(action))
-
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
-const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+const pathMetadataRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 
 const clearRefreshTags = () => {
   folderListRefreshTags.clear()
-  mimeTypeRefreshTags.clear()
+  pathMetadataRefreshTags.clear()
 }
 
 function* folderList(_, action) {
@@ -406,7 +388,7 @@ function* pollSyncStatusUntilDone(_, action) {
 }
 
 const onTlfUpdate = (state, action) => {
-  // Trigger folderListLoad and mimeTypeLoad for paths that the user might be
+  // Trigger folderListLoad and pathMetadata for paths that the user might be
   // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
   //
@@ -422,14 +404,14 @@ const onTlfUpdate = (state, action) => {
   // folderList`).
   const actions = []
   folderListRefreshTags.forEach((path, refreshTag) =>
-    Types.pathIsInTlfPath(path, action.payload.tlfPath)
+    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
       ? actions.push(FsGen.createFolderListLoad({path}))
       : folderListRefreshTags.delete(refreshTag)
   )
-  mimeTypeRefreshTags.forEach((path, refreshTag) =>
-    Types.pathIsInTlfPath(path, action.payload.tlfPath)
-      ? actions.push(FsGen.createMimeTypeLoad({path}))
-      : mimeTypeRefreshTags.delete(refreshTag)
+  pathMetadataRefreshTags.forEach((path, refreshTag) =>
+    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
+      ? actions.push(FsGen.createLoadPathMetadata({path}))
+      : pathMetadataRefreshTags.delete(refreshTag)
   )
   return actions
 }
@@ -516,19 +498,8 @@ const refreshLocalHTTPServerInfo = (state, action) =>
 // If the server address/token are not populated yet, or if the token turns out
 // to be invalid, it automatically uses
 // SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise to refresh that. The
-// generator function returns the loaded mime type for the given path, and in
-// addition triggers a mimeTypeLoaded so the loaded mime type for given path is
-// populated in the store.
-function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
-  if (refreshTag) {
-    if (mimeTypeRefreshTags.get(refreshTag) === path) {
-      // We are already subscribed; so don't fire RPC.
-      return
-    }
-
-    mimeTypeRefreshTags.set(refreshTag, path)
-  }
-
+// generator function returns the loaded mime type for the given path.
+function* _loadMimeType(path: Types.Path) {
   const state = yield* Saga.selectState()
   let localHTTPServerInfo = state.fs.localHTTPServerInfo
   // This should finish within 2 iterations at most. But just in case we bound
@@ -548,7 +519,6 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     }
     try {
       const mimeType: Types.Mime = yield Saga.callUntyped(getMimeTypePromise, localHTTPServerInfo, path)
-      yield Saga.put(FsGen.createMimeTypeLoaded({mimeType, path}))
       return mimeType
     } catch (err) {
       if (err === Constants.notFoundError) {
@@ -563,14 +533,6 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     }
   }
   throw new Error('exceeded max retries')
-}
-
-function* loadMimeType(_, action) {
-  try {
-    yield* _loadMimeType(action.payload.path, action.payload.refreshTag)
-  } catch (error) {
-    yield makeUnretriableErrorHandler(action)(error).map(action => Saga.put(action))
-  }
 }
 
 const commitEdit = (state, action) => {
@@ -654,33 +616,42 @@ const openPathItem = (state, action) =>
   _getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'})
 
 function* loadPathMetadata(state, action) {
-  const {path} = action.payload
+  const {path, refreshTag} = action.payload
 
   if (Types.getPathLevel(path) < 3) {
     return
   }
 
-  let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+  if (refreshTag) {
+    if (pathMetadataRefreshTags.get(refreshTag) === path) {
+      // We are already subscribed; so don't fire RPC.
+      return
+    }
+
+    pathMetadataRefreshTags.set(refreshTag, path)
+  }
+
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
       path: {
         PathType: RPCTypes.simpleFSPathType.kbfs,
         kbfs: Constants.fsPathToRpcPathString(path),
       },
+      refreshSubscription: !!refreshTag,
     })
-    pathItem = makeEntry(dirent)
+    let pathItem = makeEntry(dirent)
+    if (pathItem.type === 'file') {
+      const mimeType = yield* _loadMimeType(path)
+      pathItem = pathItem.set('mimeType', mimeType)
+    }
     yield Saga.put(
       FsGen.createPathItemLoaded({
-        meta: pathItem,
         path,
+        pathItem,
       })
     )
   } catch (err) {
     yield makeRetriableErrorHandler(action)(err).map(action => Saga.put(action))
-    return
-  }
-  if (pathItem.type === 'file') {
-    yield Saga.put(FsGen.createMimeTypeLoad({path}))
   }
 }
 
@@ -882,7 +853,7 @@ function* showSendLinkToChat(state, action) {
 
 const clearRefreshTag = (state, action) => {
   folderListRefreshTags.delete(action.payload.refreshTag)
-  mimeTypeRefreshTags.delete(action.payload.refreshTag)
+  pathMetadataRefreshTags.delete(action.payload.refreshTag)
 }
 
 // Can't rely on kbfsDaemonStatus === 'waiting' as that's set by reducre and
@@ -926,11 +897,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.PathItemLoadPayload>(FsGen.pathItemLoad, pathItemLoad)
   yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
-  yield* Saga.chainGenerator<FsGen.MimeTypeLoadPayload>(FsGen.mimeTypeLoad, loadMimeType)
   yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
   yield* Saga.chainGenerator<FsGen.NotifySyncActivityPayload>(

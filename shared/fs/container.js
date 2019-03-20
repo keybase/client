@@ -11,6 +11,7 @@ import Folder from './folder/container'
 import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
+import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
 
 const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
@@ -28,7 +29,6 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
         }),
       })
     ),
-  _loadPathMetadata: (path: Types.Path) => dispatch(FsGen.createLoadPathMetadata({path})),
   waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
 })
 
@@ -39,7 +39,6 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
   return {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),
     kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-    loadPathMetadata: () => dispatchProps._loadPathMetadata(path),
     mimeType: !isDefinitelyFolder && pathItem.type === 'file' ? pathItem.mimeType : null,
     path,
     pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItems.get(path, Constants.unknownPathItem).type,
@@ -51,7 +50,6 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
 type ChooseComponentProps = {|
   emitBarePreview: () => void,
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
-  loadPathMetadata: () => void,
   mimeType: ?Types.Mime,
   path: Types.Path,
   pathType: Types.PathType,
@@ -72,14 +70,10 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     if (useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
     }
-    this.props.loadPathMetadata()
   }
   componentDidUpdate(prevProps) {
     if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
-    }
-    if (this.props.path !== prevProps.path) {
-      this.props.loadPathMetadata()
     }
     if (this.props.kbfsDaemonStatus !== 'connected') {
       // Always triggers whenever something changes if we are not connected.
@@ -87,10 +81,8 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
       this.props.waitForKbfsDaemon()
     }
   }
-  render() {
-    if (this.props.kbfsDaemonStatus !== 'connected') {
-      return <KbfsDaemonNotRunning />
-    }
+
+  getContent() {
     switch (this.props.pathType) {
       case 'folder':
         return <Folder path={this.props.path} routePath={this.props.routePath} />
@@ -108,6 +100,17 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
           <NormalPreview path={this.props.path} routePath={this.props.routePath} />
         )
     }
+  }
+  render() {
+    if (this.props.kbfsDaemonStatus !== 'connected') {
+      return <KbfsDaemonNotRunning />
+    }
+    return (
+      <>
+        <LoadPathMetadataWhenNeeded path={this.props.path} refreshTag="main" />
+        {this.getContent()}
+      </>
+    )
   }
 }
 

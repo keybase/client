@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package tlfhandle
 
 import (
 	"errors"
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
@@ -18,8 +19,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type extendedIdentify struct {
-	behavior keybase1.TLFIdentifyBehavior
+// ExtendedIdentify is a struct to track the behavior and results of
+// an identify.
+type ExtendedIdentify struct {
+	Behavior keybase1.TLFIdentifyBehavior
 
 	// lock guards userBreaks and tlfBreaks
 	lock       sync.Mutex
@@ -27,7 +30,9 @@ type extendedIdentify struct {
 	tlfBreaks  *keybase1.TLFBreak
 }
 
-func (ei *extendedIdentify) userBreak(
+// UserBreak should be called when an identify call for a user has
+// completed, and may (or may not) contain breaks.
+func (ei *ExtendedIdentify) UserBreak(
 	ctx context.Context, username kbname.NormalizedUsername, uid keybase1.UID,
 	breaks *keybase1.IdentifyTrackBreaks) {
 	if ei.userBreaks == nil {
@@ -46,7 +51,9 @@ func (ei *extendedIdentify) userBreak(
 	}
 }
 
-func (ei *extendedIdentify) teamBreak(
+// TeamBreak should be called when an identify call for a team has
+// completed, and may (or may not) contain breaks.
+func (ei *ExtendedIdentify) TeamBreak(
 	ctx context.Context, teamID keybase1.TeamID,
 	breaks *keybase1.IdentifyTrackBreaks) {
 	if ei.userBreaks == nil {
@@ -67,7 +74,9 @@ func (ei *extendedIdentify) teamBreak(
 	}
 }
 
-func (ei *extendedIdentify) onError(ctx context.Context) {
+// OnError is called when the identify process has encountered a hard
+// error.
+func (ei *ExtendedIdentify) OnError(ctx context.Context) {
 	if ei.userBreaks == nil {
 		return
 	}
@@ -84,7 +93,7 @@ func (ei *extendedIdentify) onError(ctx context.Context) {
 	}
 }
 
-func (ei *extendedIdentify) makeTlfBreaksIfNeeded(
+func (ei *ExtendedIdentify) makeTlfBreaksIfNeeded(
 	ctx context.Context, numUserInTlf int) error {
 	if ei.userBreaks == nil {
 		return nil
@@ -98,7 +107,7 @@ func (ei *extendedIdentify) makeTlfBreaksIfNeeded(
 		select {
 		case ub, ok := <-ei.userBreaks:
 			if !ok {
-				return errors.New("makeTlfBreaksIfNeeded called on extendedIdentify" +
+				return errors.New("makeTlfBreaksIfNeeded called on ExtendedIdentify" +
 					" with closed userBreaks channel.")
 			}
 			if ub.Breaks != nil {
@@ -113,17 +122,18 @@ func (ei *extendedIdentify) makeTlfBreaksIfNeeded(
 	return nil
 }
 
-// getTlfBreakOrBust returns a keybase1.TLFBreak. This should only be called
-// for behavior.WarningInsteadOfErrorOnBrokenTracks() == true, and after
-// makeTlfBreaksIfNeeded is called, to make sure user proof breaks get
-// populated in GUI mode.
+// GetTlfBreakAndClose returns a keybase1.TLFBreak. This should only
+// be called for behavior.WarningInsteadOfErrorOnBrokenTracks() ==
+// true, and after makeTlfBreaksIfNeeded is called, to make sure user
+// proof breaks get populated in GUI mode.
 //
-// If called otherwise, we don't panic here anymore, since we can't panic on
-// nil ei.tlfBreaks. The reason is if a previous successful identify has
-// already happened recently, it could cause this identify to be skipped, which
-// means ei.tlfBreaks is never populated. In this case, it's safe to return an
-// empty keybase1.TLFBreak.
-func (ei *extendedIdentify) getTlfBreakAndClose() keybase1.TLFBreak {
+// If called otherwise, we don't panic here anymore, since we can't
+// panic on nil ei.tlfBreaks. The reason is if a previous successful
+// identify has already happened recently, it could cause this
+// identify to be skipped, which means ei.tlfBreaks is never
+// populated. In this case, it's safe to return an empty
+// keybase1.TLFBreak.
+func (ei *ExtendedIdentify) GetTlfBreakAndClose() keybase1.TLFBreak {
 	ei.lock.Lock()
 	defer ei.lock.Unlock()
 
@@ -139,59 +149,65 @@ func (ei *extendedIdentify) getTlfBreakAndClose() keybase1.TLFBreak {
 }
 
 // ctxExtendedIdentifyKeyType is a type for the context key for using
-// extendedIdentify
+// ExtendedIdentify
 type ctxExtendedIdentifyKeyType int
 
 const (
-	// ctxExtendedIdentifyKeyType is a context key for using extendedIdentify
+	// ctxExtendedIdentifyKeyType is a context key for using ExtendedIdentify
 	ctxExtendedIdentifyKey ctxExtendedIdentifyKeyType = iota
 )
 
 // ExtendedIdentifyAlreadyExists is returned when MakeExtendedIdentify is
-// called on a context already with extendedIdentify.
+// called on a context already with ExtendedIdentify.
 type ExtendedIdentifyAlreadyExists struct{}
 
 func (e ExtendedIdentifyAlreadyExists) Error() string {
 	return "extendedIdentify already exists"
 }
 
-// MakeExtendedIdentify populates a context with an extendedIdentify directive.
+// MakeExtendedIdentify populates a context with an ExtendedIdentify directive.
 func MakeExtendedIdentify(ctx context.Context,
 	behavior keybase1.TLFIdentifyBehavior) (context.Context, error) {
-	if _, ok := ctx.Value(ctxExtendedIdentifyKey).(*extendedIdentify); ok {
+	if _, ok := ctx.Value(ctxExtendedIdentifyKey).(*ExtendedIdentify); ok {
 		return nil, ExtendedIdentifyAlreadyExists{}
 	}
 
 	if !behavior.WarningInsteadOfErrorOnBrokenTracks() {
-		return libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
-			return context.WithValue(ctx, ctxExtendedIdentifyKey, &extendedIdentify{
-				behavior: behavior,
-			})
-		}), nil
+		return libcontext.NewContextReplayable(
+			ctx, func(ctx context.Context) context.Context {
+				return context.WithValue(
+					ctx, ctxExtendedIdentifyKey, &ExtendedIdentify{
+						Behavior: behavior,
+					})
+			}), nil
 	}
 
 	ch := make(chan keybase1.TLFIdentifyFailure)
-	return libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, ctxExtendedIdentifyKey, &extendedIdentify{
-			behavior:   behavior,
-			userBreaks: ch,
-		})
-	}), nil
+	return libcontext.NewContextReplayable(
+		ctx, func(ctx context.Context) context.Context {
+			return context.WithValue(
+				ctx, ctxExtendedIdentifyKey, &ExtendedIdentify{
+					Behavior:   behavior,
+					userBreaks: ch,
+				})
+		}), nil
 }
 
-func getExtendedIdentify(ctx context.Context) (ei *extendedIdentify) {
-	if ei, ok := ctx.Value(ctxExtendedIdentifyKey).(*extendedIdentify); ok {
+// GetExtendedIdentify returns the extended identify info associated
+// with the given context.
+func GetExtendedIdentify(ctx context.Context) (ei *ExtendedIdentify) {
+	if ei, ok := ctx.Value(ctxExtendedIdentifyKey).(*ExtendedIdentify); ok {
 		return ei
 	}
-	return &extendedIdentify{
-		behavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	return &ExtendedIdentify{
+		Behavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 	}
 }
 
 // identifyUID performs identify based only on UID. It should be
 // used only if the username is not known - as e.g. when rekeying.
-func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, id keybase1.UserOrTeamID, t tlf.Type,
+func identifyUID(ctx context.Context, nug idutil.NormalizedUsernameGetter,
+	identifier idutil.Identifier, id keybase1.UserOrTeamID, t tlf.Type,
 	offline keybase1.OfflineAvailability) error {
 	name, err := nug.GetNormalizedUsername(ctx, id, offline)
 	if err != nil {
@@ -201,13 +217,13 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 }
 
 // identifyUser is the preferred way to run identifies.
-func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, name kbname.NormalizedUsername,
+func identifyUser(ctx context.Context, nug idutil.NormalizedUsernameGetter,
+	identifier idutil.Identifier, name kbname.NormalizedUsername,
 	id keybase1.UserOrTeamID, t tlf.Type,
 	offline keybase1.OfflineAvailability) error {
 	// Check to see if identify should be skipped altogether.
-	ei := getExtendedIdentify(ctx)
-	if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+	ei := GetExtendedIdentify(ctx)
+	if ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		return nil
 	}
 
@@ -256,7 +272,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 			// Convert libkb.NoSigChainError into one we can report.  (See
 			// KBFS-1252).
 			if _, ok := err.(libkb.NoSigChainError); ok {
-				return NoSigChainError{name}
+				return idutil.NoSigChainError{User: name}
 			}
 			return err
 		}
@@ -275,16 +291,18 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 }
 
 // identifyUserToChan calls identifyUser and plugs the result into the error channnel.
-func identifyUserToChan(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, name kbname.NormalizedUsername,
+func identifyUserToChan(
+	ctx context.Context, nug idutil.NormalizedUsernameGetter,
+	identifier idutil.Identifier, name kbname.NormalizedUsername,
 	id keybase1.UserOrTeamID, t tlf.Type, offline keybase1.OfflineAvailability,
 	errChan chan error) {
 	errChan <- identifyUser(ctx, nug, identifier, name, id, t, offline)
 }
 
 // identifyUsers identifies the users in the given maps.
-func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier,
+func identifyUsers(
+	ctx context.Context, nug idutil.NormalizedUsernameGetter,
+	identifier idutil.Identifier,
 	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 	t tlf.Type, offline keybase1.OfflineAvailability) error {
 	eg, ctx := errgroup.WithContext(ctx)
@@ -302,10 +320,10 @@ func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
 	return eg.Wait()
 }
 
-// identifyUserList identifies the users in the given list.
-// Only use this when the usernames are not known - like when rekeying.
-func identifyUserList(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, ids []keybase1.UserOrTeamID, t tlf.Type,
+// IdentifyUserList identifies the users in the given list.  Only use
+// this when the usernames are not known - like when rekeying.
+func IdentifyUserList(ctx context.Context, nug idutil.NormalizedUsernameGetter,
+	identifier idutil.Identifier, ids []keybase1.UserOrTeamID, t tlf.Type,
 	offline keybase1.OfflineAvailability) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -324,12 +342,13 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter,
 }
 
 // identifyUsersForTLF is a helper for identifyHandle for easier testing.
-func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier,
+func identifyUsersForTLF(
+	ctx context.Context, nug idutil.NormalizedUsernameGetter,
+	identifier idutil.Identifier,
 	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 	t tlf.Type, offline keybase1.OfflineAvailability) error {
-	ei := getExtendedIdentify(ctx)
-	if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+	ei := GetExtendedIdentify(ctx)
+	if ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		return nil
 	}
 
@@ -346,10 +365,11 @@ func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
 	return eg.Wait()
 }
 
-// identifyHandle identifies the canonical names in the given handle.
-func identifyHandle(
-	ctx context.Context, nug normalizedUsernameGetter, identifier identifier,
-	osg OfflineStatusGetter, h *TlfHandle) error {
+// IdentifyHandle identifies the canonical names in the given handle.
+func IdentifyHandle(
+	ctx context.Context, nug idutil.NormalizedUsernameGetter,
+	identifier idutil.Identifier, osg idutil.OfflineStatusGetter,
+	h *Handle) error {
 	offline := keybase1.OfflineAvailability_NONE
 	if osg != nil {
 		offline = osg.OfflineAvailabilityForID(h.tlfID)
