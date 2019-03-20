@@ -2012,7 +2012,9 @@ const navigateToInbox = (state, action) => {
 // Unchecked version of Chat2Gen.createNavigateToThread() --
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
-const navigateToThreadRoute = RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
+const navigateToThreadRoute = flags.useNewRouter
+  ? RouteTreeGen.createNavigateAppend({path: Constants.newRouterThreadRoute})
+  : RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
 
 const navigateToThread = (state, action) => {
   if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
