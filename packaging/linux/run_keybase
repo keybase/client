@@ -141,7 +141,7 @@ show_cryptosquirrel() {
 }
 
 warn_if_exists_and_unwritable() {
-  if ! [ -a "$1" ] || [ -w "$1" ]; then
+  if ! [ -e "$1" ] || [ -w "$1" ]; then
       return
   fi
   echo "WARNING: Cannot write to $1. Did you previously run 'run_keybase' with sudo?"
