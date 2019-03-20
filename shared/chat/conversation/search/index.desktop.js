@@ -6,26 +6,23 @@ import * as Styles from '../../../styles'
 import type {Props} from './index.types'
 
 class ThreadSearch extends React.Component<Props> {
-  _input: ?Kb.Input
-  _setInput = (ref: ?Kb.Input) => {
-    this._input = ref
-  }
+  _inputRef = React.createRef()
   _submitSearch = () => {
-    this._input && this.props.onSearch(this._input.getValue())
+    this._inputRef.current && this.props.onSearch(this._inputRef.current.getValue())
   }
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" style={styles.inputContainer} fullWidth={true}>
-          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.searchContainer}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
             <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />
             <Kb.Input
               hideUnderline={true}
-              hintText={'Search...'}
+              hintText="Search..."
               small={true}
               uncontrolled={true}
               onEnterKeyDown={this._submitSearch}
-              ref={this._setInput}
+              ref={this._inputRef}
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
@@ -93,10 +90,6 @@ const styles = Styles.styleSheetCreate({
   },
   resultsContainer: {
     flexShrink: 0,
-  },
-  searchContainer: {
-    alignItems: 'center',
-    alignSelf: 'center',
   },
 })
 
