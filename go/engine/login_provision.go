@@ -90,6 +90,10 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		return err
 	}
 
+	if err := m.G().SecretStore().PrimeSecretStores(m); err != nil {
+		return SecretStoreNotFunctionalError{err}
+	}
+
 	var err error
 	e.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), e.arg.User.GetUID())
 	if err != nil {
