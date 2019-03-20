@@ -45,7 +45,7 @@ const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
   const inputResults = SearchConstants.getUserInputItemIds(state, 'chatSearch')
   // for now this is just the info button always in the new routing scheme
-  const infoPanelOpen = flags.useNewRouter ? false : Constants.isInfoPanelOpen(state)
+  const infoPanelOpen = Constants.isInfoPanelOpen(state)
   return {
     infoPanelOpen,
     isPending,

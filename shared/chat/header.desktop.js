@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as Types from '../constants/types/chat2'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
@@ -14,9 +15,11 @@ type Props = {|
   desc: string,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
+  onOpenFolder: () => void,
   participants: ?Array<string>,
 |}
 
+// TODO inbox header plumbing
 const Header = (p: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container}>
     <Kb.Box2 direction="vertical" style={styles.left}>
@@ -75,16 +78,18 @@ const styles = Styles.styleSheetCreate({
 })
 
 const mapStateToProps = state => {
-  const conversationIDKey = Constants.getSelectedConversation(state)
-  const _meta = Constants.getMeta(state, conversationIDKey)
+  const _conversationIDKey = Constants.getSelectedConversation(state)
+  const _meta = Constants.getMeta(state, _conversationIDKey)
 
   return {
+    _conversationIDKey,
     _meta,
-    infoPanelOpen: false, // TODO
+    infoPanelOpen: Constants.isInfoPanelOpen(state),
   }
 }
 const mapDispatchToProps = dispatch => ({
-  onToggleInfoPanel: () => {}, // TODO
+  _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+  onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
 })
 const mergeProps = (stateProps, dispatchProps) => {
   const meta = stateProps._meta
@@ -98,6 +103,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     desc: meta.description,
     infoPanelOpen: stateProps.infoPanelOpen,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+    onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
     participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
   }
 }
