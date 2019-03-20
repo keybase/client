@@ -404,8 +404,14 @@ def testGo(prefix, packagesToTest) {
       ],
       test_linux_go_: [
         '*': [],
+        'github.com/keybase/client/go/kbfs/test': [
+          name: 'kbfs_test_fuse',
+          flags: '-tags fuse',
+          timeout: '15m',
+        ],
         'github.com/keybase/client/go/kbfs/libfuse': [
-          disable: true,
+          flags: '',
+          timeout: '3m',
         ],
         'github.com/keybase/client/go/kbfs/idutil': [
           flags: '-race',
