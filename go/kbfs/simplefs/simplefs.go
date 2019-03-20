@@ -588,11 +588,12 @@ func (k *SimpleFS) refreshSubscription(
 		return nil
 	}
 
-	tlfType, tlfName, _, _, err := remoteTlfAndPath(path)
+	tlfType, tlfNameFromGUI, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return err
 	}
-	tlfPathFromGUI := stdpath.Join("/keybase", tlfType.PathString(), tlfName)
+	tlfPathFromGUI := tlfhandle.BuildCanonicalPathForTlfType(
+		tlfType, tlfNameFromGUI)
 
 	k.subscribeLock.Lock()
 	defer k.subscribeLock.Unlock()

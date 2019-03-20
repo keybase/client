@@ -235,7 +235,6 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 				"ReporterKBPKI: notify path buffer full, but path is "+
 					"different from last one, so send in a goroutine %s", path)
 			go func() { r.notifyPathBuffer <- path }()
-
 		}
 	}
 }
