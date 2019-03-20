@@ -116,6 +116,92 @@ func (o RelayClaimPost) DeepCopy() RelayClaimPost {
 	}
 }
 
+type DirectOp struct {
+	NoteB64 string `codec:"noteB64" json:"noteB64"`
+}
+
+func (o DirectOp) DeepCopy() DirectOp {
+	return DirectOp{
+		NoteB64: o.NoteB64,
+	}
+}
+
+type RelayOp struct {
+	ToAssertion  string          `codec:"toAssertion" json:"toAssertion"`
+	RelayAccount AccountID       `codec:"relayAccount" json:"relayAccount"`
+	TeamID       keybase1.TeamID `codec:"teamID" json:"teamID"`
+	BoxB64       string          `codec:"boxB64" json:"boxB64"`
+}
+
+func (o RelayOp) DeepCopy() RelayOp {
+	return RelayOp{
+		ToAssertion:  o.ToAssertion,
+		RelayAccount: o.RelayAccount.DeepCopy(),
+		TeamID:       o.TeamID.DeepCopy(),
+		BoxB64:       o.BoxB64,
+	}
+}
+
+type PaymentOp struct {
+	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	DisplayAmount   string                `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency string                `codec:"displayCurrency" json:"displayCurrency"`
+	Direct          *DirectOp             `codec:"direct,omitempty" json:"direct,omitempty"`
+	Relay           *RelayOp              `codec:"relay,omitempty" json:"relay,omitempty"`
+}
+
+func (o PaymentOp) DeepCopy() PaymentOp {
+	return PaymentOp{
+		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.To),
+		DisplayAmount:   o.DisplayAmount,
+		DisplayCurrency: o.DisplayCurrency,
+		Direct: (func(x *DirectOp) *DirectOp {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Direct),
+		Relay: (func(x *RelayOp) *RelayOp {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Relay),
+	}
+}
+
+type PaymentMultiPost struct {
+	FromDeviceID      keybase1.DeviceID `codec:"fromDeviceID" json:"fromDeviceID"`
+	SignedTransaction string            `codec:"signedTransaction" json:"signedTransaction"`
+	Operations        []PaymentOp       `codec:"operations" json:"operations"`
+}
+
+func (o PaymentMultiPost) DeepCopy() PaymentMultiPost {
+	return PaymentMultiPost{
+		FromDeviceID:      o.FromDeviceID.DeepCopy(),
+		SignedTransaction: o.SignedTransaction,
+		Operations: (func(x []PaymentOp) []PaymentOp {
+			if x == nil {
+				return nil
+			}
+			ret := make([]PaymentOp, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+	}
+}
+
 type PaymentSummaryType int
 
 const (
@@ -770,6 +856,11 @@ type SubmitRelayClaimArg struct {
 	Claim  RelayClaimPost       `codec:"claim" json:"claim"`
 }
 
+type SubmitMultiPaymentArg struct {
+	Caller  keybase1.UserVersion `codec:"caller" json:"caller"`
+	Payment PaymentMultiPost     `codec:"payment" json:"payment"`
+}
+
 type AcquireAutoClaimLockArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 }
@@ -831,6 +922,7 @@ type RemoteInterface interface {
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 	SubmitRelayPayment(context.Context, SubmitRelayPaymentArg) (PaymentResult, error)
 	SubmitRelayClaim(context.Context, SubmitRelayClaimArg) (RelayClaimResult, error)
+	SubmitMultiPayment(context.Context, SubmitMultiPaymentArg) (KeybaseTransactionID, error)
 	AcquireAutoClaimLock(context.Context, keybase1.UserVersion) (string, error)
 	ReleaseAutoClaimLock(context.Context, ReleaseAutoClaimLockArg) error
 	NextAutoClaim(context.Context, keybase1.UserVersion) (*AutoClaim, error)
@@ -995,6 +1087,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SubmitRelayClaim(ctx, typedArgs[0])
+					return
+				},
+			},
+			"submitMultiPayment": {
+				MakeArg: func() interface{} {
+					var ret [1]SubmitMultiPaymentArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SubmitMultiPaymentArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SubmitMultiPaymentArg)(nil), args)
+						return
+					}
+					ret, err = i.SubmitMultiPayment(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1213,6 +1320,11 @@ func (c RemoteClient) SubmitRelayPayment(ctx context.Context, __arg SubmitRelayP
 
 func (c RemoteClient) SubmitRelayClaim(ctx context.Context, __arg SubmitRelayClaimArg) (res RelayClaimResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayClaim", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SubmitMultiPayment(ctx context.Context, __arg SubmitMultiPaymentArg) (res KeybaseTransactionID, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitMultiPayment", []interface{}{__arg}, &res)
 	return
 }
 
