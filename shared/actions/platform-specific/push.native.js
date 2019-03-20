@@ -76,29 +76,7 @@ const listenForPushNotificationsFromJS = emitter => {
   }
 
   const onNotification = n => {
-    if (isAndroid && n.type === 'chat.newmessageSilent_2') {
-      const convID = n.c
-      const payload = n.m
-      const membersType = parseInt(n.t)
-      const displayPlaintext = n.n === 'true'
-      const messageId = parseInt(n.d)
-      const pushId = JSON.parse(n.p)[0]
-      const badgeCount = parseInt(n.b)
-      const unixTime = parseInt(n.x)
-      const soundName = n.s
-      NativeModules.PushHandler.handlePushNotification(
-        convID,
-        payload,
-        membersType,
-        displayPlaintext,
-        messageId,
-        pushId,
-        badgeCount,
-        unixTime,
-        soundName,
-      )
-      return
-    }
+    logger.info('[onNotification]: ', n)
     const notification = Constants.normalizePush(n)
     if (!notification) {
       return
