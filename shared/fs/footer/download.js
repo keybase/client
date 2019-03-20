@@ -1,94 +1,127 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import Progress from '../common/progress'
-import {memoize} from 'lodash-es'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
+import {isMobile} from '../../constants/platform'
 
-export type DownloadProps = {
-  error?: Types.FsError,
+export type Props = {
+  error?: ?boolean,
   filename: string,
   completePortion: number,
   progressText: string,
   isDone: boolean,
+  isFirst: boolean,
   open?: () => void,
   dismiss: () => void,
   cancel: () => void,
 }
 
-const Download = (props: DownloadProps) => (
-  <Box style={stylesDownload(!!props.error)}>
-    <Box style={stylesIconBox}>
-      <Icon
-        type={props.isDone ? 'iconfont-success' : 'iconfont-download'}
-        color={globalColors.black_20}
-        fontSize={16}
+const Progress = props => (
+  <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
+    <Kb.Box style={styles.tubeBox}>
+      <Kb.Box style={styles.tube} />
+      <Kb.Box
+        style={Styles.collapseStyles([
+          styles.tube,
+          styles.tubeStuffing,
+          {width: `${Math.round(100 * props.completePortion).toString()}%`},
+        ])}
       />
-    </Box>
-    <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
-      <Box style={stylesNameAndProgress}>
-        <Text type="BodySmallSemibold" style={stylesText}>
-          {props.filename}
-        </Text>
-        {!props.isDone && (
-          <Box style={stylesProgressBox}>
-            <Progress completePortion={props.completePortion} text={props.progressText} width={40} />
-          </Box>
-        )}
-      </Box>
-    </ClickableBox>
-    <ClickableBox style={stylesIconBox} onClick={props.isDone ? props.dismiss : props.cancel}>
-      <Icon type="iconfont-remove" color={globalColors.white} fontSize={16} />
-    </ClickableBox>
-  </Box>
+    </Kb.Box>
+    <Kb.Text type="BodyTinySemibold" negative={true}>
+      {props.progressText}
+    </Kb.Text>
+  </Kb.Box2>
 )
 
-const stylesDownload = memoize((errored: boolean) => ({
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: errored ? globalColors.red : globalColors.green,
-  borderRadius: 4,
-  height: 32,
-  justifyContent: 'flex-start',
-  marginLeft: globalMargins.xtiny,
-  width: 140,
-}))
+const Download = (props: Props) => (
+  <Kb.Box2
+    direction="horizontal"
+    centerChildren={true}
+    style={Styles.collapseStyles([styles.download, props.error && styles.red])}
+    gap="tiny"
+    gapStart={true}
+    gapEnd={true}
+  >
+    <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+      <Kb.Icon
+        type={props.isDone ? 'iconfont-success' : 'iconfont-download'}
+        color={Styles.globalColors.black_20}
+      />
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
+      <Kb.Text
+        type="BodySmallSemibold"
+        onClick={isMobile ? undefined : props.open}
+        style={styles.filename}
+        lineClamp={isMobile ? 1 : undefined}
+      >
+        {props.filename}
+      </Kb.Text>
+      {!props.isDone && <Progress {...props} />}
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+      <Kb.Icon
+        type="iconfont-remove"
+        color={Styles.globalColors.white}
+        onClick={props.isDone ? props.dismiss : props.cancel}
+      />
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
-const stylesIconBox = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
-  paddingTop: 4,
-}
-
-const stylesNameAndProgressBox = {
-  ...globalStyles.flexGrow,
-  marginTop: -1,
-  minWidth: 0,
-}
-
-const stylesNameAndProgress = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  justifyContent: 'center',
-}
-
-const stylesText = platformStyles({
-  common: {
-    color: globalColors.white,
+const styles = Styles.styleSheetCreate({
+  download: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.green,
+      borderRadius: 4,
+    },
+    isElectron: {
+      height: 32,
+      width: 140,
+    },
+    isMobile: {
+      height: 40,
+      width: 160,
+    },
+  }),
+  filename: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.white,
+    },
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  }),
+  nameAndProgress: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
-  isElectron: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
+  progress: {
+    marginTop: -2,
+  },
+  red: {
+    backgroundColor: Styles.globalColors.red,
+  },
+  tube: {
+    backgroundColor: Styles.globalColors.black_20,
+    borderRadius: 4.5,
+    height: 4,
+    width: '100%',
+  },
+  tubeBox: {
+    flex: 1,
+    position: 'relative',
+  },
+  tubeStuffing: {
+    backgroundColor: Styles.globalColors.white,
+    left: 0,
+    position: 'absolute',
+    top: 0,
   },
 })
-
-const stylesProgressBox = {
-  marginRight: -globalMargins.tiny,
-  marginTop: -2,
-}
 
 export default Download

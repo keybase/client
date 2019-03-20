@@ -18,6 +18,7 @@ import suggestors from './conversation/input-area/suggestors/index.stories'
 import messages from './conversation/messages/index.stories'
 import startConversation from './conversation/list-area/start-conversation/index.stories'
 import thread from './conversation/list-area/normal/index.stories'
+import threadSearch from './conversation/search/index.stories'
 import typing from './conversation/input-area/normal/typing/index.stories'
 
 const load = () => {
@@ -41,6 +42,7 @@ const load = () => {
     suggestors,
     startConversation,
     thread,
+    threadSearch,
     typing,
   ].forEach(load => load())
 }
