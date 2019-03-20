@@ -11,7 +11,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),
-  providerClicked: (key: string) => dispatch(ProfileGen.createAddGenericProof({platform: key})),
+  providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

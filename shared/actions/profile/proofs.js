@@ -5,6 +5,7 @@ import type {RPCError} from '../../util/errors'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import {peopleTab} from '../../constants/tabs'
@@ -48,7 +49,6 @@ const recheckProof = (state, action) =>
 // only let one of these happen at a time
 let addProofInProgress = false
 function* addProof(_, action) {
-  const isGeneric = action.type === ProfileGen.addGenericProof
   const service = action.payload.platform
   // Special cases
   switch (service) {
@@ -145,7 +145,7 @@ function* addProof(_, action) {
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
       )
     }
-    if (Constants.customAssertions.includes(service)) {
+    if (More.PlatformsExpanded.includes(service)) {
       actions.push(
         Saga.put(
           RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
@@ -265,10 +265,7 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
     submitCryptoAddress
   )
   yield* Saga.chainAction<ProfileGen.CancelAddProofPayload>(ProfileGen.cancelAddProof, cancelAddProof)
-  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(
-    [ProfileGen.addProof, ProfileGen.addGenericProof],
-    addProof
-  )
+  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
   yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
 }

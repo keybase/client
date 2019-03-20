@@ -108,19 +108,3 @@ export const getProfilePath = (
   }
   return onlyProfilesPath
 }
-
-// these get special treatment for being first
-export const customAssertions = [
-  'pgp',
-  'twitter',
-  'facebook',
-  'github',
-  'reddit',
-  'hackernews',
-  'https',
-  'http',
-  'dns',
-  'stellar',
-  'btc',
-  'zcash',
-]

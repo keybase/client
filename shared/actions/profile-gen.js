@@ -10,7 +10,6 @@ import * as More from '../constants/types/more'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'profile:'
-export const addGenericProof = 'profile:addGenericProof'
 export const addProof = 'profile:addProof'
 export const backToProfile = 'profile:backToProfile'
 export const cancelAddProof = 'profile:cancelAddProof'
@@ -41,8 +40,7 @@ export const updateUsername = 'profile:updateUsername'
 export const uploadAvatar = 'profile:uploadAvatar'
 
 // Payload Types
-type _AddGenericProofPayload = $ReadOnly<{|platform: string|}>
-type _AddProofPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
+type _AddProofPayload = $ReadOnly<{|platform: string|}>
 type _BackToProfilePayload = void
 type _CancelAddProofPayload = void
 type _CancelPgpGenPayload = void
@@ -77,7 +75,6 @@ type _UploadAvatarPayload = $ReadOnly<{|filename: string, crop?: RPCTypes.ImageC
  * Update any fields
  */
 export const createUpdatePgpInfo = (payload: _UpdatePgpInfoPayload) => ({payload, type: updatePgpInfo})
-export const createAddGenericProof = (payload: _AddGenericProofPayload) => ({payload, type: addGenericProof})
 export const createAddProof = (payload: _AddProofPayload) => ({payload, type: addProof})
 export const createBackToProfile = (payload: _BackToProfilePayload) => ({payload, type: backToProfile})
 export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({payload, type: cancelAddProof})
@@ -108,7 +105,6 @@ export const createUpdateUsername = (payload: _UpdateUsernamePayload) => ({paylo
 export const createUploadAvatar = (payload: _UploadAvatarPayload) => ({payload, type: uploadAvatar})
 
 // Action Payloads
-export type AddGenericProofPayload = {|+payload: _AddGenericProofPayload, +type: 'profile:addGenericProof'|}
 export type AddProofPayload = {|+payload: _AddProofPayload, +type: 'profile:addProof'|}
 export type BackToProfilePayload = {|+payload: _BackToProfilePayload, +type: 'profile:backToProfile'|}
 export type CancelAddProofPayload = {|+payload: _CancelAddProofPayload, +type: 'profile:cancelAddProof'|}
@@ -142,7 +138,6 @@ export type UploadAvatarPayload = {|+payload: _UploadAvatarPayload, +type: 'prof
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddGenericProofPayload
   | AddProofPayload
   | BackToProfilePayload
   | CancelAddProofPayload

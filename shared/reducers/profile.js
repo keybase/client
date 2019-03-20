@@ -1,6 +1,7 @@
 // @flow
 import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
+import * as More from '../constants/types/more'
 import * as Constants from '../constants/profile'
 import * as Flow from '../util/flow'
 import * as Validators from '../util/simple-validators'
@@ -72,22 +73,18 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       })
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
-    case ProfileGen.addProof:
+    case ProfileGen.addProof: {
+      const platform = action.payload.platform
+      const maybeNotGeneric = More.isPlatformsExpandedType(platform)
       return updateUsername(
         state.merge({
           errorCode: null,
           errorText: '',
-          platform: action.payload.platform,
+          platform: maybeNotGeneric,
+          platformGeneric: maybeNotGeneric ? null : platform,
         })
       )
-    case ProfileGen.addGenericProof:
-      return updateUsername(
-        state.merge({
-          errorCode: null,
-          errorText: '',
-          platformGeneric: action.payload.platform,
-        })
-      )
+    }
     case ProfileGen.cancelAddProof: // fallthrough
     case ProfileGen.recheckProof: // fallthrough
     case ProfileGen.checkProof:
