@@ -89,6 +89,14 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       return state.merge({
         platformGenericParams: action.payload.params,
       })
+    case ProfileGen.updatePlatformGenericURL:
+      return state.merge({
+        platformGenericURL: action.payload.url,
+      })
+    case ProfileGen.updatePlatformGenericChecking:
+      return state.merge({
+        platformGenericChecking: action.payload.checking,
+      })
     case ProfileGen.cancelAddProof: // fallthrough
     case ProfileGen.recheckProof: // fallthrough
     case ProfileGen.checkProof:

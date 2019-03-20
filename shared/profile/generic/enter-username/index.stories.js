@@ -22,6 +22,7 @@ const props = {
   submitButtonLabel: 'Authorize on boardgames.social',
   unreachable: false,
   username: '',
+  waiting: false,
 }
 
 const load = () => {

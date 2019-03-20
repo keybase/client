@@ -6,6 +6,8 @@
   "actions": {
     "addProof": {"platform": "string"},
     "proofParamsReceived": {"params": "Types.ProveGenericParams"},
+    "updatePlatformGenericURL": {"url": "string"},
+    "updatePlatformGenericChecking": {"checking": "boolean"},
     "backToProfile": {},
     "cancelAddProof": {},
     "cancelPgpGen": {},

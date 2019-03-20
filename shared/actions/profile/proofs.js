@@ -10,6 +10,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import {peopleTab} from '../../constants/tabs'
 import flags from '../../util/feature-flags'
+import openURL from '../../util/open-url'
 
 const checkProof = (state, action) => {
   const sigID = state.profile.sigID
@@ -27,6 +28,10 @@ const checkProof = (state, action) => {
         })
       } else {
         return [
+          ProfileGen.createUpdateErrorText({
+            errorCode: null,
+            errorText: '',
+          }),
           ProfileGen.createUpdateProofStatus({found, status}),
           RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
         ]
@@ -183,11 +188,22 @@ function* addProof(_, action) {
       }
     }
 
-    actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-    actions.push(
-      Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
-    )
+    if (service) {
+      actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
+      actions.push(
+        Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
+      )
+    } else if (proof) {
+      actions.push(Saga.put(ProfileGen.createUpdatePlatformGenericURL({url: proof})))
+      openURL(proof)
+      actions.push(Saga.put(ProfileGen.createCheckProof()))
+    }
     return actions
+  }
+
+  const checking = (_, response) => {
+    response.result()
+    return [Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: true}))]
   }
 
   const responseYes = (_, response) => response.result(true)
@@ -195,6 +211,7 @@ function* addProof(_, action) {
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
       customResponseIncomingCallMap: {
+        'keybase.1.proveUi.checking': checking,
         'keybase.1.proveUi.okToCheck': responseYes,
         'keybase.1.proveUi.outputInstructions': outputInstructions,
         'keybase.1.proveUi.preProofWarning': responseYes,
@@ -202,14 +219,13 @@ function* addProof(_, action) {
         'keybase.1.proveUi.promptUsername': promptUsername,
       },
       incomingCallMap: {
-        'keybase.1.proveUi.checking': () => {},
         'keybase.1.proveUi.displayRecheckWarning': () => {},
         'keybase.1.proveUi.outputPrechecks': () => {},
       },
       params: {
         auto: false,
         force: true,
-        promptPosted: false,
+        promptPosted: !!genericService, // proof protocol extended slightly for generic proofs
         service: action.payload.platform,
         username: '',
       },
@@ -218,9 +234,15 @@ function* addProof(_, action) {
     yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
     logger.info('Start Proof done: ', sigID)
     yield Saga.put(ProfileGen.createCheckProof())
+    if (genericService) {
+      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+    }
   } catch (error) {
     logger.warn('Error making proof')
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+    if (genericService) {
+      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+    }
   }
   cancelTask.cancel()
   checkProofTask.cancel()

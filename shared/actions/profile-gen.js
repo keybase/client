@@ -34,6 +34,8 @@ export const updateErrorText = 'profile:updateErrorText'
 export const updatePgpInfo = 'profile:updatePgpInfo'
 export const updatePgpPublicKey = 'profile:updatePgpPublicKey'
 export const updatePlatform = 'profile:updatePlatform'
+export const updatePlatformGenericChecking = 'profile:updatePlatformGenericChecking'
+export const updatePlatformGenericURL = 'profile:updatePlatformGenericURL'
 export const updateProofStatus = 'profile:updateProofStatus'
 export const updateProofText = 'profile:updateProofText'
 export const updateSigID = 'profile:updateSigID'
@@ -65,6 +67,8 @@ type _SubmitZcashAddressPayload = void
 type _UpdateErrorTextPayload = $ReadOnly<{|errorText: string, errorCode: ?number|}>
 type _UpdatePgpInfoPayload = $ReadOnly<{|pgpEmail1?: string, pgpEmail2?: string, pgpEmail3?: string, pgpErrorText?: string, pgpFullName?: string|}>
 type _UpdatePgpPublicKeyPayload = $ReadOnly<{|publicKey: string|}>
+type _UpdatePlatformGenericCheckingPayload = $ReadOnly<{|checking: boolean|}>
+type _UpdatePlatformGenericURLPayload = $ReadOnly<{|url: string|}>
 type _UpdatePlatformPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
 type _UpdateProofStatusPayload = $ReadOnly<{|found: boolean, status: RPCTypes.ProofStatus|}>
 type _UpdateProofTextPayload = $ReadOnly<{|proof: string|}>
@@ -101,6 +105,8 @@ export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload) =>
 export const createUpdateErrorText = (payload: _UpdateErrorTextPayload) => ({payload, type: updateErrorText})
 export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload) => ({payload, type: updatePgpPublicKey})
 export const createUpdatePlatform = (payload: _UpdatePlatformPayload) => ({payload, type: updatePlatform})
+export const createUpdatePlatformGenericChecking = (payload: _UpdatePlatformGenericCheckingPayload) => ({payload, type: updatePlatformGenericChecking})
+export const createUpdatePlatformGenericURL = (payload: _UpdatePlatformGenericURLPayload) => ({payload, type: updatePlatformGenericURL})
 export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => ({payload, type: updateProofStatus})
 export const createUpdateProofText = (payload: _UpdateProofTextPayload) => ({payload, type: updateProofText})
 export const createUpdateSigID = (payload: _UpdateSigIDPayload) => ({payload, type: updateSigID})
@@ -132,6 +138,8 @@ export type SubmitZcashAddressPayload = {|+payload: _SubmitZcashAddressPayload, 
 export type UpdateErrorTextPayload = {|+payload: _UpdateErrorTextPayload, +type: 'profile:updateErrorText'|}
 export type UpdatePgpInfoPayload = {|+payload: _UpdatePgpInfoPayload, +type: 'profile:updatePgpInfo'|}
 export type UpdatePgpPublicKeyPayload = {|+payload: _UpdatePgpPublicKeyPayload, +type: 'profile:updatePgpPublicKey'|}
+export type UpdatePlatformGenericCheckingPayload = {|+payload: _UpdatePlatformGenericCheckingPayload, +type: 'profile:updatePlatformGenericChecking'|}
+export type UpdatePlatformGenericURLPayload = {|+payload: _UpdatePlatformGenericURLPayload, +type: 'profile:updatePlatformGenericURL'|}
 export type UpdatePlatformPayload = {|+payload: _UpdatePlatformPayload, +type: 'profile:updatePlatform'|}
 export type UpdateProofStatusPayload = {|+payload: _UpdateProofStatusPayload, +type: 'profile:updateProofStatus'|}
 export type UpdateProofTextPayload = {|+payload: _UpdateProofTextPayload, +type: 'profile:updateProofText'|}
@@ -166,6 +174,8 @@ export type Actions =
   | UpdateErrorTextPayload
   | UpdatePgpInfoPayload
   | UpdatePgpPublicKeyPayload
+  | UpdatePlatformGenericCheckingPayload
+  | UpdatePlatformGenericURLPayload
   | UpdatePlatformPayload
   | UpdateProofStatusPayload
   | UpdateProofTextPayload

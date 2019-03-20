@@ -130,6 +130,7 @@ type Props = {|
   submitButtonLabel: string,
   unreachable: boolean,
   username: string,
+  waiting: boolean,
 |}
 
 const _EnterUsername = (props: Props) => (
@@ -194,6 +195,7 @@ const _EnterUsername = (props: Props) => (
           onClick={props.onSubmit}
           label={props.submitButtonLabel}
           style={styles.buttonBig}
+          waiting={props.waiting}
         />
       </Kb.ButtonBar>
     </Kb.Box2>
