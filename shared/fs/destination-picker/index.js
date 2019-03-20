@@ -33,6 +33,7 @@ const NewFolder = ({onNewFolder}) => (
 
 const DesktopHeaders = (props: Props) => (
   <>
+    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} />
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
@@ -119,9 +120,7 @@ export default (Styles.isMobile
                 <Kb.Text type="BodySmallSemibold" lineClamp={1}>
                   {props.targetNameWithoutExtension}
                 </Kb.Text>
-                <Kb.Text type="BodySmallSemibold">
-                  {props.targetExtension}
-                </Kb.Text>
+                <Kb.Text type="BodySmallSemibold">{props.targetExtension}</Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
             <Kb.Text type="Header" lineClamp={1}>
