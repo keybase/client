@@ -90,6 +90,7 @@ type Game struct {
 	// To handle reorderings between CommitmentComplete and commitements,
 	// wee need some extra bookkeeping.
 	iWasIncluded          bool
+	iOptedOutOfCommit     bool
 	gotCommitmentComplete bool
 	latecomers            map[UserDeviceKey]bool
 }
@@ -361,7 +362,7 @@ func (g *Game) maybeReveal(ctx context.Context) (err error) {
 		return nil
 	}
 
-	if !g.iWasIncluded {
+	if !g.iWasIncluded && !g.iOptedOutOfCommit {
 		g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
 		return nil
 	}
@@ -700,25 +701,31 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		isLeader = false
 	}
 
+	optedOutOfCommit := false
+	if !isLeader {
+		optedOutOfCommit = !d.dh.ShouldCommit(ctx)
+	}
+
 	msgCh := make(chan *GameMessageWrapped)
 	game := &Game{
-		md:              msg.GameMetadata(),
-		isLeader:        isLeader,
-		clockSkew:       cs,
-		start:           d.dh.Clock().Now(),
-		key:             key,
-		params:          start,
-		msgCh:           msgCh,
-		stage:           Stage_ROUND1,
-		stageForTimeout: Stage_ROUND1,
-		gameUpdateCh:    d.gameUpdateCh,
-		players:         make(map[UserDeviceKey]*GamePlayerState),
-		commitments:     make(map[string]bool),
-		dealer:          d,
-		me:              me,
-		clock:           d.dh.Clock,
-		clogf:           d.dh.CLogf,
-		latecomers:      make(map[UserDeviceKey]bool),
+		md:                msg.GameMetadata(),
+		isLeader:          isLeader,
+		clockSkew:         cs,
+		start:             d.dh.Clock().Now(),
+		key:               key,
+		params:            start,
+		msgCh:             msgCh,
+		stage:             Stage_ROUND1,
+		stageForTimeout:   Stage_ROUND1,
+		gameUpdateCh:      d.gameUpdateCh,
+		players:           make(map[UserDeviceKey]*GamePlayerState),
+		commitments:       make(map[string]bool),
+		dealer:            d,
+		me:                me,
+		clock:             d.dh.Clock,
+		clogf:             d.dh.CLogf,
+		latecomers:        make(map[UserDeviceKey]bool),
+		iOptedOutOfCommit: optedOutOfCommit,
 	}
 	d.games[key] = msgCh
 	d.gameIDs[gameIDKey] = md
@@ -729,10 +736,8 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 	// Once the game has started, we are free to send a message into the channel
 	// with our commitment. We are now in the inner loop of the Dealer, so we
 	// have to do this send in a Go-routine, so as not to deadlock the Dealer.
-	if !isLeader {
-		if d.dh.ShouldCommit(ctx) {
-			go d.sendCommitment(ctx, md, me)
-		}
+	if !isLeader && !optedOutOfCommit {
+		go d.sendCommitment(ctx, md, me)
 	}
 	return nil
 }
