@@ -690,7 +690,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 
 	isLeader := true
 	me := msg.Me
-	// Make a new follower player controller if one didn't already exit (since we were
+	// Make a new follower player controller if one didn't already exist (since we were
 	// the Leader)
 	if me == nil {
 		me, err = d.newPlayerControl(d.dh.Me(), md, start)
@@ -730,7 +730,9 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 	// with our commitment. We are now in the inner loop of the Dealer, so we
 	// have to do this send in a Go-routine, so as not to deadlock the Dealer.
 	if !isLeader {
-		go d.sendCommitment(ctx, md, me)
+		if d.dh.ShouldCommit(ctx) {
+			go d.sendCommitment(ctx, md, me)
+		}
 	}
 	return nil
 }

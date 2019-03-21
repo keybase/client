@@ -211,7 +211,7 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 	_, rc, err = inbox.ReadAll(ctx, uid, true)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(rc))
-	tc.Context().AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.Context().MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	select {
 	case <-flushCh:
 	case <-time.After(20 * time.Second):
