@@ -4,7 +4,12 @@ import * as FsGen from '../../../actions/fs-gen'
 import * as FsTypes from '../../../constants/types/fs'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {HeaderRightActions as _HeaderRightActions, HeaderTitle as _HeaderTitle} from '.'
+import * as SearchGen from '../../../actions/search-gen'
+import {
+  HeaderRightActions as _HeaderRightActions,
+  HeaderTitle as _HeaderTitle,
+  SubHeader as _SubHeader,
+} from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
@@ -76,3 +81,26 @@ export const HeaderTitle = Container.namedConnect<OwnProps, _, _, _, _>(
   mergePropsTitle,
   'TeamHeaderTitle'
 )(_HeaderTitle)
+
+const mapStateToPropsSub = (state, {teamname}) => ({
+  _canAddSelf: Constants.getCanPerform(state, teamname).joinTeam,
+  _you: state.config.username,
+})
+
+const mapDispatchToPropsSub = dispatch => ({
+  onAddSelf: (you: string, teamname: string) => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
+    dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
+  },
+})
+
+const mergePropsSub = (stateProps, dispatchProps, {teamname}) => ({
+  onAddSelf: stateProps._canAddSelf ? () => dispatchProps.onAddSelf(stateProps._you, teamname) : null,
+})
+
+export const SubHeader = Container.namedConnect<OwnProps, _, _, _, _>(
+  mapStateToPropsSub,
+  mapDispatchToPropsSub,
+  mergePropsSub,
+  'TeamSubHeader'
+)(_SubHeader)
