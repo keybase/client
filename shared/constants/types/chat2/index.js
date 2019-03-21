@@ -49,7 +49,7 @@ export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
 export type _ThreadSearchInfo = {
   inProgress: boolean,
-  hits: I.List<Types.Message>,
+  hits: I.List<Message.Message>,
 }
 
 export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>

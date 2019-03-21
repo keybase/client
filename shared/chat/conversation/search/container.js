@@ -21,19 +21,27 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _loadSearchHit: messageID =>
     dispatch(Chat2Gen.createLoadMessagesFromSearchHit({conversationIDKey, messageID})),
-  onCancel: () => dispatch(Chat2Gen.createCancelThreadSearch({conversationIDKey})),
+  onCancel: () => dispatch(Chat2Gen.createCancelThreadSearch()),
   onSearch: query =>
     dispatch(Chat2Gen.createThreadSearch({conversationIDKey, query: new HiddenString(query)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
   inProgress: stateProps.inProgress,
-  loadSearchHit: index => dispatchProps._loadSearchHit(stateProps._hits.get(index).id),
+  loadSearchHit: index => {
+    const message = stateProps._hits.get(index, Constants.makeMessageText())
+    if (message.id > 0) {
+      dispatchProps._loadSearchHit(message.id)
+    }
+  },
   onCancel: dispatchProps.onCancel,
   onSearch: dispatchProps.onSearch,
   totalResults: stateProps._hits.size,
 })
 
-export default namedConnect<_, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ThreadSearch')(
-  ThreadSearch
-)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ThreadSearch'
+)(ThreadSearch)

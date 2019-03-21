@@ -5,37 +5,32 @@ import * as Sb from '../../../stories/storybook'
 import ThreadSearch from './index'
 
 const base = {
+  loadSearchHit: Sb.action('loadSearchHit'),
   onCancel: Sb.action('onCancel'),
-  onDown: Sb.action('onDown'),
   onSearch: Sb.action('onSearch'),
-  onUp: Sb.action('onUp'),
 }
 
 const initial = {
   ...base,
   inProgress: false,
-  selectedResult: 0,
   totalResults: 0,
 }
 
 const started = {
   ...base,
   inProgress: true,
-  selectedResult: 0,
   totalResults: 0,
 }
 
 const partial = {
   ...base,
   inProgress: true,
-  selectedResult: 4,
   totalResults: 8,
 }
 
 const complete = {
   ...base,
   inProgress: false,
-  selectedResult: 3,
   totalResults: 8,
 }
 

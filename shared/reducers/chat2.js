@@ -1145,6 +1145,8 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
+    case Chat2Gen.threadSearch:
+    case Chat2Gen.cancelThreadSearch:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

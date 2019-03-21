@@ -1328,9 +1328,9 @@ const cancelThreadSearch = (state, action) => {
 
 function* threadSearch(state, action) {
   const {conversationIDKey, query} = action.payload
-  const onHit = (hit: RPCChatTypes.ChatSearchHit) => {
+  const onHit = hit => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
-    return Saga.put(Chat2Gen.createThreadSearchResult({conversationIDKey, message}))
+    return message ? Saga.put(Chat2Gen.createThreadSearchResult({conversationIDKey, message})) : []
   }
   const onDone = () => {
     return Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: false}))
@@ -1338,20 +1338,25 @@ function* threadSearch(state, action) {
   yield Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: true}))
   yield RPCChatTypes.localSearchRegexpRpcSaga({
     incomingCallMap: {
-      'chat.1.chatUi.chatSearchHit': onHit,
       'chat.1.chatUi.chatSearchDone': onDone,
+      'chat.1.chatUi.chatSearchHit': onHit,
     },
     params: {
       convID: Types.keyToConversationID(conversationIDKey),
-      query: query.stringValue(),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       isRegex: false,
       opts: {
         afterContext: 0,
         beforeContext: 0,
+        forceReindex: false,
+        maxConvs: -1,
         maxHits: -1,
         maxMessages: -1,
+        sentAfter: 0,
+        sentBefore: 0,
+        sentBy: '',
       },
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: query.stringValue(),
     },
   })
 }
@@ -3140,7 +3145,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
   )
+
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
+  yield* Saga.chainAction<Chat2Gen.CancelThreadSearchPayload>(Chat2Gen.cancelThreadSearch, cancelThreadSearch)
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 
