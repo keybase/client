@@ -1707,7 +1707,9 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
     return rpcRes.filename
   } catch (e) {
     logger.error(`downloadAttachment error: ${e.message}`)
-    yield Saga.put(Chat2Gen.createAttachmentDownloadedError({error: e.message || 'Error downloading attachment', message}))
+    yield Saga.put(
+      Chat2Gen.createAttachmentDownloadedError({error: e.message || 'Error downloading attachment', message})
+    )
   }
   return fileName
 }
