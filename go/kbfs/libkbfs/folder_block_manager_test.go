@@ -33,7 +33,8 @@ func totalBlockRefs(m map[kbfsblock.ID]blockRefMap) int {
 // does a few updates, then lets quota reclamation run, and we make
 // sure that all historical blocks have been deleted.
 func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
-	userName kbname.NormalizedUsername) {
+	userName kbname.NormalizedUsername) (
+	ops *folderBranchOps, preBlocks map[kbfsblock.ID]blockRefMap) {
 	clock, now := newTestClockAndTimeNow()
 	config.SetClock(clock)
 
@@ -63,7 +64,7 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 		ctx, rootNode.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
-	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
+	ops = kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
 	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
@@ -89,19 +90,26 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 		ctx, rootNode.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
+	return ops, preQR2Blocks
+}
+
+func ensureFewerBlocksPostQR(
+	t *testing.T, ctx context.Context, config *ConfigLocal,
+	ops *folderBranchOps, preBlocks map[kbfsblock.ID]blockRefMap) {
 	ops.fbm.forceQuotaReclamation()
-	err = ops.fbm.waitForQuotaReclamations(ctx)
+	err := ops.fbm.waitForQuotaReclamations(ctx)
 	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
-	postQR2Blocks, err := bserverLocal.getAllRefsForTest(
-		ctx, rootNode.GetFolderBranch().Tlf)
+	bserverLocal, ok := config.BlockServer().(blockServerLocal)
+	require.True(t, ok)
+
+	postBlocks, err := bserverLocal.getAllRefsForTest(ctx, ops.id())
 	require.NoError(t, err, "Couldn't get blocks: %+v", err)
 
-	if pre, post := totalBlockRefs(preQR2Blocks),
-		totalBlockRefs(postQR2Blocks); post >= pre {
-		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
-			pre, post)
-	}
+	pre, post := totalBlockRefs(preBlocks), totalBlockRefs(postBlocks)
+	require.True(t, post < pre,
+		"Blocks didn't shrink after reclamation: pre: %d, post %d",
+		pre, post)
 }
 
 func TestQuotaReclamationSimple(t *testing.T) {
@@ -109,7 +117,39 @@ func TestQuotaReclamationSimple(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	testQuotaReclamation(t, ctx, config, userName)
+	ops, preBlocks := testQuotaReclamation(t, ctx, config, userName)
+	ensureFewerBlocksPostQR(t, ctx, config, ops, preBlocks)
+}
+
+type modeTestWithNoTimedQR struct {
+	InitMode
+}
+
+func (mtwmpl modeTestWithNoTimedQR) QuotaReclamationPeriod() time.Duration {
+	return 0
+}
+
+type modeTestWithMaxPtrsLimit struct {
+	InitMode
+}
+
+func (mtwmpl modeTestWithMaxPtrsLimit) MaxBlockPtrsToManageAtOnce() int {
+	return 1
+}
+
+func TestQuotaReclamationConstrained(t *testing.T) {
+	var userName kbname.NormalizedUsername = "test_user"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	config.SetMode(modeTestWithNoTimedQR{config.Mode()})
+	originalMode := config.Mode()
+	config.SetMode(modeTestWithMaxPtrsLimit{originalMode})
+
+	ops, preBlocks := testQuotaReclamation(t, ctx, config, userName)
+
+	// Unconstrain it for the final QR.
+	config.SetMode(originalMode)
+	ensureFewerBlocksPostQR(t, ctx, config, ops, preBlocks)
 }
 
 // Just like the simple case, except tests that it unembeds large sets
@@ -121,12 +161,11 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 
 	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 32
 
-	testQuotaReclamation(t, ctx, config, userName)
+	ops, preBlocks := testQuotaReclamation(t, ctx, config, userName)
+	ensureFewerBlocksPostQR(t, ctx, config, ops, preBlocks)
 
 	// Make sure the MD has an unembedded change block.
-	rootNode := GetRootNodeOrBust(
-		ctx, t, config, userName.String(), tlf.Private)
-	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	md, err := config.MDOps().GetForTLF(ctx, ops.id(), nil)
 	require.NoError(t, err, "Couldn't get MD: %+v", err)
 	if md.data.cachedChanges.Info.BlockPointer == zeroPtr {
 		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
@@ -495,7 +534,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	clock := newTestClockNow()
 	config1.SetClock(clock)
 	// Re-enable QR in test mode.
-	config1.mode = modeTestWithQR{NewInitModeFromType(InitDefault)}
+	config1.SetMode(modeTestWithQR{NewInitModeFromType(InitDefault)})
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -686,6 +725,9 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 	config.vdebugSetting = "vlog2"
+
+	// Test the pointer-constraint logic.
+	config.SetMode(modeTestWithMaxPtrsLimit{config.Mode()})
 
 	config.EnableDiskLimiter(tempdir)
 	config.loadSyncedTlfsLocked()
