@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import {namedConnect, type RouteProps} from '../util/container'
+import {getRouteProps, namedConnect, type RouteProps} from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
@@ -32,8 +32,8 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
   waitForKbfsDaemon: () => dispatch(FsGen.createWaitForKbfsDaemon()),
 })
 
-const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
-  const path = routeProps.get('path', Constants.defaultPath)
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
   const isDefinitelyFolder = Types.getPathElements(path).length <= 3
   const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   return {
@@ -42,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
     mimeType: !isDefinitelyFolder && pathItem.type === 'file' ? pathItem.mimeType : null,
     path,
     pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItems.get(path, Constants.unknownPathItem).type,
-    routePath,
+    routePath: ownProps.routePath,
     waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
   }
 }

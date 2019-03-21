@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as I from 'immutable'
-import * as FsGen from '../actions/fs-gen'
+import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
@@ -55,10 +55,10 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     ),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(
-      FsGen.createOpenPathInFilesTab({
-        path: FsTypes.stringToPath(`/keybase/team/${teamname}`),
-        routePath: flags.useNewRouter ? undefined : routePath,
-      })
+      FsConstants.makeActionForOpenPathInFilesTab(
+        FsTypes.stringToPath(`/keybase/team/${teamname}`),
+        flags.useNewRouter ? undefined : routePath
+      )
     ),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

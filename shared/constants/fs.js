@@ -5,6 +5,8 @@ import * as RPCTypes from './types/rpc-gen'
 import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
 import * as Flow from '../util/flow'
+import * as Tabs from './tabs'
+import * as SettingsConstants from './settings'
 import {type TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
@@ -14,6 +16,8 @@ import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {findKey} from 'lodash-es'
+import {type TypedActions} from '../actions/typed-actions-gen'
+import flags from '../util/feature-flags'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -864,6 +868,78 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     ? Types.getLocalPathName(picker.source.localPath)
     : ''
 
+export const makeActionsForDestinationPickerOpen = (
+  index: number,
+  path: Types.Path,
+  routePath?: ?I.List<string>
+): Array<TypedActions> => [
+  FsGen.createSetDestinationPickerParentPath({
+    index,
+    path,
+  }),
+  flags.useNewRouter || !routePath
+    ? RouteTreeGen.createNavigateAppend({
+        path: [{props: {index}, selected: 'destinationPicker'}],
+      })
+    : RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: RouteTreeGen.createNavigateAppend({
+          path: [{props: {index}, selected: 'destinationPicker'}],
+        }),
+      }),
+]
+
+export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
+
+export const makeActionForOpenPathInFilesTab = flags.useNewRouter
+  ? (
+      path: Types.Path, // TODO: remove the second arg when we are done with migrating to nav2
+      routePath?: ?I.List<string>
+    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'tabs.fsTab'}]})
+  : (path: Types.Path, routePath?: ?I.List<string>): TypedActions => {
+      const finalRoute = {props: {path}, selected: 'main'}
+      const routeChangeAction = isMobile
+        ? RouteTreeGen.createNavigateTo({
+            path:
+              path === defaultPath
+                ? fsRootRouteForNav1
+                : [
+                    ...fsRootRouteForNav1,
+                    // Construct all parent folders so back button works all the way back
+                    // to /keybase
+                    ...Types.getPathElements(path)
+                      .slice(1, -1) // fsTab default to /keybase, so we skip one here
+                      .reduce(
+                        (routes, elem) => [
+                          ...routes,
+                          {
+                            props: {
+                              path: routes.length
+                                ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                                : Types.stringToPath(`/keybase/${elem}`),
+                            },
+                            selected: 'main',
+                          },
+                        ],
+                        []
+                      ),
+                    finalRoute,
+                  ],
+          })
+        : RouteTreeGen.createNavigateTo({
+            path: [
+              Tabs.fsTab,
+              // Prepend the parent folder so when user clicks the back button they'd
+              // go back to the parent folder.
+              {props: {path: Types.getPathParent(path)}, selected: 'main'},
+              finalRoute,
+            ],
+          })
+      return routePath
+        ? RouteTreeGen.createPutActionIfOnPath({expectedPath: routePath, otherAction: routeChangeAction})
+        : routeChangeAction
+    }
+
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
 
@@ -902,10 +978,6 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return `Failed to open path: ${action.payload.localPath}.` + suffix
     case FsGen.deleteFile:
       return `Failed to delete file: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openPathItem:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openPathInFilesTab:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.downloadSuccess:
       return (
         `Failed to ${humanizeDownloadIntent(action.payload.intent)}. ` +
