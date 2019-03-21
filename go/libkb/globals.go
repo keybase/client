@@ -352,12 +352,13 @@ func (g *GlobalContext) ConfigureLogging() error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 
-	logFile := g.Env.GetEffectiveLogFile()
+	logFile, ok := g.Env.GetEffectiveLogFile()
+	// Configure regardless if the logFile should be used or not
 	g.Log.Configure(style, debug, logFile)
 
-	// If specified or explicitly requested to use default log file, redirect logs.
-	// If not called, prints logs to stdout.
-	if logFile != "" {
+	// Start redirecting logs if the logFile should be used
+	// If this is not called, prints logs to stdout.
+	if ok {
 		err := logger.SetLogFileConfig(g.Env.GetLogFileConfig(logFile))
 		if err != nil {
 			return err

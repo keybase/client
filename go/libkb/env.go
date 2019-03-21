@@ -1417,7 +1417,7 @@ func (e *Env) GetInstallID() (ret InstallID) {
 	return ret
 }
 
-func (e *Env) GetEffectiveLogFile() string {
+func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
 	logFile := e.GetLogFile()
 	if logFile == "" {
 		filePrefix := e.GetLogPrefix()
@@ -1427,12 +1427,12 @@ func (e *Env) GetEffectiveLogFile() string {
 		}
 	}
 	if logFile != "" {
-		return logFile
+		return logFile, true
 	}
 	if e.GetUseDefaultLogFile() {
-		return e.GetDefaultLogFile()
+		return e.GetDefaultLogFile(), true
 	}
-	return ""
+	return e.GetDefaultLogFile(), false
 }
 
 func (e *Env) GetLogFile() string {

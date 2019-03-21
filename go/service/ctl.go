@@ -33,8 +33,8 @@ func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
 }
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
-	logFile := c.G().Env.GetEffectiveLogFile()
-	if logFile == "" {
+	logFile, ok := c.G().Env.GetEffectiveLogFile()
+	if !ok {
 		return nil
 	}
 	return logger.SetLogFileConfig(c.G().Env.GetLogFileConfig(logFile))
