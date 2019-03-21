@@ -115,7 +115,7 @@
     // Got some new inbox rows
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>",
-      "removals?": "Array<string>", // convIDs to remove
+      "removals?": "Array<Types.ConversationIDKey>", // convs to remove
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
