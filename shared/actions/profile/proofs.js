@@ -53,7 +53,7 @@ const recheckProof = (state, action) =>
 
 // only let one of these happen at a time
 let addProofInProgress = false
-function* addProof(_, action) {
+function* addProof(state, action) {
   const service = More.isPlatformsExpandedType(action.payload.platform)
   const genericService = service ? null : action.payload.platform
   // Special cases

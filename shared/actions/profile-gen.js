@@ -16,6 +16,7 @@ export const cancelAddProof = 'profile:cancelAddProof'
 export const cancelPgpGen = 'profile:cancelPgpGen'
 export const checkProof = 'profile:checkProof'
 export const cleanupUsername = 'profile:cleanupUsername'
+export const clearPlatformGeneric = 'profile:clearPlatformGeneric'
 export const editAvatar = 'profile:editAvatar'
 export const editProfile = 'profile:editProfile'
 export const finishRevoking = 'profile:finishRevoking'
@@ -49,6 +50,7 @@ type _CancelAddProofPayload = void
 type _CancelPgpGenPayload = void
 type _CheckProofPayload = void
 type _CleanupUsernamePayload = void
+type _ClearPlatformGenericPayload = void
 type _EditAvatarPayload = void
 type _EditProfilePayload = $ReadOnly<{|bio: string, fullname: string, location: string|}>
 type _FinishRevokingPayload = void
@@ -87,6 +89,7 @@ export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({paylo
 export const createCancelPgpGen = (payload: _CancelPgpGenPayload) => ({payload, type: cancelPgpGen})
 export const createCheckProof = (payload: _CheckProofPayload) => ({payload, type: checkProof})
 export const createCleanupUsername = (payload: _CleanupUsernamePayload) => ({payload, type: cleanupUsername})
+export const createClearPlatformGeneric = (payload: _ClearPlatformGenericPayload) => ({payload, type: clearPlatformGeneric})
 export const createEditAvatar = (payload: _EditAvatarPayload) => ({payload, type: editAvatar})
 export const createEditProfile = (payload: _EditProfilePayload) => ({payload, type: editProfile})
 export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({payload, type: finishRevoking})
@@ -120,6 +123,7 @@ export type CancelAddProofPayload = {|+payload: _CancelAddProofPayload, +type: '
 export type CancelPgpGenPayload = {|+payload: _CancelPgpGenPayload, +type: 'profile:cancelPgpGen'|}
 export type CheckProofPayload = {|+payload: _CheckProofPayload, +type: 'profile:checkProof'|}
 export type CleanupUsernamePayload = {|+payload: _CleanupUsernamePayload, +type: 'profile:cleanupUsername'|}
+export type ClearPlatformGenericPayload = {|+payload: _ClearPlatformGenericPayload, +type: 'profile:clearPlatformGeneric'|}
 export type EditAvatarPayload = {|+payload: _EditAvatarPayload, +type: 'profile:editAvatar'|}
 export type EditProfilePayload = {|+payload: _EditProfilePayload, +type: 'profile:editProfile'|}
 export type FinishRevokingPayload = {|+payload: _FinishRevokingPayload, +type: 'profile:finishRevoking'|}
@@ -156,6 +160,7 @@ export type Actions =
   | CancelPgpGenPayload
   | CheckProofPayload
   | CleanupUsernamePayload
+  | ClearPlatformGenericPayload
   | EditAvatarPayload
   | EditProfilePayload
   | FinishRevokingPayload

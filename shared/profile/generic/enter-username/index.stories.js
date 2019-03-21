@@ -7,6 +7,7 @@ const props = {
   error: '',
   onBack: Sb.action('onBack'),
   onChangeUsername: Sb.action('onChangeUsername'),
+  onContinue: Sb.action('onContinue'),
   onSubmit: Sb.action('onSubmit'),
   serviceIcon: [
     {path: 'https://keybase.io/images/paramproofs/services/twitter/logo_black_16.png', width: 16},

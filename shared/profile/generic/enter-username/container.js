@@ -30,6 +30,7 @@ const mapDispatchToProps = dispatch => ({
     }
   },
   onChangeUsername: username => dispatch(ProfileGen.createUpdateUsername({username})),
+  onContinue: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileGenericProofSuccess']})),
   onSubmit: () => dispatch(ProfileGen.createSubmitUsername()),
 })
 
@@ -37,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   error: stateProps.error,
   onBack: dispatchProps.onBack,
   onChangeUsername: dispatchProps.onChangeUsername,
+  onContinue: dispatchProps.onContinue,
   onSubmit: stateProps._platformURL ? () => openURL(stateProps._platformURL) : dispatchProps.onSubmit,
   serviceIcon: stateProps.serviceIcon,
   serviceIconFull: stateProps.serviceIconFull,

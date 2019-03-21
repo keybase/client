@@ -98,6 +98,16 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
         platformGenericChecking: action.payload.checking,
       })
     case ProfileGen.cancelAddProof: // fallthrough
+    case ProfileGen.clearPlatformGeneric:
+      return state.merge({
+        errorCode: null,
+        errorText: '',
+        platformGeneric: null,
+        platformGenericChecking: false,
+        platformGenericParams: null,
+        platformGenericURL: null,
+        username: '',
+      })
     case ProfileGen.recheckProof: // fallthrough
     case ProfileGen.checkProof:
       return state.merge({errorCode: null, errorText: ''})

@@ -20,6 +20,7 @@ const profileRoute = () => {
   const WalletConstants = require('../constants/wallets')
   const ProofsList = require('./generic/proofs-list/container').default
   const GenericEnterUsername = require('./generic/enter-username/container').default
+  const GenericProofSuccess = require('./generic/success/container').default
 
   const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
@@ -66,8 +67,14 @@ const profileRoute = () => {
       profileProofsList: {
         children: {
           profileGenericEnterUsername: {
+            children: {
+              profileGenericProofSuccess: {
+                component: GenericProofSuccess,
+                tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+              },
+            },
             component: GenericEnterUsername,
-            tags: makeLeafTags({layerOnTop: !isMobile}),
+            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
           },
         },
         component: ProofsList,
@@ -113,6 +120,10 @@ export const newModalRoutes = {
   profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default, upgraded: true},
   profileGenericEnterUsername: {
     getScreen: () => require('./generic/enter-username/container').default,
+    upgraded: true,
+  },
+  profileGenericProofSuccess: {
+    getScreen: () => require('./generic/success/container').default,
     upgraded: true,
   },
   profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
