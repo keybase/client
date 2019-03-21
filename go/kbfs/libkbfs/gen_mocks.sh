@@ -5,7 +5,7 @@ function gen {
     dst=$2
     symbols=$3
 
-    tmp=`tempfile`
+    tmp=$(mktemp)
     mockgen --package="libkbfs" \
         --self_package github.com/keybase/client/go/kbfs/libkbfs \
         $srcPkg $symbols > $tmp

@@ -381,6 +381,26 @@ def testGo(prefix, packagesToTest) {
         sh 'make -s lint'
       }
     }
+
+    if (isUnix()) {
+      // Windows `gofmt` pukes on CRLF, so only run on *nix.
+      println "Running mockgen"
+      retry(5) {
+        sh 'go get -u github.com/golang/mock/mockgen'
+      }
+      retry(5) {
+        timeout(activity: true, time: 90, unit: 'SECONDS') {
+          sh '''
+            set -e -x
+            cd kbfs/libkbfs
+            ./gen_mocks.sh
+            git diff --exit-code
+            cd -
+          '''
+        }
+      }
+    }
+
     // Make sure we don't accidentally pull in the testing package.
     sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
