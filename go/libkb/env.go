@@ -14,8 +14,10 @@ import (
 	"sync"
 	"time"
 
+	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 type NullConfiguration struct{}
@@ -1415,6 +1417,22 @@ func (e *Env) GetInstallID() (ret InstallID) {
 	return ret
 }
 
+func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
+	logFile := e.GetLogFile()
+	if logFile != "" {
+		return logFile, true
+	}
+
+	filePrefix := e.GetLogPrefix()
+	if filePrefix != "" {
+		filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+		logFile = filePrefix + ".log"
+		return logFile, true
+	}
+
+	return e.GetDefaultLogFile(), e.GetUseDefaultLogFile()
+}
+
 func (e *Env) GetLogFile() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLogFile() },
@@ -1773,4 +1791,24 @@ func (e *Env) AllowPTrace() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_PTRACE") },
 	)
+}
+
+func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
+	var maxKeepFiles int
+	var maxSize int64
+
+	if e.GetAppType() == MobileAppType && !e.GetFeatureFlags().Admin(e.GetUID()) {
+		maxKeepFiles = 1
+		maxSize = 16 * opt.MiB // NOTE: If you decrease this, check go/bind/keybase.go:LogSend to make sure we aren't sending more than we store.
+	} else {
+		maxKeepFiles = 3
+		maxSize = 128 * opt.MiB
+	}
+
+	return &logger.LogFileConfig{
+		Path:         filename,
+		MaxAge:       30 * 24 * time.Hour, // 30 days
+		MaxSize:      maxSize,
+		MaxKeepFiles: maxKeepFiles,
+	}
 }
