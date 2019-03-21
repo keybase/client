@@ -66,6 +66,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     snippetDecoration: stateProps.snippetDecoration,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
+    conversationIDKey: stateProps._meta.conversationIDKey,
     timestamp: Constants.timestampToString(stateProps._meta),
     usernameColor: styles.usernameColor,
     youAreReset: stateProps.youAreReset,
