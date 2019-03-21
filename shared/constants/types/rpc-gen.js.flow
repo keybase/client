@@ -637,7 +637,7 @@ export type MessageTypes = {|
     outParam: ?Array<ConfiguredAccount>,
   |},
   'keybase.1.login.login': {|
-    inParam: $ReadOnly<{|deviceType: String, usernameOrEmail: String, clientType: ClientType|}>,
+    inParam: $ReadOnly<{|deviceType: String, username: String, clientType: ClientType|}>,
     outParam: void,
   |},
   'keybase.1.login.logout': {|
