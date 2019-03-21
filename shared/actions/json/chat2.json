@@ -588,6 +588,24 @@
       "_description": "Explicitly set whether a threasd is loaded to the most recent message",
       "conversationIDKey": "Types.ConversationIDKey",
       "contains": "boolean"
+    },
+    "threadSearch": {
+      "_description": "Perform a search in a thread",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "HiddenString"
+    },
+    "cancelThreadSearch": {
+      "_description": "Cancel any outstanding thread searches"
+    },
+    "threadSearchResult": {
+      "_description": "Record a new thread search result",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "message": "Types.Message"
+    },
+    "setThreadSearchInProgress": {
+      "_description": "Set whether or not a thread search is in progress",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "inProgress": "boolean"
     }
   }
 }

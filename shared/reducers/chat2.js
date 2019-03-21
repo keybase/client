@@ -239,9 +239,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return action.payload.isPreview
           ? message.set('previewTransferState', 'downloading')
-          : message.set('transferProgress', action.payload.ratio)
-                   .set('transferState', 'downloading')
-                   .set('transferErrMsg', null)
+          : message
+              .set('transferProgress', action.payload.ratio)
+              .set('transferState', 'downloading')
+              .set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
@@ -286,7 +287,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
             .set('downloadPath', path)
             .set('transferProgress', 0)
             .set('transferState', null)
-            .set('transferErrMsg', actionHasError(action) ? (action.payload.error || 'Error downloading attachment') : null)
+            .set(
+              'transferErrMsg',
+              actionHasError(action) ? action.payload.error || 'Error downloading attachment' : null
+            )
             .set('fileURLCached', true) // assume we have this on the service now
         }
       )
@@ -1001,6 +1005,14 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
+    case Chat2Gen.threadSearchResult:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
+        info.set('hits', info.hits.push(action.payload.message))
+      )
+    case Chat2Gen.setThreadSearchInProgress:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
+        info.set('inProgress', action.payload.inProgress)
+      )
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -1041,7 +1053,10 @@ const rootReducer = (
         state.attachmentFullscreenMessage.id === message.id &&
         message.type === 'attachment'
       ) {
-        nextState = nextState.set('attachmentFullscreenMessage', message.set('downloadPath', action.payload.path))
+        nextState = nextState.set(
+          'attachmentFullscreenMessage',
+          message.set('downloadPath', action.payload.path)
+        )
       }
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))

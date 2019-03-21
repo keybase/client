@@ -1322,6 +1322,25 @@ const messageRetry = (state, action) => {
   )
 }
 
+const cancelThreadSearch = (state, action) => {
+  return RPCChatTypes.localCancelActiveSearchRpcPromise()
+}
+
+function* threadSearch(state, action) {
+  const {conversationIDKey, query} = action.payload
+  try {
+    yield RPCChatTypes.localSearchRegexpRpcSaga({
+      params: {
+        convID: Types.keyToConversationID(conversationIDKey),
+        query: query.stringValue(),
+        isRegex: false,
+        opts: {},
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      },
+    })
+  } catch (e) {}
+}
+
 function* messageSend(state, action) {
   const {conversationIDKey, text} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)

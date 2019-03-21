@@ -47,6 +47,13 @@ export type StaticConfig = I.RecordOf<_StaticConfig>
 export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
+export type _ThreadSearchInfo = {
+  inProgress: boolean,
+  hits: I.List<Types.Message>,
+}
+
+export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
+
 // Where focus should be going to.
 // Null represents the default chat input.
 // This is very simple for now, but we can make
@@ -92,6 +99,7 @@ export type _State = {
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>,
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>,
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>,
+  threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

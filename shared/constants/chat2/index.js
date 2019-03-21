@@ -53,6 +53,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  threadSeachInfoMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
@@ -77,6 +78,11 @@ export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
   builtinCommands: [],
   deletableByDeleteHistory: I.Set(),
+})
+
+export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
+  inProgress: false,
+  hits: I.List(),
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
