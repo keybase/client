@@ -5,7 +5,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
-import * as FsGen from '../fs-gen'
+import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -1633,7 +1633,7 @@ const openFolder = (state, action) => {
       ? teamFolder(meta.teamname)
       : privateFolderWithUsers(meta.participants.toArray())
   )
-  return FsGen.createOpenPathInFilesTab({path})
+  return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
 const getRecommendations = (state, action) => {

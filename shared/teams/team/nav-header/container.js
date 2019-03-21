@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/teams'
-import * as FsGen from '../../../actions/fs-gen'
+import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -23,7 +23,7 @@ const mapStateToProps = (state, {teamname}) => {
 const mapDispatchToProps = (dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   onOpenFolder: () =>
-    dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`)})),
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

@@ -15,10 +15,9 @@ import * as Types from '../../constants/types/fs'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
-import {isMobile} from '../../constants/platform'
 import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
-import {fsRootRoute, makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -560,61 +559,6 @@ const commitEdit = (state, action) => {
   }
 }
 
-const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
-  isMobile
-    ? RouteTreeGen.createNavigateTo({
-        path:
-          action.payload.path === Constants.defaultPath
-            ? fsRootRoute
-            : [
-                ...fsRootRoute,
-                // Construct all parent folders so back button works all the way back
-                // to /keybase
-                ...Types.getPathElements(action.payload.path)
-                  .slice(1, -1) // fsTab default to /keybase, so we skip one here
-                  .reduce(
-                    (routes, elem) => [
-                      ...routes,
-                      {
-                        props: {
-                          path: routes.length
-                            ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                            : Types.stringToPath(`/keybase/${elem}`),
-                        },
-                        selected: 'main',
-                      },
-                    ],
-                    []
-                  ),
-                finalRoute,
-              ],
-      })
-    : RouteTreeGen.createNavigateTo({
-        path: [
-          Tabs.fsTab,
-          // Prepend the parent folder so when user clicks the back button they'd
-          // go back to the parent folder.
-          {props: {path: Types.getPathParent(action.payload.path)}, selected: 'main'},
-          finalRoute,
-        ],
-      })
-
-const _getRouteChangeActionForOpen = (
-  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  finalRoute: any
-) => {
-  const routeChange =
-    action.type === FsGen.openPathItem
-      ? RouteTreeGen.createNavigateAppend({path: [finalRoute]})
-      : _getRouteChangeForOpenPathInFilesTab(action, finalRoute)
-  return action.payload.routePath
-    ? RouteTreeGen.createPutActionIfOnPath({expectedPath: action.payload.routePath, otherAction: routeChange})
-    : routeChange
-}
-
-const openPathItem = (state, action) =>
-  _getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'})
-
 function* loadPathMetadata(state, action) {
   const {path, refreshTag} = action.payload
 
@@ -727,19 +671,6 @@ const moveOrCopy = (state, action) => {
       .catch(makeUnretriableErrorHandler(action))
   )
 }
-
-const destinationPickerOpen = (state, action) => [
-  FsGen.createSetDestinationPickerParentPath({
-    index: action.payload.currentIndex + 1,
-    path: action.payload.path,
-  }),
-  RouteTreeGen.createPutActionIfOnPath({
-    expectedPath: action.payload.routePath,
-    otherAction: RouteTreeGen.createNavigateAppend({
-      path: [{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}],
-    }),
-  }),
-]
 
 const showMoveOrCopy = (state, action) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
@@ -908,10 +839,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<FsGen.NotifyTlfUpdatePayload>(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
-  yield* Saga.chainAction<FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload>(
-    [FsGen.openPathItem, FsGen.openPathInFilesTab],
-    openPathItem
-  )
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSPathUpdatedPayload>(
     EngineGen.keybase1NotifyFSFSPathUpdated,
@@ -922,10 +849,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     onFSSyncActivity
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
-  yield* Saga.chainAction<FsGen.DestinationPickerOpenPayload>(
-    FsGen.destinationPickerOpen,
-    destinationPickerOpen
-  )
   yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>(
     [FsGen.showMoveOrCopy, FsGen.showIncomingShare],
     showMoveOrCopy

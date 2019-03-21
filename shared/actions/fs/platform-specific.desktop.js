@@ -173,7 +173,9 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
-        ...((previousStatusType === 'disabled' || status.installAction === 2) ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for newly enabled
+        ...(previousStatusType === 'disabled' || status.installAction === 2
+          ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
+          : []), // show banner for newly enabled
       ]
     : [
         FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
@@ -366,7 +368,9 @@ const loadUserFileEdits = (state, action) =>
 
 const openFilesFromWidget = (state, {payload: {path, type}}) => [
   ConfigGen.createShowMain(),
-  ...(path ? [FsGen.createOpenPathInFilesTab({path})] : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
+  ...(path
+    ? [Constants.makeActionForOpenPathInFilesTab(path)]
+    : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
 ]
 
 const changedFocus = (state, action) =>
