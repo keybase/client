@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"sort"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-codec/codec"
+	"golang.org/x/sync/errgroup"
 )
 
 type ServerResponseRepo struct {
@@ -26,11 +29,26 @@ type ServerResponseRepo struct {
 	ChatConvID            string                        `json:"chat_conv_id"`
 	ChatDisabled          bool                          `json:"chat_disabled"`
 	IsImplicit            bool                          `json:"is_implicit"`
+	Role                  keybase1.TeamRole             `json:"role"`
 }
 
 type ServerResponse struct {
 	Repos  []ServerResponseRepo `json:"repos"`
 	Status libkb.AppStatus      `json:"status"`
+}
+
+type ByRepoMtime []keybase1.GitRepoResult
+
+func (c ByRepoMtime) Len() int      { return len(c) }
+func (c ByRepoMtime) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ByRepoMtime) Less(i, j int) bool {
+	res1, err1 := c[i].GetIfOk()
+	res2, err2 := c[j].GetIfOk()
+	if err1 != nil || err2 != nil {
+		return false
+	}
+
+	return res1.ServerMetadata.Mtime < res2.ServerMetadata.Mtime
 }
 
 var _ libkb.APIResponseWrapper = (*ServerResponse)(nil)
@@ -127,32 +145,61 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		return nil, err
 	}
 
+	// Unbox the repos in parallel
+	repoCh := make(chan ServerResponseRepo)
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		defer close(repoCh)
+		for _, responseRepo := range serverResponse.Repos {
+			select {
+			case repoCh <- responseRepo:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+		return nil
+	})
+
 	// Initializing the results list to non-nil means that we end up seeing
 	// "[]" instead of "null" in the final JSON output on the CLI, which is
 	// preferable.
 	resultList := []keybase1.GitRepoResult{}
+	var resLock sync.Mutex
 	var firstErr error
 	var anySuccess bool
-	for _, responseRepo := range serverResponse.Repos {
-		info, skip, err := getMetadataInnerSingle(ctx, g, folder, responseRepo)
-		if err != nil {
-			if firstErr == nil {
-				firstErr = err
+	numUnboxThreads := 2
+	for i := 0; i < numUnboxThreads; i++ {
+		eg.Go(func() error {
+			for responseRepo := range repoCh {
+				info, skip, err := getMetadataInnerSingle(ctx, g, folder, responseRepo)
+
+				resLock.Lock()
+				if err != nil {
+					if firstErr == nil {
+						firstErr = err
+					}
+					mctx.Debug("git.getMetadataInner error (team:%v, repo:%v): %v", responseRepo.TeamID, responseRepo.RepoID, err)
+					resultList = append(resultList, keybase1.NewGitRepoResultWithErr(err.Error()))
+				} else {
+					if !skip {
+						anySuccess = true
+						resultList = append(resultList, keybase1.NewGitRepoResultWithOk(*info))
+					}
+				}
+				resLock.Unlock()
+
 			}
-			mctx.Debug("git.getMetadataInner error (team:%v, repo:%v): %v", responseRepo.TeamID, responseRepo.RepoID, err)
-			resultList = append(resultList, keybase1.NewGitRepoResultWithErr(err.Error()))
-		} else {
-			if !skip {
-				anySuccess = true
-				resultList = append(resultList, keybase1.NewGitRepoResultWithOk(*info))
-			}
-		}
+			return nil
+		})
 	}
+	if err := eg.Wait(); err != nil {
+		return resultList, err
+	}
+	sort.Sort(ByRepoMtime(resultList))
 
 	// If there were no repos, return ok
 	// If all repos failed, return the first error (something is probably wrong that's not repo-specific)
 	// If no repos failed, return ok
-
 	if len(resultList) == 0 {
 		return resultList, nil
 	}
@@ -268,26 +315,6 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 		return nil, false, fmt.Errorf("can't find device name for %s's device ID %s", lastWriterUPAK.Current.Username, responseRepo.LastModifyingDeviceID)
 	}
 
-	// Load the team to get the current user's role, for canDelete.
-	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
-		ID:     responseRepo.TeamID,
-		Public: !repoFolder.Private,
-	})
-	if err != nil {
-		return nil, false, err
-	}
-	selfUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithContext(ctx, g).
-		WithSelf(true).
-		WithUID(g.GetMyUID()).
-		WithPublicKeyOptional())
-	if err != nil {
-		return nil, false, err
-	}
-	role, err := team.MemberRole(ctx, selfUPAK.Current.ToUserVersion())
-	if err != nil {
-		return nil, false, err
-	}
-
 	var settings *keybase1.GitTeamRepoSettings
 	if repoFolder.FolderType == keybase1.FolderType_TEAM {
 		pset, err := convertTeamRepoSettings(ctx, g, responseRepo.TeamID, responseRepo.ChatConvID, responseRepo.ChatDisabled)
@@ -302,7 +329,7 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 		RepoID:         responseRepo.RepoID,
 		RepoUrl:        formatRepoURL(repoFolder, string(localMetadata.RepoName)),
 		GlobalUniqueID: formatUniqueRepoID(responseRepo.TeamID, responseRepo.RepoID),
-		CanDelete:      role.IsAdminOrAbove(),
+		CanDelete:      responseRepo.Role.IsAdminOrAbove(),
 		LocalMetadata:  localMetadata,
 		ServerMetadata: keybase1.GitServerMetadata{
 			Ctime: keybase1.ToTime(responseRepo.CTime),
