@@ -1196,7 +1196,10 @@ const teamChangedByName = (state, action) => {
   const {teamName} = action.payload.params
   logger.info(`Got teamChanged for ${teamName} from service`)
   const selectedTeamNames = Constants.getSelectedTeamNames(state)
-  if (selectedTeamNames.includes(teamName) && getPath(state.routeTree.routeState).first() === teamsTab) {
+  if (
+    selectedTeamNames.includes(teamName) &&
+    (flags.useNewRouter || getPath(state.routeTree.routeState).first() === teamsTab)
+  ) {
     // only reload if that team is selected
     return [TeamsGen.createGetTeams(), TeamsGen.createGetDetails({teamname: teamName})]
   }
