@@ -413,6 +413,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
     },
+    // Hide a conversation until future activity
+    "hideConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     // Conversation was loaded and is offline
     "setConversationOffline": {
       "conversationIDKey": "Types.ConversationIDKey",

@@ -37,6 +37,7 @@ export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
+export const hideConversation = 'chat2:hideConversation'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -142,6 +143,7 @@ type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.Convers
 type _GiphySendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, url: HiddenString|}>
 type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, show: boolean|}>
 type _HandleSeeingWalletsPayload = void
+type _HideConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
@@ -395,6 +397,7 @@ export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => (
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({payload, type: blockConversation})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({payload, type: desktopNotification})
+export const createHideConversation = (payload: _HideConversationPayload) => ({payload, type: hideConversation})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({payload, type: joinConversation})
 export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({payload, type: leaveConversation})
@@ -471,6 +474,7 @@ export type GiphyGotSearchResultPayload = {|+payload: _GiphyGotSearchResultPaylo
 export type GiphySendPayload = {|+payload: _GiphySendPayload, +type: 'chat2:giphySend'|}
 export type GiphyToggleWindowPayload = {|+payload: _GiphyToggleWindowPayload, +type: 'chat2:giphyToggleWindow'|}
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
+export type HideConversationPayload = {|+payload: _HideConversationPayload, +type: 'chat2:hideConversation'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
 export type LeaveConversationPayload = {|+payload: _LeaveConversationPayload, +type: 'chat2:leaveConversation'|}
@@ -579,6 +583,7 @@ export type Actions =
   | GiphySendPayload
   | GiphyToggleWindowPayload
   | HandleSeeingWalletsPayload
+  | HideConversationPayload
   | InboxRefreshPayload
   | JoinConversationPayload
   | LeaveConversationPayload

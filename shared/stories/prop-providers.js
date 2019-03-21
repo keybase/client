@@ -78,6 +78,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
     onAddPeople: action('onAddPeople'),
     onHidden: ownProps.onHidden,
     onInvite: action('onInvite'),
+    onHideConv: action('onHideConv'),
     onLeaveTeam: action('onLeaveTeam'),
     onManageChannels: action('onManageChannels'),
     onViewTeam: action('onViewTeam'),

@@ -1077,6 +1077,7 @@ const rootReducer = (
     case Chat2Gen.messageAttachmentNativeSave:
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
+    case Chat2Gen.hideConversation:
     case Chat2Gen.previewConversation:
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.toggleMessageReaction:

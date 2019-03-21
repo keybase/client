@@ -19,6 +19,7 @@ export type Props = {
   onHidden: () => void,
   onInvite: () => void,
   onLeaveTeam: () => void,
+  onHideConv: () => void,
   onManageChannels: () => void,
   onViewTeam: () => void,
 }
@@ -78,6 +79,7 @@ class InfoPanelMenu extends React.Component<Props> {
     const items = [
       ...(props.canAddPeople ? addPeopleItems : []),
       {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
+      {onClick: props.onHideConv, style: {borderTopWidth: 0}, title: 'Hide conversation', subTitle: 'Until next message'},
       channelItem,
       {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
     ]

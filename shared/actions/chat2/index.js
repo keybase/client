@@ -1579,7 +1579,7 @@ const _maybeAutoselectNewestConversation = (state, action) => {
       return
     }
   } else if (
-    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation) &&
+    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation || action.type === Chat2Gen.hideConversation) &&
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
@@ -2150,6 +2150,15 @@ function* blockConversation(_, action) {
     status: action.payload.reportUser
       ? RPCChatTypes.commonConversationStatus.reported
       : RPCChatTypes.commonConversationStatus.blocked,
+  })
+}
+
+function* hideConversation(_, action) {
+  yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
+  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    status: RPCChatTypes.commonConversationStatus.ignored,
   })
 }
 
@@ -2747,6 +2756,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messageSend,
       Chat2Gen.attachmentsUpload,
       Chat2Gen.blockConversation,
+      Chat2Gen.hideConversation,
       TeamsGen.leaveTeam,
     ],
     changeSelectedConversation
@@ -2922,6 +2932,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     updateNotificationSettings
   )
   yield* Saga.chainGenerator<Chat2Gen.BlockConversationPayload>(Chat2Gen.blockConversation, blockConversation)
+  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(Chat2Gen.hideConversation, hideConversation)
 
   yield* Saga.chainAction<Chat2Gen.SetConvRetentionPolicyPayload>(
     Chat2Gen.setConvRetentionPolicy,

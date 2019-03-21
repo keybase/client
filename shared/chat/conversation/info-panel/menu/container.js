@@ -3,16 +3,19 @@ import * as Constants from '../../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
+import * as ChatGen from '../../../../actions/chat2-gen'
 import {namedConnect} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {teamsTab} from '../../../../constants/tabs'
 import flags from '../../../../util/feature-flags'
+import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type OwnProps = {
   attachTo: () => ?React.Component<any>,
   onHidden: () => void,
   isSmallTeam: boolean,
   teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
   visible: boolean,
 }
 
@@ -68,7 +71,7 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) => ({
   loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onAddPeople: () => {
     if (flags.useNewRouter) {
@@ -95,6 +98,9 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     }
+  },
+  onHideConv: () => {
+    dispatch(ChatGen.createHideConversation({conversationIDKey}))
   },
   onLeaveTeam: () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
