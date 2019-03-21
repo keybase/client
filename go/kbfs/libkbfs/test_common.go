@@ -340,7 +340,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 func ConfigAsUser(config *ConfigLocal,
 	loggedInUser kbname.NormalizedUsername) *ConfigLocal {
 	c := ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
-	c.mode = config.mode // preserve any unusual test mode wrappers
+	c.SetMode(config.mode) // preserve any unusual test mode wrappers
 	return c
 }
 

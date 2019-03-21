@@ -789,11 +789,22 @@ func (c *ConfigLocal) SetRekeyWithPromptWaitTime(d time.Duration) {
 
 // Mode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Mode() InitMode {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.mode
+}
+
+// SetMode implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetMode(mode InitMode) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.mode = mode
 }
 
 // IsTestMode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) IsTestMode() bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.mode.IsTestMode()
 }
 
@@ -832,7 +843,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	log := c.MakeLogger("")
 	var capacity uint64
 	if c.bcache == nil {
-		capacity = getDefaultCleanBlockCacheCapacity(c.Mode())
+		capacity = getDefaultCleanBlockCacheCapacity(c.mode)
 		log.Debug("setting default clean block cache capacity to %d",
 			capacity)
 	} else {
@@ -842,7 +853,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	}
 	c.bcache = NewBlockCacheStandard(10000, capacity)
 
-	if !c.Mode().DirtyBlockCacheEnabled() {
+	if !c.mode.DirtyBlockCacheEnabled() {
 		return nil
 	}
 
@@ -1260,7 +1271,7 @@ func (c *ConfigLocal) EnableJournaling(
 }
 
 func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
-	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot)
+	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
@@ -1369,7 +1380,7 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	syncedTlfPaths := make(map[string]bool)
-	if c.IsTestMode() {
+	if c.mode.IsTestMode() {
 		c.syncedTlfs = syncedTlfs
 		c.syncedTlfPaths = syncedTlfPaths
 		return nil
@@ -1474,7 +1485,7 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 		return nil, nil, errors.New("sync block cache is not enabled")
 	}
 
-	if !c.IsTestMode() {
+	if !c.mode.IsTestMode() {
 		if c.storageRoot == "" {
 			return nil, nil, errors.New(
 				"empty storageRoot specified for non-test run")
