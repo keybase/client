@@ -3205,8 +3205,8 @@ func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
 	ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Stat %s", getNodeIDStr(node))
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "Stat %s done: %+v",
-			getNodeIDStr(node), err)
+		fbo.deferLog.CDebugf(ctx, "Stat %s (%d bytes) done: %+v",
+			getNodeIDStr(node), ei.Size, err)
 	}()
 
 	var de DirEntry
