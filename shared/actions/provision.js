@@ -9,7 +9,7 @@ import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import {NavigationActions, StackActions} from '@react-navigation/core'
+import {StackActions} from '@react-navigation/core'
 import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
@@ -443,7 +443,7 @@ function* addNewDevice(state) {
     } else {
       yield Saga.put(
         RouteTreeGen.createDispatchNav2Action({
-          action: NavigationActions.navigate({routeName: devicesRoot[devicesRoot.length - 1]}),
+          action: StackActions.push({routeName: devicesRoot[devicesRoot.length - 1]}),
         })
       )
     }

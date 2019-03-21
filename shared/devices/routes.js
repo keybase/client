@@ -1,6 +1,9 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {newRoutes as provisionNewRoutes} from '../provision/routes'
+import {modalizeRoutes} from '../router-v2/modal-helper'
 import {isMobile} from '../constants/platform'
+import {mapValues} from 'lodash-es'
 
 const routeTree = () => {
   const CodePage = require('../provision/code-page/container').default
@@ -50,6 +53,7 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
+  ...mapValues(provisionNewRoutes, v => modalizeRoutes(v)),
   deviceAdd: {getScreen: () => require('./add-device/container').default, upgraded: true},
 }
 

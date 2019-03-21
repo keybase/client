@@ -325,6 +325,8 @@ const styles = Styles.styleSheetCreate({
   codePageContainer: {
     overflow: 'hidden',
     position: 'relative',
+    minHeight: 400,
+    minWidth: 400,
   },
   container: Styles.platformStyles({
     common: {

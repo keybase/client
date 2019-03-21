@@ -2,7 +2,7 @@
 import * as Container from '../../util/container'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
-import {NavigationActions} from '@react-navigation/core'
+import {NavigationActions, StackActions} from '@react-navigation/core'
 import AddDevice from '.'
 import flags from '../../util/feature-flags'
 import type {RouteProps} from '../../route-tree/render-route'
@@ -10,16 +10,17 @@ import type {RouteProps} from '../../route-tree/render-route'
 const mapDispatchToProps = (dispatch, {navigateUp, navigation}) => ({
   onAddComputer: () => {
     if (flags.useNewRouter) {
-      navigation.dispatch(NavigationActions.back())
+      // navigation.dispatch(NavigationActions.back())
+      navigation.dispatch(StackActions.push({routeName: 'codePage'}))
     } else {
       dispatch(navigateUp())
     }
-    dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'}))
+    // dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'}))
   },
   onAddPaperKey: () => {
     if (flags.useNewRouter) {
       navigation.dispatch(NavigationActions.back())
-      navigation.dispatch(NavigationActions.navigate({routeName: 'devicePaperKey'}))
+      navigation.dispatch(StackActions.push({routeName: 'devicePaperKey'}))
     } else {
       dispatch(navigateUp())
     }
@@ -27,11 +28,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigation}) => ({
   },
   onAddPhone: () => {
     if (flags.useNewRouter) {
-      navigation.dispatch(NavigationActions.back())
+      // navigation.dispatch(NavigationActions.back())
+      navigation.dispatch(StackActions.push({routeName: 'codePage'}))
     } else {
       dispatch(navigateUp())
     }
-    dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'}))
+    // dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'}))
   },
   onCancel: () => {
     if (flags.useNewRouter) {
