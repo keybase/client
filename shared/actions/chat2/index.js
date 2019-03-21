@@ -1328,17 +1328,32 @@ const cancelThreadSearch = (state, action) => {
 
 function* threadSearch(state, action) {
   const {conversationIDKey, query} = action.payload
-  try {
-    yield RPCChatTypes.localSearchRegexpRpcSaga({
-      params: {
-        convID: Types.keyToConversationID(conversationIDKey),
-        query: query.stringValue(),
-        isRegex: false,
-        opts: {},
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  const onHit = (hit: RPCChatTypes.ChatSearchHit) => {
+    const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
+    return Saga.put(Chat2Gen.createThreadSearchResult({conversationIDKey, message}))
+  }
+  const onDone = () => {
+    return Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: false}))
+  }
+  yield Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: true}))
+  yield RPCChatTypes.localSearchRegexpRpcSaga({
+    incomingCallMap: {
+      'chat.1.chatUi.chatSearchHit': onHit,
+      'chat.1.chatUi.chatSearchDone': onDone,
+    },
+    params: {
+      convID: Types.keyToConversationID(conversationIDKey),
+      query: query.stringValue(),
+      isRegex: false,
+      opts: {
+        afterContext: 0,
+        beforeContext: 0,
+        maxHits: -1,
+        maxMessages: -1,
       },
-    })
-  } catch (e) {}
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    },
+  })
 }
 
 function* messageSend(state, action) {
@@ -3125,6 +3140,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
   )
+  yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 

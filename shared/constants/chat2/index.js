@@ -53,7 +53,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
-  threadSeachInfoMap: I.Map(),
+  threadSearchInfoMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),

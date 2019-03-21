@@ -63,7 +63,7 @@ class Conversation extends React.PureComponent<Props, State> {
             conversationIDKey={this.props.conversationIDKey}
           />
           {this.props.showLoader && <Kb.LoadingLine />}
-          {this.state.showThreadSearch && <ThreadSearch />}
+          {this.state.showThreadSearch && <ThreadSearch conversationIDKey={this.props.conversationIDKey} />}
           <ListArea
             isPending={this.props.isPending}
             onFocusInput={this.props.onFocusInput}

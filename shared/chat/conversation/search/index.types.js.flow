@@ -1,10 +1,9 @@
 // @flow
+import * as Types from '../../../constants/types/chat2'
 export type Props = {|
   inProgress: boolean,
+  loadSearchHit: number => void,
   onCancel: () => void,
   onSearch: string => void,
-  onUp: () => void,
-  onDown: () => void,
-  selectedResult: number,
   totalResults: number,
 |}

@@ -21,7 +21,6 @@ import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
 import JumpToRecent from './jumptorecent'
-import { localGetGlobalAppNotificationSettingsLocalRpcPromise } from '../../../../constants/types/rpc-chat-gen';
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -737,7 +736,6 @@ const realCSS = `
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   // containment hints so we can scroll faster
-  backgroundColor: localGetGlobalAppNotificationSettingsLocalRpcPromise.
   contain: 'strict',
   flex: 1,
   position: 'relative',

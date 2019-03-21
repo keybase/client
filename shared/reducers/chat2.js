@@ -1010,9 +1010,10 @@ const rootReducer = (
         info.set('hits', info.hits.push(action.payload.message))
       )
     case Chat2Gen.setThreadSearchInProgress:
-      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
-        info.set('inProgress', action.payload.inProgress)
-      )
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info => {
+        const old = info || Constants.makeThreadSearchInfo()
+        return old.set('inProgress', action.payload.inProgress)
+      })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {

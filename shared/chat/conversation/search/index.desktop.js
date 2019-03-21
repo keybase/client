@@ -5,10 +5,31 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type {Props} from './index.types'
 
-class ThreadSearch extends React.Component<Props> {
+type State = {|
+  selectedIndex: number,
+|}
+
+class ThreadSearch extends React.Component<Props, State> {
+  state = {selectedIndex: 0}
   _inputRef = React.createRef()
   _submitSearch = () => {
     this._inputRef.current && this.props.onSearch(this._inputRef.current.getValue())
+  }
+  _onUp = () => {
+    if (this.state.selectedIndex >= this.props.totalResults) {
+      return
+    }
+    const nextIndex = this.state.selectedIndex + 1
+    this.props.loadSearchHit(nextIndex)
+    this.setState({selectedIndex: nextIndex})
+  }
+  _onDown = () => {
+    if (this.state.selectedIndex <= 0) {
+      return
+    }
+    const nextIndex = this.state.selectedIndex - 1
+    this.props.loadSearchHit(nextIndex)
+    this.setState({selectedIndex: nextIndex})
   }
   render() {
     return (
@@ -30,18 +51,18 @@ class ThreadSearch extends React.Component<Props> {
             {this.props.totalResults > 0 && (
               <Kb.Box2 direction="horizontal" gap="tiny">
                 <Kb.Text type="BodySmall" style={styles.results}>
-                  {this.props.selectedResult} of {this.props.totalResults}
+                  {this.state.selectedIndex} of {this.props.totalResults}
                 </Kb.Text>
                 <Kb.Icon
                   color={Styles.globalColors.black_50}
                   fontSize={16}
-                  onClick={this.props.onUp}
+                  onClick={this._onUp}
                   type="iconfont-arrow-up"
                 />
                 <Kb.Icon
                   color={Styles.globalColors.black_50}
                   fontSize={16}
-                  onClick={this.props.onDown}
+                  onClick={this._onDown}
                   type="iconfont-arrow-down"
                 />
               </Kb.Box2>
