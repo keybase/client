@@ -1419,16 +1419,17 @@ func (e *Env) GetInstallID() (ret InstallID) {
 
 func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
 	logFile := e.GetLogFile()
-	if logFile == "" {
-		filePrefix := e.GetLogPrefix()
-		if filePrefix != "" {
-			filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
-			logFile = filePrefix + ".log"
-		}
-	}
 	if logFile != "" {
 		return logFile, true
 	}
+
+	filePrefix := e.GetLogPrefix()
+	if filePrefix != "" {
+		filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+		logFile = filePrefix + ".log"
+		return logFile, true
+	}
+
 	return e.GetDefaultLogFile(), e.GetUseDefaultLogFile()
 }
 
