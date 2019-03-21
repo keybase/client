@@ -721,18 +721,6 @@ func (e InvalidOpError) Error() string {
 	return fmt.Sprintf("Invalid operation: %s", e.op)
 }
 
-// CRAbandonStagedBranchError indicates that conflict resolution had to
-// abandon a staged branch due to an unresolvable error.
-type CRAbandonStagedBranchError struct {
-	Err error
-	Bid kbfsmd.BranchID
-}
-
-func (e CRAbandonStagedBranchError) Error() string {
-	return fmt.Sprintf("Abandoning staged branch %s due to an error: %v",
-		e.Bid, e.Err)
-}
-
 // NoSuchFolderListError indicates that the user tried to access a
 // subdirectory of /keybase that doesn't exist.
 type NoSuchFolderListError struct {

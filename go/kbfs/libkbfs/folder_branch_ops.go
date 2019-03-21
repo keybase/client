@@ -7613,38 +7613,6 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 		ctx, lState, md, bps, newOps, blocksToDelete)
 }
 
-func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
-	lState *kbfssync.LockState) error {
-	// Take the writer lock.
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	// Last chance to get pre-empted.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
-	// We don't want context cancellation after this point, so use a linked
-	// context. There is no race since the linked context has an independent
-	// Done channel.
-	//
-	// Generally we don't want to have any errors in unstageLocked since and
-	// this solution is chosen because:
-	// * If the error is caused by a cancelled context then the recovery (archiving)
-	//   would need to use a separate context anyways.
-	// * In such cases we would have to be very careful where the error occurs
-	//   and what to archive, making that solution much more complicated.
-	// * The other "common" error case is losing server connection and after
-	//   detecting that we won't have much luck archiving things anyways.
-
-	ctx = newLinkedContext(ctx)
-	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
-		fbo.unmergedBID)
-	return fbo.unstageLocked(ctx, lState)
-}
-
 func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 	newBID kbfsmd.BranchID) {
 	lState := makeFBOLockState()
