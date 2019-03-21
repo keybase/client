@@ -45,6 +45,13 @@ type RowProps = {
 
 export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   const badgeCount = props.newRequests + props.resetUserCount
+  const ChatIcon = () => (
+    <Kb.Icon
+      style={{opacity: props.onManageChat ? 1 : 0.3}}
+      onClick={props.onManageChat}
+      type="iconfont-chat"
+    />
+  )
   return (
     <Kb.ListItem2
       type="Small"
@@ -76,7 +83,13 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
         Styles.isMobile ? null : (
           <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
             {props.onOpenFolder && <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />}
-            <Kb.Icon type="iconfont-chat" onClick={props.onManageChat} />
+            {props.onManageChat ? (
+              <ChatIcon />
+            ) : (
+              <Kb.WithTooltip text="You need to join this team before you can chat.">
+                <ChatIcon />
+              </Kb.WithTooltip>
+            )}
           </Kb.Box2>
         )
       }
