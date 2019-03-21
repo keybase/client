@@ -282,6 +282,8 @@ func benchmarkMultiFileSync(
 				cb(getBenchN(&n))
 				buf := make([]byte, numFiles*fileSize+fileSize)
 				for i := 0; i < numFiles*fileSize; i++ {
+					// Make sure we mix up the byte values a bit, so
+					// we don't accidentally trigger any deduplication.
 					buf[i] = byte(i)
 				}
 				cb(resetTimer())
