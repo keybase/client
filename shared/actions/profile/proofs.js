@@ -14,6 +14,7 @@ import openURL from '../../util/open-url'
 
 const checkProof = (state, action) => {
   const sigID = state.profile.sigID
+  const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
     return
   }
@@ -33,7 +34,14 @@ const checkProof = (state, action) => {
             errorText: '',
           }),
           ProfileGen.createUpdateProofStatus({found, status}),
-          RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
+          ...(isGeneric
+            ? []
+            : [
+                RouteTreeGen.createNavigateAppend({
+                  parentPath: [peopleTab],
+                  path: ['profileConfirmOrPending'],
+                }),
+              ]),
         ]
       }
     })
