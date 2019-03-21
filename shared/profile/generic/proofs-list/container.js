@@ -1,7 +1,9 @@
 // @flow
 import {namedConnect, type RouteProps} from '../../../util/container'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
+import openURL from '../../../util/open-url'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -9,14 +11,14 @@ const mapStateToProps = state => ({
   _proofSuggestions: state.tracker2.proofSuggestions,
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
-  onBack: () => dispatch(navigateUp()),
+const mapDispatchToProps = dispatch => ({
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  onBack: dispatchProps.onBack,
-  onClickLearn: () => {},
+  onCancel: dispatchProps.onCancel,
+  onClickLearn: () => openURL('https://keybase.io/docs/proof_integration_guide'),
   providerClicked: dispatchProps.providerClicked,
   providers: stateProps._proofSuggestions
     .map(s => ({
@@ -27,6 +29,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       new: false, // TODO
     }))
     .toArray(),
+  title: 'Prove your...',
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

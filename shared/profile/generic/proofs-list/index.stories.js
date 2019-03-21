@@ -9,7 +9,7 @@ const icon = [
 ]
 
 const props = {
-  onBack: Sb.action('onBack'),
+  onCancel: Sb.action('onCancel'),
   onClickLearn: Sb.action('onClickLearn'),
   providerClicked: (name: string) => Sb.action(`providerClicked: ${name}`),
   providers: [
@@ -84,6 +84,7 @@ const props = {
       new: true,
     },
   ],
+  title: 'Prove your...',
 }
 
 const load = () => {

@@ -14,10 +14,11 @@ export type IdentityProvider = {|
 |}
 
 export type Props = {|
-  onBack: () => void,
+  onCancel: () => void,
   onClickLearn: () => void,
   providerClicked: (key: string) => void,
   providers: Array<IdentityProvider>, // in sorted order
+  title: string,
 |}
 
 const HoverBox = Styles.isMobile
@@ -72,16 +73,18 @@ const filterProvider = (p, filter) => {
 type State = {
   filter: string,
 }
-class ProofsList extends React.Component<Props, State> {
+class _ProofsList extends React.Component<Props, State> {
   state = {filter: ''}
   _onSetFilter = filter => this.setState({filter})
   render() {
     return (
-      <Kb.MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
+      <Kb.Box style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
-          <Kb.Text center={true} type="Header" style={styles.header}>
-            Prove your...
-          </Kb.Text>
+          {!Styles.isMobile && (
+            <Kb.Text center={true} type="Header" style={styles.header}>
+              Prove your...
+            </Kb.Text>
+          )}
           <Kb.Box style={styles.inputContainer}>
             <Kb.Icon
               type="iconfont-search"
@@ -113,10 +116,11 @@ class ProofsList extends React.Component<Props, State> {
             </Kb.Text>
           </HoverBox>
         </Kb.Box2>
-      </Kb.MaybePopup>
+      </Kb.Box>
     )
   }
 }
+const ProofsList = Kb.HeaderOrPopup(_ProofsList)
 
 const rightColumnStyle = Styles.platformStyles({
   isElectron: {
@@ -175,21 +179,17 @@ const styles = Styles.styleSheetCreate({
   iconArrow: {
     marginRight: Styles.globalMargins.small,
   },
-  inputContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.black_10,
-      marginBottom: Styles.globalMargins.xsmall,
-      marginTop: Styles.globalMargins.xsmall,
-      padding: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      borderRadius: 4,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-    },
-  }),
+  inputContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
+    marginBottom: Styles.globalMargins.xsmall,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.xsmall,
+    padding: Styles.globalMargins.tiny,
+  },
   listContainer: Styles.platformStyles({
     isElectron: {
       maxHeight: 525 - 48,
