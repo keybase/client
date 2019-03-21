@@ -64,7 +64,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
               onEnterKeyDown={this.props.onEnterKeyDown}
               onFocus={this._onFocus}
               onBlur={this._onBlur}
-              style={styles.marginRightMedium}
+              style={styles.input}
             />
             <Kb.Box2 direction="horizontal" style={styles.inputPlaceholder} pointerEvents="none">
               <Kb.Text type="BodySemibold" lineClamp={1} style={styles.paddingRightTiny}>
@@ -250,6 +250,12 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: 1,
   },
+  input: Styles.platformStyles({
+    common: {marginRight: Styles.globalMargins.medium},
+    isMobile: {
+      top: 3,
+    },
+  }),
   inputBox: {
     ...Styles.padding(Styles.globalMargins.xsmall),
     borderColor: Styles.globalColors.black_10,
@@ -276,7 +282,6 @@ const styles = Styles.styleSheetCreate({
     opacity: 0,
   },
   marginLeftAuto: {marginLeft: 'auto'},
-  marginRightMedium: {marginRight: Styles.globalMargins.medium},
   opacity40: {
     opacity: 0.4,
   },

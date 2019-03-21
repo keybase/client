@@ -220,6 +220,17 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
+          {flags.proofProviders && this.props.showOtherIdentities && (
+            <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
+              <Kb.Button
+                label="Add other identities"
+                labelStyle={styles.label}
+                onClick={this.props.onAddIdentity}
+                style={styles.addIdentityButton}
+                type="Secondary"
+              />
+            </Kb.Box2>
+          )}
           <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
