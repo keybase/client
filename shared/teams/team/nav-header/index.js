@@ -69,7 +69,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       <Kb.Text type="Header">{props.teamname}</Kb.Text>
       <Kb.Text type="BodySmall">
         TEAM · {props.members} {pluralize('member', props.members)}
-        {!!props.role && ` · ${capitalize(props.role)}`}
+        {!!props.role && ` · ${props.role === 'none' ? 'Not a member' : capitalize(props.role)}`}
       </Kb.Text>
       <Kb.Text
         type="BodySmall"
