@@ -103,6 +103,10 @@ func (e *MerkleAudit) Shutdown() {
 
 // randSeqno picks a random number between [low, high) that's different from prev.
 func randSeqno(lo keybase1.Seqno, hi keybase1.Seqno, prev *keybase1.Seqno) (keybase1.Seqno, error) {
+	// Prevent an infinite loop if [0,1) and prev = 0
+	if hi-lo == 1 && prev != nil && *prev == lo {
+		return keybase1.Seqno(0), fmt.Errorf("unable to generate a non-duplicate seqno other than %d", *prev)
+	}
 	for {
 		rangeBig := big.NewInt(int64(hi - lo))
 		n, err := rand.Int(rand.Reader, rangeBig)
