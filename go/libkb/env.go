@@ -1429,10 +1429,7 @@ func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
 	if logFile != "" {
 		return logFile, true
 	}
-	if e.GetUseDefaultLogFile() {
-		return e.GetDefaultLogFile(), true
-	}
-	return e.GetDefaultLogFile(), false
+	return e.GetDefaultLogFile(), e.GetUseDefaultLogFile()
 }
 
 func (e *Env) GetLogFile() string {
