@@ -30,6 +30,12 @@ class Header extends React.PureComponent<Props> {
       rightActions = <CustomActions />
     }
 
+    let subHeader = null
+    if (typeof opt.subHeader === 'function') {
+      const CustomSubHeader = opt.subHeader
+      subHeader = <CustomSubHeader />
+    }
+
     let style = null
     if (opt.headerTransparent) {
       style = {position: 'absolute'}
@@ -41,27 +47,30 @@ class Header extends React.PureComponent<Props> {
     }
 
     return (
-      <Kb.Box2
-        noShrink={true}
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.headerContainer, showDivider && styles.headerBorder, style])}
-      >
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
-          <Kb.Icon
-            type="iconfont-arrow-left"
-            style={this.props.allowBack ? styles.icon : styles.disabledIcon}
-            color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
-            onClick={this.props.onPop}
-          />
-          {!title && rightActions}
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
-          <Kb.Box2 direction="horizontal" style={styles.flexOne}>
-            {title}
+      <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+        <Kb.Box2
+          noShrink={true}
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([styles.headerContainer, showDivider && styles.headerBorder, style])}
+        >
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack} alignItems="center">
+            <Kb.Icon
+              type="iconfont-arrow-left"
+              style={this.props.allowBack ? styles.icon : styles.disabledIcon}
+              color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
+              onClick={this.props.onPop}
+            />
+            {!title && rightActions}
           </Kb.Box2>
-          {!!title && rightActions}
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
+            <Kb.Box2 direction="horizontal" style={styles.flexOne}>
+              {title}
+            </Kb.Box2>
+            {!!title && rightActions}
+          </Kb.Box2>
         </Kb.Box2>
+        {subHeader}
       </Kb.Box2>
     )
   }

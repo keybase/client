@@ -54,20 +54,6 @@ const _HeaderRightActions = (props: Props) => (
 )
 export const HeaderRightActions = Kb.OverlayParentHOC(_HeaderRightActions)
 
-const styles = Styles.styleSheetCreate({
-  clickable: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-    },
-  }),
-  rightActionsContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      alignSelf: 'flex-end',
-    },
-  }),
-})
-
 type HeaderTitleProps = {
   teamname: string,
   description: string,
@@ -83,7 +69,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       <Kb.Text type="Header">{props.teamname}</Kb.Text>
       <Kb.Text type="BodySmall">
         TEAM · {props.members} {pluralize('member', props.members)}
-        {!!props.role && ` · ${capitalize(props.role)}`}
+        {!!props.role && ` · ${props.role === 'none' ? 'Not a member' : capitalize(props.role)}`}
       </Kb.Text>
       <Kb.Text
         type="BodySmall"
@@ -97,3 +83,36 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
+
+type SubHeaderProps = {
+  onAddSelf: ?() => void,
+}
+
+export const SubHeader = (props: SubHeaderProps) =>
+  props.onAddSelf ? (
+    <Kb.Box2 direction="horizontal" style={styles.banner} fullWidth={true}>
+      <Kb.Banner
+        color="blue"
+        inline={true}
+        text="You are not a member of this team."
+        actions={[{onClick: props.onAddSelf, title: 'Add yourself'}]}
+      />
+    </Kb.Box2>
+  ) : null
+
+const styles = Styles.styleSheetCreate({
+  banner: {
+    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.xsmall, 0),
+  },
+  clickable: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+    },
+  }),
+  rightActionsContainer: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+      alignSelf: 'flex-end',
+    },
+  }),
+})

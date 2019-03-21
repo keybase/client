@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import Team from '.'
 import CustomTitle from './custom-title/container'
-import {HeaderRightActions, HeaderTitle} from './nav-header/container'
+import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
 import {connect, compose, isMobile} from '../../util/container'
 import * as Constants from '../../constants/teams'
@@ -117,6 +117,7 @@ class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, St
       ? undefined
       : () => <HeaderRightActions teamname={navigation.getParam('teamname')} />,
     headerTitle: isMobile ? undefined : () => <HeaderTitle teamname={navigation.getParam('teamname')} />,
+    subHeader: isMobile ? undefined : () => <SubHeader teamname={navigation.getParam('teamname')} />,
   })
   state = {selectedTab: 'members'}
   _setSelectedTab = selectedTab => {
