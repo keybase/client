@@ -1600,6 +1600,9 @@ const _maybeAutoselectNewestConversation = (state, action) => {
       // Don't select a big team channel
       return false
     }
+    if (meta.status === RPCChatTypes.commonConversationStatus.ignored) {
+      return false
+    }
     if (avoidTeam && meta.teamname === avoidTeam) {
       // We just left this team, don't select a convo from it
       return false
