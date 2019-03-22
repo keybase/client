@@ -5,7 +5,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
-import * as FsGen from '../fs-gen'
+import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -595,9 +595,10 @@ const onChatInboxSynced = (state, action) => {
         }
         return arr
       }, [])
+      const removals = (syncRes.incremental?.removals || []).map(Types.stringToConversationIDKey)
       // Update new untrusted
-      if (metas.length) {
-        actions.push(Chat2Gen.createMetasReceived({metas}))
+      if (metas.length || removals.length) {
+        actions.push(Chat2Gen.createMetasReceived({metas, removals}))
       }
       // Unbox items
       actions.push(
@@ -1730,7 +1731,7 @@ const openFolder = (state, action) => {
       ? teamFolder(meta.teamname)
       : privateFolderWithUsers(meta.participants.toArray())
   )
-  return FsGen.createOpenPathInFilesTab({path})
+  return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
 const getRecommendations = (state, action) => {
@@ -2109,7 +2110,9 @@ const navigateToInbox = (state, action) => {
 // Unchecked version of Chat2Gen.createNavigateToThread() --
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
-const navigateToThreadRoute = RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
+const navigateToThreadRoute = flags.useNewRouter
+  ? RouteTreeGen.createNavigateAppend({path: Constants.newRouterThreadRoute})
+  : RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
 
 const navigateToThread = (state, action) => {
   if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {

@@ -256,6 +256,7 @@ export const threadRoute = isMobile
   : flags.useNewRouter
   ? [{props: {}, selected: chatTab}]
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100

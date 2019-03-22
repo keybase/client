@@ -29,7 +29,8 @@ const (
 // BuildCanonicalPath returns a canonical path for a path components.
 // This a canonical path and may need to be converted to a platform
 // specific path, for example, on Windows, this might correspond to
-// k:\private\username.
+// k:\private\username. Note that "canonical" here indicates it's in the form
+// of /keybase/<tlfType>/blah... . It does not try to canonicalize TLF names.
 func BuildCanonicalPath(pathType PathType, paths ...string) string {
 	var prefix string
 	switch pathType {
@@ -47,7 +48,9 @@ func BuildCanonicalPath(pathType PathType, paths ...string) string {
 	return strings.Join(pathElements, "/")
 }
 
-func buildCanonicalPathForTlfType(t tlf.Type, paths ...string) string {
+// BuildCanonicalPathForTlfType is like BuildCanonicalPath, but accepts a
+// tlf.Type instead of PathhType.
+func BuildCanonicalPathForTlfType(t tlf.Type, paths ...string) string {
 	var pathType PathType
 	switch t {
 	case tlf.Private:
@@ -65,10 +68,12 @@ func buildCanonicalPathForTlfType(t tlf.Type, paths ...string) string {
 
 // BuildCanonicalPathForTlfName returns a canonical path for a tlf.
 func BuildCanonicalPathForTlfName(t tlf.Type, tlfName tlf.CanonicalName) string {
-	return buildCanonicalPathForTlfType(t, string(tlfName))
+	return BuildCanonicalPathForTlfType(t, string(tlfName))
 }
 
-// BuildCanonicalPathForTlf returns a canonical path for a tlf.
+// BuildCanonicalPathForTlf returns a canonical path for a tlf. Although tlf
+// identifies a TLF, paths should still include the TLF name. This function
+// does not try to canonicalize TLF names.
 func BuildCanonicalPathForTlf(tlf tlf.ID, paths ...string) string {
-	return buildCanonicalPathForTlfType(tlf.Type(), paths...)
+	return BuildCanonicalPathForTlfType(tlf.Type(), paths...)
 }

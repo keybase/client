@@ -253,9 +253,9 @@ type PushHandler interface {
 	OobmHandler
 }
 
-type AppState interface {
-	State() keybase1.AppState
-	NextUpdate() chan keybase1.AppState
+type MobileAppState interface {
+	State() keybase1.MobileAppState
+	NextUpdate() chan keybase1.MobileAppState
 }
 
 type TeamChannelSource interface {

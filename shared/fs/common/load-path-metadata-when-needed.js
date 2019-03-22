@@ -4,14 +4,17 @@ import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 
-type OwnProps = {|path: Types.Path|}
+type OwnProps = {|
+  path: Types.Path,
+  refreshTag?: ?Types.RefreshTag,
+|}
 
-const mapDispatchToProps = (dispatch, {path}) => ({
-  loadPathMetadata: () => dispatch(FsGen.createLoadPathMetadata({path})),
+const mapDispatchToProps = (dispatch, {path, refreshTag}) => ({
+  loadPathMetadata: () => dispatch(FsGen.createLoadPathMetadata({path, refreshTag})),
 })
 
 const mergeProps = (s, d, o) => ({
-  ...o,
+  path: o.path,
   ...d,
 })
 

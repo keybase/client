@@ -38,7 +38,6 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
 
 type ComputedStyle = {
   position: string,
-  zIndex: number,
   top?: number | 'auto',
   left?: number | 'auto',
   right?: number | 'auto',
@@ -65,7 +64,7 @@ function _computePopupStyle(
   matchDimension: boolean,
   offset: ?number
 ): ComputedStyle {
-  const style: ComputedStyle = {position: 'absolute', zIndex: 30}
+  const style: ComputedStyle = {position: 'absolute'}
 
   const {pageYOffset, pageXOffset}: {pageYOffset: number, pageXOffset: number} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}

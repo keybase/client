@@ -566,3 +566,50 @@ func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int)
 func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
 	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
 }
+
+// newSecretStoreLockedForTests is a simple function to create
+// SecretStoreLocked for the purposes of unit tests outside of libkb package
+// which need finer control over how secret store is configured.
+//
+// Omitting dataDir argument will create memory-only secret store, similar to
+// how disabling "remember passphrase" would work.
+func newSecretStoreLockedForTests(m MetaContext, dataDir string) *SecretStoreLocked {
+	var disk SecretStoreAll
+	mem := NewSecretStoreMem()
+	if dataDir != "" {
+		disk = NewSecretStoreFile(dataDir)
+	}
+
+	return &SecretStoreLocked{
+		mem:  mem,
+		disk: disk,
+	}
+}
+
+func ReplaceSecretStoreForTests(tc TestContext, dataDir string) {
+	g := tc.G
+	g.secretStoreMu.Lock()
+	g.secretStore = newSecretStoreLockedForTests(NewMetaContextForTest(tc), dataDir)
+	g.secretStoreMu.Unlock()
+}
+
+func CreateReadOnlySecretStoreDir(tc TestContext) (string, func()) {
+	td, err := ioutil.TempDir("", "ss")
+	require.NoError(tc.T, err)
+
+	// Change mode of test dir to read-only so secret store on this dir can
+	// fail.
+	fi, err := os.Stat(td)
+	require.NoError(tc.T, err)
+	oldMode := fi.Mode()
+	os.Chmod(td, 0400)
+
+	cleanup := func() {
+		os.Chmod(td, oldMode)
+		if err := os.RemoveAll(td); err != nil {
+			tc.T.Log(err)
+		}
+	}
+
+	return td, cleanup
+}

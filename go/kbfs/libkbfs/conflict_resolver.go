@@ -3188,52 +3188,6 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	return nil
 }
 
-// maybeUnstageAfterFailure abandons this branch if there was a
-// conflict resolution failure due to missing blocks, caused by a
-// concurrent GCOp on the main branch.
-func (cr *ConflictResolver) maybeUnstageAfterFailure(ctx context.Context,
-	lState *kbfssync.LockState, mergedMDs []ImmutableRootMetadata,
-	err error) error {
-	// Make sure the error is related to a missing block.
-	_, isBlockNotFound := err.(kbfsblock.ServerErrorBlockNonExistent)
-	_, isBlockDeleted := err.(kbfsblock.ServerErrorBlockDeleted)
-	if !isBlockNotFound && !isBlockDeleted {
-		return err
-	}
-
-	// Make sure there was a GCOp on the main branch.
-	foundGCOp := false
-outer:
-	for _, rmd := range mergedMDs {
-		for _, op := range rmd.data.Changes.Ops {
-			if _, ok := op.(*GCOp); ok {
-				foundGCOp = true
-				break outer
-			}
-		}
-	}
-	if !foundGCOp {
-		return err
-	}
-
-	cr.log.CDebugf(ctx, "Unstaging due to a failed resolution: %v", err)
-	reportedError := CRAbandonStagedBranchError{err, cr.fbo.unmergedBID}
-	unstageErr := cr.fbo.unstageAfterFailedResolution(ctx, lState)
-	if unstageErr != nil {
-		cr.log.CDebugf(ctx, "Couldn't unstage: %v", unstageErr)
-		return err
-	}
-
-	head := cr.fbo.getTrustedHead(ctx, lState, mdNoCommit)
-	if head == (ImmutableRootMetadata{}) {
-		panic("maybeUnstageAfterFailure: head is nil (should be impossible)")
-	}
-	handle := head.GetTlfHandle()
-	cr.config.Reporter().ReportErr(
-		ctx, handle.GetCanonicalName(), handle.Type(), WriteMode, reportedError)
-	return nil
-}
-
 const conflictRecordVersion = 1
 
 type conflictRecord struct {
@@ -3467,12 +3421,6 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	}
 
 	var mergedMDs []ImmutableRootMetadata
-	defer func() {
-		if err != nil {
-			// writerLock is definitely unlocked by here.
-			err = cr.maybeUnstageAfterFailure(ctx, lState, mergedMDs, err)
-		}
-	}()
 
 	// Check if we need to deploy the nuclear option and completely
 	// block unmerged writes while we try to resolve.

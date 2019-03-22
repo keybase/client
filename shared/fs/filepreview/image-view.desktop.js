@@ -1,29 +1,28 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins} from '../../styles'
-import {Box} from '../../common-adapters'
+import * as Styles from '../../styles'
+import {Box2} from '../../common-adapters'
 import {type ImageViewProps} from './image-view'
 
 const ImageView = (props: ImageViewProps) => (
-  <Box style={stylesContainer}>
-    <img src={props.url} draggable={false} style={stylesImage} />
-  </Box>
+  <Box2
+    direction="vertical"
+    fullWidth={true}
+    fullHeight={true}
+    centerChildren={true}
+    style={styles.container}
+  >
+    <img src={props.url} draggable={false} style={styles.image} />
+  </Box2>
 )
-
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexGrow,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'center',
-  marginBottom: globalMargins.medium,
-  marginTop: globalMargins.medium,
-  width: '100%',
-}
-
-const stylesImage = {
-  maxHeight: '100%',
-  maxWidth: '100%',
-}
+const styles = Styles.styleSheetCreate({
+  container: {
+    padding: Styles.globalMargins.medium,
+  },
+  image: {
+    maxHeight: '100%',
+    maxWidth: '100%',
+  },
+})
 
 export default ImageView

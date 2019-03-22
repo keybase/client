@@ -99,7 +99,7 @@ func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
 		return
 	}
 
-	if !e.GetFeatureFlags().Admin() {
+	if !e.GetFeatureFlags().Admin(e.GetUID()) {
 		// Admin only for now
 		return
 	}

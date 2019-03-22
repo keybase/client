@@ -18,18 +18,13 @@ protocol login {
 
   /**
     Performs login.  deviceType should be libkb.DeviceTypeDesktop
-    or libkb.DeviceTypeMobile.  usernameOrEmail is optional.
-    If the current device isn't provisioned, this function will
-    provision it.
-
-    Note that if usernameOrEmail is an email address, only provisioning
-    will be attempted.  If the device is already provisioned, login
-    via email address does not work.
+    or libkb.DeviceTypeMobile. username is optional. If the current
+    device isn't provisioned, this function will provision it.
     */
-  void login(int sessionID, string deviceType, string usernameOrEmail, ClientType clientType);
+  void login(int sessionID, string deviceType, string username, ClientType clientType);
 
   /**
-    Login a user only if the user is on a provisioned device.  Username is optional.
+    Login a user only if the user is on a provisioned device. Username is optional.
     If noPassphrasePrompt is set, then only a stored secret will be used to unlock
     the device keys.
     */

@@ -84,19 +84,19 @@ func (e *EKLib) backgroundKeygen() {
 	runIfNeeded(true /* force */)
 
 	ticker := libkb.NewBgTicker(keygenInterval)
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	// Run every hour but also check if enough wall clock time has elapsed when
 	// we are in a BACKGROUNDACTIVE state.
 	for {
 		select {
 		case <-ticker.C:
 			runIfNeeded(false /* force */)
-		case state = <-e.G().AppState.NextUpdate(&state):
-			if state == keybase1.AppState_BACKGROUNDACTIVE {
+		case state = <-e.G().MobileAppState.NextUpdate(&state):
+			if state == keybase1.MobileAppState_BACKGROUNDACTIVE {
 				// Before running  we pause briefly so we don't stampede for
 				// resources with other background tasks. libkb.BgTicker
 				// handles this internally, so we only need to throttle on
-				// AppState change.
+				// MobileAppState change.
 				time.Sleep(time.Second)
 				runIfNeeded(false /* force */)
 			}

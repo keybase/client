@@ -328,9 +328,9 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		return chat1.MarkAsReadLocalRes{}, err
 	}
 	// Don't send remote mark as read if we somehow get this in the background.
-	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
+	if h.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
-			h.G().AppState.State())
+			h.G().MobileAppState.State())
 		return chat1.MarkAsReadLocalRes{
 			Offline: h.G().InboxSource.IsOffline(ctx),
 		}, nil
@@ -716,12 +716,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
-		switch h.G().AppState.State() {
-		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		switch h.G().MobileAppState.State() {
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 		default:
 			h.G().Syncer.Disconnected(ctx)
 		}
-		h.G().AppState.Update(keybase1.AppState_FOREGROUND)
+		h.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	}
 
 	// Set last select conversation on syncer

@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -806,7 +807,7 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 }
 
 func (fbo *folderBranchOps) getProtocolSyncConfig(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata) (
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.AssertAnyLocked(lState)
 
@@ -846,7 +847,7 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 }
 
 func (fbo *folderBranchOps) getProtocolSyncConfigUnlocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata) (
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.RLock(lState)
 	defer fbo.syncLock.RUnlock(lState)
@@ -3204,8 +3205,8 @@ func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
 	ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Stat %s", getNodeIDStr(node))
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "Stat %s done: %+v",
-			getNodeIDStr(node), err)
+		fbo.deferLog.CDebugf(ctx, "Stat %s (%d bytes) done: %+v",
+			getNodeIDStr(node), ei.Size, err)
 	}()
 
 	var de DirEntry
@@ -4520,7 +4521,7 @@ func (fbo *folderBranchOps) CreateLink(
 // unrefEntry modifies md to unreference all relevant blocks for the
 // given entry.
 func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
-	lState *kbfssync.LockState, kmd KeyMetadata, ro op, dir path, de DirEntry,
+	lState *kbfssync.LockState, kmd libkey.KeyMetadata, ro op, dir path, de DirEntry,
 	name string) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 	if de.Type == Sym {
@@ -7612,38 +7613,6 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 		ctx, lState, md, bps, newOps, blocksToDelete)
 }
 
-func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
-	lState *kbfssync.LockState) error {
-	// Take the writer lock.
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	// Last chance to get pre-empted.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
-	// We don't want context cancellation after this point, so use a linked
-	// context. There is no race since the linked context has an independent
-	// Done channel.
-	//
-	// Generally we don't want to have any errors in unstageLocked since and
-	// this solution is chosen because:
-	// * If the error is caused by a cancelled context then the recovery (archiving)
-	//   would need to use a separate context anyways.
-	// * In such cases we would have to be very careful where the error occurs
-	//   and what to archive, making that solution much more complicated.
-	// * The other "common" error case is losing server connection and after
-	//   detecting that we won't have much luck archiving things anyways.
-
-	ctx = newLinkedContext(ctx)
-	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
-		fbo.unmergedBID)
-	return fbo.unstageLocked(ctx, lState)
-}
-
 func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 	newBID kbfsmd.BranchID) {
 	lState := makeFBOLockState()
@@ -8315,7 +8284,7 @@ func (fbo *folderBranchOps) GetSyncConfig(
 }
 
 func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata,
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata,
 	paths []string) (FolderSyncEncryptedPartialPaths, error) {
 	fbo.syncLock.AssertLocked(lState)
 

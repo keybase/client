@@ -1,5 +1,6 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
+import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import flags from '../../util/feature-flags'
 import {namedConnect} from '../../util/container'
@@ -15,7 +16,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _openInFilesTab: (path: FsTypes.Path) => dispatch(FsGen.createOpenPathInFilesTab({path})),
+  _openInFilesTab: (path: FsTypes.Path) => dispatch(FsConstants.makeActionForOpenPathInFilesTab(path)),
   loadTlfs: () => dispatch(FsGen.createFavoritesLoad()),
 })
 

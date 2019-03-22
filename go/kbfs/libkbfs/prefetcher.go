@@ -14,6 +14,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -39,7 +40,7 @@ type prefetchRequest struct {
 	ptr            BlockPointer
 	encodedSize    uint32
 	newBlock       func() Block
-	kmd            KeyMetadata
+	kmd            libkey.KeyMetadata
 	priority       int
 	lifetime       BlockCacheLifetime
 	prefetchStatus PrefetchStatus
@@ -476,7 +477,7 @@ func (p *blockPrefetcher) calculatePriority(
 // request maps the parent->child block relationship in the prefetcher, and it
 // triggers child prefetches that aren't already in progress.
 func (p *blockPrefetcher) request(ctx context.Context, priority int,
-	kmd KeyMetadata, info BlockInfo, block Block,
+	kmd libkey.KeyMetadata, info BlockInfo, block Block,
 	lifetime BlockCacheLifetime, parentPtr BlockPointer,
 	isParentNew bool, action BlockRequestAction,
 	idsSeen map[kbfsblock.ID]bool) (
@@ -547,7 +548,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 
 func (p *blockPrefetcher) prefetchIndirectFileBlock(
 	ctx context.Context, parentPtr BlockPointer, b *FileBlock,
-	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
+	kmd libkey.KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
 	action BlockRequestAction, basePriority int) (
 	numBlocks int, numBytesFetched, numBytesTotal uint64, isTail bool) {
 	// Prefetch indirect block pointers.
@@ -566,7 +567,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(
 
 func (p *blockPrefetcher) prefetchIndirectDirBlock(
 	ctx context.Context, parentPtr BlockPointer, b *DirBlock,
-	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
+	kmd libkey.KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
 	action BlockRequestAction, basePriority int) (
 	numBlocks int, numBytesFetched, numBytesTotal uint64, isTail bool) {
 	// Prefetch indirect block pointers.
@@ -585,7 +586,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(
 	ctx context.Context, parentPtr BlockPointer, b *DirBlock,
-	kmd KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
+	kmd libkey.KeyMetadata, lifetime BlockCacheLifetime, isPrefetchNew bool,
 	action BlockRequestAction, basePriority int) (
 	numBlocks int, numBytesFetched, numBytesTotal uint64, isTail bool) {
 	// Prefetch all DirEntry root blocks.
@@ -1220,7 +1221,7 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 
 // ProcessBlockForPrefetch triggers a prefetch if appropriate.
 func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
-	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
+	ptr BlockPointer, block Block, kmd libkey.KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
 	action BlockRequestAction) {
 	req := &prefetchRequest{

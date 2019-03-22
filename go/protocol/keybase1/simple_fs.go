@@ -1287,8 +1287,9 @@ type SimpleFSRemoveArg struct {
 }
 
 type SimpleFSStatArg struct {
-	Path             Path                 `codec:"path" json:"path"`
-	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+	Path                Path                 `codec:"path" json:"path"`
+	IdentifyBehavior    *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
+	RefreshSubscription bool                 `codec:"refreshSubscription" json:"refreshSubscription"`
 }
 
 type SimpleFSGetRevisionsArg struct {

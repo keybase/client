@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -217,4 +218,35 @@ func TestSecretStoreFileNoise(t *testing.T) {
 	require.NoError(t, err)
 
 	require.False(t, bytes.Equal(lksec.Bytes(), corrupt.Bytes()))
+}
+
+func TestPrimeSecretStoreFile(t *testing.T) {
+	td, tdClean := testSSDir(t)
+	defer tdClean()
+
+	tc := SetupTest(t, "secret_store_file", 1)
+	defer tc.Cleanup()
+
+	mctx := NewMetaContextForTest(tc)
+	secretStore := NewSecretStoreFile(td)
+	err := PrimeSecretStore(mctx, secretStore)
+	require.NoError(t, err)
+}
+
+func TestPrimeSecretStoreFileFail(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("this test uses chmod, skipping on Windows")
+	}
+
+	tc := SetupTest(t, "secret_store_file", 1)
+	defer tc.Cleanup()
+
+	td, cleanup := CreateReadOnlySecretStoreDir(tc)
+	defer cleanup()
+
+	mctx := NewMetaContextForTest(tc)
+	secretStore := NewSecretStoreFile(td)
+	err := PrimeSecretStore(mctx, secretStore)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "permission denied")
 }

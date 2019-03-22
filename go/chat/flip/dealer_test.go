@@ -48,6 +48,10 @@ func (t *testDealersHelper) SendChat(ctx context.Context, conversationID chat1.C
 	return nil
 }
 
+func (t *testDealersHelper) ShouldCommit(ctx context.Context) bool {
+	return true
+}
+
 func randBytes(i int) []byte {
 	ret := make([]byte, i)
 	rand.Read(ret[:])

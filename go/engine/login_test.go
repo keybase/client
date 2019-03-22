@@ -2267,7 +2267,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
-		LoginUI:     &libkb.TestLoginUI{Username: users[0].Email},
+		LoginUI:     &libkb.TestLoginUI{Username: users[0].Username},
 		LogUI:       tc.G.UI.GetLogUI(),
 		SecretUI:    users[0].NewSecretUI(),
 		GPGUI:       &gpgtestui{},
@@ -2316,7 +2316,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		SecretUI:    users[2].NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
+	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Username, keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -2330,7 +2330,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 
 	Logout(tc)
 
-	// login via email works now (CORE-6284):
+	// login via email does not work anymore (CORE-10470)
 	uis = libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
@@ -2340,9 +2340,9 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	}
 	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "logging in using e-mail address is not supported")
 }
 
 // create a standard user with device keys, reset account, login.
@@ -3450,6 +3450,34 @@ func TestLoginAlready(t *testing.T) {
 	}
 }
 
+func TestLoginUsernameOnProvisionedDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+
+	secui := u1.NewCountSecretUI()
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, u1.Username, keybase1.ClientType_CLI)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
+		t.Fatalf("login with email should work now, got error: %s (%T)", err, err)
+	}
+
+	assertPassphraseStreamCache(tc)
+	assertDeviceKeysCached(tc)
+	assertSecretStored(tc, u1.Username)
+
+	require.Equal(t, 1, secui.CallCount, "expecting a passphrase prompt when logging in with username")
+}
+
 func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -3467,20 +3495,10 @@ func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, u1.Email, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatalf("login with email should work now, got error: %s (%T)", err, err)
-	}
-
-	assertPassphraseStreamCache(tc)
-	assertDeviceKeysCached(tc)
-	assertSecretStored(tc, u1.Username)
-
-	// make sure they only had to enter passphrase once:
-	if secui.CallCount != 1 {
-		t.Errorf("login with email, passphrase prompts: %d, expected 1", secui.CallCount)
-	}
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "logging in using e-mail address is not supported")
 }
-
 func TestBeforeResetDeviceName(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()

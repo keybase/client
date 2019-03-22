@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -36,7 +37,7 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
 	dirtyBcache := simpleDirtyBlockCacheStandard()
-	getter := func(ctx context.Context, _ KeyMetadata, ptr BlockPointer,
+	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
 		_ path, _ blockReqType) (*DirBlock, bool, error) {
 		isDirty := true
 		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)

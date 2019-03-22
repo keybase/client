@@ -116,6 +116,7 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 		SkipMail:                 true,
 		SkipPaper:                skipPaper,
 		GenerateRandomPassphrase: randomPW,
+		StoreSecret:              true,
 	}
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
