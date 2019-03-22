@@ -107,9 +107,13 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 		}
 	}
 
-	newM, shouldReload := VerifyBoxAudit(m, res.Name.ToTeamID(arg.Public))
-	if shouldReload {
-		return f.Load(newM, originalArg)
+	if m.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+		newM, shouldReload := VerifyBoxAudit(m, res.Name.ToTeamID(arg.Public))
+		if shouldReload {
+			return f.Load(newM, originalArg)
+		}
+	} else {
+		m.Debug("Box auditor feature flagged off; not checking jail during ftl team load...")
 	}
 
 	return res, nil

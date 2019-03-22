@@ -309,9 +309,13 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		}
 	}
 
-	newMctx, shouldReload := VerifyBoxAudit(libkb.NewMetaContext(ctx, l.G()), teamID)
-	if shouldReload {
-		return l.load1(newMctx.Ctx(), me, lArg)
+	if l.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+		newMctx, shouldReload := VerifyBoxAudit(libkb.NewMetaContext(ctx, l.G()), teamID)
+		if shouldReload {
+			return l.load1(newMctx.Ctx(), me, lArg)
+		}
+	} else {
+		l.G().Log.CDebugf(ctx, "Box auditor feature flagged off; not checking jail during team load...")
 	}
 
 	return &ret.team, nil

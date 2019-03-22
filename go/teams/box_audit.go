@@ -158,6 +158,12 @@ func (a *BoxAuditor) initMctx(mctx libkb.MetaContext) libkb.MetaContext {
 func (a *BoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) (err error) {
 	mctx = a.initMctx(mctx)
 	defer mctx.TraceTimed(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
+
+	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+		mctx.Debug("Box auditor feature flagged off; not auditing...")
+		return nil
+	}
+
 	lock := a.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), teamID.String())
 	defer lock.Release(mctx.Ctx())
 	return a.boxAuditTeamLocked(mctx, teamID)
@@ -259,6 +265,11 @@ func (a *BoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, teamID keyb
 	mctx = a.initMctx(mctx)
 	defer mctx.TraceTimed("AssertUnjailedOrReaudit", func() error { return err })()
 
+	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+		mctx.Debug("Box auditor feature flagged off; not AssertUnjailedOrReauditing...")
+		return false, nil
+	}
+
 	inJail, err := a.IsInJail(mctx, teamID)
 	if err != nil {
 		return false, fmt.Errorf("failed to check box audit jail during team load: %s", err)
@@ -279,6 +290,12 @@ func (a *BoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, teamID keyb
 func (a *BoxAuditor) RetryNextBoxAudit(mctx libkb.MetaContext) (err error) {
 	mctx = a.initMctx(mctx)
 	defer mctx.TraceTimed("RetryNextBoxAudit", func() error { return err })()
+
+	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+		mctx.Debug("Box auditor feature flagged off; not RetryNextBoxAuditing...")
+		return nil
+	}
+
 	queueItem, err := a.popRetryQueue(mctx)
 	if err != nil {
 		return err
@@ -298,6 +315,11 @@ func (a *BoxAuditor) BoxAuditRandomTeam(mctx libkb.MetaContext) (err error) {
 	mctx = a.initMctx(mctx)
 	defer mctx.TraceTimed("BoxAuditRandomTeam", func() error { return err })()
 
+	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+		mctx.Debug("Box auditor feature flagged off; not BoxAuditRandomTeaming...")
+		return nil
+	}
+
 	teamID, err := randomKnownTeamID(mctx)
 	if err != nil {
 		return err
@@ -313,6 +335,11 @@ func (a *BoxAuditor) BoxAuditRandomTeam(mctx libkb.MetaContext) (err error) {
 func (a *BoxAuditor) IsInJail(mctx libkb.MetaContext, teamID keybase1.TeamID) (inJail bool, err error) {
 	mctx = a.initMctx(mctx)
 	defer mctx.TraceTimed(fmt.Sprintf("IsInJail(%s)", teamID), func() error { return err })()
+
+	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+		mctx.Debug("Box auditor feature flagged off; not IsInJailing...")
+		return false, nil
+	}
 
 	val, ok := a.getJailLRU().Get(teamID)
 	if ok {
@@ -344,6 +371,7 @@ func (a *BoxAuditor) IsInJail(mctx libkb.MetaContext, teamID keybase1.TeamID) (i
 // the team cache.
 func (a *BoxAuditor) Attempt(mctx libkb.MetaContext, teamID keybase1.TeamID, rotateBeforeAudit bool) (attempt keybase1.BoxAuditAttempt) {
 	mctx = a.initMctx(mctx)
+
 	defer mctx.TraceTimed(fmt.Sprintf("Attempt(%s, %t)", teamID, rotateBeforeAudit), func() error {
 		if attempt.Error != nil {
 			return errors.New(*attempt.Error)
