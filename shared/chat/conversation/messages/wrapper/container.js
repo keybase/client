@@ -142,6 +142,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const forceAsh = !!message.explodingUnreadable
 
   return {
+    authorIsAdmin: false,
+    authorIsOwner: false,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
