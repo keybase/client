@@ -17,7 +17,7 @@ import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import {isIOS, isAndroid} from '../../constants/platform'
+import {isIOS} from '../../constants/platform'
 
 let lastCount = -1
 const updateAppBadge = (_, action) => {
