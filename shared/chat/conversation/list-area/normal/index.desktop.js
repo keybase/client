@@ -40,7 +40,7 @@ type State = {
 
 type Snapshot = ?number
 
-const debug = __STORYBOOK__ || true
+const debug = __STORYBOOK__
 
 class Thread extends React.PureComponent<Props, State> {
   state = {lockedToBottom: true}

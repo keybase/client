@@ -1011,13 +1011,20 @@ const rootReducer = (
       )
     case Chat2Gen.setThreadSearchInProgress:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info => {
-        const old = info || Constants.makeThreadSearchInfo()
-        return old.set('inProgress', action.payload.inProgress)
+        return (info || Constants.makeThreadSearchInfo()).set('inProgress', action.payload.inProgress)
       })
     case Chat2Gen.toggleThreadSearch:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info => {
         const old = info || Constants.makeThreadSearchInfo()
-        return old.set('visible', !old.visible)
+        return old.merge({
+          hits: I.List(),
+          inProgress: false,
+          visible: !old.visible,
+        })
+      })
+    case Chat2Gen.threadSearch:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info => {
+        return (info || Constants.makeThreadSearchInfo()).set('hits', I.List())
       })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
@@ -1150,7 +1157,6 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
-    case Chat2Gen.threadSearch:
     case Chat2Gen.cancelThreadSearch:
       return state
     default:

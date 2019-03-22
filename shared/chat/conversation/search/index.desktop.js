@@ -13,6 +13,7 @@ class ThreadSearch extends React.Component<Props, State> {
   state = {selectedIndex: 0}
   _inputRef = React.createRef()
   _submitSearch = () => {
+    this.setState({selectedIndex: 0})
     this._inputRef.current && this.props.onSearch(this._inputRef.current.getValue())
   }
   _onUp = () => {
