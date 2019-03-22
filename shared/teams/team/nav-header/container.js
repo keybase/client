@@ -53,7 +53,7 @@ const mapStateToPropsTitle = (state, {teamname}) => {
   const description = Constants.getTeamPublicitySettings(state, teamname).description
   const members = Constants.getTeamMemberCount(state, teamname)
   return {
-    _canEditDescription: Constants.getCanPerform(state, teamname).editTeamDescription,
+    _canEditDescAvatar: Constants.getCanPerform(state, teamname).editTeamDescription,
     description,
     members,
     role,
@@ -62,6 +62,14 @@ const mapStateToPropsTitle = (state, {teamname}) => {
 }
 
 const mapDispatchToPropsTitle = (dispatch, {teamname}) => ({
+  onEditAvatar: () =>
+    // On mobile we show the image picker first before opening the dialog. This
+    // is a desktop-only component right now, so just do this.
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}],
+      })
+    ),
   onEditDescription: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'editTeamDescription'}]})
@@ -70,7 +78,8 @@ const mapDispatchToPropsTitle = (dispatch, {teamname}) => ({
 const mergePropsTitle = (stateProps, dispatchProps) => ({
   description: stateProps.description,
   members: stateProps.members,
-  onEditDescription: stateProps._canEditDescription ? dispatchProps.onEditDescription : null,
+  onEditAvatar: stateProps._canEditDescAvatar ? dispatchProps.onEditAvatar : null,
+  onEditDescription: stateProps._canEditDescAvatar ? dispatchProps.onEditDescription : null,
   role: stateProps.role,
   teamname: stateProps.teamname,
 })
