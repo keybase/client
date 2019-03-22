@@ -1,25 +1,25 @@
-// Copyright 2018 Keybase, Inc. All rights reserved. Use of
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 package client
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSReset is the 'fs reset' command.
+// CmdSimpleFSConflicts is the 'fs clear-conflicts' command.
 type CmdSimpleFSClearConflicts struct {
 	libkb.Contextified
 	path keybase1.Path
 }
 
-// NewCmdSimpleFSReset creates a new cli.Command.
+// NewCmdSimpleFSClearConflicts creates a new cli.Command.
 func NewCmdSimpleFSClearConflicts(
 	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{

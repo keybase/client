@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -824,9 +823,6 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
 	require.NoError(t, err)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
 	err = SetCRFailureForTesting(ctx, config2, rootNode2.GetFolderBranch(),
 		alwaysFailCR)
 	require.NoError(t, err)
@@ -859,17 +855,16 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Try to SyncFromServer on user 2.")
-	ctxWithSoonCancel, _ := context.WithTimeout(ctx, 50*time.Millisecond)
-	err = kbfsOps2.SyncFromServer(ctxWithSoonCancel,
+	err = kbfsOps2.SyncFromServer(ctx,
 		rootNode2.GetFolderBranch(), nil)
-	require.Error(t, err, "context deadline exceeded")
+	require.Equal(t, &ErrStillStagedAfterCR{}, err)
 
 	ops, ok := config2.KBFSOps().(*KBFSOpsStandard)
 	require.True(t, ok)
 	fbo := ops.getOpsNoAdd(ctx, rootNode2.GetFolderBranch())
 
 	t.Log("Write a bunch more files as user 2, creating more conflicts.")
-	for i := 0; i < 10; i++ {
+	for i := 0; i < maxConflictResolutionAttempts; i++ {
 		fileName := fmt.Sprintf("file%d", i)
 		newFile, _, err := kbfsOps2.CreateFile(ctx, dirA2, fileName, false,
 			NoExcl)
@@ -887,7 +882,7 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	require.NotZero(t, len(data))
 
 	t.Log("Clear the conflict state and re-enable CR.")
-	err = fbo.clearConflictView(context.Background())
+	err = fbo.clearConflictView(ctx)
 	require.NoError(t, err)
 
 	err = SetCRFailureForTesting(ctx, config2, rootNode2.GetFolderBranch(),
