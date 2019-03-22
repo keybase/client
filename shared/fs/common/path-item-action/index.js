@@ -37,7 +37,7 @@ const IconClickable = props => (
     type="iconfont-ellipsis"
     color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
     hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
-    style={Kb.iconCastPlatformStyles(styles.actionIcon)}
+    padding="tiny"
     fontSize={props.actionIconFontSize}
     onClick={props.onClick}
     ref={props.setRef}
@@ -92,9 +92,6 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
 })
 
 const styles = Styles.styleSheetCreate({
-  actionIcon: {
-    padding: Styles.globalMargins.tiny,
-  },
   floatingContainer: Styles.platformStyles({
     common: {
       overflow: 'visible',
