@@ -37,12 +37,12 @@ const headerActions = dispatch => ({
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {}, selected: 'showNewTeamDialog'}],
+        path: [{props: {}, selected: 'teamNewTeamDialog'}],
       })
     )
   },
   onJoinTeam: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['showJoinTeamDialog']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['teamJoinTeamDialog']}))
   },
 })
 const mapDispatchToProps = (dispatch, {routePath}) => ({

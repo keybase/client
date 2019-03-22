@@ -33,18 +33,18 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     if (!you) {
       return
     }
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   onEditDescription: () =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'editTeamDescription'}]})
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
   onEditIcon: (image?: Response) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}],
+        path: [{props: {image, sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],
       })
     ),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),

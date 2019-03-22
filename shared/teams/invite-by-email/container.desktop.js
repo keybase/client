@@ -54,7 +54,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
               onComplete,
               selectedRole: role,
             },
-            selected: 'controlledRolePicker',
+            selected: 'teamControlledRolePicker',
           },
         ],
       })

@@ -67,7 +67,7 @@ function* createNewTeam(_, action) {
           ? [
               Saga.put(
                 RouteTreeGen.createNavigateAppend({
-                  path: [{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}],
+                  path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
                 })
               ),
             ]
@@ -82,7 +82,7 @@ function* createNewTeam(_, action) {
           : [
               Saga.put(
                 RouteTreeGen.createNavigateAppend({
-                  path: [{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}],
+                  path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
                 })
               ),
             ]),

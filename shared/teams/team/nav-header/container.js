@@ -67,12 +67,12 @@ const mapDispatchToPropsTitle = (dispatch, {teamname}) => ({
     // is a desktop-only component right now, so just do this.
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}],
+        path: [{props: {sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],
       })
     ),
   onEditDescription: () =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'editTeamDescription'}]})
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
 })
 const mergePropsTitle = (stateProps, dispatchProps) => ({
@@ -98,7 +98,7 @@ const mapStateToPropsSub = (state, {teamname}) => ({
 
 const mapDispatchToPropsSub = dispatch => ({
   onAddSelf: (you: string, teamname: string) => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
     dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
 })
