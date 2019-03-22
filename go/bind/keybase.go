@@ -452,8 +452,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 
 	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
 		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
-		func() error { return err })()
-	defer func() { err = flattenError(err) }()
+		func() error { return flattenError(err) })()
 
 	// Unbox
 	if !kbCtx.ActiveDevice.HaveKeys() {
