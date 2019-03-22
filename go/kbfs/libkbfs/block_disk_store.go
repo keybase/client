@@ -5,8 +5,10 @@
 package libkbfs
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -67,11 +69,20 @@ import (
 //
 //   /01ff/f...(30 characters total)...ff/data
 //
-// blockDiskStore is not goroutine-safe, so any code that uses it must
-// guarantee that only one goroutine at a time calls its functions.
+// blockDiskStore is goroutine-safe on a per-operation, per-block ID
+// basis, so any code that uses it can make concurrent calls.
+// However, it's likely that much of the time, the caller will require
+// consistency across multiple calls (i.e., one call to
+// `getDataSize()`, followed by a call to `remove()`), so higher-level
+// locking is also recommended.  For performance reasons though, it's
+// recommended that the `put()` method can be called concurrently, as
+// needed.
 type blockDiskStore struct {
 	codec kbfscodec.Codec
 	dir   string
+
+	lock sync.Mutex
+	puts map[kbfsblock.ID]<-chan struct{}
 }
 
 // filesPerBlockMax is an upper bound for the number of files
@@ -86,6 +97,7 @@ func makeBlockDiskStore(codec kbfscodec.Codec, dir string) *blockDiskStore {
 	return &blockDiskStore{
 		codec: codec,
 		dir:   dir,
+		puts:  make(map[kbfsblock.ID]<-chan struct{}),
 	}
 }
 
@@ -146,7 +158,46 @@ type blockJournalInfo struct {
 
 // TODO: Add caching for refs
 
-// getRefInfo returns the references for the given ID.
+func (s *blockDiskStore) startOpOrWait(id kbfsblock.ID) (
+	closeCh chan<- struct{}, waitCh <-chan struct{}) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	waitCh = s.puts[id]
+	if waitCh == nil {
+		ch := make(chan struct{})
+		s.puts[id] = ch
+		closeCh = ch
+	}
+	return closeCh, waitCh
+}
+
+func (s *blockDiskStore) finishOp(id kbfsblock.ID, closeCh chan<- struct{}) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	delete(s.puts, id)
+	close(closeCh)
+}
+
+func (s *blockDiskStore) exclusify(ctx context.Context, id kbfsblock.ID) (
+	cleanupFn func(), err error) {
+	// Get a guarantee that we're acting exclusively on this
+	// particular block ID.
+	for {
+		closeCh, waitCh := s.startOpOrWait(id)
+		if waitCh == nil {
+			return func() { s.finishOp(id, closeCh) }, nil
+		}
+		select {
+		case <-waitCh:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+}
+
+// getRefInfo returns the references for the given ID.  exclusify must
+// have been called by the caller.
 func (s *blockDiskStore) getInfo(id kbfsblock.ID) (blockJournalInfo, error) {
 	var info blockJournalInfo
 	err := kbfscodec.DeserializeFromFile(s.codec, s.infoPath(id), &info)
@@ -161,19 +212,20 @@ func (s *blockDiskStore) getInfo(id kbfsblock.ID) (blockJournalInfo, error) {
 	return info, nil
 }
 
-// putRefInfo stores the given references for the given ID.
-func (s *blockDiskStore) putInfo(id kbfsblock.ID, info blockJournalInfo) error {
+// putRefInfo stores the given references for the given ID.  exclusify
+// must have been called by the caller.
+func (s *blockDiskStore) putInfo(
+	id kbfsblock.ID, info blockJournalInfo) error {
 	return kbfscodec.SerializeToFile(s.codec, info, s.infoPath(id))
 }
 
 // addRefs adds references for the given contexts to the given ID, all
-// with the same status and tag.
-func (s *blockDiskStore) addRefs(id kbfsblock.ID, contexts []kbfsblock.Context,
-	status blockRefStatus, tag string) error {
+// with the same status and tag.  `exclusify` must be called by the
+// caller.
+func (s *blockDiskStore) addRefsExclusive(
+	id kbfsblock.ID, contexts []kbfsblock.Context, status blockRefStatus,
+	tag string) error {
 	info, err := s.getInfo(id)
-	if err != nil {
-		return err
-	}
 
 	if len(info.Refs) > 0 {
 		// Check existing contexts, if any.
@@ -196,8 +248,8 @@ func (s *blockDiskStore) addRefs(id kbfsblock.ID, contexts []kbfsblock.Context,
 }
 
 // getData returns the data and server half for the given ID, if
-// present.
-func (s *blockDiskStore) getData(id kbfsblock.ID) (
+// present.  `exclusify` must be called by the caller.
+func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	data, err := ioutil.ReadFile(s.dataPath(id))
 	if ioutil.IsNotExist(err) {
@@ -232,9 +284,23 @@ func (s *blockDiskStore) getData(id kbfsblock.ID) (
 	return data, serverHalf, nil
 }
 
+// getData returns the data and server half for the given ID, if
+// present.
+func (s *blockDiskStore) getData(ctx context.Context, id kbfsblock.ID) (
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+	defer cleanup()
+
+	return s.getDataExclusive(id)
+}
+
 // All functions below are public functions.
 
-func (s *blockDiskStore) hasAnyRef(id kbfsblock.ID) (bool, error) {
+func (s *blockDiskStore) hasAnyRefExclusive(
+	id kbfsblock.ID) (bool, error) {
 	info, err := s.getInfo(id)
 	if err != nil {
 		return false, err
@@ -243,7 +309,25 @@ func (s *blockDiskStore) hasAnyRef(id kbfsblock.ID) (bool, error) {
 	return len(info.Refs) > 0, nil
 }
 
-func (s *blockDiskStore) hasNonArchivedRef(id kbfsblock.ID) (bool, error) {
+func (s *blockDiskStore) hasAnyRef(
+	ctx context.Context, id kbfsblock.ID) (bool, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	defer cleanup()
+
+	return s.hasAnyRefExclusive(id)
+}
+
+func (s *blockDiskStore) hasNonArchivedRef(
+	ctx context.Context, id kbfsblock.ID) (bool, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	defer cleanup()
+
 	info, err := s.getInfo(id)
 	if err != nil {
 		return false, err
@@ -252,7 +336,14 @@ func (s *blockDiskStore) hasNonArchivedRef(id kbfsblock.ID) (bool, error) {
 	return info.Refs.hasNonArchivedRef(), nil
 }
 
-func (s *blockDiskStore) getLiveCount(id kbfsblock.ID) (int, error) {
+func (s *blockDiskStore) getLiveCount(
+	ctx context.Context, id kbfsblock.ID) (int, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return 0, err
+	}
+	defer cleanup()
+
 	info, err := s.getInfo(id)
 	if err != nil {
 		return 0, err
@@ -261,7 +352,8 @@ func (s *blockDiskStore) getLiveCount(id kbfsblock.ID) (int, error) {
 	return info.Refs.getLiveCount(), nil
 }
 
-func (s *blockDiskStore) hasContext(id kbfsblock.ID, context kbfsblock.Context) (
+func (s *blockDiskStore) hasContextExclusive(
+	id kbfsblock.ID, context kbfsblock.Context) (
 	bool, blockRefStatus, error) {
 	info, err := s.getInfo(id)
 	if err != nil {
@@ -271,7 +363,19 @@ func (s *blockDiskStore) hasContext(id kbfsblock.ID, context kbfsblock.Context) 
 	return info.Refs.checkExists(context)
 }
 
-func (s *blockDiskStore) hasData(id kbfsblock.ID) (bool, error) {
+func (s *blockDiskStore) hasContext(
+	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context) (
+	bool, blockRefStatus, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return false, unknownBlockRef, err
+	}
+	defer cleanup()
+
+	return s.hasContextExclusive(id, context)
+}
+
+func (s *blockDiskStore) hasDataExclusive(id kbfsblock.ID) (bool, error) {
 	_, err := ioutil.Stat(s.dataPath(id))
 	if ioutil.IsNotExist(err) {
 		return false, nil
@@ -281,8 +385,32 @@ func (s *blockDiskStore) hasData(id kbfsblock.ID) (bool, error) {
 	return true, nil
 }
 
-func (s *blockDiskStore) isUnflushed(id kbfsblock.ID) (bool, error) {
-	ok, err := s.hasData(id)
+func (s *blockDiskStore) hasData(
+	ctx context.Context, id kbfsblock.ID) (bool, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	defer cleanup()
+
+	_, err = ioutil.Stat(s.dataPath(id))
+	if ioutil.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *blockDiskStore) isUnflushed(
+	ctx context.Context, id kbfsblock.ID) (bool, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	defer cleanup()
+
+	ok, err := s.hasDataExclusive(id)
 	if err != nil {
 		return false, err
 	}
@@ -300,7 +428,14 @@ func (s *blockDiskStore) isUnflushed(id kbfsblock.ID) (bool, error) {
 	return !info.Flushed, nil
 }
 
-func (s *blockDiskStore) markFlushed(id kbfsblock.ID) error {
+func (s *blockDiskStore) markFlushed(
+	ctx context.Context, id kbfsblock.ID) error {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
 	info, err := s.getInfo(id)
 	if err != nil {
 		return err
@@ -310,7 +445,14 @@ func (s *blockDiskStore) markFlushed(id kbfsblock.ID) error {
 	return s.putInfo(id, info)
 }
 
-func (s *blockDiskStore) getDataSize(id kbfsblock.ID) (int64, error) {
+func (s *blockDiskStore) getDataSize(
+	ctx context.Context, id kbfsblock.ID) (int64, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return 0, err
+	}
+	defer cleanup()
+
 	fi, err := ioutil.Stat(s.dataPath(id))
 	if ioutil.IsNotExist(err) {
 		return 0, nil
@@ -320,9 +462,10 @@ func (s *blockDiskStore) getDataSize(id kbfsblock.ID) (int64, error) {
 	return fi.Size(), nil
 }
 
-func (s *blockDiskStore) getDataWithContext(id kbfsblock.ID, context kbfsblock.Context) (
+func (s *blockDiskStore) getDataWithContextExclusive(
+	id kbfsblock.ID, context kbfsblock.Context) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	hasContext, _, err := s.hasContext(id, context)
+	hasContext, _, err := s.hasContextExclusive(id, context)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -331,7 +474,19 @@ func (s *blockDiskStore) getDataWithContext(id kbfsblock.ID, context kbfsblock.C
 			blockNonExistentError{id}
 	}
 
-	return s.getData(id)
+	return s.getDataExclusive(id)
+}
+
+func (s *blockDiskStore) getDataWithContext(
+	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context) (
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+	defer cleanup()
+
+	return s.getDataWithContextExclusive(id, context)
 }
 
 func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error) {
@@ -400,16 +555,27 @@ func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, erro
 // indicates whether the data didn't already exist and was put; if
 // false, it means that the data already exists, but this might have
 // added a new ref.
-func (s *blockDiskStore) put(isRegularPut bool, id kbfsblock.ID, context kbfsblock.Context,
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	tag string) (putData bool, err error) {
+//
+// For performance reasons, this method can be called concurrently by
+// many goroutines for different blocks.
+func (s *blockDiskStore) put(
+	ctx context.Context, isRegularPut bool, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf, tag string) (
+	putData bool, err error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	defer cleanup()
+
 	err = validateBlockPut(isRegularPut, id, context, buf)
 	if err != nil {
 		return false, err
 	}
 
 	// Check the data and retrieve the server half, if they exist.
-	_, existingServerHalf, err := s.getDataWithContext(id, context)
+	_, existingServerHalf, err := s.getDataWithContextExclusive(id, context)
 	var exists bool
 	switch err.(type) {
 	case blockNonExistentError:
@@ -456,33 +622,56 @@ func (s *blockDiskStore) put(isRegularPut bool, id kbfsblock.ID, context kbfsblo
 		}
 	}
 
-	err = s.addRefs(id, []kbfsblock.Context{context}, liveBlockRef, tag)
-	if err != nil {
-		return false, err
+	if tag != "" {
+		err = s.addRefsExclusive(
+			id, []kbfsblock.Context{context}, liveBlockRef, tag)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	return !exists, nil
 }
 
 func (s *blockDiskStore) addReference(
-	id kbfsblock.ID, context kbfsblock.Context, tag string) error {
-	err := s.makeDir(id)
+	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
+	tag string) error {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
+	err = s.makeDir(id)
 	if err != nil {
 		return err
 	}
 
-	return s.addRefs(id, []kbfsblock.Context{context}, liveBlockRef, tag)
+	return s.addRefsExclusive(
+		id, []kbfsblock.Context{context}, liveBlockRef, tag)
+}
+
+func (s *blockDiskStore) archiveReference(
+	ctx context.Context, id kbfsblock.ID, idContexts []kbfsblock.Context,
+	tag string) error {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
+	err = s.makeDir(id)
+	if err != nil {
+		return err
+	}
+
+	return s.addRefsExclusive(id, idContexts, archivedBlockRef, tag)
 }
 
 func (s *blockDiskStore) archiveReferences(
-	contexts kbfsblock.ContextMap, tag string) error {
+	ctx context.Context, contexts kbfsblock.ContextMap, tag string) error {
 	for id, idContexts := range contexts {
-		err := s.makeDir(id)
-		if err != nil {
-			return err
-		}
-
-		err = s.addRefs(id, idContexts, archivedBlockRef, tag)
+		err := s.archiveReference(ctx, id, idContexts, tag)
 		if err != nil {
 			return err
 		}
@@ -496,8 +685,14 @@ func (s *blockDiskStore) archiveReferences(
 // removed only if its most recent tag (passed in to addRefs) matches
 // the given one.
 func (s *blockDiskStore) removeReferences(
-	id kbfsblock.ID, contexts []kbfsblock.Context, tag string) (
-	liveCount int, err error) {
+	ctx context.Context, id kbfsblock.ID, contexts []kbfsblock.Context,
+	tag string) (liveCount int, err error) {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return 0, err
+	}
+	defer cleanup()
+
 	info, err := s.getInfo(id)
 	if err != nil {
 		return 0, err
@@ -526,8 +721,14 @@ func (s *blockDiskStore) removeReferences(
 
 // remove removes any existing data for the given ID, which must not
 // have any references left.
-func (s *blockDiskStore) remove(id kbfsblock.ID) error {
-	hasAnyRef, err := s.hasAnyRef(id)
+func (s *blockDiskStore) remove(ctx context.Context, id kbfsblock.ID) error {
+	cleanup, err := s.exclusify(ctx, id)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
+	hasAnyRef, err := s.hasAnyRefExclusive(id)
 	if err != nil {
 		return err
 	}
@@ -551,6 +752,6 @@ func (s *blockDiskStore) remove(id kbfsblock.ID) error {
 	return err
 }
 
-func (s blockDiskStore) clear() error {
+func (s *blockDiskStore) clear() error {
 	return ioutil.RemoveAll(s.dir)
 }
