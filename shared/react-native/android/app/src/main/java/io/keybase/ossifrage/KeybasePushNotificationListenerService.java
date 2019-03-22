@@ -11,6 +11,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Map;
 
 import io.keybase.ossifrage.modules.NativeLogger;
@@ -24,6 +28,11 @@ import static keybase.Keybase.initOnce;
 public class KeybasePushNotificationListenerService extends RNPushNotificationListenerService {
     @Override
     public void onCreate() {
+        try {
+            Keybase.setGlobalExternalKeyStore(new KeyStore(getApplicationContext(), getSharedPreferences("KeyStore", MODE_PRIVATE)));
+        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
+            NativeLogger.error("Exception in KeybasePushNotificationListenerService.onCreate while trying to link the Android KeyStore to go bind", e);
+        }
         initOnce(getApplicationContext().getFilesDir().getPath(), "", getApplicationContext().getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
                 new DNSNSFetcher(), new VideoHelper());
         NativeLogger.info("KeybasePushNotificationListenerService created. path: " + getApplicationContext().getFilesDir().getPath());
