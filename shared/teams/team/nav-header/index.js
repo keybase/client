@@ -70,7 +70,10 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       onEditAvatarClick={props.onEditAvatar}
       teamname={props.teamname}
       size={48}
-      style={props.onEditAvatar && styles.marginRightTiny} // for edit icon
+      style={Styles.collapseStyles([
+        props.onEditAvatar && styles.marginRightTiny, // space for edit icon
+        props.onEditAvatar && styles.clickable,
+      ])}
     />
     <Kb.Box2 direction="vertical">
       <Kb.Text type="Header">{props.teamname}</Kb.Text>
