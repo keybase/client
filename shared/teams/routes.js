@@ -155,7 +155,10 @@ export const newModalRoutes = {
     getScreen: () => require('./team/really-remove-member/container').default,
     upgraded: true,
   },
-  retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
+  retentionWarning: {
+    getScreen: () => require('./team/settings-tab/retention/warning/container').default,
+    upgraded: true,
+  },
   rolePicker: {getScreen: () => require('./role-picker/container').default},
   showJoinTeamDialog: {getScreen: () => require('./join-team/container').default, upgraded: true},
   showNewTeamDialog: {getScreen: () => require('./new-team/container').default, upgraded: true},
