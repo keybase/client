@@ -151,7 +151,10 @@ export const newModalRoutes = {
   },
   inviteByEmail: {getScreen: () => require('./invite-by-email/container').default, upgraded: true},
   reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default, upgraded: true},
-  reallyRemoveMember: {getScreen: () => require('./team/really-remove-member/container').default},
+  reallyRemoveMember: {
+    getScreen: () => require('./team/really-remove-member/container').default,
+    upgraded: true,
+  },
   retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
   rolePicker: {getScreen: () => require('./role-picker/container').default},
   showJoinTeamDialog: {getScreen: () => require('./join-team/container').default, upgraded: true},
