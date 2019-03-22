@@ -12,20 +12,6 @@
   ],
   "types": [
     {
-      "type": "record",
-      "name": "BoxPublicSummary",
-      "fields": [
-        {
-          "type": {
-            "type": "map",
-            "values": "Seqno",
-            "keys": "UID"
-          },
-          "name": "table"
-        }
-      ]
-    },
-    {
       "type": "enum",
       "name": "BoxAuditAttemptResult",
       "symbols": [

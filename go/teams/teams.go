@@ -904,7 +904,7 @@ func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keyb
 }
 
 func (t *Team) GetBoxSummaryHashes() map[keybase1.PerTeamKeyGeneration][]keybase1.BoxSummaryHash {
-	return t.chain().inner.BoxSummaryHashes
+	return t.chain().GetBoxSummaryHashes()
 }
 
 // If uv.Uid is set, then username is ignored.

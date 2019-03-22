@@ -2037,7 +2037,6 @@ export type BoxAuditAttemptResult =
 
 export type BoxNonce = ?string
 export type BoxPublicKey = ?string
-export type BoxPublicSummary = $ReadOnly<{table: {[key: string]: Seqno}}>
 export type BoxSummaryHash = String
 export type BulkRes = $ReadOnly<{invited?: ?Array<String>, alreadyInvited?: ?Array<String>, malformed?: ?Array<String>}>
 export type Bytes32 = ?string

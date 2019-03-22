@@ -10,7 +10,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -23,11 +22,6 @@ func toErr(attempt keybase1.BoxAuditAttempt) error {
 		return errors.New(*attempt.Error)
 	}
 	return nil
-}
-
-func _() {
-	// TODO RM
-	spew.Dump("")
 }
 
 func mustGetJailLRU(tc *libkb.TestContext, a libkb.TeamBoxAuditor) *lru.Cache {

@@ -8,27 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type BoxPublicSummary struct {
-	Table map[UID]Seqno `codec:"table" json:"table"`
-}
-
-func (o BoxPublicSummary) DeepCopy() BoxPublicSummary {
-	return BoxPublicSummary{
-		Table: (func(x map[UID]Seqno) map[UID]Seqno {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[UID]Seqno, len(x))
-			for k, v := range x {
-				kCopy := k.DeepCopy()
-				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.Table),
-	}
-}
-
 type BoxAuditAttemptResult int
 
 const (

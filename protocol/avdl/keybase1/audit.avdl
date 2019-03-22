@@ -3,10 +3,6 @@ protocol audit {
     import idl "common.avdl";
     import idl "teams.avdl";
 
-    record BoxPublicSummary {
-        map<UID, Seqno> table;
-    }
-
     enum BoxAuditAttemptResult {
         FAILURE_RETRYABLE_0,
         FAILURE_MALICIOUS_SERVER_1,
