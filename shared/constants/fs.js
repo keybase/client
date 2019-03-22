@@ -865,6 +865,11 @@ export const canChat = (path: Types.Path) => {
   }
 }
 
+export const isTeamPath = (path: Types.Path): boolean => {
+  const parsedPath = parsePath(path)
+  return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
+}
+
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case 'camera-roll':
