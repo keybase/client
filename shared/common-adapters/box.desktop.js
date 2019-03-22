@@ -46,8 +46,8 @@ const box2 = (props: Box2Props) => {
   let style = props.style
   // uncomment this to get debugging colors
   // style = {
-  // ...style,
-  // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+  //   ...style,
+  //   backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
   // }
   return (
     <div

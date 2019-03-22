@@ -120,6 +120,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   participants: stateProps._participants
     .map(p => ({
       fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
+      isAdmin: false,
+      isOwner: false,
       username: p,
     }))
     .toArray(),
