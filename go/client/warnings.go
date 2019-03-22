@@ -5,24 +5,54 @@ package client
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	context "golang.org/x/net/context"
-	"time"
 )
+
+func PrintAccountResetWarning(g *libkb.GlobalContext) {
+	g.Log.Debug("+ PrintAccountResetWarning")
+	defer g.Log.Debug("- PrintAccountResetWarning")
+	var err error
+	defer func() {
+		if err != nil {
+			g.Log.Debug("Ignoring error in PrintAccountResetWarning: %s", err)
+		}
+	}()
+
+	cli, err := GetBadgerClient(g)
+	if err != nil {
+		return
+	}
+	badgeState, err := cli.GetBadgeState(context.TODO())
+	if err != nil {
+		return
+	}
+	resetState := badgeState.ResetState
+	if resetState.EndTime > 0 {
+		g.Log.Warning(resetState.Msg)
+		g.Log.Warning("To cancel the process run `keybase account reset-cancel`")
+	}
+}
 
 func PrintOutOfDateWarnings(g *libkb.GlobalContext) {
 	g.Log.Debug("+ PrintOutOfDateWarnings")
 	defer g.Log.Debug("- PrintOutOfDateWarnings")
+	var err error
+	defer func() {
+		if err != nil {
+			g.Log.Debug("Ignoring error in PrintOutOfDateWarnings: %s", err)
+		}
+	}()
 
 	cli, err := GetConfigClient(g)
 	if err != nil {
-		g.Log.Debug("Ignoring error in printOutOfDateWarnings: %s", err)
 		return
 	}
 
 	info, err := cli.CheckAPIServerOutOfDateWarning(context.TODO())
 	if err != nil {
-		g.Log.Debug("Ignoring error in printOutOfDateWarnings: %s", err)
 		return
 	}
 	g.Log.Debug("Got OutOfDateInfo: %#v", info)
