@@ -417,6 +417,9 @@
     "hideConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    "unhideConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     // Conversation was loaded and is offline
     "setConversationOffline": {
       "conversationIDKey": "Types.ConversationIDKey",

@@ -7,6 +7,7 @@ import type {TypedState} from '../../../constants/reducer'
 import {memoize} from '../../../util/memoize'
 
 export const maxShownConversations = 3
+// xxx hide ignored convs in widget
 
 export type RemoteConvMeta = $Diff<
   {|

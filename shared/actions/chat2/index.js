@@ -2163,6 +2163,14 @@ function* hideConversation(_, action) {
   })
 }
 
+function* unhideConversation(_, action) {
+  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    status: RPCChatTypes.commonConversationStatus.unfiled,
+  })
+}
+
 const setConvRetentionPolicy = (_, action) => {
   const {conversationIDKey, policy} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
@@ -2934,6 +2942,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainGenerator<Chat2Gen.BlockConversationPayload>(Chat2Gen.blockConversation, blockConversation)
   yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(Chat2Gen.hideConversation, hideConversation)
+  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(
+    Chat2Gen.unhideConversation,
+    unhideConversation
+  )
 
   yield* Saga.chainAction<Chat2Gen.SetConvRetentionPolicyPayload>(
     Chat2Gen.setConvRetentionPolicy,

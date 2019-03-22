@@ -1,5 +1,7 @@
 // @flow
-import * as Constants from '../../../../constants/teams'
+import * as TeamConstants from '../../../../constants/teams'
+import * as ChatConstants from '../../../../constants/chat2'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
@@ -34,7 +36,7 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
   })
 }
 
-const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
+const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
   // skip a bunch of stuff for menus that aren't visible
   if (!visible) {
     return {
@@ -48,10 +50,10 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
       teamname,
     }
   }
-  const yourOperations = Constants.getCanPerform(state, teamname)
+  const yourOperations = TeamConstants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
-  const hasCanPerform = Constants.hasCanPerform(state, teamname)
-  const badgeSubscribe = !Constants.isTeamWithChosenChannels(state, teamname)
+  const hasCanPerform = TeamConstants.hasCanPerform(state, teamname)
+  const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
 
   const manageChannelsTitle = isSmallTeam
     ? 'Create chat channels...'
@@ -63,10 +65,13 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
     hasCanPerform,
+    ignored:
+      state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta()).status ===
+      RPCChatTypes.commonConversationStatus.ignored,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
-    memberCount: Constants.getTeamMemberCount(state, teamname),
+    memberCount: TeamConstants.getTeamMemberCount(state, teamname),
     teamname,
   }
 }
@@ -86,6 +91,9 @@ const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) =
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     }
   },
+  onHideConv: () => {
+    dispatch(ChatGen.createHideConversation({conversationIDKey}))
+  },
   onInvite: () => {
     if (flags.useNewRouter) {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'inviteByEmail'}]}))
@@ -99,15 +107,15 @@ const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) =
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     }
   },
-  onHideConv: () => {
-    dispatch(ChatGen.createHideConversation({conversationIDKey}))
-  },
   onLeaveTeam: () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
   },
   onManageChannels: () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]}))
     dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
+  },
+  onUnhideConv: () => {
+    dispatch(ChatGen.createUnhideConversation({conversationIDKey}))
   },
   onViewTeam: () => {
     if (flags.useNewRouter) {

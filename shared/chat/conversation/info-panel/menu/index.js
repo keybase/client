@@ -14,12 +14,14 @@ export type Props = {
   teamname: string,
   visible: boolean,
   hasCanPerform: boolean,
+  ignored: boolean,
   loadOperations: () => void,
   onAddPeople: () => void,
   onHidden: () => void,
   onInvite: () => void,
   onLeaveTeam: () => void,
   onHideConv: () => void,
+  onUnhideConv: () => void,
   onManageChannels: () => void,
   onViewTeam: () => void,
 }
@@ -79,7 +81,14 @@ class InfoPanelMenu extends React.Component<Props> {
     const items = [
       ...(props.canAddPeople ? addPeopleItems : []),
       {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
-      {onClick: props.onHideConv, style: {borderTopWidth: 0}, title: 'Hide conversation', subTitle: 'Until next message'},
+      this.props.ignored
+        ? {onClick: props.onUnhideConv, style: {borderTopWidth: 0}, title: 'Unhide conversation'}
+        : {
+            onClick: props.onHideConv,
+            style: {borderTopWidth: 0},
+            subTitle: 'Until next message',
+            title: 'Hide conversation',
+          },
       channelItem,
       {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
     ]

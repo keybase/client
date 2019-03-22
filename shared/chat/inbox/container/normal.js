@@ -27,13 +27,15 @@ const splitMetas = memoize((metaMap: Types.MetaMap) => {
   return {bigMetas, smallMetas}
 })
 
-const hideIgnoredConvs = meta => {
-  return meta.status !== RPCChatTypes.commonConversationStatus.ignored
-}
-
 const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
 const getSmallRows = memoize(
-  (smallMetas, showAllSmallRows) => {
+  (smallMetas, showAllSmallRows, selectedConversation) => {
+    const hideIgnoredConvs = meta => {
+      const ok =
+        meta.status !== RPCChatTypes.commonConversationStatus.ignored ||
+        meta.conversationIDKey === selectedConversation
+      return ok
+    }
     let metas
     if (showAllSmallRows) {
       metas = smallMetas.filter(hideIgnoredConvs).sort(sortByTimestamp)
@@ -46,7 +48,11 @@ const getSmallRows = memoize(
     }
     return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
   },
-  ([newMetas, newShowSmallRows], [oldMetas, oldShowSmallRows]) =>
+  (
+    [newMetas, newShowSmallRows, newSelectedConversation],
+    [oldMetas, oldShowSmallRows, oldSelectedConversation]
+  ) =>
+    newSelectedConversation === oldSelectedConversation &&
     newShowSmallRows === oldShowSmallRows &&
     newMetas.length === oldMetas.length &&
     newMetas.every((a, idx) => {
@@ -84,11 +90,11 @@ const getBigRows = memoize(
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize<Types.MetaMap, boolean, void, void, _>(
-  (metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
+const getRowsAndMetadata = memoize<Types.MetaMap, boolean, Types.ConversationIDKey, void, _>(
+  (metaMap: Types.MetaMap, smallTeamsExpanded: boolean, selectedConversation: Types.ConversationIDKey) => {
     const {bigMetas, smallMetas} = splitMetas(metaMap)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
-    const smallRows = getSmallRows(smallMetas, showAllSmallRows)
+    const smallRows = getSmallRows(smallMetas, showAllSmallRows, selectedConversation)
     const bigRows = getBigRows(bigMetas)
     const smallTeamsBelowTheFold = smallMetas.length > smallRows.length
     const divider = bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []

@@ -42,13 +42,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
-  const isDecryptingSnippet = (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
+  const isDecryptingSnippet =
+    (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
   const hasResetUsers = !stateProps._meta.resetParticipants.isEmpty()
 
   return {
     backgroundColor: styles.backgroundColor,
+    conversationIDKey: stateProps._meta.conversationIDKey,
     hasBadge: stateProps.hasBadge,
-    hasBottomLine: stateProps.youAreReset || participantNeedToRekey || isDecryptingSnippet || !!stateProps.snippet || youNeedToRekey || hasResetUsers,
+    hasBottomLine:
+      stateProps.youAreReset ||
+      participantNeedToRekey ||
+      isDecryptingSnippet ||
+      !!stateProps.snippet ||
+      youNeedToRekey ||
+      hasResetUsers,
     hasResetUsers,
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
@@ -66,7 +74,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     snippetDecoration: stateProps.snippetDecoration,
     subColor: styles.subColor,
     teamname: stateProps._meta.teamname,
-    conversationIDKey: stateProps._meta.conversationIDKey,
     timestamp: Constants.timestampToString(stateProps._meta),
     usernameColor: styles.usernameColor,
     youAreReset: stateProps.youAreReset,

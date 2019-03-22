@@ -106,6 +106,7 @@ export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
+export const unhideConversation = 'chat2:unhideConversation'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
@@ -216,6 +217,7 @@ type _ToggleSmallTeamsExpandedPayload = void
 type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _UnfurlResolvePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult|}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, show: boolean|}>
+type _UnhideConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _UnsentTextChangedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
 type _UpdateCoinFlipStatusPayload = $ReadOnly<{|statuses: Array<RPCChatTypes.UICoinFlipStatus>|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
@@ -445,6 +447,7 @@ export const createSetPendingMode = (payload: _SetPendingModePayload) => ({paylo
 export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({payload, type: setPendingStatus})
 export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload) => ({payload, type: toggleInfoPanel})
 export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({payload, type: toggleSmallTeamsExpanded})
+export const createUnhideConversation = (payload: _UnhideConversationPayload) => ({payload, type: unhideConversation})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
 
@@ -544,6 +547,7 @@ export type ToggleSmallTeamsExpandedPayload = {|+payload: _ToggleSmallTeamsExpan
 export type UnfurlRemovePayload = {|+payload: _UnfurlRemovePayload, +type: 'chat2:unfurlRemove'|}
 export type UnfurlResolvePromptPayload = {|+payload: _UnfurlResolvePromptPayload, +type: 'chat2:unfurlResolvePrompt'|}
 export type UnfurlTogglePromptPayload = {|+payload: _UnfurlTogglePromptPayload, +type: 'chat2:unfurlTogglePrompt'|}
+export type UnhideConversationPayload = {|+payload: _UnhideConversationPayload, +type: 'chat2:unhideConversation'|}
 export type UnsentTextChangedPayload = {|+payload: _UnsentTextChangedPayload, +type: 'chat2:unsentTextChanged'|}
 export type UpdateCoinFlipStatusPayload = {|+payload: _UpdateCoinFlipStatusPayload, +type: 'chat2:updateCoinFlipStatus'|}
 export type UpdateConvExplodingModesPayload = {|+payload: _UpdateConvExplodingModesPayload, +type: 'chat2:updateConvExplodingModes'|}
@@ -653,6 +657,7 @@ export type Actions =
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
+  | UnhideConversationPayload
   | UnsentTextChangedPayload
   | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload

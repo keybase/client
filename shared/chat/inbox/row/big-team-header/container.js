@@ -7,14 +7,14 @@ import {BigTeamHeader} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 type OwnProps = {|
-  teamname: string,
   conversationIDKey: ChatTypes.ConversationIDKey,
+  teamname: string,
 |}
 
 const mapStateToProps = (state, {teamname, conversationIDKey}) => ({
   badgeSubscribe: !isTeamWithChosenChannels(state, teamname),
-  teamname,
   conversationIDKey,
+  teamname,
 })
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
@@ -24,9 +24,9 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({
   badgeSubscribe: stateProps.badgeSubscribe,
+  conversationIDKey: stateProps.conversationIDKey,
   onClick: dispatchProps.onClick,
   teamname: stateProps.teamname,
-  conversationIDKey: stateProps.conversationIDKey,
 })
 
 export default connect<OwnProps, _, _, _, _>(
