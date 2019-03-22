@@ -36,6 +36,7 @@ export type _ConversationMeta = {
   retentionPolicy: RetentionPolicy,
   snippet: string,
   snippetDecoration: string,
+  status: RPCChatTypes.ConversationStatus,
   supersededBy: Common.ConversationIDKey,
   supersedes: Common.ConversationIDKey,
   teamType: TeamType,
