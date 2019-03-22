@@ -1622,6 +1622,20 @@ func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).ClearCachedFavorites), arg0)
 }
 
+// ClearConflictView mocks base method
+func (m *MockKBFSOps) ClearConflictView(arg0 context.Context, arg1 tlf.ID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClearConflictView", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClearConflictView indicates an expected call of ClearConflictView
+func (mr *MockKBFSOpsMockRecorder) ClearConflictView(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearConflictView", reflect.TypeOf((*MockKBFSOps)(nil).ClearConflictView), arg0, arg1)
+}
+
 // ClearPrivateFolderMD mocks base method
 func (m *MockKBFSOps) ClearPrivateFolderMD(arg0 context.Context) {
 	m.ctrl.T.Helper()

@@ -34,6 +34,8 @@ import (
 // conflict resolution
 type CtxCRTagKey int
 
+type failModeForTest int
+
 const (
 	// CtxCRIDKey is the type of the tag for unique operation IDs
 	// related to conflict resolution
@@ -60,8 +62,8 @@ const (
 	// we should give up.
 	maxConflictResolutionAttempts = 10
 
-	alwaysFailCR      = true
-	doNotAlwaysFailCR = false
+	alwaysFailCR failModeForTest = iota
+	doNotAlwaysFailCR
 )
 
 // ErrTooManyCRAttempts is an error that indicates that CR has failed
@@ -104,7 +106,7 @@ type ConflictResolver struct {
 	lockNextTime  bool
 	canceledCount int
 
-	alwaysFailForTest bool
+	failModeForTest failModeForTest
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -3380,8 +3382,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
 
 	err = cr.recordStartResolve(ci)
-	errCause := errors.Cause(err)
-	switch errCause {
+	switch errors.Cause(err) {
 	case ErrTooManyCRAttempts:
 		cr.log.CWarningf(ctx,
 			"Too many failed CR attempts for folder: %v", cr.fbo.id())
@@ -3433,7 +3434,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	if cr.alwaysFailForTest {
+	if cr.failModeForTest == alwaysFailCR {
 		err = ErrCRFailForTest
 		return
 	}

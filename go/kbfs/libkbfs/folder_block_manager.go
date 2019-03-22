@@ -383,7 +383,6 @@ func (fbm *folderBlockManager) archiveUnrefBlocks(md ReadOnlyRootMetadata) {
 	if md.MergedStatus() != kbfsmd.Merged {
 		return
 	}
-	// TODO: consider a different action in the event that a conflict is paused.
 
 	if err := isArchivableMDOrError(md); err != nil {
 		panic(err)

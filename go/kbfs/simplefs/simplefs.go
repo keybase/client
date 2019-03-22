@@ -2270,11 +2270,16 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 // SimpleFSClearConflictState implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
-	// TODO: there's got to be a better way to get a TLF ID
-	tlfID, _, err := k.getSyncConfig(ctx, path)
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
 	if err != nil {
 		return err
 	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
 	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
 }
 
