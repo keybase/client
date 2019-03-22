@@ -5,9 +5,9 @@ import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 import type {TypedState} from '../../../constants/reducer'
 import {memoize} from '../../../util/memoize'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export const maxShownConversations = 3
-// xxx hide ignored convs in widget
 
 export type RemoteConvMeta = $Diff<
   {|
@@ -29,7 +29,10 @@ const valuesCached = memoize(
     conversation: ChatTypes.ConversationMeta,
   }> =>
     metaMap
-      .filter((_, id) => Constants.isValidConversationIDKey(id))
+      .filter(
+        (v, id) =>
+          Constants.isValidConversationIDKey(id) && v.status !== RPCChatTypes.commonConversationStatus.ignored
+      )
       .map(v => ({
         conversation: v,
         hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
