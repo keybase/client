@@ -28,7 +28,7 @@ const (
 type AppStateUpdater interface {
 	// NextAppStateUpdate returns a channel that app state changes
 	// are sent to.
-	NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState
+	NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState
 }
 
 // EmptyAppStateUpdater is an implementation of AppStateUpdater that
@@ -36,7 +36,7 @@ type AppStateUpdater interface {
 type EmptyAppStateUpdater struct{}
 
 // NextAppStateUpdate implements AppStateUpdater.
-func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState {
+func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
 	// Receiving on a nil channel blocks forever.
 	return nil
 }
@@ -116,8 +116,8 @@ func (c *KBFSContext) GetRunMode() kbconst.RunMode {
 }
 
 // NextAppStateUpdate implements AppStateUpdater.
-func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState {
-	return c.g.AppState.NextUpdate(lastState)
+func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.MobileAppState) <-chan keybase1.MobileAppState {
+	return c.g.MobileAppState.NextUpdate(lastState)
 }
 
 // CheckService checks if the service is running and returns nil if

@@ -184,7 +184,7 @@ func (s *Server) restart() (err error) {
 }
 
 func (s *Server) monitorAppState(ctx context.Context) {
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		select {
 		case <-ctx.Done():
@@ -199,7 +199,7 @@ func (s *Server) monitorAppState(ctx context.Context) {
 			// there are other possible states too, and potentially more in the
 			// future. So, we just restart the server under FOREGROUND instead
 			// of trying to listen on all state updates.
-			if state != keybase1.AppState_FOREGROUND {
+			if state != keybase1.MobileAppState_FOREGROUND {
 				continue
 			}
 			if err := s.restart(); err != nil {

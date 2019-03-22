@@ -20,20 +20,20 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType      string
-	usernameOrEmail string
-	clientType      keybase1.ClientType
+	deviceType string
+	username   string
+	clientType keybase1.ClientType
 }
 
 // NewLogin creates a Login engine.  username is optional.
 // deviceType should be libkb.DeviceTypeDesktop or
 // libkb.DeviceTypeMobile.
-func NewLogin(g *libkb.GlobalContext, deviceType string, usernameOrEmail string, ct keybase1.ClientType) *Login {
+func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType) *Login {
 	return &Login{
-		Contextified:    libkb.NewContextified(g),
-		deviceType:      deviceType,
-		usernameOrEmail: strings.TrimSpace(usernameOrEmail),
-		clientType:      ct,
+		Contextified: libkb.NewContextified(g),
+		deviceType:   deviceType,
+		username:     strings.TrimSpace(username),
+		clientType:   ct,
 	}
 }
 
@@ -63,12 +63,16 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Login) Run(m libkb.MetaContext) (err error) {
-
 	m = m.WithLogTag("LOGIN")
-
 	defer m.Trace("Login#Run", func() error { return err })()
-	// check to see if already logged in
 
+	if len(e.username) > 0 && libkb.CheckEmail.F(e.username) {
+		// We used to support logging in with e-mail but we don't anymore,
+		// since 2019-03-20.(CORE-10470).
+		return fmt.Errorf("logging in using e-mail address is not supported")
+	}
+
+	// check to see if already logged in
 	var loggedInOK bool
 	loggedInOK, err = e.checkLoggedInAndNotRevoked(m)
 	if err != nil {
@@ -80,25 +84,18 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	}
 	m.Debug("Login: not currently logged in")
 
-	if len(e.usernameOrEmail) > 0 && libkb.CheckEmail.F(e.usernameOrEmail) {
-		// If e.usernameOrEmail is provided and it is an email address, then
-		// loginProvisionedDevice is pointless.  It would return an error,
-		// but might as well not even use it.
-		m.Debug("skipping loginProvisionedDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
-	} else {
-		// First see if this device is already provisioned and it is possible to log in.
-		loggedInOK, err := e.loginProvisionedDevice(m, e.usernameOrEmail)
-		if err != nil {
-			m.Debug("loginProvisionedDevice error: %s", err)
-			return err
-		}
-		if loggedInOK {
-			m.Debug("loginProvisionedDevice success")
-			return nil
-		}
-
-		m.Debug("loginProvisionedDevice failed, continuing with device provisioning")
+	// First see if this device is already provisioned and it is possible to log in.
+	loggedInOK, err = e.loginProvisionedDevice(m, e.username)
+	if err != nil {
+		m.Debug("loginProvisionedDevice error: %s", err)
+		return err
 	}
+	if loggedInOK {
+		m.Debug("loginProvisionedDevice success")
+		return nil
+	}
+
+	m.Debug("loginProvisionedDevice failed, continuing with device provisioning")
 
 	// clear out any existing session:
 	m.Debug("clearing any existing login session with Logout before loading user for login")
@@ -116,28 +113,15 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		}
 	}()
 
-	m.Debug("loading login user for %q", e.usernameOrEmail)
-	ueng := newLoginLoadUser(m.G(), e.usernameOrEmail)
+	m.Debug("loading login user for %q", e.username)
+	ueng := newLoginLoadUser(m.G(), e.username)
 	if err := RunEngine2(m, ueng); err != nil {
 		return err
 	}
 
-	// make sure the user isn't already provisioned (can
-	// get here if usernameOrEmail is an email address
-	// for an already provisioned on this device user).
 	if ueng.User().HasCurrentDeviceInCurrentInstall() {
-		m.Debug("user %q (%s) has previously provisioned this device, trying to login on it", e.usernameOrEmail, ueng.User().GetName())
-		loggedInOK, err := e.loginProvisionedDevice(m, ueng.User().GetName())
-		if err != nil {
-			m.Debug("loginProvisionedDevice after loginLoadUser error: %s", err)
-			return err
-		}
-		if loggedInOK {
-			m.Debug("loginProvisionedDevice after loginLoadUser success")
-			return nil
-		}
-
-		// this shouldn't happen:
+		// Somehow after loading a user we discovered that we are already
+		// provisioned. This should not happen.
 		m.Debug("loginProvisionedDevice after loginLoadUser (and user had current deivce in current install), failed to login [unexpected]")
 		return libkb.DeviceAlreadyProvisionedError{}
 	}
@@ -194,7 +178,7 @@ func (e *Login) perUserKeyUpgradeSoft(m libkb.MetaContext) error {
 func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	m.Debug("checkLoggedInAndNotRevoked()")
 
-	username := libkb.NewNormalizedUsername(e.usernameOrEmail)
+	username := libkb.NewNormalizedUsername(e.username)
 
 	// CheckForUsername() gets a consistent picture of the current active device,
 	// and sees if it matches the given username, and isn't revoked. If all goes
@@ -217,11 +201,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		}
 		return false, err
 	case libkb.LoggedInWrongUserError:
-		if libkb.CheckEmail.F(e.usernameOrEmail) {
-			m.Debug("Login: already logged in, but %q email address provided. Can't determine if that is current user (%q) without further work, so just returning LoggedInError", e.usernameOrEmail, err.ExistingName)
-		} else {
-			m.Debug(err.Error())
-		}
+		m.Debug(err.Error())
 		return true, libkb.LoggedInError{}
 	default:
 		m.Debug("Login: unexpected error: %s", err.Error())

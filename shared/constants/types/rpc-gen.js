@@ -6,7 +6,7 @@
 import {call} from 'redux-saga/effects'
 import {getEngine as engine, getEngineSaga} from '../../engine/require'
 
-export const appStateAppState = {
+export const appStateMobileAppState = {
   foreground: 0,
   background: 1,
   inactive: 2,
@@ -898,6 +898,7 @@ export const apiserverGetRpcPromise = (params, waitingKey) => new Promise((resol
 export const apiserverGetWithSessionRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.GetWithSession', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverPostJSONRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.PostJSON', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Post', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const appStatePowerMonitorEventRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.appState.powerMonitorEvent', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const avatarsLoadTeamAvatarsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.avatars.loadTeamAvatars', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const avatarsLoadUserAvatarsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.avatars.loadUserAvatars', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetAllProvisionedUsernamesRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getAllProvisionedUsernames', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

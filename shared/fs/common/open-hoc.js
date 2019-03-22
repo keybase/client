@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import {namedConnect} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {
   routePath: I.List<string>,
@@ -19,14 +19,10 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, routePath}: OwnProps) => ({
   _destinationPickerGoTo: () =>
-    dispatch(
-      FsGen.createDestinationPickerOpen({
-        currentIndex: destinationPickerIndex || 0,
-        path,
-        routePath /* make flow happy */,
-      })
+    Constants.makeActionsForDestinationPickerOpen(destinationPickerIndex + 1, path, routePath).forEach(
+      action => dispatch(action)
     ),
-  _open: () => dispatch(FsGen.createOpenPathItem({path, routePath})),
+  _open: () => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'main'}]})),
 })
 
 const isFolder = (stateProps, ownProps: OwnProps) =>
@@ -34,12 +30,10 @@ const isFolder = (stateProps, ownProps: OwnProps) =>
   stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'folder'
 
 const canOpenInDestinationPicker = (stateProps, ownProps) =>
-  isFolder(stateProps, ownProps) && (
-    stateProps._destinationPicker.source.type === 'incoming-share' || (
-      stateProps._destinationPicker.source.type === 'move-or-copy' &&
-      stateProps._destinationPicker.source.path !== ownProps.path
-    )
-  )
+  isFolder(stateProps, ownProps) &&
+  (stateProps._destinationPicker.source.type === 'incoming-share' ||
+    (stateProps._destinationPicker.source.type === 'move-or-copy' &&
+      stateProps._destinationPicker.source.path !== ownProps.path))
 
 type MergedProps = OwnProps & {
   onOpen: ?() => void,

@@ -30,7 +30,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
 		newCmdScript(cl, g),
-		newCmdUploadAvatar(cl, g),
 	}
 }
 

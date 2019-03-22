@@ -115,6 +115,7 @@ const metaMapReducer = (metaMap, action) => {
           map.clear().set(Constants.pendingConversationIDKey, pending)
         }
         const neverCreate = !!action.payload.neverCreate
+        map.deleteAll(action.payload.removals || [])
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
@@ -239,9 +240,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return action.payload.isPreview
           ? message.set('previewTransferState', 'downloading')
-          : message.set('transferProgress', action.payload.ratio)
-                   .set('transferState', 'downloading')
-                   .set('transferErrMsg', null)
+          : message
+              .set('transferProgress', action.payload.ratio)
+              .set('transferState', 'downloading')
+              .set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
@@ -286,7 +288,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
             .set('downloadPath', path)
             .set('transferProgress', 0)
             .set('transferState', null)
-            .set('transferErrMsg', actionHasError(action) ? (action.payload.error || 'Error downloading attachment') : null)
+            .set(
+              'transferErrMsg',
+              actionHasError(action) ? action.payload.error || 'Error downloading attachment' : null
+            )
             .set('fileURLCached', true) // assume we have this on the service now
         }
       )
@@ -1041,7 +1046,10 @@ const rootReducer = (
         state.attachmentFullscreenMessage.id === message.id &&
         message.type === 'attachment'
       ) {
-        nextState = nextState.set('attachmentFullscreenMessage', message.set('downloadPath', action.payload.path))
+        nextState = nextState.set(
+          'attachmentFullscreenMessage',
+          message.set('downloadPath', action.payload.path)
+        )
       }
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))

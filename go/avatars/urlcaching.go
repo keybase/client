@@ -50,11 +50,11 @@ func (c *URLCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) b
 
 func (c *URLCachingSource) monitorAppState(m libkb.MetaContext) {
 	c.debug(m, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-m.G().AppState.NextUpdate(&state)
+		state = <-m.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.MobileAppState_BACKGROUND:
 			c.debug(m, "monitorAppState: backgrounded")
 			c.diskLRU.Flush(m.Ctx(), m.G())
 		}

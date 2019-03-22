@@ -161,7 +161,7 @@ func TestPushAppState(t *testing.T) {
 	handler.SetClock(world.Fc)
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
@@ -169,7 +169,7 @@ func TestPushAppState(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no message received")
 	}
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {

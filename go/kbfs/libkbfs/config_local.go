@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -86,14 +87,14 @@ type ConfigLocal struct {
 	xattrStore         XattrStore
 	codec              kbfscodec.Codec
 	mdops              MDOps
-	kops               KeyOps
+	kops               libkey.KeyOps
 	crypto             Crypto
 	chat               Chat
 	mdcache            MDCache
 	bops               BlockOps
 	mdserv             MDServer
 	bserv              BlockServer
-	keyserv            KeyServer
+	keyserv            libkey.KeyServer
 	service            KeybaseService
 	bsplit             BlockSplitter
 	notifier           Notifier
@@ -224,6 +225,14 @@ func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
 	return capacity
 }
 
+type keyOpsConfigWrapper struct {
+	Config
+}
+
+func (k keyOpsConfigWrapper) KBPKI() idutil.KBPKI {
+	return k.Config.KBPKI()
+}
+
 // NewConfigLocal constructs a new ConfigLocal with some default
 // components that don't depend on a logger. The caller will have to
 // fill in the rest.
@@ -250,7 +259,7 @@ func NewConfigLocal(mode InitMode,
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.ResetCaches()
-	config.SetKeyOps(&KeyOpsStandard{config})
+	config.SetKeyOps(libkey.NewKeyOpsStandard(keyOpsConfigWrapper{config}))
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 	config.SetUserHistory(kbfsedits.NewUserHistory(config.MakeLogger("HIS")))
 
@@ -530,14 +539,14 @@ func (c *ConfigLocal) SetMDOps(m MDOps) {
 }
 
 // KeyOps implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) KeyOps() KeyOps {
+func (c *ConfigLocal) KeyOps() libkey.KeyOps {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.kops
 }
 
 // SetKeyOps implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetKeyOps(k KeyOps) {
+func (c *ConfigLocal) SetKeyOps(k libkey.KeyOps) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.kops = k
@@ -600,14 +609,14 @@ func (c *ConfigLocal) SetBlockServer(b BlockServer) {
 }
 
 // KeyServer implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) KeyServer() KeyServer {
+func (c *ConfigLocal) KeyServer() libkey.KeyServer {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.keyserv
 }
 
 // SetKeyServer implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetKeyServer(k KeyServer) {
+func (c *ConfigLocal) SetKeyServer(k libkey.KeyServer) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.keyserv = k

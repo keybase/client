@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -58,7 +59,7 @@ func NewBlockOpsStandard(
 }
 
 // Get implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
+func (b *BlockOpsStandard) Get(ctx context.Context, kmd libkey.KeyMetadata,
 	blockPtr BlockPointer, block Block, lifetime BlockCacheLifetime) error {
 	// Check the journal explicitly first, so we don't get stuck in
 	// the block-fetching queue.
@@ -89,7 +90,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 
 // GetEncodedSize implements the BlockOps interface for
 // BlockOpsStandard.
-func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd KeyMetadata,
+func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata,
 	blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error) {
 	// Check the journal explicitly first, so we don't get stuck in
 	// the block-fetching queue.
@@ -109,7 +110,7 @@ func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd KeyMetadata,
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
+func (b *BlockOpsStandard) Ready(ctx context.Context, kmd libkey.KeyMetadata,
 	block Block) (id kbfsblock.ID, plainSize int, readyBlockData ReadyBlockData,
 	err error) {
 	defer func() {

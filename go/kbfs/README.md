@@ -57,6 +57,7 @@ The code is organized as follows:
 * [libgit](libgit/): Library for git-related logic.
 * [libhttpserver](libhttpserver/): Library for serving KBFS files with
   a local HTTP server.
+* [libkey](libkey/): Library for managing KBFS server keys and key metadata.
 * [libkbfs](libkbfs/): The core logic for KBFS.
 * [libmime](libmime/): Library for determining the MIME types of KBFS
   files.

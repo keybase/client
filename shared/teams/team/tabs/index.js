@@ -19,6 +19,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../styles'
+import flags from '../../../util/feature-flags'
 
 type TeamTabsProps = {
   admin: boolean,
@@ -160,7 +161,7 @@ const styles = styleSheetCreate({
   tabContainer: {
     backgroundColor: globalColors.white,
     flexBasis: '100%',
-    marginTop: globalMargins.small,
+    marginTop: flags.useNewRouter ? 0 : globalMargins.small,
   },
   tabText: {},
   tabTextContainer: {

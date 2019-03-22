@@ -1,5 +1,6 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import {branch, renderComponent} from 'recompose'
 import ReallyLeaveTeam from '.'
@@ -9,8 +10,8 @@ import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const name = routeProps.get('teamname')
+const mapStateToProps = (state, ownProps) => {
+  const name = Container.getRouteProps(ownProps, 'teamname')
   const _lastOwner = isLastOwner(state, name)
   return {
     _lastOwner,
@@ -20,10 +21,12 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
-  onBack: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onLeave: () => {
-    dispatch(TeamsGen.createLeaveTeam({context: 'teams', teamname: routeProps.get('teamname')}))
+    dispatch(
+      TeamsGen.createLeaveTeam({context: 'teams', teamname: Container.getRouteProps(ownProps, 'teamname')})
+    )
   },
 })
 

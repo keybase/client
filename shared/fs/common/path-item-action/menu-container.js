@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
   _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
     dispatch(FsGen.createDeleteFile({path}))
-    dispatch(FsGen.createOpenPathInFilesTab({path: Types.getPathParent(path), routePath}))
+    dispatch(Constants.makeActionForOpenPathInFilesTab(Types.getPathParent(path), routePath))
   },
   _download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
   _ignoreTlf: () => dispatch(FsGen.createFavoriteIgnore({path})),

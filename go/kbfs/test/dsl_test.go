@@ -114,10 +114,10 @@ func test(t *testing.T, actions ...optionOp) {
 	})
 }
 
-func benchmark(b *testing.B, tb testing.TB, actions ...optionOp) {
+func benchmark(b *testing.B, actions ...optionOp) {
 	runBenchmarkOverMetadataVers(
 		b, func(b *testing.B, ver kbfsmd.MetadataVer) {
-			runOneTestOrBenchmark(tb, ver, actions...)
+			runOneTestOrBenchmark(silentBenchmark{b}, ver, actions...)
 		})
 }
 
@@ -479,6 +479,54 @@ func noSync() fileOp {
 		c.noSyncInit = true
 		return nil
 	}, IsInit, "noSync()"}
+}
+
+func resetTimer() fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			b.ResetTimer()
+		case silentBenchmark:
+			b.ResetTimer()
+		}
+		return nil
+	}, Defaults, "resetTimer()"}
+}
+
+func startTimer() fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			b.StartTimer()
+		case silentBenchmark:
+			b.StartTimer()
+		}
+		return nil
+	}, Defaults, "startTimer()"}
+}
+
+func stopTimer() fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			b.StopTimer()
+		case silentBenchmark:
+			b.StopTimer()
+		}
+		return nil
+	}, Defaults, "stopTimer()"}
+}
+
+func getBenchN(n *int) fileOp {
+	return fileOp{func(c *ctx) error {
+		switch b := c.tb.(type) {
+		case *testing.B:
+			*n = b.N
+		case silentBenchmark:
+			*n = b.N
+		}
+		return nil
+	}, Defaults, "getBenchN()"}
 }
 
 // noSyncEnd turns off the SyncFromServer call at the end of each `as`
@@ -1302,7 +1350,7 @@ func crnameEsc(path string, user username) string {
 	return crnameAtTimeEsc(path, user, 0)
 }
 
-type silentBenchmark struct{ testing.TB }
+type silentBenchmark struct{ *testing.B }
 
 func (silentBenchmark) Log(args ...interface{})                 {}
 func (silentBenchmark) Logf(format string, args ...interface{}) {}
