@@ -33,7 +33,7 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
                   color={Styles.globalColors.black_50}
                   fontSize={16}
                   onClick={onChat}
-                  style={styles.headerIcon}
+                  padding="tiny"
                 />
               </Kb.WithTooltip>
             )}
@@ -80,9 +80,6 @@ const styles = Styles.styleSheetCreate({
   headerContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     width: '100%',
-  },
-  headerIcon: {
-    padding: Styles.globalMargins.tiny,
   },
 })
 
