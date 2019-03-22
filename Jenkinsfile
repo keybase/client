@@ -388,15 +388,15 @@ def testGo(prefix, packagesToTest) {
       retry(5) {
         sh 'go get -u github.com/golang/mock/mockgen'
       }
-      retry(5) {
-        timeout(activity: true, time: 90, unit: 'SECONDS') {
-          sh '''
-            set -e -x
-            cd kbfs/libkbfs
-            ./gen_mocks.sh
-            git diff --exit-code
-            cd -
-          '''
+      dir('kbfs/libkbfs') {
+        retry(5) {
+          timeout(activity: true, time: 90, unit: 'SECONDS') {
+            sh '''
+              set -e -x
+              ./gen_mocks.sh
+              git diff --exit-code
+            '''
+          }
         }
       }
     }
