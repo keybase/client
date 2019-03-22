@@ -144,6 +144,7 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   addPeople: {getScreen: () => require('./add-people/container').default},
+  editTeamAvatar: {getScreen: () => require('../profile/edit-avatar/container').default, upgraded: true},
   editTeamDescription: {
     getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
   },
@@ -153,5 +154,5 @@ export const newModalRoutes = {
   retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
   rolePicker: {getScreen: () => require('./role-picker/container').default},
   showJoinTeamDialog: {getScreen: () => require('./join-team/container').default, upgraded: true},
-  showNewTeamDialog: {getScreen: () => require('./new-team/container').default}, // TODO get rid of routePath calculation
+  showNewTeamDialog: {getScreen: () => require('./new-team/container').default, upgraded: true},
 }

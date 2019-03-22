@@ -44,34 +44,50 @@ function* createNewTeam(_, action) {
       Constants.teamCreationWaitingKey
     )
 
-    // Dismiss the create team dialog.
-    yield Saga.put(
-      RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: rootPath.concat(sourceSubPath),
-        otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-        parentPath: rootPath,
-      })
-    )
-
-    // No error if we get here.
-    yield Saga.all([
-      Saga.put(
-        RouteTreeGen.createNavigateTo({
-          parentPath: isMobile ? [] : [teamsTab],
-          path: isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}],
+    if (!flags.useNewRouter && rootPath && sourceSubPath && destSubPath) {
+      // Dismiss the create team dialog.
+      yield Saga.put(
+        RouteTreeGen.createPutActionIfOnPath({
+          expectedPath: rootPath.concat(sourceSubPath),
+          otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
+          parentPath: rootPath,
         })
-      ),
-      // Show the avatar editor on desktop.
-      ...(!isMobile
-        ? [
-            Saga.put(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}],
-              })
-            ),
-          ]
-        : []),
-    ])
+      )
+
+      // No error if we get here.
+      yield Saga.all([
+        Saga.put(
+          RouteTreeGen.createNavigateTo({
+            parentPath: isMobile ? [] : [teamsTab],
+            path: isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}],
+          })
+        ),
+        // Show the avatar editor on desktop.
+        ...(!isMobile
+          ? [
+              Saga.put(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}],
+                })
+              ),
+            ]
+          : []),
+      ])
+    } else {
+      yield Saga.sequentially([
+        Saga.put(RouteTreeGen.createClearModals()),
+        Saga.put(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
+        ...(isMobile
+          ? []
+          : [
+              Saga.put(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}],
+                })
+              ),
+            ]),
+      ])
+    }
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
   }
@@ -1216,7 +1232,7 @@ const teamDeletedOrExit = (state, action) => {
 }
 
 const getLoadCalls = (teamname?: string) => [
-  ...(_wasOnTeamsTab ? [TeamsGen.createGetTeams()] : []),
+  ...(_wasOnTeamsTab || flags.useNewRouter ? [TeamsGen.createGetTeams()] : []),
   ...(teamname ? [TeamsGen.createGetDetails({teamname})] : []),
 ]
 
