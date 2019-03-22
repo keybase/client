@@ -847,6 +847,24 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
   }
 }
 
+export const canChat = (path: Types.Path) => {
+  const parsedPath = parsePath(path)
+  switch (parsedPath.kind) {
+    case 'root':
+    case 'tlf-list':
+      return false
+    case 'group-tlf':
+    case 'team-tlf':
+      return true
+    case 'in-group-tlf':
+    case 'in-team-tlf':
+      return true
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return false
+  }
+}
+
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case 'camera-roll':

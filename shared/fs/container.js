@@ -12,6 +12,7 @@ import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
+import {Title, Actions} from './nav-header'
 
 const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
@@ -120,6 +121,19 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
 
 type OwnProps = RouteProps<{|path: Types.Path|}, {||}>
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FsMain')(
-  ChooseComponent
-)
+const Connected = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'FsMain'
+)(ChooseComponent)
+
+// $FlowIssue lets fix this
+Connected.navigationOptions = ({navigation}: {navigation: any}) => ({
+  header: undefined,
+  headerRightActions: () => <Actions path={navigation.getParam('path') || Constants.defaultPath} />,
+  headerTitle: () => <Title path={navigation.getParam('path') || Constants.defaultPath} />,
+  title: 'Files',
+})
+
+export default Connected
