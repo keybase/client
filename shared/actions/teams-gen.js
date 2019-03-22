@@ -78,7 +78,7 @@ export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
 type _AddParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
-type _AddPeopleToTeamPayload = $ReadOnly<{|destSubPath: I.List<string>, role: string, rootPath: I.List<string>, sendChatNotification: boolean, sourceSubPath: I.List<string>, teamname: string|}>
+type _AddPeopleToTeamPayload = $ReadOnly<{|destSubPath?: I.List<string>, role: string, rootPath?: I.List<string>, sendChatNotification: boolean, sourceSubPath?: I.List<string>, teamname: string|}>
 type _AddTeamWithChosenChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _AddToTeamPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType, sendChatNotification: boolean|}>
 type _AddUserToTeamsPayload = $ReadOnly<{|role: Types.TeamRoleType, teams: Array<string>, user: string|}>

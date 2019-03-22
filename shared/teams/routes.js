@@ -143,7 +143,7 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  addPeople: {getScreen: () => require('./add-people/container').default},
+  addPeople: {getScreen: () => require('./add-people/container').default, upgraded: true},
   editTeamAvatar: {getScreen: () => require('../profile/edit-avatar/container').default, upgraded: true},
   editTeamDescription: {
     getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),

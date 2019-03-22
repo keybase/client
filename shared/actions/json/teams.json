@@ -81,11 +81,11 @@
       "participant": "string"
     },
     "addPeopleToTeam": {
-      "destSubPath": "I.List<string>",
+      "destSubPath?": "I.List<string>",
       "role": "string",
-      "rootPath": "I.List<string>",
+      "rootPath?": "I.List<string>",
       "sendChatNotification": "boolean",
-      "sourceSubPath": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
     "inviteToTeamByEmail": {

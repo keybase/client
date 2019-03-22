@@ -187,11 +187,15 @@ const addPeopleToTeam = (state, action) => {
       // Success, dismiss the create team dialog and clear out search results
       logger.info(`Successfully added ${ids.length} users to ${teamname}`)
       return [
-        RouteTreeGen.createPutActionIfOnPath({
-          expectedPath: rootPath.concat(sourceSubPath),
-          otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-          parentPath: rootPath,
-        }),
+        ...(!flags.useNewRouter && rootPath && sourceSubPath && destSubPath
+          ? [
+              RouteTreeGen.createPutActionIfOnPath({
+                expectedPath: rootPath.concat(sourceSubPath),
+                otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
+                parentPath: rootPath,
+              }),
+            ]
+          : [RouteTreeGen.createClearModals()]),
         SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}),
         SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}),
         TeamsGen.createSetTeamInviteError({error: ''}),
