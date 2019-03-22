@@ -102,9 +102,8 @@ type RecoverUsernameArg struct {
 }
 
 type EnterResetPipelineArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-	Email     string `codec:"email" json:"email"`
+	SessionID       int    `codec:"sessionID" json:"sessionID"`
+	UsernameOrEmail string `codec:"usernameOrEmail" json:"usernameOrEmail"`
 }
 
 type CancelResetArg struct {

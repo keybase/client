@@ -7,17 +7,16 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
 // Start the reset pipeline
 type CmdAccountResetStart struct {
 	libkb.Contextified
-	username string
-	email    string
+	usernameOrEmail string
 }
 
-// TODO CORE-10466, add support for optional password prompt.
 func NewCmdAccountResetStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "reset-start",
@@ -28,12 +27,8 @@ func NewCmdAccountResetStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "email",
-				Usage: "Specify your account email",
-			},
-			cli.StringFlag{
-				Name:  "username",
-				Usage: "Specify your account username",
+				Name:  "account-name",
+				Usage: "Specify your account username or email",
 			},
 		},
 	}
@@ -44,24 +39,35 @@ func NewCmdAccountResetStartRunner(g *libkb.GlobalContext) *CmdAccountResetStart
 }
 
 func (c *CmdAccountResetStart) ParseArgv(ctx *cli.Context) error {
-	c.email = ctx.String("email")
-	c.username = ctx.String("username")
-
-	if len(c.email) > 0 && len(c.username) > 0 {
-		return fmt.Errorf("only email or username can be specified")
+	c.usernameOrEmail = ctx.String("account-name")
+	if len(c.usernameOrEmail) == 0 {
+		return fmt.Errorf("Account name is required")
 	}
 	return nil
 }
 
 func (c *CmdAccountResetStart) Run() error {
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
 	cli, err := GetAccountClient(c.G())
 	if err != nil {
 		return err
 	}
-	return cli.EnterResetPipeline(context.Background(), keybase1.EnterResetPipelineArg{
-		Username: c.username,
-		Email:    c.email,
+	dui := c.G().UI.GetDumbOutputUI()
+	err = cli.EnterResetPipeline(context.Background(), keybase1.EnterResetPipelineArg{
+		UsernameOrEmail: c.usernameOrEmail,
 	})
+	if err != nil {
+		dui.Printf("Unable to start account reset process: %v\n", err)
+		return err
+	}
+	dui.Printf("Account reset started.\n")
+	return nil
+
 }
 
 func (c *CmdAccountResetStart) GetUsage() libkb.Usage {
