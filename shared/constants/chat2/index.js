@@ -83,7 +83,6 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
 export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
   hits: I.List(),
   inProgress: false,
-  selectedIndex: 0,
   visible: false,
 })
 
