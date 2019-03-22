@@ -81,8 +81,9 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
 })
 
 export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
-  inProgress: false,
   hits: I.List(),
+  inProgress: false,
+  visible: false,
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>

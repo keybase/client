@@ -1014,6 +1014,11 @@ const rootReducer = (
         const old = info || Constants.makeThreadSearchInfo()
         return old.set('inProgress', action.payload.inProgress)
       })
+    case Chat2Gen.toggleThreadSearch:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info => {
+        const old = info || Constants.makeThreadSearchInfo()
+        return old.set('visible', !old.visible)
+      })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {

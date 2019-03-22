@@ -606,6 +606,10 @@
       "_description": "Set whether or not a thread search is in progress",
       "conversationIDKey": "Types.ConversationIDKey",
       "inProgress": "boolean"
+    },
+    "toggleThreadSearch": {
+      "_description": "Toggle the display of the thread search window",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

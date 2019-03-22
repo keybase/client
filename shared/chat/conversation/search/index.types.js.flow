@@ -1,9 +1,11 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
+import * as Styles from '../../../styles'
 export type Props = {|
   inProgress: boolean,
   loadSearchHit: number => void,
   onCancel: () => void,
   onSearch: string => void,
+  style?: Styles.StylesCrossPlatform,
   totalResults: number,
 |}

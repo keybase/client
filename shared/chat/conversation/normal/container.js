@@ -26,7 +26,7 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
       outboxID: null,
@@ -44,6 +44,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})),
   onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
+  onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -56,6 +57,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+    onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
     showLoader: stateProps.showLoader,
     threadLoadedOffline: stateProps.threadLoadedOffline,
   }

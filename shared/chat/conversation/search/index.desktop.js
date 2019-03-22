@@ -19,21 +19,24 @@ class ThreadSearch extends React.Component<Props, State> {
     if (this.state.selectedIndex >= this.props.totalResults) {
       return
     }
-    const nextIndex = this.state.selectedIndex + 1
-    this.props.loadSearchHit(nextIndex)
-    this.setState({selectedIndex: nextIndex})
+    this.props.loadSearchHit(this.state.selectedIndex)
+    this.setState({selectedIndex: this.state.selectedIndex + 1})
   }
   _onDown = () => {
     if (this.state.selectedIndex <= 0) {
       return
     }
-    const nextIndex = this.state.selectedIndex - 1
-    this.props.loadSearchHit(nextIndex)
-    this.setState({selectedIndex: nextIndex})
+    this.props.loadSearchHit(this.state.selectedIndex)
+    this.setState({selectedIndex: this.state.selectedIndex - 1})
   }
   render() {
     return (
-      <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
+      <Kb.Box2
+        direction="horizontal"
+        style={Styles.collapseStyles([styles.outerContainer, this.props.style])}
+        fullWidth={true}
+        gap="tiny"
+      >
         <Kb.Box2 direction="horizontal" style={styles.inputContainer} fullWidth={true}>
           <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
             <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />

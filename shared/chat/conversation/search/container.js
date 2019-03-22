@@ -2,12 +2,14 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as Styles from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 import ThreadSearch from '.'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
+  style?: Styles.StylesCrossPlatform,
 |}
 
 const mapStateToProps = (state, {conversationIDKey}) => {
@@ -26,7 +28,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
     dispatch(Chat2Gen.createThreadSearch({conversationIDKey, query: new HiddenString(query)})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
+const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
   inProgress: stateProps.inProgress,
   loadSearchHit: index => {
     const message = stateProps._hits.get(index, Constants.makeMessageText())
@@ -36,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey}) => ({
   },
   onCancel: dispatchProps.onCancel,
   onSearch: dispatchProps.onSearch,
+  style,
   totalResults: stateProps._hits.size,
 })
 

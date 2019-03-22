@@ -18,5 +18,6 @@ export type Props = {
   onRequestScrollUp: () => void,
   onShowTracker: (username: string) => void,
   onToggleInfoPanel: () => void,
+  onToggleThreadSearch: () => void,
   threadLoadedOffline: boolean,
 }

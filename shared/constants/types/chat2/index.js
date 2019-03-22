@@ -50,6 +50,7 @@ export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 export type _ThreadSearchInfo = {
   inProgress: boolean,
   hits: I.List<Message.Message>,
+  visible: boolean,
 }
 
 export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
