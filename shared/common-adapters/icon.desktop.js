@@ -132,7 +132,10 @@ class Icon extends Component<Props, void> {
         <div style={this.props.boxStyle}>
           <span
             alt={this.props.hint}
-            style={style}
+            style={Styles.collapseStyles([
+              style,
+              this.props.padding && Shared.paddingStyles[this.props.padding],
+            ])}
             className={Styles.classNames(
               'icon',
               colorStyleName,
