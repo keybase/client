@@ -7,6 +7,7 @@ import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
 import {memoize} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 const smallTeamsCollapsedMaxShown = 5
 
@@ -26,14 +27,19 @@ const splitMetas = memoize((metaMap: Types.MetaMap) => {
   return {bigMetas, smallMetas}
 })
 
+const hideIgnoredConvs = meta => {
+  return meta.status !== RPCChatTypes.commonConversationStatus.ignored
+}
+
 const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
 const getSmallRows = memoize(
   (smallMetas, showAllSmallRows) => {
     let metas
     if (showAllSmallRows) {
-      metas = smallMetas.sort(sortByTimestamp)
+      metas = smallMetas.filter(hideIgnoredConvs).sort(sortByTimestamp)
     } else {
       metas = I.Seq(smallMetas)
+        .filter(hideIgnoredConvs)
         .sort(sortByTimestamp)
         .take(smallTeamsCollapsedMaxShown)
         .toArray()

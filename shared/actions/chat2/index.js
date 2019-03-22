@@ -385,18 +385,17 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
     ? meta.conversationIDKey
     : conv && Types.stringToConversationIDKey(conv.convID)
   const usernameToFullname = (conv && conv.fullNames) || {}
-  // We ignore inbox rows that are ignored/blocked/reported or have no content
+  // We ignore inbox rows that are blocked/reported or have no content
   const isADelete =
     conv &&
-    ([
-      RPCChatTypes.commonConversationStatus.ignored,
-      RPCChatTypes.commonConversationStatus.blocked,
-      RPCChatTypes.commonConversationStatus.reported,
-    ].includes(conv.status) ||
+    ([RPCChatTypes.commonConversationStatus.blocked, RPCChatTypes.commonConversationStatus.reported].includes(
+      conv.status
+    ) ||
       conv.isEmpty)
 
   // We want to select a different convo if its cause we ignored/blocked/reported. Otherwise sometimes we get that a convo
   // is empty which we don't want to select something else as sometimes we're in the middle of making it!
+  // xxx we DO want to select another if we just ignored a conv. Not sure what this logic is doing though.
   const selectSomethingElse = conv ? !conv.isEmpty : false
   return meta
     ? [
@@ -1579,7 +1578,9 @@ const _maybeAutoselectNewestConversation = (state, action) => {
       return
     }
   } else if (
-    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation || action.type === Chat2Gen.hideConversation) &&
+    (action.type === Chat2Gen.leaveConversation ||
+      action.type === Chat2Gen.blockConversation ||
+      action.type === Chat2Gen.hideConversation) &&
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
