@@ -144,7 +144,7 @@ type GlobalContext struct {
 	// user (and resetting the ActiveDevice), then you should hold the switchUserMu
 	switchUserMu  *VerboseLock
 	ActiveDevice  *ActiveDevice
-	switchedUsers map[NormalizedUsername]bool
+	switchedUsers map[NormalizedUsername]bool // bookkeep users who have been switched over (and are still in secret store)
 }
 
 type GlobalTestOptions struct {
@@ -286,7 +286,12 @@ func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedU
 
 	if err := g.secretStore.ClearSecret(mctx, username); err != nil {
 		mctx.Debug("clear stored secret error: %s", err)
+		return
 	}
+
+	// If this user had previously switched into his account and wound up in the
+	// g.switchedUsers map (see just above), then now it's fine to delete them,
+	// since they are deleted from the secret store successfully.
 	delete(g.switchedUsers, username)
 }
 
