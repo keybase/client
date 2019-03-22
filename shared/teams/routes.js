@@ -137,7 +137,7 @@ export default routeTree
 
 export const newRoutes = {
   controlledRolePicker: {getScreen: () => require('./role-picker/controlled-container').default},
-  member: {getScreen: () => require('./team/member/container').default},
+  member: {getScreen: () => require('./team/member/container').default, upgraded: true},
   'tabs.teamsTab': {getScreen: () => require('./container').default, upgraded: true},
   team: {getScreen: () => require('./team/container').default, upgraded: true},
 }

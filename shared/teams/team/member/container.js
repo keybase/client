@@ -3,7 +3,8 @@ import * as Types from '../../../constants/types/teams'
 import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {connect, type RouteProps} from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Container from '../../../util/container'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -12,7 +13,7 @@ import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
-type OwnProps = RouteProps<{username: string, teamname: string}, {}>
+type OwnProps = Container.RouteProps<{username: string, teamname: string}, {}>
 
 type StateProps = {
   teamname: string,
@@ -25,9 +26,9 @@ type StateProps = {
   loading: boolean,
 }
 
-const mapStateToProps = (state, {routeProps}): StateProps => {
-  const username = routeProps.get('username')
-  const teamname = routeProps.get('teamname')
+const mapStateToProps = (state, ownProps): StateProps => {
+  const username = Container.getRouteProps(ownProps, 'username')
+  const teamname = Container.getRouteProps(ownProps, 'teamname')
 
   return {
     _memberInfo: getTeamMembers(state, teamname),
@@ -51,31 +52,34 @@ type DispatchProps = {|
   // TODO remove member
 |}
 
-const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch, ownProps): DispatchProps => ({
   _onChat: username => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   },
   _onEditMembership: (name: string, username: string) =>
     dispatch(
-      navigateAppend([
-        {
-          props: {teamname: name, username},
-          selected: 'rolePicker',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {teamname: name, username},
+            selected: 'rolePicker',
+          },
+        ],
+      })
     ),
   _onLeaveTeam: (teamname: string) => {
-    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
   },
   _onRemoveMember: (teamname: string, username: string) => {
     dispatch(
-      navigateAppend(
-        [{props: {teamname, username}, selected: 'reallyRemoveMember'}]
-    )
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {teamname, username}, selected: 'reallyRemoveMember'}],
+      })
     )
   },
-  onBack: () => dispatch(navigateUp()),
-  onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onOpenProfile: () =>
+    dispatch(createShowUserProfile({username: Container.getRouteProps(ownProps, 'username')})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
@@ -115,7 +119,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 }
 
 export default compose(
-  connect<OwnProps, _, _, _, _>(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
