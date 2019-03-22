@@ -149,7 +149,7 @@ export const newModalRoutes = {
     getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
     upgraded: true,
   },
-  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default},
+  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default, upgraded: true},
   reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default, upgraded: true},
   reallyRemoveMember: {getScreen: () => require('./team/really-remove-member/container').default},
   retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},

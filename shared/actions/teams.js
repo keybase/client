@@ -309,13 +309,18 @@ function* inviteByEmail(_, action) {
         })
       )
       if (!isMobile) {
-        yield Saga.put(
-          RouteTreeGen.createPutActionIfOnPath({
-            expectedPath: rootPath.concat(sourceSubPath),
-            otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-            parentPath: rootPath,
-          })
-        )
+        // mobile does not nav away
+        if (!flags.useNewRouter && rootPath && sourceSubPath && destSubPath) {
+          yield Saga.put(
+            RouteTreeGen.createPutActionIfOnPath({
+              expectedPath: rootPath.concat(sourceSubPath),
+              otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
+              parentPath: rootPath,
+            })
+          )
+        } else {
+          yield Saga.put(RouteTreeGen.createClearModals())
+        }
       }
     }
   } catch (err) {

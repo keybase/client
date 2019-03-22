@@ -89,11 +89,11 @@
       "teamname": "string"
     },
     "inviteToTeamByEmail": {
-      "destSubPath": "I.List<string>",
+      "destSubPath?": "I.List<string>",
       "invitees": "string",
       "role": "Types.TeamRoleType",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
     "inviteToTeamByPhone": {
