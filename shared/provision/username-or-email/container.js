@@ -5,14 +5,12 @@ import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
 import {compose, connect, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
-import {constantsStatusCode} from '../../constants/types/rpc-gen'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
-  badUsernameError:
-    !!state.provision.inlineError && state.provision.inlineError.code === constantsStatusCode.scnotfound,
   error: state.provision.error.stringValue(),
+  inlineError: state.provision.inlineError ? state.provision.inlineError.code : null,
   // So we can clear the error if the name is changed
   submittedUsername: state.provision.username,
 })
@@ -31,5 +29,5 @@ export default compose(
     dispatchToProps,
     (s, d, _) => ({...s, ...d})
   ),
-  safeSubmit(['onBack', 'onSubmit'], ['error', 'badUsernameError'])
+  safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError'])
 )(Username)

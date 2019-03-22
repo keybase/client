@@ -16,6 +16,10 @@ export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
+export const errorNotFound = (errorCode: number) => errorCode === RPCTypes.constantsStatusCode.scnotfound
+export const errorBadUsername = (errorCode: number) =>
+  errorCode === RPCTypes.constantsStatusCode.scbadusername
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageIncomingTextCode: new HiddenString(''),
   codePageOtherDeviceId: '',
