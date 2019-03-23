@@ -289,14 +289,14 @@ func (m *TlfMock) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1
 	return nil, errors.New("no mock key found")
 }
 
-func (m *TlfMock) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (m *TlfMock) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
 	// Returns a totally zero teamEK. That's enough to get some very simple
 	// round trip tests to pass.
 	return keybase1.TeamEk{}, nil
 }
 
-func (m *TlfMock) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (m *TlfMock) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
 	// Returns a totally zero teamEK. That's enough to get some very simple

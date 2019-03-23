@@ -1609,12 +1609,12 @@ func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
 	return res, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
 }
 
-func (k *KeyFinderMock) EphemeralKeyForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (k *KeyFinderMock) EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
 	panic("unimplemented")
 }
 
-func (k *KeyFinderMock) EphemeralKeyForDecryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (k *KeyFinderMock) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
 	panic("unimplemented")

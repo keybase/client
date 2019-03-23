@@ -124,8 +124,10 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			// If we are sending ephemeral messages make sure both users have
 			// user/device EKs
 			if ephemeralLifetime != nil {
-				ctc.as(t, users[0]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
-				ctc.as(t, users[1]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
+				u1 := ctc.as(t, users[0])
+				u1.h.G().GetEKLib().KeygenIfNeeded(u1.h.G().MetaContext(context.Background()))
+				u2 := ctc.as(t, users[1])
+				u2.h.G().GetEKLib().KeygenIfNeeded(u2.h.G().MetaContext(context.Background()))
 			}
 
 			tc1 := ctc.world.Tcs[users[1].Username]
