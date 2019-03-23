@@ -10,28 +10,46 @@ const base = {
   onSearch: Sb.action('onSearch'),
 }
 
+const hits = [
+  {
+    author: 'mikem',
+    summary: 'keybase is the best',
+    timestamp: 1542241021655,
+  },
+  {
+    author: 'karenm',
+    summary: 'keybase is the best sometimes when it works',
+    timestamp: 1542241021655,
+  },
+  {
+    author: 'patrick',
+    summary: 'keybase now supports stellar wallet for making psyments to friends and other internet people',
+    timestamp: 1542241021655,
+  },
+]
+
 const initial = {
   ...base,
+  hits: [],
   inProgress: false,
-  totalResults: 0,
 }
 
 const started = {
   ...base,
+  hits: [],
   inProgress: true,
-  totalResults: 0,
 }
 
 const partial = {
   ...base,
+  hits,
   inProgress: true,
-  totalResults: 8,
 }
 
 const complete = {
   ...base,
+  hits,
   inProgress: false,
-  totalResults: 8,
 }
 
 const load = () => {

@@ -29,6 +29,13 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
+  hits: stateProps._hits
+    .map(h => ({
+      author: h.author,
+      summary: h.bodySummary.stringValue(),
+      timestamp: h.timestamp,
+    }))
+    .toArray(),
   inProgress: stateProps.inProgress,
   loadSearchHit: index => {
     const message = stateProps._hits.get(index, Constants.makeMessageText())
@@ -39,7 +46,6 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
   onCancel: dispatchProps.onCancel,
   onSearch: dispatchProps.onSearch,
   style,
-  totalResults: stateProps._hits.size,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
