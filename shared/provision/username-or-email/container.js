@@ -5,14 +5,35 @@ import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
 import {compose, connect, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
+import * as Constants from '../../constants/provision'
 
 type OwnProps = RouteProps<{}, {}>
 
+const mapInlineErrorToProps = state => {
+  let inlineError = state.provision.inlineError
+  if (inlineError) {
+    // If it's a "not found" error, we will show "go to signup" link,
+    // otherwise just the error.
+    if (Constants.errorNotFound(inlineError.code)) {
+      return {
+        inlineError: "This username doesn't exist.",
+        inlineSignUpLink: true,
+      }
+    } else if (Constants.errorBadUsername(inlineError.code)) {
+      return {
+        inlineError: 'This username is not valid.',
+        inlineSignUpLink: false,
+      }
+    }
+  }
+  return {}
+}
+
 const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
-  inlineError: state.provision.inlineError ? state.provision.inlineError.code : null,
   // So we can clear the error if the name is changed
   submittedUsername: state.provision.username,
+  ...mapInlineErrorToProps(state),
 })
 
 const dispatchToProps = dispatch => ({

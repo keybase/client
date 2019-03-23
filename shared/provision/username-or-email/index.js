@@ -7,7 +7,8 @@ import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
 
 type Props = {|
-  inlineError: ?number,
+  inlineError: ?string,
+  inlineSignUpLink: ?boolean,
   error: string,
   onBack: () => void,
   onForgotUsername: () => void,
@@ -16,24 +17,18 @@ type Props = {|
   submittedUsername: string,
 |}
 
-const InlineError = (props: {|onGoToSignup: () => void, error: number|}) => {
-  let msg = 'This username is not valid.'
-  if (Constants.errorNotFound(props.error)) {
-    msg = "This username doesn't exist."
-  }
-  return (
-    <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text type="BodySmallError" style={styles.error}>
-        {msg}
+const InlineError = (props: {|onGoToSignup: ?() => void, error: string|}) => (
+  <Kb.Box2 direction="vertical" centerChildren={true}>
+    <Kb.Text type="BodySmallError" style={styles.error}>
+      {props.error}
+    </Kb.Text>
+    {!!props.onGoToSignup && (
+      <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
+        Sign up for a new account?
       </Kb.Text>
-      {Constants.errorNotFound(props.error) && (
-        <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
-          Sign up for a new account?
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  )
-}
+    )}
+  </Kb.Box2>
+)
 
 class Username extends React.Component<Props, State> {
   state = {username: ''}
@@ -41,10 +36,11 @@ class Username extends React.Component<Props, State> {
   render() {
     let errorTextComponent
     if (this.props.submittedUsername === this.state.username && !!this.props.inlineError) {
-      // If it's a "bad username" error, show "go to signup" link, otherwise
-      // show just the error.
       errorTextComponent = (
-        <InlineError error={this.props.inlineError} onGoToSignup={this.props.onGoToSignup} />
+        <InlineError
+          error={this.props.inlineError}
+          onGoToSignup={this.props.inlineSignUpLink ? this.props.onGoToSignup : null}
+        />
       )
     }
 
