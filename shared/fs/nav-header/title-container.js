@@ -9,17 +9,21 @@ import Title from './title'
 
 type OwnProps = {|
   path: Types.Path,
+  inDestinationPicker?: ?boolean,
 |}
 
 const mapStateToProps = state => ({})
 
-const mapDispatchToProps = dispatch => ({
-  onOpenPath: (path: Types.Path) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {path}, selected: 'main'}],
-      })
-    ),
+const mapDispatchToProps = (dispatch, {inDestinationPicker}) => ({
+  onOpenPath: inDestinationPicker
+    ? (path: Types.Path) =>
+        Constants.makeActionsForDestinationPickerOpen(0, path).forEach(action => dispatch(action))
+    : (path: Types.Path) =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {path}, selected: 'main'}],
+          })
+        ),
 })
 
 const mergeProps = (s, d, o) => ({
