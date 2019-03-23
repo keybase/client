@@ -19,20 +19,24 @@ const UploadButton = Kb.OverlayParentHOC(props => {
     return <Kb.Button small={true} type="Primary" onClick={props.openAndUpload('both')} label="Upload" />
   }
   if (isIOS) {
-    return <Kb.Button small={true} type="Primary" onClick={props.pickAndUpload('mixed')} label="Upload" />
+    return <Kb.Icon type="iconfont-new" padding="tiny" onClick={props.pickAndUpload('mixed')} />
   }
   // Either Android, or non-darwin desktop. Android doesn't support mixed
   // mode; Linux/Windows don't support opening file or dir from the same
   // dialog. In both cases a menu is needed.
   return (
     <>
-      <Kb.Button
-        small={true}
-        type="Primary"
-        onClick={props.toggleShowingMenu}
-        label="Upload"
-        ref={props.setAttachmentRef}
-      />
+      {isMobile ? (
+        <Kb.Icon type="iconfont-new" padding="tiny" onClick={props.toggleShowingMenu} />
+      ) : (
+        <Kb.Button
+          small={true}
+          type="Primary"
+          onClick={props.toggleShowingMenu}
+          label="Upload"
+          ref={props.setAttachmentRef}
+        />
+      )}
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}

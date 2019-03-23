@@ -87,14 +87,7 @@ const MainTitle = (props: Props) => (
   </Kb.Box2>
 )
 
-const FsNavHeaderTitleMobile = (props: Props) =>
-  props.path === Constants.defaultPath ? (
-    <Kb.Text type="Header">Files</Kb.Text>
-  ) : (
-    <Kb.Text type="Header">{Types.getPathName(props.path)}</Kb.Text>
-  )
-
-const FsNavHeaderTitleDesktop = (props: Props) =>
+const FsNavHeaderTitle = (props: Props) =>
   props.path === Constants.defaultPath ? (
     <Kb.Text type="Header" style={styles.rootTitle}>
       Files
@@ -105,8 +98,7 @@ const FsNavHeaderTitleDesktop = (props: Props) =>
       <MainTitle {...props} />
     </Kb.Box2>
   )
-
-export default (Styles.isMobile ? FsNavHeaderTitleMobile : FsNavHeaderTitleDesktop)
+export default FsNavHeaderTitle
 
 const styles = Styles.styleSheetCreate({
   container: {

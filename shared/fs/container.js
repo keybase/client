@@ -12,7 +12,7 @@ import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
-import {Title, Actions} from './nav-header'
+import {Actions, MobileHeader, Title} from './nav-header'
 import flags from '../util/feature-flags'
 
 const mapStateToProps = state => ({
@@ -139,11 +139,18 @@ const Connected = namedConnect<OwnProps, _, _, _, _>(
 )(ChooseComponent)
 
 // $FlowIssue lets fix this
-Connected.navigationOptions = ({navigation}: {navigation: any}) => ({
-  header: undefined,
-  headerRightActions: () => <Actions path={navigation.getParam('path') || Constants.defaultPath} />,
-  headerTitle: () => <Title path={navigation.getParam('path') || Constants.defaultPath} />,
-  title: 'Files',
-})
+Connected.navigationOptions = ({navigation}: {navigation: any}) => {
+  const path = navigation.getParam('path') || Constants.defaultPath
+  return isMobile
+    ? {
+        header: <MobileHeader path={path} onBack={navigation.pop} />,
+      }
+    : {
+        header: undefined,
+        headerRightActions: () => <Actions path={path} />,
+        headerTitle: () => <Title path={path} />,
+        title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
+      }
+}
 
 export default Connected
