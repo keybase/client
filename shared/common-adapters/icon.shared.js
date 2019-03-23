@@ -142,13 +142,17 @@ export function castPlatformStyles(styles: any) {
 }
 
 const makePaddingStyles = () =>
-  Object.entries(Styles.globalMargins).reduce(
-    (styles, [paddingName, padding]) => ({
+  Object.keys(Styles.globalMargins).reduce(
+    (styles, paddingName) => ({
       ...styles,
-      [paddingName]: {
-        display: 'block',
-        padding,
-      },
+      [paddingName]: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins[paddingName],
+        },
+        isElectron: {
+          display: 'block',
+        },
+      }),
     }),
     {}
   )
