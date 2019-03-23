@@ -2,6 +2,7 @@
 import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
 import type {TypedState} from './reducer'
+import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 
 const initialState: Types.State = {
@@ -16,9 +17,9 @@ const initialState: Types.State = {
     newEmail: '',
   },
   invites: {
-    acceptedInvites: [],
+    acceptedInvites: I.List(),
     error: null,
-    pendingInvites: [],
+    pendingInvites: I.List(),
   },
   lockdownModeEnabled: null,
   notifications: {

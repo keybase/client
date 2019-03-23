@@ -1,6 +1,7 @@
 // @flow strict
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
+import * as I from 'immutable'
 import type {Email, Time} from './rpc-gen'
 
 type InviteBase = {
@@ -15,23 +16,21 @@ export type PendingInvite = {
 
 export type AcceptedInvite = {
   username: string,
-  fullname: string,
-  currentlyFollowing: boolean,
 } & InviteBase
 
 export type Invitation = {
   created: number,
-  email: string,
+  email: ?string,
   id: string,
   type: string,
-  username?: string,
+  username: string,
   uid?: string,
   url: string,
 }
 
 export type InvitesState = {|
-  pendingInvites: Array<PendingInvite>,
-  acceptedInvites: Array<AcceptedInvite>,
+  pendingInvites: I.List<PendingInvite>,
+  acceptedInvites: I.List<AcceptedInvite>,
   error: ?Error,
 |}
 

@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'

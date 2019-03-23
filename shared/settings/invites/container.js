@@ -21,16 +21,28 @@ const mapDispatchToProps = dispatch => ({
     dispatch(SettingsGen.createInvitesSend({email, message})),
   onReclaimInvitation: (inviteId: string) => dispatch(SettingsGen.createInvitesReclaim({inviteId})),
   onRefresh: () => dispatch(SettingsGen.createInvitesRefresh()),
-  onSelectPendingInvite: (invite: Types.PendingInvite) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}]})),
+  onSelectPendingInvite: (invite: Types.Invitation) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}],
+      })
+    ),
   onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  acceptedInvites: stateProps.acceptedInvites.toArray(),
+  pendingInvites: stateProps.pendingInvites.toArray(),
 })
 
 export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    mergeProps
   ),
   lifecycle({
     componentDidMount() {

@@ -1,18 +1,19 @@
 // @flow
 // TODO use WaitingGen which will allow more chainAction handlers
 import logger from '../logger'
+import * as I from 'immutable'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
+import * as Saga from '../util/saga'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
-import * as SettingsGen from '../actions/settings-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
+import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 
 const onUpdatePGPSettings = () =>
@@ -150,8 +151,8 @@ const refreshInvites = () =>
       }>,
     } = JSON.parse((json && json.body) || '')
 
-    const acceptedInvites = []
-    const pendingInvites = []
+    const acceptedInvitesArray = []
+    const pendingInvitesArray = []
 
     results.invitations.forEach(i => {
       const invite: Types.Invitation = {
@@ -172,14 +173,18 @@ const refreshInvites = () =>
       // 3: pending invitation code invite
       if (i.username && i.uid) {
         invite.type = 'accepted'
-        acceptedInvites.push(invite)
+        acceptedInvitesArray.push(invite)
       } else {
-        pendingInvites.push(invite)
+        invite.type = 'pending'
+        pendingInvitesArray.push(invite)
       }
     })
-    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doesn't look anything like what we're pushing
     return SettingsGen.createInvitesRefreshed({
-      invites: {acceptedInvites, error: null, pendingInvites},
+      invites: {
+        acceptedInvites: I.List(acceptedInvitesArray),
+        error: null,
+        pendingInvites: I.List(pendingInvitesArray),
+      },
     })
   })
 
