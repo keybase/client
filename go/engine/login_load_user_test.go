@@ -22,7 +22,9 @@ var lutests = []luTest{
 	{name: "alice", input: "t_alice", uid: "295a7eea607af32040647123732bc819"},
 	{name: "bob", input: "t_bob", uid: "afb5eda3154bc13c1df0189ce93ba119"},
 	{name: "unknown user", input: "not_a_user", err: libkb.NotFoundError{}},
-	{name: "invalid input", input: "spaces aren't allowed", err: libkb.BadNameError("")},
+	{name: "invalid input", input: "spaces aren't allowed", err: libkb.BadUsernameError{}},
+	{name: "bob@example.com", input: "email isn't allowed", err: libkb.BadUsernameError{}},
+	{name: "bob=", input: "other not allowed chars", err: libkb.BadUsernameError{}},
 }
 
 func TestLoginLoadUser(t *testing.T) {

@@ -523,12 +523,8 @@ func TestProvisionPassphraseBadName(t *testing.T) {
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("Provision via passphrase should have failed with bad name.")
-	}
-	if _, ok := err.(libkb.BadNameError); !ok {
-		t.Fatalf("Provision via passphrase err type: %T, expected libkb.BadNameError", err)
-	}
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
 }
 
 // If a user has (only) a synced pgp key, provision via passphrase
