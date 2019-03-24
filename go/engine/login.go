@@ -101,7 +101,8 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 
 	// clear out any existing session:
 	m.Debug("clearing any existing login session with Logout before loading user for login")
-	m.G().Logout(m.Ctx())
+	// If the doUserSwitch flag is specified, we don't want to kill the existing session
+	m.G().LogoutWithSecretKill(m.Ctx(), !e.doUserSwitch)
 
 	// Set up a provisional login context for the purposes of running provisioning.
 	// This is where we'll store temporary session tokens, etc, that are useful
