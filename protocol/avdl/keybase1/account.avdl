@@ -5,8 +5,8 @@ protocol account {
 
   /**
     Change the passphrase from old to new. If old isn't set, and force is false,
-    then prompt at the UI for it. If old isn't set and force is true, then we'll
-    try to force a passphrase change.
+    then prompt at the UI for it. If old isn't set and force is true, then
+    we'll try to force a passphrase change.
    */
   void passphraseChange(int sessionID, string oldPassphrase, string passphrase, boolean force);
 
@@ -53,11 +53,21 @@ protocol account {
     array<LockdownHistory> history;
     boolean status;
   }
-  
+
   GetLockdownResponse getLockdownMode(int sessionID);
   void setLockdownMode(int sessionID, boolean enabled);
 
   // Call an API handler that will send an e-mail to the user with their
   // Keybase username.
   void recoverUsername(int sessionID, string email);
+
+  /** Start reset process for the user based on their username or email.  If
+    neither are known the user will be prompted for their passphrase to start
+    the process.
+   */
+  void enterResetPipeline(int sessionID, string username, string email);
+
+  /** Aborts the reset process
+   */
+  void cancelReset(int sessionID);
 }
