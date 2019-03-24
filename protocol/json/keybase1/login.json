@@ -53,6 +53,11 @@
         {
           "name": "clientType",
           "type": "ClientType"
+        },
+        {
+          "name": "doUserSwitch",
+          "type": "boolean",
+          "default": false
         }
       ],
       "response": null,

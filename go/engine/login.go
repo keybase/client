@@ -20,20 +20,29 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType string
-	username   string
-	clientType keybase1.ClientType
+	deviceType   string
+	username     string
+	clientType   keybase1.ClientType
+	doUserSwitch bool
 }
 
 // NewLogin creates a Login engine.  username is optional.
 // deviceType should be libkb.DeviceTypeDesktop or
 // libkb.DeviceTypeMobile.
 func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType) *Login {
+	return NewLoginWithUserSwitch(g, deviceType, username, ct, false)
+}
+
+// NewLogin creates a Login engine.  username is optional.
+// deviceType should be libkb.DeviceTypeDesktop or
+// libkb.DeviceTypeMobile.
+func NewLoginWithUserSwitch(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType, doUserSwitch bool) *Login {
 	return &Login{
 		Contextified: libkb.NewContextified(g),
 		deviceType:   deviceType,
 		username:     strings.TrimSpace(username),
 		clientType:   ct,
+		doUserSwitch: doUserSwitch,
 	}
 }
 
@@ -99,7 +108,8 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 
 	// clear out any existing session:
 	m.Debug("clearing any existing login session with Logout before loading user for login")
-	m.G().Logout(m.Ctx())
+	// If the doUserSwitch flag is specified, we don't want to kill the existing session
+	m.G().LogoutWithSecretKill(m, !e.doUserSwitch)
 
 	// Set up a provisional login context for the purposes of running provisioning.
 	// This is where we'll store temporary session tokens, etc, that are useful
@@ -202,6 +212,10 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return false, err
 	case libkb.LoggedInWrongUserError:
 		m.Debug(err.Error())
+		if e.doUserSwitch {
+			m.G().ClearStateForSwitchUsers(m)
+			return false, nil
+		}
 		return true, libkb.LoggedInError{}
 	default:
 		m.Debug("Login: unexpected error: %s", err.Error())

@@ -25,10 +25,11 @@ type GetConfiguredAccountsArg struct {
 }
 
 type LoginArg struct {
-	SessionID  int        `codec:"sessionID" json:"sessionID"`
-	DeviceType string     `codec:"deviceType" json:"deviceType"`
-	Username   string     `codec:"username" json:"username"`
-	ClientType ClientType `codec:"clientType" json:"clientType"`
+	SessionID    int        `codec:"sessionID" json:"sessionID"`
+	DeviceType   string     `codec:"deviceType" json:"deviceType"`
+	Username     string     `codec:"username" json:"username"`
+	ClientType   ClientType `codec:"clientType" json:"clientType"`
+	DoUserSwitch bool       `codec:"doUserSwitch" json:"doUserSwitch"`
 }
 
 type LoginProvisionedDeviceArg struct {
