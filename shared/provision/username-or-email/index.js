@@ -7,9 +7,9 @@ import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
 
 type Props = {|
-  inlineError: ?string,
-  inlineSignUpLink: ?boolean,
   error: string,
+  inlineError: string,
+  inlineSignUpLink: boolean,
   onBack: () => void,
   onForgotUsername: () => void,
   onGoToSignup: () => void,

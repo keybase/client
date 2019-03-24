@@ -5,36 +5,40 @@ import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
 import {compose, connect, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
-import * as Constants from '../../constants/provision'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapInlineErrorToProps = state => {
-  let inlineError = state.provision.inlineError
-  if (inlineError) {
-    // If it's a "not found" error, we will show "go to signup" link,
-    // otherwise just the error.
-    if (Constants.errorNotFound(inlineError.code)) {
-      return {
-        inlineError: "This username doesn't exist.",
-        inlineSignUpLink: true,
-      }
-    } else if (Constants.errorBadUsername(inlineError.code)) {
-      return {
-        inlineError: 'This username is not valid.',
-        inlineSignUpLink: false,
-      }
+const decodeInlineError = inlineRPCError => {
+  let inlineError = ''
+  let inlineSignUpLink = false
+  if (inlineRPCError) {
+    switch (inlineRPCError.code) {
+      case RPCTypes.constantsStatusCode.scnotfound:
+        // If it's a "not found" error, we will show "go to signup" link,
+        // otherwise just the error.
+        inlineError = "This username doesn't exist."
+        inlineSignUpLink = true
+        break
+      case RPCTypes.constantsStatusCode.scbadusername:
+        inlineError = 'This username is not valid.'
+        inlineSignUpLink = false
+        break
     }
   }
-  return {}
+  return {inlineError, inlineSignUpLink}
 }
 
-const mapStateToProps = state => ({
-  error: state.provision.error.stringValue(),
-  // So we can clear the error if the name is changed
-  submittedUsername: state.provision.username,
-  ...mapInlineErrorToProps(state),
-})
+const mapStateToProps = state => {
+  const {inlineError, inlineSignUpLink} = decodeInlineError(state.provision.inlineError)
+  return {
+    error: state.provision.error.stringValue(),
+    inlineError,
+    inlineSignUpLink,
+    // So we can clear the error if the name is changed
+    submittedUsername: state.provision.username,
+  }
+}
 
 const dispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
