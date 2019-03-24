@@ -20,20 +20,22 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType string
-	username   string
-	clientType keybase1.ClientType
+	deviceType   string
+	username     string
+	clientType   keybase1.ClientType
+	doUserSwitch bool
 }
 
 // NewLogin creates a Login engine.  username is optional.
 // deviceType should be libkb.DeviceTypeDesktop or
 // libkb.DeviceTypeMobile.
-func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType) *Login {
+func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType, doUserSwitch bool) *Login {
 	return &Login{
 		Contextified: libkb.NewContextified(g),
 		deviceType:   deviceType,
 		username:     strings.TrimSpace(username),
 		clientType:   ct,
+		doUserSwitch: doUserSwitch,
 	}
 }
 
@@ -202,6 +204,10 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return false, err
 	case libkb.LoggedInWrongUserError:
 		m.Debug(err.Error())
+		if e.doUserSwitch {
+			m.G().ClearStateForSwitchUsers(m)
+			return false, nil
+		}
 		return true, libkb.LoggedInError{}
 	default:
 		m.Debug("Login: unexpected error: %s", err.Error())

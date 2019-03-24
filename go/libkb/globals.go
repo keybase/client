@@ -267,7 +267,7 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	return g.logoutWithSecretKill(mctx, true)
 }
 
-func (g *GlobalContext) switchDoLogout(mctx MetaContext) (err error) {
+func (g *GlobalContext) ClearStateForSwitchUsers(mctx MetaContext) (err error) {
 	return g.logoutWithSecretKill(mctx, false)
 }
 
