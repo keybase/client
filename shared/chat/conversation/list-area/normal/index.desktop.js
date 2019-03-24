@@ -20,7 +20,7 @@ import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
-import JumpToRecent from './jumptorecent'
+import JumpToRecent from './jump-to-recent'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -39,7 +39,7 @@ type State = {
 
 type Snapshot = ?number
 
-const debug = __STORYBOOK__ || true
+const debug = __STORYBOOK__
 
 class Thread extends React.PureComponent<Props, State> {
   state = {lockedToBottom: true}
