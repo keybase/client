@@ -20,7 +20,7 @@ import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
-import JumpToRecent from './jumptorecent'
+import JumpToRecent from './jump-to-recent'
 import ThreadSearch from '../../search/container'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here

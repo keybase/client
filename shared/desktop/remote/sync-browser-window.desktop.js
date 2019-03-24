@@ -15,11 +15,12 @@ type Props = {
 }
 
 const defaultWindowOpts = {
+  frame: false,
   fullscreen: false,
   height: 300,
   resizable: false,
   show: false, // Start hidden and show when we actually get props
-  titleBarStyle: 'hiddenInset',
+  titleBarStyle: 'customButtonsOnHover',
   webPreferences: {
     nodeIntegration: true,
     nodeIntegrationInWorker: false,

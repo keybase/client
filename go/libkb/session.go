@@ -126,3 +126,35 @@ func (s *Session) HasSessionToken() bool {
 func (s *Session) IsValid() bool {
 	return s.valid
 }
+
+type SessionTokener struct {
+	session, csrf string
+}
+
+func (s *SessionTokener) Tokens() (session, csrf string) {
+	return s.session, s.csrf
+}
+
+func NewSessionTokener(mctx MetaContext) (*SessionTokener, error) {
+	resp, err := mctx.G().API.Post(mctx, APIArg{
+		Endpoint:    "new_session",
+		SessionType: APISessionTypeREQUIRED,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := resp.Body.AtKey("session").GetString()
+	if err != nil {
+		return nil, err
+	}
+	csrf, err := resp.Body.AtKey("csrf_token").GetString()
+	if err != nil {
+		return nil, err
+	}
+
+	return &SessionTokener{
+		session: session,
+		csrf:    csrf,
+	}, nil
+}

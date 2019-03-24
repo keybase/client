@@ -764,9 +764,10 @@ const rootReducer = (
           const meta = state.metaMap.get(conversationIDKey, null)
           const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
           let maxMsgID = 0
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map())
           for (let i = ordinals.length - 1; i >= 0; i--) {
             const ordinal = ordinals[i]
-            const message = messageMap.getIn([conversationIDKey, ordinal])
+            const message = convMsgMap.get(ordinal)
             if (message && message.id > 0) {
               maxMsgID = message.id
               break

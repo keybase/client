@@ -14,7 +14,7 @@ import {type _Props as ExplodingMetaViewProps} from '../../messages/wrapper/expl
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
-import JumpToRecent from './jumptorecent'
+import JumpToRecent from './jump-to-recent'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
