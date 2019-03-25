@@ -586,7 +586,7 @@
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "setContainsLastMessage": {
-      "_description": "Explicitly set whether a threasd is loaded to the most recent message",
+      "_description": "Explicitly set whether a thread is loaded to the most recent message",
       "conversationIDKey": "Types.ConversationIDKey",
       "contains": "boolean"
     }

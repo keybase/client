@@ -68,11 +68,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 let markedInitiallyLoaded = false
 
 const loadMoreMessages = (state, props, loadFn) => ordinal => {
-  if (state._conversationIDKey === props.conversationIDKey) {
-    if (state._lastLoadMoreOrdinalTime + 1000 > Date.now()) {
-      // ignore a load if its too recent for the same ordinal
-      return
-    }
+  if (
+    state._conversationIDKey === props.conversationIDKey &&
+    state._lastLoadMoreOrdinalTime + 1000 > Date.now()
+  ) {
+    // ignore a load if its too recent for the same ordinal
+    return
   }
 
   loadFn()
