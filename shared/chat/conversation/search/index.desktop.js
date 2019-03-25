@@ -23,7 +23,7 @@ class ThreadSearch extends React.Component<Props, State> {
   }
 
   _onUp = () => {
-    if (this.state.selectedIndex >= this.props.hits.length) {
+    if (this.state.selectedIndex >= this.props.hits.length - 1) {
       return
     }
     this.props.loadSearchHit(this.state.selectedIndex + 1)
