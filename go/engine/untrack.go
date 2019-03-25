@@ -104,8 +104,8 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
-	e.G().UserChanged(e.arg.Me.GetUID())
-	e.G().UserChanged(them.GetUID())
+	e.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
+	e.G().UserChanged(m.Ctx(), them.GetUID())
 
 	e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
 	e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
