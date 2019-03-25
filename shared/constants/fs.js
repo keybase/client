@@ -503,13 +503,14 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
+const supportedImgMimeTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
 export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
   if (mime && mime.displayPreview) {
     const mimeType = mime.mimeType
     if (mimeType === 'text/plain') {
       return 'text'
     }
-    if (mimeType.startsWith('image/')) {
+    if (supportedImgMimeTypes.includes(mimeType)) {
       return 'image'
     }
     if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
