@@ -430,6 +430,7 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
       })
     case Chat2Gen.updateUnreadline:
@@ -473,6 +474,20 @@ const rootReducer = (
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
+    case Chat2Gen.loadMessagesFromSearchHit: {
+      let ordinal = messageIDToOrdinal(
+        state.messageMap,
+        state.pendingOutboxToOrdinal,
+        action.payload.conversationIDKey,
+        action.payload.messageID
+      )
+      if (!ordinal) {
+        ordinal = Types.numberToOrdinal(Types.messageIDToNumber(action.payload.messageID))
+      }
+      return ordinal
+        ? state.setIn(['messageCenterOrdinals', action.payload.conversationIDKey], ordinal)
+        : state
+    }
     case Chat2Gen.setPendingMode:
       return state.withMutations(_s => {
         const s = (_s: Types.State)
@@ -740,8 +755,33 @@ const rootReducer = (
         }
       )
 
+      let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          if (map.get(conversationIDKey, false)) {
+            return
+          }
+          const meta = state.metaMap.get(conversationIDKey, null)
+          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
+          let maxMsgID = 0
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map())
+          for (let i = ordinals.length - 1; i >= 0; i--) {
+            const ordinal = ordinals[i]
+            const message = convMsgMap.get(ordinal)
+            if (message && message.id > 0) {
+              maxMsgID = message.id
+              break
+            }
+          }
+          if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+            map.set(conversationIDKey, true)
+          }
+        })
+      })
+
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
+        s.set('containsLatestMessageMap', containsLatestMessageMap)
         // only if different
         if (!state.messageOrdinals.equals(messageOrdinals)) {
           s.set('messageOrdinals', messageOrdinals)
@@ -749,6 +789,13 @@ const rootReducer = (
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
+    case Chat2Gen.jumpToRecent:
+      return state.setIn(['containsLatestMessageMap', action.payload.conversationIDKey], true)
+    case Chat2Gen.setContainsLastMessage:
+      return state.setIn(
+        ['containsLatestMessageMap', action.payload.conversationIDKey],
+        action.payload.contains
+      )
     case Chat2Gen.messageRetry: {
       const {conversationIDKey, outboxID} = action.payload
       const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
@@ -1059,6 +1106,7 @@ const rootReducer = (
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
+    case Chat2Gen.loadNewerMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:

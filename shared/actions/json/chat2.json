@@ -236,6 +236,13 @@
     "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    "loadNewerMessagesDueToScroll": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadMessagesFromSearchHit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
     // Show a desktop notification
     "desktopNotification": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -573,6 +580,15 @@
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "usernames": "Array<string>"
+    },
+    "jumpToRecent": {
+      "_description": "Jump to most recent messages in a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setContainsLastMessage": {
+      "_description": "Explicitly set whether a thread is loaded to the most recent message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "contains": "boolean"
     }
   }
 }
