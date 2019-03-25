@@ -25,7 +25,7 @@ const injectGaps = (component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
-const Box2 = (props: Box2Props) => {
+const box2 = (props: Box2Props) => {
   let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
 
   const className = [
@@ -64,6 +64,12 @@ const Box2 = (props: Box2Props) => {
       {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </div>
   )
+}
+
+class Box2 extends React.Component<Box2Props> {
+  render() {
+    return box2(this.props)
+  }
 }
 
 const vBoxGap = (key, gap) => <div key={key} className={`box2_gap_vertical_${gap}`} />
