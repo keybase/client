@@ -129,7 +129,7 @@ class Icon extends Component<Props, void> {
       ])
 
       return (
-        <div style={this.props.boxStyle}>
+        <div style={Styles.collapseStyles([this.props.boxStyle, styles.flex])}>
           <span
             alt={this.props.hint}
             style={Styles.collapseStyles([
@@ -198,5 +198,11 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
 export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
+
+const styles = Styles.styleSheetCreate({
+  // Needed because otherwise the containing box doesn't calculate the size of
+  // the inner span (incl padding) properly
+  flex: {display: 'flex'},
+})
 
 export default Icon
