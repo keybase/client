@@ -259,7 +259,7 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({payload, type: updateTeamRetentionPolicy})
 /**
- * Explicitly set whether a threasd is loaded to the most recent message
+ * Explicitly set whether a thread is loaded to the most recent message
  */
 export const createSetContainsLastMessage = (payload: _SetContainsLastMessagePayload) => ({payload, type: setContainsLastMessage})
 /**
