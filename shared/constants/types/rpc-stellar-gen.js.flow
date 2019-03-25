@@ -456,6 +456,7 @@ export type SendBannerLocal = $ReadOnly<{level: String, message: String, proofsC
 export type SendPaymentResLocal = $ReadOnly<{kbTxID: KeybaseTransactionID, pending: Boolean}>
 export type SendResultCLILocal = $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID}>
 export type StellarServerDefinitions = $ReadOnly<{revision: Int, currencies: {[key: string]: OutsideCurrencyDefinition}}>
+export type SubmitMultiRes = $ReadOnly<{txID: TransactionID}>
 export type TimeMs = Long
 export type TimeboundsRecommendation = $ReadOnly<{timeNow: Keybase1.UnixTime, timeout: Int64}>
 export type TransactionID = String

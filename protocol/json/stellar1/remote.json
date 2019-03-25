@@ -674,6 +674,16 @@
     },
     {
       "type": "record",
+      "name": "SubmitMultiRes",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AutoClaim",
       "fields": [
         {
@@ -1015,7 +1025,7 @@
           "type": "PaymentMultiPost"
         }
       ],
-      "response": "KeybaseTransactionID"
+      "response": "SubmitMultiRes"
     },
     "acquireAutoClaimLock": {
       "request": [

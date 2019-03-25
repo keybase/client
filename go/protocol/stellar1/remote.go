@@ -654,6 +654,16 @@ func (o PaymentsPage) DeepCopy() PaymentsPage {
 	}
 }
 
+type SubmitMultiRes struct {
+	TxID TransactionID `codec:"txID" json:"txID"`
+}
+
+func (o SubmitMultiRes) DeepCopy() SubmitMultiRes {
+	return SubmitMultiRes{
+		TxID: o.TxID.DeepCopy(),
+	}
+}
+
 type AutoClaim struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 }
@@ -922,7 +932,7 @@ type RemoteInterface interface {
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 	SubmitRelayPayment(context.Context, SubmitRelayPaymentArg) (PaymentResult, error)
 	SubmitRelayClaim(context.Context, SubmitRelayClaimArg) (RelayClaimResult, error)
-	SubmitMultiPayment(context.Context, SubmitMultiPaymentArg) (KeybaseTransactionID, error)
+	SubmitMultiPayment(context.Context, SubmitMultiPaymentArg) (SubmitMultiRes, error)
 	AcquireAutoClaimLock(context.Context, keybase1.UserVersion) (string, error)
 	ReleaseAutoClaimLock(context.Context, ReleaseAutoClaimLockArg) error
 	NextAutoClaim(context.Context, keybase1.UserVersion) (*AutoClaim, error)
@@ -1323,7 +1333,7 @@ func (c RemoteClient) SubmitRelayClaim(ctx context.Context, __arg SubmitRelayCla
 	return
 }
 
-func (c RemoteClient) SubmitMultiPayment(ctx context.Context, __arg SubmitMultiPaymentArg) (res KeybaseTransactionID, err error) {
+func (c RemoteClient) SubmitMultiPayment(ctx context.Context, __arg SubmitMultiPaymentArg) (res SubmitMultiRes, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitMultiPayment", []interface{}{__arg}, &res)
 	return
 }

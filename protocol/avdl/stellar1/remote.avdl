@@ -212,7 +212,11 @@ protocol remote {
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
 
-  KeybaseTransactionID submitMultiPayment(keybase1.UserVersion caller, PaymentMultiPost payment);
+  record SubmitMultiRes {
+    TransactionID txID;
+  }
+
+  SubmitMultiRes submitMultiPayment(keybase1.UserVersion caller, PaymentMultiPost payment);
 
   // Acquire the UV-specific lock for autoclaims.
   // Returns a token, or an empty string if the lock is unavailable.
