@@ -160,11 +160,11 @@ func (b *BackgroundConvLoader) monitorAppState() {
 	ctx := context.Background()
 	suspended := false
 	b.Debug(ctx, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-b.G().AppState.NextUpdate(&state)
+		state = <-b.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 			b.Debug(ctx, "monitorAppState: active state: %v", state)
 			// Only resume if we had suspended earlier (frontend can spam us with these)
 			if suspended {
@@ -172,7 +172,7 @@ func (b *BackgroundConvLoader) monitorAppState() {
 				b.Resume(ctx)
 				suspended = false
 			}
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.MobileAppState_BACKGROUND:
 			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
 			if !suspended {
 				b.Suspend(ctx)

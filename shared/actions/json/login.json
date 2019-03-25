@@ -5,7 +5,7 @@
   ],
   "actions": {
     "login": {
-      "usernameOrEmail": "string",
+      "username": "string",
       "passphrase": "HiddenString"
     },
     "launchAccountResetWebPage": {},

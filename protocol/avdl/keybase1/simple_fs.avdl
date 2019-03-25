@@ -321,7 +321,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
+  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior, boolean refreshSubscription);
 
   /**
    Get revision info for a directory entry

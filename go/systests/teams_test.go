@@ -695,6 +695,10 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
 }
 
+func (u *userPlusDevice) kickAutoresetd() {
+	kickAutoresetd(u.tc.G, u.tc.T)
+}
+
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
 	res, err := u.lookupImplicitTeam2(create, displayName, public)
 	return res.TeamID, err
@@ -864,6 +868,15 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 
 func (u *userPlusDevice) MetaContext() libkb.MetaContext {
 	return libkb.NewMetaContextForTest(*u.tc)
+}
+
+func kickAutoresetd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	mctx := libkb.NewMetaContextTODO(g)
+	_, err := g.API.Post(mctx, libkb.APIArg{
+		Endpoint:    "test/accelerate_autoresetd",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	})
+	require.NoError(t, err)
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {

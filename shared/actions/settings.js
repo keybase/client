@@ -36,7 +36,7 @@ function* onSubmitNewEmail(state) {
   }
 }
 
-function* onSubmitNewPassphrase(state) {
+function* onSubmitNewPassphrase(state, action) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
@@ -50,6 +50,9 @@ function* onSubmitNewPassphrase(state) {
       passphrase: newPassphrase.stringValue(),
     })
     yield Saga.put(RouteTreeGen.createNavigateUp())
+    if (action.payload.thenSignOut) {
+      yield Saga.put(ConfigGen.createLogout())
+    }
   } catch (error) {
     yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
   } finally {
@@ -403,6 +406,14 @@ function* processorProfile(_, action) {
 const rememberPassphrase = (_, action) =>
   RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 
+const checkPassphrase = (_, action) =>
+  RPCTypes.accountPassphraseCheckRpcPromise(
+    {
+      passphrase: action.payload.passphrase.stringValue(),
+    },
+    Constants.checkPassphraseWaitingKey
+  ).then(res => SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: res}))
+
 const loadLockdownMode = state =>
   state.config.loggedIn &&
   RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.loadLockdownModeWaitingKey)
@@ -522,6 +533,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyUsersPasswordChanged,
     passwordChanged
   )
+
+  yield* Saga.chainAction<SettingsGen.CheckPassphrasePayload>(SettingsGen.checkPassphrase, checkPassphrase)
 }
 
 export default settingsSaga

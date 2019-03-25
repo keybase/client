@@ -7,6 +7,7 @@ import Header from './header'
 import Banner from './banner'
 import BetaNote from './beta-note'
 import {memoize} from '../../util/memoize'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   loaded: boolean,
@@ -20,6 +21,7 @@ type Props = {|
   onReadMore: () => void,
   onViewTeam: string => void,
   sawChatBanner: boolean,
+  teamNameToCanManageChat: {[key: string]: boolean},
   teamNameToIsOpen: {[key: string]: boolean},
   teammembercounts: {[key: string]: number},
   teamnames: $ReadOnlyArray<string>,
@@ -36,14 +38,20 @@ type RowProps = {
   isOpen: boolean,
   newRequests: number,
   onOpenFolder: () => void,
-  onManageChat: () => void,
+  onManageChat: ?() => void,
   resetUserCount: number,
   onViewTeam: () => void,
 }
 
 export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   const badgeCount = props.newRequests + props.resetUserCount
-
+  const ChatIcon = () => (
+    <Kb.Icon
+      style={{opacity: props.onManageChat ? 1 : 0.3}}
+      onClick={props.onManageChat}
+      type="iconfont-chat"
+    />
+  )
   return (
     <Kb.ListItem2
       type="Small"
@@ -75,7 +83,13 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
         Styles.isMobile ? null : (
           <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
             {props.onOpenFolder && <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />}
-            {props.onManageChat && <Kb.Icon type="iconfont-chat" onClick={props.onManageChat} />}
+            {props.onManageChat ? (
+              <ChatIcon />
+            ) : (
+              <Kb.WithTooltip text="You need to join this team before you can chat.">
+                <ChatIcon />
+              </Kb.WithTooltip>
+            )}
           </Kb.Box2>
         )
       }
@@ -124,7 +138,7 @@ class Teams extends React.PureComponent<Props, State> {
             newRequests={this.props.teamToRequest[name] ?? 0}
             membercount={this.props.teammembercounts[name]}
             onOpenFolder={() => this._onOpenFolder(name)}
-            onManageChat={() => this._onManageChat(name)}
+            onManageChat={this.props.teamNameToCanManageChat[name] ? () => this._onManageChat(name) : null}
             onViewTeam={() => this._onViewTeam(name)}
             resetUserCount={resetUserCount}
           />
@@ -142,13 +156,16 @@ class Teams extends React.PureComponent<Props, State> {
   }
 
   render() {
+    const renderHeader = flags.useNewRouter ? Styles.isMobile : true
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Header
-          loaded={this.props.loaded}
-          onCreateTeam={this.props.onCreateTeam}
-          onJoinTeam={this.props.onJoinTeam}
-        />
+        {renderHeader && (
+          <Header
+            loaded={this.props.loaded}
+            onCreateTeam={this.props.onCreateTeam}
+            onJoinTeam={this.props.onJoinTeam}
+          />
+        )}
         <Kb.List
           items={this._teamsAndExtras(this.state.sawChatBanner, this.props.teamnames)}
           renderItem={this._renderItem}

@@ -1,9 +1,10 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
 import Breadcrumb, {type Props as BreadcrumbProps} from './breadcrumb.desktop'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {
   path: Types.Path,
@@ -57,8 +58,10 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {inDestinationPicker, routePath}: OwnProps) => ({
   _navigateToPath: inDestinationPicker
-    ? (path: Types.Path) => dispatch(FsGen.createDestinationPickerOpen({currentIndex: 0, path, routePath}))
-    : (path: Types.Path) => dispatch(FsGen.createOpenPathItem({path, routePath})),
+    ? (path: Types.Path) =>
+        Constants.makeActionsForDestinationPickerOpen(0, path, routePath).forEach(action => dispatch(action))
+    : (path: Types.Path) =>
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'main'}]})),
 })
 
 const mergeProps = ({_username}, {_navigateToPath}, {path}: OwnProps) =>

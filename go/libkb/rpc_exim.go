@@ -2410,3 +2410,10 @@ func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
 	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
 	return ret
 }
+
+func (e BadUsernameError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCBadUsername
+	ret.Name = "BAD_USERNAME"
+	ret.Desc = e.Error()
+	return ret
+}

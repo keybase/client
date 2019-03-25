@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
@@ -33,6 +34,7 @@ class Inbox extends React.PureComponent<Props, State> {
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
   _clearedFilterCount: number = 0
+  _selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
   _firstOffscreenIdx: number = -1
@@ -96,9 +98,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _itemRenderer = (index, style) => {
     const row = this.props.rows[index]
-    const divStyle = virtualListMarks
-      ? Styles.collapseStyles([style, {backgroundColor: 'purple', overflow: 'hidden'}])
-      : style
+    const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
       return (
         <div style={divStyle}>
@@ -112,12 +112,13 @@ class Inbox extends React.PureComponent<Props, State> {
       )
     }
 
-    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey
-    const teamname = row.teamname
+    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+    const teamname = row.teamname || ''
+    const isHighlighted = index === 0 && !!this.props.filter && !this._selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}, isHighlighted && styles.hover])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
@@ -198,6 +199,11 @@ class Inbox extends React.PureComponent<Props, State> {
   _onSelectDown = () => this.props.onSelectDown()
 
   render() {
+    this._selectedVisible =
+      !!this.props.filter &&
+      !!this.props.rows.find(
+        r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
+      )
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
@@ -254,6 +260,13 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
+  divider: {
+    backgroundColor: 'purple',
+    overflow: 'hidden',
+  },
+  hover: {
+    backgroundColor: Styles.globalColors.blueGrey2,
+  },
   list: {flex: 1},
 })
 

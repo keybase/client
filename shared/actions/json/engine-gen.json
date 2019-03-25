@@ -275,6 +275,9 @@
         "keybase1NotifyDeviceCloneDeviceCloneCountChanged": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>, 'inParam'>> & {|sessionID: number|}"
         },
+        "keybase1NotifyEmailAddressEmailAddressVerified": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEmailAddress.emailAddressVerified'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEmailAddress.emailAddressVerified'>, 'outParam'>) => void}"
+        },
         "keybase1NotifyEphemeralNewTeamEk": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'>> & {|sessionID: number|}"
         },

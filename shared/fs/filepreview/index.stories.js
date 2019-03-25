@@ -25,7 +25,7 @@ export const filepreviewProvider = {
     sfmiEnabled: false,
   }),
   FilePreviewHeader: ({path}: {path: Types.Path}) => ({
-    loadPathItem: () => {},
+    loadPathMetadata: () => {},
     name: Types.getPathName(path),
     onAction: () => {},
     onBack: () => {},
@@ -37,14 +37,46 @@ export const filepreviewProvider = {
       size: 10240,
     }),
   }),
-  ViewContainer: () => ({
-    isSymlink: false,
-    loadMimeType: Sb.action('loadMimeType'),
-    mimeType: Constants.makeMime({mimeType: 'image/jpeg'}),
-    onInvalidToken: Sb.action('onInvalidToken'),
-    path: '/keybase/private/foo/bar.jpg',
-    url: '/keybase/private/foo/bar.jpg',
-  }),
+  ViewContainer: ({path}: {path: Types.Path}) => {
+    const common = {
+      lastModifiedTimestamp: 0,
+      onLoadingStateChange: Sb.action('onLoadingStateChange'),
+      path,
+      type: 'file',
+      url: '',
+    }
+    if (Types.pathToString(path).endsWith('/loading')) {
+      return common // no mimetype
+    }
+    if (Types.pathToString(path).endsWith('.txt')) {
+      return {
+        ...common,
+        mime: Constants.makeMime({displayPreview: true, mimeType: 'text/plain'}),
+        url: 'http://localhost:6006/sb_dll/storybook_ui_dll.js',
+      }
+    }
+    if (Types.pathToString(path).endsWith('.jpg')) {
+      return {
+        ...common,
+        mime: Constants.makeMime({displayPreview: true, mimeType: 'image/jpeg'}),
+        url: Types.pathToString(path).endsWith('small.jpg')
+          ? 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png'
+          : 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
+      }
+    }
+    if (Types.pathToString(path).endsWith('.mp4')) {
+      return {
+        ...common,
+        mimeType: Constants.makeMime({displayPreview: true, mimeType: 'video/mp4'}),
+        url:
+          'https://archive.org/download/youtube%2DA0FZIwabctw/Falcon%5FHeavy%5FStarman%2DA0FZIwabctw%2Emp4',
+      }
+    }
+    return {
+      ...common,
+      mimeType: Constants.makeMime({mimeType: 'application/pdf'}),
+    }
+  },
 }
 
 const provider = Sb.createPropProviderWithCommon({
@@ -55,22 +87,23 @@ const provider = Sb.createPropProviderWithCommon({
   ...filepreviewProvider,
 })
 
+const filenames = [
+  'loading',
+  'small.jpg',
+  'large.jpg',
+  'text.txt',
+  'video.mp4',
+  'default.default',
+  'default-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.default',
+]
+
 export default () => {
-  Sb.storiesOf('Files/Previews', module)
-    .addDecorator(provider)
-    .add('bar.jpg', () => (
+  const s = Sb.storiesOf('Files/Previews', module).addDecorator(provider)
+  filenames.forEach(fn =>
+    s.add(fn, () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <NormalPreview routePath={I.List([])} path={Types.stringToPath('/keybase/private/foo/bar.jpg')} />
+        <NormalPreview routePath={I.List([])} path={Types.stringToPath(`/keybase/private/foo/${fn}`)} />
       </Kb.Box2>
     ))
-    .add('long-name.jpg', () => (
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <NormalPreview
-          routePath={I.List([])}
-          path={Types.stringToPath(
-            '/keybase/private/foo/long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.jpg'
-          )}
-        />
-      </Kb.Box2>
-    ))
+  )
 }

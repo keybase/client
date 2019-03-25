@@ -11,6 +11,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const checkPassphrase = 'settings:checkPassphrase'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const invitesClearError = 'settings:invitesClearError'
@@ -24,6 +25,7 @@ export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
 export const loadRememberPassphrase = 'settings:loadRememberPassphrase'
 export const loadSettings = 'settings:loadSettings'
+export const loadedCheckPassphrase = 'settings:loadedCheckPassphrase'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedRememberPassphrase = 'settings:loadedRememberPassphrase'
@@ -54,6 +56,7 @@ export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _CheckPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _InvitesClearErrorPayload = void
@@ -69,6 +72,7 @@ type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
 type _LoadRememberPassphrasePayload = void
 type _LoadSettingsPayload = void
+type _LoadedCheckPassphrasePayload = $ReadOnly<{|checkPassphraseIsCorrect: ?boolean|}>
 type _LoadedHasRandomPwPayload = $ReadOnly<{|randomPW: boolean|}>
 type _LoadedLockdownModePayload = $ReadOnly<{|status: ?boolean|}>
 type _LoadedRememberPassphrasePayload = $ReadOnly<{|remember: boolean|}>
@@ -84,7 +88,7 @@ type _OnChangeNewPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _OnChangeRememberPassphrasePayload = $ReadOnly<{|remember: boolean|}>
 type _OnChangeShowPassphrasePayload = void
 type _OnSubmitNewEmailPayload = void
-type _OnSubmitNewPassphrasePayload = void
+type _OnSubmitNewPassphrasePayload = $ReadOnly<{|thenSignOut: boolean|}>
 type _OnUpdateEmailErrorPayload = $ReadOnly<{|error: Error|}>
 type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePassphraseErrorPayload = $ReadOnly<{|error: Error|}>
@@ -115,6 +119,7 @@ export const createUnfurlSettingsRefreshed = (payload: _UnfurlSettingsRefreshedP
  * Update unfurl settings from settings screen
  */
 export const createUnfurlSettingsSaved = (payload: _UnfurlSettingsSavedPayload) => ({payload, type: unfurlSettingsSaved})
+export const createCheckPassphrase = (payload: _CheckPassphrasePayload) => ({payload, type: checkPassphrase})
 export const createDbNuke = (payload: _DbNukePayload) => ({payload, type: dbNuke})
 export const createDeleteAccountForever = (payload: _DeleteAccountForeverPayload) => ({payload, type: deleteAccountForever})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload) => ({payload, type: invitesClearError})
@@ -130,6 +135,7 @@ export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload) => ({pay
 export const createLoadLockdownMode = (payload: _LoadLockdownModePayload) => ({payload, type: loadLockdownMode})
 export const createLoadRememberPassphrase = (payload: _LoadRememberPassphrasePayload) => ({payload, type: loadRememberPassphrase})
 export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
+export const createLoadedCheckPassphrase = (payload: _LoadedCheckPassphrasePayload) => ({payload, type: loadedCheckPassphrase})
 export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload) => ({payload, type: loadedHasRandomPw})
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload) => ({payload, type: loadedLockdownMode})
 export const createLoadedRememberPassphrase = (payload: _LoadedRememberPassphrasePayload) => ({payload, type: loadedRememberPassphrase})
@@ -156,6 +162,7 @@ export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({payload, type: waitingForResponse})
 
 // Action Payloads
+export type CheckPassphrasePayload = {|+payload: _CheckPassphrasePayload, +type: 'settings:checkPassphrase'|}
 export type DbNukePayload = {|+payload: _DbNukePayload, +type: 'settings:dbNuke'|}
 export type DeleteAccountForeverPayload = {|+payload: _DeleteAccountForeverPayload, +type: 'settings:deleteAccountForever'|}
 export type InvitesClearErrorPayload = {|+payload: _InvitesClearErrorPayload, +type: 'settings:invitesClearError'|}
@@ -171,6 +178,7 @@ export type LoadHasRandomPwPayload = {|+payload: _LoadHasRandomPwPayload, +type:
 export type LoadLockdownModePayload = {|+payload: _LoadLockdownModePayload, +type: 'settings:loadLockdownMode'|}
 export type LoadRememberPassphrasePayload = {|+payload: _LoadRememberPassphrasePayload, +type: 'settings:loadRememberPassphrase'|}
 export type LoadSettingsPayload = {|+payload: _LoadSettingsPayload, +type: 'settings:loadSettings'|}
+export type LoadedCheckPassphrasePayload = {|+payload: _LoadedCheckPassphrasePayload, +type: 'settings:loadedCheckPassphrase'|}
 export type LoadedHasRandomPwPayload = {|+payload: _LoadedHasRandomPwPayload, +type: 'settings:loadedHasRandomPw'|}
 export type LoadedLockdownModePayload = {|+payload: _LoadedLockdownModePayload, +type: 'settings:loadedLockdownMode'|}
 export type LoadedRememberPassphrasePayload = {|+payload: _LoadedRememberPassphrasePayload, +type: 'settings:loadedRememberPassphrase'|}
@@ -203,6 +211,7 @@ export type WaitingForResponsePayload = {|+payload: _WaitingForResponsePayload, 
 // All Actions
 // prettier-ignore
 export type Actions =
+  | CheckPassphrasePayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | InvitesClearErrorPayload
@@ -218,6 +227,7 @@ export type Actions =
   | LoadLockdownModePayload
   | LoadRememberPassphrasePayload
   | LoadSettingsPayload
+  | LoadedCheckPassphrasePayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
   | LoadedRememberPassphrasePayload

@@ -1,33 +1,34 @@
 // @flow
 import * as SettingsGen from '../../actions/settings-gen'
+import * as Kb from '../../common-adapters'
 import UpdatePassphrase from '.'
 import {compose, lifecycle, connect, type RouteProps} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = RouteProps<{heading: string}, {}>
+type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state, {routeProps}) => ({
+const mapStateToProps = state => ({
   error: state.settings.passphrase.error,
   hasPGPKeyOnServer: !!state.settings.passphrase.hasPGPKeyOnServer,
-  heading: routeProps.get('heading'),
   newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError
     ? state.settings.passphrase.newPassphraseConfirmError.stringValue()
     : null,
   newPassphraseError: state.settings.passphrase.newPassphraseError
     ? state.settings.passphrase.newPassphraseError.stringValue()
     : null,
+  saveLabel: state.settings.passphrase.randomPW ? 'Create passphrase' : 'Save',
   waitingForResponse: state.settings.waitingForResponse,
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
   onChangeShowPassphrase: () => dispatch(SettingsGen.createOnChangeShowPassphrase()),
   onSave: (passphrase: string, passphraseConfirm: string) => {
     dispatch(SettingsGen.createOnChangeNewPassphrase({passphrase: new HiddenString(passphrase)}))
     dispatch(
       SettingsGen.createOnChangeNewPassphraseConfirm({passphrase: new HiddenString(passphraseConfirm)})
     )
-    dispatch(SettingsGen.createOnSubmitNewPassphrase())
+    dispatch(SettingsGen.createOnSubmitNewPassphrase({thenSignOut: false}))
   },
   onUpdatePGPSettings: () => dispatch(SettingsGen.createOnUpdatePGPSettings()),
 })
@@ -43,4 +44,4 @@ export default compose(
       this.props.onUpdatePGPSettings()
     },
   })
-)(UpdatePassphrase)
+)(Kb.HeaderOrPopup(UpdatePassphrase))

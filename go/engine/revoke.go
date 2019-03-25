@@ -315,7 +315,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 		}
 	}
 
-	e.G().UserChanged(me.GetUID())
+	e.G().UserChanged(m.Ctx(), me.GetUID())
 
 	return nil
 }

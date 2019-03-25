@@ -92,6 +92,7 @@ export type State = {
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
+  checkPassphraseIsCorrect: ?boolean,
 }
 
 type AboutTab = 'settingsTabs.aboutTab'
@@ -108,6 +109,7 @@ type LandingTab = 'settingsTabs.landingTab'
 type NotificationsTab = 'settingsTabs.notificationsTab'
 type PassphraseTab = 'settingsTabs.passphrase'
 type ScreenprotectorTab = 'settingsTabs.screenprotector'
+type LogOutTab = 'settingsTabs.logOutTab'
 type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
 type WalletsTab = 'settingsTabs.walletsTab'
 
@@ -124,6 +126,7 @@ export type Tab =
   | GitTab
   | FoldersTab
   | FsTab
+  | LogOutTab
   | ScreenprotectorTab
   | PassphraseTab
   | WalletsTab

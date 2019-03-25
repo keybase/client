@@ -9,6 +9,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as ChatGen from '../../actions/chat2-gen'
 import HiddenString from '../../util/hidden-string'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import flags from '../../util/feature-flags'
 import SendLinkToChat from '.'
 
 type OwnProps = {
@@ -26,10 +27,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _send: (conversationIDKey: ChatTypes.ConversationIDKey, text: string) => {
     dispatch(ChatGen.createMessageSend({conversationIDKey, text: new HiddenString(text)}))
     dispatch(
-      RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: ownProps.routePath,
-        otherAction: RouteTreeGen.createNavigateUp(),
-      })
+      flags.useNewRouter
+        ? RouteTreeGen.createClearModals()
+        : RouteTreeGen.createPutActionIfOnPath({
+            expectedPath: ownProps.routePath,
+            otherAction: RouteTreeGen.createNavigateUp(),
+          })
     )
     dispatch(
       ChatGen.createSelectConversation({
@@ -41,10 +44,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
   onCancel: () =>
     dispatch(
-      RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: ownProps.routePath,
-        otherAction: RouteTreeGen.createNavigateUp(),
-      })
+      flags.useNewRouter
+        ? RouteTreeGen.createClearModals()
+        : RouteTreeGen.createPutActionIfOnPath({
+            expectedPath: ownProps.routePath,
+            otherAction: RouteTreeGen.createNavigateUp(),
+          })
     ),
 })
 

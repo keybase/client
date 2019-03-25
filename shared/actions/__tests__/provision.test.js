@@ -636,14 +636,14 @@ describe('start the whole process', () => {
   dispatch(ProvisionGen.createProvisionError({error}))
   dispatch(ProvisionGen.createStartProvision())
   expect(getState().provision).toEqual(Constants.makeState())
-  expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'usernameOrEmail']))
+  expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'username']))
 })
 
 describe('Submit user email', () => {
   const {getState, dispatch} = startReduxSaga()
-  const action = ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail: 'aaa@example.org'})
+  const action = ProvisionGen.createSubmitUsername({username: 'aaa@example.org'})
   dispatch(action)
-  expect(getState().provision.usernameOrEmail).toEqual(action.payload.usernameOrEmail)
+  expect(getState().provision.username).toEqual(action.payload.username)
   expect(getState().provision.error).toEqual(noError)
   expect(getState().provision.finalError).toEqual(null)
 })

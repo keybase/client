@@ -33,7 +33,7 @@ const Advanced = (props: Props) => {
       </Kb.Box>
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
-          checked={!!props.lockdownModeEnabled}
+          checked={props.hasRandomPW || !!props.lockdownModeEnabled}
           disabled={disabled}
           label={
             'Forbid account changes from the website' +

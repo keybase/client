@@ -202,7 +202,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 		}
 	}
 
-	m.G().UserChanged(uid)
+	m.G().UserChanged(m.Ctx(), uid)
 	return nil
 }
 
