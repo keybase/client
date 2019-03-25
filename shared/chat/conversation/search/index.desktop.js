@@ -3,6 +3,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import {formatTimeForMessages} from '../../../util/timestamp'
 import type {Props} from './index.types'
 
 const hitHeight = 30
@@ -34,10 +35,20 @@ class ThreadSearch extends React.Component<Props, State> {
   }
   _renderHit = (index, item) => {
     return (
-      <Kb.ClickableBox key={index} onClick={() => this.props.loadSearchHit(index)} style={styles.hitRow}>
+      <Kb.ClickableBox
+        key={index}
+        onClick={() => {
+          this.props.loadSearchHit(index)
+          this.setState({selectedIndex: index + 1})
+        }}
+        style={styles.hitRow}
+      >
         <Kb.Avatar username={item.author} size={24} />
-        <Kb.Text type="BodySmall" style={styles.hitSummary}>
+        <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
+        </Kb.Text>
+        <Kb.Text type="BodySmall" style={styles.time}>
+          {formatTimeForMessages(item.timestamp)}
         </Kb.Text>
       </Kb.ClickableBox>
     )
@@ -45,7 +56,7 @@ class ThreadSearch extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={this.props.style}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={this.props.style}>
         <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
           <Kb.Box2 direction="horizontal" style={styles.inputContainer} fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
@@ -97,11 +108,13 @@ class ThreadSearch extends React.Component<Props, State> {
           />
         </Kb.Box2>
         {this.props.hits.length > 0 && (
-          <Kb.ScrollView style={styles.hitList}>
-            {this.props.hits.map((h, i) => {
-              return this._renderHit(i, h)
-            })}
-          </Kb.ScrollView>
+          <Kb.List2
+            indexAsKey={true}
+            items={this.props.hits}
+            itemHeight={{height: hitHeight, type: 'fixed'}}
+            renderItem={this._renderHit}
+            style={styles.hitList}
+          />
         )}
       </Kb.Box2>
     )
@@ -109,19 +122,31 @@ class ThreadSearch extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  hit: {
-    height: hitHeight,
-  },
-  hitList: {
-    backgroundColor: Styles.globalColors.blue5,
-    maxHeight: 150,
-  },
+  hitList: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.blue5,
+      borderBottom: '1px solid',
+      borderColor: Styles.globalColors.black_20,
+      height: 4 * hitHeight,
+    },
+  }),
   hitRow: {
     ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    height: hitHeight,
+    justifyContent: 'space-between',
+    padding: Styles.globalMargins.tiny,
   },
-  hitSummary: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  hitSummary: Styles.platformStyles({
+    isElectron: {
+      display: 'inline',
+      flex: 1,
+      marginLeft: Styles.globalMargins.tiny,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  }),
   inputContainer: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_20,
@@ -145,6 +170,9 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_40,
   },
   resultsContainer: {
+    flexShrink: 0,
+  },
+  time: {
     flexShrink: 0,
   },
 })

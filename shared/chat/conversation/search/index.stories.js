@@ -23,7 +23,8 @@ const hits = [
   },
   {
     author: 'patrick',
-    summary: 'keybase now supports stellar wallet for making psyments to friends and other internet people',
+    summary:
+      'keybase now supports stellar wallet for making psyments to friends and other internet people. MOre long text to see what we do in a case with a really long message hihihihi',
     timestamp: 1542241021655,
   },
 ]
