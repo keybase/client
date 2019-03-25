@@ -1328,6 +1328,13 @@ const onToggleThreadSearch = (state, action) => {
   return visible ? [] : RPCChatTypes.localCancelActiveSearchRpcPromise()
 }
 
+const hideThreadSearch = (state, action) => {
+  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
+  return visible
+    ? Chat2Gen.createToggleThreadSearch({conversationIDKey: action.payload.conversationIDKey})
+    : []
+}
+
 function* threadSearch(state, action) {
   const {conversationIDKey, query} = action.payload
   const onHit = hit => {
@@ -3167,6 +3174,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.toggleThreadSearch,
     onToggleThreadSearch
   )
+  yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(Chat2Gen.selectConversation, hideThreadSearch)
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 
