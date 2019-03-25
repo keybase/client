@@ -8,6 +8,7 @@ const base = {
   loadSearchHit: Sb.action('loadSearchHit'),
   onCancel: Sb.action('onCancel'),
   onSearch: Sb.action('onSearch'),
+  selfHide: Sb.action('selfHide'),
 }
 
 const hits = [

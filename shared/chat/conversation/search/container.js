@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
-import {namedConnect} from '../../../util/container'
+import {isMobile, namedConnect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 import ThreadSearch from '.'
 
@@ -11,6 +11,11 @@ type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   style?: Styles.StylesCrossPlatform,
 |}
+
+let KeyHandler: any = c => c
+if (!isMobile) {
+  KeyHandler = require('../../../util/key-handler.desktop').default
+}
 
 const mapStateToProps = (state, {conversationIDKey}) => {
   const info = state.chat2.threadSearchInfoMap.get(conversationIDKey, Constants.makeThreadSearchInfo())
@@ -24,8 +29,15 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _loadSearchHit: messageID =>
     dispatch(Chat2Gen.createLoadMessagesFromSearchHit({conversationIDKey, messageID})),
   onCancel: () => dispatch(Chat2Gen.createCancelThreadSearch()),
+  onHotkey: (cmd: string) => {
+    switch (cmd) {
+      case 'esc':
+        dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
+    }
+  },
   onSearch: query =>
     dispatch(Chat2Gen.createThreadSearch({conversationIDKey, query: new HiddenString(query)})),
+  selfHide: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
@@ -36,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
       timestamp: h.timestamp,
     }))
     .toArray(),
+  hotkeys: ['esc'],
   inProgress: stateProps.inProgress,
   loadSearchHit: index => {
     const message = stateProps._hits.get(index, Constants.makeMessageText())
@@ -44,7 +57,9 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
     }
   },
   onCancel: dispatchProps.onCancel,
+  onHotkey: dispatchProps.onHotkey,
   onSearch: dispatchProps.onSearch,
+  selfHide: dispatchProps.selfHide,
   style,
 })
 
@@ -53,4 +68,4 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapDispatchToProps,
   mergeProps,
   'ThreadSearch'
-)(ThreadSearch)
+)(KeyHandler(ThreadSearch))

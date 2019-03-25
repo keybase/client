@@ -10,15 +10,18 @@ const hitHeight = 30
 
 type State = {|
   selectedIndex: number,
+  showResultList: boolean,
 |}
 
 class ThreadSearch extends React.Component<Props, State> {
-  state = {selectedIndex: 0}
-  _inputRef = React.createRef()
+  state = {selectedIndex: 0, showResultList: false}
+  _text: string
+
   _submitSearch = () => {
     this.setState({selectedIndex: 0})
-    this._inputRef.current && this.props.onSearch(this._inputRef.current.getValue())
+    this.props.onSearch(this._text)
   }
+
   _onUp = () => {
     if (this.state.selectedIndex >= this.props.hits.length) {
       return
@@ -26,13 +29,15 @@ class ThreadSearch extends React.Component<Props, State> {
     this.props.loadSearchHit(this.state.selectedIndex)
     this.setState({selectedIndex: this.state.selectedIndex + 1})
   }
+
   _onDown = () => {
-    if (this.state.selectedIndex <= 0) {
+    if (this.state.selectedIndex <= 1) {
       return
     }
     this.props.loadSearchHit(this.state.selectedIndex)
     this.setState({selectedIndex: this.state.selectedIndex - 1})
   }
+
   _renderHit = (index, item) => {
     return (
       <Kb.ClickableBox
@@ -54,6 +59,31 @@ class ThreadSearch extends React.Component<Props, State> {
     )
   }
 
+  _onChangedText = (text: string) => {
+    this._text = text
+  }
+
+  _onFocus = () => {
+    this.setState({showResultList: true})
+  }
+
+  _onBlur = () => {
+    setTimeout(() => this.setState({showResultList: false}), 300)
+  }
+
+  _onKeydown = e => {
+    if (e.key === 'Escape') {
+      this.props.selfHide()
+    }
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
+      this.props.loadSearchHit(0)
+      this.setState({selectedIndex: 1})
+    }
+  }
+
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={this.props.style}>
@@ -61,14 +91,15 @@ class ThreadSearch extends React.Component<Props, State> {
           <Kb.Box2 direction="horizontal" style={styles.inputContainer} fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
               <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />
-              <Kb.Input
+              <Kb.PlainInput
                 autoFocus={true}
-                hideUnderline={true}
-                hintText="Search..."
-                small={true}
-                uncontrolled={true}
+                flexable={true}
+                onBlur={this._onBlur}
+                onChangeText={this._onChangedText}
                 onEnterKeyDown={this._submitSearch}
-                ref={this._inputRef}
+                onFocus={this._onFocus}
+                onKeyDown={this._onKeydown}
+                placeholder="Search..."
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
@@ -107,7 +138,7 @@ class ThreadSearch extends React.Component<Props, State> {
             label="Cancel"
           />
         </Kb.Box2>
-        {this.props.hits.length > 0 && (
+        {this.props.hits.length > 0 && this.state.showResultList && (
           <Kb.List2
             indexAsKey={true}
             items={this.props.hits}

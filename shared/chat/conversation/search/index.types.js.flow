@@ -6,11 +6,12 @@ type SearchHit = {|
   summary: string,
   timestamp: number,
 |}
-export type Props = {|
+export type Props = {
   hits: Array<SearchHit>,
   inProgress: boolean,
   loadSearchHit: number => void,
   onCancel: () => void,
   onSearch: string => void,
+  selfHide: () => void,
   style?: Styles.StylesCrossPlatform,
-|}
+}

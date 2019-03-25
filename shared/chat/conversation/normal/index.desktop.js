@@ -8,7 +8,6 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import type {Props} from './index.types'
-import KeyHandler from '../../../util/key-handler.desktop'
 import '../conversation.css'
 
 type State = {|
@@ -23,7 +22,7 @@ const Offline = () => (
   </Kb.Box>
 )
 
-class _Conversation extends React.PureComponent<Props, State> {
+class Conversation extends React.PureComponent<Props, State> {
   _mounted = false
   state = {showDropOverlay: false}
 
@@ -95,5 +94,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const Conversation: any = KeyHandler(_Conversation)
 export default Conversation

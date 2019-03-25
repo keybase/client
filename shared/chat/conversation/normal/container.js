@@ -7,12 +7,17 @@ import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {isDarwin} from '../../../constants/platform'
 import Normal from '.'
-import {compose, connect, withStateHandlers, withProps} from '../../../util/container'
+import {compose, connect, isMobile, withStateHandlers, withProps} from '../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isPending: boolean,
 |}
+
+let KeyHandler: any = c => c
+if (!isMobile) {
+  KeyHandler = require('../../../util/key-handler.desktop').default
+}
 
 const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
@@ -97,4 +102,4 @@ export default compose(
   withProps(props => ({
     onHotkey: (cmd: string) => props.onHotkey(cmd),
   }))
-)(Normal)
+)(KeyHandler(Normal))
