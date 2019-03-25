@@ -211,14 +211,14 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 ])}
               >
                 {this.props.explodingModeSeconds ? (
-                  <Kb.Text type="BodyTinyBold" style={styles.time}>
+                  <Kb.Text type="BodyTinyBold" negative={true}>
                     {formatDurationShort(this.props.explodingModeSeconds * 1000)}
                   </Kb.Text>
                 ) : (
                   <Kb.Icon
                     className="timer"
                     onClick={this._toggleShowingMenu}
-                    style={Kb.iconCastPlatformStyles(styles.timerIcon)}
+                    padding="xtiny"
                     type="iconfont-timer"
                   />
                 )}
@@ -379,10 +379,11 @@ const styles = Styles.styleSheetCreate({
   explodingIconContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
       alignSelf: 'stretch',
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
-      justifyContent: 'flex-end',
+      justifyContent: 'center',
       textAlign: 'center',
       width: 32,
     },
@@ -450,15 +451,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.boxShadow,
     },
   }),
-  time: {
-    bottom: Styles.globalMargins.tiny,
-    color: Styles.globalColors.white,
-    position: 'relative',
-  },
-  timerIcon: {
-    bottom: 6,
-    position: 'relative',
-  },
   walletsIcon: {
     alignSelf: 'flex-end',
     marginBottom: 6,
