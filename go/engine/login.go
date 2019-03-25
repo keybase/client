@@ -33,9 +33,11 @@ func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct key
 	return NewLoginWithUserSwitch(g, deviceType, username, ct, false)
 }
 
-// NewLogin creates a Login engine.  username is optional.
-// deviceType should be libkb.DeviceTypeDesktop or
-// libkb.DeviceTypeMobile.
+// NewLoginWithUserSwitch creates a Login engine. username is optional.
+// deviceType should be libkb.DeviceTypeDesktop or libkb.DeviceTypeMobile.
+// You can also specify a bool to say whether you'd like to doUserSwitch or not.
+// By default, this flag is off (see above), but as we roll out user switching,
+// we can start to turn this on in more places.
 func NewLoginWithUserSwitch(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType, doUserSwitch bool) *Login {
 	return &Login{
 		Contextified: libkb.NewContextified(g),
