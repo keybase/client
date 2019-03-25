@@ -66,20 +66,24 @@ const useBare = isMobile
     }
 
 class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
-  componentDidMount() {
-    if (useBare(this.props.mimeType)) {
-      this.props.emitBarePreview()
-    }
-  }
-  componentDidUpdate(prevProps) {
-    if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
-      this.props.emitBarePreview()
-    }
+  waitForKbfsDaemonIfNeeded() {
     if (this.props.kbfsDaemonStatus !== 'connected') {
       // Always triggers whenever something changes if we are not connected.
       // Saga deduplicates redundant checks.
       this.props.waitForKbfsDaemon()
     }
+  }
+  componentDidMount() {
+    if (useBare(this.props.mimeType)) {
+      this.props.emitBarePreview()
+    }
+    this.waitForKbfsDaemonIfNeeded()
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
+      this.props.emitBarePreview()
+    }
+    this.waitForKbfsDaemonIfNeeded()
   }
 
   getContent() {
