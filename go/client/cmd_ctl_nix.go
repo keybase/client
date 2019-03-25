@@ -18,12 +18,12 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+const backtick = "`"
+
 type CmdCtlAutostart struct {
 	libkb.Contextified
 	ToggleOn bool
 }
-
-const backtick = "`"
 
 func NewCmdCtlAutostart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	cmd := &CmdCtlAutostart{

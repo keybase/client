@@ -71,7 +71,7 @@ func VerifyBoxAudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (newMctx lib
 
 	didReaudit, err := mctx.G().GetTeamBoxAuditor().AssertUnjailedOrReaudit(mctx, teamID)
 	if err != nil {
-		mctx.G().NotifyRouter.HandleBoxAuditError(err.Error())
+		mctx.G().NotifyRouter.HandleBoxAuditError(mctx.Ctx(), err.Error())
 		return mctx, true
 	}
 	return mctx, didReaudit
@@ -878,11 +878,7 @@ type summaryAuditBatch struct {
 
 type summaryAuditResponse struct {
 	Batches []summaryAuditBatch `json:"batches"`
-	Status  libkb.AppStatus     `json:"status"`
-}
-
-func (r *summaryAuditResponse) GetAppStatus() *libkb.AppStatus {
-	return &r.Status
+	libkb.AppStatusEmbed
 }
 
 func retrieveAndVerifySigchainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {

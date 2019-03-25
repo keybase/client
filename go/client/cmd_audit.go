@@ -130,9 +130,10 @@ func (c *CmdAuditBox) Run() error {
 		return err
 	}
 
+	ctx := context.Background()
 	switch {
 	case c.AuditAllKnownTeams:
-		knownTeamIDs, err := cli.KnownTeamIDs(context.Background(), 0)
+		knownTeamIDs, err := cli.KnownTeamIDs(ctx, 0)
 		if err != nil {
 			return err
 		}
@@ -145,7 +146,7 @@ func (c *CmdAuditBox) Run() error {
 				// If the previous one failed, it will be in the retry queue
 				// and hence, this retry will rotate before attempt
 				// automatically.
-				err = cli.BoxAuditTeam(context.Background(), arg)
+				err = cli.BoxAuditTeam(ctx, arg)
 				if err == nil {
 					break
 				}
@@ -172,21 +173,21 @@ func (c *CmdAuditBox) Run() error {
 		}
 		return nil
 	case c.IsInJail:
-		ok, err := cli.IsInJail(context.Background(), keybase1.IsInJailArg{TeamID: c.TeamID})
+		ok, err := cli.IsInJail(ctx, keybase1.IsInJailArg{TeamID: c.TeamID})
 		if err != nil {
 			return err
 		}
 		fmt.Println(ok)
 		return nil
 	case c.Audit:
-		err := cli.BoxAuditTeam(context.Background(), keybase1.BoxAuditTeamArg{TeamID: c.TeamID})
+		err := cli.BoxAuditTeam(ctx, keybase1.BoxAuditTeamArg{TeamID: c.TeamID})
 		if err != nil {
 			return err
 		}
 		return nil
 	case c.Attempt:
 		arg := keybase1.AttemptBoxAuditArg{TeamID: c.TeamID, RotateBeforeAudit: c.RotateBeforeAttempt}
-		audit, err := cli.AttemptBoxAudit(context.Background(), arg)
+		audit, err := cli.AttemptBoxAudit(ctx, arg)
 		if err != nil {
 			return err
 		}
@@ -200,7 +201,7 @@ func (c *CmdAuditBox) Run() error {
 		}
 		return nil
 	case c.Ls:
-		ids, err := cli.KnownTeamIDs(context.Background(), 0)
+		ids, err := cli.KnownTeamIDs(ctx, 0)
 		if err != nil {
 			return err
 		}

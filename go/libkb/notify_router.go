@@ -2138,12 +2138,12 @@ func (n *NotifyRouter) HandleRootAuditError(msg string) {
 	n.G().Log.Debug("- merkle tree audit notification sent")
 }
 
-func (n *NotifyRouter) HandleBoxAuditError(msg string) {
+func (n *NotifyRouter) HandleBoxAuditError(ctx context.Context, msg string) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending BoxAuditError notification")
-	defer n.G().Log.Debug("- Sending BoxAuditError notification")
+	n.G().Log.CDebugf(ctx, "+ Sending BoxAuditError notification")
+	defer n.G().Log.CDebugf(ctx, "- Sending BoxAuditError notification")
 
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Audit {
