@@ -9,8 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -357,7 +359,7 @@ func (c *ChatRPC) SendTextMessage(
 
 func (c *ChatRPC) getLastSelfWrittenHandles(
 	ctx context.Context, chatType chat1.TopicType, seen map[string]bool) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	selfConvID, _, err := c.getSelfConvInfo(ctx)
 	if err != nil {
 		return nil, err
@@ -406,7 +408,7 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 // GetGroupedInbox implements the Chat interface.
 func (c *ChatRPC) GetGroupedInbox(
 	ctx context.Context, chatType chat1.TopicType, maxChats int) (
-	results []*TlfHandle, err error) {
+	results []*tlfhandle.Handle, err error) {
 	// First get the latest TLFs written by this user.
 	seen := make(map[string]bool)
 	results, err = c.getLastSelfWrittenHandles(ctx, chatType, seen)
@@ -425,14 +427,14 @@ func (c *ChatRPC) GetGroupedInbox(
 		return nil, err
 	}
 
-	favorites, err := c.config.KBFSOps().GetFavorites(ctx)
+	favs, err := c.config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
 		c.log.CWarningf(ctx,
 			"Unable to fetch favorites while making GroupedInbox: %v",
 			err)
 	}
-	favMap := make(map[Favorite]bool)
-	for _, fav := range favorites {
+	favMap := make(map[favorites.Folder]bool)
+	for _, fav := range favs {
 		favMap[fav] = true
 	}
 
@@ -454,7 +456,7 @@ func (c *ChatRPC) GetGroupedInbox(
 			tlfType = tlf.SingleTeam
 		}
 
-		tlfIsFavorite := favMap[Favorite{Name: info.TlfName, Type: tlfType}]
+		tlfIsFavorite := favMap[favorites.Folder{Name: info.TlfName, Type: tlfType}]
 		if !tlfIsFavorite {
 			continue
 		}

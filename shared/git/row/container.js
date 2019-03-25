@@ -5,7 +5,7 @@ import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
-import * as FsGen from '../../actions/fs-gen'
+import * as FsConstants from '../../constants/fs'
 import {namedConnect, compose, withHandlers, isMobile} from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import {gitTab, settingsTab} from '../../constants/tabs'
@@ -31,7 +31,7 @@ const mapStateToProps = (state, {id, expanded}: OwnProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onBrowseGitRepo: (path: FsTypes.Path) => dispatch(FsGen.createOpenPathInFilesTab({path})),
+  _onBrowseGitRepo: (path: FsTypes.Path) => dispatch(FsConstants.makeActionForOpenPathInFilesTab(path)),
   _onOpenChannelSelection: (repoID: string, teamname: ?string, selected: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({

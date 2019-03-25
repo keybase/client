@@ -1,0 +1,10 @@
+// @flow
+export type Props = {|
+  inProgress: boolean,
+  onCancel: () => void,
+  onSearch: string => void,
+  onUp: () => void,
+  onDown: () => void,
+  selectedResult: number,
+  totalResults: number,
+|}

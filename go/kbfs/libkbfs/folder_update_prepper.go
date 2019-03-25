@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -43,7 +46,7 @@ func (fup *folderUpdatePrepper) nowUnixNano() int64 {
 }
 
 func (fup *folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
-	kmd KeyMetadata, currBlock Block, chargedTo keybase1.UserOrTeamID,
+	kmd libkey.KeyMetadata, currBlock Block, chargedTo keybase1.UserOrTeamID,
 	bps blockPutState, bType keybase1.BlockType) (
 	info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
@@ -90,7 +93,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	// Simple dirty bcaches don't need to be shut down.
 
-	getter := func(ctx context.Context, _ KeyMetadata, ptr BlockPointer,
+	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
 		_ path, _ blockReqType) (*FileBlock, bool, error) {
 		block, err := dirtyBcache.Get(ctx, fup.id(), ptr, fup.branch())
 		if err != nil {
@@ -198,11 +201,11 @@ func (idwl isDirtyWithDBM) IsDirty(
 //
 // TODO: deal with multiple nodes for indirect blocks
 func (fup *folderUpdatePrepper) prepUpdateForPath(
-	ctx context.Context, lState *lockState, chargedTo keybase1.UserOrTeamID,
-	md *RootMetadata, newBlock Block, newBlockPtr BlockPointer, dir path,
-	name string, entryType EntryType, mtime bool, ctime bool,
-	stopAt BlockPointer, dbm dirBlockMap, bps blockPutState) (
-	path, DirEntry, error) {
+	ctx context.Context, lState *kbfssync.LockState,
+	chargedTo keybase1.UserOrTeamID, md *RootMetadata, newBlock Block,
+	newBlockPtr BlockPointer, dir path, name string, entryType EntryType,
+	mtime bool, ctime bool, stopAt BlockPointer, dbm dirBlockMap,
+	bps blockPutState) (path, DirEntry, error) {
 	// now ready each dblock and write the DirEntry for the next one
 	// in the path
 	currBlock := newBlock
@@ -283,11 +286,12 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			dd, cleanupFn = fup.blocks.newDirDataWithDBM(
 				lState, prevDir, chargedTo, md, dbm)
 			de, err = dd.lookup(ctx, currName)
-			if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+			if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
 				// If this isn't the first time
 				// around, we have an error.
 				if len(newPath.path) > 1 {
-					return path{}, DirEntry{}, NoSuchNameError{currName}
+					return path{}, DirEntry{},
+						idutil.NoSuchNameError{Name: currName}
 				}
 
 				// If this is a file, the size should be 0. (TODO:
@@ -423,10 +427,10 @@ const (
 // (with all child changes applied) before readying any parent blocks.
 // prepTree returns the merged blockPutState for itself and all of its
 // children.
-func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
-	unmergedChains *crChains, newMD *RootMetadata,
-	chargedTo keybase1.UserOrTeamID, node *pathTreeNode, stopAt BlockPointer,
-	dbm dirBlockMap, newFileBlocks fileBlockMap,
+func (fup *folderUpdatePrepper) prepTree(
+	ctx context.Context, lState *kbfssync.LockState, unmergedChains *crChains,
+	newMD *RootMetadata, chargedTo keybase1.UserOrTeamID, node *pathTreeNode,
+	stopAt BlockPointer, dbm dirBlockMap, newFileBlocks fileBlockMap,
 	dirtyBcache DirtyBlockCacheSimple, bps blockPutState,
 	copyBehavior prepFolderCopyBehavior) error {
 	// If this has no children, then sync it, as far back as stopAt.
@@ -550,7 +554,7 @@ func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 // resolution.  Only needs to be called for non-squash resolutions.
 // `fup.cacheLock` must be taken before calling.
 func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
-	ctx context.Context, lState *lockState, md *RootMetadata,
+	ctx context.Context, lState *kbfssync.LockState, md *RootMetadata,
 	bps blockPutState, unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata,
 	refs, unrefs map[BlockPointer]bool) error {
@@ -687,7 +691,7 @@ func addUnrefToFinalResOp(ops opsList, ptr BlockPointer,
 // the list of blocks that can be remove from the flushing queue, if
 // any.  `fup.cacheLock` must be taken before calling.
 func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
-	ctx context.Context, lState *lockState, md *RootMetadata,
+	ctx context.Context, lState *kbfssync.LockState, md *RootMetadata,
 	bps blockPutState, unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	isLocalSquash bool) (
@@ -931,7 +935,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 }
 
 func (fup *folderUpdatePrepper) setChildrenNodes(
-	ctx context.Context, lState *lockState, kmd KeyMetadata, p path,
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata, p path,
 	indexInPath int, dbm dirBlockMap, nextNode *pathTreeNode, currPath path,
 	names []string) {
 	dd, cleanupFn := fup.blocks.newDirDataWithDBM(
@@ -950,7 +954,7 @@ func (fup *folderUpdatePrepper) setChildrenNodes(
 		switch errors.Cause(err).(type) {
 		case nil:
 			filePtr = de.BlockPointer
-		case NoSuchNameError:
+		case idutil.NoSuchNameError:
 		default:
 			fup.log.CWarningf(ctx, "Couldn't look up child: %+v", err)
 			continue
@@ -975,8 +979,8 @@ func (fup *folderUpdatePrepper) setChildrenNodes(
 }
 
 func (fup *folderUpdatePrepper) makeSyncTree(
-	ctx context.Context, lState *lockState, resolvedPaths map[BlockPointer]path,
-	kmd KeyMetadata, dbm dirBlockMap,
+	ctx context.Context, lState *kbfssync.LockState,
+	resolvedPaths map[BlockPointer]path, kmd libkey.KeyMetadata, dbm dirBlockMap,
 	newFileBlocks fileBlockMap) *pathTreeNode {
 	var root *pathTreeNode
 	var cleanupFn func()
@@ -1152,7 +1156,8 @@ func fixOpPointersForUpdate(oldOps []op, updates map[BlockPointer]BlockPointer,
 // update and a list of blocks that can be removed from the flushing
 // queue.
 func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
-	lState *lockState, md *RootMetadata, unmergedChains, mergedChains *crChains,
+	lState *kbfssync.LockState, md *RootMetadata,
+	unmergedChains, mergedChains *crChains,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, dbm dirBlockMap,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCacheSimple,
@@ -1344,10 +1349,19 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	resOp.Updates = newUpdates
 
 	// Also include rmop unrefs for chains that were deleted in the
-	// unmerged branch (and so wouldn't be included in the resolved
-	// ops), and not re-created by some action in the merged branch.
-	// These need to be in the resolution for proper block accounting
-	// and invalidation.
+	// unmerged branch but not yet included in `newOps`, and not
+	// re-created by some action in the merged branch.  These need to
+	// be in the resolution for proper block accounting and
+	// invalidation.
+	rmOpUnrefs := make(map[BlockPointer]bool)
+	for _, op := range newOps {
+		if _, ok := op.(*rmOp); !ok {
+			continue
+		}
+		for _, unref := range op.Unrefs() {
+			rmOpUnrefs[unref] = true
+		}
+	}
 	for original, chain := range unmergedChains.byOriginal {
 		mergedChain := mergedChains.byOriginal[original]
 		if chain.isFile() || !unmergedChains.isDeleted(original) ||
@@ -1366,6 +1380,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			for _, ptr := range op.Unrefs() {
 				if unrefOrig, ok := unmergedChains.originals[ptr]; ok {
 					ptr = unrefOrig
+				}
+				if rmOpUnrefs[ptr] {
+					continue
 				}
 
 				newOps = addUnrefToFinalResOp(

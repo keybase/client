@@ -71,32 +71,20 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.resetStore:
       return initialState
     case FsGen.pathItemLoaded:
-      return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
-        const {meta} = action.payload
-
-        // Since updateIn passes `original` in as `any`, it may not be an
-        // actual PathItem.
-        if (!original) {
-          return meta
-        }
-
-        if (original.type === 'folder' && meta.type === 'folder') {
-          return coalesceFolderUpdate(original, meta)
-        } else if (original.type !== 'file' || meta.type !== 'file') {
-          return meta
-        }
-
-        return Constants.shouldUseOldMimeType(original, meta) ? meta.set('mimeType', original.mimeType) : meta
-      })
+      return state.update('pathItems', pathItems =>
+        pathItems.update(action.payload.path, original =>
+          original && original.type === 'folder' && action.payload.pathItem.type === 'folder'
+            ? coalesceFolderUpdate(original, action.payload.pathItem)
+            : action.payload.pathItem
+        )
+      )
     case FsGen.folderListLoaded: {
       let toRemove = new Set()
       const toMerge = action.payload.pathItems.map((item, path) => {
         const original = state.pathItems.get(path, Constants.unknownPathItem)
 
         if (original.type === 'file' && item.type === 'file') {
-          return Constants.shouldUseOldMimeType(original, item)
-            ? item.set('mimeType', original.mimeType)
-            : item
+          return item.set('mimeType', original.mimeType)
         }
 
         if (item.type !== 'folder') return item
@@ -216,19 +204,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['tlfs', visibility, elems[2]], {
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
-    case FsGen.mimeTypeLoaded:
-      return state.update('pathItems', pis =>
-        pis.update(action.payload.path, pathItem =>
-          pathItem
-            ? pathItem.type === 'file'
-              ? pathItem.set('mimeType', action.payload.mimeType)
-              : pathItem
-            : Constants.makeFile({
-                mimeType: action.payload.mimeType,
-                name: Types.getPathName(action.payload.path),
-              })
-        )
-      )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
       const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
@@ -267,17 +242,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ]
       )
     case FsGen.newFolderName:
-      // $FlowFixMe
-      return state.updateIn(
-        ['edits', action.payload.editID],
-        editItem => editItem && editItem.set('name', action.payload.name)
+      return state.update('edits', edits =>
+        edits.update(action.payload.editID, edit => edit && edit.set('name', action.payload.name))
       )
     case FsGen.commitEdit:
-      // $FlowFixMe
-      return state.setIn(['edits', action.payload.editID, 'status'], 'saving')
+      return state.update('edits', edits =>
+        edits.update(action.payload.editID, edit => edit.set('status', 'saving'))
+      )
     case FsGen.discardEdit:
-      // $FlowFixMe
-      return state.removeIn(['edits', action.payload.editID])
+      return state.update('edits', edits => edits.remove(action.payload.editID))
     case FsGen.fsError:
       return reduceFsError(state, action)
     case FsGen.userFileEditsLoaded:
@@ -286,7 +259,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
       return state.update('destinationPicker', dp =>
-        dp.set('source', (dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource()))
+        dp
+          .set('source', dp.source.type === 'move-or-copy' ? dp.source : Constants.makeMoveOrCopySource())
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
@@ -299,21 +273,28 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.showIncomingShare:
       return state.update('destinationPicker', dp =>
-        dp.set('source', (dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()))
+        dp
+          .set(
+            'source',
+            dp.source.type === 'incoming-share' ? dp.source : Constants.makeIncomingShareSource()
+          )
           .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setIncomingShareLocalPath:
       return state.update('destinationPicker', dp =>
         dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
       )
+    case FsGen.showSendAttachmentToChat:
+      return state.set(
+        'sendAttachmentToChat',
+        Constants.makeSendAttachmentToChat({path: action.payload.path})
+      )
     case FsGen.showSendLinkToChat:
       return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
     case FsGen.setSendLinkToChatConvID:
-      // $FlowIssue
-      return state.setIn(['sendLinkToChat', 'convID'], action.payload.convID)
-    case FsGen.setSendLinkToChatChannels:
-      // $FlowIssue
-      return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        sendLinkToChat.set('convID', action.payload.convID)
+      )
     case FsGen.setPathItemActionMenuView:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
         pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
@@ -322,10 +303,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('pathItemActionMenu', pathItemActionMenu =>
         pathItemActionMenu.set('downloadKey', action.payload.key)
       )
-    case FsGen.kbfsDaemonConnected:
-      return state.set('kbfsDaemonConnected', true)
-    case FsGen.kbfsDaemonDisconnected:
-      return state.set('kbfsDaemonConnected', false)
+    case FsGen.waitForKbfsDaemon:
+      return state.set('kbfsDaemonStatus', 'waiting')
+    case FsGen.kbfsDaemonStatusChanged:
+      return state.set('kbfsDaemonStatus', action.payload.kbfsDaemonStatus)
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:
@@ -352,9 +333,21 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
         )
       )
+    case FsGen.setSendLinkToChatChannels:
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        sendLinkToChat.set('channels', action.payload.channels)
+      )
+    case FsGen.setSendAttachmentToChatConvID:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('convID', action.payload.convID)
+      )
+    case FsGen.setSendAttachmentToChatFilter:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('filter', action.payload.filter)
+      )
+
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
-    case FsGen.pathItemLoad:
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.uninstallKBFSConfirm:
@@ -364,9 +357,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
-    case FsGen.mimeTypeLoad:
-    case FsGen.openPathItem:
-    case FsGen.openPathInFilesTab:
     case FsGen.openPathInSystemFileManager:
     case FsGen.openLocalPathInSystemFileManager:
     case FsGen.editSuccess:
@@ -379,7 +369,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.deleteFile:
     case FsGen.move:
     case FsGen.copy:
-    case FsGen.destinationPickerOpen:
     case FsGen.closeDestinationPicker:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:

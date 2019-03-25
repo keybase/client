@@ -10,8 +10,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -35,7 +37,7 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
 	dirtyBcache := simpleDirtyBlockCacheStandard()
-	getter := func(ctx context.Context, _ KeyMetadata, ptr BlockPointer,
+	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
 		_ path, _ blockReqType) (*DirBlock, bool, error) {
 		isDirty := true
 		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)
@@ -152,13 +154,13 @@ func TestDirDataLookup(t *testing.T) {
 
 	t.Log("No entries, direct block")
 	_, err := dd.lookup(ctx, "a")
-	require.Equal(t, NoSuchNameError{"a"}, err)
+	require.Equal(t, idutil.NoSuchNameError{Name: "a"}, err)
 
 	t.Log("Single entry, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "a", 1)
 	testDirDataCheckLookup(t, ctx, dd, "a", 1)
 	_, err = dd.lookup(ctx, "b")
-	require.Equal(t, NoSuchNameError{"b"}, err)
+	require.Equal(t, idutil.NoSuchNameError{Name: "b"}, err)
 
 	t.Log("Indirect blocks")
 	addFakeDirDataEntryToBlock(topBlock, "b", 2)
@@ -406,7 +408,7 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	require.Len(t, topBlock.Children, 1)
 	testDirDataCheckLookup(t, ctx, dd, "a", 1)
 	_, err = dd.lookup(ctx, "z")
-	require.Equal(t, NoSuchNameError{"z"}, err)
+	require.Equal(t, idutil.NoSuchNameError{Name: "z"}, err)
 
 	t.Log("Make a big complicated tree and remove an entry")
 	addFakeDirDataEntry(t, ctx, dd, "b", 2)
@@ -498,7 +500,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 			Size: 100,
 		},
 	})
-	require.Equal(t, NoSuchNameError{"foo"}, err)
+	require.Equal(t, idutil.NoSuchNameError{Name: "foo"}, err)
 
 }
 

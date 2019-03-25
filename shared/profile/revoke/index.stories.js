@@ -28,7 +28,6 @@ const load = () => {
       />
     ))
     .add('Reddit', () => <Revoke {...props} platform="reddit" />)
-    .add('Facebook', () => <Revoke {...props} platform="facebook" />)
     .add('GitHub', () => <Revoke {...props} platform="github" />)
     .add('Hacker News', () => <Revoke {...props} platform="hackernews" />)
     .add('Bitcoin', () => (

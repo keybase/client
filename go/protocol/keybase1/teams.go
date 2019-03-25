@@ -1927,6 +1927,28 @@ func (o TeamSeitanMsg) DeepCopy() TeamSeitanMsg {
 	}
 }
 
+type TeamOpenSweepMsg struct {
+	TeamID              TeamID              `codec:"teamID" json:"team_id"`
+	ResetUsersUntrusted []TeamCLKRResetUser `codec:"resetUsersUntrusted" json:"reset_users"`
+}
+
+func (o TeamOpenSweepMsg) DeepCopy() TeamOpenSweepMsg {
+	return TeamOpenSweepMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		ResetUsersUntrusted: (func(x []TeamCLKRResetUser) []TeamCLKRResetUser {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamCLKRResetUser, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ResetUsersUntrusted),
+	}
+}
+
 type TeamKBFSKeyRefresher struct {
 	Generation int             `codec:"generation" json:"generation"`
 	AppType    TeamApplication `codec:"appType" json:"appType"`
@@ -2599,6 +2621,7 @@ type TeamOperation struct {
 	DeleteChannel          bool `codec:"deleteChannel" json:"deleteChannel"`
 	RenameChannel          bool `codec:"renameChannel" json:"renameChannel"`
 	EditChannelDescription bool `codec:"editChannelDescription" json:"editChannelDescription"`
+	EditTeamDescription    bool `codec:"editTeamDescription" json:"editTeamDescription"`
 	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
 	SetRetentionPolicy     bool `codec:"setRetentionPolicy" json:"setRetentionPolicy"`
@@ -2622,6 +2645,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		DeleteChannel:          o.DeleteChannel,
 		RenameChannel:          o.RenameChannel,
 		EditChannelDescription: o.EditChannelDescription,
+		EditTeamDescription:    o.EditTeamDescription,
 		SetTeamShowcase:        o.SetTeamShowcase,
 		SetMemberShowcase:      o.SetMemberShowcase,
 		SetRetentionPolicy:     o.SetRetentionPolicy,

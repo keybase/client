@@ -19,117 +19,15 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/libkb"
 	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
 )
 
-const (
-	// PublicUIDName is the name given to keybase1.PublicUID.  This string
-	// should correspond to an illegal or reserved Keybase user name.
-	PublicUIDName = "_public"
-)
-
 // disallowedPrefixes must not be allowed at the beginning of any
 // user-created directory entry name.
 var disallowedPrefixes = [...]string{".kbfs"}
-
-type revokedKeyInfo struct {
-	// Fields are exported so they can be copied by the codec.
-	Time       keybase1.Time
-	MerkleRoot keybase1.MerkleRootV2
-
-	// These fields never need copying.
-	sigChainLocation keybase1.SigChainLocation
-	resetSeqno       keybase1.Seqno
-	isReset          bool
-	filledInMerkle   bool
-}
-
-// UserInfo contains all the info about a keybase user that kbfs cares
-// about.
-type UserInfo struct {
-	Name            kbname.NormalizedUsername
-	UID             keybase1.UID
-	VerifyingKeys   []kbfscrypto.VerifyingKey
-	CryptPublicKeys []kbfscrypto.CryptPublicKey
-	KIDNames        map[keybase1.KID]string
-	EldestSeqno     keybase1.Seqno
-
-	// Revoked keys, and the time at which they were revoked.
-	RevokedVerifyingKeys   map[kbfscrypto.VerifyingKey]revokedKeyInfo
-	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]revokedKeyInfo
-}
-
-// DeepCopy returns a copy of `ui`, including deep copies of all slice
-// and map members.
-func (ui UserInfo) DeepCopy() UserInfo {
-	copyUI := ui
-	copyUI.VerifyingKeys = make(
-		[]kbfscrypto.VerifyingKey, len(ui.VerifyingKeys))
-	copy(copyUI.VerifyingKeys, ui.VerifyingKeys)
-	copyUI.CryptPublicKeys = make(
-		[]kbfscrypto.CryptPublicKey, len(ui.CryptPublicKeys))
-	copy(copyUI.CryptPublicKeys, ui.CryptPublicKeys)
-	copyUI.KIDNames = make(map[keybase1.KID]string, len(ui.KIDNames))
-	for k, v := range ui.KIDNames {
-		copyUI.KIDNames[k] = v
-	}
-	copyUI.RevokedVerifyingKeys = make(
-		map[kbfscrypto.VerifyingKey]revokedKeyInfo,
-		len(ui.RevokedVerifyingKeys))
-	for k, v := range ui.RevokedVerifyingKeys {
-		copyUI.RevokedVerifyingKeys[k] = v
-	}
-	copyUI.RevokedCryptPublicKeys = make(
-		map[kbfscrypto.CryptPublicKey]revokedKeyInfo,
-		len(ui.RevokedCryptPublicKeys))
-	for k, v := range ui.RevokedCryptPublicKeys {
-		copyUI.RevokedCryptPublicKeys[k] = v
-	}
-	return copyUI
-}
-
-// TeamInfo contains all the info about a keybase team that kbfs cares
-// about.
-type TeamInfo struct {
-	// Maybe this should be bare string?  The service doesn't give us
-	// a nice type, unfortunately.  Also note that for implicit teams,
-	// this is an auto-generated name that shouldn't be shown to
-	// users.
-	Name         kbname.NormalizedUsername
-	TID          keybase1.TeamID
-	CryptKeys    map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey
-	LatestKeyGen kbfsmd.KeyGen
-	RootID       keybase1.TeamID // for subteams only
-
-	Writers map[keybase1.UID]bool
-	Readers map[keybase1.UID]bool
-
-	// Last writers map a KID to the last time the writer associated
-	// with that KID trasitioned from writer to non-writer.
-	LastWriters map[kbfscrypto.VerifyingKey]keybase1.MerkleRootV2
-}
-
-// ImplicitTeamInfo contains information needed after
-// resolving/identifying an implicit team.  TeamInfo is used for
-// anything else.
-type ImplicitTeamInfo struct {
-	Name  kbname.NormalizedUsername // The "display" name for the i-team.
-	TID   keybase1.TeamID
-	TlfID tlf.ID
-}
-
-// SessionInfo contains all the info about the keybase session that
-// kbfs cares about.
-type SessionInfo struct {
-	Name           kbname.NormalizedUsername
-	UID            keybase1.UID
-	CryptPublicKey kbfscrypto.CryptPublicKey
-	VerifyingKey   kbfscrypto.VerifyingKey
-}
 
 // EncryptedTLFCryptKeyClientAndEphemeral has what's needed to
 // request a client half decryption.
@@ -331,66 +229,6 @@ func (r ReadyBlockData) GetEncodedSize() int {
 	return len(r.buf)
 }
 
-// Favorite is a top-level favorited folder name.
-type Favorite struct {
-	Name string
-	Type tlf.Type
-}
-
-// NewFavoriteFromFolder creates a Favorite from a
-// keybase1.Folder.
-func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
-	name := folder.Name
-	if !folder.Private {
-		// Old versions of the client still use an outdated "#public"
-		// suffix for favorited public folders. TODO: remove this once
-		// those old versions of the client are retired.
-		const oldPublicSuffix = tlf.ReaderSep + "public"
-		name = strings.TrimSuffix(folder.Name, oldPublicSuffix)
-	}
-
-	var t tlf.Type
-	if folder.FolderType == keybase1.FolderType_UNKNOWN {
-		// Use deprecated boolean
-		if folder.Private {
-			t = tlf.Private
-		} else {
-			t = tlf.Public
-		}
-	} else {
-		switch folder.FolderType {
-		case keybase1.FolderType_PRIVATE:
-			t = tlf.Private
-		case keybase1.FolderType_PUBLIC:
-			t = tlf.Public
-		case keybase1.FolderType_TEAM:
-			// TODO: if we ever support something other than single
-			// teams in the favorites list, we'll have to figure out
-			// which type the favorite is from its name.
-			t = tlf.SingleTeam
-		default:
-			// This shouldn't happen, but just in case the service
-			// sends us bad info....
-			t = tlf.Private
-		}
-	}
-
-	return &Favorite{
-		Name: name,
-		Type: t,
-	}
-}
-
-// ToKBFolder creates a keybase1.Folder from a Favorite.
-func (f Favorite) ToKBFolder(created bool) keybase1.Folder {
-	return keybase1.Folder{
-		Name:       f.Name,
-		FolderType: f.Type.FolderType(),
-		Private:    f.Type != tlf.Public, // deprecated
-		Created:    created,
-	}
-}
-
 // BranchName is the name given to a KBFS branch, for a particular
 // top-level folder.  Currently, the notion of a "branch" is
 // client-side only, and can be used to specify which root to use for
@@ -554,6 +392,9 @@ const (
 	// Sym is a symbolic link.
 	Sym
 
+	// FakeFile can be used to indicate a faked-out entry for a file,
+	// that will be specially processed by folderBranchOps.
+	FakeFile EntryType = 0xfffe
 	// FakeDir can be used to indicate a faked-out entry for a directory,
 	// that will be specially processed by folderBranchOps.
 	FakeDir EntryType = 0xffff
@@ -713,6 +554,7 @@ type writerInfo struct {
 	uid      keybase1.UID
 	key      kbfscrypto.VerifyingKey
 	revision kbfsmd.Revision
+	offline  keybase1.OfflineAvailability
 }
 
 // ErrorModeType indicates what type of operation was being attempted
@@ -725,27 +567,6 @@ const (
 	// WriteMode indicates that an error happened while trying to write.
 	WriteMode
 )
-
-// SessionInfoFromProtocol returns SessionInfo from Session
-func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
-	// Import the KIDs to validate them.
-	deviceSubkey, err := libkb.ImportKeypairFromKID(session.DeviceSubkeyKid)
-	if err != nil {
-		return SessionInfo{}, err
-	}
-	deviceSibkey, err := libkb.ImportKeypairFromKID(session.DeviceSibkeyKid)
-	if err != nil {
-		return SessionInfo{}, err
-	}
-	cryptPublicKey := kbfscrypto.MakeCryptPublicKey(deviceSubkey.GetKID())
-	verifyingKey := kbfscrypto.MakeVerifyingKey(deviceSibkey.GetKID())
-	return SessionInfo{
-		Name:           kbname.NewNormalizedUsername(session.Username),
-		UID:            keybase1.UID(session.Uid),
-		CryptPublicKey: cryptPublicKey,
-		VerifyingKey:   verifyingKey,
-	}, nil
-}
 
 // NodeMetadata has metadata about a node needed for higher level operations.
 type NodeMetadata struct {

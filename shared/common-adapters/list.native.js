@@ -43,6 +43,7 @@ class List extends PureComponent<Props<any>, void> {
         <View style={globalStyles.fillAbsolute}>
           <FlatList
             bounces={this.props.bounces}
+            contentContainerStyle={this.props.contentContainerStyle}
             renderItem={this._itemRender}
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}

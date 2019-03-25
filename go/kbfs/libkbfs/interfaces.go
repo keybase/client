@@ -5,21 +5,24 @@
 package libkbfs
 
 import (
+	"context"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
-	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
-	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
@@ -66,7 +69,7 @@ type chatGetter interface {
 }
 
 type currentSessionGetterGetter interface {
-	CurrentSessionGetter() CurrentSessionGetter
+	CurrentSessionGetter() idutil.CurrentSessionGetter
 }
 
 type signerGetter interface {
@@ -119,13 +122,6 @@ type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
 
-// OfflineStatusGetter indicates whether a given TLF needs to be
-// available offline.
-type OfflineStatusGetter interface {
-	OfflineAvailabilityForPath(tlfPath string) keybase1.OfflineAvailability
-	OfflineAvailabilityForID(tlfID tlf.ID) keybase1.OfflineAvailability
-}
-
 type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
 	IsSyncedTlfPath(tlfPath string) bool
@@ -133,7 +129,7 @@ type syncedTlfGetterSetter interface {
 	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
 	GetAllSyncedTlfs() []tlf.ID
 
-	OfflineStatusGetter
+	idutil.OfflineStatusGetter
 }
 
 type blockRetrieverGetter interface {
@@ -338,7 +334,7 @@ type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation when the cache
 	// is empty or expired.
-	GetFavorites(ctx context.Context) ([]Favorite, error)
+	GetFavorites(ctx context.Context) ([]favorites.Folder, error)
 	// GetFavoritesAll returns the logged-in user's lists of favorite, ignored,
 	// and new top-level folders.  This is a remote-access operation when the
 	// cache is empty or expired.
@@ -353,29 +349,29 @@ type KBFSOps interface {
 	ClearCachedFavorites(ctx context.Context)
 	// AddFavorite adds the favorite to both the server and
 	// the local cache.
-	AddFavorite(ctx context.Context, fav Favorite, data FavoriteData) error
+	AddFavorite(ctx context.Context, fav favorites.Folder, data favorites.Data) error
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
-	DeleteFavorite(ctx context.Context, fav Favorite) error
+	DeleteFavorite(ctx context.Context, fav favorites.Folder) error
 	// SetFavoritesHomeTLFInfo sets the home TLF TeamIDs to initialize the
 	// favorites cache on login.
 	SetFavoritesHomeTLFInfo(ctx context.Context, info homeTLFInfo)
 	// RefreshEditHistory asks the FBO for the given favorite to reload its
 	// edit history.
-	RefreshEditHistory(fav Favorite)
+	RefreshEditHistory(fav favorites.Folder)
 
 	// GetTLFCryptKeys gets crypt key of all generations as well as
 	// TLF ID for tlfHandle. The returned keys (the keys slice) are ordered by
 	// generation, starting with the key for FirstValidKeyGen.
-	GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) (
+	GetTLFCryptKeys(ctx context.Context, tlfHandle *tlfhandle.Handle) (
 		keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error)
 
 	// GetTLFID gets the TLF ID for tlfHandle.
-	GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (tlf.ID, error)
+	GetTLFID(ctx context.Context, tlfHandle *tlfhandle.Handle) (tlf.ID, error)
 
 	// GetTLFHandle returns the TLF handle for a given node.
-	GetTLFHandle(ctx context.Context, node Node) (*TlfHandle, error)
+	GetTLFHandle(ctx context.Context, node Node) (*tlfhandle.Handle, error)
 
 	// GetOrCreateRootNode returns the root node and root entry
 	// info associated with the given TLF handle and branch, if
@@ -385,12 +381,12 @@ type KBFSOps interface {
 	// permissions to the top-level folder.  This is a
 	// remote-access operation.
 	GetOrCreateRootNode(
-		ctx context.Context, h *TlfHandle, branch BranchName) (
+		ctx context.Context, h *tlfhandle.Handle, branch BranchName) (
 		node Node, ei EntryInfo, err error)
 	// GetRootNode is like GetOrCreateRootNode but if the root node
 	// does not exist it will return a nil Node and not create it.
 	GetRootNode(
-		ctx context.Context, h *TlfHandle, branch BranchName) (
+		ctx context.Context, h *tlfhandle.Handle, branch BranchName) (
 		node Node, ei EntryInfo, err error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryInfo, if the logged-in user has read
@@ -580,12 +576,12 @@ type KBFSOps interface {
 	// NewNotificationChannel is called to notify any existing TLF
 	// matching `handle` that a new kbfs-edits channel is available.
 	NewNotificationChannel(
-		ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
-		channelName string)
+		ctx context.Context, handle *tlfhandle.Handle,
+		convID chat1.ConversationID, channelName string)
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
 	// `handle` has the new TLF ID.
-	Reset(ctx context.Context, handle *TlfHandle) error
+	Reset(ctx context.Context, handle *tlfhandle.Handle) error
 
 	// GetSyncConfig returns the sync state configuration for the
 	// given TLF.
@@ -603,18 +599,6 @@ type KBFSOps interface {
 		<-chan error, error)
 }
 
-type merkleRootGetter interface {
-	// GetCurrentMerkleRoot returns the current root of the global
-	// Keybase Merkle tree.
-	GetCurrentMerkleRoot(ctx context.Context) (
-		keybase1.MerkleRootV2, time.Time, error)
-	// VerifyMerkleRoot checks that the specified merkle root
-	// contains the given KBFS root; if not, it returns an error.
-	VerifyMerkleRoot(
-		ctx context.Context, root keybase1.MerkleRootV2,
-		kbfsRoot keybase1.KBFSRoot) error
-}
-
 type gitMetadataPutter interface {
 	PutGitMetadata(ctx context.Context, folder keybase1.Folder,
 		repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error
@@ -623,113 +607,8 @@ type gitMetadataPutter interface {
 // KeybaseService is an interface for communicating with the keybase
 // service.
 type KeybaseService interface {
-	merkleRootGetter
+	idutil.KeybaseService
 	gitMetadataPutter
-
-	// Resolve, given an assertion, resolves it to a username/UID
-	// pair. The username <-> UID mapping is trusted and
-	// immutable, so it can be cached. If the assertion is just
-	// the username or a UID assertion, then the resolution can
-	// also be trusted. If the returned pair is equal to that of
-	// the current session, then it can also be
-	// trusted. Otherwise, Identify() needs to be called on the
-	// assertion before the assertion -> (username, UID) mapping
-	// can be trusted.
-	//
-	// If the caller knows that the assertion needs to be resolvable
-	// while offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `Resolve` might block on a network call.
-	Resolve(ctx context.Context, assertion string,
-		offline keybase1.OfflineAvailability) (
-		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
-
-	// Identify, given an assertion, returns a UserInfo struct
-	// with the user that matches that assertion, or an error
-	// otherwise. The reason string is displayed on any tracker
-	// popups spawned.
-	//
-	// If the caller knows that the assertion needs to be identifiable
-	// while offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `Identify` might block on a network call.
-	Identify(ctx context.Context, assertion, reason string,
-		offline keybase1.OfflineAvailability) (
-		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
-
-	// NormalizeSocialAssertion creates a SocialAssertion from its input and
-	// normalizes it.  The service name will be lowercased.  If the service is
-	// case-insensitive, then the username will also be lowercased.  Colon
-	// assertions (twitter:user) will be transformed to the user@twitter
-	// format.  Only registered services are allowed.
-	NormalizeSocialAssertion(
-		ctx context.Context, assertion string) (keybase1.SocialAssertion, error)
-
-	// ResolveIdentifyImplicitTeam resolves, and optionally
-	// identifies, an implicit team.  If the implicit team doesn't yet
-	// exist, and doIdentifies is true, one is created.
-	ResolveIdentifyImplicitTeam(
-		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-		doIdentifies bool, reason string) (ImplicitTeamInfo, error)
-
-	// ResolveImplicitTeamByID resolves an implicit team to a team
-	// name, given a team ID.
-	ResolveImplicitTeamByID(
-		ctx context.Context, teamID keybase1.TeamID) (string, error)
-
-	// CreateTeamTLF associates the given TLF ID with the team ID in
-	// the team's sigchain.  If the team already has a TLF ID
-	// associated with it, this overwrites it.
-	CreateTeamTLF(
-		ctx context.Context, teamID keybase1.TeamID, tlfID tlf.ID) error
-
-	// GetTeamSettings returns the KBFS settings for the given team.
-	//
-	// If the caller knows that the settings needs to be readable
-	// while offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `GetTeamSettings` might block on a
-	// network call.
-	GetTeamSettings(
-		ctx context.Context, teamID keybase1.TeamID,
-		offline keybase1.OfflineAvailability) (keybase1.KBFSTeamSettings, error)
-
-	// LoadUserPlusKeys returns a UserInfo struct for a
-	// user with the specified UID.
-	// If you have the UID for a user and don't require Identify to
-	// validate an assertion or the identity of a user, use this to
-	// get UserInfo structs as it is much cheaper than Identify.
-	//
-	// pollForKID, if non empty, causes `PollForKID` field to be populated, which
-	// causes the service to poll for the given KID. This is useful during
-	// provisioning where the provisioner needs to get the MD revision that the
-	// provisionee has set the rekey bit on.
-	LoadUserPlusKeys(ctx context.Context,
-		uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error)
-
-	// LoadTeamPlusKeys returns a TeamInfo struct for a team with the
-	// specified TeamID.  The caller can specify `desiredKeyGen` to
-	// force a server check if that particular key gen isn't yet
-	// known; it may be set to UnspecifiedKeyGen if no server check is
-	// required.  The caller can specify `desiredUID` and
-	// `desiredRole` to force a server check if that particular UID
-	// isn't a member of the team yet according to local caches; it
-	// may be set to "" if no server check is required.
-	//
-	// If the caller knows that the team needs to be loadable while
-	// offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `LoadTeamPlusKeys` might block on a
-	// network call.
-	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
-		tlfType tlf.Type, desiredKeyGen kbfsmd.KeyGen,
-		desiredUser keybase1.UserVersion, desiredKey kbfscrypto.VerifyingKey,
-		desiredRole keybase1.TeamRole, offline keybase1.OfflineAvailability) (
-		TeamInfo, error)
-
-	// CurrentSession returns a SessionInfo struct with all the
-	// information for the current session, or an error otherwise.
-	CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error)
 
 	// FavoriteAdd adds the given folder to the list of favorites.
 	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
@@ -765,6 +644,10 @@ type KeybaseService interface {
 	// the daemon itself, rather than being served from the cache.
 	FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID)
 
+	// ClearCaches flushes all user and team info from KBFS-side
+	// caches.
+	ClearCaches(ctx context.Context)
+
 	// TODO: Add CryptoClient methods, too.
 
 	// EstablishMountDir asks the service for the current mount path
@@ -789,101 +672,6 @@ type KeybaseServiceCn interface {
 	NewChat(
 		config Config, params InitParams, ctx Context, log logger.Logger) (
 		Chat, error)
-}
-
-type resolver interface {
-	// Resolve, given an assertion, resolves it to a username/UID
-	// pair. The username <-> UID mapping is trusted and
-	// immutable, so it can be cached. If the assertion is just
-	// the username or a UID assertion, then the resolution can
-	// also be trusted. If the returned pair is equal to that of
-	// the current session, then it can also be
-	// trusted. Otherwise, Identify() needs to be called on the
-	// assertion before the assertion -> (username, UserOrTeamID) mapping
-	// can be trusted.
-	//
-	//
-	// If the caller knows that the assertion needs to be resolvable
-	// while offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `Resolve` might block on a network call.
-	//
-	// TODO: some of the above assumptions on cacheability aren't
-	// right for subteams, which can change their name, so this may
-	// need updating.
-	Resolve(ctx context.Context, assertion string,
-		offline keybase1.OfflineAvailability) (
-		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
-	// ResolveImplicitTeam resolves the given implicit team.
-	ResolveImplicitTeam(
-		ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
-		ImplicitTeamInfo, error)
-	// ResolveImplicitTeamByID resolves the given implicit team, given
-	// a team ID.
-	ResolveImplicitTeamByID(
-		ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type) (
-		ImplicitTeamInfo, error)
-	// ResolveTeamTLFID returns the TLF ID associated with a given
-	// team ID, or tlf.NullID if no ID is yet associated with that
-	// team.
-	//
-	// If the caller knows that the ID needs to be resolved while
-	// offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `ResolveTeamTLFID` might block on a
-	// network call.
-	ResolveTeamTLFID(
-		ctx context.Context, teamID keybase1.TeamID,
-		offline keybase1.OfflineAvailability) (tlf.ID, error)
-	// NormalizeSocialAssertion creates a SocialAssertion from its input and
-	// normalizes it.  The service name will be lowercased.  If the service is
-	// case-insensitive, then the username will also be lowercased.  Colon
-	// assertions (twitter:user) will be transformed to the user@twitter
-	// format.  Only registered services are allowed.
-	NormalizeSocialAssertion(
-		ctx context.Context, assertion string) (keybase1.SocialAssertion, error)
-}
-
-type identifier interface {
-	// Identify resolves an assertion (which could also be a
-	// username) to a UserInfo struct, spawning tracker popups if
-	// necessary.  The reason string is displayed on any tracker
-	// popups spawned.
-	//
-	// If the caller knows that the assertion needs to be identifiable
-	// while offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `Identify` might block on a network call.
-	Identify(ctx context.Context, assertion, reason string,
-		offline keybase1.OfflineAvailability) (
-		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
-	// IdentifyImplicitTeam identifies (and creates if necessary) the
-	// given implicit team.
-	IdentifyImplicitTeam(
-		ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-		reason string) (ImplicitTeamInfo, error)
-}
-
-type normalizedUsernameGetter interface {
-	// GetNormalizedUsername returns the normalized username
-	// corresponding to the given UID.
-	//
-	// If the caller knows that the assertion needs to be resolvable
-	// while offline, they should pass in
-	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
-	// parameter.  Otherwise `GetNormalizedUsername` might block on a
-	// network call.
-	GetNormalizedUsername(
-		ctx context.Context, id keybase1.UserOrTeamID,
-		offline keybase1.OfflineAvailability) (
-		kbname.NormalizedUsername, error)
-}
-
-// CurrentSessionGetter is an interface for objects that can return
-// session info.
-type CurrentSessionGetter interface {
-	// GetCurrentSession gets the current session info.
-	GetCurrentSession(ctx context.Context) (SessionInfo, error)
 }
 
 // teamMembershipChecker is a copy of kbfsmd.TeamMembershipChecker for
@@ -963,11 +751,8 @@ type teamRootIDGetter interface {
 
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
-	CurrentSessionGetter
-	resolver
-	identifier
-	normalizedUsernameGetter
-	merkleRootGetter
+	idutil.KBPKI
+	idutil.MerkleRootGetter
 	teamMembershipChecker
 	teamKeysGetter
 	teamRootIDGetter
@@ -979,13 +764,27 @@ type KBPKI interface {
 	// error type `RevokedDeviceVerificationError` is returned, which
 	// includes information the caller can use to verify the key using
 	// the merkle tree.
+	//
+	// If the caller knows that the keys needs to be verified while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `HasVerifyingKey` might block on a
+	// network call.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey kbfscrypto.VerifyingKey,
-		atServerTime time.Time) error
+		atServerTime time.Time, offline keybase1.OfflineAvailability) error
 
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).
-	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
+	//
+	// If the caller knows that the keys needs to be retrieved while
+	// offline, they should pass in
+	// `keybase1.OfflineAvailability_BEST_EFFORT` as the `offline`
+	// parameter.  Otherwise `GetCryptPublicKeys` might block on a
+	// network call.
+	GetCryptPublicKeys(
+		ctx context.Context, uid keybase1.UID,
+		offline keybase1.OfflineAvailability) (
 		[]kbfscrypto.CryptPublicKey, error)
 
 	// TODO: Split the methods below off into a separate
@@ -1016,68 +815,10 @@ type KBPKI interface {
 	NotifyPathUpdated(ctx context.Context, path string) error
 }
 
-// KeyMetadata is an interface for something that holds key
-// information. This is usually implemented by RootMetadata.
-type KeyMetadata interface {
-	// TlfID returns the ID of the TLF for which this object holds
-	// key info.
-	TlfID() tlf.ID
-
-	// TypeForKeying returns the keying type for this MD.
-	TypeForKeying() tlf.KeyingType
-
-	// LatestKeyGeneration returns the most recent key generation
-	// with key data in this object, or PublicKeyGen if this TLF
-	// is public.
-	LatestKeyGeneration() kbfsmd.KeyGen
-
-	// GetTlfHandle returns the handle for the TLF. It must not
-	// return nil.
-	//
-	// TODO: Remove the need for this function in this interface,
-	// so that kbfsmd.RootMetadata can implement this interface
-	// fully.
-	GetTlfHandle() *TlfHandle
-
-	// IsWriter checks that the given user is a valid writer of the TLF
-	// right now.
-	IsWriter(
-		ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-		osg OfflineStatusGetter, uid keybase1.UID,
-		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
-
-	// HasKeyForUser returns whether or not the given user has
-	// keys for at least one device. Returns an error if the TLF
-	// is public.
-	HasKeyForUser(user keybase1.UID) (bool, error)
-
-	// GetTLFCryptKeyParams returns all the necessary info to
-	// construct the TLF crypt key for the given key generation,
-	// user, and device (identified by its crypt public key), or
-	// false if not found. This returns an error if the TLF is
-	// public.
-	GetTLFCryptKeyParams(
-		keyGen kbfsmd.KeyGen, user keybase1.UID,
-		key kbfscrypto.CryptPublicKey) (
-		kbfscrypto.TLFEphemeralPublicKey,
-		kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-		kbfscrypto.TLFCryptKeyServerHalfID, bool, error)
-
-	// StoresHistoricTLFCryptKeys returns whether or not history keys are
-	// symmetrically encrypted; if not, they're encrypted per-device.
-	StoresHistoricTLFCryptKeys() bool
-
-	// GetHistoricTLFCryptKey attempts to symmetrically decrypt the key at the given
-	// generation using the current generation's TLFCryptKey.
-	GetHistoricTLFCryptKey(codec kbfscodec.Codec, keyGen kbfsmd.KeyGen,
-		currentKey kbfscrypto.TLFCryptKey) (
-		kbfscrypto.TLFCryptKey, error)
-}
-
 // KeyMetadataWithRootDirEntry is like KeyMetadata, but can also
 // return the root dir entry for the associated MD update.
 type KeyMetadataWithRootDirEntry interface {
-	KeyMetadata
+	libkey.KeyMetadata
 
 	// GetRootDirEntry returns the root directory entry for the
 	// associated MD.
@@ -1088,7 +829,7 @@ type encryptionKeyGetter interface {
 	// GetTLFCryptKeyForEncryption gets the crypt key to use for
 	// encryption (i.e., with the latest key generation) for the
 	// TLF with the given metadata.
-	GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (
+	GetTLFCryptKeyForEncryption(ctx context.Context, kmd libkey.KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
 }
 
@@ -1099,7 +840,7 @@ type mdDecryptionKeyGetter interface {
 	// (which in most cases is the same as mdToDecrypt) if it's not
 	// already cached.
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
-		kmdToDecrypt, kmdWithKeys KeyMetadata) (
+		kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
 }
 
@@ -1107,7 +848,7 @@ type blockDecryptionKeyGetter interface {
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
-	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata,
+	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd libkey.KeyMetadata,
 		blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error)
 }
 
@@ -1125,7 +866,7 @@ type KeyManager interface {
 	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
 	// for current devices. keys contains crypt keys from all generations, in
 	// order, starting from FirstValidKeyGen.
-	GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd KeyMetadata) (
+	GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd libkey.KeyMetadata) (
 		keys []kbfscrypto.TLFCryptKey, err error)
 
 	// Rekey checks the given MD object, if it is a private TLF,
@@ -1192,12 +933,12 @@ type MDCache interface {
 	MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid kbfsmd.BranchID)
 	// GetIDForHandle retrieves a cached, trusted TLF ID for the given
 	// handle, if one exists.
-	GetIDForHandle(handle *TlfHandle) (tlf.ID, error)
+	GetIDForHandle(handle *tlfhandle.Handle) (tlf.ID, error)
 	// PutIDForHandle caches a trusted TLF ID for the given handle.
-	PutIDForHandle(handle *TlfHandle, id tlf.ID) error
+	PutIDForHandle(handle *tlfhandle.Handle, id tlf.ID) error
 	// ChangeHandleForID moves an ID to be under a new handle, if the
 	// ID is cached already.
-	ChangeHandleForID(oldHandle *TlfHandle, newHandle *TlfHandle)
+	ChangeHandleForID(oldHandle *tlfhandle.Handle, newHandle *tlfhandle.Handle)
 	// GetNextMD returns a cached view of the next MD following the
 	// given global Merkle root.
 	GetNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno) (
@@ -1677,23 +1418,10 @@ type Crypto interface {
 	Shutdown()
 }
 
-type tlfIDGetter interface {
-	// GetIDForHandle returns the tlf.ID associated with the given
-	// handle, if the logged-in user has read permission on the
-	// folder.  It may or may not create the folder if it doesn't
-	// exist yet, and it may return `tlf.NullID` with a `nil` error if
-	// it doesn't create a missing folder.
-	GetIDForHandle(ctx context.Context, handle *TlfHandle) (tlf.ID, error)
-	// ValidateLatestHandleForTLF returns true if the TLF ID contained
-	// in `h` does not currently map to a finalized TLF.
-	ValidateLatestHandleNotFinal(ctx context.Context, h *TlfHandle) (
-		bool, error)
-}
-
 // MDOps gets and puts root metadata to an MDServer.  On a get, it
 // verifies the metadata is signed by the metadata's signing key.
 type MDOps interface {
-	tlfIDGetter
+	tlfhandle.IDGetter
 
 	// GetForTLF returns the current metadata object
 	// corresponding to the given top-level folder, if the logged-in
@@ -1787,27 +1515,6 @@ type MDOps interface {
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error)
 }
 
-// KeyOps fetches server-side key halves from the key server.
-type KeyOps interface {
-	// GetTLFCryptKeyServerHalf gets a server-side key half for a
-	// device given the key half ID.
-	GetTLFCryptKeyServerHalf(ctx context.Context,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
-		cryptPublicKey kbfscrypto.CryptPublicKey) (
-		kbfscrypto.TLFCryptKeyServerHalf, error)
-
-	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
-	// set of users and devices.
-	PutTLFCryptKeyServerHalves(ctx context.Context,
-		keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error
-
-	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
-	// device given the key half ID.
-	DeleteTLFCryptKeyServerHalf(ctx context.Context,
-		uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
-}
-
 // PrefetchProgress tracks the number of bytes fetched for the block
 // tree rooted at a given block, along with the known total number of
 // bytes in that tree, and the start time of the prefetch.  Note that
@@ -1822,7 +1529,7 @@ type PrefetchProgress struct {
 type Prefetcher interface {
 	// ProcessBlockForPrefetch potentially triggers and monitors a prefetch.
 	ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block,
-		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
+		kmd libkey.KeyMetadata, priority int, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus, action BlockRequestAction)
 	// WaitChannelForBlockPrefetch returns a channel that can be used
 	// to wait for a block to finish prefetching or be canceled.  If
@@ -1857,13 +1564,13 @@ type BlockOps interface {
 	// object with its contents, if the logged-in user has read
 	// permission for that block. cacheLifetime controls the behavior of the
 	// write-through cache once a Get completes.
-	Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
+	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer,
 		block Block, cacheLifetime BlockCacheLifetime) error
 
 	// GetEncodedSize gets the encoded size of the block associated
 	// with the given block pointer (which belongs to the TLF with the
 	// given key metadata).
-	GetEncodedSize(ctx context.Context, kmd KeyMetadata,
+	GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata,
 		blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error)
 
 	// Ready turns the given block (which belongs to the TLF with
@@ -1871,7 +1578,7 @@ type BlockOps interface {
 	// and calculates its ID and size, so that we can do a bunch
 	// of block puts in parallel for every write. Ready() must
 	// guarantee that plainSize <= readyBlockData.QuotaSize().
-	Ready(ctx context.Context, kmd KeyMetadata, block Block) (
+	Ready(ctx context.Context, kmd libkey.KeyMetadata, block Block) (
 		id kbfsblock.ID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Delete instructs the server to delete the given block references.
@@ -2260,30 +1967,6 @@ type BlockSplitter interface {
 	SplitDirIfNeeded(block *DirBlock) ([]*DirBlock, *StringOffset)
 }
 
-// KeyServer fetches/writes server-side key halves from/to the key server.
-type KeyServer interface {
-	// GetTLFCryptKeyServerHalf gets a server-side key half for a
-	// device given the key half ID.
-	GetTLFCryptKeyServerHalf(ctx context.Context,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
-		cryptPublicKey kbfscrypto.CryptPublicKey) (
-		kbfscrypto.TLFCryptKeyServerHalf, error)
-
-	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
-	// set of users and devices.
-	PutTLFCryptKeyServerHalves(ctx context.Context,
-		keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error
-
-	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
-	// device given the key half ID.
-	DeleteTLFCryptKeyServerHalf(ctx context.Context,
-		uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
-
-	// Shutdown is called to free any KeyServer resources.
-	Shutdown()
-}
-
 // NodeChange represents a change made to a node as part of an atomic
 // file system operation.
 type NodeChange struct {
@@ -2319,7 +2002,7 @@ type Observer interface {
 	// still continue to work, but new lookups on the old name may
 	// either encounter alias errors or entirely new TLFs (in the case
 	// of conflicts).
-	TlfHandleChange(ctx context.Context, newHandle *TlfHandle)
+	TlfHandleChange(ctx context.Context, newHandle *tlfhandle.Handle)
 }
 
 // Notifier notifies registrants of directory changes
@@ -2342,8 +2025,8 @@ type Clock interface {
 // ConflictRenamer deals with names for conflicting directory entries.
 type ConflictRenamer interface {
 	// ConflictRename returns the appropriately modified filename.
-	ConflictRename(ctx context.Context, op op, original string) (
-		string, error)
+	ConflictRename(
+		ctx context.Context, op op, original string) (string, error)
 }
 
 // Tracer maybe adds traces to contexts.
@@ -2510,14 +2193,14 @@ type Config interface {
 	SetCodec(kbfscodec.Codec)
 	MDOps() MDOps
 	SetMDOps(MDOps)
-	KeyOps() KeyOps
-	SetKeyOps(KeyOps)
+	KeyOps() libkey.KeyOps
+	SetKeyOps(libkey.KeyOps)
 	SetBlockOps(BlockOps)
 	MDServer() MDServer
 	SetMDServer(MDServer)
 	SetBlockServer(BlockServer)
-	KeyServer() KeyServer
-	SetKeyServer(KeyServer)
+	KeyServer() libkey.KeyServer
+	SetKeyServer(libkey.KeyServer)
 	KeybaseService() KeybaseService
 	SetKeybaseService(KeybaseService)
 	BlockSplitter() BlockSplitter
@@ -2788,7 +2471,7 @@ type RekeyFSM interface {
 type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.  `action` determines
 	// what happens after the block is fetched successfully.
-	Request(ctx context.Context, priority int, kmd KeyMetadata,
+	Request(ctx context.Context, priority int, kmd libkey.KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
 		action BlockRequestAction) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that
@@ -2823,7 +2506,7 @@ type Chat interface {
 	// messages of the given type, up to `maxChats` of them.
 	GetGroupedInbox(
 		ctx context.Context, chatType chat1.TopicType, maxChats int) (
-		[]*TlfHandle, error)
+		[]*tlfhandle.Handle, error)
 
 	// GetChannels returns a list of all the channels for a given
 	// chat. The entries in `convIDs` and `channelNames` have a 1-to-1

@@ -4,6 +4,7 @@ import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
+// TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
@@ -302,6 +303,13 @@ export type _DestinationPicker = {
 
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
+export type _SendAttachmentToChat = {
+  filter: string,
+  path: Path,
+  convID: ChatTypes.ConversationIDKey,
+}
+export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
+
 export type _SendLinkToChat = {
   path: Path,
   // This is the convID that we are sending into. So for group chats or small
@@ -355,11 +363,13 @@ export type _SystemFileManagerIntegration = {
 }
 export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
+export type KbfsDaemonStatus = 'unknown' | 'waiting' | 'connected' | 'wait-timeout'
+
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
   errors: I.Map<string, FsError>,
-  kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
+  kbfsDaemonStatus: KbfsDaemonStatus,
   loadingPaths: I.Map<Path, I.Set<string>>,
   localHTTPServerInfo: LocalHTTPServer,
   destinationPicker: DestinationPicker,
@@ -367,6 +377,7 @@ export type _State = {|
   pathItemActionMenu: PathItemActionMenu,
   pathItems: PathItems,
   pathUserSettings: I.Map<Path, PathUserSetting>,
+  sendAttachmentToChat: SendAttachmentToChat,
   sendLinkToChat: SendLinkToChat,
   sfmi: SystemFileManagerIntegration,
   tlfUpdates: UserTlfUpdates,
@@ -428,14 +439,13 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       return null
   }
 }
-export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
-  const strPath = pathToString(path)
-  const strTlfPath = pathToString(tlfPath)
-  return (
-    strPath.startsWith(strTlfPath) &&
-    (strPath.length === strTlfPath.length || strPath[strTlfPath.length] === '/')
-  )
-}
+export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
+  getPathElements(path1)
+    .slice(0, 3)
+    .join('/') ===
+  getPathElements(path2)
+    .slice(0, 3)
+    .join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]
@@ -471,11 +481,7 @@ export const stringToPathType = (s: string): PathType => {
 }
 export const pathTypeToString = (p: PathType): string => p
 export const pathConcat = (p: Path, s: string): Path =>
-  s === ''
-    ? p
-    : p === '/'
-      ? stringToPath('/' + s)
-      : stringToPath(pathToString(p) + '/' + s)
+  s === '' ? p : p === '/' ? stringToPath('/' + s) : stringToPath(pathToString(p) + '/' + s)
 export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'

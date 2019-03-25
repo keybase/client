@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -131,7 +132,7 @@ type mdJournal struct {
 	crypto         cryptoPure
 	clock          Clock
 	teamMemChecker kbfsmd.TeamMembershipChecker
-	osg            OfflineStatusGetter
+	osg            idutil.OfflineStatusGetter
 	tlfID          tlf.ID
 	mdVer          kbfsmd.MetadataVer
 	dir            string
@@ -161,7 +162,7 @@ type mdJournal struct {
 func makeMDJournalWithIDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
-	teamMemChecker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter,
+	teamMemChecker kbfsmd.TeamMembershipChecker, osg idutil.OfflineStatusGetter,
 	tlfID tlf.ID, mdVer kbfsmd.MetadataVer, dir string, idJournal mdIDJournal,
 	log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
@@ -226,7 +227,7 @@ func mdJournalPath(dir string) string {
 func makeMDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
-	teamMemChecker kbfsmd.TeamMembershipChecker, osg OfflineStatusGetter,
+	teamMemChecker kbfsmd.TeamMembershipChecker, osg idutil.OfflineStatusGetter,
 	tlfID tlf.ID, mdVer kbfsmd.MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
 	journalDir := mdJournalPath(dir)

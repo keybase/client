@@ -23,7 +23,7 @@ const NameWithIconWrapper = (props: Props) => {
     <NameWithIcon
       editableIcon={props.canEditDescription}
       onEditIcon={_onEditIcon}
-      size="large"
+      size="big"
       teamname={props.teamname}
       title={props.teamname}
       metaOne={props.metaOne}

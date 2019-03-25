@@ -17,6 +17,12 @@ protocol NotifyBadges {
     int numUnread;
   }
 
+  record ResetState {
+    @jsonkey("end_time")
+    Time endTime;
+    string msg;
+  }
+
   record BadgeState {
     @lint("ignore")
     int newTlfs;
@@ -33,6 +39,7 @@ protocol NotifyBadges {
     array<string> newTeamAccessRequests;
     array<TeamMemberOutReset> teamsWithResetUsers;
     array<WalletAccountInfo> unreadWalletAccounts;
+    ResetState resetState;
   }
 
   record BadgeConversationInfo {

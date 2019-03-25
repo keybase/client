@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -41,7 +42,7 @@ func NewKBPKIClient(
 
 // GetCurrentSession implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentSession(ctx context.Context) (
-	SessionInfo, error) {
+	idutil.SessionInfo, error) {
 	const sessionID = 0
 	return k.serviceOwner.KeybaseService().CurrentSession(ctx, sessionID)
 }
@@ -71,29 +72,31 @@ func (k *KBPKIClient) NormalizeSocialAssertion(
 
 // ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveImplicitTeam(
-	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
-	ImplicitTeamInfo, error) {
+	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
+	offline keybase1.OfflineAvailability) (
+	idutil.ImplicitTeamInfo, error) {
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, false, "")
+		ctx, assertions, suffix, tlfType, false, "", offline)
 }
 
 // ResolveImplicitTeamByID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveImplicitTeamByID(
-	ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type) (
-	ImplicitTeamInfo, error) {
+	ctx context.Context, teamID keybase1.TeamID, tlfType tlf.Type,
+	offline keybase1.OfflineAvailability) (
+	idutil.ImplicitTeamInfo, error) {
 	name, err := k.serviceOwner.KeybaseService().ResolveImplicitTeamByID(
 		ctx, teamID)
 	if err != nil {
-		return ImplicitTeamInfo{}, err
+		return idutil.ImplicitTeamInfo{}, err
 	}
 
 	assertions, suffix, err := tlf.SplitExtension(name)
 	if err != nil {
-		return ImplicitTeamInfo{}, err
+		return idutil.ImplicitTeamInfo{}, err
 	}
 
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, false, "")
+		ctx, assertions, suffix, tlfType, false, "", offline)
 }
 
 // ResolveTeamTLFID implements the KBPKI interface for KBPKIClient.
@@ -119,9 +122,10 @@ func (k *KBPKIClient) ResolveTeamTLFID(
 // given implicit team.
 func (k *KBPKIClient) IdentifyImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type,
-	reason string) (ImplicitTeamInfo, error) {
+	reason string, offline keybase1.OfflineAvailability) (
+	idutil.ImplicitTeamInfo, error) {
 	return k.serviceOwner.KeybaseService().ResolveIdentifyImplicitTeam(
-		ctx, assertions, suffix, tlfType, true, reason)
+		ctx, assertions, suffix, tlfType, true, reason, offline)
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
@@ -143,9 +147,11 @@ func (k *KBPKIClient) GetNormalizedUsername(
 	return username, nil
 }
 
-func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) (bool, error) {
-	userInfo, err := k.loadUserPlusKeys(ctx, uid, verifyingKey.KID())
+func (k *KBPKIClient) hasVerifyingKey(
+	ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
+	atServerTime time.Time, offline keybase1.OfflineAvailability) (
+	bool, error) {
+	userInfo, err := k.loadUserPlusKeys(ctx, uid, verifyingKey.KID(), offline)
 	if err != nil {
 		return false, err
 	}
@@ -183,9 +189,10 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) error {
-	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
+func (k *KBPKIClient) HasVerifyingKey(
+	ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
+	atServerTime time.Time, offline keybase1.OfflineAvailability) error {
+	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime, offline)
 	if err != nil {
 		return err
 	}
@@ -198,7 +205,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	// service hasn't learned of the users' new key yet.
 	k.serviceOwner.KeybaseService().FlushUserFromLocalCache(ctx, uid)
 
-	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
+	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime, offline)
 	if err != nil {
 		return err
 	}
@@ -209,14 +216,18 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 }
 
 func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
-	return k.serviceOwner.KeybaseService().LoadUserPlusKeys(ctx, uid, pollForKID)
+	uid keybase1.UID, pollForKID keybase1.KID,
+	offline keybase1.OfflineAvailability) (idutil.UserInfo, error) {
+	return k.serviceOwner.KeybaseService().LoadUserPlusKeys(
+		ctx, uid, pollForKID, offline)
 }
 
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
-	uid keybase1.UID) (keys []kbfscrypto.CryptPublicKey, err error) {
-	userInfo, err := k.loadUserPlusKeys(ctx, uid, "")
+func (k *KBPKIClient) GetCryptPublicKeys(
+	ctx context.Context, uid keybase1.UID,
+	offline keybase1.OfflineAvailability) (
+	keys []kbfscrypto.CryptPublicKey, err error) {
+	userInfo, err := k.loadUserPlusKeys(ctx, uid, "", offline)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +273,7 @@ func (k *KBPKIClient) IsTeamWriter(
 	}
 
 	// Use the verifying key to find out the eldest seqno of the user.
-	userInfo, err := k.loadUserPlusKeys(ctx, uid, verifyingKey.KID())
+	userInfo, err := k.loadUserPlusKeys(ctx, uid, verifyingKey.KID(), offline)
 	if err != nil {
 		return false, err
 	}
@@ -408,29 +419,4 @@ func (k *KBPKIClient) PutGitMetadata(
 	metadata keybase1.GitLocalMetadata) error {
 	return k.serviceOwner.KeybaseService().PutGitMetadata(
 		ctx, folder, repoID, metadata)
-}
-
-// GetCurrentSessionIfPossible returns the current username and UID
-// from kbpki.GetCurrentSession.  If sessionNotRequired is true
-// NoCurrentSessionError is ignored and empty username and uid will be
-// returned. If it is false all errors are returned.
-func GetCurrentSessionIfPossible(
-	ctx context.Context, kbpki KBPKI, sessionNotRequired bool) (
-	SessionInfo, error) {
-	session, err := kbpki.GetCurrentSession(ctx)
-	if err == nil {
-		return session, nil
-	}
-	// Return all errors if a session is required.
-	if !sessionNotRequired {
-		return SessionInfo{}, err
-	}
-
-	// If not logged in, return empty session.
-	if _, notLoggedIn := err.(NoCurrentSessionError); notLoggedIn {
-		return SessionInfo{}, nil
-	}
-
-	// Otherwise, just return the error.
-	return SessionInfo{}, err
 }

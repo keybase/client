@@ -9,15 +9,16 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"golang.org/x/net/context"
 )
 
 // blockGetter provides the API for the block retrieval worker to obtain blocks.
 type blockGetter interface {
 	getBlock(
-		context.Context, KeyMetadata, BlockPointer, Block,
+		context.Context, libkey.KeyMetadata, BlockPointer, Block,
 		DiskBlockCacheType) error
-	assembleBlock(context.Context, KeyMetadata, BlockPointer, Block, []byte,
+	assembleBlock(context.Context, libkey.KeyMetadata, BlockPointer, Block, []byte,
 		kbfscrypto.BlockCryptKeyServerHalf) error
 }
 
@@ -28,7 +29,7 @@ type realBlockGetter struct {
 
 // getBlock implements the interface for realBlockGetter.
 func (bg *realBlockGetter) getBlock(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer,
 	block Block, cacheType DiskBlockCacheType) error {
 	bserv := bg.config.BlockServer()
 	buf, blockServerHalf, err := bserv.Get(
@@ -50,7 +51,7 @@ func (bg *realBlockGetter) getBlock(
 }
 
 func (bg *realBlockGetter) assembleBlock(ctx context.Context,
-	kmd KeyMetadata, ptr BlockPointer, block Block, buf []byte,
+	kmd libkey.KeyMetadata, ptr BlockPointer, block Block, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	return assembleBlock(ctx, bg.config.keyGetter(), bg.config.Codec(),
 		bg.config.cryptoPure(), kmd, ptr, block, buf, serverHalf)

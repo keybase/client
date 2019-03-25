@@ -695,6 +695,10 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
 }
 
+func (u *userPlusDevice) kickAutoresetd() {
+	kickAutoresetd(u.tc.G, u.tc.T)
+}
+
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
 	res, err := u.lookupImplicitTeam2(create, displayName, public)
 	return res.TeamID, err
@@ -866,6 +870,15 @@ func (u *userPlusDevice) MetaContext() libkb.MetaContext {
 	return libkb.NewMetaContextForTest(*u.tc)
 }
 
+func kickAutoresetd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	mctx := libkb.NewMetaContextTODO(g)
+	_, err := g.API.Post(mctx, libkb.APIArg{
+		Endpoint:    "test/accelerate_autoresetd",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	})
+	require.NoError(t, err)
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	const workTimeSec = 1 // team_rekeyd delay before retrying job if it wasn't finished.
 	args := libkb.HTTPArgs{
@@ -881,6 +894,22 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 
 	mctx := libkb.NewMetaContextTODO(g)
 	_, err := g.API.Post(mctx, apiArg)
+	require.NoError(t, err)
+}
+
+func enableOpenSweepForTeam(g *libkb.GlobalContext, t libkb.TestingTB, teamID keybase1.TeamID) {
+	args := libkb.HTTPArgs{
+		"team_id": libkb.S{Val: teamID.String()},
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "test/team_enable_open_sweep",
+		Args:        args,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	t.Logf("Calling team_enable_open_sweep for team ID: %s", teamID)
+
+	_, err := g.API.Post(libkb.NewMetaContextTODO(g), apiArg)
 	require.NoError(t, err)
 }
 
@@ -1263,6 +1292,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.DeleteChannel)
 	require.True(t, annPerms.RenameChannel)
 	require.True(t, annPerms.EditChannelDescription)
+	require.True(t, annPerms.EditTeamDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.True(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.SetRetentionPolicy)
@@ -1282,6 +1312,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.DeleteChannel)
 	require.True(t, bobPerms.RenameChannel)
 	require.True(t, bobPerms.EditChannelDescription)
+	require.True(t, bobPerms.EditTeamDescription)
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.True(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.SetRetentionPolicy)
@@ -1302,6 +1333,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.DeleteChannel)
 	require.True(t, pamPerms.RenameChannel)
 	require.True(t, pamPerms.EditChannelDescription)
+	require.False(t, pamPerms.EditTeamDescription)
 	require.False(t, pamPerms.SetTeamShowcase)
 	require.True(t, pamPerms.SetMemberShowcase)
 	require.False(t, pamPerms.SetRetentionPolicy)
@@ -1322,6 +1354,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.DeleteChannel)
 	require.False(t, eddPerms.RenameChannel)
 	require.False(t, eddPerms.EditChannelDescription)
+	require.False(t, eddPerms.EditTeamDescription)
 	require.False(t, eddPerms.SetTeamShowcase)
 	require.True(t, eddPerms.SetMemberShowcase)
 	require.False(t, eddPerms.SetRetentionPolicy)
@@ -1345,6 +1378,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.DeleteChannel)
 	require.False(t, annPerms.RenameChannel)
 	require.False(t, annPerms.EditChannelDescription)
+	require.False(t, annPerms.EditTeamDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
 	require.False(t, annPerms.SetRetentionPolicy)
@@ -1363,6 +1397,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.DeleteChannel)
 	require.False(t, bobPerms.RenameChannel)
 	require.False(t, bobPerms.EditChannelDescription)
+	require.False(t, bobPerms.EditTeamDescription)
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.False(t, bobPerms.SetRetentionPolicy)
@@ -1391,6 +1426,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.DeleteChannel)
 	require.False(t, donnyPerms.RenameChannel)
 	require.False(t, donnyPerms.EditChannelDescription)
+	require.False(t, donnyPerms.EditTeamDescription)
 	require.False(t, donnyPerms.SetTeamShowcase)
 	require.False(t, donnyPerms.SetMemberShowcase)
 	require.False(t, donnyPerms.SetRetentionPolicy)

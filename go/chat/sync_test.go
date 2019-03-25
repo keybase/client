@@ -400,10 +400,17 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 			require.Len(t, sres.Incremental().Items, 2)
-			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[0].Conv.MemberStatus)
-			require.Equal(t, chanID.String(), sres.Incremental().Items[1].Conv.ConvID)
-			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[1].Conv.MemberStatus)
+			var foundConv, foundChan bool
+			for _, item := range sres.Incremental().Items {
+				if convID.String() == item.Conv.ConvID {
+					foundConv = true
+				} else if chanID.String() == item.Conv.ConvID {
+					foundChan = true
+				}
+				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, item.Conv.MemberStatus)
+			}
+			require.True(t, foundConv)
+			require.True(t, foundChan)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
 		}
@@ -515,7 +522,7 @@ func TestSyncerAppState(t *testing.T) {
 
 	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	t.Logf("test incremental")
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	syncer.SendChatStaleNotifications(context.TODO(), uid, []chat1.ConversationStaleUpdate{
 		chat1.ConversationStaleUpdate{
 			ConvID:     conv.GetConvID(),
@@ -528,7 +535,7 @@ func TestSyncerAppState(t *testing.T) {
 	default:
 	}
 
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case updates := <-list.threadsStale:
 		require.Equal(t, 1, len(updates))
@@ -537,7 +544,7 @@ func TestSyncerAppState(t *testing.T) {
 		require.Fail(t, "no stale messages")
 	}
 
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	syncer.SendChatStaleNotifications(context.TODO(), uid, nil, true)
 	select {
 	case <-list.inboxStale:
@@ -545,7 +552,7 @@ func TestSyncerAppState(t *testing.T) {
 	default:
 	}
 
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case <-list.inboxStale:
 	case <-time.After(20 * time.Second):

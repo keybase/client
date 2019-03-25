@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -18,6 +19,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -41,8 +43,8 @@ type tlfJournalConfig interface {
 	encryptionKeyGetter() encryptionKeyGetter
 	mdDecryptionKeyGetter() mdDecryptionKeyGetter
 	MDServer() MDServer
-	usernameGetter() normalizedUsernameGetter
-	resolver() resolver
+	usernameGetter() idutil.NormalizedUsernameGetter
+	resolver() idutil.Resolver
 	MakeLogger(module string) logger.Logger
 	diskLimitTimeout() time.Duration
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
@@ -64,11 +66,11 @@ func (ca tlfJournalConfigAdapter) mdDecryptionKeyGetter() mdDecryptionKeyGetter 
 	return ca.Config.KeyManager()
 }
 
-func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
+func (ca tlfJournalConfigAdapter) usernameGetter() idutil.NormalizedUsernameGetter {
 	return ca.Config.KBPKI()
 }
 
-func (ca tlfJournalConfigAdapter) resolver() resolver {
+func (ca tlfJournalConfigAdapter) resolver() idutil.Resolver {
 	return ca.Config.KBPKI()
 }
 
@@ -1727,9 +1729,9 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 		return nil, err
 	}
 
-	handle, err := MakeTlfHandle(
+	handle, err := tlfhandle.MakeHandle(
 		ctx, ibrmdBareHandle, j.tlfID.Type(), j.config.resolver(),
-		j.config.usernameGetter(), constIDGetter{j.tlfID},
+		j.config.usernameGetter(), tlfhandle.ConstIDGetter{ID: j.tlfID},
 		j.config.OfflineAvailabilityForID(j.tlfID))
 	if err != nil {
 		return nil, err
@@ -1798,7 +1800,7 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 				return TLFJournalStatus{}, err
 			}
 			err = addUnflushedPaths(ctx, j.uid, j.key,
-				j.config.Codec(), j.log, mdInfos, cpp,
+				j.config.Codec(), j.log, j.config, mdInfos, cpp,
 				unflushedPaths)
 			if err != nil {
 				return TLFJournalStatus{}, err
@@ -1827,7 +1829,8 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 				return TLFJournalStatus{}, err
 			}
 			unflushedPaths, initSuccess, err = upCache.initialize(
-				ctx, j.uid, j.key, j.config.Codec(), j.log, cpp, mdInfos)
+				ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, cpp,
+				mdInfos)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
@@ -2330,7 +2333,7 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 		localTimestamp: time.Now(),
 	}
 	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
-		ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
+		ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, mdInfo)
 	if err != nil {
 		return err
 	}
@@ -2344,7 +2347,7 @@ func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
 		// The cache was initialized after the last time we tried to
 		// prepare the unflushed paths.
 		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
+			ctx, j.uid, j.key, j.config.Codec(), j.log, j.config, mdInfo)
 		if err != nil {
 			return err
 		}

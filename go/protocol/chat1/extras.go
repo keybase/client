@@ -125,6 +125,10 @@ func (mid MessageID) IsNil() bool {
 	return uint(mid) == 0
 }
 
+func (mid MessageID) Advance(num uint) MessageID {
+	return MessageID(uint(mid) + num)
+}
+
 func (t MessageType) String() string {
 	s, ok := MessageTypeRevMap[t]
 	if ok {
@@ -1415,14 +1419,6 @@ func (r *GetMessagesLocalRes) SetOffline() {
 }
 
 func (r *GetNextAttachmentMessageLocalRes) SetOffline() {
-	r.Offline = true
-}
-
-func (r *DownloadAttachmentLocalRes) SetOffline() {
-	r.Offline = true
-}
-
-func (r *DownloadFileAttachmentLocalRes) SetOffline() {
 	r.Offline = true
 }
 

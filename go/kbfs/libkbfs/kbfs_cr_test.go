@@ -12,7 +12,9 @@ import (
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +53,7 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 }
 
 func (t *testCRObserver) TlfHandleChange(ctx context.Context,
-	newHandle *TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	return
 }
 
@@ -257,7 +259,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
-	tlfHandle, err := ParseTlfHandle(
+	tlfHandle, err := tlfhandle.ParseHandle(
 		ctx, config1B.KBPKI(), config1B.MDOps(), nil, name, tlf.Private)
 	require.NoError(t, err)
 
@@ -520,7 +522,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -737,7 +739,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -827,7 +829,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -940,7 +942,7 @@ func TestCRDouble(t *testing.T) {
 	// Do one CR.
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -990,7 +992,7 @@ func TestCRDouble(t *testing.T) {
 	// Do a second CR.
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -1095,7 +1097,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -1224,7 +1226,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config1,
+		libcontext.BackgroundContextWithCancellationDelayer(), config1,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps1.SyncFromServer(ctx,
@@ -1348,8 +1350,8 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	syncCtx, cancel := context.WithCancel(
-		BackgroundContextWithCancellationDelayer())
-	defer CleanupCancellationDelayer(syncCtx)
+		libcontext.BackgroundContextWithCancellationDelayer())
+	defer libcontext.CleanupCancellationDelayer(syncCtx)
 
 	// Now user 2 makes a big write where most of the blocks get canceled.
 	// We only need to know the first time we stall.
@@ -1400,7 +1402,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -1501,7 +1503,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	require.NoError(t, err)
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,
@@ -1748,7 +1750,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 
 	c <- struct{}{}
 	err = RestartCRForTesting(
-		BackgroundContextWithCancellationDelayer(), config2,
+		libcontext.BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx,

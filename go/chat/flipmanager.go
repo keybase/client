@@ -125,25 +125,29 @@ type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer        *flip.Dealer
-	visualizer    *FlipVisualizer
-	clock         clockwork.Clock
-	ri            func() chat1.RemoteInterface
-	shutdownMu    sync.Mutex
-	shutdownCh    chan struct{}
-	forceCh       chan struct{}
-	loadGameCh    chan loadGameJob
-	maybeInjectCh chan func()
+	dealer           *flip.Dealer
+	visualizer       *FlipVisualizer
+	clock            clockwork.Clock
+	ri               func() chat1.RemoteInterface
+	shutdownMu       sync.Mutex
+	shutdownCh       chan struct{}
+	dealerShutdownCh chan struct{}
+	dealerCancel     context.CancelFunc
+	forceCh          chan struct{}
+	loadGameCh       chan loadGameJob
+	maybeInjectCh    chan func()
 
 	deck           string
 	cardMap        map[string]int
 	cardReverseMap map[int]string
 
-	gamesMu    sync.Mutex
-	games      *lru.Cache
-	dirtyGames map[string]chat1.FlipGameID
-	flipConvs  *lru.Cache
-	gameMsgIDs *lru.Cache
+	gamesMu        sync.Mutex
+	games          *lru.Cache
+	dirtyGames     map[string]chat1.FlipGameID
+	flipConvs      *lru.Cache
+	gameMsgIDs     *lru.Cache
+	gameOutboxIDMu sync.Mutex
+	gameOutboxIDs  *lru.Cache
 
 	partMu                     sync.Mutex
 	maxConvParticipations      int
@@ -158,6 +162,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 	games, _ := lru.New(200)
 	flipConvs, _ := lru.New(200)
 	gameMsgIDs, _ := lru.New(200)
+	gameOutboxIDs, _ := lru.New(200)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
 		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
@@ -175,6 +180,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		cardReverseMap:             make(map[int]string),
 		flipConvs:                  flipConvs,
 		gameMsgIDs:                 gameMsgIDs,
+		gameOutboxIDs:              gameOutboxIDs,
 		maybeInjectCh:              make(chan func(), 2000),
 	}
 	dealer := flip.NewDealer(m)
@@ -190,12 +196,17 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
 	m.shutdownMu.Lock()
+	var dealerCtx context.Context
 	shutdownCh := make(chan struct{})
+	dealerShutdownCh := make(chan struct{})
 	m.shutdownCh = shutdownCh
+	m.dealerShutdownCh = dealerShutdownCh
+	dealerCtx, m.dealerCancel = context.WithCancel(context.Background())
 	m.shutdownMu.Unlock()
-	go func() {
-		m.dealer.Run(context.Background())
-	}()
+	go func(shutdownCh chan struct{}) {
+		m.dealer.Run(dealerCtx)
+		close(shutdownCh)
+	}(dealerShutdownCh)
 	go m.updateLoop(shutdownCh)
 	go m.notificationLoop(shutdownCh)
 	go m.loadGameLoop(shutdownCh)
@@ -207,12 +218,17 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	m.dealer.Stop()
 	m.shutdownMu.Lock()
 	if m.shutdownCh != nil {
+		m.dealerCancel()
 		close(m.shutdownCh)
 		m.shutdownCh = nil
 	}
+	if m.dealerShutdownCh != nil {
+		ch = m.dealerShutdownCh
+	} else {
+		ch = make(chan struct{})
+		close(ch)
+	}
 	m.shutdownMu.Unlock()
-	ch = make(chan struct{})
-	close(ch)
 	return ch
 }
 
@@ -704,10 +720,14 @@ func (m *FlipManager) parseMultiDie(arg string, nPlayersApprox int) (start flip.
 	return flip.NewStartWithBigInt(m.clock.Now(), val, nPlayersApprox), nil
 }
 
+const shuffleSeparaters = ",，"
+
 func (m *FlipManager) parseShuffle(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
-	if strings.Contains(arg, ",") {
+	if strings.ContainsAny(arg, shuffleSeparaters) {
 		var shuffleItems []string
-		for _, tok := range strings.Split(arg, ",") {
+		for _, tok := range strings.FieldsFunc(arg, func(c rune) bool {
+			return strings.ContainsRune(shuffleSeparaters, c)
+		}) {
 			shuffleItems = append(shuffleItems, strings.Trim(tok, " "))
 		}
 		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems)), nPlayersApprox),
@@ -959,20 +979,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	listener := newSentMessageListener(m.G(), outboxID)
 	nid := m.G().NotifyRouter.AddListener(listener)
-	sender := NewNonblockingSender(m.G(), NewBlockingSender(m.G(), NewBoxer(m.G()), m.ri))
-	if _, _, err := sender.Send(ctx, hostConvID, chat1.MessagePlaintext{
-		MessageBody: chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
-			Text:   text,
-			GameID: gameID,
-		}),
-		ClientHeader: chat1.MessageClientHeader{
-			TlfName:     tlfName,
-			MessageType: chat1.MessageType_FLIP,
-			Conv: chat1.ConversationIDTriple{
-				TopicType: chat1.TopicType_CHAT,
-			},
-		},
-	}, 0, &outboxID, nil); err != nil {
+	if err := m.sendNonblock(ctx, hostConvID, text, tlfName, outboxID, gameID, chat1.TopicType_CHAT); err != nil {
 		m.Debug(ctx, "StartFlip: failed to send flip message: %s", err)
 		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
 		m.G().NotifyRouter.RemoveListener(nid)
@@ -1036,8 +1043,8 @@ func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipCo
 		return false
 	}
 	// Ignore any flip messages for non-active games when not in the foreground
-	appBkg := m.G().GetAppType() == libkb.MobileAppType &&
-		m.G().AppState.State() != keybase1.AppState_FOREGROUND
+	appBkg := m.G().IsMobileAppType() &&
+		m.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND
 	partViolation := m.isConvParticipationViolation(ctx, hostConvID)
 	return appBkg || partViolation
 }
@@ -1088,10 +1095,17 @@ func (m *FlipManager) injectIncomingChat(ctx context.Context, uid gregor1.UID,
 		m.Debug(ctx, "injectIncomingChat: skipping invalid message: %d", msg.GetMessageID())
 		return errors.New("invalid message")
 	}
+	if msg.Valid().ClientHeader.OutboxID != nil &&
+		m.isSentOutboxID(ctx, gameID, *msg.Valid().ClientHeader.OutboxID) {
+		m.Debug(ctx, "injectIncomingChat: skipping sent outboxID message: %d outboxID: %s ",
+			msg.GetMessageID(), msg.Valid().ClientHeader.OutboxID)
+		return nil
+	}
 	body := msg.Valid().MessageBody
 	if !body.IsType(chat1.MessageType_FLIP) {
 		return errors.New("non-flip message")
 	}
+
 	sender := flip.UserDevice{
 		U: msg.Valid().ClientHeader.Sender,
 		D: msg.Valid().ClientHeader.SenderDevice,
@@ -1199,6 +1213,10 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 	msg, err := NewBoxer(m.G()).UnboxMessage(ctx, boxedMsg, conv.Conv, nil)
 	if err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox: %s", err)
+		return true
+	}
+	if !msg.IsValid() {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox msg")
 		return true
 	}
 	body := msg.Valid().MessageBody
@@ -1414,6 +1432,49 @@ func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error)
 	return sres.Now.Time(), nil
 }
 
+func (m *FlipManager) sendNonblock(ctx context.Context, convID chat1.ConversationID, text, tlfName string,
+	outboxID chat1.OutboxID, gameID chat1.FlipGameID, topicType chat1.TopicType) error {
+	sender := NewNonblockingSender(m.G(), NewBlockingSender(m.G(), NewBoxer(m.G()), m.ri))
+	_, _, err := sender.Send(ctx, convID, chat1.MessagePlaintext{
+		MessageBody: chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:   text,
+			GameID: gameID,
+		}),
+		ClientHeader: chat1.MessageClientHeader{
+			TlfName:     tlfName,
+			MessageType: chat1.MessageType_FLIP,
+			Conv: chat1.ConversationIDTriple{
+				TopicType: topicType,
+			},
+		},
+	}, 0, &outboxID, nil)
+	return err
+}
+
+func (m *FlipManager) isSentOutboxID(ctx context.Context, gameID chat1.FlipGameID, outboxID chat1.OutboxID) bool {
+	m.gameOutboxIDMu.Lock()
+	defer m.gameOutboxIDMu.Unlock()
+	if omIface, ok := m.gameOutboxIDs.Get(gameID.String()); ok {
+		om := omIface.(map[string]bool)
+		return om[outboxID.String()]
+	}
+	return false
+}
+
+func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.FlipGameID,
+	outboxID chat1.OutboxID) {
+	m.gameOutboxIDMu.Lock()
+	defer m.gameOutboxIDMu.Unlock()
+	var om map[string]bool
+	if omIface, ok := m.gameOutboxIDs.Get(gameID.String()); ok {
+		om = omIface.(map[string]bool)
+	} else {
+		om = make(map[string]bool)
+	}
+	om[outboxID.String()] = true
+	m.gameOutboxIDs.Add(gameID.String(), om)
+}
+
 // SendChat implements the flip.DealersHelper interface
 func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
 	msg flip.GameMessageEncoded) (err error) {
@@ -1427,12 +1488,13 @@ func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		return err
 	}
-	_, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, conv.Info.TlfName,
-		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
-			Text:   msg.String(),
-			GameID: gameID,
-		}), chat1.MessageType_FLIP, nil)
-	return err
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	m.registerSentOutboxID(ctx, gameID, outboxID)
+	return m.sendNonblock(ctx, convID, msg.String(), conv.Info.TlfName, outboxID, gameID,
+		chat1.TopicType_DEV)
 }
 
 // Me implements the flip.DealersHelper interface
@@ -1447,6 +1509,17 @@ func (m *FlipManager) Me() flip.UserDevice {
 		U: gregor1.UID(ad.UID().ToBytes()),
 		D: gregor1.DeviceID(hdid),
 	}
+}
+
+func (m *FlipManager) ShouldCommit(ctx context.Context) bool {
+	if !m.G().IsMobileAppType() {
+		should := m.G().DesktopAppState.AwakeAndUnlocked(m.G().MetaContext(ctx))
+		if !should {
+			m.Debug(ctx, "ShouldCommit -> false")
+		}
+		return should
+	}
+	return true
 }
 
 // clearGameCache should only be used by tests

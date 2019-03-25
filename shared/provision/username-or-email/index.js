@@ -7,60 +7,72 @@ import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
 
 type Props = {|
-  badUsernameError: boolean,
   error: string,
+  inlineError: string,
+  inlineSignUpLink: boolean,
   onBack: () => void,
+  onForgotUsername: () => void,
   onGoToSignup: () => void,
-  onSubmit: (usernameOrEmail: string) => void,
-  submittedUsernameOrEmail: string,
+  onSubmit: (username: string) => void,
+  submittedUsername: string,
 |}
 
-const BadUsernameError = (props: {|onGoToSignup: () => void|}) => (
+const InlineError = (props: {|onGoToSignup: ?() => void, error: string|}) => (
   <Kb.Box2 direction="vertical" centerChildren={true}>
     <Kb.Text type="BodySmallError" style={styles.error}>
-      This username or email doesn't exist.
+      {props.error}
     </Kb.Text>
-    <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
-      Sign up for a new account?
-    </Kb.Text>
+    {!!props.onGoToSignup && (
+      <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
+        Sign up for a new account?
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
 
-class UsernameOrEmail extends React.Component<Props, State> {
-  state = {usernameOrEmail: ''}
+class Username extends React.Component<Props, State> {
+  state = {username: ''}
 
   render() {
+    let errorTextComponent
+    if (this.props.submittedUsername === this.state.username && !!this.props.inlineError) {
+      errorTextComponent = (
+        <InlineError
+          error={this.props.inlineError}
+          onGoToSignup={this.props.inlineSignUpLink ? this.props.onGoToSignup : null}
+        />
+      )
+    }
+
     return (
       <Container style={styles.container} outerStyle={styles.outerStyle} onBack={() => this.props.onBack()}>
         <Kb.UserCard style={styles.card} outerStyle={styles.outerCard}>
           <Kb.Input
             autoFocus={true}
             style={styles.input}
-            hintText="Username or email"
-            errorText={
-              this.props.submittedUsernameOrEmail === this.state.usernameOrEmail ? this.props.error : ''
-            }
-            errorTextComponent={
-              this.props.submittedUsernameOrEmail === this.state.usernameOrEmail &&
-              this.props.badUsernameError ? (
-                <BadUsernameError onGoToSignup={this.props.onGoToSignup} />
-              ) : (
-                undefined
-              )
-            }
-            onEnterKeyDown={() => this.props.onSubmit(this.state.usernameOrEmail)}
-            onChangeText={text => this.setState({usernameOrEmail: text})}
-            value={this.state.usernameOrEmail}
+            hintText="Username"
+            errorText={this.props.submittedUsername === this.state.username ? this.props.error : ''}
+            errorTextComponent={errorTextComponent}
+            onEnterKeyDown={() => this.props.onSubmit(this.state.username)}
+            onChangeText={text => this.setState({username: text})}
+            value={this.state.username}
           />
           <Kb.WaitingButton
             label="Continue"
             type="Primary"
             fullWidth={true}
             style={styles.button}
-            onClick={() => this.props.onSubmit(this.state.usernameOrEmail)}
-            disabled={!this.state.usernameOrEmail}
+            onClick={() => this.props.onSubmit(this.state.username)}
+            disabled={!this.state.username}
             waitingKey={Constants.waitingKey}
           />
+          <Kb.Text
+            style={styles.forgotUsername}
+            type="BodySmallSecondaryLink"
+            onClick={this.props.onForgotUsername}
+          >
+            Forgot your username?
+          </Kb.Text>
         </Kb.UserCard>
       </Container>
     )
@@ -94,6 +106,10 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.red,
     textDecorationLine: 'underline',
   },
+  forgotUsername: {
+    alignSelf: 'center',
+    paddingTop: Styles.globalMargins.small,
+  },
   input: Styles.platformStyles({
     isMobile: {
       flexGrow: 1,
@@ -108,4 +124,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default UsernameOrEmail
+export default Username

@@ -8,6 +8,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 )
@@ -36,7 +37,7 @@ func (dbcdi dirtyBlockCacheDiskInfo) newBlock() Block {
 type DirtyBlockCacheDisk struct {
 	config    dirtyBlockCacheDiskConfig
 	diskCache *DiskBlockCacheLocal
-	kmd       KeyMetadata
+	kmd       libkey.KeyMetadata
 	branch    BranchName
 
 	lock   sync.RWMutex
@@ -47,7 +48,7 @@ var _ DirtyBlockCacheSimple = (*DirtyBlockCacheDisk)(nil)
 
 func newDirtyBlockCacheDisk(
 	config dirtyBlockCacheDiskConfig,
-	diskCache *DiskBlockCacheLocal, kmd KeyMetadata,
+	diskCache *DiskBlockCacheLocal, kmd libkey.KeyMetadata,
 	branch BranchName) *DirtyBlockCacheDisk {
 	return &DirtyBlockCacheDisk{
 		config:    config,

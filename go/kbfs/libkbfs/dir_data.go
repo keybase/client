@@ -5,7 +5,9 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -16,7 +18,7 @@ import (
 // reading or writing, and also returns whether the block was already
 // dirty.  It may be called from new goroutines, and must handle any
 // required locks accordingly.
-type dirBlockGetter func(context.Context, KeyMetadata, BlockPointer,
+type dirBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
 	path, blockReqType) (dblock *DirBlock, wasDirty bool, err error)
 
 // dirData is a helper struct for accessing and manipulating data
@@ -28,7 +30,7 @@ type dirData struct {
 }
 
 func newDirData(dir path, chargedTo keybase1.UserOrTeamID,
-	crypto cryptoPure, bsplit BlockSplitter, kmd KeyMetadata,
+	crypto cryptoPure, bsplit BlockSplitter, kmd libkey.KeyMetadata,
 	getter dirBlockGetter, cacher dirtyBlockCacher,
 	log logger.Logger) *dirData {
 	dd := &dirData{
@@ -52,7 +54,7 @@ func (dd *dirData) rootBlockPointer() BlockPointer {
 }
 
 func (dd *dirData) blockGetter(
-	ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+	ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
 	dir path, rtype blockReqType) (
 	block BlockWithPtrs, wasDirty bool, err error) {
 	return dd.getter(ctx, kmd, ptr, dir, rtype)
@@ -146,7 +148,7 @@ func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
 
 	de, ok := block.(*DirBlock).Children[name]
 	if !ok {
-		return DirEntry{}, NoSuchNameError{name}
+		return DirEntry{}, idutil.NoSuchNameError{Name: name}
 	}
 	return de, nil
 }
@@ -275,7 +277,7 @@ func (dd *dirData) addEntryHelper(
 		return nil, NameExistsError{name}
 	} else if errorIfNoMatch &&
 		(!exists || de.BlockPointer != newDe.BlockPointer) {
-		return nil, NoSuchNameError{name}
+		return nil, idutil.NoSuchNameError{Name: name}
 	}
 	dblock.Children[name] = newDe
 

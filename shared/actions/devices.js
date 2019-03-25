@@ -85,8 +85,10 @@ const navigateAfterRevoked = (state, action) =>
     path: action.payload.wasCurrentDevice ? [Tabs.loginTab] : [...Constants.devicesTabLocation],
   })
 
-const showRevokePage = () =>
-  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage', 'deviceRevoke']})
+const showRevokePage = (_, {payload: {deviceID}}) =>
+  RouteTreeGen.createNavigateTo({
+    path: [...Constants.devicesTabLocation, 'devicePage', {props: {deviceID}, selected: 'deviceRevoke'}],
+  })
 
 const showDevicePage = () =>
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage']})

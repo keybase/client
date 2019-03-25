@@ -6,6 +6,8 @@ package libkbfs
 
 import (
 	"context"
+
+	"github.com/keybase/client/go/kbfs/libkey"
 )
 
 type blockPutStateDiskConfig interface {
@@ -21,7 +23,7 @@ type blockPutStateDisk struct {
 
 	config    blockPutStateDiskConfig
 	diskCache *DiskBlockCacheLocal
-	kmd       KeyMetadata
+	kmd       libkey.KeyMetadata
 	isDir     map[BlockPointer]bool
 }
 
@@ -29,7 +31,7 @@ var _ blockPutState = (*blockPutStateDisk)(nil)
 
 func newBlockPutStateDisk(
 	length int, config blockPutStateDiskConfig,
-	diskCache *DiskBlockCacheLocal, kmd KeyMetadata) *blockPutStateDisk {
+	diskCache *DiskBlockCacheLocal, kmd libkey.KeyMetadata) *blockPutStateDisk {
 	return &blockPutStateDisk{
 		blockPutStateMemory: newBlockPutStateMemory(length),
 		config:              config,

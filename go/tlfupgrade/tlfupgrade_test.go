@@ -67,8 +67,8 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 		}
 	}
 	attempt(1)
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	attempt(2)
 	u.Shutdown()
 }

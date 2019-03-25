@@ -12,11 +12,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
+	idutiltest "github.com/keybase/client/go/kbfs/idutil/test"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/assert"
@@ -29,12 +33,12 @@ type singleEncryptionKeyGetter struct {
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
+	ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }
@@ -89,13 +93,13 @@ func teardownMDJournalTest(t testing.TB, tempdir string) {
 func makeMDForTest(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	revision kbfsmd.Revision, uid keybase1.UID,
 	signer kbfscrypto.Signer, prevRoot kbfsmd.ID) *RootMetadata {
-	nug := testNormalizedUsernameGetter{
+	nug := idutiltest.NormalizedUsernameGetter{
 		uid.AsUserOrTeam(): "fake_username",
 	}
 	bh, err := tlf.MakeHandle(
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
-	h, err := MakeTlfHandle(
+	h, err := tlfhandle.MakeHandle(
 		context.Background(), bh, bh.Type(), nil, nug, nil,
 		keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
@@ -110,7 +114,7 @@ func makeMDForTest(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 
 type constMerkleRootGetter struct{}
 
-var _ merkleRootGetter = constMerkleRootGetter{}
+var _ idutil.MerkleRootGetter = constMerkleRootGetter{}
 
 func (cmrg constMerkleRootGetter) GetCurrentMerkleRoot(
 	ctx context.Context) (keybase1.MerkleRootV2, time.Time, error) {

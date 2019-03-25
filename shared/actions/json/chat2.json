@@ -115,6 +115,7 @@
     // Got some new inbox rows
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>",
+      "removals?": "Array<Types.ConversationIDKey>", // convs to remove
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
@@ -325,7 +326,8 @@
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
       "message": "Types.Message",
-      "path?": "string"
+      "path?": "string",
+      "canError": {"error": "string", "message": "Types.Message"}
     },
     // We want to upload some attachments
     "attachmentsUpload": {

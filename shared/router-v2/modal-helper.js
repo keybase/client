@@ -3,17 +3,18 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import type {Route} from './routes'
-import {compose, connect, isMobile, safeSubmit} from '../util/container'
+import {connect, isMobile} from '../util/container'
 
 const dispatchProps = dispatch => ({
   onClosePopup: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Modal = <P>(C: React.ComponentType<P>) =>
+  // eslint-disable-next-line func-call-spacing
   connect<P, P & {onClosePopup: () => void}, any, any, any>(
     () => ({}),
     dispatchProps,
-    (_, dp, op: P) => ({...dp, showCloseButtonPopup: true, ...op})
+    (_, dp, op: P) => ({...dp, ...op})
   )(Kb.PopupDialogHoc(C))
 
 export function modalizeRoute(route: Route) {

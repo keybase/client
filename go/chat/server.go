@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -324,9 +325,9 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		return chat1.MarkAsReadLocalRes{}, err
 	}
 	// Don't send remote mark as read if we somehow get this in the background.
-	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
+	if h.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
-			h.G().AppState.State())
+			h.G().MobileAppState.State())
 		return chat1.MarkAsReadLocalRes{
 			Offline: h.G().InboxSource.IsOffline(ctx),
 		}, nil
@@ -464,6 +465,18 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 	}, nil
 }
 
+func (h *Server) messageIDControlToPagination(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgIDControl chat1.MessageIDControl) *chat1.Pagination {
+	var mcconv *types.RemoteConversation
+	conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		h.Debug(ctx, "messageIDControlToPagination: failed to get conversation: %s", err)
+	} else {
+		mcconv = &conv
+	}
+	return utils.MessageIDControlToPagination(ctx, h.DebugLabeler, &msgIDControl, mcconv)
+}
+
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -478,7 +491,8 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		arg.Pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
+			*arg.Query.MessageIDControl)
 	}
 
 	// Get messages from the source
@@ -700,12 +714,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
-		switch h.G().AppState.State() {
-		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		switch h.G().MobileAppState.State() {
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 		default:
 			h.G().Syncer.Disconnected(ctx)
 		}
-		h.G().AppState.Update(keybase1.AppState_FOREGROUND)
+		h.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	}
 
 	// Set last select conversation on syncer
@@ -723,13 +737,17 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	arg.Query.EnableDeletePlaceholders = true
 
-	// Xlate pager control into pagination if given
+	// Parse out options
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		// Pager control into pagination if given
+		h.Debug(ctx, "GetThreadNonblock: using message ID control for pagination: %v",
+			*arg.Query.MessageIDControl)
+		pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
+			*arg.Query.MessageIDControl)
+	} else {
+		// Apply any pager mode transformations
+		pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
 	}
-
-	// Apply any pager mode transformations
-	pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
 	if pagination != nil && pagination.Last {
 		return res, nil
 	}
@@ -1561,7 +1579,6 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadAttachmentLocal")()
-	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
@@ -1585,7 +1602,6 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
-	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
@@ -1603,18 +1619,35 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	if err != nil {
 		return res, err
 	}
+	defer func() {
+		// In the event of any error delete the file if it's empty.
+		if err != nil {
+			h.Debug(ctx, "DownloadFileAttachmentLocal: deleteFileIfEmpty: %v", deleteFileIfEmpty(filename))
+		}
+	}()
+	if err := attachments.Quarantine(ctx, filename); err != nil {
+		h.Debug(ctx, "DownloadFileAttachmentLocal: failed to quarantine download: %s", err)
+	}
 	darg.Sink = sink
 	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
 	if err != nil {
 		return res, err
 	}
-	if err := attachments.Quarantine(ctx, filename); err != nil {
-		h.Debug(ctx, "DownloadFileAttachmentLocal: failed to quarantine download: %s", err)
-	}
 	return chat1.DownloadFileAttachmentLocalRes{
 		Filename:         filename,
 		IdentifyFailures: ires.IdentifyFailures,
 	}, nil
+}
+
+func deleteFileIfEmpty(filename string) (err error) {
+	f, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	if f.Size() == 0 {
+		return os.Remove(filename)
+	}
+	return nil
 }
 
 type downloadAttachmentArg struct {

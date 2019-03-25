@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -176,7 +177,7 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 }
 
 func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
-	codec kbfscodec.Codec, cryptoPure cryptoPure, kmd KeyMetadata,
+	codec kbfscodec.Codec, cryptoPure cryptoPure, kmd libkey.KeyMetadata,
 	blockPtr BlockPointer, block Block, buf []byte,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {

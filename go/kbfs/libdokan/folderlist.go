@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
-	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -60,7 +62,7 @@ func (fl *FolderList) reportErr(ctx context.Context,
 
 }
 
-func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (err error) {
+func (fl *FolderList) addToFavorite(ctx context.Context, h *tlfhandle.Handle) (err error) {
 	cName := h.GetCanonicalName()
 	fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
 	return fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite(),
@@ -129,14 +131,14 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			continue
 		}
 
-		h, err := libfs.ParseTlfHandlePreferredQuick(
+		h, err := tlfhandle.ParseHandlePreferredQuick(
 			ctx, fl.fs.config.KBPKI(), fl.fs.config, name, fl.tlfType)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
 		switch e := errors.Cause(err).(type) {
 		case nil:
 			// no error
 
-		case libkbfs.TlfNameNotCanonical:
+		case idutil.TlfNameNotCanonical:
 			// Only permit Aliases to targets that contain no errors.
 			aliasTarget = e.NameToTry
 			fl.fs.log.CDebugf(ctx, "FL Lookup set alias: %q -> %q", name, aliasTarget)
@@ -156,7 +158,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			path[0] = aliasTarget
 			continue
 
-		case libkbfs.NoSuchNameError, libkbfs.BadTLFNameError:
+		case idutil.NoSuchNameError, idutil.BadTLFNameError:
 			return nil, 0, dokan.ErrObjectNameNotFound
 
 		default:
@@ -165,7 +167,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		session, err := libkbfs.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.Type() == tlf.Public)
+		session, err := idutil.GetCurrentSessionIfPossible(ctx, fl.fs.config.KBPKI(), h.Type() == tlf.Public)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -190,7 +192,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	session, err := fl.fs.config.KBPKI().GetCurrentSession(ctx)
 	isLoggedIn := err == nil
 
-	var favs []libkbfs.Favorite
+	var favs []favorites.Folder
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
 		if err != nil {
@@ -224,7 +226,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 }
 
 func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
-	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.tlfType) == nil
+	return tlfhandle.CheckHandleOffline(ctx, nameToTry, fl.tlfType) == nil
 }
 
 func (fl *FolderList) lockedAddChild(name string, val fileOpener) {

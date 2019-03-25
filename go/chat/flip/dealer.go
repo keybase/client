@@ -3,6 +3,7 @@ package flip
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"io"
 	"math"
 	"math/big"
@@ -77,6 +78,7 @@ type Game struct {
 	stage                  Stage
 	stageForTimeout        Stage
 	players                map[UserDeviceKey]*GamePlayerState
+	commitments            map[string]bool
 	gameUpdateCh           chan GameStateUpdateMessage
 	nPlayers               int
 	dealer                 *Dealer
@@ -88,6 +90,7 @@ type Game struct {
 	// To handle reorderings between CommitmentComplete and commitements,
 	// wee need some extra bookkeeping.
 	iWasIncluded          bool
+	iOptedOutOfCommit     bool
 	gotCommitmentComplete bool
 	latecomers            map[UserDeviceKey]bool
 }
@@ -323,6 +326,12 @@ func (g *Game) handleCommitment(ctx context.Context, sender UserDevice, now time
 	ps.commitment = &com
 	ps.commitmentTime = now
 
+	comHex := hex.EncodeToString(com[:])
+	if g.commitments[comHex] {
+		return DuplicateCommitmentError{}
+	}
+	g.commitments[comHex] = true
+
 	// If this user was a latecomer (we got the commitment after we got the CommitmentComplete),
 	// then we mark them as being accounted for.
 	delete(g.latecomers, sender.ToKey())
@@ -353,7 +362,7 @@ func (g *Game) maybeReveal(ctx context.Context) (err error) {
 		return nil
 	}
 
-	if !g.iWasIncluded {
+	if !g.iWasIncluded && !g.iOptedOutOfCommit {
 		g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
 		return nil
 	}
@@ -682,7 +691,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 
 	isLeader := true
 	me := msg.Me
-	// Make a new follower player controller if one didn't already exit (since we were
+	// Make a new follower player controller if one didn't already exist (since we were
 	// the Leader)
 	if me == nil {
 		me, err = d.newPlayerControl(d.dh.Me(), md, start)
@@ -692,24 +701,31 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		isLeader = false
 	}
 
+	optedOutOfCommit := false
+	if !isLeader {
+		optedOutOfCommit = !d.dh.ShouldCommit(ctx)
+	}
+
 	msgCh := make(chan *GameMessageWrapped)
 	game := &Game{
-		md:              msg.GameMetadata(),
-		isLeader:        isLeader,
-		clockSkew:       cs,
-		start:           d.dh.Clock().Now(),
-		key:             key,
-		params:          start,
-		msgCh:           msgCh,
-		stage:           Stage_ROUND1,
-		stageForTimeout: Stage_ROUND1,
-		gameUpdateCh:    d.gameUpdateCh,
-		players:         make(map[UserDeviceKey]*GamePlayerState),
-		dealer:          d,
-		me:              me,
-		clock:           d.dh.Clock,
-		clogf:           d.dh.CLogf,
-		latecomers:      make(map[UserDeviceKey]bool),
+		md:                msg.GameMetadata(),
+		isLeader:          isLeader,
+		clockSkew:         cs,
+		start:             d.dh.Clock().Now(),
+		key:               key,
+		params:            start,
+		msgCh:             msgCh,
+		stage:             Stage_ROUND1,
+		stageForTimeout:   Stage_ROUND1,
+		gameUpdateCh:      d.gameUpdateCh,
+		players:           make(map[UserDeviceKey]*GamePlayerState),
+		commitments:       make(map[string]bool),
+		dealer:            d,
+		me:                me,
+		clock:             d.dh.Clock,
+		clogf:             d.dh.CLogf,
+		latecomers:        make(map[UserDeviceKey]bool),
+		iOptedOutOfCommit: optedOutOfCommit,
 	}
 	d.games[key] = msgCh
 	d.gameIDs[gameIDKey] = md
@@ -720,7 +736,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 	// Once the game has started, we are free to send a message into the channel
 	// with our commitment. We are now in the inner loop of the Dealer, so we
 	// have to do this send in a Go-routine, so as not to deadlock the Dealer.
-	if !isLeader {
+	if !isLeader && !optedOutOfCommit {
 		go d.sendCommitment(ctx, md, me)
 	}
 	return nil

@@ -673,6 +673,13 @@ protocol teams {
     array<TeamSeitanRequest> seitans;
   }
 
+  record TeamOpenSweepMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    @jsonkey("reset_users")
+    array<TeamCLKRResetUser> resetUsersUntrusted;
+  }
+
   record TeamKBFSKeyRefresher {
     int generation;
     TeamApplication appType;
@@ -1051,6 +1058,7 @@ protocol teams {
     boolean deleteChannel;
     boolean renameChannel;
     boolean editChannelDescription;
+    boolean editTeamDescription;
     boolean setTeamShowcase;
     boolean setMemberShowcase;
     boolean setRetentionPolicy;

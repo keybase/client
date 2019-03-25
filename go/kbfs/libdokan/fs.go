@@ -14,9 +14,11 @@ import (
 
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/dokan/winacl"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -110,8 +112,8 @@ func (f *FS) WithContext(ctx context.Context) (context.Context, context.CancelFu
 	// context.WithDeadline uses clock from `time` package, so we are not using
 	// f.config.Clock() here
 	start := time.Now()
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	ctx, err = libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 			ctx = wrapContext(context.WithValue(ctx, CtxIDKey, id), f)
 			ctx, _ = context.WithDeadline(ctx, start.Add(29*time.Second))
 			return ctx
@@ -573,7 +575,7 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	}
 	dstName := dstPath[len(dstPath)-1]
 	// Yes, this is slow, but that is ok here.
-	if _, err := libkbfs.ParseTlfHandlePreferred(
+	if _, err := tlfhandle.ParseHandlePreferred(
 		ctx, f.config.KBPKI(), f.config.MDOps(), f.config, dstName,
 		fl.tlfType); err != nil {
 		return dokan.ErrObjectNameNotFound

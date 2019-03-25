@@ -3,6 +3,7 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {isMobile, isIOS} from '../../../constants/platform'
 import * as Flow from '../../../util/flow'
+import flags from '../../../util/feature-flags'
 
 export type Layout = {
   copyPath: boolean,
@@ -62,14 +63,14 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
       return {
         ...empty,
         copyPath: true,
-        delete: pathItem.type === 'file',
+        delete: (pathItem.type === 'file') || flags.enableDeleteFolder,
         download: pathItem.type === 'file' && !isIOS,
         moveOrCopy: true,
         saveMedia: isMobile && pathItem.type === 'file' && Constants.isMedia(pathItem),
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
-        sendAttachmentToChat: false, // TODO enable mobile pathItem.type === 'file' && isMobile, // desktop uses separate button
+        sendAttachmentToChat: flags.sendAttachmentToChat && isMobile && pathItem.type === 'file', // desktop uses separate button
         sendLinkToChat: isMobile && Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
         sendToOtherApp: pathItem.type === 'file' && isMobile,
       }

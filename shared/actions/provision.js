@@ -9,7 +9,6 @@ import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
-import {StackActions} from '@react-navigation/core'
 import flags from '../util/feature-flags'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
@@ -390,8 +389,8 @@ const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager
 function* startProvisioning(state) {
   makeProvisioningManager(false)
   try {
-    const usernameOrEmail = state.provision.usernameOrEmail
-    if (!usernameOrEmail) {
+    const username = state.provision.username
+    if (!username) {
       return
     }
 
@@ -401,7 +400,7 @@ function* startProvisioning(state) {
       params: {
         clientType: RPCTypes.commonClientType.guiMain,
         deviceType: isMobile ? 'mobile' : 'desktop',
-        usernameOrEmail,
+        username: username,
       },
       waitingKey: Constants.waitingKey,
     })
@@ -410,12 +409,16 @@ function* startProvisioning(state) {
     ProvisioningManager.getSingleton().done(
       'provision call done w/ error' + finalError ? finalError.message : ' unknown error'
     )
-    // If it's a non-existent username, allow the opportunity to
+    // If it's a non-existent username or invalid, allow the opportunity to
     // correct it right there on the page.
-    if (finalError.code === RPCTypes.constantsStatusCode.scnotfound) {
-      yield Saga.put(ProvisionGen.createShowInlineError({inlineError: finalError}))
-    } else {
-      yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: false}))
+    switch (finalError.code) {
+      case RPCTypes.constantsStatusCode.scnotfound:
+      case RPCTypes.constantsStatusCode.scbadusername:
+        yield Saga.put(ProvisionGen.createShowInlineError({inlineError: finalError}))
+        break
+      default:
+        yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: false}))
+        break
     }
   }
 }
@@ -497,15 +500,24 @@ const showFinalErrorPage = (state, action) => {
 }
 
 const showUsernameEmailPage = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['usernameOrEmail']})
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['username']})
+
+const forgotUsername = (state, action) =>
+  RPCTypes.accountRecoverUsernameRpcPromise({email: action.payload.email}, Constants.forgotUsernameWaitingKey)
+    .then(result => ProvisionGen.createForgotUsernameResult({result: 'success'}))
+    .catch(error =>
+      ProvisionGen.createForgotUsernameResult({
+        result: Constants.decodeForgotUsernameError(error),
+      })
+    )
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Always ensure we have one live
   makeProvisioningManager(false)
 
   // Start provision
-  yield* Saga.chainGenerator<ProvisionGen.SubmitUsernameOrEmailPayload>(
-    ProvisionGen.submitUsernameOrEmail,
+  yield* Saga.chainGenerator<ProvisionGen.SubmitUsernamePayload>(
+    ProvisionGen.submitUsername,
     startProvisioning
   )
   yield* Saga.chainGenerator<ProvisionGen.AddNewDevicePayload>(ProvisionGen.addNewDevice, addNewDevice)
@@ -554,6 +566,7 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
     ProvisionGen.showFinalErrorPage,
     showFinalErrorPage
   )
+  yield* Saga.chainAction<ProvisionGen.ForgotUsernamePayload>(ProvisionGen.forgotUsername, forgotUsername)
 
   yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeCancelProvision)
 }

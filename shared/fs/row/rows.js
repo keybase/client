@@ -100,7 +100,8 @@ class Rows extends React.PureComponent<Props> {
     }
   }
   _getVariableRowLayout = (items, index) => ({
-    height: getRowHeight(items[index]),
+    index,
+    length: getRowHeight(items[index]),
     offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
   })
   _getTopVariableRowCountAndTotalHeight = memoize(items => {
@@ -115,7 +116,8 @@ class Rows extends React.PureComponent<Props> {
       return this._getVariableRowLayout(this.props.items, index)
     }
     return {
-      height: getRowHeight(this.props.items[index]),
+      index,
+      length: getRowHeight(this.props.items[index]),
       offset: (index - top.count) * normalRowHeight + top.totalHeight,
     }
   }
@@ -171,7 +173,7 @@ class Rows extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate({
   divider: {
     backgroundColor: Styles.globalColors.black_05,
-    marginLeft: 48,
+    marginLeft: 64,
   },
   emptyContainer: {
     ...Styles.globalStyles.flexGrow,

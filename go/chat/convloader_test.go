@@ -155,7 +155,7 @@ func TestConvLoaderAppState(t *testing.T) {
 		require.Fail(t, "no remote call")
 	}
 	require.True(t, tc.Context().ConvLoader.Suspend(context.TODO()))
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case <-appStateCh:
 		require.Fail(t, "no app state")
@@ -195,14 +195,14 @@ func TestConvLoaderAppState(t *testing.T) {
 	case <-time.After(failDuration):
 		require.Fail(t, "no remote call")
 	}
-	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	select {
 	case <-appStateCh:
 	case <-time.After(failDuration):
 		require.Fail(t, "no app state")
 	}
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = ri
-	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	select {
 	case <-appStateCh:
 	case <-time.After(failDuration):

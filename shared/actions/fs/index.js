@@ -15,10 +15,9 @@ import * as Types from '../../constants/types/fs'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
-import {isMobile} from '../../constants/platform'
 import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
-import {fsRootRoute, makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -63,28 +62,15 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-const silenceErrorHandler = () => {}
-
-const pathItemLoad = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-    path: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
-    },
-    ...(action.payload.identifyBehavior ? {identifyBehavior: action.payload.identifyBehavior} : {}),
-  })
-    .then(dirent =>
-      FsGen.createPathItemLoaded({
-        meta: makeEntry(dirent),
-        path: action.payload.path,
-      })
-    )
-    .catch(action.payload.silenceErrors ? silenceErrorHandler : makeRetriableErrorHandler(action))
-
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
-const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+const pathMetadataRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+
+const clearRefreshTags = () => {
+  folderListRefreshTags.clear()
+  pathMetadataRefreshTags.clear()
+}
 
 function* folderList(_, action) {
   const {rootPath, refreshTag} =
@@ -204,7 +190,7 @@ function* folderList(_, action) {
       yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
     }
   } catch (error) {
-    yield Saga.put(makeRetriableErrorHandler(action)(error))
+    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
   } finally {
     yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
@@ -297,7 +283,7 @@ function* download(state, action) {
   } catch (error) {
     // This needs to be before the dismiss below, so that if it's a legit
     // error we'd show the red bar.
-    yield Saga.put(makeRetriableErrorHandler(action)(error))
+    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
   } finally {
     if (intent !== 'none') {
       // If it's a normal download, we show a red card for the user to dismiss.
@@ -333,7 +319,7 @@ function* upload(_, action) {
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
   } catch (error) {
-    yield Saga.put(makeRetriableErrorHandler(action)(error))
+    yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
   }
 }
 
@@ -393,7 +379,7 @@ function* pollSyncStatusUntilDone(_, action) {
       ])
     }
   } catch (error) {
-    yield Saga.put(makeUnretriableErrorHandler(action)(error))
+    yield makeUnretriableErrorHandler(action)(error).map(action => Saga.put(action))
   } finally {
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
@@ -401,7 +387,7 @@ function* pollSyncStatusUntilDone(_, action) {
 }
 
 const onTlfUpdate = (state, action) => {
-  // Trigger folderListLoad and mimeTypeLoad for paths that the user might be
+  // Trigger folderListLoad and pathMetadata for paths that the user might be
   // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
   //
@@ -417,14 +403,14 @@ const onTlfUpdate = (state, action) => {
   // folderList`).
   const actions = []
   folderListRefreshTags.forEach((path, refreshTag) =>
-    Types.pathIsInTlfPath(path, action.payload.tlfPath)
+    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
       ? actions.push(FsGen.createFolderListLoad({path}))
       : folderListRefreshTags.delete(refreshTag)
   )
-  mimeTypeRefreshTags.forEach((path, refreshTag) =>
-    Types.pathIsInTlfPath(path, action.payload.tlfPath)
-      ? actions.push(FsGen.createMimeTypeLoad({path}))
-      : mimeTypeRefreshTags.delete(refreshTag)
+  pathMetadataRefreshTags.forEach((path, refreshTag) =>
+    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
+      ? actions.push(FsGen.createLoadPathMetadata({path}))
+      : pathMetadataRefreshTags.delete(refreshTag)
   )
   return actions
 }
@@ -453,7 +439,7 @@ function* ignoreFavoriteSaga(_, action) {
         folder,
       })
     } catch (error) {
-      yield Saga.put(makeRetriableErrorHandler(action)(error))
+      yield makeRetriableErrorHandler(action)(error).map(action => Saga.put(action))
     }
   }
 }
@@ -511,19 +497,8 @@ const refreshLocalHTTPServerInfo = (state, action) =>
 // If the server address/token are not populated yet, or if the token turns out
 // to be invalid, it automatically uses
 // SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise to refresh that. The
-// generator function returns the loaded mime type for the given path, and in
-// addition triggers a mimeTypeLoaded so the loaded mime type for given path is
-// populated in the store.
-function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
-  if (refreshTag) {
-    if (mimeTypeRefreshTags.get(refreshTag) === path) {
-      // We are already subscribed; so don't fire RPC.
-      return
-    }
-
-    mimeTypeRefreshTags.set(refreshTag, path)
-  }
-
+// generator function returns the loaded mime type for the given path.
+function* _loadMimeType(path: Types.Path) {
   const state = yield* Saga.selectState()
   let localHTTPServerInfo = state.fs.localHTTPServerInfo
   // This should finish within 2 iterations at most. But just in case we bound
@@ -543,7 +518,6 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     }
     try {
       const mimeType: Types.Mime = yield Saga.callUntyped(getMimeTypePromise, localHTTPServerInfo, path)
-      yield Saga.put(FsGen.createMimeTypeLoaded({mimeType, path}))
       return mimeType
     } catch (err) {
       if (err === Constants.notFoundError) {
@@ -558,14 +532,6 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
     }
   }
   throw new Error('exceeded max retries')
-}
-
-function* loadMimeType(_, action) {
-  try {
-    yield* _loadMimeType(action.payload.path, action.payload.refreshTag)
-  } catch (error) {
-    yield Saga.put(makeUnretriableErrorHandler(action)(error))
-  }
 }
 
 const commitEdit = (state, action) => {
@@ -593,89 +559,43 @@ const commitEdit = (state, action) => {
   }
 }
 
-const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
-  isMobile
-    ? RouteTreeGen.createNavigateTo({
-        path:
-          action.payload.path === Constants.defaultPath
-            ? fsRootRoute
-            : [
-                ...fsRootRoute,
-                // Construct all parent folders so back button works all the way back
-                // to /keybase
-                ...Types.getPathElements(action.payload.path)
-                  .slice(1, -1) // fsTab default to /keybase, so we skip one here
-                  .reduce(
-                    (routes, elem) => [
-                      ...routes,
-                      {
-                        props: {
-                          path: routes.length
-                            ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                            : Types.stringToPath(`/keybase/${elem}`),
-                        },
-                        selected: 'main',
-                      },
-                    ],
-                    []
-                  ),
-                finalRoute,
-              ],
-      })
-    : RouteTreeGen.createNavigateTo({
-        path: [
-          Tabs.fsTab,
-          // Prepend the parent folder so when user clicks the back button they'd
-          // go back to the parent folder.
-          {props: {path: Types.getPathParent(action.payload.path)}, selected: 'main'},
-          finalRoute,
-        ],
-      })
-
-const _getRouteChangeActionForOpen = (
-  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
-  finalRoute: any
-) => {
-  const routeChange =
-    action.type === FsGen.openPathItem
-      ? RouteTreeGen.createNavigateAppend({path: [finalRoute]})
-      : _getRouteChangeForOpenPathInFilesTab(action, finalRoute)
-  return action.payload.routePath
-    ? RouteTreeGen.createPutActionIfOnPath({expectedPath: action.payload.routePath, otherAction: routeChange})
-    : routeChange
-}
-
-const openPathItem = (state, action) =>
-  _getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'})
-
 function* loadPathMetadata(state, action) {
-  const {path} = action.payload
+  const {path, refreshTag} = action.payload
 
   if (Types.getPathLevel(path) < 3) {
     return
   }
 
-  let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+  if (refreshTag) {
+    if (pathMetadataRefreshTags.get(refreshTag) === path) {
+      // We are already subscribed; so don't fire RPC.
+      return
+    }
+
+    pathMetadataRefreshTags.set(refreshTag, path)
+  }
+
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
       path: {
         PathType: RPCTypes.simpleFSPathType.kbfs,
         kbfs: Constants.fsPathToRpcPathString(path),
       },
+      refreshSubscription: !!refreshTag,
     })
-    pathItem = makeEntry(dirent)
+    let pathItem = makeEntry(dirent)
+    if (pathItem.type === 'file') {
+      const mimeType = yield* _loadMimeType(path)
+      pathItem = pathItem.set('mimeType', mimeType)
+    }
     yield Saga.put(
       FsGen.createPathItemLoaded({
-        meta: pathItem,
         path,
+        pathItem,
       })
     )
   } catch (err) {
-    yield Saga.put(makeRetriableErrorHandler(action)(err))
-    return
-  }
-  if (pathItem.type === 'file') {
-    yield Saga.put(FsGen.createMimeTypeLoad({path}))
+    yield makeRetriableErrorHandler(action)(err).map(action => Saga.put(action))
   }
 }
 
@@ -697,7 +617,7 @@ const deleteFile = (state, action) => {
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(action.payload.path),
     },
-    recursive: false,
+    recursive: true,
   })
     .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
     .catch(makeRetriableErrorHandler(action))
@@ -716,26 +636,28 @@ const moveOrCopy = (state, action) => {
           state.fs.destinationPicker.source.type === 'move-or-copy'
             ? Types.getPathName(state.fs.destinationPicker.source.path)
             : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
-            // We use the local path name here since we only care about file name.
+          // We use the local path name here since we only care about file name.
         )
       ),
     },
     opID: Constants.makeUUID(),
-    src: state.fs.destinationPicker.source.type === 'move-or-copy'
-      ? {
-        PathType: RPCTypes.simpleFSPathType.kbfs,
-        kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
-      }
-      : state.fs.destinationPicker.source.type === 'incoming-share'
+    src:
+      state.fs.destinationPicker.source.type === 'move-or-copy'
         ? {
-          PathType: RPCTypes.simpleFSPathType.local,
-          local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
-        }
-        // This case isn't possible but must be handled for Flow to be happy.
+            PathType: RPCTypes.simpleFSPathType.kbfs,
+            kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
+          }
+        : state.fs.destinationPicker.source.type === 'incoming-share'
+        ? {
+            PathType: RPCTypes.simpleFSPathType.local,
+            local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
+          }
         : {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: null,
-        },
+            // This case isn't possible but must be handled for Flow to be
+            // happy.
+            PathType: RPCTypes.simpleFSPathType.kbfs,
+            kbfs: null,
+          },
   }
   return (
     (action.type === FsGen.move
@@ -749,19 +671,6 @@ const moveOrCopy = (state, action) => {
       .catch(makeUnretriableErrorHandler(action))
   )
 }
-
-const destinationPickerOpen = (state, action) => [
-  FsGen.createSetDestinationPickerParentPath({
-    index: action.payload.currentIndex + 1,
-    path: action.payload.path,
-  }),
-  RouteTreeGen.createPutActionIfOnPath({
-    expectedPath: action.payload.routePath,
-    otherAction: RouteTreeGen.createNavigateAppend({
-      path: [{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}],
-    }),
-  }),
-]
 
 const showMoveOrCopy = (state, action) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
@@ -780,6 +689,14 @@ const closeDestinationPicker = (state, action) => {
     RouteTreeGen.createNavigateTo({path: newRoute}),
   ]
 }
+
+const showSendAttachmentToChat = (state, action) =>
+  action.payload.routePath
+    ? RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: action.payload.routePath,
+        otherAction: RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']}),
+      })
+    : RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']})
 
 function* showSendLinkToChat(state, action) {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
@@ -867,27 +784,33 @@ function* showSendLinkToChat(state, action) {
 
 const clearRefreshTag = (state, action) => {
   folderListRefreshTags.delete(action.payload.refreshTag)
-  mimeTypeRefreshTags.delete(action.payload.refreshTag)
+  pathMetadataRefreshTags.delete(action.payload.refreshTag)
 }
 
-let pingKbfsDaemonLoopRunning = false
-function* pingKbfsDaemonUntilConnected() {
-  if (pingKbfsDaemonLoopRunning) {
+// Can't rely on kbfsDaemonStatus === 'waiting' as that's set by reducre and
+// happens before this.
+let waitForKbfsDaemonOnFly = false
+const waitForKbfsDaemon = (state, action) => {
+  if (waitForKbfsDaemonOnFly) {
     return
   }
-  while (true) {
-    pingKbfsDaemonLoopRunning = true
-    yield Saga.delay(1000)
-    let connected = yield* Saga.callPromise(() =>
-      RPCTypes.SimpleFSSimpleFSPingRpcPromise()
-        .then(() => true)
-        .catch(() => false)
-    )
-    if (connected) {
-      yield Saga.put(FsGen.createKbfsDaemonConnected())
-      return
-    }
-  }
+  waitForKbfsDaemonOnFly = true
+  return RPCTypes.configWaitForClientRpcPromise({
+    clientType: RPCTypes.commonClientType.kbfs,
+    timeout: 20, // 20sec
+  })
+    .then(connected => {
+      waitForKbfsDaemonOnFly = false
+      return FsGen.createKbfsDaemonStatusChanged({
+        kbfsDaemonStatus: connected ? 'connected' : 'wait-timeout',
+      })
+    })
+    .catch(() => {
+      waitForKbfsDaemonOnFly = false
+      return FsGen.createKbfsDaemonStatusChanged({
+        kbfsDaemonStatus: 'wait-timeout',
+      })
+    })
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -905,11 +828,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.PathItemLoadPayload>(FsGen.pathItemLoad, pathItemLoad)
   yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
-  yield* Saga.chainGenerator<FsGen.MimeTypeLoadPayload>(FsGen.mimeTypeLoad, loadMimeType)
   yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
   yield* Saga.chainGenerator<FsGen.NotifySyncActivityPayload>(
@@ -918,10 +839,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<FsGen.NotifyTlfUpdatePayload>(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
-  yield* Saga.chainAction<FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload>(
-    [FsGen.openPathItem, FsGen.openPathInFilesTab],
-    openPathItem
-  )
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSPathUpdatedPayload>(
     EngineGen.keybase1NotifyFSFSPathUpdated,
@@ -932,19 +849,27 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     onFSSyncActivity
   )
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
-  yield* Saga.chainAction<FsGen.DestinationPickerOpenPayload>(FsGen.destinationPickerOpen, destinationPickerOpen)
-  yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
-  yield* Saga.chainAction<FsGen.CloseDestinationPickerPayload>(FsGen.closeDestinationPicker, closeDestinationPicker)
+  yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload>(
+    [FsGen.showMoveOrCopy, FsGen.showIncomingShare],
+    showMoveOrCopy
+  )
+  yield* Saga.chainAction<FsGen.CloseDestinationPickerPayload>(
+    FsGen.closeDestinationPicker,
+    closeDestinationPicker
+  )
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
+  yield* Saga.chainAction<FsGen.ShowSendLinkToChatPayload>(
+    FsGen.showSendAttachmentToChat,
+    showSendAttachmentToChat
+  )
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
-
-  yield* Saga.chainGenerator<ConfigGen.InstallerRanPayload>(
-    ConfigGen.installerRan,
-    // Wait until a successful ping before filing FsGen.kbfsDaemonConnected.
-    // We need this on desktop as KBFS and service are two separate processes.
-    // There's no separate daemon on mobile, but in case we make init more
-    // async, it might be possible we get here before KBFS is actually up.
-    pingKbfsDaemonUntilConnected
+  yield* Saga.chainAction<FsGen.KbfsDaemonStatusChangedPayload>(
+    FsGen.kbfsDaemonStatusChanged,
+    clearRefreshTags
+  )
+  yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
+    [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
+    waitForKbfsDaemon
   )
 
   yield Saga.spawn(platformSpecificSaga)

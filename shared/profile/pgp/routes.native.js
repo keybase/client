@@ -2,19 +2,21 @@
 import * as React from 'react'
 import {makeRouteDefNode} from '../../route-tree'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
+import Modal from '../modal'
 
 type OwnProps = {||}
 
 const NoPGPView = props => (
-  <Kb.StandardScreen style={styleContainer} onCancel={props.onCancel}>
-    <Kb.Text center={true} style={styleTitle} type="Header">
-      Add a PGP key
-    </Kb.Text>
-    <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
-  </Kb.StandardScreen>
+  <Modal onCancel={props.onCancel}>
+    <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
+      <Kb.Text center={true} type="Header">
+        Add a PGP key
+      </Kb.Text>
+      <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
+    </Kb.Box2>
+  </Modal>
 )
 
 const NoPGP = connect<OwnProps, _, _, _, _>(
@@ -23,15 +25,10 @@ const NoPGP = connect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(NoPGPView)
 
-const routeTree = makeRouteDefNode({
-  component: NoPGP,
-})
-
-const styleContainer = {justifyContent: 'flex-start'}
-const styleTitle = {marginBottom: Styles.globalMargins.xlarge}
+const routeTree = makeRouteDefNode({component: NoPGP})
 
 export default routeTree
 
 export const newRoutes = {
-  pgp: {getScreen: () => NoPGP},
+  profilePgp: {getScreen: () => NoPGP, upgraded: true},
 }

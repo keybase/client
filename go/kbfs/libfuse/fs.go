@@ -20,9 +20,12 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
@@ -282,8 +285,8 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	// context.WithDeadline uses clock from `time` package, so we are not using
 	// f.config.Clock() here
 	start := time.Now()
-	ctx, err := libkbfs.NewContextWithCancellationDelayer(
-		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 			ctx = context.WithValue(ctx, libfs.CtxAppIDKey, f)
 			logTags := make(logger.CtxLogTags)
 			logTags[CtxIDKey] = CtxOpID
@@ -388,10 +391,10 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 		return nil
 	}
 
-	if session, err := libkbfs.GetCurrentSessionIfPossible(
+	if session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, f.config.KBPKI(), true); err != nil {
 		return err
-	} else if session == (libkbfs.SessionInfo{}) {
+	} else if session == (idutil.SessionInfo{}) {
 		// If user is not logged in, don't bother getting quota info. Otherwise
 		// reading a public TLF while logged out can fail on macOS.
 		return nil
@@ -491,8 +494,8 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 }
 
 // PathType returns PathType for this folder
-func (r *Root) PathType() libkbfs.PathType {
-	return libkbfs.KeybasePathType
+func (r *Root) PathType() tlfhandle.PathType {
+	return tlfhandle.KeybasePathType
 }
 
 var _ fs.NodeCreater = (*Root)(nil)
@@ -506,14 +509,14 @@ func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.C
 		// triggering a notification.
 		return nil, nil, syscall.ENOENT
 	}
-	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+	return nil, nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
 // Mkdir implements the fs.NodeMkdirer interface for Root.
 func (r *Root) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	r.log().CDebugf(ctx, "FS Mkdir")
 	defer func() { err = r.private.fs.processError(ctx, libkbfs.WriteMode, err) }()
-	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+	return nil, libkbfs.NewWriteUnsupportedError(tlfhandle.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
 var _ fs.Handle = (*Root)(nil)

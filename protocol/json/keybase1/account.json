@@ -81,7 +81,7 @@
         }
       ],
       "response": null,
-      "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then we'll\n    try to force a passphrase change."
+      "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then\n    we'll try to force a passphrase change."
     },
     "passphrasePrompt": {
       "request": [
@@ -95,6 +95,20 @@
         }
       ],
       "response": "GetPassphraseRes"
+    },
+    "passphraseCheck": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        }
+      ],
+      "response": "boolean",
+      "doc": "* Check if user passphrase matches argument. Launches SecretUI prompt if\n   * passphrase argument is empty. Returns `true` if passphrase is correct,\n   * false if not, or an error if something else went wrong."
     },
     "emailChange": {
       "request": [
@@ -155,6 +169,47 @@
         }
       ],
       "response": null
+    },
+    "recoverUsername": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "enterResetPipeline": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "Start reset process for the user based on their username or email.  If\n    neither are known the user will be prompted for their passphrase to start\n    the process."
+    },
+    "cancelReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Aborts the reset process"
     }
   },
   "namespace": "keybase.1"

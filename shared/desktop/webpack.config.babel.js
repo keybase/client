@@ -29,7 +29,7 @@ const config = (_, {mode}) => {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.js$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.0.1'}}]],
+        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.1.0'}}]],
       },
     }
 
@@ -51,7 +51,7 @@ const config = (_, {mode}) => {
         use: [babelRule],
       },
       {
-        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
+        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
         use: [fileLoaderRule],
       },
       {

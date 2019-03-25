@@ -137,21 +137,21 @@ export default routeTree
 
 export const newRoutes = {
   controlledRolePicker: {getScreen: () => require('./role-picker/controlled-container').default},
-  editTeamDescription: {
-    getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
-  },
-  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default},
   member: {getScreen: () => require('./team/member/container').default},
-  showJoinTeamDialog: {getScreen: () => require('./join-team/container').default},
-  showNewTeamDialog: {getScreen: () => require('./new-team/container').default},
-  'tabs.teamsTab': {getScreen: () => require('./container').default},
+  'tabs.teamsTab': {getScreen: () => require('./container').default, upgraded: true},
   team: {getScreen: () => require('./team/container').default},
 }
 
 export const newModalRoutes = {
   addPeople: {getScreen: () => require('./add-people/container').default},
-  reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default},
+  editTeamDescription: {
+    getScreen: () => MaybePopupHoc(true)(require('./edit-team-description/container').default),
+  },
+  inviteByEmail: {getScreen: () => require('./invite-by-email/container').default},
+  reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default, upgraded: true},
   reallyRemoveMember: {getScreen: () => require('./team/really-remove-member/container').default},
   retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
   rolePicker: {getScreen: () => require('./role-picker/container').default},
+  showJoinTeamDialog: {getScreen: () => require('./join-team/container').default, upgraded: true},
+  showNewTeamDialog: {getScreen: () => require('./new-team/container').default}, // TODO get rid of routePath calculation
 }

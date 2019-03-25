@@ -26,25 +26,13 @@
       "public": "I.Map<string, Types.Tlf>",
       "team": "I.Map<string, Types.Tlf>"
     },
-    "pathItemLoad": {
-      "path": "Types.Path",
-      "identifyBehavior?": "?RPCTypes.TLFIdentifyBehavior",
-      "silenceErrors?": "?boolean"
-    },
     "pathItemLoaded": {
       "path": "Types.Path",
-      "meta": "Types.PathItem"
+      "pathItem": "Types.PathItem"
     },
     "loadPathMetadata": {
-      "path": "Types.Path"
-    },
-    "mimeTypeLoad": {
       "path": "Types.Path",
-      "refreshTag?": "Types.RefreshTag"
-    },
-    "mimeTypeLoaded": {
-      "path": "Types.Path",
-      "mimeType": "Types.Mime"
+      "refreshTag?": "?Types.RefreshTag"
     },
     "sortSetting": {
       "path": "Types.Path",
@@ -162,14 +150,6 @@
       "key": "string"
     },
 
-    "openPathItem": {
-      "path": "Types.Path",
-      "routePath": "I.List<string>"
-    },
-    "openPathInFilesTab": {
-      "path": "Types.Path",
-      "routePath?": "I.List<string>"
-    },
     "openFilesFromWidget": {
       "path": "Types.Path",
       "type": "Types.PathType"
@@ -206,13 +186,18 @@
     },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "closeDestinationPicker": {},
-    "destinationPickerOpen": {
-      "routePath": "I.List<string>",
-      "path": "Types.Path",
-      "currentIndex": "number"
-    },
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
+    "showSendAttachmentToChat": {
+      "path": "Types.Path",
+      "routePath?": "?I.List<string>"
+    },
+    "setSendAttachmentToChatConvID": {
+      "convID": "ChatTypes.ConversationIDKey"
+    },
+    "setSendAttachmentToChatFilter": {
+      "filter": "string"
+    },
     "showSendLinkToChat": {
       "path": "Types.Path",
       "routePath?": "?I.List<string>"
@@ -229,8 +214,10 @@
     "setPathItemActionMenuDownloadKey": {
       "key": "?string"
     },
-    "kbfsDaemonConnected": {},
-    "kbfsDaemonDisconnected": {},
+    "waitForKbfsDaemon": {},
+    "kbfsDaemonStatusChanged": {
+      "kbfsDaemonStatus": "Types.KbfsDaemonStatus"
+    },
 
     "placeholderAction": {}
   }

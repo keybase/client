@@ -53,7 +53,7 @@ const mapDispatchToProps = dispatch => ({
         path: [
           {
             props: {platform: type, platformHandle: value, proofId: id},
-            selected: 'revoke',
+            selected: 'profileRevoke',
           },
         ],
       })

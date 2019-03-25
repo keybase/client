@@ -10,6 +10,7 @@ const routeTree = () => {
     .default
   const DestinationPicker = require('./destination-picker/container').default
   const SendLinkToChat = require('./send-link-to-chat/container').default
+  const SendAttachmentToChat = require('./send-attachment-to-chat/container').default
   const Oops = require('./oops/container').default
 
   const _destinationPicker = {
@@ -38,6 +39,15 @@ const routeTree = () => {
             }),
           },
         }),
+    sendAttachmentToChat: {
+      component: SendAttachmentToChat,
+      tags: makeLeafTags({
+        fullscreen: isMobile,
+        layerOnTop: !isMobile,
+        renderTopmostOnly: !isMobile,
+        title: 'Send attachment to chat',
+      }),
+    },
     sendLinkToChat: {
       component: SendLinkToChat,
       tags: makeLeafTags({
@@ -86,9 +96,17 @@ export default routeTree
 
 export const newRoutes = {
   barePreview: {getScreen: () => require('./filepreview').BarePreview},
-  destinationPicker: {getScreen: () => require('./destination-picker/container').default},
-  oops: {getScreen: () => require('./oops/container').default},
-  sendLinkToChat: {getScreen: () => require('./send-link-to-chat/container').default},
-  'tabs.fsTab': {getScreen: () => require('./container').default},
+  main: {getScreen: () => require('./container').default, upgraded: true},
+  'settingsTabs.fsTab': {getScreen: () => require('./container').default, upgraded: true},
+  'tabs.fsTab': {getScreen: () => require('./container').default, upgraded: true},
 }
-export const newModalRoutes = {}
+
+export const newModalRoutes = {
+  destinationPicker: {getScreen: () => require('./destination-picker/container').default, upgraded: true},
+  oops: {getScreen: () => require('./oops/container').default, upgraded: true},
+  sendAttachmentToChat: {
+    getScreen: () => require('./send-attachment-to-chat/container').default,
+    upgraded: true,
+  },
+  sendLinkToChat: {getScreen: () => require('./send-link-to-chat/container').default, upgraded: true},
+}

@@ -16,10 +16,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
@@ -36,7 +38,7 @@ func (te testErrput) Write(buf []byte) (int, error) {
 }
 
 func TestRunnerCapabilities(t *testing.T) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
@@ -58,7 +60,7 @@ func TestRunnerCapabilities(t *testing.T) {
 
 func initConfigForRunner(t *testing.T) (
 	ctx context.Context, config *libkbfs.ConfigLocal, tempdir string) {
-	ctx = libkbfs.BackgroundContextWithCancellationDelayer()
+	ctx = libcontext.BackgroundContextWithCancellationDelayer()
 	config = libkbfs.MakeTestConfigOrBustLoggedInWithMode(
 		t, 0, libkbfs.InitSingleOp, "user1", "user2")
 	success := false
@@ -93,7 +95,7 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 		inputWriter.Write([]byte("list\n\n"))
 	}()
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlfType)
 	require.NoError(t, err)
 	if tlfType != tlf.Public {
@@ -296,7 +298,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -377,7 +379,7 @@ func TestRunnerDeleteBranch(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -407,7 +409,7 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
@@ -446,7 +448,7 @@ func TestForcePush(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -485,7 +487,7 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 	dotgit := filepath.Join(git, ".git")
 	gitExec(t, dotgit, git, "pack-refs", "--all")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -508,7 +510,7 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git)
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -647,7 +649,7 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 
 	gitExec(t, dotgit1, git1, "pack-refs", "--all")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -750,7 +752,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config2.KBPKI(), config.MDOps(), config, "user1,user2",
 		tlf.Private)
 	require.NoError(t, err)
@@ -838,7 +840,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	packOnStalled, packUnstall, packCtx := libkbfs.StallMDOp(
 		ctx, config2, libkbfs.StallableMDAfterGetRange, 1)
 	packErrCh := make(chan error)
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config2.KBPKI(), config.MDOps(), config, "user1,user2",
 		tlf.Private)
 	require.NoError(t, err)
@@ -920,7 +922,7 @@ func TestRepackObjects(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git)
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -985,7 +987,7 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
@@ -1051,7 +1053,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	defer os.RemoveAll(git)
 
 	t.Log("Setup the repository.")
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")

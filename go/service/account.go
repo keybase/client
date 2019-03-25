@@ -26,6 +26,13 @@ func NewAccountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AccountHandl
 	}
 }
 
+func (h *AccountHandler) getDelegateSecretUI(sessionID int) (ret libkb.SecretUI, err error) {
+	if h.G().UIRouter != nil {
+		return h.G().UIRouter.GetSecretUI(sessionID)
+	}
+	return nil, nil
+}
+
 func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.PassphraseChangeArg) error {
 	eng := engine.NewPassphraseChange(h.G(), &arg)
 	uis := libkb.UIs{
@@ -38,15 +45,11 @@ func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.Pass
 
 func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {
 	ui := h.getSecretUI(arg.SessionID, h.G())
-	if h.G().UIRouter != nil {
-		delegateUI, err := h.G().UIRouter.GetSecretUI(arg.SessionID)
-		if err != nil {
-			return keybase1.GetPassphraseRes{}, err
-		}
-		if delegateUI != nil {
-			ui = delegateUI
-			h.G().Log.Debug("using delegate secret UI")
-		}
+	if delegateUI, err := h.getDelegateSecretUI(arg.SessionID); err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	} else if delegateUI != nil {
+		ui = delegateUI
+		h.G().Log.Debug("using delegate secret UI")
 	}
 
 	return ui.GetPassphrase(arg.GuiArg, nil)
@@ -164,4 +167,51 @@ func (h *AccountHandler) SetLockdownMode(ctx context.Context, arg keybase1.SetLo
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
+}
+
+func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.PassphraseCheckArg) (ret bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.Trace("PassphraseCheck", func() error { return err })()
+	eng := engine.NewPassphraseCheck(mctx.G(), &arg)
+	uis := libkb.UIs{
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
+	}
+	err = eng.Run(mctx.WithUIs(uis))
+	return eng.GetResult(), err
+}
+
+func (h *AccountHandler) RecoverUsername(ctx context.Context, arg keybase1.RecoverUsernameArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsername(%q)", arg.Email), func() error { return err })()
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/recover_username",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
+			"email": libkb.S{Val: arg.Email},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
+
+// EnterPipeline allows a user to enter the reset pipeline. The user must
+// verify ownership of the account via an email confirmation or their password.
+// Resets are not allowed on a provisioned device.
+func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.EnterResetPipelineArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("EnterResetPipline", func() error { return err })()
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	eng := engine.NewAccountReset(h.G(), arg.Username, arg.Email)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
+}
+
+// CancelReset allows a user to cancel the reset process via an authenticated API call.
+func (h *AccountHandler) CancelReset(ctx context.Context, sessionID int) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return libkb.CancelResetPipeline(mctx)
 }

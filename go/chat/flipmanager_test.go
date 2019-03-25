@@ -324,6 +324,7 @@ func TestFlipManagerParseEdges(t *testing.T) {
 		flipTextMetadata{ShuffleItems: []string{"mike", "jim bob    j", "jim"}})
 	testCase("/flip 10...20", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"10...20"}})
 	testCase("/flip 1,0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"1", "0"}})
+	testCase("/flip 1，0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"1", "0"}})
 	testCase("/flip cards", flip.FlipType_SHUFFLE, flipTextMetadata{
 		ShuffleItems: cards,
 		DeckShuffle:  true,
@@ -512,7 +513,7 @@ func TestFlipManagerRateLimit(t *testing.T) {
 	close(stopCh)
 
 	clock.Advance(10 * time.Minute)
-	mustPostLocalForTest(t, ctc, users[0], conv,
+	mustPostLocalForTest(t, ctc, users[1], conv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "/flip",
 		}))

@@ -91,13 +91,6 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.Equal(t, expectedErr.Error(), ekErr.Error())
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 
-	// Test Get nonexistent
-	nonexistent, err := s.Get(context.Background(), keybase1.EkGeneration(len(testKeys)+1))
-	require.Error(t, err)
-	require.IsType(t, erasablekv.UnboxError{}, err)
-	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
-
-	s.ClearCache()
 	// Test GetAll
 	deviceEKs, err := s.GetAll(context.Background())
 	require.NoError(t, err)
@@ -117,14 +110,26 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.IsType(t, erasablekv.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
+	// Test Get nonexistent
+	nonexistent, err := s.Get(context.Background(), keybase1.EkGeneration(len(testKeys)+1))
+	require.Error(t, err)
+	require.IsType(t, erasablekv.UnboxError{}, err)
+	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
+
+	// include the cached error in the max
+	maxGeneration, err := s.MaxGeneration(context.Background(), true)
+	require.NoError(t, err)
+	require.EqualValues(t, keybase1.EkGeneration(len(testKeys)+1), maxGeneration)
+
 	// Test MaxGeneration
-	maxGeneration, err := s.MaxGeneration(context.Background())
+	maxGeneration, err = s.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	require.EqualValues(t, 3, maxGeneration)
+	s.ClearCache()
 
 	require.NoError(t, s.Delete(context.Background(), 3))
 
-	maxGeneration, err = s.MaxGeneration(context.Background())
+	maxGeneration, err = s.MaxGeneration(context.Background(), false)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, maxGeneration)
 

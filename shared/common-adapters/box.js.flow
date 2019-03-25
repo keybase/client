@@ -13,9 +13,14 @@ export type Box2Props = {|
   fullHeight?: boolean,
   fullWidth?: boolean,
   noShrink?: boolean,
+  onDragLeave?: (SyntheticDragEvent<Element>) => void, // desktop only
+  onDragOver?: (SyntheticDragEvent<Element>) => void, // desktop only
+  onDrop?: (SyntheticDragEvent<Element>) => void, // desktop only
   onLayout?: (evt: {nativeEvent: {layout: {x: number, y: number, width: number, height: number}}}) => void, // mobile only
   onMouseLeave?: (SyntheticEvent<Element>) => void, // desktop only
   onMouseOver?: (SyntheticEvent<Element>) => void, // desktop only
+  onCopyCapture?: (SyntheticEvent<Element>) => void, // desktop only
+  pointerEvents?: 'none',
   style?: StylesCrossPlatform,
   gap?: $Keys<typeof globalMargins>,
   gapStart?: boolean,

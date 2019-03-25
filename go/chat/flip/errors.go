@@ -300,3 +300,9 @@ func NewReplayError(s string) ReplayError {
 func (r ReplayError) Error() string {
 	return fmt.Sprintf("")
 }
+
+type DuplicateCommitmentError struct{}
+
+func (d DuplicateCommitmentError) Error() string {
+	return "Duplicated commitment, something is fishy"
+}

@@ -72,6 +72,7 @@ type DealersHelper interface {
 	ServerTime(context.Context) (time.Time, error)
 	SendChat(ctx context.Context, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
 	Me() UserDevice
+	ShouldCommit(ctx context.Context) bool // Whether to send new commitments for games.
 }
 
 // NewDealer makes a new Dealer with a given DealersHelper
@@ -112,7 +113,7 @@ func (d *Dealer) Run(ctx context.Context) error {
 			}
 
 			// exit the loop if we've shutdown
-		case <-d.shutdownCh:
+		case <-shutdownCh:
 			return io.EOF
 
 		}

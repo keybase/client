@@ -381,6 +381,26 @@ def testGo(prefix, packagesToTest) {
         sh 'make -s lint'
       }
     }
+
+    if (isUnix()) {
+      // Windows `gofmt` pukes on CRLF, so only run on *nix.
+      println "Running mockgen"
+      retry(5) {
+        sh 'go get -u github.com/golang/mock/mockgen'
+      }
+      dir('kbfs/libkbfs') {
+        retry(5) {
+          timeout(activity: true, time: 90, unit: 'SECONDS') {
+            sh '''
+              set -e -x
+              ./gen_mocks.sh
+              git diff --exit-code
+            '''
+          }
+        }
+      }
+    }
+
     // Make sure we don't accidentally pull in the testing package.
     sh '! go list -f \'{{ join .Deps "\\n" }}\' github.com/keybase/client/go/keybase | grep testing'
 
@@ -404,8 +424,18 @@ def testGo(prefix, packagesToTest) {
       ],
       test_linux_go_: [
         '*': [],
+        'github.com/keybase/client/go/kbfs/test': [
+          name: 'kbfs_test_fuse',
+          flags: '-tags fuse',
+          timeout: '15m',
+        ],
         'github.com/keybase/client/go/kbfs/libfuse': [
-          disable: true,
+          flags: '',
+          timeout: '3m',
+        ],
+        'github.com/keybase/client/go/kbfs/idutil': [
+          flags: '-race',
+          timeout: '30s',
         ],
         'github.com/keybase/client/go/kbfs/kbfsblock': [
           flags: '-race',
@@ -443,6 +473,10 @@ def testGo(prefix, packagesToTest) {
           flags: '-race',
           timeout: '30s',
         ],
+        'github.com/keybase/client/go/kbfs/libcontext': [
+          flags: '-race',
+          timeout: '10m',
+        ],
         'github.com/keybase/client/go/kbfs/libfs': [
           flags: '-race',
           timeout: '10m',
@@ -454,6 +488,10 @@ def testGo(prefix, packagesToTest) {
         'github.com/keybase/client/go/kbfs/libhttpserver': [
           flags: '-race',
           timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/libkey': [
+          flags: '-race',
+          timeout: '5m',
         ],
         'github.com/keybase/client/go/kbfs/libkbfs': [
           flags: '-race',
@@ -477,6 +515,10 @@ def testGo(prefix, packagesToTest) {
           timeout: '12m',
         ],
         'github.com/keybase/client/go/kbfs/tlf': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/tlfhandle': [
           flags: '-race',
           timeout: '30s',
         ],

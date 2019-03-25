@@ -214,6 +214,8 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		EK:      config.GetEKLogFile(),
 	}
 
+	fmt.Printf("Go: Using config: %+v\n", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
+
 	logSendContext = libkb.LogSendContext{
 		Contextified: libkb.NewContextified(kbCtx),
 		Logs:         logs,
@@ -275,7 +277,8 @@ func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir,
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
 	env := kbCtx.Env
-	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
+	sendLogMaxSizeBytes := 10 * 1024 * 1024 // NOTE: If you increase this, check go/libkb/env.go:Env.GetLogFileConfig to make sure we store at least that much.
+	return logSendContext.LogSend(status, feedback, sendLogs, sendLogMaxSizeBytes, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
@@ -365,28 +368,28 @@ func SetAppStateForeground() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateForeground", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_FOREGROUND)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 }
 func SetAppStateBackground() {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateBackground", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 }
 func SetAppStateInactive() {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateInactive", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_INACTIVE)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_INACTIVE)
 }
 func SetAppStateBackgroundActive() {
 	if !isInited() {
 		return
 	}
 	defer kbCtx.Trace("SetAppStateBackgroundActive", func() error { return nil })()
-	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
 }
 
 func waitForInit(maxDur time.Duration) error {
@@ -415,23 +418,23 @@ func BackgroundSync() {
 	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
 
 	// Skip the sync if we aren't in the background
-	if state := kbCtx.AppState.State(); state != keybase1.AppState_BACKGROUND {
+	if state := kbCtx.MobileAppState.State(); state != keybase1.MobileAppState_BACKGROUND {
 		kbCtx.Log.Debug("BackgroundSync: skipping, app not in background state: %v", state)
 		return
 	}
 
-	nextState := keybase1.AppState_BACKGROUNDACTIVE
-	kbCtx.AppState.Update(nextState)
+	nextState := keybase1.MobileAppState_BACKGROUNDACTIVE
+	kbCtx.MobileAppState.Update(nextState)
 	doneCh := make(chan struct{})
 	go func() {
 		defer func() { close(doneCh) }()
 		select {
-		case state := <-kbCtx.AppState.NextUpdate(&nextState):
+		case state := <-kbCtx.MobileAppState.NextUpdate(&nextState):
 			// if literally anything happens, let's get out of here
 			kbCtx.Log.Debug("BackgroundSync: bailing out early, appstate change: %v", state)
 			return
 		case <-time.After(10 * time.Second):
-			kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+			kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 			return
 		}
 	}()
@@ -513,7 +516,7 @@ func AppWillExit(pusher PushNotifier) {
 		// stuck
 		pushPendingMessageFailure(convs[0], pusher)
 	}
-	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 }
 
 // AppDidEnterBackground notifies the service that the app is in the background
@@ -540,7 +543,7 @@ func AppDidEnterBackground() bool {
 	}
 	if stayRunning {
 		kbCtx.Log.Debug("AppDidEnterBackground: setting background active")
-		kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
+		kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUNDACTIVE)
 		return true
 	}
 	SetAppStateBackground()
@@ -566,8 +569,8 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	// Poll active deliveries in case we can shutdown early
 	beginTime := libkb.ForceWallClock(time.Now())
 	ticker := time.NewTicker(5 * time.Second)
-	appState := kbCtx.AppState.State()
-	if appState != keybase1.AppState_BACKGROUNDACTIVE {
+	appState := kbCtx.MobileAppState.State()
+	if appState != keybase1.MobileAppState_BACKGROUNDACTIVE {
 		kbCtx.Log.Debug("AppBeginBackgroundTask: not in background mode, early out")
 		return
 	}
@@ -575,7 +578,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 	g, ctx = errgroup.WithContext(ctx)
 	g.Go(func() error {
 		select {
-		case appState = <-kbCtx.AppState.NextUpdate(&appState):
+		case appState = <-kbCtx.MobileAppState.NextUpdate(&appState):
 			kbCtx.Log.Debug(
 				"AppBeginBackgroundTask: app state change, aborting with no task shutdown: %v", appState)
 			return errors.New("app state change")

@@ -18,7 +18,7 @@ const (
 	DevelServerURI      = "http://localhost:3000"
 	StagingServerURI    = "https://stage0.keybase.io"
 	ProductionServerURI = "https://api-0.core.keybaseapi.com"
-	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
+	TorServerURI        = "http://keybase5wmilwokqirssclfnsqrjdsi7jdir5wy7y7iu3tanwmtp6oid.onion"
 )
 
 const (
@@ -231,6 +231,7 @@ const (
 	SCAlreadyLoggedIn                           = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled                                  = int(keybase1.StatusCode_SCCanceled)
 	SCInputCanceled                             = int(keybase1.StatusCode_SCInputCanceled)
+	SCBadUsername                               = int(keybase1.StatusCode_SCBadUsername)
 	SCOffline                                   = int(keybase1.StatusCode_SCOffline)
 	SCExists                                    = int(keybase1.StatusCode_SCExists)
 	SCInvalidAddress                            = int(keybase1.StatusCode_SCInvalidAddress)

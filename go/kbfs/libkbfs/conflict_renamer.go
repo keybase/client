@@ -26,7 +26,8 @@ func (cr WriterDeviceDateConflictRenamer) ConflictRename(
 	ctx context.Context, op op, original string) (string, error) {
 	now := cr.config.Clock().Now()
 	winfo := op.getWriterInfo()
-	ui, err := cr.config.KeybaseService().LoadUserPlusKeys(ctx, winfo.uid, "")
+	ui, err := cr.config.KeybaseService().LoadUserPlusKeys(
+		ctx, winfo.uid, "", winfo.offline)
 	if err != nil {
 		return "", err
 	}
@@ -68,11 +69,13 @@ func splitExtension(path string) (string, string) {
 	return path, ""
 }
 
-func newWriterInfo(uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	revision kbfsmd.Revision) writerInfo {
+func newWriterInfo(
+	uid keybase1.UID, key kbfscrypto.VerifyingKey, revision kbfsmd.Revision,
+	offline keybase1.OfflineAvailability) writerInfo {
 	return writerInfo{
 		uid:      uid,
 		key:      key,
 		revision: revision,
+		offline:  offline,
 	}
 }

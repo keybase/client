@@ -107,7 +107,14 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 	if cacheItem.HasError() {
 		return teamEK, cacheItem.Error()
 	}
-	return s.unbox(ctx, generation, cacheItem.TeamEKBoxed, contentCtime)
+
+	teamEK, err = s.unbox(ctx, generation, cacheItem.TeamEKBoxed, contentCtime)
+	if err != nil { // if we can no longer unbox this, store the error
+		if perr := s.putLocked(ctx, teamID, generation, keybase1.TeamEkBoxed{}, err); perr != nil {
+			s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
+		}
+	}
+	return teamEK, err
 }
 
 func (s *TeamEKBoxStorage) getCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) (cache teamEKBoxCache, found bool, err error) {
@@ -143,6 +150,19 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 	mctx := libkb.NewMetaContext(ctx, s.G())
 	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#fetchAndStore: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
+	// cache unboxing/missing box errors so we don't continually try to fetch
+	// something nonexistent.
+	defer func() {
+		switch err.(type) {
+		case EphemeralKeyError:
+			s.Lock()
+			defer s.Unlock()
+			if perr := s.putLocked(ctx, teamID, generation, keybase1.TeamEkBoxed{}, err); perr != nil {
+				s.G().Log.CDebugf(ctx, "unable to store error %v", perr)
+			}
+		}
+	}()
+
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/team_ek_box",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -166,9 +186,6 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 
 	if result.Result == nil {
 		err = newEKMissingBoxErr(ctx, s.G(), TeamEKStr, generation)
-		if perr := s.put(ctx, teamID, generation, keybase1.TeamEkBoxed{}, err); perr != nil {
-			s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
-		}
 		return teamEK, err
 	}
 
@@ -198,14 +215,6 @@ func (s *TeamEKBoxStorage) fetchAndStore(ctx context.Context, teamID keybase1.Te
 
 	teamEK, err = s.unbox(ctx, generation, teamEKBoxed, contentCtime)
 	if err != nil {
-		switch err.(type) {
-		// cache unboxing/missing box errors so we don't continually try to
-		// fetch something nonexistent.
-		case EphemeralKeyError:
-			if perr := s.put(ctx, teamID, generation, teamEKBoxed, err); perr != nil {
-				s.G().Log.CDebugf(ctx, "unable to store unboxing error %v", perr)
-			}
-		}
 		return teamEK, err
 	}
 
@@ -260,14 +269,14 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 
 func (s *TeamEKBoxStorage) Put(ctx context.Context, teamID keybase1.TeamID,
 	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) (err error) {
-	return s.put(ctx, teamID, generation, teamEKBoxed, nil /* ekErr */)
-}
-
-func (s *TeamEKBoxStorage) put(ctx context.Context, teamID keybase1.TeamID,
-	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed, ekErr error) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#put: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
+	return s.putLocked(ctx, teamID, generation, teamEKBoxed, nil /* ekErr */)
+}
+
+func (s *TeamEKBoxStorage) putLocked(ctx context.Context, teamID keybase1.TeamID,
+	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed, ekErr error) (err error) {
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#putLocked: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	// sanity check that we got the right generation
 	if teamEKBoxed.Metadata.Generation != generation && ekErr == nil {
@@ -409,7 +418,7 @@ func (s *TeamEKBoxStorage) ClearCache() {
 	s.cache.Clear()
 }
 
-func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (maxGeneration keybase1.EkGeneration, err error) {
+func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.TeamID, includeErrs bool) (maxGeneration keybase1.EkGeneration, err error) {
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("TeamEKBoxStorage#MaxGeneration: teamID:%v", teamID), func() error { return nil })()
 
 	s.Lock()
@@ -422,7 +431,7 @@ func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.Te
 	}
 
 	for generation, cacheItem := range cache {
-		if cacheItem.HasError() {
+		if cacheItem.HasError() && !includeErrs {
 			continue
 		}
 		if generation > maxGeneration {

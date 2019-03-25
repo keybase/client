@@ -37,7 +37,7 @@ const TeamInfo = p => (
           style={styles.infoPopup}
         >
           <Kb.NameWithIcon
-            avatarSize={48}
+            size="small"
             teamname={p.name}
             title={p.name}
             metaOne={
@@ -145,16 +145,12 @@ const styles = Styles.styleSheetCreate({
     isElectron: {display: 'unset'},
   }),
   showcase: {alignItems: 'center'},
-  showcases: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-start',
-      flexShrink: 0,
-      paddingBottom: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-    },
-  }),
+  showcases: {
+    alignItems: 'flex-start',
+    flexShrink: 0,
+    paddingBottom: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.tiny,
+  },
   youPublishTeam: {
     alignSelf: 'center',
     color: Styles.globalColors.black_50,

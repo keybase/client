@@ -68,6 +68,11 @@ type PassphrasePromptArg struct {
 	GuiArg    GUIEntryArg `codec:"guiArg" json:"guiArg"`
 }
 
+type PassphraseCheckArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
+}
+
 type EmailChangeArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	NewEmail  string `codec:"newEmail" json:"newEmail"`
@@ -91,12 +96,31 @@ type SetLockdownModeArg struct {
 	Enabled   bool `codec:"enabled" json:"enabled"`
 }
 
+type RecoverUsernameArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Email     string `codec:"email" json:"email"`
+}
+
+type EnterResetPipelineArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+	Email     string `codec:"email" json:"email"`
+}
+
+type CancelResetArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AccountInterface interface {
 	// Change the passphrase from old to new. If old isn't set, and force is false,
-	// then prompt at the UI for it. If old isn't set and force is true, then we'll
-	// try to force a passphrase change.
+	// then prompt at the UI for it. If old isn't set and force is true, then
+	// we'll try to force a passphrase change.
 	PassphraseChange(context.Context, PassphraseChangeArg) error
 	PassphrasePrompt(context.Context, PassphrasePromptArg) (GetPassphraseRes, error)
+	// * Check if user passphrase matches argument. Launches SecretUI prompt if
+	// * passphrase argument is empty. Returns `true` if passphrase is correct,
+	// * false if not, or an error if something else went wrong.
+	PassphraseCheck(context.Context, PassphraseCheckArg) (bool, error)
 	// * change email to the new given email by signing a statement.
 	EmailChange(context.Context, EmailChangeArg) error
 	// * Whether the logged-in user has uploaded private keys
@@ -107,6 +131,13 @@ type AccountInterface interface {
 	ResetAccount(context.Context, ResetAccountArg) error
 	GetLockdownMode(context.Context, int) (GetLockdownResponse, error)
 	SetLockdownMode(context.Context, SetLockdownModeArg) error
+	RecoverUsername(context.Context, RecoverUsernameArg) error
+	// Start reset process for the user based on their username or email.  If
+	// neither are known the user will be prompted for their passphrase to start
+	// the process.
+	EnterResetPipeline(context.Context, EnterResetPipelineArg) error
+	// Aborts the reset process
+	CancelReset(context.Context, int) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -140,6 +171,21 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PassphrasePrompt(ctx, typedArgs[0])
+					return
+				},
+			},
+			"passphraseCheck": {
+				MakeArg: func() interface{} {
+					var ret [1]PassphraseCheckArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PassphraseCheckArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PassphraseCheckArg)(nil), args)
+						return
+					}
+					ret, err = i.PassphraseCheck(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -218,6 +264,51 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
+			"recoverUsername": {
+				MakeArg: func() interface{} {
+					var ret [1]RecoverUsernameArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RecoverUsernameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RecoverUsernameArg)(nil), args)
+						return
+					}
+					err = i.RecoverUsername(ctx, typedArgs[0])
+					return
+				},
+			},
+			"enterResetPipeline": {
+				MakeArg: func() interface{} {
+					var ret [1]EnterResetPipelineArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]EnterResetPipelineArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]EnterResetPipelineArg)(nil), args)
+						return
+					}
+					err = i.EnterResetPipeline(ctx, typedArgs[0])
+					return
+				},
+			},
+			"cancelReset": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelResetArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CancelResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CancelResetArg)(nil), args)
+						return
+					}
+					err = i.CancelReset(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -227,8 +318,8 @@ type AccountClient struct {
 }
 
 // Change the passphrase from old to new. If old isn't set, and force is false,
-// then prompt at the UI for it. If old isn't set and force is true, then we'll
-// try to force a passphrase change.
+// then prompt at the UI for it. If old isn't set and force is true, then
+// we'll try to force a passphrase change.
 func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseChangeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
 	return
@@ -236,6 +327,14 @@ func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseCha
 
 func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePromptArg) (res GetPassphraseRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, &res)
+	return
+}
+
+// * Check if user passphrase matches argument. Launches SecretUI prompt if
+// * passphrase argument is empty. Returns `true` if passphrase is correct,
+// * false if not, or an error if something else went wrong.
+func (c AccountClient) PassphraseCheck(ctx context.Context, __arg PassphraseCheckArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []interface{}{__arg}, &res)
 	return
 }
 
@@ -268,5 +367,25 @@ func (c AccountClient) GetLockdownMode(ctx context.Context, sessionID int) (res 
 
 func (c AccountClient) SetLockdownMode(ctx context.Context, __arg SetLockdownModeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.setLockdownMode", []interface{}{__arg}, nil)
+	return
+}
+
+func (c AccountClient) RecoverUsername(ctx context.Context, __arg RecoverUsernameArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsername", []interface{}{__arg}, nil)
+	return
+}
+
+// Start reset process for the user based on their username or email.  If
+// neither are known the user will be prompted for their passphrase to start
+// the process.
+func (c AccountClient) EnterResetPipeline(ctx context.Context, __arg EnterResetPipelineArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []interface{}{__arg}, nil)
+	return
+}
+
+// Aborts the reset process
+func (c AccountClient) CancelReset(ctx context.Context, sessionID int) (err error) {
+	__arg := CancelResetArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.account.cancelReset", []interface{}{__arg}, nil)
 	return
 }

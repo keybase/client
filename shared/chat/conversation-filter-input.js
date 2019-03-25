@@ -8,8 +8,10 @@ import flags from '../util/feature-flags'
 export type Props = {|
   filter: string,
   filterFocusCount: number,
+  focusOnMount?: ?boolean,
   isLoading: boolean,
   onBack: () => void,
+  noShortcut: ?boolean,
   onBlur: () => void,
   onEnsureSelection: () => void,
   onFocus: () => void,
@@ -69,6 +71,12 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
       this._input && this._input.blur()
       this.props.onEnsureSelection()
     }
+  }
+
+  componentDidMount() {
+    // In choose-conversation, this is inside overlay and gets unmounted when
+    // the popup hides. So just provide an option to focus on mount.
+    this.props.focusOnMount && this._startEditing()
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
@@ -154,7 +162,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
               <Kb.Text type="BodySemibold" style={styles.text}>
                 Jump to...
               </Kb.Text>
-              {!Styles.isMobile && (
+              {!Styles.isMobile && !this.props.noShortcut && (
                 <Kb.Text type="BodySemibold" style={styles.textFaint}>
                   ({Platforms.shortcutSymbol}K)
                 </Kb.Text>

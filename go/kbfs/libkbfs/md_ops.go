@@ -9,10 +9,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -79,7 +81,7 @@ func NewMDOpsStandard(config Config) *MDOpsStandard {
 // convertVerifyingKeyError gives a better error when the TLF was
 // signed by a key that is no longer associated with the last writer.
 func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
-	rmds *RootMetadataSigned, handle *TlfHandle, err error) error {
+	rmds *RootMetadataSigned, handle *tlfhandle.Handle, err error) error {
 	if _, ok := err.(VerifyingKeyNotFoundError); !ok {
 		return err
 	}
@@ -545,9 +547,10 @@ func (md *MDOpsStandard) verifyKey(
 	ctx context.Context, rmds *RootMetadataSigned,
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
 	irmd ImmutableRootMetadata) (cacheable bool, err error) {
-	err = md.config.KBPKI().HasVerifyingKey(ctx, uid, verifyingKey,
-		rmds.untrustedServerTimestamp)
-	var info revokedKeyInfo
+	err = md.config.KBPKI().HasVerifyingKey(
+		ctx, uid, verifyingKey, rmds.untrustedServerTimestamp,
+		md.config.OfflineAvailabilityForID(irmd.TlfID()))
+	var info idutil.RevokedKeyInfo
 	switch e := errors.Cause(err).(type) {
 	case nil:
 		return true, nil
@@ -583,7 +586,7 @@ func (md *MDOpsStandard) verifyKey(
 }
 
 func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
-	rmds *RootMetadataSigned, irmd ImmutableRootMetadata, handle *TlfHandle,
+	rmds *RootMetadataSigned, irmd ImmutableRootMetadata, handle *tlfhandle.Handle,
 	getRangeLock *sync.Mutex) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
 		// Skip verifying the writer key if it's the same as the
@@ -767,7 +770,7 @@ func (mbtc merkleBasedTeamChecker) IsTeamReader(
 // ImmutableRootMetadata. After this function is called, rmds
 // shouldn't be used.
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
-	handle *TlfHandle, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
+	handle *tlfhandle.Handle, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
 	// First, construct the ImmutableRootMetadata object, even before
 	// we validate the writer or the keys, because the irmd will be
@@ -825,7 +828,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	checker := merkleBasedTeamChecker{md.config.KBPKI(), md, rmds, irmd, false}
 	err = rmds.IsValidAndSigned(
 		ctx, md.config.Codec(), checker, extra,
-		md.config.OfflineAvailabilityForID(handle.tlfID))
+		md.config.OfflineAvailabilityForID(handle.TlfID()))
 	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
@@ -862,15 +865,15 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	return irmd, nil
 }
 
-func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
+func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Handle,
 	mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	id tlf.ID, rmd ImmutableRootMetadata, err error) {
 	// If we already know the tlf ID, we shouldn't be calling this
 	// function.
-	if handle.tlfID != tlf.NullID {
+	if handle.TlfID() != tlf.NullID {
 		return tlf.ID{}, ImmutableRootMetadata{}, errors.Errorf(
 			"GetForHandle called for %s with non-nil TLF ID %s",
-			handle.GetCanonicalPath(), handle.tlfID)
+			handle.GetCanonicalPath(), handle.TlfID())
 	}
 
 	// Check for handle readership, to give a nice error early.
@@ -881,8 +884,9 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 		}
 
 		if !handle.IsReader(session.UID) {
-			return tlf.ID{}, ImmutableRootMetadata{}, NewReadAccessError(
-				handle, session.Name, handle.GetCanonicalPath())
+			return tlf.ID{}, ImmutableRootMetadata{},
+				tlfhandle.NewReadAccessError(
+					handle, session.Name, handle.GetCanonicalPath())
 		}
 	}
 
@@ -935,7 +939,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
-	mdHandle, err := MakeTlfHandle(
+	mdHandle, err := tlfhandle.MakeHandle(
 		ctx, bareMdHandle, id.Type(), md.config.KBPKI(), md.config.KBPKI(), nil,
 		md.config.OfflineAvailabilityForID(id))
 	if err != nil {
@@ -950,7 +954,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	}
 	// Set the ID after checking the resolve, because `handle` doesn't
 	// have the TLF ID set yet.
-	mdHandle.tlfID = id
+	mdHandle.SetTlfID(id)
 
 	// TODO: For now, use the mdHandle that came with rmds for
 	// consistency. In the future, we'd want to eventually notify
@@ -966,7 +970,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 
 // GetIDForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetIDForHandle(
-	ctx context.Context, handle *TlfHandle) (id tlf.ID, err error) {
+	ctx context.Context, handle *tlfhandle.Handle) (id tlf.ID, err error) {
 	mdcache := md.config.MDCache()
 	id, err = mdcache.GetIDForHandle(handle)
 	switch errors.Cause(err).(type) {
@@ -994,7 +998,7 @@ func (md *MDOpsStandard) GetIDForHandle(
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
-	id tlf.ID, bid kbfsmd.BranchID, handle *TlfHandle, rmds *RootMetadataSigned,
+	id tlf.ID, bid kbfsmd.BranchID, handle *tlfhandle.Handle, rmds *RootMetadataSigned,
 	extra kbfsmd.ExtraMetadata, getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.TlfID() {
@@ -1016,20 +1020,6 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	return md.processMetadata(ctx, handle, rmds, extra, getRangeLock)
 }
 
-type constIDGetter struct {
-	id tlf.ID
-}
-
-func (c constIDGetter) GetIDForHandle(_ context.Context, _ *TlfHandle) (
-	tlf.ID, error) {
-	return c.id, nil
-}
-
-func (c constIDGetter) ValidateLatestHandleNotFinal(
-	_ context.Context, _ *TlfHandle) (bool, error) {
-	return true, nil
-}
-
 func (md *MDOpsStandard) processSignedMD(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 	rmds *RootMetadataSigned) (ImmutableRootMetadata, error) {
@@ -1041,9 +1031,9 @@ func (md *MDOpsStandard) processSignedMD(
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	handle, err := MakeTlfHandle(
+	handle, err := tlfhandle.MakeHandle(
 		ctx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-		md.config.KBPKI(), constIDGetter{id},
+		md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
 		md.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -1137,9 +1127,9 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 			if err != nil {
 				return err
 			}
-			handle, err := MakeTlfHandle(
+			handle, err := tlfhandle.MakeHandle(
 				groupCtx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-				md.config.KBPKI(), constIDGetter{id},
+				md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
 				md.config.OfflineAvailabilityForID(id))
 			if err != nil {
 				return err
@@ -1382,8 +1372,8 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 // ValidateLatestHandleNotFinal implements the MDOps interface for
 // MDOpsStandard.
 func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
-	ctx context.Context, h *TlfHandle) (bool, error) {
-	if h.IsFinal() || h.tlfID == tlf.NullID {
+	ctx context.Context, h *tlfhandle.Handle) (bool, error) {
+	if h.IsFinal() || h.TlfID() == tlf.NullID {
 		return false, nil
 	}
 
@@ -1396,14 +1386,14 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 	case NoSuchTlfIDError:
 		// Do the server-based lookup below.
 	case nil:
-		return id == h.tlfID, nil
+		return id == h.TlfID(), nil
 	default:
 		return false, err
 	}
 
 	md.log.CDebugf(ctx, "Checking the latest handle for %s; "+
-		"curr handle is %s", h.tlfID, h.GetCanonicalName())
-	latestHandle, err := md.GetLatestHandleForTLF(ctx, h.tlfID)
+		"curr handle is %s", h.TlfID(), h.GetCanonicalName())
+	latestHandle, err := md.GetLatestHandleForTLF(ctx, h.TlfID())
 	switch errors.Cause(err).(type) {
 	case kbfsmd.ServerErrorUnauthorized:
 		// The server sends this in the case that it doesn't know
@@ -1422,7 +1412,7 @@ func (md *MDOpsStandard) ValidateLatestHandleNotFinal(
 				"Latest handle is finalized, so ID is incorrect")
 			return false, nil
 		}
-		err = mdcache.PutIDForHandle(h, h.tlfID)
+		err = mdcache.PutIDForHandle(h, h.TlfID())
 		if err != nil {
 			return false, err
 		}

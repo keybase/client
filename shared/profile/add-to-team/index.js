@@ -4,7 +4,44 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
 import {ROLE_PICKER_ZINDEX} from '../../constants/profile'
-import type {RowProps, Props} from './index'
+import * as Types from '../../constants/types/teams'
+
+type RowProps = {
+  canAddThem: boolean,
+  checked: boolean,
+  disabledReason: string,
+  name: Types.Teamname,
+  isOpen: boolean,
+  onCheck: () => void,
+  them: string,
+}
+
+type Props = {
+  addUserToTeamsResults: string,
+  addUserToTeamsState: Types.AddUserToTeamsState,
+  customComponent?: ?React.Node,
+  headerStyle?: Styles.StylesCrossPlatform,
+  loaded: {[string]: boolean},
+  loadTeamList: () => void,
+  onBack: () => void,
+  onCancel?: () => void,
+  onOpenRolePicker: (
+    role: string,
+    selectedRole: (Types.TeamRoleType) => void,
+    selectedTeams: {[string]: boolean},
+    styleCover?: Object
+  ) => void,
+  onRoleChange: string => void,
+  onSave: (role: string, selectedTeams: {[string]: boolean}) => void,
+  onToggle: string => void,
+  role: Types.TeamRoleType,
+  selectedTeams: {[string]: boolean},
+  setSelectedTeams: ({[string]: boolean}) => void,
+  teamProfileAddList: Array<Types.TeamProfileAddList>,
+  teamnames: Array<Types.Teamname>,
+  them: string,
+  waiting: boolean,
+}
 
 const TeamRow = (props: RowProps) => (
   <Kb.ClickableBox onClick={props.canAddThem ? props.onCheck : null}>

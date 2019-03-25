@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
   _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
     dispatch(FsGen.createDeleteFile({path}))
-    dispatch(FsGen.createOpenPathInFilesTab({path: Types.getPathParent(path), routePath}))
+    dispatch(Constants.makeActionForOpenPathInFilesTab(Types.getPathParent(path), routePath))
   },
   _download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
   _ignoreTlf: () => dispatch(FsGen.createFavoriteIgnore({path})),
@@ -53,6 +53,7 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
     dispatch(FsGen.createSaveMedia({key, path}))
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
   },
+  _sendAttachmentToChat: () => dispatch(FsGen.createShowSendAttachmentToChat({path, routePath})),
   _sendLinkToChat: () => dispatch(FsGen.createShowSendLinkToChat({path, routePath})),
   _sendToOtherApp: () => {
     const key = Constants.makeDownloadKey(path)
@@ -145,7 +146,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         : null,
     // share items
     // eslint-disable-next-line sort-keys
-    sendAttachmentToChat: null, // TODO
+    sendAttachmentToChat: layout.sendAttachmentToChat ? c(dispatchProps._sendAttachmentToChat) : null, // TODO
     sendLinkToChat: layout.sendLinkToChat ? c(dispatchProps._sendLinkToChat) : null,
     sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp(stateProps, dispatchProps, c) : null,
     share: layout.share ? dispatchProps._share : null,

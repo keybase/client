@@ -12,9 +12,10 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
-
 	"golang.org/x/net/context"
 )
 
@@ -261,7 +262,7 @@ func StallBlockOp(ctx context.Context, config Config,
 			unstall: unstallCh,
 		},
 	})
-	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	newCtx = libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
 	})
 	return onStalledCh, unstallCh, newCtx
@@ -287,7 +288,7 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 		},
 		delegate: config.MDOps(),
 	})
-	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+	newCtx = libcontext.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
 	})
 	return onStalledCh, unstallCh, newCtx
@@ -416,7 +417,7 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 }
 
 func (m *stallingMDOps) GetIDForHandle(
-	ctx context.Context, handle *TlfHandle) (tlfID tlf.ID, err error) {
+	ctx context.Context, handle *tlfhandle.Handle) (tlfID tlf.ID, err error) {
 	return m.delegate.GetIDForHandle(ctx, handle)
 }
 
@@ -456,7 +457,7 @@ func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 }
 
 func (m *stallingMDOps) ValidateLatestHandleNotFinal(
-	ctx context.Context, h *TlfHandle) (b bool, err error) {
+	ctx context.Context, h *tlfhandle.Handle) (b bool, err error) {
 	m.maybeStall(ctx, StallableMDValidateLatestHandleNotFinal)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errValidateLatestHandleNotFinal error

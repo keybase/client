@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -141,7 +142,7 @@ func uniquifyName(
 	_, err := dir.lookup(ctx, name)
 	switch errors.Cause(err).(type) {
 	case nil:
-	case NoSuchNameError:
+	case idutil.NoSuchNameError:
 		return name, nil
 	default:
 		return "", err
@@ -153,7 +154,7 @@ func uniquifyName(
 		_, err := dir.lookup(ctx, newName)
 		switch errors.Cause(err).(type) {
 		case nil:
-		case NoSuchNameError:
+		case idutil.NoSuchNameError:
 			return newName, nil
 		default:
 			return "", err
@@ -190,7 +191,7 @@ func (cuea *copyUnmergedEntryAction) do(
 	mergedEntryOk := true
 	switch errors.Cause(err).(type) {
 	case nil:
-	case NoSuchNameError:
+	case idutil.NoSuchNameError:
 		mergedEntryOk = false
 	default:
 		return nil, err
@@ -488,7 +489,7 @@ func (rmea *rmMergedEntryAction) do(
 	ctx context.Context, _, _ fileBlockDeepCopier,
 	_, mergedDir *dirData) ([]BlockInfo, error) {
 	unrefs, err := mergedDir.removeEntry(ctx, rmea.name)
-	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
+	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
 		return nil, nil
 	} else if err != nil {
 		return nil, err

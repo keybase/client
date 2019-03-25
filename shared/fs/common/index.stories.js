@@ -64,13 +64,17 @@ export const commonProvider = {
     enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
+  LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
+    loadPathMetadata: Sb.action('loadPathMetadata'),
+    path,
+  }),
   PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
   PathItemActionMenu: PathItemActionMenuProps,
   PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
-    type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
+    type: Types.getPathElements(ownProps.path).length > 4 ? 'file' : 'folder',
     username: 'songgao_test',
   }),
   PathItemInfo: ({path, mode}: PathItemInfoOwnProps) => ({
@@ -451,6 +455,6 @@ const load = () => {
   )
 }
 
-const pathItemIconSizes: Array<Size> = [12, 16, 32, 48, 64]
+const pathItemIconSizes: Array<Size> = [12, 16, 32, 48, 64, 96]
 
 export default load

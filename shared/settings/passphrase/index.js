@@ -1,122 +1,141 @@
 // @flow
 import React, {Component} from 'react'
-import {globalMargins} from '../../styles'
-import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 
 type Props = {
   error?: ?Error,
-  heading: string,
-  newPassphraseError: ?string,
-  newPassphraseConfirmError: ?string,
-  hasPGPKeyOnServer: boolean,
-  onBack: () => void,
+  newPassphraseError?: ?string,
+  newPassphraseConfirmError?: ?string,
+  hasPGPKeyOnServer?: boolean,
+  onBack?: () => void,
   onSave: (passphrase: string, passphraseConfirm: string) => void,
-  waitingForResponse: boolean,
-  onUpdatePGPSettings: () => void,
+  saveLabel?: string,
+  showTyping?: boolean,
+  waitingForResponse?: boolean,
+  onUpdatePGPSettings?: () => void,
 }
 
 type State = {
   passphrase: string,
   passphraseConfirm: string,
   showTyping: boolean,
-  canSave: boolean,
+  errorSaving: string,
 }
 
-class UpdatePassphrase extends Component<Props, State> {
+export class UpdatePassphrase extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
     super(props)
     this.state = {
-      canSave: false,
+      errorSaving: '',
       passphrase: '',
       passphraseConfirm: '',
-      showTyping: false,
+      showTyping: !!props.showTyping,
     }
   }
 
   _handlePassphraseChange(passphrase: string) {
     this.setState({
-      canSave: this._canSave(passphrase, this.state.passphraseConfirm),
+      errorSaving: this._errorSaving(passphrase, this.state.passphraseConfirm),
       passphrase,
     })
   }
 
   _handlePassphraseConfirmChange(passphraseConfirm: string) {
     this.setState({
-      canSave: this._canSave(this.state.passphrase, passphraseConfirm),
+      errorSaving: this._errorSaving(this.state.passphrase, passphraseConfirm),
       passphraseConfirm,
     })
   }
 
-  _canSave(passphrase: string, passphraseConfirm: string): boolean {
-    const downloadedPGPState = this.props.hasPGPKeyOnServer !== null
-    return downloadedPGPState && passphrase === passphraseConfirm && this.state.passphrase.length >= 8
+  _errorSaving(passphrase: string, passphraseConfirm: string): string {
+    if (passphrase && passphraseConfirm && passphrase !== passphraseConfirm) {
+      return 'Passphrases must match.'
+    }
+    if (this.props.hasPGPKeyOnServer === null) {
+      return 'There was a problem downloading your PGP key status.'
+    }
+    return ''
   }
 
   render() {
     const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
-    const notification = this.props.error
-      ? {message: this.props.error.message, type: 'error'}
-      : this.props.hasPGPKeyOnServer
-      ? {
-          message:
-            "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
-          type: 'error',
-        }
-      : null
     return (
-      <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
-        {!!this.props.heading && <Text type="BodySmall">{this.props.heading}</Text>}
-        <Input
-          hintText="New passphrase"
-          type={inputType}
-          errorText={this.props.newPassphraseError}
-          value={this.state.passphrase}
-          onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
-          uncontrolled={false}
-          style={styleInput}
-        />
-        {!this.props.newPassphraseError && (
-          <Text type="BodySmall" style={stylePasswordNote}>
-            (Minimum 8 characters)
-          </Text>
-        )}
-        <Input
-          hintText="Confirm new passphrase"
-          type={inputType}
-          value={this.state.passphraseConfirm}
-          errorText={this.props.newPassphraseConfirmError}
-          onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
-          uncontrolled={false}
-          style={styleInput}
-        />
-        <Checkbox
-          label="Show typing"
-          onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
-          checked={this.state.showTyping}
-          style={{marginBottom: globalMargins.medium}}
-        />
-        <Button
-          type="Primary"
-          label="Save"
-          disabled={!this.state.canSave}
-          onClick={() => this.props.onSave(this.state.passphrase, this.state.passphraseConfirm)}
-          waiting={this.props.waitingForResponse}
-        />
-      </StandardScreen>
+      <Kb.ScrollView contentContainerStyle={styles.container}>
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Input
+            hintText="New passphrase"
+            type={inputType}
+            errorText={this.props.newPassphraseError}
+            value={this.state.passphrase}
+            onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
+            uncontrolled={false}
+            style={styleInput}
+          />
+          <Kb.Input
+            hintText="Confirm new passphrase"
+            type={inputType}
+            value={this.state.passphraseConfirm}
+            errorText={this.state.errorSaving || this.props.newPassphraseConfirmError}
+            onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
+            uncontrolled={false}
+            style={styleInput}
+          />
+          <Kb.Checkbox
+            label="Show typing"
+            onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+            checked={this.state.showTyping || !!this.props.showTyping}
+          />
+          <Kb.Text style={{marginBottom: Styles.globalMargins.medium}} type="BodySmall">
+            (Passphrase must be at least 8 characters.)
+          </Kb.Text>
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonbar}>
+            <Kb.Button
+              fullWidth={true}
+              type="Primary"
+              label={this.props.saveLabel || 'Save'}
+              disabled={!!this.state.errorSaving || this.state.passphrase.length < 8}
+              onClick={() => this.props.onSave(this.state.passphrase, this.state.passphraseConfirm)}
+              waiting={this.props.waitingForResponse}
+            />
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      </Kb.ScrollView>
     )
   }
 }
 
 const styleInput = {
-  marginBottom: globalMargins.small,
+  marginBottom: Styles.globalMargins.small,
 }
 
-const stylePasswordNote = {
-  height: 0, // don't offset next input by label height
-  position: 'relative',
-  top: -globalMargins.small,
+const UpdatePassphraseWrapper = (props: Props) => {
+  const notification = props.error
+    ? {message: props.error.message, type: 'error'}
+    : props.hasPGPKeyOnServer
+    ? {
+        message:
+          "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
+        type: 'error',
+      }
+    : null
+  return (
+    <Kb.StandardScreen notification={notification} style={{alignItems: 'center', margin: 0}}>
+      <UpdatePassphrase {...props} />
+    </Kb.StandardScreen>
+  )
 }
+const styles = Styles.styleSheetCreate({
+  buttonbar: {
+    padding: Styles.globalMargins.small,
+  },
+  container: Styles.platformStyles({
+    isElectron: {
+      width: 560,
+    },
+  }),
+})
 
-export default UpdatePassphrase
+export default UpdatePassphraseWrapper

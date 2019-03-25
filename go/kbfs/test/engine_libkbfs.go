@@ -11,11 +11,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -156,7 +159,7 @@ func (k *LibKBFS) newContext(u User) (context.Context, context.CancelFunc) {
 	}
 
 	id, errRandomRequestID := libkbfs.MakeRandomRequestID()
-	ctx, err = libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
+	ctx, err = libcontext.NewContextWithCancellationDelayer(libcontext.NewContextReplayable(
 		ctx, func(ctx context.Context) context.Context {
 			logTags := logger.CtxLogTags{
 				CtxIDKey:   CtxOpID,
@@ -179,7 +182,7 @@ func (k *LibKBFS) newContext(u User) (context.Context, context.CancelFunc) {
 	}
 
 	return ctx, func() {
-		libkbfs.CleanupCancellationDelayer(ctx)
+		libcontext.CleanupCancellationDelayer(ctx)
 		cancel()
 	}
 }
@@ -202,16 +205,16 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 
 func parseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, mdOps libkbfs.MDOps,
-	osg libkbfs.OfflineStatusGetter, tlfName string, t tlf.Type) (
-	h *libkbfs.TlfHandle, err error) {
+	osg idutil.OfflineStatusGetter, tlfName string, t tlf.Type) (
+	h *tlfhandle.Handle, err error) {
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
-		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, osg, tlfName, t)
+		h, err = tlfhandle.ParseHandle(ctx, kbpki, mdOps, osg, tlfName, t)
 		switch err := errors.Cause(err).(type) {
 		case nil:
 			break outer
-		case libkbfs.TlfNameNotCanonical:
+		case idutil.TlfNameNotCanonical:
 			tlfName = err.NameToTry
 		default:
 			return nil, err
@@ -653,7 +656,7 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, t tlf.Type) error {
 	// Restart CR using a clean context, since we will cancel ctx when
 	// we return.
 	err = libkbfs.RestartCRForTesting(
-		libkbfs.BackgroundContextWithCancellationDelayer(), config,
+		libcontext.BackgroundContextWithCancellationDelayer(), config,
 		dir.GetFolderBranch())
 	if err != nil {
 		return err
@@ -835,7 +838,7 @@ func (k *LibKBFS) UserEditHistory(u User) (
 
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, config.KBPKI(), true)
 	if err != nil {
 		return nil, err

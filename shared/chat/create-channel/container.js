@@ -7,21 +7,23 @@ import {
   lifecycle,
   withStateHandlers,
   connect,
+  getRouteProps,
   type RouteProps,
 } from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {upperFirst} from 'lodash-es'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
+const mapStateToProps = (state, ownProps) => {
   return {
     errorText: upperFirst(state.teams.channelCreationError),
-    teamname: routeProps.get('teamname'),
+    teamname: getRouteProps(ownProps, 'teamname'),
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   _onCreateChannel: ({channelname, description, teamname}) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
@@ -34,8 +36,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
     dispatch(TeamsGen.createSetChannelCreationError({error}))
   },
   onBack: () =>
-    dispatch(RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['chatManageChannels']})),
-  onClose: () => dispatch(navigateUp()),
+    dispatch(
+      flags.useNewRouter
+        ? RouteTreeGen.createNavigateUp()
+        : RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['chatManageChannels']})
+    ),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default compose(

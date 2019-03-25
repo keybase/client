@@ -356,6 +356,7 @@ const propsInboxCommon = {
   selectedConversationIDKey: Types.stringToConversationIDKey('fake conversation id key'),
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
+  unreadIndices: I.List(),
 }
 
 const propsInboxEmpty = {

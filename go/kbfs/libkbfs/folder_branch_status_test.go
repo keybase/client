@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -28,8 +29,8 @@ func fbStatusTestInit(t *testing.T) (*gomock.Controller, *ConfigMock,
 	mockCtrl := gomock.NewController(ctr)
 	config := NewConfigMock(mockCtrl, ctr)
 	config.mockKbpki.EXPECT().ResolveImplicitTeam(
-		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
-		Return(ImplicitTeamInfo{}, errors.New("No such team"))
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		AnyTimes().Return(idutil.ImplicitTeamInfo{}, errors.New("No such team"))
 	nodeCache := NewMockNodeCache(mockCtrl)
 	fbsk := newFolderBranchStatusKeeper(config, nodeCache, nil, nil)
 	interposeDaemonKBPKI(config, "alice", "bob")

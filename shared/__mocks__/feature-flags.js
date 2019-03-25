@@ -11,12 +11,14 @@ const ff: FeatureFlags = {
   airdrop: true,
   chatIndexProfilingEnabled: false,
   dbCleanEnabled: false,
+  enableDeleteFolder: false,
   foldersInProfileTab: true,
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: true,
   plansEnabled: false,
   proofProviders: true,
+  sendAttachmentToChat: true,
   useNewRouter: false,
 }
 

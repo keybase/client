@@ -5,7 +5,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
-import * as FsGen from '../fs-gen'
+import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -594,9 +594,10 @@ const onChatInboxSynced = (state, action) => {
         }
         return arr
       }, [])
+      const removals = (syncRes.incremental?.removals || []).map(Types.stringToConversationIDKey)
       // Update new untrusted
-      if (metas.length) {
-        actions.push(Chat2Gen.createMetasReceived({metas}))
+      if (metas.length || removals.length) {
+        actions.push(Chat2Gen.createMetasReceived({metas, removals}))
       }
       // Unbox items
       actions.push(
@@ -1286,20 +1287,24 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const routeName = 'chatPaymentsConfirm'
+  const confirmRouteName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
       RouteTreeGen.createNavigateAppend({
-        path: [routeName],
+        path: [confirmRouteName],
       })
     ),
   ]
   const onHideConfirm = ({canceled}) =>
     Saga.callUntyped(function*() {
       const state = yield* Saga.selectState()
-      if (getPath(state.routeTree.routeState).last() === routeName) {
+      if (!flags.useNewRouter && getPath(state.routeTree.routeState).last() === confirmRouteName) {
         yield Saga.put(RouteTreeGen.createNavigateUp())
+      } else if (flags.useNewRouter) {
+        if (Router2Constants.getVisibleScreen()?.routeName === confirmRouteName) {
+          yield Saga.put(RouteTreeGen.createClearModals())
+        }
       }
       if (canceled) {
         yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
@@ -1629,7 +1634,7 @@ const openFolder = (state, action) => {
       ? teamFolder(meta.teamname)
       : privateFolderWithUsers(meta.participants.toArray())
   )
-  return FsGen.createOpenPathInFilesTab({path})
+  return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
 const getRecommendations = (state, action) => {
@@ -1702,6 +1707,9 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
     return rpcRes.filename
   } catch (e) {
     logger.error(`downloadAttachment error: ${e.message}`)
+    yield Saga.put(
+      Chat2Gen.createAttachmentDownloadedError({error: e.message || 'Error downloading attachment', message})
+    )
   }
   return fileName
 }
@@ -1966,8 +1974,13 @@ const navigateToInbox = (state, action) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  const resetRouteAction = RouteTreeGen.createNavigateTo({
-    path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
+  if (flags.useNewRouter) {
+    return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
+  }
+  let resetRouteAction = RouteTreeGen.createNavigateTo({
+    path: flags.useNewRouter
+      ? [{props: {}, selected: Tabs.chatTab}]
+      : [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}],
   })
   if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
     const {context, teamname} = action.payload
@@ -2000,7 +2013,9 @@ const navigateToInbox = (state, action) => {
 // Unchecked version of Chat2Gen.createNavigateToThread() --
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
-const navigateToThreadRoute = RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
+const navigateToThreadRoute = flags.useNewRouter
+  ? RouteTreeGen.createNavigateAppend({path: Constants.newRouterThreadRoute})
+  : RouteTreeGen.createNavigateTo({path: Constants.threadRoute})
 
 const navigateToThread = (state, action) => {
   if (!Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
@@ -2531,8 +2546,7 @@ const unfurlResolvePrompt = (state, action) => {
 
 const toggleInfoPanel = (state, action) => {
   if (flags.useNewRouter) {
-    const visible = Router2Constants.getVisiblePath()
-    if (visible[visible.length - 1]?.routeName === 'chatInfoPanel') {
+    if (Router2Constants.getVisibleScreen()?.routeName === 'chatInfoPanel') {
       return RouteTreeGen.createNavigateUp()
     } else {
       return RouteTreeGen.createNavigateAppend({

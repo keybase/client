@@ -108,12 +108,12 @@ if [ "$arg" = "ios" ]; then
   ios_dest="$ios_dir/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   set +e
-  OUTPUT="$(gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+  OUTPUT="$(gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *gomobile* ]]; then
     echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
-    gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+    gomobile bind -target=ios -tags="ios $tags" -ldflags "$ldflags" -o "$ios_dest" "$package"
   else
     echo $OUTPUT
   fi
@@ -122,12 +122,12 @@ elif [ "$arg" = "android" ]; then
   android_dest="$android_dir/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   set +e
-  OUTPUT="$(gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
+  OUTPUT="$(gomobile bind -target=android -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *gomobile* ]]; then
     echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
-    gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+    gomobile bind -target=android -tags="android $tags" -ldflags "$ldflags" -o "$android_dest" "$package"
   else
     echo $OUTPUT
   fi

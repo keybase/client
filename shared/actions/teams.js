@@ -22,12 +22,14 @@ import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
 import * as Tracker2Gen from './tracker2-gen'
+import * as Router2Constants from '../constants/router2'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {getPath} from '../route-tree'
+import flags from '../util/feature-flags'
 
 function* createNewTeam(_, action) {
   const {destSubPath, joinSubteam, rootPath, sourceSubPath, teamname} = action.payload
@@ -138,6 +140,9 @@ const leaveTeam = (state, action) => {
 }
 
 const leftTeam = (state, action) => {
+  if (flags.useNewRouter) {
+    return RouteTreeGen.createNavUpToScreen({routeName: teamsTab})
+  }
   const selectedTeamnames = Constants.getSelectedTeamNames(state)
   if (selectedTeamnames.includes(action.payload.teamname)) {
     // Back out of that team's page
@@ -1007,13 +1012,19 @@ function* createChannel(_, action) {
     }
 
     // Dismiss the create channel dialog.
-    yield Saga.put(
-      RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: rootPath.concat(sourceSubPath),
-        otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
-        parentPath: rootPath,
-      })
-    )
+    if (flags.useNewRouter) {
+      if (Router2Constants.getVisibleScreen()?.routeName === 'chatCreateChannel') {
+        yield Saga.put(RouteTreeGen.createClearModals())
+      }
+    } else {
+      yield Saga.put(
+        RouteTreeGen.createPutActionIfOnPath({
+          expectedPath: rootPath.concat(sourceSubPath),
+          otherAction: RouteTreeGen.createNavigateTo({parentPath: rootPath, path: destSubPath}),
+          parentPath: rootPath,
+        })
+      )
+    }
 
     // Select the new channel, and switch to the chat tab.
     yield Saga.put(

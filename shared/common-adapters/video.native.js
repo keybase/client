@@ -2,9 +2,17 @@
 import * as React from 'react'
 import type {Props, State} from './video'
 import Box, {Box2} from './box'
-import {WebView, StatusBar} from 'react-native'
 import * as Styles from '../styles'
+import {memoize} from '../util/memoize'
 import {getVideoSize, CheckURL} from './video.shared'
+import {NativeStatusBar, NativeWebView} from './native-wrappers.native'
+
+const Kb = {
+  Box,
+  Box2,
+  NativeStatusBar,
+  NativeWebView,
+}
 
 export default class extends React.PureComponent<Props, State> {
   state = {
@@ -37,13 +45,17 @@ export default class extends React.PureComponent<Props, State> {
         videoHeight: size.height,
         videoWidth: size.width,
       })
-    endFullscreen && StatusBar.setHidden(false)
+    endFullscreen && NativeStatusBar.setHidden(false)
   }
   _setContainerLayout = ({nativeEvent}) =>
     this.setState({
       containerHeight: nativeEvent.layout.height,
       containerWidth: nativeEvent.layout.width,
     })
+
+  _getSource = memoize(url => ({
+    html: getHTML(url),
+  }))
 
   componentDidMount() {
     this._mounted = true
@@ -57,7 +69,7 @@ export default class extends React.PureComponent<Props, State> {
     const {height, width} = getVideoSize(this.state)
     return (
       <CheckURL url={this.props.url}>
-        <Box2
+        <Kb.Box2
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
@@ -65,9 +77,9 @@ export default class extends React.PureComponent<Props, State> {
           onLayout={this._setContainerLayout}
           style={this.props.style}
         >
-          <Box style={getVideoSize(this.state)}>
-            <WebView
-              source={{html: getHTML(this.props.url)}}
+          <Kb.Box style={getVideoSize(this.state)}>
+            <Kb.NativeWebView
+              source={this._getSource(this.props.url)}
               allowsInlineMediaPlayback={true}
               useWebKit={true}
               style={{
@@ -79,8 +91,8 @@ export default class extends React.PureComponent<Props, State> {
               scrollEnabled={true}
               onMessage={this._onMessage}
             />
-          </Box>
-        </Box2>
+          </Kb.Box>
+        </Kb.Box2>
       </CheckURL>
     )
   }

@@ -7,6 +7,7 @@ import Header from './header'
 import Banner from './banner'
 import BetaNote from './beta-note'
 import {memoize} from '../../util/memoize'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   loaded: boolean,
@@ -20,6 +21,7 @@ type Props = {|
   onReadMore: () => void,
   onViewTeam: string => void,
   sawChatBanner: boolean,
+  teamNameToCanManageChat: {[key: string]: boolean},
   teamNameToIsOpen: {[key: string]: boolean},
   teammembercounts: {[key: string]: number},
   teamnames: $ReadOnlyArray<string>,
@@ -36,22 +38,28 @@ type RowProps = {
   isOpen: boolean,
   newRequests: number,
   onOpenFolder: () => void,
-  onManageChat: () => void,
+  onManageChat: ?() => void,
   resetUserCount: number,
   onViewTeam: () => void,
 }
 
 export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   const badgeCount = props.newRequests + props.resetUserCount
-
+  const ChatIcon = () => (
+    <Kb.Icon
+      style={{opacity: props.onManageChat ? 1 : 0.3}}
+      onClick={props.onManageChat}
+      type="iconfont-chat"
+    />
+  )
   return (
     <Kb.ListItem2
-      type="Large"
+      type="Small"
       firstItem={props.firstItem}
       onClick={props.onViewTeam}
       icon={
         <Kb.Box2 direction="vertical" style={styles.avatarContainer}>
-          <Kb.Avatar size={48} teamname={props.name} isTeam={true} />
+          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
           {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
         </Kb.Box2>
       }
@@ -75,7 +83,13 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
         Styles.isMobile ? null : (
           <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
             {props.onOpenFolder && <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />}
-            {props.onManageChat && <Kb.Icon type="iconfont-chat" onClick={props.onManageChat} />}
+            {props.onManageChat ? (
+              <ChatIcon />
+            ) : (
+              <Kb.WithTooltip text="You need to join this team before you can chat.">
+                <ChatIcon />
+              </Kb.WithTooltip>
+            )}
           </Kb.Box2>
         )
       }
@@ -83,15 +97,22 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   )
 })
 
-class Teams extends React.PureComponent<Props> {
-  _teamsAndExtras = memoize(teamnames => {
-    return [
-      {key: '_banner', type: '_banner'},
-      ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
-      {key: '_note', type: '_note'},
-    ]
-  })
+type State = {
+  sawChatBanner: boolean,
+}
+class Teams extends React.PureComponent<Props, State> {
+  state = {sawChatBanner: this.props.sawChatBanner}
 
+  _teamsAndExtras = memoize((sawChatBanner, teamnames) => [
+    {key: '_banner', type: '_banner'},
+    ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
+    {key: '_note', type: '_note'},
+  ])
+
+  _onHideChatBanner = () => {
+    this.setState({sawChatBanner: true})
+    this.props.onHideChatBanner()
+  }
   _onOpenFolder = name => this.props.onOpenFolder(name)
   _onManageChat = name => this.props.onManageChat(name)
   _onViewTeam = name => this.props.onViewTeam(name)
@@ -99,8 +120,8 @@ class Teams extends React.PureComponent<Props> {
   _renderItem = (index, item) => {
     switch (item.type) {
       case '_banner':
-        return this.props.sawChatBanner ? null : (
-          <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this.props.onHideChatBanner} />
+        return this.state.sawChatBanner ? null : (
+          <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
         )
       case '_note':
         return <BetaNote onReadMore={this.props.onReadMore} />
@@ -117,7 +138,7 @@ class Teams extends React.PureComponent<Props> {
             newRequests={this.props.teamToRequest[name] ?? 0}
             membercount={this.props.teammembercounts[name]}
             onOpenFolder={() => this._onOpenFolder(name)}
-            onManageChat={() => this._onManageChat(name)}
+            onManageChat={this.props.teamNameToCanManageChat[name] ? () => this._onManageChat(name) : null}
             onViewTeam={() => this._onViewTeam(name)}
             resetUserCount={resetUserCount}
           />
@@ -127,15 +148,28 @@ class Teams extends React.PureComponent<Props> {
     }
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // Don't need to worry about the true->false direction.
+    if (!prevProps.sawChatBanner && this.props.sawChatBanner) {
+      this.setState({sawChatBanner: true})
+    }
+  }
+
   render() {
+    const renderHeader = flags.useNewRouter ? Styles.isMobile : true
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Header
-          loaded={this.props.loaded}
-          onCreateTeam={this.props.onCreateTeam}
-          onJoinTeam={this.props.onJoinTeam}
+        {renderHeader && (
+          <Header
+            loaded={this.props.loaded}
+            onCreateTeam={this.props.onCreateTeam}
+            onJoinTeam={this.props.onJoinTeam}
+          />
+        )}
+        <Kb.List
+          items={this._teamsAndExtras(this.state.sawChatBanner, this.props.teamnames)}
+          renderItem={this._renderItem}
         />
-        <Kb.List items={this._teamsAndExtras(this.props.teamnames)} renderItem={this._renderItem} />
       </Kb.Box2>
     )
   }

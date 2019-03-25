@@ -1,7 +1,8 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import {compose, connect} from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {compose, connect, getRouteProps} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 import VideoFullscreen from './'
 
@@ -10,17 +11,17 @@ type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal:
 const blankMessage = Constants.makeMessageAttachment({})
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
-  const ordinal = ownProps.routeProps.get('ordinal')
+  const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
+  const ordinal = getRouteProps(ownProps, 'ordinal')
   const message = Constants.getMessage(state, conversationIDKey, ordinal) || blankMessage
   return {
     message: message.type === 'attachment' ? message : blankMessage,
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   onClose: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

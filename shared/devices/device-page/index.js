@@ -93,20 +93,26 @@ const DevicePage = (props: Props) => {
   }
 
   const icon: Kb.IconType = {
-    backup: 'icon-paper-key-64',
-    desktop: 'icon-computer-64',
-    mobile: 'icon-phone-64',
+    backup: 'icon-paper-key-96',
+    desktop: 'icon-computer-96',
+    mobile: 'icon-phone-96',
   }[props.device.type]
 
   const revokeName = {
     backup: 'paper key',
-    desktop: 'device',
-    mobile: 'device',
+    desktop: 'computer',
+    mobile: 'phone',
+  }[props.device.type]
+
+  const metaTwo = {
+    backup: 'Paper key',
+    desktop: 'Computer',
+    mobile: 'Phone',
   }[props.device.type]
 
   return (
     <Kb.Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
-      <Kb.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} />
+      <Kb.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={props.device} />
       {!props.device.revokedAt && (
         <Kb.Button type="Danger" label={`Revoke this ${revokeName}`} onClick={props.showRevokeDevicePage} />
