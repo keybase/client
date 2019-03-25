@@ -34,6 +34,8 @@ import (
 // conflict resolution
 type CtxCRTagKey int
 
+type failModeForTest int
+
 const (
 	// CtxCRIDKey is the type of the tag for unique operation IDs
 	// related to conflict resolution
@@ -59,12 +61,19 @@ const (
 	// If we have failed at CR 10 times, probably it's never going to work and
 	// we should give up.
 	maxConflictResolutionAttempts = 10
+
+	alwaysFailCR failModeForTest = iota
+	doNotAlwaysFailCR
 )
 
 // ErrTooManyCRAttempts is an error that indicates that CR has failed
 // too many times, and it being stopped.
 var ErrTooManyCRAttempts = errors.New(
 	"too many attempts at conflict resolution on this TLF")
+
+// ErrCRFailForTest indicates that CR is disabled for a test.
+var ErrCRFailForTest = errors.New(
+	"conflict resolution failed because test requested it")
 
 // CtxCROpID is the display name for the unique operation
 // conflict resolution ID tag.
@@ -96,6 +105,8 @@ type ConflictResolver struct {
 	currCancel    context.CancelFunc
 	lockNextTime  bool
 	canceledCount int
+
+	failModeForTest failModeForTest
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -3254,10 +3265,10 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 //  - in the event of failure, it logs that CR failed and tries to record the
 //    failure to the DB.
 func (cr *ConflictResolver) recordFinishResolve(
-	ctx context.Context, ci conflictInput, receivedErr error) {
+	ctx context.Context, ci conflictInput,
+	panicVar interface{}, receivedErr error) {
 	db := cr.config.GetConflictResolutionDB()
 	key := cr.fbo.id().Bytes()
-	panicVar := recover()
 
 	// If we neither errored nor panicked, this CR succeeded and we can wipe
 	// the DB entry.
@@ -3299,7 +3310,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 		thisCR.ErrorString = fmt.Sprintf("%+v", receivedErr)
 	}
 	if panicVar != nil {
-		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %b", panicVar,
+		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %s", panicVar,
 			debug.Stack())
 	}
 
@@ -3377,7 +3388,10 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			"Too many failed CR attempts for folder: %v", cr.fbo.id())
 		return
 	case nil:
-		defer func() { cr.recordFinishResolve(ctx, ci, err) }()
+		defer func() {
+			r := recover()
+			cr.recordFinishResolve(ctx, ci, r, err)
+		}()
 	default:
 		cr.log.CWarningf(ctx,
 			"Could not record conflict resolution attempt: %+v", err)
@@ -3417,6 +3431,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// Canceled before we even got started?
 	err = cr.checkDone(ctx)
 	if err != nil {
+		return
+	}
+
+	if cr.failModeForTest == alwaysFailCR {
+		err = ErrCRFailForTest
 		return
 	}
 
@@ -3628,6 +3647,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// don't count against the quota forever.  (Though of course if we
 	// completely fail, we'll need to rely on a future complete scan
 	// to clean up the quota anyway . . .)
+}
+
+func (cr *ConflictResolver) clearConflictRecords() error {
+	db := cr.config.GetConflictResolutionDB()
+	key := cr.fbo.id().Bytes()
+	return db.Delete(key, nil)
 }
 
 func openCRDBInternal(config Config) (*LevelDb, error) {

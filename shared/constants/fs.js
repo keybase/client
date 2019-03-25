@@ -503,13 +503,14 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
+const supportedImgMimeTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp'])
 export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
   if (mime && mime.displayPreview) {
     const mimeType = mime.mimeType
     if (mimeType === 'text/plain') {
       return 'text'
     }
-    if (mimeType.startsWith('image/')) {
+    if (supportedImgMimeTypes.has(mimeType)) {
       return 'image'
     }
     if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
@@ -845,6 +846,29 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
       return false
   }
+}
+
+export const canChat = (path: Types.Path) => {
+  const parsedPath = parsePath(path)
+  switch (parsedPath.kind) {
+    case 'root':
+    case 'tlf-list':
+      return false
+    case 'group-tlf':
+    case 'team-tlf':
+      return true
+    case 'in-group-tlf':
+    case 'in-team-tlf':
+      return true
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return false
+  }
+}
+
+export const isTeamPath = (path: Types.Path): boolean => {
+  const parsedPath = parsePath(path)
+  return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
 }
 
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {

@@ -1,54 +1,63 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
-import {connect, type RouteProps} from '../../util/container'
+import {connect, getRouteProps, type RouteProps} from '../../util/container'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => {
+const mapStateToProps = (state, ownProps) => {
+  const teamname = getRouteProps(ownProps, 'teamname')
   const inviteError = Constants.getEmailInviteError(state)
   return {
     errorMessage: inviteError.message,
     malformedEmails: inviteError.malformed,
-    name: routeProps.get('teamname'),
-    waitingKey: Constants.addToTeamByEmailWaitingKey(routeProps.get('teamname') || ''),
+    name: teamname,
+    waitingKey: Constants.addToTeamByEmailWaitingKey(teamname) || '',
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, routeProps}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   onInvite: (invitees: string, role: Types.TeamRoleType) => {
-    const teamname = routeProps.get('teamname')
-    const rootPath = routePath.take(1)
-    const sourceSubPath = routePath.rest()
-    const destSubPath = sourceSubPath.butLast()
-    dispatch(
-      TeamsGen.createInviteToTeamByEmail({
-        destSubPath,
-        invitees,
-        role,
-        rootPath,
-        sourceSubPath,
-        teamname,
-      })
-    )
+    const teamname = getRouteProps(ownProps, 'teamname')
+    if (flags.useNewRouter) {
+      dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
+    } else {
+      const rootPath = ownProps.routePath.take(1)
+      const sourceSubPath = ownProps.routePath.rest()
+      const destSubPath = sourceSubPath.butLast()
+      dispatch(
+        TeamsGen.createInviteToTeamByEmail({
+          destSubPath,
+          invitees,
+          role,
+          rootPath,
+          sourceSubPath,
+          teamname,
+        })
+      )
+    }
     dispatch(TeamsGen.createGetTeams())
   },
   onOpenRolePicker: (role: Types.TeamRoleType, onComplete: Types.TeamRoleType => void) => {
     dispatch(
-      navigateAppend([
-        {
-          props: {
-            allowOwner: false,
-            onComplete,
-            selectedRole: role,
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              allowOwner: false,
+              onComplete,
+              selectedRole: role,
+            },
+            selected: 'teamControlledRolePicker',
           },
-          selected: 'controlledRolePicker',
-        },
-      ])
+        ],
+      })
     )
   },
 })

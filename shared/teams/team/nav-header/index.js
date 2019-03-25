@@ -58,13 +58,23 @@ type HeaderTitleProps = {
   teamname: string,
   description: string,
   members: number,
+  onEditAvatar: ?() => void,
   onEditDescription: ?() => void,
   role: string,
 }
 
 export const HeaderTitle = (props: HeaderTitleProps) => (
   <Kb.Box2 alignItems="center" direction="horizontal" gap="small" gapStart={true}>
-    <Kb.Avatar teamname={props.teamname} size={48} />
+    <Kb.Avatar
+      editable={!!props.onEditAvatar}
+      onEditAvatarClick={props.onEditAvatar}
+      teamname={props.teamname}
+      size={48}
+      style={Styles.collapseStyles([
+        props.onEditAvatar && styles.marginRightTiny, // space for edit icon
+        props.onEditAvatar && styles.clickable,
+      ])}
+    />
     <Kb.Box2 direction="vertical">
       <Kb.Text type="Header">{props.teamname}</Kb.Text>
       <Kb.Text type="BodySmall">
@@ -72,13 +82,13 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
         {!!props.role && ` · ${props.role === 'none' ? 'Not a member' : capitalize(props.role)}`}
       </Kb.Text>
       <Kb.Text
-        type="BodySmall"
+        type={props.onEditDescription && !props.description ? 'BodySmallItalic' : 'BodySmall'}
         lineClamp={1}
         onClick={props.onEditDescription}
         className={Styles.classNames({'hover-underline': !!props.onEditDescription})}
         style={styles.clickable}
       >
-        {props.description}
+        {props.description || (props.onEditDescription ? 'Write a brief description' : '')}
       </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
@@ -109,6 +119,9 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.windowDraggingClickable,
     },
   }),
+  marginRightTiny: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   rightActionsContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,

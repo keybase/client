@@ -134,9 +134,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
+const Connected = namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
   'ConnectedDestinationPicker'
 )(DestinationPicker)
+
+export default Connected

@@ -1200,7 +1200,11 @@ func (c *ConfigLocal) EnableJournaling(
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
-		return errors.New("Trying to enable journaling twice")
+		return errors.New("trying to enable journaling twice")
+	}
+
+	if c.diskLimiter == nil {
+		return errors.New("disk limiter must be enabled to enable journaling")
 	}
 
 	// TODO: Sanity-check the root directory, e.g. create
