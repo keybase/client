@@ -28,7 +28,6 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
-export const cancelThreadSearch = 'chat2:cancelThreadSearch'
 export const changeFocus = 'chat2:changeFocus'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
@@ -142,7 +141,6 @@ type _AttachmentUploadingPayload = $ReadOnly<{|conversationIDKey: Types.Conversa
 type _AttachmentsUploadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, paths: Array<Types.PathAndOutboxID>, titles: Array<string>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
 type _BlockConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, reportUser: boolean|}>
-type _CancelThreadSearchPayload = void
 type _ChangeFocusPayload = $ReadOnly<{|nextFocus: Types.Focus|}>
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = $ReadOnly<{|accept: boolean|}>
@@ -256,10 +254,6 @@ export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload) => (
  * Add an unfurl prompt to a message
  */
 export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({payload, type: unfurlTogglePrompt})
-/**
- * Cancel any outstanding thread searches
- */
-export const createCancelThreadSearch = (payload: _CancelThreadSearchPayload) => ({payload, type: cancelThreadSearch})
 /**
  * Clear data for payment confirm modal
  */
@@ -510,7 +504,6 @@ export type AttachmentUploadingPayload = {|+payload: _AttachmentUploadingPayload
 export type AttachmentsUploadPayload = {|+payload: _AttachmentsUploadPayload, +type: 'chat2:attachmentsUpload'|}
 export type BadgesUpdatedPayload = {|+payload: _BadgesUpdatedPayload, +type: 'chat2:badgesUpdated'|}
 export type BlockConversationPayload = {|+payload: _BlockConversationPayload, +type: 'chat2:blockConversation'|}
-export type CancelThreadSearchPayload = {|+payload: _CancelThreadSearchPayload, +type: 'chat2:cancelThreadSearch'|}
 export type ChangeFocusPayload = {|+payload: _ChangeFocusPayload, +type: 'chat2:changeFocus'|}
 export type ClearPaymentConfirmInfoPayload = {|+payload: _ClearPaymentConfirmInfoPayload, +type: 'chat2:clearPaymentConfirmInfo'|}
 export type ConfirmScreenResponsePayload = {|+payload: _ConfirmScreenResponsePayload, +type: 'chat2:confirmScreenResponse'|}
@@ -627,7 +620,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
-  | CancelThreadSearchPayload
   | ChangeFocusPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload

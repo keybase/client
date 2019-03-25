@@ -27,7 +27,6 @@ const Offline = () => (
 )
 
 class Conversation extends React.PureComponent<Props> {
-  _onToggleThreadSearch = () => {}
   render() {
     return (
       <Box style={containerStyle}>
@@ -43,7 +42,6 @@ class Conversation extends React.PureComponent<Props> {
         <HeaderArea
           isPending={this.props.isPending}
           onToggleInfoPanel={this.props.onToggleInfoPanel}
-          onToggleThreadSearch={this._onToggleThreadSearch}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}

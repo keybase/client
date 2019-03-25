@@ -86,6 +86,9 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
   visible: false,
 })
 
+export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
+
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet())
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>

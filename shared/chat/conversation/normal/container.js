@@ -7,7 +7,7 @@ import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {isDarwin} from '../../../constants/platform'
 import Normal from '.'
-import {compose, connect, isMobile, withStateHandlers, withProps} from '../../../util/container'
+import {compose, connect, isMobile, withStateHandlers} from '../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -58,7 +58,6 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   },
   onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-  onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
 const hotkeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
@@ -76,7 +75,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
-    onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
     showLoader: stateProps.showLoader,
     threadLoadedOffline: stateProps.threadLoadedOffline,
   }
@@ -100,8 +98,5 @@ export default compose(
       }),
       onRequestScrollUp: ({scrollListUpCounter}) => () => ({scrollListUpCounter: scrollListUpCounter + 1}),
     }
-  ),
-  withProps(props => ({
-    onHotkey: (cmd: string) => props.onHotkey(cmd),
-  }))
+  )
 )(KeyHandler(Normal))

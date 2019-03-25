@@ -53,7 +53,6 @@ class Conversation extends React.PureComponent<Props, State> {
           <HeaderArea
             isPending={this.props.isPending}
             onToggleInfoPanel={this.props.onToggleInfoPanel}
-            onToggleThreadSearch={this.props.onToggleThreadSearch}
             conversationIDKey={this.props.conversationIDKey}
           />
           {this.props.showLoader && <Kb.LoadingLine />}

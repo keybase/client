@@ -13,7 +13,6 @@ type OwnProps = {|
   isPending: boolean,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
-  onToggleThreadSearch: () => void,
 |}
 
 const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) => {
@@ -46,7 +45,7 @@ const mapDispatchToProps = (dispatch, {onToggleInfoPanel, onToggleThreadSearch, 
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
-  onToggleThreadSearch,
+  onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

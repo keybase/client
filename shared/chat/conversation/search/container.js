@@ -18,7 +18,7 @@ if (!isMobile) {
 }
 
 const mapStateToProps = (state, {conversationIDKey}) => {
-  const info = state.chat2.threadSearchInfoMap.get(conversationIDKey, Constants.makeThreadSearchInfo())
+  const info = Constants.getThreadSearchInfo(state, conversationIDKey)
   return {
     _hits: info.hits,
     inProgress: info.inProgress,
@@ -28,7 +28,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _loadSearchHit: messageID =>
     dispatch(Chat2Gen.createLoadMessagesFromSearchHit({conversationIDKey, messageID})),
-  onCancel: () => dispatch(Chat2Gen.createCancelThreadSearch()),
+  onCancel: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
   onHotkey: (cmd: string) => {
     switch (cmd) {
       case 'esc':

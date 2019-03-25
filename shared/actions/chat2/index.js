@@ -1323,16 +1323,9 @@ const messageRetry = (state, action) => {
   )
 }
 
-const toggleThreadSearch = (state, action) => {
-  const visible = state.chat2.threadSearchInfoMap.get(
-    action.payload.conversationIDKey,
-    Constants.makeThreadSearchInfo()
-  ).visible
-  return !visible ? Chat2Gen.createCancelThreadSearch() : []
-}
-
-const cancelThreadSearch = (state, action) => {
-  return RPCChatTypes.localCancelActiveSearchRpcPromise()
+const onToggleThreadSearch = (state, action) => {
+  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
+  return visible ? [] : RPCChatTypes.localCancelActiveSearchRpcPromise()
 }
 
 function* threadSearch(state, action) {
@@ -1370,7 +1363,7 @@ function* threadSearch(state, action) {
       },
     })
   } catch (e) {
-    logger.info('search failed')
+    logger.error('search failed: ' + e.message)
     yield Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: false}))
   }
 }
@@ -3170,8 +3163,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
-  yield* Saga.chainAction<Chat2Gen.CancelThreadSearchPayload>(Chat2Gen.cancelThreadSearch, cancelThreadSearch)
-  yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(Chat2Gen.toggleThreadSearch, toggleThreadSearch)
+  yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(
+    Chat2Gen.toggleThreadSearch,
+    onToggleThreadSearch
+  )
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 

@@ -595,9 +595,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "query": "HiddenString"
     },
-    "cancelThreadSearch": {
-      "_description": "Cancel any outstanding thread searches"
-    },
     "threadSearchResult": {
       "_description": "Record a new thread search result",
       "conversationIDKey": "Types.ConversationIDKey",
