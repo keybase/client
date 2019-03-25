@@ -46,6 +46,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   },
   _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
     dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
+  jumpToRecent: () => dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
   onCancelSearch: () =>
     dispatch(Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})),
   onHotkey: (cmd: string) => {
@@ -68,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     hotkeys,
     isPending: stateProps.isPending,
     isSearching: stateProps.isSearching,
+    jumpToRecent: dispatchProps.jumpToRecent,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelSearch: dispatchProps.onCancelSearch,
     onHotkey: dispatchProps.onHotkey,

@@ -40,12 +40,9 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   container: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
     backgroundColor: Styles.globalColors.blue,
     borderRadius: 28,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
   },
   outerContainer: {
     marginBottom: Styles.globalMargins.tiny,

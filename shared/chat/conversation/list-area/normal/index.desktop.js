@@ -242,8 +242,7 @@ class Thread extends React.PureComponent<Props, State> {
     // position at all, so just bail out if we detect this case.
     if (
       this.props.messageOrdinals.size !== prevProps.messageOrdinals.size &&
-      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first() &&
-      !this.props.containsLatestMessage
+      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first()
     ) {
       // do nothing do scroll position if this is true
       this._scrollHeight = 0 // setting this causes us to skip next resize

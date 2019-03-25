@@ -11,6 +11,7 @@ import Input, {type Props} from '.'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
+  jumpToRecent: () => void,
   onRequestScrollDown: () => void,
   onRequestScrollToBottom: () => void,
   onRequestScrollUp: () => void,
@@ -41,7 +42,9 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
+  const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   return {
+    _containsLatestMessage,
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
     _you,
@@ -134,7 +137,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     } else {
       dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
     }
-    ownProps.onRequestScrollToBottom()
+    if (stateProps._containsLatestMessage) {
+      ownProps.onRequestScrollToBottom()
+    } else {
+      ownProps.jumpToRecent()
+    }
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,

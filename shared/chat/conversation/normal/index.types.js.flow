@@ -5,6 +5,7 @@ export type Props = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   isSearching: boolean,
+  jumpToRecent: () => void,
   scrollListDownCounter: number,
   scrollListToBottomCounter: number,
   scrollListUpCounter: number,
