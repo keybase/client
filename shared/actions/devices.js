@@ -86,15 +86,12 @@ const navigateAfterRevoked = (state, action) =>
   })
 
 const showRevokePage = () =>
-  !flags.useNewRouter &&
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage', 'deviceRevoke']})
 
 const showDevicePage = () =>
-  !flags.useNewRouter &&
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage']})
 
 const showPaperKeyPage = () =>
-  !flags.useNewRouter &&
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
 
 let _wasOnDeviceTab = false

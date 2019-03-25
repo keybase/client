@@ -347,18 +347,13 @@ class ProvisioningManager {
         }
 
   showCodePage = () =>
-    flags.useNewRouter
-      ? RouteTreeGen.createNavigateAppend({
-          parentPath: this._addingANewDevice ? devicesRoot : [Tabs.loginTab],
-          path: ['codePage'],
-        })
-      : RouteTreeGen.createDispatchNav2Action({action: StackActions.replace({routeName: 'codePage'})})
+    RouteTreeGen.createNavigateAppend({
+      parentPath: this._addingANewDevice ? devicesRoot : [Tabs.loginTab],
+      path: ['codePage'],
+      replace: true,
+    })
 
   maybeCancelProvision = state => {
-    if (flags.useNewRouter) {
-      return
-    }
-
     const root = state.routeTree.routeState && state.routeTree.routeState.selected
 
     const doingDeviceAdd = this._addingANewDevice && root === devicesRoot[0]
@@ -438,14 +433,9 @@ function* addNewDevice(state) {
     ProvisioningManager.getSingleton().done('add device success')
     // Now refresh and nav back
     yield Saga.put(DevicesGen.createLoad())
-    if (!flags.useNewRouter) {
-      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: devicesRoot, path: []}))
-    } else {
-      yield Saga.put(
-        RouteTreeGen.createDispatchNav2Action({
-          action: StackActions.push({routeName: devicesRoot[devicesRoot.length - 1]}),
-        })
-      )
+    yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: devicesRoot, path: []}))
+    if (flags.useNewRouter) {
+      yield Saga.put(RouteTreeGen.createClearModals())
     }
   } catch (finalError) {
     ProvisioningManager.getSingleton().done(finalError.message)
@@ -467,38 +457,32 @@ const maybeCancelProvision = (state: TypedState) =>
   ProvisioningManager.getSingleton().maybeCancelProvision(state)
 
 const showDeviceListPage = state =>
-  !state.provision.error.stringValue() && !flags.useNewRouter
-    ? RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['selectOtherDevice']})
-    : RouteTreeGen.createDispatchNav2Action({action: StackActions.replace({routeName: 'selectOtherDevice'})})
+  !state.provision.error.stringValue() &&
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['selectOtherDevice'], replace: true})
 
 const showNewDeviceNamePage = state =>
-  !state.provision.error.stringValue() && !flags.useNewRouter
-    ? RouteTreeGen.createNavigateAppend({
-        parentPath: [Tabs.loginTab],
-        path: ['setPublicName'],
-      })
-    : RouteTreeGen.createDispatchNav2Action({action: StackActions.replace({routeName: 'setPublicName'})})
+  !state.provision.error.stringValue() &&
+  RouteTreeGen.createNavigateAppend({
+    parentPath: [Tabs.loginTab],
+    path: ['setPublicName'],
+    replace: true,
+  })
 
 const showCodePage = state => {
-  return !state.provision.error.stringValue() && !flags.useNewRouter
-    ? ProvisioningManager.getSingleton().showCodePage()
-    : RouteTreeGen.createDispatchNav2Action({action: StackActions.replace({routeName: 'codePage'})})
+  return !state.provision.error.stringValue() && ProvisioningManager.getSingleton().showCodePage()
 }
 
 const showGPGPage = state =>
-  !state.provision.error.stringValue() && !flags.useNewRouter
-    ? RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['gpgSign']})
-    : RouteTreeGen.createDispatchNav2Action({action: StackActions.replace({routeName: 'gpgSign'})})
+  !state.provision.error.stringValue() &&
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['gpgSign'], replace: true})
 
 const showPassphrasePage = state =>
-  !state.provision.error.stringValue() && !flags.useNewRouter
-    ? RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['passphrase']})
-    : RouteTreeGen.createDispatchNav2Action({action: StackActions.replace({routeName: 'passphrase'})})
+  !state.provision.error.stringValue() &&
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['passphrase'], replace: true})
 
 const showPaperkeyPage = state =>
-  !state.provision.error.stringValue() && !flags.useNewRouter
-    ? RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey']})
-    : RouteTreeGen.createDispatchNav2Action({action: StackActions.replace({routeName: 'paperkey'})})
+  !state.provision.error.stringValue() &&
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey'], replace: true})
 
 const showFinalErrorPage = (state, action) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : [Tabs.loginTab]
@@ -506,26 +490,14 @@ const showFinalErrorPage = (state, action) => {
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     path = ['error']
   } else {
-    if (flags.useNewRouter) {
-      path = devicesRoot
-    } else {
-      path = []
-    }
+    path = []
   }
 
-  if (!flags.useNewRouter) {
-    return RouteTreeGen.createNavigateTo({parentPath, path})
-  } else {
-    return RouteTreeGen.createDispatchNav2Action({
-      action: StackActions.replace({routeName: path[path.length - 1]}),
-    })
-  }
+  return RouteTreeGen.createNavigateTo({parentPath, path, replace: true})
 }
 
 const showUsernameEmailPage = () =>
-  !flags.useNewRouter
-    ? RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['usernameOrEmail']})
-    : RouteTreeGen.createDispatchNav2Action({action: StackActions.push({routeName: 'usernameOrEmail'})})
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['usernameOrEmail']})
 
 function* provisionSaga(): Saga.SagaGenerator<any, any> {
   // Always ensure we have one live

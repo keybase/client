@@ -19,7 +19,15 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       const p = action.payload.path.last
         ? action.payload.path.last()
         : action.payload.path[action.payload.path.length - 1]
-      if (!p) {
+      // We have to check the parent path as well, since sometimes we navigate
+      // to a parentpath with no path set
+      const parentPath = !action.payload.parentPath
+        ? null
+        : action.payload.parentPath.last
+        ? action.payload.parentPath.last()
+        : action.payload.parentPath[action.payload.parentPath.length - 1]
+
+      if (!p && !parentPath) {
         return
       }
       let routeName = null
@@ -27,9 +35,11 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       if (typeof p === 'string') {
         routeName = p
-      } else {
+      } else if (p) {
         routeName = p.selected
         params = p.props
+      } else if (typeof parentPath === 'string') {
+        routeName = parentPath
       }
 
       if (!routeName) {
@@ -43,6 +53,10 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
           console.log('Skipping append dupe')
           return
         }
+      }
+
+      if (action.payload.replace) {
+        return [StackActions.replace({params, routeName})]
       }
 
       return [StackActions.push({params, routeName})]

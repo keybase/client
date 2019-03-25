@@ -16,7 +16,7 @@ const Modal = <P>(C: React.ComponentType<P>) =>
     (_, dp, op: P) => ({...dp, showCloseButtonPopup: true, ...op})
   )(Kb.PopupDialogHoc(C))
 
-export function modalizeRoutes(route: Route) {
+export function modalizeRoute(route: Route) {
   if (isMobile) {
     return route
   }

@@ -23,7 +23,8 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigation}) => ({
   loadDevices: () => dispatch(DevicesGen.createLoad()),
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     if (flags.useNewRouter) {
-      navigation.dispatch(NavigationActions.navigate({params: {highlight}, routeName: 'deviceAdd'}))
+      // We don't have navigateAppend in upgraded routes
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
     } else {
       dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}]))
     }

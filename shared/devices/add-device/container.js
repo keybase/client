@@ -1,6 +1,7 @@
 // @flow
 import * as Container from '../../util/container'
 import * as DevicesGen from '../../actions/devices-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import {NavigationActions, StackActions} from '@react-navigation/core'
 import AddDevice from '.'
@@ -9,35 +10,27 @@ import type {RouteProps} from '../../route-tree/render-route'
 
 const mapDispatchToProps = (dispatch, {navigateUp, navigation}) => ({
   onAddComputer: () => {
-    if (flags.useNewRouter) {
-      // navigation.dispatch(NavigationActions.back())
-      navigation.dispatch(StackActions.push({routeName: 'codePage'}))
-    } else {
+    if (!flags.useNewRouter) {
       dispatch(navigateUp())
     }
-    // dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'}))
+    dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'}))
   },
   onAddPaperKey: () => {
-    if (flags.useNewRouter) {
-      navigation.dispatch(NavigationActions.back())
-      navigation.dispatch(StackActions.push({routeName: 'devicePaperKey'}))
-    } else {
+    if (!flags.useNewRouter) {
       dispatch(navigateUp())
     }
     dispatch(DevicesGen.createShowPaperKeyPage())
   },
   onAddPhone: () => {
-    if (flags.useNewRouter) {
-      // navigation.dispatch(NavigationActions.back())
-      navigation.dispatch(StackActions.push({routeName: 'codePage'}))
-    } else {
+    if (!flags.useNewRouter) {
       dispatch(navigateUp())
     }
-    // dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'}))
+    dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'}))
   },
   onCancel: () => {
     if (flags.useNewRouter) {
-      navigation.dispatch(NavigationActions.back())
+      // We don't have navigateUp in upgraded Routes
+      dispatch(RouteTreeGen.createNavigateUp())
     } else {
       dispatch(navigateUp())
     }
