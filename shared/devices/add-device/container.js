@@ -3,7 +3,6 @@ import * as Container from '../../util/container'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
-import {NavigationActions, StackActions} from '@react-navigation/core'
 import AddDevice from '.'
 import flags from '../../util/feature-flags'
 import type {RouteProps} from '../../route-tree/render-route'
@@ -48,7 +47,7 @@ export default Container.namedConnect<
   mapDispatchToProps,
   (s, d, o) => ({
     ...d,
-    highlight: flags.useNewRouter ? o.navigation.getParam('highlight', []) : o.routeProps.get('highlight'),
+    highlight: Container.getRouteProps(o, 'highlight') || [],
     title: 'Add a device',
   }),
   'AddDevice'
