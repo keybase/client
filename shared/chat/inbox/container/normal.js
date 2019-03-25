@@ -12,7 +12,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 const smallTeamsCollapsedMaxShown = 5
 
 // Could make this faster by bookkeeping if this structure changed instead of if any item changed
-const splitMetas = memoize((metaMap: Types.MetaMap) => {
+const splitMetas = memoize((metaMap: Types.MetaMap, selectedConversation) => {
   const bigMetas: Array<Types.ConversationMeta> = []
   const smallMetas: Array<Types.ConversationMeta> = []
   metaMap.forEach((meta: Types.ConversationMeta, id) => {
@@ -20,7 +20,12 @@ const splitMetas = memoize((metaMap: Types.MetaMap) => {
       if (meta.teamType === 'big') {
         bigMetas.push(meta)
       } else {
-        smallMetas.push(meta)
+        if (
+          meta.status !== RPCChatTypes.commonConversationStatus.ignored ||
+          meta.conversationIDKey === selectedConversation
+        ) {
+          smallMetas.push(meta)
+        }
       }
     }
   })
@@ -30,18 +35,11 @@ const splitMetas = memoize((metaMap: Types.MetaMap) => {
 const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
 const getSmallRows = memoize(
   (smallMetas, showAllSmallRows, selectedConversation) => {
-    const hideIgnoredConvs = meta => {
-      const ok =
-        meta.status !== RPCChatTypes.commonConversationStatus.ignored ||
-        meta.conversationIDKey === selectedConversation
-      return ok
-    }
     let metas
     if (showAllSmallRows) {
-      metas = smallMetas.filter(hideIgnoredConvs).sort(sortByTimestamp)
+      metas = smallMetas.sort(sortByTimestamp)
     } else {
       metas = I.Seq(smallMetas)
-        .filter(hideIgnoredConvs)
         .sort(sortByTimestamp)
         .take(smallTeamsCollapsedMaxShown)
         .toArray()
@@ -92,9 +90,9 @@ const getBigRows = memoize(
 // Convert the smallIDs to the Small RowItems
 const getRowsAndMetadata = memoize<Types.MetaMap, boolean, Types.ConversationIDKey, void, _>(
   (metaMap: Types.MetaMap, smallTeamsExpanded: boolean, selectedConversation: Types.ConversationIDKey) => {
-    const {bigMetas, smallMetas} = splitMetas(metaMap)
+    const {bigMetas, smallMetas} = splitMetas(metaMap, selectedConversation)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
-    const smallRows = getSmallRows(smallMetas, showAllSmallRows, selectedConversation)
+    const smallRows = getSmallRows(smallMetas, showAllSmallRows)
     const bigRows = getBigRows(bigMetas)
     const smallTeamsBelowTheFold = smallMetas.length > smallRows.length
     const divider = bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
