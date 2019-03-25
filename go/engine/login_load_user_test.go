@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 type luTest struct {
@@ -135,45 +136,28 @@ func TestLoginLoadUserEmail(t *testing.T) {
 	Logout(tcX)
 	tcX.Cleanup()
 
+	checkEmailResult := func(user *libkb.User, err error) {
+		require.Error(t, err)
+		require.IsType(t, libkb.BadUsernameError{}, err)
+		require.Contains(t, err.Error(), "not supported")
+		require.Nil(t, user)
+	}
+
 	// own email address
 	user, err := testLoginLoadUserEmail(t, fu, fu.Email)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if user.GetName() != fu.Username {
-		t.Errorf("loginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
-	}
+	checkEmailResult(user, err)
 
 	// prompt for email address
 	user, err = testLoginLoadUserEmail(t, fu, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if user.GetName() != fu.Username {
-		t.Errorf("loginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
-	}
+	checkEmailResult(user, err)
 
 	// someone else's email address
 	user, err = testLoginLoadUserEmail(t, fu, "test+t_bob@test.keybase.io")
-	if err == nil {
-		t.Errorf("bob's email address worked with invalid secret")
-	} else if _, ok := err.(libkb.PassphraseError); !ok {
-		t.Errorf("error: %s (%T), expected libkb.PassphraseError", err, err)
-	}
-	if user != nil {
-		t.Errorf("got a user for bob's email address")
-	}
+	checkEmailResult(user, err)
 
 	// nobody's email address
 	user, err = testLoginLoadUserEmail(t, fu, "XXXYYYXXX@test.keybase.io")
-	if err == nil {
-		t.Errorf("unknown email address worked with invalid secret")
-	} else if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Errorf("error: %s (%T), expected libkb.NotFoundError", err, err)
-	}
-	if user != nil {
-		t.Errorf("got a user for unknown email address")
-	}
+	checkEmailResult(user, err)
 }
 
 func testLoginLoadUserEmail(t *testing.T, fu *FakeUser, input string) (*libkb.User, error) {
