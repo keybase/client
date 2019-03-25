@@ -90,7 +90,7 @@ func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string
 	if err != nil {
 		b.Debug(ctx, "notifyTlfFinalize: failed to load finalize user, skipping user changed notification: err: %s", err.Error())
 	} else {
-		b.G().UserChanged(finalizeUser.GetUID())
+		b.G().UserChanged(ctx, finalizeUser.GetUID())
 	}
 }
 

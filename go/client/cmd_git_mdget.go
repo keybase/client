@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -33,6 +34,7 @@ func NewCmdGitMdget(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 // RunClient runs the command in client/server mode.
 func (c *CmdGitMdget) Run() error {
 	cli, err := GetGitClient(c.G())
+	ctx := context.Background()
 	if err != nil {
 		return err
 	}
@@ -43,12 +45,12 @@ func (c *CmdGitMdget) Run() error {
 		if err != nil {
 			return err
 		}
-		res, err = cli.GetGitMetadata(c.G().GetNetContext(), folder)
+		res, err = cli.GetGitMetadata(ctx, folder)
 		if err != nil {
 			return err
 		}
 	} else {
-		res, err = cli.GetAllGitMetadata(c.G().GetNetContext())
+		res, err = cli.GetAllGitMetadata(ctx)
 		if err != nil {
 			return err
 		}

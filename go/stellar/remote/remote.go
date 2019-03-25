@@ -139,7 +139,7 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 		return err
 	}
 
-	mctx.G().UserChanged(uid)
+	mctx.G().UserChanged(mctx.Ctx(), uid)
 	return nil
 }
 
