@@ -131,11 +131,11 @@ class Icon extends Component<Props, void> {
       return (
         <div
           style={Styles.collapseStyles([
-            this.props.boxStyle,
             // This breaks a couple existing uses. So only apply it when padding
             // is provided for now. Eventually after we know all uses are fine,
             // we can remove the padding guard.
             this.props.padding && styles.flex,
+            this.props.boxStyle,
           ])}
         >
           <span
