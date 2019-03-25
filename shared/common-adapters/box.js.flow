@@ -10,6 +10,7 @@ export type Box2Props = {|
   centerChildren?: boolean,
   className?: ?string,
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse',
+  divRef?: {current: null | HTMLDivElement}, // desktop only, passthrough to div
   fullHeight?: boolean,
   fullWidth?: boolean,
   noShrink?: boolean,

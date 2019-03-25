@@ -25,7 +25,7 @@ const injectGaps = (component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
-const Box2 = React.forwardRef<Box2Props, HTMLDivElement>((props: Box2Props, ref) => {
+const Box2 = (props: Box2Props) => {
   let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
 
   const className = [
@@ -59,12 +59,12 @@ const Box2 = React.forwardRef<Box2Props, HTMLDivElement>((props: Box2Props, ref)
       onCopyCapture={props.onCopyCapture}
       className={className}
       style={style}
-      ref={ref}
+      ref={props.divRef}
     >
       {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </div>
   )
-})
+}
 
 const vBoxGap = (key, gap) => <div key={key} className={`box2_gap_vertical_${gap}`} />
 const hBoxGap = (key, gap) => <div key={key} className={`box2_gap_horizontal_${gap}`} />
