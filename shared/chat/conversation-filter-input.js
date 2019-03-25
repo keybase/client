@@ -170,8 +170,10 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             </Kb.ClickableBox>
           </Kb.Box2>
           {!!this.props.onNewChat && (
-            <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
-              <Kb.Button small={true} type="Primary" label="New chat" onClick={this.props.onNewChat} />
+            <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
+              <Kb.Button small={true} type="Primary" onClick={this.props.onNewChat}>
+                <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
+              </Kb.Button>
             </Kb.WithTooltip>
           )}
         </Kb.Box2>
@@ -259,6 +261,10 @@ const styles = Styles.styleSheetCreate({
     left: 0,
     position: 'absolute',
     right: 0,
+  },
+  newIcon: {
+    position: 'relative',
+    top: 1,
   },
   text: {
     color: Styles.globalColors.black_50,
