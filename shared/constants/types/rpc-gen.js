@@ -131,6 +131,7 @@ export const constantsStatusCode = {
   scexists: 230,
   sccanceled: 237,
   scinputcanceled: 239,
+  scbadusername: 243,
   scoffline: 267,
   screloginrequired: 274,
   scresolutionfailed: 275,

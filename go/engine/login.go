@@ -69,7 +69,7 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	if len(e.username) > 0 && libkb.CheckEmail.F(e.username) {
 		// We used to support logging in with e-mail but we don't anymore,
 		// since 2019-03-20.(CORE-10470).
-		return fmt.Errorf("logging in using e-mail address is not supported")
+		return libkb.NewBadUsernameErrorWithFullMessage("Logging in with e-mail address is not supported")
 	}
 
 	// check to see if already logged in
