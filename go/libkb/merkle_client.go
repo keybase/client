@@ -463,20 +463,21 @@ func (mc *MerkleClient) init(m MetaContext) error {
 }
 
 func merkleHeadKey() DbKey {
+	// DBMerkleRoot was once used to store specific roots with Key: fmt.Sprintf("%d", int)
 	return DbKey{
-		Typ: DBLookupMerkleRoot,
+		Typ: DBMerkleRoot,
 		Key: "HEAD",
 	}
 }
 
-func (mc *MerkleClient) dbLookup(m MetaContext, k DbKey) (ret *MerkleRoot, err error) {
-	defer m.VTrace(VLog1, fmt.Sprintf("MerkleClient#dbLookup(%+v)", k), func() error { return err })()
-	curr, err := m.G().LocalDb.Lookup(k)
+func (mc *MerkleClient) dbGet(m MetaContext, k DbKey) (ret *MerkleRoot, err error) {
+	defer m.VTrace(VLog1, fmt.Sprintf("MerkleClient#dbGet(%+v)", k), func() error { return err })()
+	curr, err := m.G().LocalDb.Get(k)
 	if err != nil {
 		return nil, err
 	}
 	if curr == nil {
-		m.VLogf(VLog1, "| MerkleClient#dbLookup(%+v) found not results", k)
+		m.VLogf(VLog1, "| MerkleClient#dbGet(%+v) found not results", k)
 		return nil, nil
 	}
 
@@ -490,7 +491,7 @@ func (mc *MerkleClient) dbLookup(m MetaContext, k DbKey) (ret *MerkleRoot, err e
 func (mc *MerkleClient) loadRoot(m MetaContext) (err error) {
 	defer m.VTrace(VLog1, "MerkleClient#loadRoot()", func() error { return err })()
 	var mr *MerkleRoot
-	mr, err = mc.dbLookup(m, merkleHeadKey())
+	mr, err = mc.dbGet(m, merkleHeadKey())
 	if mr == nil || err != nil {
 		return err
 	}
@@ -498,18 +499,6 @@ func (mc *MerkleClient) loadRoot(m MetaContext) (err error) {
 	mc.lastRoot = mr
 	mc.Unlock()
 	return nil
-}
-
-func (mr *MerkleRoot) Store() error {
-	dbKeys := []DbKey{merkleHeadKey()}
-	err := mr.G().LocalDb.Put(DbKey{
-		Typ: DBMerkleRoot,
-		Key: fmt.Sprintf("%d", mr.Seqno()),
-	},
-		dbKeys,
-		mr.ToJSON(),
-	)
-	return err
 }
 
 func (mr *MerkleRoot) HasSkips() bool {
@@ -950,7 +939,7 @@ func (mr MerkleRoot) ExportToAVDL(g *GlobalContext) keybase1.MerkleRootAndTime {
 // Must be called from under a lock.
 func (mc *MerkleClient) storeRoot(m MetaContext, root *MerkleRoot) {
 	m.VLogf(VLog0, "storing merkle root: %d", *root.Seqno())
-	err := root.Store()
+	err := mc.G().LocalDb.Put(merkleHeadKey(), nil, root.ToJSON())
 	if err != nil {
 		m.Error("Cannot commit Merkle root to local DB: %s", err)
 	} else {

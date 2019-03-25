@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 // MobileAppState tracks the state of foreground/background status of the app in which the service
@@ -71,21 +72,24 @@ func (a *MobileAppState) State() keybase1.MobileAppState {
 // --------------------------------------------------
 
 type DesktopAppState struct {
+	Contextified
 	sync.Mutex
+	provider  rpc.Transporter
 	suspended bool
 	locked    bool
 }
 
 func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
-	return &DesktopAppState{}
+	return &DesktopAppState{Contextified: NewContextified(g)}
 }
 
 // event from power monitor
 // https://electronjs.org/docs/api/power-monitor
-func (a *DesktopAppState) Update(mctx MetaContext, event string) {
+func (a *DesktopAppState) Update(mctx MetaContext, event string, provider rpc.Transporter) {
 	mctx.Debug("DesktopAppState.Update(%v)", event)
 	a.Lock()
 	defer a.Unlock()
+	a.provider = provider
 	switch event {
 	case "suspend":
 		a.suspended = true
@@ -95,6 +99,20 @@ func (a *DesktopAppState) Update(mctx MetaContext, event string) {
 	case "lock-screen":
 		a.locked = true
 	case "unlock-screen":
+		a.suspended = false
+		a.locked = false
+	}
+}
+
+func (a *DesktopAppState) Disconnected(provider rpc.Transporter) {
+	a.Lock()
+	defer a.Unlock()
+	theProvider := provider == a.provider
+	a.G().Log.Debug("DesktopAppState.Disconnected(%v)", theProvider)
+	if theProvider {
+		a.provider = nil
+		// The connection to electron has been severed. We won't get any more power
+		// status updates from it. So act as though the machine is on in the default state.
 		a.suspended = false
 		a.locked = false
 	}
