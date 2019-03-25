@@ -135,11 +135,11 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 
 	if err == nil {
 		// Remove this after desktop notification change complete:
-		m.G().UserChanged(e.them.GetUID())
+		m.G().UserChanged(m.Ctx(), e.them.GetUID())
 
 		// Remove these after desktop notification change complete, but
 		// add in: m.G().BustLocalUserCache(e.arg.Me.GetUID())
-		m.G().UserChanged(e.arg.Me.GetUID())
+		m.G().UserChanged(m.Ctx(), e.arg.Me.GetUID())
 
 		// Keep these:
 		m.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)

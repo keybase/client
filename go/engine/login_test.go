@@ -153,18 +153,15 @@ func TestUserEmails(t *testing.T) {
 
 func TestProvisionDesktop(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionDesktop(t, false, sigVersion, false)
+		testProvisionDesktop(t, false, sigVersion)
 	})
-}
-func TestProvisionDesktopWithEmail(t *testing.T) {
-	testProvisionDesktop(t, false, libkb.KeybaseNullSigVersion, true)
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion, false)
+	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion)
 }
 
-func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion, withEmail bool) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -195,10 +192,6 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
-	}
-	if withEmail {
-		uis.LoginUI = &libkb.TestLoginUI{Username: userX.Email}
-		uis.SecretUI = userX.NewSecretUI()
 	}
 
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
@@ -523,12 +516,8 @@ func TestProvisionPassphraseBadName(t *testing.T) {
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("Provision via passphrase should have failed with bad name.")
-	}
-	if _, ok := err.(libkb.BadNameError); !ok {
-		t.Fatalf("Provision via passphrase err type: %T, expected libkb.BadNameError", err)
-	}
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
 }
 
 // If a user has (only) a synced pgp key, provision via passphrase
@@ -597,22 +586,10 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
-
-	// since this user didn't have any device keys, login should have fixed that:
-	testUserHasDeviceKey(tc)
-
-	// and they should not have a paper backup key
-	hasZeroPaperDev(tc, u1)
-
-	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
-	}
-
-	// after provisioning, the secret should be stored
-	assertSecretStored(tc, u1.Username)
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 
 // Check that a bad passphrase fails to unlock a synced pgp key
@@ -2342,7 +2319,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "logging in using e-mail address is not supported")
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 
 // create a standard user with device keys, reset account, login.
@@ -3497,7 +3475,8 @@ func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "logging in using e-mail address is not supported")
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 func TestBeforeResetDeviceName(t *testing.T) {
 	tc := SetupEngineTest(t, "login")

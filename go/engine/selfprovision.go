@@ -266,6 +266,6 @@ func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
 }
 
 func (e *SelfProvisionEngine) sendNotification(m libkb.MetaContext) {
-	e.G().KeyfamilyChanged(e.User.GetUID())
+	e.G().KeyfamilyChanged(m.Ctx(), e.User.GetUID())
 	e.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsername()))
 }
