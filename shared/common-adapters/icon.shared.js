@@ -149,9 +149,6 @@ const makePaddingStyles = () =>
         common: {
           padding: Styles.globalMargins[paddingName],
         },
-        isElectron: {
-          display: 'block',
-        },
       }),
     }),
     {}
