@@ -586,22 +586,10 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
-
-	// since this user didn't have any device keys, login should have fixed that:
-	testUserHasDeviceKey(tc)
-
-	// and they should not have a paper backup key
-	hasZeroPaperDev(tc, u1)
-
-	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
-	}
-
-	// after provisioning, the secret should be stored
-	assertSecretStored(tc, u1.Username)
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 
 // Check that a bad passphrase fails to unlock a synced pgp key
@@ -2331,7 +2319,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "logging in using e-mail address is not supported")
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 
 // create a standard user with device keys, reset account, login.
@@ -3486,7 +3475,8 @@ func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "logging in using e-mail address is not supported")
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 func TestBeforeResetDeviceName(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
