@@ -6,14 +6,14 @@ import PaperKey from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import flags from '../../util/feature-flags'
 
-type OwnProps = {|navigation: any|}
+type OwnProps = {||}
 
 const mapStateToProps = state => ({
   paperkey: state.devices.newPaperkey.stringValue(),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigation}) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => {
     flags.useNewRouter
       ? dispatch(RouteTreeGen.createClearModals())

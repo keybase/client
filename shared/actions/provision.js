@@ -471,9 +471,8 @@ const showNewDeviceNamePage = state =>
     replace: true,
   })
 
-const showCodePage = state => {
-  return !state.provision.error.stringValue() && ProvisioningManager.getSingleton().showCodePage()
-}
+const showCodePage = state =>
+  !state.provision.error.stringValue() && ProvisioningManager.getSingleton().showCodePage()
 
 const showGPGPage = state =>
   !state.provision.error.stringValue() &&

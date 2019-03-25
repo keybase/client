@@ -90,8 +90,10 @@ const showRevokePage = (_, {payload: {deviceID}}) =>
     path: [...Constants.devicesTabLocation, 'devicePage', {props: {deviceID}, selected: 'deviceRevoke'}],
   })
 
-const showDevicePage = () =>
-  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage']})
+const showDevicePage = (_, {payload: {deviceID}}) =>
+  RouteTreeGen.createNavigateTo({
+    path: [...Constants.devicesTabLocation, {props: {deviceID}, selected: 'devicePage'}],
+  })
 
 const showPaperKeyPage = () =>
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
