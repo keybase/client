@@ -35,15 +35,17 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
 
 const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
   <>
-    <Icon
-      type="iconfont-finder"
-      padding="tiny"
-      fontSize={16}
-      color={Styles.globalColors.black_50}
-      hoverColor={Styles.globalColors.black}
-      onClick={props.toggleShowingMenu}
-      ref={props.setAttachmentRef}
-    />
+    <WithTooltip text={`Show in ${fileUIName}`}>
+      <Icon
+        type="iconfont-finder"
+        padding="tiny"
+        fontSize={16}
+        color={Styles.globalColors.black_50}
+        hoverColor={Styles.globalColors.black}
+        onClick={props.toggleShowingMenu}
+        ref={props.setAttachmentRef}
+      />
+    </WithTooltip>
     <Overlay
       style={styles.popup}
       attachTo={props.getAttachmentRef}
