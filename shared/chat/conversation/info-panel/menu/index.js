@@ -4,19 +4,23 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
+export type ConvProps = {
+  teamType: ChatTypes.TeamType,
+  ignored: boolean,
+}
+
 export type Props = {
   attachTo: () => ?React.Component<any>,
   badgeSubscribe: boolean,
   canAddPeople: boolean,
+  convProps: ?ConvProps, // empty when this conv is for a team but no particular conv
   isSmallTeam: boolean,
-  teamType: ChatTypes.TeamType,
   manageChannelsSubtitle: string,
   manageChannelsTitle: string,
   memberCount: number,
   teamname: string,
   visible: boolean,
   hasCanPerform: boolean,
-  ignored: boolean,
   loadOperations: () => void,
   onAddPeople: () => void,
   onHidden: () => void,
@@ -107,8 +111,12 @@ class InfoPanelMenu extends React.Component<Props> {
   }
 
   hideItem() {
-    if (this.props.teamType === 'adhoc' || this.props.teamType === 'small') {
-      if (this.props.ignored) {
+    if (this.props.convProps == null) {
+      return null
+    }
+    const convProps = this.props.convProps
+    if (convProps.teamType === 'adhoc' || convProps.teamType === 'small') {
+      if (convProps.ignored) {
         return {onClick: this.props.onUnhideConv, style: {borderTopWidth: 0}, title: 'Unhide conversation'}
       } else {
         return {

@@ -37,21 +37,28 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
 }
 
 const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
+  let convProps = null
+  if (conversationIDKey !== ChatConstants.noConversationIDKey) {
+    const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
+    convProps = {
+      ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
+      teamType: meta.teamType,
+    }
+  }
   // skip a bunch of stuff for menus that aren't visible
   if (!visible) {
     return {
       badgeSubscribe: false,
       canAddPeople: false,
+      convProps,
       hasCanPerform: false,
       isSmallTeam: false,
       manageChannelsSubtitle: '',
       manageChannelsTitle: '',
       memberCount: 0,
-      teamType: 'adhoc',
       teamname,
     }
   }
-  const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
   const yourOperations = TeamConstants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
   const hasCanPerform = TeamConstants.hasCanPerform(state, teamname)
@@ -66,13 +73,12 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
   return {
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
+    convProps,
     hasCanPerform,
-    ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
     memberCount: TeamConstants.getTeamMemberCount(state, teamname),
-    teamType: meta.teamType,
     teamname,
   }
 }
