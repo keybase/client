@@ -1,0 +1,19 @@
+diff --git a/go/keybase/main.go b/go/keybase/main.go
+index ff980ad2a1..e4c59aad24 100644
+--- a/go/keybase/main.go
++++ b/go/keybase/main.go
+@@ -334,11 +334,13 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd
+ 		}
+ 	} else {
+ 		// If this command warrants an autofork, do it now.
+-		if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
++		if fc == libcmdline.ForceFork {
+ 			newProc, err = client.AutoForkServer(g, cl)
+ 			if err != nil {
+ 				return err
+ 			}
++		} else {
++			return fmt.Errorf("Keybase service not running; start it with `run_keybase` or `keybase ctl start`.")
+ 		}
+ 	}
+ 
