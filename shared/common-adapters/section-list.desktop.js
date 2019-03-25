@@ -22,6 +22,9 @@ class SectionList extends React.Component<Props, State> {
   _flat = []
   state = {currentSectionFlatIndex: 0}
   _listRef = React.createRef()
+  _parentRef = React.createRef()
+  _nextSectionHeaderRef = React.createRef()
+  _nextSectionHeaderFlatIndex = -1
   _mounted = true
 
   componentDidUpdate(prevProps: Props, prevState: State) {
@@ -47,7 +50,8 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, renderingSticky) => {
+  _itemRenderer = (index, _key, renderingSticky) => {
+    // _key passed in by ReactList but unused
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
@@ -60,12 +64,24 @@ class SectionList extends React.Component<Props, State> {
     }
 
     if (item.type === 'header') {
-      if (this.props.stickySectionHeadersEnabled && !renderingSticky && item.flatSectionIndex === 0) {
-        // don't render the first one since its always there
-        return null
+      if (
+        this.props.stickySectionHeadersEnabled &&
+        !renderingSticky &&
+        item.flatSectionIndex === this.state.currentSectionFlatIndex
+      ) {
+        // this is sticky, don't render it again
+        // don't return null because ReactList will wig out
+        return <Box2 direction="vertical" key={item.key} style={styles.boxFiller} />
       }
+      const nextHeader = item.sectionIndex === this._flat[this.state.currentSectionFlatIndex].sectionIndex + 1
+      this._nextSectionHeaderFlatIndex = nextHeader ? item.flatSectionIndex : this._nextSectionHeaderFlatIndex
       return (
-        <Box2 direction="vertical" key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`} style={styles.box}>
+        <Box2
+          direction="vertical"
+          key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`}
+          style={styles.box}
+          divRef={nextHeader ? this._nextSectionHeaderRef : undefined}
+        >
           {this.props.renderSectionHeader({section: section.section})}
         </Box2>
       )
@@ -98,6 +114,18 @@ class SectionList extends React.Component<Props, State> {
       const [firstIndex] = this._listRef.current.getVisibleRange()
       const item = this._flat[firstIndex]
       if (item) {
+        if (this._parentRef.current && this._nextSectionHeaderRef.current) {
+          const {y} = this._parentRef.current.getBoundingClientRect()
+          const {y: nextY} = this._nextSectionHeaderRef.current.getBoundingClientRect()
+          if (nextY <= y) {
+            this.setState(p =>
+              p.currentSectionFlatIndex !== this._nextSectionHeaderFlatIndex
+                ? {currentSectionFlatIndex: this._nextSectionHeaderFlatIndex}
+                : null
+            )
+          }
+          return
+        }
         this.setState(p =>
           p.currentSectionFlatIndex !== item.flatSectionIndex
             ? {currentSectionFlatIndex: item.flatSectionIndex}
@@ -122,6 +150,7 @@ class SectionList extends React.Component<Props, State> {
           section.key ||
           sectionIndex,
         section,
+        sectionIndex,
         type: 'header',
       })
       section.data.length &&
@@ -144,10 +173,17 @@ class SectionList extends React.Component<Props, State> {
   render() {
     this._flatten(this.props.sections)
     const stickyHeader =
-      this.props.stickySectionHeadersEnabled && this._itemRenderer(this.state.currentSectionFlatIndex, true)
+      this.props.stickySectionHeadersEnabled &&
+      this._itemRenderer(this.state.currentSectionFlatIndex, null, true)
 
     return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        style={styles.container}
+        divRef={this._parentRef}
+      >
         {stickyHeader}
         <ScrollView
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
@@ -170,6 +206,10 @@ const styles = Styles.styleSheetCreate({
   box: {
     alignSelf: 'stretch',
     flexShrink: 0,
+  },
+  boxFiller: {
+    alignSelf: 'stretch',
+    display: 'none',
   },
   container: {
     alignSelf: 'flex-start',
