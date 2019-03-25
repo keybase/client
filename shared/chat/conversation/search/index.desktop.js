@@ -26,15 +26,15 @@ class ThreadSearch extends React.Component<Props, State> {
     if (this.state.selectedIndex >= this.props.hits.length) {
       return
     }
-    this.props.loadSearchHit(this.state.selectedIndex)
+    this.props.loadSearchHit(this.state.selectedIndex + 1)
     this.setState({selectedIndex: this.state.selectedIndex + 1})
   }
 
   _onDown = () => {
-    if (this.state.selectedIndex <= 1) {
+    if (this.state.selectedIndex <= 0) {
       return
     }
-    this.props.loadSearchHit(this.state.selectedIndex)
+    this.props.loadSearchHit(this.state.selectedIndex - 1)
     this.setState({selectedIndex: this.state.selectedIndex - 1})
   }
 
@@ -44,7 +44,7 @@ class ThreadSearch extends React.Component<Props, State> {
         key={index}
         onClick={() => {
           this.props.loadSearchHit(index)
-          this.setState({selectedIndex: index + 1})
+          this.setState({selectedIndex: index})
         }}
         style={styles.hitRow}
       >
@@ -80,7 +80,7 @@ class ThreadSearch extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
       this.props.loadSearchHit(0)
-      this.setState({selectedIndex: 1})
+      this.setState({selectedIndex: 0})
     }
   }
 
@@ -107,7 +107,7 @@ class ThreadSearch extends React.Component<Props, State> {
               {this.props.hits.length > 0 && (
                 <Kb.Box2 direction="horizontal" gap="tiny">
                   <Kb.Text type="BodySmall" style={styles.results}>
-                    {this.state.selectedIndex} of {this.props.hits.length}
+                    {this.state.selectedIndex + 1} of {this.props.hits.length}
                   </Kb.Text>
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
