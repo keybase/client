@@ -790,7 +790,7 @@ const rootReducer = (
       })
     }
     case Chat2Gen.jumpToRecent:
-      return state.setIn(['containsLatestMessageMap', action.payload.conversationIDKey], true)
+      return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
     case Chat2Gen.setContainsLastMessage:
       return state.setIn(
         ['containsLatestMessageMap', action.payload.conversationIDKey],
