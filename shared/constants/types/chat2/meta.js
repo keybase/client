@@ -1,5 +1,5 @@
-// Metadata about a conversation.
 // @flow strict
+// Metadata about a conversation.
 import * as I from 'immutable'
 import * as Common from './common'
 import * as RPCChatTypes from '../rpc-chat-gen'
@@ -7,7 +7,7 @@ import type {RetentionPolicy} from '../retention-policy'
 
 type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
-type TeamType = 'small' | 'big' | 'adhoc'
+export type TeamType = 'small' | 'big' | 'adhoc'
 
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'

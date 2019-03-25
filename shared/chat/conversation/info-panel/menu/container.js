@@ -47,9 +47,11 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
       manageChannelsSubtitle: '',
       manageChannelsTitle: '',
       memberCount: 0,
+      teamType: 'adhoc',
       teamname,
     }
   }
+  const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
   const yourOperations = TeamConstants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
   const hasCanPerform = TeamConstants.hasCanPerform(state, teamname)
@@ -65,13 +67,12 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
     hasCanPerform,
-    ignored:
-      state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta()).status ===
-      RPCChatTypes.commonConversationStatus.ignored,
+    ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
     memberCount: TeamConstants.getTeamMemberCount(state, teamname),
+    teamType: meta.teamType,
     teamname,
   }
 }

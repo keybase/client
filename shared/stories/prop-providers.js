@@ -84,6 +84,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
     onManageChannels: action('onManageChannels'),
     onUnhideConv: action('onUnhideConv'),
     onViewTeam: action('onViewTeam'),
+    teamType: ownProps.isSmallTeam ? 'small' : 'big',
     teamname: ownProps.teamname,
     visible: ownProps.visible,
   }),
