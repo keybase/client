@@ -72,12 +72,12 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onAddPeople: () => {
     if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
     } else {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
         })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
@@ -85,19 +85,23 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   },
   onInvite: () => {
     if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'inviteByEmail'}]}))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamInviteByEmail'}]})
+      )
     } else {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamInviteByEmail'}],
         })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     }
   },
   onLeaveTeam: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})
+    )
   },
   onManageChannels: () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]}))

@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
               showNotificationCheckbox: false,
               styleCover,
             },
-            selected: 'controlledRolePicker',
+            selected: 'teamControlledRolePicker',
           },
         ],
       })

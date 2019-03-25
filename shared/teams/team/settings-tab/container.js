@@ -65,7 +65,7 @@ const mapDispatchToProps = dispatch => ({
               pluralizeRoleName: true,
               selectedRole: newOpenTeamRole,
             },
-            selected: 'controlledRolePicker',
+            selected: 'teamControlledRolePicker',
           },
         ],
       })
