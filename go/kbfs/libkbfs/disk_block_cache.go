@@ -35,6 +35,7 @@ const (
 	defaultDiskBlockCacheMaxBytes   uint64 = 10 * (1 << 30)
 	defaultBlockCacheTableSize      int    = 50 * opt.MiB
 	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
+	defaultBlockCacheCapacity       int    = 8 * opt.MiB
 	evictionConsiderationFactor     int    = 3
 	defaultNumBlocksToEvict         int    = 10
 	defaultNumBlocksToEvictOnClear  int    = 100
@@ -200,6 +201,7 @@ func newDiskBlockCacheLocalFromStorage(
 	blockDbOptions := *leveldbOptions
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
 	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
+	blockDbOptions.BlockCacheCapacity = defaultBlockCacheCapacity
 	blockDbOptions.Filter = filter.NewBloomFilter(16)
 	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
 	if err != nil {
