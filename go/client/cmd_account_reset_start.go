@@ -19,17 +19,12 @@ type CmdAccountResetStart struct {
 
 func NewCmdAccountResetStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "reset-start",
-		Usage: "Start the reset process for your account with your username or email",
+		Name:         "reset-start",
+		Usage:        "Start the reset process for your account with your username or email",
+		ArgumentHelp: "[username or email]",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdAccountResetStartRunner(g)
 			cl.ChooseCommand(cmd, "reset-start", c)
-		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "account-name",
-				Usage: "Specify your account username or email",
-			},
 		},
 	}
 }
@@ -39,9 +34,13 @@ func NewCmdAccountResetStartRunner(g *libkb.GlobalContext) *CmdAccountResetStart
 }
 
 func (c *CmdAccountResetStart) ParseArgv(ctx *cli.Context) error {
-	c.usernameOrEmail = ctx.String("account-name")
+	if len(ctx.Args()) != 1 {
+		return fmt.Errorf("username or email required")
+	}
+
+	c.usernameOrEmail = ctx.Args().Get(0)
 	if len(c.usernameOrEmail) == 0 {
-		return fmt.Errorf("Account name is required")
+		return fmt.Errorf("username or email is required")
 	}
 	return nil
 }
