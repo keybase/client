@@ -164,6 +164,7 @@ protocol chatUi {
     union { null, string } outboxID;
     MessageBody messageBody;
     union { null, string } decoratedTextBody;
+    string bodySummary;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;

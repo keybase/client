@@ -957,6 +957,8 @@ protocol local {
   SearchInboxRes searchInbox(int sessionID, string query,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
+  void cancelActiveSearch();
+
   record ProfileSearchConvStats {
     // number of messages in the conversation that were indexed (type TEXT)
     int numMessages;

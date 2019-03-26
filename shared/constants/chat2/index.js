@@ -53,6 +53,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  threadSearchInfoMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
@@ -78,6 +79,15 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
   builtinCommands: [],
   deletableByDeleteHistory: I.Set(),
 })
+
+export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
+  hits: I.List(),
+  status: 'initial',
+  visible: false,
+})
+
+export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet())

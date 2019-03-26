@@ -21,6 +21,7 @@ import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
 import JumpToRecent from './jump-to-recent'
+import ThreadSearch from '../../search/container'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -254,9 +255,10 @@ class Thread extends React.PureComponent<Props, State> {
       !!this.props.centeredOrdinal &&
       (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
         this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() ||
-        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last()) &&
-      !this.props.containsLatestMessage
+        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last())
     ) {
+      const lockedToBottom = false
+      this.setState(p => (p.lockedToBottom === lockedToBottom ? null : {lockedToBottom}))
       this._lastCenteredOrdinal = this.props.centeredOrdinal
       this._scrollHeight = 0 // setting this causes us to skip next resize
       this._scrollToCentered()
@@ -531,6 +533,9 @@ class Thread extends React.PureComponent<Props, State> {
               )}
             </Measure>
           </div>
+          {this.props.showThreadSearch && (
+            <ThreadSearch style={threadSearchStyle} conversationIDKey={this.props.conversationIDKey} />
+          )}
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this._jumpToRecent} style={jumpToRecentStyle} />
           )}
@@ -753,6 +758,11 @@ const listStyle = {
 const jumpToRecentStyle = {
   bottom: 0,
   position: 'absolute',
+}
+
+const threadSearchStyle = {
+  position: 'absolute',
+  top: 0,
 }
 
 export default Thread
