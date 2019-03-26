@@ -1,6 +1,7 @@
 {
   "chat.1.local.bulkAddToConv": {"promise": true},
   "chat.1.local.CancelPost": {"promise": true},
+  "chat.1.local.cancelActiveSearch": {"promise": true},
   "chat.1.local.DownloadFileAttachmentLocal": {"engineSaga": true},
   "chat.1.local.RetryPost": {"promise": true},
   "chat.1.local.SetConversationStatusLocal": {"promise": true},
@@ -39,6 +40,7 @@
   "chat.1.local.profileChatSearch": {"promise": true},
   "chat.1.local.resolveUnfurlPrompt": {"promise": true},
   "chat.1.local.saveUnfurlSettings": {"promise": true},
+  "chat.1.local.searchRegexp": {"engineSaga": true},
   "chat.1.local.setAppNotificationSettingsLocal": {"promise": true},
   "chat.1.local.setConvMinWriterRoleLocal": {"promise": true},
   "chat.1.local.setConvRetentionLocal": {"promise": true},

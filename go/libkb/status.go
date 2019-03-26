@@ -48,33 +48,33 @@ func getPlatformInfo() keybase1.PlatformInfo {
 	}
 }
 
-func GetClientStatus(m MetaContext) (res []keybase1.ClientStatus) {
-	if m.G().ConnectionManager != nil {
-		res = m.G().ConnectionManager.ListAllLabeledConnections()
+func GetClientStatus(mctx MetaContext) (res []keybase1.ClientStatus) {
+	if mctx.G().ConnectionManager != nil {
+		res = mctx.G().ConnectionManager.ListAllLabeledConnections()
 		for i, client := range res {
-			res[i].NotificationChannels = m.G().NotifyRouter.GetChannels(ConnectionID(client.ConnectionID))
+			res[i].NotificationChannels = mctx.G().NotifyRouter.GetChannels(ConnectionID(client.ConnectionID))
 		}
 	}
 	return res
 }
 
-func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
-	m = m.WithLogTag("EXTSTATUS")
-	defer m.TraceTimed("GetExtendedStatus", func() error { return err })()
-	g := m.G()
+func GetExtendedStatus(mctx MetaContext) (res keybase1.ExtendedStatus, err error) {
+	mctx = mctx.WithLogTag("EXTSTATUS")
+	defer mctx.TraceTimed("GetExtendedStatus", func() error { return err })()
+	g := mctx.G()
 
 	res.Standalone = g.Env.GetStandalone()
 	res.LogDir = g.Env.GetLogDir()
-	res.Clients = GetClientStatus(m)
+	res.Clients = GetClientStatus(mctx)
 
-	if err = g.GetFullSelfer().WithSelf(m.Ctx(), func(me *User) error {
+	if err = g.GetFullSelfer().WithSelf(mctx.Ctx(), func(me *User) error {
 		ckf := me.GetComputedKeyFamily()
 		if ckf == nil {
 			return errors.New("Couldn't load key family")
 		}
 		device, err := ckf.GetCurrentDevice(g)
 		if err != nil {
-			m.Debug("| GetCurrentDevice failed: %s", err)
+			mctx.Debug("| GetCurrentDevice failed: %s", err)
 			res.DeviceErr = &keybase1.LoadDeviceErr{Where: "ckf.GetCurrentDevice", Desc: err.Error()}
 		} else {
 			res.Device = device.ProtExport()
@@ -82,14 +82,14 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 
 		ss := g.SecretStore()
 		if me != nil && ss != nil {
-			s, err := ss.RetrieveSecret(m, me.GetNormalizedName())
+			s, err := ss.RetrieveSecret(mctx, me.GetNormalizedName())
 			if err == nil && !s.IsNil() {
 				res.StoredSecret = true
 			}
 		}
 		return nil
 	}); err != nil {
-		m.Debug("| could not load me user: %s", err)
+		mctx.Debug("| could not load me user: %s", err)
 		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
 	}
 
@@ -98,9 +98,9 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 	res.DeviceSigKeyCached = sk != nil
 	res.DeviceEncKeyCached = ek != nil
 
-	ad := m.ActiveDevice()
+	ad := mctx.ActiveDevice()
 	// cached paper key status
-	if pk := ad.ProvisioningKey(m); pk != nil {
+	if pk := ad.ProvisioningKey(mctx); pk != nil {
 		if pk.EncryptionKey() != nil {
 			res.PaperEncKeyCached = true
 		}
@@ -112,11 +112,11 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 	psc := ad.PassphraseStreamCache()
 	res.PassphraseStreamCached = psc.ValidPassphraseStream()
 	res.TsecCached = psc.ValidTsec()
-	res.SecretPromptSkip = m.ActiveDevice().SecretPromptCancelTimer().WasRecentlyCanceled(m)
+	res.SecretPromptSkip = mctx.ActiveDevice().SecretPromptCancelTimer().WasRecentlyCanceled(mctx)
 
-	current, all, err := GetAllProvisionedUsernames(m)
+	current, all, err := GetAllProvisionedUsernames(mctx)
 	if err != nil {
-		m.Debug("| died in GetAllUsernames()")
+		mctx.Debug("| died in GetAllUsernames()")
 		return res, err
 	}
 	res.DefaultUsername = current.String()
@@ -131,7 +131,7 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 	// DeviceEK status, can be nil if user is logged out
 	deviceEKStorage := g.GetDeviceEKStorage()
 	if deviceEKStorage != nil {
-		dekNames, err := deviceEKStorage.ListAllForUser(m.Ctx())
+		dekNames, err := deviceEKStorage.ListAllForUser(mctx)
 		if err != nil {
 			return res, err
 		}

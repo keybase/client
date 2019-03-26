@@ -650,6 +650,10 @@
         },
         {
           "type": "string",
+          "name": "bodySummary"
+        },
+        {
+          "type": "string",
           "name": "senderUsername"
         },
         {

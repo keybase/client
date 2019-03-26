@@ -33,14 +33,12 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
                   color={Styles.globalColors.black_50}
                   fontSize={16}
                   onClick={onChat}
-                  style={styles.headerIcon}
+                  padding="tiny"
                 />
               </Kb.WithTooltip>
             )}
             <SendInAppAction path={path} sendIconClassName="" />
-            <Kb.WithTooltip text="Other actions">
-              <PathItemAction path={path} clickable={{type: 'icon'}} routePath={routePath} initView="root" />
-            </Kb.WithTooltip>
+            <PathItemAction path={path} clickable={{type: 'icon'}} routePath={routePath} initView="root" />
           </Kb.Box>
         </Kb.Box>
       )}
@@ -80,9 +78,6 @@ const styles = Styles.styleSheetCreate({
   headerContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     width: '100%',
-  },
-  headerIcon: {
-    padding: Styles.globalMargins.tiny,
   },
 })
 

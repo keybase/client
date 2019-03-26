@@ -264,7 +264,7 @@ func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 
 func (e *DeviceKeygen) reboxUserEK(m libkb.MetaContext, signingKey libkb.GenericKey) (reboxArg *keybase1.UserEkReboxArg, err error) {
 	defer m.Trace("DeviceKeygen#reboxUserEK", func() error { return err })()
-	ekKID, err := e.args.EkReboxer.getDeviceEKKID()
+	ekKID, err := e.args.EkReboxer.getDeviceEKKID(m)
 	if err != nil {
 		return nil, err
 	}

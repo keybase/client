@@ -95,13 +95,13 @@ const routeTree = () => {
 export default routeTree
 
 export const newRoutes = {
-  barePreview: {getScreen: () => require('./filepreview').BarePreview},
   main: {getScreen: () => require('./container').default, upgraded: true},
   'settingsTabs.fsTab': {getScreen: () => require('./container').default, upgraded: true},
   'tabs.fsTab': {getScreen: () => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {
+  barePreview: {getScreen: () => require('./filepreview').BarePreview},
   destinationPicker: {getScreen: () => require('./destination-picker/container').default, upgraded: true},
   oops: {getScreen: () => require('./oops/container').default, upgraded: true},
   sendAttachmentToChat: {

@@ -790,7 +790,7 @@ const rootReducer = (
       })
     }
     case Chat2Gen.jumpToRecent:
-      return state.setIn(['containsLatestMessageMap', action.payload.conversationIDKey], true)
+      return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
     case Chat2Gen.setContainsLastMessage:
       return state.setIn(
         ['containsLatestMessageMap', action.payload.conversationIDKey],
@@ -1006,6 +1006,37 @@ const rootReducer = (
     case Chat2Gen.setUnsentText:
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
+      )
+    case Chat2Gen.threadSearchResult:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
+        info.set('hits', info.hits.push(action.payload.message))
+      )
+    case Chat2Gen.setThreadSearchStatus:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('status', action.payload.status)
+        }
+      )
+    case Chat2Gen.toggleThreadSearch:
+      return state
+        .updateIn(
+          ['threadSearchInfoMap', action.payload.conversationIDKey],
+          (old = Constants.makeThreadSearchInfo()) => {
+            return old.merge({
+              hits: I.List(),
+              status: 'initial',
+              visible: !old.visible,
+            })
+          }
+        )
+        .deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.threadSearch:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('hits', I.List())
+        }
       )
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)

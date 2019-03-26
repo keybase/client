@@ -44,7 +44,6 @@ const mapStateToProps = (state, ownProps) => {
 }
 const mapDispatchToProps = dispatch => ({
   _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-  // $FlowIssue we need to make this more flexible later
   _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type})),
   _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
   _onRevokeProof: (type: string, value: string, id: string) =>

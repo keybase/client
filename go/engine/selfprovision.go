@@ -89,7 +89,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.ekReboxer = newEphemeralKeyReboxer(m)
+	e.ekReboxer = newEphemeralKeyReboxer()
 
 	// Make new device keys and sign them with current device keys
 	if err := e.provision(m, keys); err != nil {
@@ -104,7 +104,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// Cleanup EKs belonging to the old device.
 	if deviceEKStorage := m.G().GetDeviceEKStorage(); deviceEKStorage != nil {
-		if err = deviceEKStorage.ForceDeleteAll(m.Ctx(), e.User.GetNormalizedName()); err != nil {
+		if err = deviceEKStorage.ForceDeleteAll(m, e.User.GetNormalizedName()); err != nil {
 			m.Debug("unable to remove old ephemeral keys: %v", err)
 		}
 	}
@@ -254,14 +254,14 @@ func (e *SelfProvisionEngine) syncSecretStore(m libkb.MetaContext) error {
 	return libkb.StoreSecretAfterLoginWithLKS(m, e.User.GetNormalizedName(), e.lks)
 }
 
-func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
+func (e *SelfProvisionEngine) clearCaches(mctx libkb.MetaContext) {
 	// Any caches that are encrypted with the old device key should be cleared
 	// out here so we can re-populate and encrypt with the new key.
 	if _, err := e.G().LocalChatDb.Nuke(); err != nil {
-		m.Debug("unable to nuke LocalChatDb: %v", err)
+		mctx.Debug("unable to nuke LocalChatDb: %v", err)
 	}
 	if ekLib := e.G().GetEKLib(); ekLib != nil {
-		ekLib.ClearCaches()
+		ekLib.ClearCaches(mctx)
 	}
 }
 

@@ -105,14 +105,14 @@ const routeTree = () => {
       component: NewTeamDialogFromChat,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    reallyLeaveTeam: {
-      children: key => makeRouteDefNode(chatChildren[key]),
-      component: ReallyLeaveTeam,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
     retentionWarning: {
       children: key => makeRouteDefNode(chatChildren[key]),
       component: RetentionWarning,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    teamReallyLeaveTeam: {
+      children: key => makeRouteDefNode(chatChildren[key]),
+      component: ReallyLeaveTeam,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     [WalletConstants.sendRequestFormRouteKey]: SendRequestFormRoutes,

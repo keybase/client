@@ -1,70 +1,90 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../constants/types/tracker2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import {SiteIcon} from '../shared'
 
 export type IdentityProvider = {|
   name: string,
   desc: string,
-  icon: Kb.IconType,
+  icon: Types.SiteIconSet,
+  key: string,
   new: boolean,
 |}
 
 export type Props = {|
-  filter: string,
-  onBack: () => void,
+  onCancel: () => void,
   onClickLearn: () => void,
-  onSetFilter: (filter: string) => void,
-  providerClicked: (name: string) => void,
+  providerClicked: (key: string) => void,
   providers: Array<IdentityProvider>, // in sorted order
+  title: string,
 |}
 
 const HoverBox = Styles.isMobile
-  ? Kb.Box
-  : Styles.styled(Kb.Box)({
+  ? Kb.ClickableBox
+  : Styles.styled(Kb.ClickableBox)({
       ':hover': {backgroundColor: Styles.globalColors.blue4},
     })
 
-class Providers extends React.Component<Props> {
+type ProvidersProps = {|
+  ...Props,
+  filter: string,
+|}
+class Providers extends React.Component<ProvidersProps> {
   render() {
-    return this.props.providers.map(provider => (
-      <React.Fragment key={provider.name}>
-        <Kb.Divider />
-        <HoverBox onClick={this.props.providerClicked(provider.name)} style={styles.containerBox}>
-          <Kb.Icon type={provider.icon} style={Kb.iconCastPlatformStyles(styles.icon)} />
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold" style={styles.title}>
-              {provider.name}
-            </Kb.Text>
-            <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-              {provider.new && (
-                <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
-              )}
-              <Kb.Text type="BodySmall" style={styles.description}>
-                {provider.desc}
+    return this.props.providers
+      .filter(p => filterProvider(p, this.props.filter))
+      .map(provider => (
+        <React.Fragment key={provider.name}>
+          <Kb.Divider />
+          <HoverBox onClick={() => this.props.providerClicked(provider.key)} style={styles.containerBox}>
+            <SiteIcon set={provider.icon} style={styles.icon} full={true} />
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold" style={styles.title}>
+                {provider.name}
               </Kb.Text>
+              <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+                {provider.new && (
+                  <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
+                )}
+                <Kb.Text type="BodySmall" style={styles.description}>
+                  {provider.desc}
+                </Kb.Text>
+              </Kb.Box2>
             </Kb.Box2>
-          </Kb.Box2>
-          <Kb.Icon
-            type="iconfont-arrow-right"
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-            style={styles.iconArrow}
-          />
-        </HoverBox>
-      </React.Fragment>
-    ))
+            <Kb.Icon
+              type="iconfont-arrow-right"
+              color={Styles.globalColors.black_50}
+              fontSize={Styles.isMobile ? 20 : 16}
+              style={styles.iconArrow}
+            />
+          </HoverBox>
+        </React.Fragment>
+      ))
   }
 }
 
-class ProofsList extends React.Component<Props, State> {
+const filterProvider = (p, filter) => {
+  const f = filter.toLowerCase()
+  return p.name.toLowerCase().includes(f) || p.desc.toLowerCase().includes(f)
+}
+
+type State = {
+  filter: string,
+}
+class _ProofsList extends React.Component<Props, State> {
+  state = {filter: ''}
+  _onSetFilter = filter => this.setState({filter})
   render() {
     return (
-      <Kb.MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
+      <Kb.Box style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
-          <Kb.Text center={true} type="Header" style={styles.header}>
-            Prove your...
-          </Kb.Text>
+          {!Styles.isMobile && (
+            <Kb.Text center={true} type="Header" style={styles.header}>
+              Prove your...
+            </Kb.Text>
+          )}
           <Kb.Box style={styles.inputContainer}>
             <Kb.Icon
               type="iconfont-search"
@@ -74,17 +94,18 @@ class ProofsList extends React.Component<Props, State> {
             <Kb.PlainInput
               placeholder={`Search ${this.props.providers.length} platforms`}
               placeholderColor={Styles.globalColors.black_50}
+              flexable={true}
               multiline={false}
-              onChangeText={this.props.onSetFilter}
+              onChangeText={this._onSetFilter}
               type="text"
               style={styles.text}
-              value={this.props.filter}
+              value={this.state.filter}
             />
           </Kb.Box>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Kb.ScrollView>
               {/* TODO dont use scroll view like this */}
-              <Providers {...this.props} />
+              <Providers {...this.props} filter={this.state.filter} />
               <Kb.Divider />
             </Kb.ScrollView>
           </Kb.Box2>
@@ -95,10 +116,11 @@ class ProofsList extends React.Component<Props, State> {
             </Kb.Text>
           </HoverBox>
         </Kb.Box2>
-      </Kb.MaybePopup>
+      </Kb.Box>
     )
   }
 }
+const ProofsList = Kb.HeaderOrPopup(_ProofsList)
 
 const rightColumnStyle = Styles.platformStyles({
   isElectron: {
@@ -112,9 +134,9 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
-      height: 525,
+      height: 485,
       overflow: 'hidden',
-      width: 360,
+      width: 560,
     },
     isMobile: {
       flex: 1,
@@ -149,28 +171,25 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   icon: {
-    alignSelf: 'flex-start',
     height: 32,
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
+    width: 32,
   },
   iconArrow: {
     marginRight: Styles.globalMargins.small,
   },
-  inputContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      backgroundColor: Styles.globalColors.black_10,
-      marginBottom: Styles.globalMargins.xsmall,
-      marginTop: Styles.globalMargins.xsmall,
-      padding: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      borderRadius: 4,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-    },
-  }),
+  inputContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
+    marginBottom: Styles.globalMargins.xsmall,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.xsmall,
+    padding: Styles.globalMargins.tiny,
+  },
   listContainer: Styles.platformStyles({
     isElectron: {
       maxHeight: 525 - 48,

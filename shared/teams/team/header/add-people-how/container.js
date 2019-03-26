@@ -18,9 +18,8 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
-        }
-        )
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
+        })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
@@ -28,9 +27,8 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
-        }
-        )
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamInviteByEmail'}],
+        })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },

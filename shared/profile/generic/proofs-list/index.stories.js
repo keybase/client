@@ -3,74 +3,88 @@ import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import ProofsList from './index'
 
+const icon = [
+  {path: 'https://keybase.io/images/paramproofs/services/twitter/logo_full_64.png', width: 32},
+  {path: 'https://keybase.io/images/paramproofs/services/twitter/logo_full_64@2x.png', width: 64},
+]
+
 const props = {
-  filter: '',
-  onBack: Sb.action('onBack'),
+  onCancel: Sb.action('onCancel'),
   onClickLearn: Sb.action('onClickLearn'),
-  onSetFilter: (filter: string) => Sb.action(`onSetFilter: ${filter}`),
   providerClicked: (name: string) => Sb.action(`providerClicked: ${name}`),
   providers: [
     {
       desc: '',
-      icon: 'icon-website-32',
+      icon,
+      key: 'dummy key',
       name: 'Your own website',
       new: false,
     },
     {
       desc: 'twitter.com',
-      icon: 'icon-twitter-logo-32',
+      icon,
+      key: 'dummy key',
       name: 'Twitter',
       new: false,
     },
     {
       desc: 'github.com',
-      icon: 'icon-github-logo-32',
+      icon,
+      key: 'dummy key',
       name: 'Github',
       new: false,
     },
     {
       desc: 'linkedin.com',
-      icon: 'icon-placeholder-avatar-32',
+      icon,
+      key: 'dummy key',
       name: 'LinkedIn',
       new: false,
     },
     {
       desc: 'Mastodon instance',
-      icon: 'icon-placeholder-avatar-32',
+      icon,
+      key: 'dummy key',
       name: 'boardgames.social',
       new: false,
     },
     {
       desc: 'Mastodon instance',
-      icon: 'icon-placeholder-avatar-32',
+      icon,
+      key: 'dummy key',
       name: 'mastodon.social',
       new: false,
     },
     {
       desc: 'Mastodon instance',
-      icon: 'icon-placeholder-avatar-32',
+      icon,
+      key: 'dummy key',
       name: 'hackers.town',
       new: true,
     },
     {
       desc: 'Mastodon instance',
-      icon: 'icon-placeholder-avatar-32',
+      icon,
+      key: 'dummy key',
       name: 'rockclimbing.social',
       new: false,
     },
     {
       desc: 'Mastodon instance',
-      icon: 'icon-placeholder-avatar-32',
+      icon,
+      key: 'dummy key',
       name: 'phrenology.social',
       new: true,
     },
     {
       desc: 'Mastodon instance',
-      icon: 'icon-placeholder-avatar-32',
+      icon,
+      key: 'dummy key',
       name: 'boardgames.town',
       new: true,
     },
   ],
+  title: 'Prove your...',
 }
 
 const load = () => {

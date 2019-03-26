@@ -293,37 +293,39 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 }
 
 func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamExitRow) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("team.HandleExitNotification(%v)", len(rows)), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.Trace(fmt.Sprintf("team.HandleExitNotification(%v)", len(rows)), func() error { return err })()
 
 	for _, row := range rows {
-		g.Log.CDebugf(ctx, "team.HandleExitNotification: (%+v)", row)
-		if err := g.GetTeamLoader().Delete(ctx, row.Id); err != nil {
-			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
+		mctx.Debug("team.HandleExitNotification: (%+v)", row)
+		if err := mctx.G().GetTeamLoader().Delete(ctx, row.Id); err != nil {
+			mctx.Debug("team.HandleExitNotification: error deleting team cache: %v", err)
 		}
-		if ekLib := g.GetEKLib(); ekLib != nil {
-			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		if ekLib := mctx.G().GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(mctx, row.Id)
 		}
-		g.NotifyRouter.HandleTeamExit(ctx, row.Id)
+		mctx.G().NotifyRouter.HandleTeamExit(ctx, row.Id)
 
 		// refresh the KBFS Favorites cache since it no longer should contain
 		// this team.
-		refreshKBFSFavoritesCache(g)
+		refreshKBFSFavoritesCache(mctx.G())
 	}
 	return nil
 }
 
 func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamNewlyAddedRow) (err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("team.HandleNewlyAddedToTeamNotification(%v)", len(rows)), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, g)
+	defer mctx.Trace(fmt.Sprintf("team.HandleNewlyAddedToTeamNotification(%v)", len(rows)), func() error { return err })()
 	for _, row := range rows {
-		g.Log.CDebugf(ctx, "team.HandleNewlyAddedToTeamNotification: (%+v)", row)
-		if ekLib := g.GetEKLib(); ekLib != nil {
-			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		mctx.Debug("team.HandleNewlyAddedToTeamNotification: (%+v)", row)
+		if ekLib := mctx.G().GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(mctx, row.Id)
 		}
-		g.NotifyRouter.HandleNewlyAddedToTeam(ctx, row.Id)
+		mctx.G().NotifyRouter.HandleNewlyAddedToTeam(mctx.Ctx(), row.Id)
 
 		// refresh the KBFS Favorites cache since it now should contain
 		// this team.
-		refreshKBFSFavoritesCache(g)
+		refreshKBFSFavoritesCache(mctx.G())
 
 	}
 	return nil

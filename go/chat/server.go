@@ -51,6 +51,9 @@ type Server struct {
 	convPageStatus    map[string]chat1.Pagination
 	cachedThreadDelay *time.Duration
 
+	searchMu       sync.Mutex
+	searchCancelFn context.CancelFunc
+
 	// Only for testing
 	rc                chat1.RemoteInterface
 	mockChatUI        libkb.ChatUI
@@ -2280,6 +2283,30 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 	return h.G().ChatHelper.UpgradeKBFSToImpteam(ctx, tlfName, tlfID, public)
 }
 
+func (h *Server) cancelActiveSearchLocked() {
+	if h.searchCancelFn != nil {
+		h.searchCancelFn()
+		h.searchCancelFn = nil
+	}
+}
+
+func (h *Server) getSearchContext(ctx context.Context) context.Context {
+	// enforce a single search happening at a time
+	h.searchMu.Lock()
+	h.cancelActiveSearchLocked()
+	ctx, h.searchCancelFn = context.WithCancel(ctx)
+	h.searchMu.Unlock()
+	return ctx
+}
+
+func (h *Server) CancelActiveSearch(ctx context.Context) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "CancelActiveSearch")()
+	h.searchMu.Lock()
+	h.cancelActiveSearchLocked()
+	h.searchMu.Unlock()
+	return nil
+}
+
 func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (res chat1.SearchRegexpRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2289,6 +2316,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	if err != nil {
 		return res, err
 	}
+	ctx = h.getSearchContext(ctx)
 
 	var re *regexp.Regexp
 	if arg.IsRegex {
@@ -2297,7 +2325,6 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 		// String queries are set case insensitive
 		re, err = utils.GetQueryRe(arg.Query)
 	}
-
 	if err != nil {
 		return res, err
 	}

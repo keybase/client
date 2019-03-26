@@ -20,6 +20,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const lastOrdinal = messageOrdinals.last()
   const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)
   const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
+  const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   let lastMessageIsOurs = false
   if (lastOrdinal) {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
@@ -33,6 +34,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     lastMessageIsOurs,
     messageOrdinals,
+    showThreadSearch,
   }
 }
 
@@ -61,6 +63,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   scrollListDownCounter: ownProps.scrollListDownCounter,
   scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
   scrollListUpCounter: ownProps.scrollListUpCounter,
+  showThreadSearch: stateProps.showThreadSearch,
 })
 
 // We load the first thread automatically so in order to mark it read

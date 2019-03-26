@@ -404,7 +404,7 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 		kbfsEncrypted)
 }
 
-func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *TeamsNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
 	if public {
 		return teamEK, NewPublicTeamEphemeralKeyError()
@@ -414,11 +414,11 @@ func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfNam
 	if err != nil {
 		return teamEK, err
 	}
-	teamEK, _, err = t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK, _, err = t.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
 	return teamEK, err
 }
 
-func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *TeamsNameInfoSource) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	if public {
@@ -429,7 +429,7 @@ func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfNam
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
+	return t.G().GetEKLib().GetTeamEK(mctx, teamID, generation, contentCtime)
 }
 
 func (t *TeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -708,24 +708,24 @@ func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Conte
 	return team.ID, nil
 }
 
-func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
-	teamID, err := t.ephemeralLoadAndIdentify(ctx, tlfName, tlfID, membersType, public)
+	teamID, err := t.ephemeralLoadAndIdentify(mctx.Ctx(), tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
-	teamEK, _, err = t.G().GetEKLib().GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK, _, err = t.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
 	return teamEK, err
 }
 
-func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
-	teamID, err := t.ephemeralLoadAndIdentify(ctx, tlfName, tlfID, membersType, public)
+	teamID, err := t.ephemeralLoadAndIdentify(mctx.Ctx(), tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
+	return t.G().GetEKLib().GetTeamEK(mctx, teamID, generation, contentCtime)
 }
 
 func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,

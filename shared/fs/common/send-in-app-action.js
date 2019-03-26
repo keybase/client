@@ -39,7 +39,7 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
           onClick={props.toggleShowingMenu}
           color={Styles.globalColors.black_50}
           hoverColor={Styles.globalColors.black}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
+          padding="tiny"
           ref={props.setAttachmentRef}
         />
       </Kb.WithTooltip>
@@ -58,12 +58,6 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
       )}
     </>
   )
-})
-
-const styles = Styles.styleSheetCreate({
-  icon: {
-    padding: Styles.globalMargins.tiny,
-  },
 })
 
 export default (!isMobile
