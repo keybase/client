@@ -15,8 +15,10 @@ type State = {|
 class ThreadSearch extends React.Component<Props, State> {
   state = {selectedIndex: 0}
   _text: string
+  _lastSearch: string
 
   _submitSearch = () => {
+    this._lastSearch = this._text
     this.setState({selectedIndex: 0})
     this.props.onSearch(this._text)
   }
@@ -24,6 +26,14 @@ class ThreadSearch extends React.Component<Props, State> {
   _selectResult = index => {
     this.props.loadSearchHit(index)
     this.setState({selectedIndex: index})
+  }
+
+  _onEnter = () => {
+    if (this._lastSearch === this._text) {
+      this._onUp()
+    } else {
+      this._submitSearch()
+    }
   }
 
   _onUp = () => {
@@ -68,8 +78,21 @@ class ThreadSearch extends React.Component<Props, State> {
   }
 
   _onKeydown = e => {
-    if (e.key === 'Escape') {
-      this.props.selfHide()
+    switch (e.key) {
+      case 'Escape':
+        this.props.selfHide()
+        break
+      case 'ArrowUp':
+        this._onUp()
+        break
+      case 'ArrowDown':
+        this._onDown()
+        break
+      case 'Enter':
+        if (e.shiftKey) {
+          this._onDown()
+        }
+        break
     }
   }
 
@@ -98,7 +121,7 @@ class ThreadSearch extends React.Component<Props, State> {
                 autoFocus={true}
                 flexable={true}
                 onChangeText={this._onChangedText}
-                onEnterKeyDown={this._submitSearch}
+                onEnterKeyDown={this._onEnter}
                 onKeyDown={this._onKeydown}
                 placeholder="Search..."
               />
