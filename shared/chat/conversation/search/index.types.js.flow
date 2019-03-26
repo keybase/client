@@ -1,10 +1,17 @@
 // @flow
-export type Props = {|
-  inProgress: boolean,
+import * as Types from '../../../constants/types/chat2'
+import * as Styles from '../../../styles'
+type SearchHit = {|
+  author: string,
+  summary: string,
+  timestamp: number,
+|}
+export type Props = {
+  hits: Array<SearchHit>,
+  loadSearchHit: number => void,
   onCancel: () => void,
   onSearch: string => void,
-  onUp: () => void,
-  onDown: () => void,
-  selectedResult: number,
-  totalResults: number,
-|}
+  selfHide: () => void,
+  status: Types.ThreadSearchStatus,
+  style?: Styles.StylesCrossPlatform,
+}

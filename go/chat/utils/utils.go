@@ -882,39 +882,25 @@ func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLo
 	return senderPrefix
 }
 
-func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
-	if !msg.IsValid() {
-		return "", ""
-	}
+func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 	defer func() {
 		snippet = EscapeShrugs(context.TODO(), snippet)
 	}()
-
-	mvalid := msg.Valid()
-	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
-
 	if !msg.IsValidFull() {
-		if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
-			return fmt.Sprintf("%s ----------------------------", senderPrefix), "💥"
-		}
-		return "", ""
+		return ""
 	}
-	if mvalid.IsEphemeral() {
-		decoration = "💣"
-	}
-
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
+		return msg.Valid().MessageBody.Text().Body
 	case chat1.MessageType_FLIP:
-		return senderPrefix + msg.Valid().MessageBody.Flip().Text, decoration
+		return msg.Valid().MessageBody.Flip().Text
 	case chat1.MessageType_ATTACHMENT:
 		obj := msg.Valid().MessageBody.Attachment().Object
 		title := obj.Title
 		if len(title) == 0 {
 			atyp, err := obj.Metadata.AssetType()
 			if err != nil {
-				return senderPrefix + "???", decoration
+				return "???"
 			}
 			switch atyp {
 			case chat1.AssetMetadataType_IMAGE:
@@ -925,15 +911,34 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 				title = obj.Filename
 			}
 		}
-		return senderPrefix + title, decoration
+		return title
 	case chat1.MessageType_SYSTEM:
-		return msg.Valid().MessageBody.System().String(), decoration
+		return msg.Valid().MessageBody.System().String()
 	case chat1.MessageType_REQUESTPAYMENT:
-		return "🚀 payment request", ""
+		return "🚀 payment request"
 	case chat1.MessageType_SENDPAYMENT:
-		return "🚀 payment sent", ""
+		return "🚀 payment sent"
 	}
-	return "", ""
+	return ""
+}
+
+func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
+	if !msg.IsValid() {
+		return "", ""
+	}
+
+	mvalid := msg.Valid()
+	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
+	if !msg.IsValidFull() {
+		if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
+			return fmt.Sprintf("%s ----------------------------", senderPrefix), "💥"
+		}
+		return "", ""
+	}
+	if mvalid.IsEphemeral() {
+		decoration = "💣"
+	}
+	return senderPrefix + GetMsgSnippetBody(msg), decoration
 }
 
 // We don't want to display the contents of an exploding message in notifications
@@ -1400,6 +1405,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
 			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid),
+			BodySummary:           GetMsgSnippetBody(rawMsg),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,

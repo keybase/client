@@ -5238,6 +5238,9 @@ type SearchInboxArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type CancelActiveSearchArg struct {
+}
+
 type ProfileChatSearchArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
@@ -5331,6 +5334,7 @@ type LocalInterface interface {
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	SearchRegexp(context.Context, SearchRegexpArg) (SearchRegexpRes, error)
 	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
+	CancelActiveSearch(context.Context) error
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
@@ -6219,6 +6223,16 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"cancelActiveSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelActiveSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.CancelActiveSearch(ctx)
+					return
+				},
+			},
 			"profileChatSearch": {
 				MakeArg: func() interface{} {
 					var ret [1]ProfileChatSearchArg
@@ -6623,6 +6637,11 @@ func (c LocalClient) SearchRegexp(ctx context.Context, __arg SearchRegexpArg) (r
 
 func (c LocalClient) SearchInbox(ctx context.Context, __arg SearchInboxArg) (res SearchInboxRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.searchInbox", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) CancelActiveSearch(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.cancelActiveSearch", []interface{}{CancelActiveSearchArg{}}, nil)
 	return
 }
 

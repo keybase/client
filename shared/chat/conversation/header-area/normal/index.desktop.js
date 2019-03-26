@@ -40,6 +40,7 @@ const ChannelHeader = (props: Props) => (
       )}
       {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
+    {props.onToggleThreadSearch && <Icon type="iconfont-search" onClick={props.onToggleThreadSearch} />}
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
     )}
@@ -67,6 +68,9 @@ const UsernameHeader = (props: Props) => (
       />
       {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
+    {props.onToggleThreadSearch && (
+      <Icon type="iconfont-search" style={styleLeft} onClick={props.onToggleThreadSearch} />
+    )}
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
     )}

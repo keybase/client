@@ -146,6 +146,7 @@ export const getDeletableByDeleteHistory = (state: TypedState) =>
 
 const makeMessageMinimum = {
   author: '',
+  bodySummary: new HiddenString(''),
   conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
@@ -688,6 +689,7 @@ const validUIMessagetoMessage = (
   const reactions = reactionMapToReactions(m.reactions)
   const common = {
     ...minimum,
+    bodySummary: new HiddenString(m.bodySummary),
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),

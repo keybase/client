@@ -1323,6 +1323,58 @@ const messageRetry = (state, action) => {
   )
 }
 
+const onToggleThreadSearch = (state, action) => {
+  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
+  return visible ? [] : RPCChatTypes.localCancelActiveSearchRpcPromise()
+}
+
+const hideThreadSearch = (state, action) => {
+  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
+  return visible
+    ? Chat2Gen.createToggleThreadSearch({conversationIDKey: action.payload.conversationIDKey})
+    : []
+}
+
+function* threadSearch(state, action) {
+  const {conversationIDKey, query} = action.payload
+  const onHit = hit => {
+    const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
+    return message ? Saga.put(Chat2Gen.createThreadSearchResult({conversationIDKey, message})) : []
+  }
+  const onDone = () => {
+    return Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
+  }
+  yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}))
+  try {
+    yield RPCChatTypes.localSearchRegexpRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatSearchDone': onDone,
+        'chat.1.chatUi.chatSearchHit': onHit,
+      },
+      params: {
+        convID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        isRegex: false,
+        opts: {
+          afterContext: 0,
+          beforeContext: 0,
+          forceReindex: false,
+          maxConvs: -1,
+          maxHits: -1,
+          maxMessages: -1,
+          sentAfter: 0,
+          sentBefore: 0,
+          sentBy: '',
+        },
+        query: query.stringValue(),
+      },
+    })
+  } catch (e) {
+    logger.error('search failed: ' + e.message)
+    yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
+  }
+}
+
 function* messageSend(state, action) {
   const {conversationIDKey, text} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -3116,6 +3168,13 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown
   )
+
+  yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
+  yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(
+    Chat2Gen.toggleThreadSearch,
+    onToggleThreadSearch
+  )
+  yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(Chat2Gen.selectConversation, hideThreadSearch)
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 
