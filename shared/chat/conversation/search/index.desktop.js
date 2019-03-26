@@ -82,6 +82,15 @@ class ThreadSearch extends React.Component<Props, State> {
       case 'Escape':
         this.props.selfHide()
         break
+      case 'g':
+        if (e.ctrlKey || e.metaKey) {
+          if (e.shiftKey) {
+            this._onDown()
+          } else {
+            this._onUp()
+          }
+        }
+        break
       case 'ArrowUp':
         this._onUp()
         break
