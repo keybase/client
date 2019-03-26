@@ -32,6 +32,7 @@ func (e *AccountReset) Prereqs() Prereqs {
 // RequiredUIs returns the required UIs.
 func (e *AccountReset) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
+		libkb.LoginUIKind,
 		libkb.SecretUIKind,
 	}
 }
@@ -58,7 +59,7 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	var username, email string
 
 	mctx = mctx.WithNewProvisionalLoginContext()
-	err = libkb.PassphraseLoginPrompt(mctx, e.usernameOrEmail, 3)
+	err = libkb.PassphraseLoginPromptWithPromptFn(mctx, e.usernameOrEmail, 3, libkb.ResetPassphrasePrompt)
 	switch err.(type) {
 	case nil:
 		self = true

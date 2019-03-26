@@ -31,6 +31,7 @@ func TestCancelResetPipeline(t *testing.T) {
 	ann := tt.addUser("ann")
 	tc := ann.tc
 	uis := libkb.UIs{
+		LoginUI:  &libkb.TestLoginUI{Username: ann.username},
 		SecretUI: ann.newSecretUI(),
 	}
 	mctx := libkb.NewMetaContextForTest(*tc).WithUIs(uis)
@@ -64,6 +65,7 @@ func TestCancelResetPipeline(t *testing.T) {
 	// succeed without a session
 	ann.logout()
 	uis = libkb.UIs{
+		LoginUI:  &libkb.TestLoginUI{Username: ann.username},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	mctx = libkb.NewMetaContextForTest(*tc).WithUIs(uis)
@@ -83,6 +85,7 @@ func TestCancelResetPipeline(t *testing.T) {
 	// fail without a session
 	ann.logout()
 	uis = libkb.UIs{
+		LoginUI:  &libkb.TestLoginUI{Username: ann.username},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	mctx = libkb.NewMetaContextForTest(*tc).WithUIs(uis)

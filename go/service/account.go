@@ -202,6 +202,7 @@ func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.En
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("EnterResetPipline", func() error { return err })()
 	uis := libkb.UIs{
+		LoginUI:   h.getLoginUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
