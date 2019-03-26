@@ -12,7 +12,7 @@ type OwnProps = {|
 |}
 
 const NewFolder = props =>
-  props.onNewFolder && (
+  props.canCreateNewFolder && (
     <Kb.WithTooltip text="New Folder">
       <Kb.Icon
         type="iconfont-folder-new"
@@ -35,7 +35,7 @@ const mapStateToProps = (state, {path}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
-  _newFolderRow: () =>
+  onNewFolder: () =>
     dispatch(
       FsGen.createNewFolderRow({
         parentPath: path,
@@ -44,7 +44,8 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 })
 
 const mergeProps = (s, d, o) => ({
-  onNewFolder: s._pathItem.writable ? d._newFolderRow : null,
+  canCreateNewFolder: s._pathItem.type === 'folder' && s._pathItem.writable,
+  ...d,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

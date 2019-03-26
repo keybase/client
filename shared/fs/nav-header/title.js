@@ -83,7 +83,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
 
 const MainTitle = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <Kb.Text type="BodySemibold">{Types.getPathName(props.path)}</Kb.Text>
+    <Kb.Text type="Header">{Types.getPathName(props.path)}</Kb.Text>
   </Kb.Box2>
 )
 
@@ -103,7 +103,7 @@ export default FsNavHeaderTitle
 const styles = Styles.styleSheetCreate({
   container: {
     marginTop: -Styles.globalMargins.xsmall,
-    paddingLeft: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.xsmall,
   },
   dropdown: {
     marginLeft: -Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below

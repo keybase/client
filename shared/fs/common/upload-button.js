@@ -12,7 +12,7 @@ type OwnProps = {|
 |}
 
 const UploadButton = Kb.OverlayParentHOC(props => {
-  if (!props.writable) {
+  if (!props.canUpload) {
     return null
   }
   if (isDarwin) {
@@ -30,7 +30,6 @@ const UploadButton = Kb.OverlayParentHOC(props => {
         <Kb.Icon type="iconfont-new" padding="tiny" onClick={props.toggleShowingMenu} />
       ) : (
         <Kb.Button
-          small={true}
           type="Primary"
           onClick={props.toggleShowingMenu}
           label="Upload"
@@ -72,7 +71,7 @@ const UploadButton = Kb.OverlayParentHOC(props => {
 })
 
 const mapStateToProps = (state, {path}) => ({
-  writable: state.fs.pathItems.get(path, Constants.unknownPathItem).writable,
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
@@ -83,7 +82,7 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 })
 
 const mergeProps = (s, d, o) => ({
-  ...s,
+  canUpload: s._pathItem.type === 'folder' && s._pathItem.writable,
   ...d,
 })
 
