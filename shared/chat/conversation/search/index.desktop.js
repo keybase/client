@@ -21,20 +21,25 @@ class ThreadSearch extends React.Component<Props, State> {
     this.props.onSearch(this._text)
   }
 
+  _selectResult = index => {
+    this.props.loadSearchHit(index)
+    this.setState({selectedIndex: index})
+  }
+
   _onUp = () => {
     if (this.state.selectedIndex >= this.props.hits.length - 1) {
+      this._selectResult(0)
       return
     }
-    this.props.loadSearchHit(this.state.selectedIndex + 1)
-    this.setState({selectedIndex: this.state.selectedIndex + 1})
+    this._selectResult(this.state.selectedIndex + 1)
   }
 
   _onDown = () => {
     if (this.state.selectedIndex <= 0) {
+      this._selectResult(this.props.hits.length - 1)
       return
     }
-    this.props.loadSearchHit(this.state.selectedIndex - 1)
-    this.setState({selectedIndex: this.state.selectedIndex - 1})
+    this._selectResult(this.state.selectedIndex - 1)
   }
 
   _renderHit = (index, item) => {
@@ -78,8 +83,7 @@ class ThreadSearch extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
-      this.props.loadSearchHit(0)
-      this.setState({selectedIndex: 0})
+      this._selectResult(0)
     }
   }
 
