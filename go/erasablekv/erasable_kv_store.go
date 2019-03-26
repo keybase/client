@@ -15,7 +15,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/secretbox"
-	"golang.org/x/net/context"
 )
 
 type UnboxError struct {
@@ -45,20 +44,20 @@ const cryptoVersion = 1
 const noiseSuffix = ".ns"
 const storageSubDir = "eraseablekvstore"
 
-func getStorageDir(g *libkb.GlobalContext, subDir string) string {
-	base := g.Env.GetDataDir()
+func getStorageDir(mctx libkb.MetaContext, subDir string) string {
+	base := mctx.G().Env.GetDataDir()
 	// check for iOS
-	if runtime.GOOS == "darwin" && g.GetAppType() == libkb.MobileAppType {
-		base = g.Env.GetConfigDir()
+	if runtime.GOOS == "darwin" && mctx.G().GetAppType() == libkb.MobileAppType {
+		base = mctx.G().Env.GetConfigDir()
 	}
 	return filepath.Join(base, storageSubDir, subDir)
 }
 
 type ErasableKVStore interface {
-	Put(ctx context.Context, key string, val interface{}) error
-	Get(ctx context.Context, key string, val interface{}) error
-	Erase(ctx context.Context, key string) error
-	AllKeys(ctx context.Context, keySuffix string) ([]string, error)
+	Put(mctx libkb.MetaContext, key string, val interface{}) error
+	Get(mctx libkb.MetaContext, key string, val interface{}) error
+	Erase(mctx libkb.MetaContext, key string) error
+	AllKeys(mctx libkb.MetaContext, keySuffix string) ([]string, error)
 }
 
 // File based erasable kv store. Thread safe.
@@ -67,17 +66,15 @@ type ErasableKVStore interface {
 // difficult to recover the encrypted data once the noise file is wiped from
 // the filesystem as is done for the secret_store_file.
 type FileErasableKVStore struct {
-	libkb.Contextified
 	sync.Mutex
 	storageDir string
 }
 
 var _ ErasableKVStore = (*FileErasableKVStore)(nil)
 
-func NewFileErasableKVStore(g *libkb.GlobalContext, subDir string) *FileErasableKVStore {
+func NewFileErasableKVStore(mctx libkb.MetaContext, subDir string) *FileErasableKVStore {
 	return &FileErasableKVStore{
-		Contextified: libkb.NewContextified(g),
-		storageDir:   getStorageDir(g, subDir),
+		storageDir: getStorageDir(mctx, subDir),
 	}
 }
 
@@ -89,8 +86,8 @@ func (s *FileErasableKVStore) noiseKey(key string) string {
 	return fmt.Sprintf("%s%s", url.QueryEscape(key), noiseSuffix)
 }
 
-func (s *FileErasableKVStore) getEncryptionKey(ctx context.Context, noiseBytes libkb.NoiseBytes) (fkey [32]byte, err error) {
-	enckey, err := getLocalStorageSecretBoxKey(ctx, s.G())
+func (s *FileErasableKVStore) getEncryptionKey(mctx libkb.MetaContext, noiseBytes libkb.NoiseBytes) (fkey [32]byte, err error) {
+	enckey, err := getLocalStorageSecretBoxKey(mctx)
 	if err != nil {
 		return fkey, err
 	}
@@ -103,8 +100,8 @@ func (s *FileErasableKVStore) getEncryptionKey(ctx context.Context, noiseBytes l
 	return fkey, nil
 }
 
-func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes libkb.NoiseBytes, val interface{}) (err error) {
-	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#unbox", func() error { return err })()
+func (s *FileErasableKVStore) unbox(mctx libkb.MetaContext, data []byte, noiseBytes libkb.NoiseBytes, val interface{}) (err error) {
+	defer mctx.TraceTimed("FileErasableKVStore#unbox", func() error { return err })()
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(data, &boxed); err != nil {
@@ -113,7 +110,7 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 	if boxed.V > cryptoVersion {
 		return NewUnboxError(fmt.Errorf("unexpected crypto version: %d current: %d", boxed.V, cryptoVersion))
 	}
-	enckey, err := s.getEncryptionKey(ctx, noiseBytes)
+	enckey, err := s.getEncryptionKey(mctx, noiseBytes)
 	if err != nil {
 		return err
 	}
@@ -132,14 +129,15 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 	return nil
 }
 
-func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseBytes libkb.NoiseBytes) (data []byte, err error) {
-	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#box", func() error { return err })()
+func (s *FileErasableKVStore) box(mctx libkb.MetaContext, val interface{},
+	noiseBytes libkb.NoiseBytes) (data []byte, err error) {
+	defer mctx.TraceTimed("FileErasableKVStore#box", func() error { return err })()
 	data, err = libkb.MPackEncode(val)
 	if err != nil {
 		return data, err
 	}
 
-	enckey, err := s.getEncryptionKey(ctx, noiseBytes)
+	enckey, err := s.getEncryptionKey(mctx, noiseBytes)
 	if err != nil {
 		return data, err
 	}
@@ -162,27 +160,27 @@ func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseByt
 	return libkb.MPackEncode(boxed)
 }
 
-func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface{}) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#Put: %v", key), func() error { return err })()
+func (s *FileErasableKVStore) Put(mctx libkb.MetaContext, key string, val interface{}) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FileErasableKVStore#Put: %v", key), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
 	noiseBytes, err := libkb.MakeNoise()
-	data, err := s.box(ctx, val, noiseBytes)
+	data, err := s.box(mctx, val, noiseBytes)
 	if err != nil {
 		return err
 	}
-	if err = s.write(ctx, key, data); err != nil {
+	if err = s.write(mctx, key, data); err != nil {
 		return err
 	}
 	noiseKey := s.noiseKey(key)
-	return s.write(ctx, noiseKey, noiseBytes[:])
+	return s.write(mctx, noiseKey, noiseBytes[:])
 }
 
-func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#write: %v", key), func() error { return err })()
+func (s *FileErasableKVStore) write(mctx libkb.MetaContext, key string, data []byte) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FileErasableKVStore#write: %v", key), func() error { return err })()
 	filepath := s.filepath(key)
-	if err := libkb.MakeParentDirs(s.G().Log, filepath); err != nil {
+	if err := libkb.MakeParentDirs(mctx.G().Log, filepath); err != nil {
 		return err
 	}
 
@@ -193,7 +191,7 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	// remove the temp file if it still exists at the end of this function
 	defer libkb.ShredFile(tmp.Name())
 
-	if SetDisableBackup(ctx, s.G(), tmp.Name()); err != nil {
+	if SetDisableBackup(mctx, tmp.Name()); err != nil {
 		return err
 	}
 
@@ -219,12 +217,12 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	// we'd need to somehow call the ReplaceFile Win32 function (which Go
 	// doesn't expose anywhere as far as I know, so this would require CGO) to
 	// take advantage of its lpBackupFileName param.
-	s.erase(ctx, key)
+	s.erase(mctx, key)
 
 	if err := os.Rename(tmp.Name(), filepath); err != nil {
 		return err
 	}
-	if SetDisableBackup(ctx, s.G(), filepath); err != nil {
+	if SetDisableBackup(mctx, filepath); err != nil {
 		return err
 	}
 
@@ -237,32 +235,32 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	return nil
 }
 
-func (s *FileErasableKVStore) Get(ctx context.Context, key string, val interface{}) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#Get: %v", key), func() error { return err })()
+func (s *FileErasableKVStore) Get(mctx libkb.MetaContext, key string, val interface{}) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FileErasableKVStore#Get: %v", key), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	return s.get(ctx, key, val)
+	return s.get(mctx, key, val)
 }
 
-func (s *FileErasableKVStore) get(ctx context.Context, key string, val interface{}) (err error) {
+func (s *FileErasableKVStore) get(mctx libkb.MetaContext, key string, val interface{}) (err error) {
 	noiseKey := s.noiseKey(key)
-	noise, err := s.read(ctx, noiseKey)
+	noise, err := s.read(mctx, noiseKey)
 	if err != nil {
 		return NewUnboxError(err)
 	}
 	var noiseBytes libkb.NoiseBytes
 	copy(noiseBytes[:], noise)
 
-	data, err := s.read(ctx, key)
+	data, err := s.read(mctx, key)
 	if err != nil {
 		return NewUnboxError(err)
 	}
 
-	return s.unbox(ctx, data, noiseBytes, val)
+	return s.unbox(mctx, data, noiseBytes, val)
 }
 
-func (s *FileErasableKVStore) read(ctx context.Context, key string) (data []byte, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#read: %v", key), func() error { return err })()
+func (s *FileErasableKVStore) read(mctx libkb.MetaContext, key string) (data []byte, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FileErasableKVStore#read: %v", key), func() error { return err })()
 	filepath := s.filepath(key)
 	return ioutil.ReadFile(filepath)
 }
@@ -273,20 +271,20 @@ func (s *FileErasableKVStore) noiseHash(noiseBytes []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (s *FileErasableKVStore) Erase(ctx context.Context, key string) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#Erase: %s", key), func() error { return err })()
+func (s *FileErasableKVStore) Erase(mctx libkb.MetaContext, key string) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FileErasableKVStore#Erase: %s", key), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	noiseKey := s.noiseKey(key)
 	epick := libkb.FirstErrorPicker{}
-	epick.Push(s.erase(ctx, noiseKey))
-	epick.Push(s.erase(ctx, key))
+	epick.Push(s.erase(mctx, noiseKey))
+	epick.Push(s.erase(mctx, key))
 	err = epick.Error()
 	return err
 }
 
-func (s *FileErasableKVStore) erase(ctx context.Context, key string) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#erase: %s", key), func() error { return err })()
+func (s *FileErasableKVStore) erase(mctx libkb.MetaContext, key string) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("FileErasableKVStore#erase: %s", key), func() error { return err })()
 	filepath := s.filepath(key)
 	if exists, err := libkb.FileExists(filepath); err != nil {
 		return err
@@ -298,8 +296,8 @@ func (s *FileErasableKVStore) erase(ctx context.Context, key string) (err error)
 	return nil
 }
 
-func (s *FileErasableKVStore) AllKeys(ctx context.Context, keySuffix string) (keys []string, err error) {
-	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
+func (s *FileErasableKVStore) AllKeys(mctx libkb.MetaContext, keySuffix string) (keys []string, err error) {
+	defer mctx.TraceTimed("FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	if err := os.MkdirAll(s.storageDir, libkb.PermDir); err != nil {
@@ -317,7 +315,7 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context, keySuffix string) (ke
 		filename := filepath.Base(file.Name())
 		if tmpFileExp.MatchString(filename) {
 			if err := libkb.ShredFile(s.filepath(filename)); err != nil {
-				s.G().Log.CDebugf(ctx, "FileErasableKVStore#AllKeys: unable to remove temp file: %v, %v", file.Name(), err)
+				mctx.Debug("FileErasableKVStore#AllKeys: unable to remove temp file: %v, %v", file.Name(), err)
 			}
 			continue
 		}
@@ -333,9 +331,9 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context, keySuffix string) (ke
 	return keys, nil
 }
 
-func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (fkey [32]byte, err error) {
+func getLocalStorageSecretBoxKey(mctx libkb.MetaContext) (fkey [32]byte, err error) {
 	// Get secret device key
-	encKey, err := g.ActiveDevice.EncryptionKey()
+	encKey, err := mctx.ActiveDevice().EncryptionKey()
 	if err != nil {
 		return fkey, err
 	}

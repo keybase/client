@@ -182,7 +182,8 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 	res := kbtest.NewChatMockWorld(t, name, numUsers)
 	for _, w := range res.Tcs {
 		teams.ServiceInit(w.G)
-		ephemeral.ServiceInit(w.G)
+		mctx := libkb.NewMetaContextTODO(w.G)
+		ephemeral.ServiceInit(mctx)
 	}
 	return res
 }
@@ -1355,8 +1356,10 @@ func TestPairwiseMACChecker(t *testing.T) {
 
 		tc1 := ctc.world.Tcs[users[0].Username]
 		tc2 := ctc.world.Tcs[users[1].Username]
-		require.NoError(t, tc1.G.GetEKLib().KeygenIfNeeded(ctx1))
-		require.NoError(t, tc2.G.GetEKLib().KeygenIfNeeded(ctx2))
+		require.NoError(t, tc1.G.GetEKLib().KeygenIfNeeded(
+			ctc.as(t, users[0]).h.G().MetaContext(ctx1)))
+		require.NoError(t, tc2.G.GetEKLib().KeygenIfNeeded(
+			ctc.as(t, users[1]).h.G().MetaContext(ctx2)))
 		uid1 := users[0].User.GetUID()
 		uid2 := users[1].User.GetUID()
 		ri1 := ctc.as(t, users[0]).ri

@@ -75,7 +75,7 @@ func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
 		teamLoader.ClearMem()
 	}
 	if ekLib := c.G().GetEKLib(); ekLib != nil {
-		ekLib.ClearCaches()
+		ekLib.ClearCaches(c.MetaContext(ctx))
 	}
 	// Now drop caches, since we had the DB's state in-memory too.
 	c.G().FlushCaches()

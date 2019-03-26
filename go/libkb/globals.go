@@ -34,11 +34,11 @@ import (
 type ShutdownHook func() error
 
 type LoginHook interface {
-	OnLogin() error
+	OnLogin(mctx MetaContext) error
 }
 
 type LogoutHook interface {
-	OnLogout(m MetaContext) error
+	OnLogout(mctx MetaContext) error
 }
 
 type StandaloneChatConnector interface {
@@ -963,18 +963,19 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	mctx := NewMetaContextTODO(g)
 	g.Log.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
 	_, _ = g.GetPerUserKeyring(context.TODO())
 
 	// Do so outside the lock below
-	g.GetFullSelfer().OnLogin()
+	g.GetFullSelfer().OnLogin(mctx)
 
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
-		if err := h.OnLogin(); err != nil {
+		if err := h.OnLogin(mctx); err != nil {
 			g.Log.Warning("OnLogin hook error: %s", err)
 		}
 	}
