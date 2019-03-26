@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -92,4 +93,13 @@ func TestTokenize(t *testing.T) {
 	}
 	// empty case
 	require.Nil(t, tokenize(""))
+}
+
+func TestUpgradeRegexpArg(t *testing.T) {
+	arg := chat1.SearchRegexpArg{
+		Query: "from:karenm hi mike",
+	}
+	res := UpgradeRegexpArgFromQuery(arg)
+	require.Equal(t, "hi mike", res.Query)
+	require.Equal(t, "karenm", res.Opts.SentBy)
 }

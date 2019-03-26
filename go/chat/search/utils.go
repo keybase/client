@@ -114,3 +114,21 @@ func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.Conversatio
 	}
 	return uiMsgs
 }
+
+var fromRegex = regexp.MustCompile("^from:(@?[a-z0-9][a-z0-9_]+)")
+
+func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg) chat1.SearchRegexpArg {
+	query := arg.Query
+	// From
+	if match := fromRegex.FindStringSubmatch(query); match != nil {
+		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
+		arg.Opts.SentBy = strings.TrimSpace(match[1])
+	}
+	// Regex
+	if query[0] == '/' && query[len(query)-1] == '/' {
+		query = query[1 : len(query)-1]
+		arg.IsRegex = true
+	}
+	arg.Query = query
+	return arg
+}
