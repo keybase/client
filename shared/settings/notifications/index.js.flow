@@ -5,10 +5,10 @@ import * as Types from '../../constants/types/settings'
 export type Props = {
   allowEdit: boolean,
   groups: {
-    app_push?: Types._NotificationsGroupState,
-    email?: Types._NotificationsGroupState,
-    sms?: Types._NotificationsGroupState,
-    security?: Types._NotificationsGroupState,
+    [string]: {
+      settings: Array<Types._NotificationsSettingsState>,
+      unsubscribedFromAll: boolean,
+    },
   },
   onToggle: (groupName: string, name: string) => void,
   onToggleUnsubscribeAll: (group: string) => void,

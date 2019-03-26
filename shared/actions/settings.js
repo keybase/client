@@ -72,30 +72,31 @@ function* toggleNotifications(state) {
 
     let JSONPayload = []
     let chatGlobalArg = {}
-    for (const groupName in current.groups) {
-      const group = current.groups[groupName]
-      if (groupName === Constants.securityGroup) {
-        // Special case this since it will go to chat settings endpoint
-        for (const key in group.settings) {
-          const setting = group.settings[key]
-          chatGlobalArg[
-            `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
-          ] = !!setting.subscribed
-        }
-      } else {
-        for (const key in group.settings) {
-          const setting = group.settings[key]
+    current.groups.keySeq().forEach(groupName => {
+      const group = current.groups.get(groupName)
+      if (group) {
+        if (groupName === Constants.securityGroup) {
+          // Special case this since it will go to chat settings endpoint
+          group.settings.forEach(
+            setting =>
+              (chatGlobalArg[
+                `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
+              ] = !!setting.subscribed)
+          )
+        } else {
+          group.settings.forEach(setting =>
+            JSONPayload.push({
+              key: `${setting.name}|${groupName}`,
+              value: setting.subscribed ? '1' : '0',
+            })
+          )
           JSONPayload.push({
-            key: `${setting.name}|${groupName}`,
-            value: setting.subscribed ? '1' : '0',
+            key: `unsub|${groupName}`,
+            value: group.unsubscribedFromAll ? '1' : '0',
           })
         }
-        JSONPayload.push({
-          key: `unsub|${groupName}`,
-          value: group.unsubscribedFromAll ? '1' : '0',
-        })
       }
-    }
+    })
 
     const [result] = yield Saga.all([
       Saga.callUntyped(RPCTypes.apiserverPostJSONRpcPromise, {
@@ -243,7 +244,7 @@ function* refreshNotifications() {
     yield Saga.callUntyped(delay, 500)
     yield Saga.put(
       SettingsGen.createNotificationsRefreshed({
-        notifications: Constants.makeNotifications(),
+        notifications: I.Map(),
       })
     )
   })
@@ -349,7 +350,7 @@ function* refreshNotifications() {
 
   yield Saga.put(
     SettingsGen.createNotificationsRefreshed({
-      notifications,
+      notifications: I.Map(notifications),
     })
   )
 }
@@ -374,8 +375,12 @@ const deleteAccountForever = (state, action) => {
 }
 
 const loadSettings = () =>
-  RPCTypes.userLoadMySettingsRpcPromise().then(settings =>
-    SettingsGen.createLoadedSettings({emails: I.List(settings.emails || [])})
+  RPCTypes.userLoadMySettingsRpcPromise().then(
+    settings =>
+      settings.emails &&
+      SettingsGen.createLoadedSettings({
+        emails: I.List(settings.emails.map(row => Constants.makeEmailRow(row))),
+      })
   )
 
 const getRememberPassphrase = () =>

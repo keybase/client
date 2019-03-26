@@ -41,10 +41,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
         }
       }
 
-      const {settings, unsubscribedFromAll} = state.notifications.groups.get(group) || {
-        settings: null,
-        unsubscribedFromAll: null,
-      }
+      const groupMap = state.notifications.groups.get(group) || Constants.makeNotificationsGroup()
+      const {settings, unsubscribedFromAll} = groupMap
       if (!settings) {
         logger.warn('Trying to toggle unknown settings')
         return state
@@ -59,14 +57,18 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.merge({
         notifications: state.notifications.merge({
           allowEdit: false,
-          groups: state.notifications.groups.merge({...changed}),
+          groups: state.notifications.groups.merge(I.Map(changed)),
         }),
       })
     case SettingsGen.notificationsSaved:
       return state.merge({notifications: state.notifications.merge({allowEdit: true})})
     case SettingsGen.notificationsRefreshed:
       return state.merge({
-        notifications: state.notifications.merge({allowEdit: true, groups: {...action.payload.notifications}})})
+        notifications: state.notifications.merge({
+          allowEdit: true,
+          groups: action.payload.notifications,
+        }),
+      })
     case SettingsGen.invitesRefreshed:
       return state.merge({invites: state.invites.merge(action.payload.invites)})
     case SettingsGen.invitesSent:
@@ -77,8 +79,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.invitesClearError:
       return state.merge({invites: state.invites.merge({error: null})})
     case SettingsGen.loadedSettings:
-    console.warn('in loadedsettings', action.payload, state.email)
-      return state.merge({email: state.email.merge({emails: action.payload.emails})})
+      return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
     case SettingsGen.loadedRememberPassphrase:
     case SettingsGen.onChangeRememberPassphrase:
       return state.merge({passphrase: state.passphrase.merge({rememberPassphrase: action.payload.remember})})
@@ -106,9 +107,19 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.merge({waitingForResponse: action.payload.waiting})
     case SettingsGen.unfurlSettingsRefreshed:
     case SettingsGen.unfurlSettingsSaved:
-      return state.merge({chat: state.chat.merge({unfurl: state.chat.unfurl.merge({unfurlError: undefined, unfurlMode: action.payload.mode, unfurlWhitelist: action.payload.whitelist})})})
+      return state.merge({
+        chat: state.chat.merge({
+          unfurl: state.chat.unfurl.merge({
+            unfurlError: undefined,
+            unfurlMode: action.payload.mode,
+            unfurlWhitelist: action.payload.whitelist,
+          }),
+        }),
+      })
     case SettingsGen.unfurlSettingsError:
-      return state.merge({chat: state.chat.merge({unfurl: state.chat.unfurl.merge({unfurlError: action.payload.error})})})
+      return state.merge({
+        chat: state.chat.merge({unfurl: state.chat.unfurl.merge({unfurlError: action.payload.error})}),
+      })
     case SettingsGen.loadedHasRandomPw:
       return state.merge({passphrase: state.passphrase.merge({randomPW: action.payload.randomPW})})
     case SettingsGen.loadedCheckPassphrase:

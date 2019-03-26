@@ -5,20 +5,27 @@ import type {TypedState} from './reducer'
 import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 
-export const makeNotifications: I.RecordFactory<Types._NotificationsState> = I.Record({
-  allowEdit: false,
-  groups: I.Record(),
-})
-
 export const makeNotificationsGroup: I.RecordFactory<Types._NotificationsGroupState> = I.Record({
   settings: I.List(),
   unsubscribedFromAll: false,
 })
 
-export const makeEmail: I.RecordFactory<Types._EmaiStatel> = I.Record({
+export const makeNotifications: I.RecordFactory<Types._NotificationsState> = I.Record({
+  allowEdit: false,
+  groups: I.Map(),
+})
+
+export const makeEmail: I.RecordFactory<Types._EmailState> = I.Record({
   emails: null,
   error: null,
   newEmail: '',
+})
+
+export const makeEmailRow: I.RecordFactory<Types._EmailRow> = I.Record({
+  email: '',
+  isPrimary: false,
+  isVerified: false,
+  visibility: 0,
 })
 
 export const makePassphrase: I.RecordFactory<Types._PassphraseState> = I.Record({

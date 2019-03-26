@@ -43,24 +43,18 @@ export type _NotificationsSettingsState = {
 export type NotificationsSettingsState = I.RecordOf<_NotificationsSettingsState>
 
 export type _NotificationsGroupState = {
-  settings: I.List<NotificationsSettingsState>,
+  settings: Array<NotificationsSettingsState>,
   unsubscribedFromAll: boolean,
 }
 export type NotificationsGroupState = I.RecordOf<_NotificationsGroupState>
 
-export type NotificationGroups = 'email' | 'app_push' | 'sms'
-
-export type _NotificationSettingsStateGroup = {
-  email?: NotificationsGroupState,
-  app_push?: NotificationsGroupState,
-  sms?: NotificationsGroupState,
-}
-export type NotificationSettingsStateGroup = I.RecordOf<NotificationSettingsStateGroup>
+export type NotificationSettingsStateGroups = I.Map<string, NotificationsGroupState>
 
 export type _NotificationsState = {
   allowEdit: boolean,
-  groups: NotificationSettingsStateGroup,
+  groups: I.Map<string, NotificationsGroupState>,
 }
+
 export type NotificationsState = I.RecordOf<_NotificationsState>
 
 export type _PassphraseState = {
@@ -75,7 +69,15 @@ export type _PassphraseState = {
 }
 export type PassphraseState = I.RecordOf<_PassphraseState>
 
-export type EmailRow = I.RecordOf<RPCTypes.Email>
+// Record types don't play well with $ReadOnly types, which
+// RPCTypes.TeamSettings is, so we want to extract the underlying
+// writeable type. Just spreading doesn't give us what we want, as
+// that makes all keys optional (see
+// https://github.com/facebook/flow/issues/3534 ), so use $Exact to
+// fix that.
+export type _EmailRow = {...$Exact<RPCTypes.Email>}
+export type EmailRow = I.RecordOf<_EmailRow>
+
 export type _EmailState = {
   emails: ?I.List<EmailRow>,
   newEmail: string,

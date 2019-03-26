@@ -35,7 +35,7 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "?I.List<RPCTypes.Email>"
+      "emails": "?I.List<Types.EmailRow>"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
@@ -46,11 +46,11 @@
     },
     "notificationsRefresh": {},
     "notificationsRefreshed": {
-      "notifications": "Types.NotificationsState"
+      "notifications": "I.Map<string, Types.NotificationsGroupState>"
     },
     "notificationsSaved": {},
     "notificationsToggle": {
-      "group": "Types.NotificationGroups",
+      "group": "string",
       "name?": "?string"
     },
     "onChangeNewEmail": {

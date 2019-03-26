@@ -3,32 +3,26 @@ import * as React from 'react'
 import {Reloadable} from '../../common-adapters'
 import * as SettingsGen from '../../actions/settings-gen'
 import {refreshNotificationsWaitingKey} from '../../constants/settings'
-import * as Types from '../../constants/types/settings'
 import {connect, isMobile} from '../../util/container'
 import Notifications from './index'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {||}
-const mapStateToProps = (state, ownProps: {}) => {
-  const notifications = state.settings.notifications
-  console.warn('notifications is', notifications)
-  return {
-    groups: notifications.groups,
-    mobileHasPermissions: state.push.hasPermissions,
-    sound: state.config.notifySound,
-    waitingForResponse: state.settings.waitingForResponse,
-  }
-}
+const mapStateToProps = (state, ownProps: {}) => ({
+  allowEdit: state.settings.notifications.allowEdit,
+  groups: state.settings.notifications.groups.toJS(),
+  mobileHasPermissions: state.push.hasPermissions,
+  sound: state.config.notifySound,
+  waitingForResponse: state.settings.waitingForResponse,
+})
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
-  onToggle: (group: Types.NotificationGroups, name?: string) =>
-    dispatch(SettingsGen.createNotificationsToggle({group, name})),
+  onToggle: (group: string, name?: string) => dispatch(SettingsGen.createNotificationsToggle({group, name})),
   onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
-  onToggleUnsubscribeAll: (group: Types.NotificationGroups) =>
-    dispatch(SettingsGen.createNotificationsToggle({group})),
+  onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
   title: 'Notifications',
 })
 
