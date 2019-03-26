@@ -54,6 +54,10 @@ class Inbox extends React.PureComponent<Props, State> {
     if (!I.is(prevProps.unreadIndices, this.props.unreadIndices)) {
       this._updateShowUnread()
     }
+    if (this.props.rows.length !== prevProps.rows.length) {
+      // list has changed, floating divider is likely to change
+      this._updateShowFloating()
+    }
   }
 
   _renderItem = ({item, index}) => {
@@ -115,11 +119,11 @@ class Inbox extends React.PureComponent<Props, State> {
       return
     }
     this._onScrollUnbox(data)
-    this._updateShowFloating(data)
 
     const lastVisibleIdx = data.viewableItems[data.viewableItems.length - 1]?.index
     this._lastVisibleIdx = lastVisibleIdx || -1
     this._updateShowUnread()
+    this._updateShowFloating()
   }
 
   _updateShowUnread = () => {
@@ -150,13 +154,14 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _updateShowFloating = data => {
-    let showFloating = true
-    const {viewableItems} = data
-    const item = viewableItems && viewableItems[viewableItems.length - 1]
-    if (!item) {
+    if (this._lastVisibleIdx < 0) {
       return
     }
-    const row = item.item
+    let showFloating = true
+    const row = this.props.rows[this._lastVisibleIdx]
+    if (!row) {
+      return
+    }
 
     if (!row || row.type !== 'small') {
       showFloating = false

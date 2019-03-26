@@ -56,6 +56,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
     // list changed
     if (this.props.rows.length !== prevProps.rows.length) {
+      this._calculateShowFloating()
       listRowsResized = true
     }
 
@@ -146,6 +147,19 @@ class Inbox extends React.PureComponent<Props, State> {
     }
   }
 
+  _calculateShowFloating = () => {
+    if (this._lastVisibleIdx < 0) {
+      return
+    }
+    let showFloating = true
+    const row = this.props.rows[this._lastVisibleIdx]
+    if (!row || row.type !== 'small') {
+      showFloating = false
+    }
+
+    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+  }
+
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
     this._lastVisibleIdx = visibleStopIndex
     if (this.props.filter.length) {
@@ -165,14 +179,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return arr
     }, [])
 
-    let showFloating = true
-    const row = this.props.rows[visibleStopIndex]
-    if (!row || row.type !== 'small') {
-      showFloating = false
-    }
-
-    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
-
+    this._calculateShowFloating()
     this._calculateShowUnreadShortcut()
 
     this.props.onUntrustedInboxVisible(toUnbox)
