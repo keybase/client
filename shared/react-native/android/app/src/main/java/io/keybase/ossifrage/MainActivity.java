@@ -22,6 +22,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.common.LifecycleState;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
 
@@ -76,27 +77,66 @@ public class MainActivity extends ReactFragmentActivity {
 
     private ReactContext getReactContext() {
         ReactInstanceManager instanceManager = getReactInstanceManager();
-        if (instanceManager == null) return null;
+        if (instanceManager == null) {
+            NativeLogger.warn("react instance manager not ready");
+            return null;
+        }
 
         return instanceManager.getCurrentReactContext();
     }
 
-    private void handleNotificationIntent(Intent intent) {
-        if (!intent.getBooleanExtra("isNotification", false)) return;
-        intent.removeExtra("isNotification");
-
-        ReactContext reactContext = getReactContext();
-        if (reactContext == null) return;
-
+    private void handleNotificationIntentWithContext(Intent intent, ReactContext reactContext) {
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-        if (emitter != null) {
-            WritableMap evt = Arguments.createMap();
-            evt.putString("convID", intent.getStringExtra("convID"));
-            evt.putString("type", "chat.newmessage");
-            evt.putBoolean("userInteraction", true);
-            emitter.emit("androidIntentNotification", evt);
+        if (emitter == null) {
+            NativeLogger.warn("notification emitter not ready");
+            return;
         }
+        WritableMap evt = Arguments.createMap();
+        evt.putString("convID", intent.getStringExtra("convID"));
+        evt.putString("type", "chat.newmessage");
+        evt.putBoolean("userInteraction", true);
+        emitter.emit("androidIntentNotification", evt);
+    }
+
+    private void handleNotificationIntent(final Intent intent) {
+        if (!intent.getBooleanExtra("isNotification", false)) return;
+        intent.removeExtra("isNotification");
+        NativeLogger.info("launching from notification");
+
+        final ReactContext reactContext = getReactContext();
+        if (reactContext == null) {
+            NativeLogger.warn("react context not ready");
+            (new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    // Try for 10 seconds
+                    int millisecondsToSleep = 18000;
+                    int millisecondsPerSleep = 6000;
+                    int numSleeps = millisecondsToSleep / millisecondsPerSleep;
+                    for (int i=0; i < numSleeps; i++) {
+                        try {
+                            Thread.sleep(millisecondsPerSleep);
+                        } catch (InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                        }
+                        final ReactContext reactContext = getReactContext();
+                        if (reactContext == null) {
+                            continue;
+                        }
+                        // FIXME: Currently this is very sloppy. Even after reactContext is no
+                        // longer null, it's possible to error when trying to route from the
+                        // resulting action.
+                        handleNotificationIntentWithContext(intent, reactContext);
+                        return;
+                    }
+                }
+            })).run();
+            return;
+        }
+
+        this.handleNotificationIntentWithContext(intent, reactContext);
     }
 
     private void handleSendIntentStream(Intent intent) {
@@ -267,6 +307,7 @@ public class MainActivity extends ReactFragmentActivity {
 
     @Override
     public void onNewIntent(Intent intent) {
+        NativeLogger.info("new Intent: " + intent.getAction());
         super.onNewIntent(intent);
         setIntent(intent);
     }
