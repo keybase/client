@@ -196,6 +196,87 @@ func TestUserEmails(t *testing.T) {
 	}
 }
 
+func TestProvisionAfterSwitchWithWrongUser(t *testing.T) {
+	// device X (provisioner) context:
+	t.Logf("setup X")
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	t.Logf("setup Y")
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	t.Logf("provisioner login")
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
+	var secretX kex2.Secret
+	_, err := rand.Read(secretX[:])
+	require.NoError(t, err)
+	Logout(tcX)
+
+	// Now make a user Pam
+	userPam := CreateAndSignupFakeUserPaper(tcX, "login")
+
+	// Now switch back to userX, to the the provisiong user, but try to provision as userPam
+	userX.SwitchTo(tcX.G, true)
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	t.Logf("provisionee login")
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: userPam.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	assertWrongUserError := func(err error) {
+		require.Error(t, err)
+		require.True(t, strings.Contains(err.Error(), "is a different user than we wanted"))
+	}
+
+	// start provisionee
+	t.Logf("start provisionee")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		err := RunEngine2(m, eng)
+		assertWrongUserError(err)
+	}()
+
+	// start provisioner
+	t.Logf("start provisioner")
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		uis := libkb.UIs{
+			SecretUI:    userPam.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		err := RunEngine2(m, provisioner)
+		assertWrongUserError(err)
+	}()
+
+	secretFromY := <-secretCh
+
+	provisioner.AddSecret(secretFromY)
+
+	t.Logf("wait")
+	wg.Wait()
+
+	require.False(t, t.Failed(), "prior failure in a goroutine")
+}
+
 func TestProvisionDesktop(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
 		testProvisionDesktop(t, false, sigVersion)
