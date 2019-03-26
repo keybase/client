@@ -197,7 +197,14 @@ func TestUserEmails(t *testing.T) {
 }
 
 func TestProvisionDesktopAfterSwitch(t *testing.T) {
+	testProvisionAfterSwitch(t, true)
+}
 
+func TestProvisionAfterSwitchWithWrongUser(t *testing.T) {
+	testProvisionAfterSwitch(t, false)
+}
+
+func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -212,14 +219,21 @@ func TestProvisionDesktopAfterSwitch(t *testing.T) {
 	t.Logf("provisioner login")
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	Logout(tcX)
-	CreateAndSignupFakeUser(tcX, "secon")
-
-	// Ok, now switch back to original user userX
-	userX.SwitchTo(tcX.G, true)
 
 	var secretX kex2.Secret
 	_, err := rand.Read(secretX[:])
 	require.NoError(t, err)
+
+	// Now make a user Pam
+	userPam := CreateAndSignupFakeUserPaper(tcX, "login")
+
+	userProvisionAs := userX
+	if !shouldItWork {
+		userProvisionAs = userPam
+	}
+
+	// Now switch back to userX, which may or may not be userProvisionAs (above)
+	userX.SwitchTo(tcX.G, true)
 
 	secretCh := make(chan kex2.Secret)
 
@@ -227,7 +241,7 @@ func TestProvisionDesktopAfterSwitch(t *testing.T) {
 	t.Logf("provisionee login")
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
-		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+		LoginUI:     &libkb.TestLoginUI{Username: userProvisionAs.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
@@ -237,16 +251,23 @@ func TestProvisionDesktopAfterSwitch(t *testing.T) {
 
 	var wg sync.WaitGroup
 
+	assertError := func(err error) {
+		if shouldItWork {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+			require.True(t, strings.Contains(err.Error(), "is a different user than we wanted"))
+		}
+	}
+
 	// start provisionee
 	t.Logf("start provisionee")
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, eng); err != nil {
-			t.Errorf("login error: %s", err)
-			return
-		}
+		err := RunEngine2(m, eng)
+		assertError(err)
 	}()
 
 	// start provisioner
@@ -255,16 +276,13 @@ func TestProvisionDesktopAfterSwitch(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
 		uis := libkb.UIs{
-			SecretUI:    userX.NewSecretUI(),
+			SecretUI:    userProvisionAs.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
 		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := RunEngine2(m, provisioner); err != nil {
-			t.Errorf("provisioner error: %s", err)
-			return
-		}
+		err := RunEngine2(m, provisioner)
+		assertError(err)
 	}()
 
 	secretFromY := <-secretCh
@@ -275,6 +293,10 @@ func TestProvisionDesktopAfterSwitch(t *testing.T) {
 	wg.Wait()
 
 	require.False(t, t.Failed(), "prior failure in a goroutine")
+
+	if !shouldItWork {
+		return
+	}
 
 	t.Logf("asserts")
 	if err := AssertProvisioned(tcY); err != nil {
@@ -291,87 +313,6 @@ func TestProvisionDesktopAfterSwitch(t *testing.T) {
 	// after provisioning, the secret should be stored
 	assertSecretStored(tcY, userX.Username)
 
-}
-
-func TestProvisionAfterSwitchWithWrongUser(t *testing.T) {
-	// device X (provisioner) context:
-	t.Logf("setup X")
-	tcX := SetupEngineTest(t, "kex2provision")
-	defer tcX.Cleanup()
-
-	// device Y (provisionee) context:
-	t.Logf("setup Y")
-	tcY := SetupEngineTest(t, "template")
-	defer tcY.Cleanup()
-
-	// provisioner needs to be logged in
-	t.Logf("provisioner login")
-	userX := CreateAndSignupFakeUserPaper(tcX, "login")
-	var secretX kex2.Secret
-	_, err := rand.Read(secretX[:])
-	require.NoError(t, err)
-	Logout(tcX)
-
-	// Now make a user Pam
-	userPam := CreateAndSignupFakeUserPaper(tcX, "login")
-
-	// Now switch back to userX, to the the provisiong user, but try to provision as userPam
-	userX.SwitchTo(tcX.G, true)
-
-	secretCh := make(chan kex2.Secret)
-
-	// provisionee calls login:
-	t.Logf("provisionee login")
-	uis := libkb.UIs{
-		ProvisionUI: newTestProvisionUISecretCh(secretCh),
-		LoginUI:     &libkb.TestLoginUI{Username: userPam.Username},
-		LogUI:       tcY.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{},
-		GPGUI:       &gpgtestui{},
-	}
-
-	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-
-	var wg sync.WaitGroup
-
-	assertWrongUserError := func(err error) {
-		require.Error(t, err)
-		require.True(t, strings.Contains(err.Error(), "is a different user than we wanted"))
-	}
-
-	// start provisionee
-	t.Logf("start provisionee")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		err := RunEngine2(m, eng)
-		assertWrongUserError(err)
-	}()
-
-	// start provisioner
-	t.Logf("start provisioner")
-	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		uis := libkb.UIs{
-			SecretUI:    userPam.NewSecretUI(),
-			ProvisionUI: newTestProvisionUI(),
-		}
-		m := NewMetaContextForTest(tcX).WithUIs(uis)
-		err := RunEngine2(m, provisioner)
-		assertWrongUserError(err)
-	}()
-
-	secretFromY := <-secretCh
-
-	provisioner.AddSecret(secretFromY)
-
-	t.Logf("wait")
-	wg.Wait()
-
-	require.False(t, t.Failed(), "prior failure in a goroutine")
 }
 
 func TestProvisionDesktop(t *testing.T) {
