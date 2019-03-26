@@ -42,7 +42,7 @@ const onConnect = () => {
 }
 
 // Ask the service to refresh the inbox
-function* inboxRefresh(state, action) {
+function* inboxRefresh(state, action, logger) {
   if (!state.config.loggedIn) {
     return
   }
@@ -128,7 +128,7 @@ const untrustedConversationIDKeys = (state, ids) =>
 
 // We keep a set of conversations to unbox
 let metaQueue = I.OrderedSet()
-const queueMetaToRequest = (state, action) => {
+const queueMetaToRequest = (state, action, logger) => {
   const old = metaQueue
   metaQueue = metaQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
   if (old !== metaQueue) {
@@ -184,7 +184,7 @@ const rpcMetaRequestConversationIDKeys = (state, action) => {
 }
 
 // We want to unbox rows that have scroll into view
-function* unboxRows(state, action) {
+function* unboxRows(state, action, logger) {
   if (!state.config.loggedIn) {
     return
   }
@@ -277,7 +277,7 @@ function* unboxRows(state, action) {
 }
 
 // We get an incoming message streamed to us
-const onIncomingMessage = (state, incoming) => {
+const onIncomingMessage = (state, incoming, logger) => {
   const {
     message: cMsg,
     modifiedMessage,
@@ -556,7 +556,7 @@ const onChatAttachmentUploadStart = (_, action) => {
   })
 }
 
-const onChatInboxSyncStarted = (_, action) =>
+const onChatInboxSyncStarted = (_, action, logger) =>
   WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})
 
 // Service tells us it's done syncing
@@ -615,13 +615,13 @@ const onChatInboxSynced = (state, action) => {
   return actions
 }
 
-const onChatPaymentInfo = (_, action) => {
+const onChatPaymentInfo = (_, action, logger) => {
   const {convID, info, msgID} = action.payload.params
   const conversationIDKey = convID ? Types.conversationIDToKey(convID) : Constants.noConversationIDKey
   const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([info])
   if (!paymentInfo) {
     // This should never happen
-    const errMsg = `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${msgID}. The local version may be absent or out of date.`
+    const errMsg = `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${msgID}. The local version may be absent or out of date.`
     logger.error(errMsg)
     throw new Error(errMsg)
   }
@@ -632,13 +632,13 @@ const onChatPaymentInfo = (_, action) => {
   })
 }
 
-const onChatRequestInfo = (_, action) => {
+const onChatRequestInfo = (_, action, logger) => {
   const {convID, info, msgID} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
   const requestInfo = Constants.uiRequestInfoToChatRequestInfo(info)
   if (!requestInfo) {
     // This should never happen
-    const errMsg = `ChatHandler: got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${conversationIDKey} messageID: ${msgID}. The local version may be absent or out of date.`
+    const errMsg = `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${conversationIDKey} messageID: ${msgID}. The local version may be absent or out of date.`
     logger.error(errMsg)
     throw new Error(errMsg)
   }
@@ -649,14 +649,12 @@ const onChatRequestInfo = (_, action) => {
   })
 }
 
-const onChatSetConvRetention = (_, action) => {
+const onChatSetConvRetention = (_, action, logger) => {
   const {conv, convID} = action.payload.params
   if (conv) {
     return Chat2Gen.createUpdateConvRetentionPolicy({conv})
   }
-  logger.warn(
-    'ChatHandler: got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.'
-  )
+  logger.warn('got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.')
   // force to get the new retention policy
   return Chat2Gen.createMetaRequestTrusted({
     conversationIDKeys: [Types.conversationIDToKey(convID)],
@@ -664,7 +662,7 @@ const onChatSetConvRetention = (_, action) => {
   })
 }
 
-const onChatSetConvSettings = (_, action) => {
+const onChatSetConvSettings = (_, action, logger) => {
   const {conv, convID} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
   const newRole =
@@ -673,23 +671,23 @@ const onChatSetConvSettings = (_, action) => {
     conv.convSettings.minWriterRoleInfo &&
     conv.convSettings.minWriterRoleInfo.role
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
-  logger.info(`ChatHandler: got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
+  logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
   if (role && role !== 'none') {
     return Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})
   }
   logger.warn(
-    `ChatHandler: got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
+    `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
   )
 }
 
-const onChatSetTeamRetention = (_, action) => {
+const onChatSetTeamRetention = (_, action, logger) => {
   const {convs} = action.payload.params
   if (convs) {
     return Chat2Gen.createUpdateTeamRetentionPolicy({convs})
   }
   // this is a more serious problem, but we don't need to bug the user about it
   logger.error(
-    'ChatHandler: got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
+    'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
   )
 }
 
@@ -707,7 +705,7 @@ const onChatChatTLFFinalizePayload = (_, action) => {
   return Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]})
 }
 
-const onChatThreadStale = (_, action) => {
+const onChatThreadStale = (_, action, logger) => {
   const {updates} = action.payload.params
   let actions = []
   Object.keys(RPCChatTypes.notifyChatStaleUpdateType).forEach(function(key) {
@@ -756,7 +754,7 @@ const onChatShowManageChannels = (state, action) => {
   return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
 }
 
-const onNewChatActivity = (state, action) => {
+const onNewChatActivity = (state, action, logger) => {
   const {activity} = action.payload.params
   logger.info(`Got new chat activity of type: ${activity.activityType}`)
   let actions
@@ -765,7 +763,7 @@ const onNewChatActivity = (state, action) => {
       const incomingMessage = activity.incomingMessage
       if (incomingMessage) {
         actions = [
-          ...onIncomingMessage(state, incomingMessage),
+          ...onIncomingMessage(state, incomingMessage, logger),
           ...chatActivityToMetasAction(incomingMessage),
         ]
       }
@@ -895,7 +893,7 @@ const scrollDirectionToPagination = (sd: scrollDirection, numberOfMessagesToLoad
 // Load new messages on a thread. We call this when you select a conversation,
 // we get a thread-is-stale notification, or when you scroll up and want more
 // messages
-function* loadMoreMessages(state, action) {
+function* loadMoreMessages(state, action, logger) {
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
@@ -985,7 +983,7 @@ function* loadMoreMessages(state, action) {
   }
 
   if (!key || !Constants.isValidConversationIDKey(key)) {
-    logger.info('Load thread bail: no conversationIDKey')
+    logger.info('bail: no conversationIDKey')
     return
   }
 
@@ -993,7 +991,7 @@ function* loadMoreMessages(state, action) {
 
   const conversationID = Types.keyToConversationID(conversationIDKey)
   if (!conversationID) {
-    logger.info('Load thread bail: invalid conversationIDKey')
+    logger.info('bail: invalid conversationIDKey')
     return
   }
 
@@ -1002,13 +1000,13 @@ function* loadMoreMessages(state, action) {
   const meta = Constants.getMeta(state, conversationIDKey)
 
   if (meta.membershipType === 'youAreReset' || !meta.rekeyers.isEmpty()) {
-    logger.info('Load thread bail: we are reset')
+    logger.info('bail: we are reset')
     return
   }
 
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
     if (!state.chat2.moreToLoadMap.get(conversationIDKey)) {
-      logger.info('Load thread bail: scrolling back and at the end')
+      logger.info('bail: scrolling back and at the end')
       return
     }
     sd = 'back'
@@ -1020,9 +1018,7 @@ function* loadMoreMessages(state, action) {
     numberOfMessagesToLoad = Constants.numMessagesOnInitialLoad
   }
 
-  logger.info(
-    `Load thread: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
-  )
+  logger.info(`calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`)
 
   const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
 
@@ -1099,7 +1095,7 @@ function* loadMoreMessages(state, action) {
       Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
     )
   } catch (e) {
-    logger.warn(`Load loadMoreMessages error ${e.message}`)
+    logger.warn(e.message)
     if (e.code !== RPCTypes.constantsStatusCode.scteamreaderror) {
       // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
       throw e
@@ -1107,7 +1103,7 @@ function* loadMoreMessages(state, action) {
   }
 }
 
-function* getUnreadline(state, action) {
+function* getUnreadline(state, action, logger) {
   // Get the conversationIDKey
   let key = null
   switch (action.type) {
@@ -1165,7 +1161,7 @@ const clearInboxFilter = (state, action) => {
 }
 
 // Show a desktop notification
-function* desktopNotify(state, action) {
+function* desktopNotify(state, action, logger) {
   const {conversationIDKey, author, body} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -1173,11 +1169,11 @@ function* desktopNotify(state, action) {
     Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) ||
     meta.isMuted // ignore muted convos
   ) {
-    logger.info('desktopNotify: not sending notification')
+    logger.info('not sending notification')
     return
   }
 
-  logger.info('desktopNotify: sending chat notification')
+  logger.info('sending chat notification')
   let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
   if (meta.teamType === 'big') {
     title += `#${meta.channelname}`
@@ -1203,7 +1199,7 @@ function* desktopNotify(state, action) {
         const onClose = () => {
           resolve()
         }
-        logger.info('desktopNotify: invoking NotifyPopup for chat notification')
+        logger.info('invoking NotifyPopup for chat notification')
         NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
       })
   )
@@ -1213,7 +1209,7 @@ function* desktopNotify(state, action) {
 }
 
 // Delete a message. We cancel pending messages
-const messageDelete = (state, action) => {
+const messageDelete = (state, action, logger) => {
   const {conversationIDKey, ordinal} = action.payload
   const message = state.chat2.messageMap.getIn([conversationIDKey, ordinal])
   if (
@@ -1268,7 +1264,7 @@ const getIdentifyBehavior = (state, conversationIDKey) => {
   return RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui
 }
 
-function* messageEdit(state, action) {
+function* messageEdit(state, action, logger) {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
@@ -1338,7 +1334,7 @@ const hideThreadSearch = (state, action) => {
     : []
 }
 
-function* threadSearch(state, action) {
+function* threadSearch(state, action, logger) {
   const {conversationIDKey, query} = action.payload
   const onHit = hit => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
@@ -1378,7 +1374,7 @@ function* threadSearch(state, action) {
   }
 }
 
-function* messageSend(state, action) {
+function* messageSend(state, action, logger) {
   const {conversationIDKey, text} = action.payload
 
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -1607,7 +1603,7 @@ function* previewConversationFindExisting(state, action) {
 const startupInboxLoad = state =>
   state.config.username ? Chat2Gen.createInboxRefresh({reason: 'bootstrap'}) : undefined
 
-const changeSelectedConversation = (state, action) => {
+const changeSelectedConversation = (state, action, logger) => {
   const selected = Constants.getSelectedConversation(state)
   switch (action.type) {
     case Chat2Gen.setPendingMode: {
@@ -1643,11 +1639,11 @@ const changeSelectedConversation = (state, action) => {
   }
 
   if (!isMobile) {
-    return _maybeAutoselectNewestConversation(state, action)
+    return _maybeAutoselectNewestConversation(state, action, logger)
   }
 }
 
-const _maybeAutoselectNewestConversation = (state, action) => {
+const _maybeAutoselectNewestConversation = (state, action, logger) => {
   // If there is a team we should avoid when selecting a new conversation (e.g.
   // on team leave) put the name in `avoidTeam` and `isEligibleConvo` below will
   // take it into account
@@ -1739,7 +1735,7 @@ const _maybeAutoselectNewestConversation = (state, action) => {
     // No conversations besides in the team we're trying to avoid. Select
     // nothing
     logger.info(
-      `AutoselectNewestConversation: no eligible conversations left in inbox (no conversations outside of team we're avoiding); selecting nothing`
+      `no eligible conversations left in inbox (no conversations outside of team we're avoiding); selecting nothing`
     )
     return Chat2Gen.createSelectConversation({
       conversationIDKey: Constants.noConversationIDKey,
@@ -1836,7 +1832,7 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
 }
 
 // Download an attachment to your device
-function* attachmentDownload(_, action) {
+function* attachmentDownload(_, action, logger) {
   const {message} = action.payload
 
   if (message.type !== 'attachment') {
@@ -1932,7 +1928,7 @@ const attachmentPasted = (_, action) => {
 }
 
 // Upload an attachment
-function* attachmentsUpload(state, action) {
+function* attachmentsUpload(state, action, logger) {
   const {conversationIDKey, paths, titles} = action.payload
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
@@ -1995,7 +1991,7 @@ const resetLetThemIn = (_, action) =>
     username: action.payload.username,
   })
 
-const markThreadAsRead = (state, action) => {
+const markThreadAsRead = (state, action, logger) => {
   const conversationIDKey = Constants.getSelectedConversation(state)
 
   if (!conversationIDKey) {
@@ -2052,7 +2048,7 @@ const markThreadAsRead = (state, action) => {
 }
 
 // Delete a message and any older
-const deleteMessageHistory = (state, action) => {
+const deleteMessageHistory = (state, action, logger) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -2098,7 +2094,7 @@ function* loadChannelInfos(state, action) {
 }
 
 // Helpers to nav you to the right place
-const navigateToInbox = (state, action) => {
+const navigateToInbox = (state, action, logger) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
@@ -2133,7 +2129,7 @@ const navigateToInbox = (state, action) => {
   }
   const actions = [resetRouteAction]
   if (action.type === Chat2Gen.navigateToInbox && action.payload.findNewConversation && !isMobile) {
-    actions.push(_maybeAutoselectNewestConversation(state, action))
+    actions.push(_maybeAutoselectNewestConversation(state, action, logger))
   }
   return actions
 }
@@ -2174,7 +2170,7 @@ const mobileChangeSelection = state => {
 }
 
 // Native share sheet for attachments
-function* mobileMessageAttachmentShare(state, action) {
+function* mobileMessageAttachmentShare(state, action, logger) {
   const {conversationIDKey, ordinal} = action.payload
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
@@ -2189,7 +2185,7 @@ function* mobileMessageAttachmentShare(state, action) {
 }
 
 // Native save to camera roll
-function* mobileMessageAttachmentSave(state, action) {
+function* mobileMessageAttachmentSave(state, action, logger) {
   const {conversationIDKey, ordinal} = action.payload
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message || message.type !== 'attachment') {
@@ -2301,7 +2297,7 @@ function* unhideConversation(_, action) {
   })
 }
 
-const setConvRetentionPolicy = (_, action) => {
+const setConvRetentionPolicy = (_, action, logger) => {
   const {conversationIDKey, policy} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
@@ -2384,7 +2380,7 @@ const removePendingConversation = function*() {
 // TODO This will break if you try to make 2 new conversations at the same time because there is
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
-function* createConversation(state, action) {
+function* createConversation(state, action, logger) {
   const username = state.config.username
   if (!username) {
     logger.error('Making a convo while logged out?')
@@ -2423,7 +2419,7 @@ function* createConversation(state, action) {
   yield removePendingConversation()
 }
 
-const messageReplyPrivately = (state, action) => {
+const messageReplyPrivately = (state, action, logger) => {
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
   if (!message) {
@@ -2470,7 +2466,7 @@ const ignoreErrors = [
   RPCTypes.constantsStatusCode.scapinetworkerror,
   RPCTypes.constantsStatusCode.sctimeout,
 ]
-function* setConvExplodingMode(state, action) {
+function* setConvExplodingMode(state, action, logger) {
   const {conversationIDKey, seconds} = action.payload
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
 
@@ -2519,7 +2515,7 @@ function* setConvExplodingMode(state, action) {
   }
 }
 
-function* handleSeeingWallets(_, action) {
+function* handleSeeingWallets(_, action, logger) {
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenWallets =
     gregorState.items && gregorState.items.some(i => i.item?.category === Constants.seenWalletsGregorKey)
@@ -2544,7 +2540,7 @@ function* handleSeeingWallets(_, action) {
   }
 }
 
-function* loadStaticConfig(state, action) {
+function* loadStaticConfig(state, action, logger) {
   if (state.chat2.staticConfig) {
     return
   }
@@ -2590,7 +2586,7 @@ function* loadStaticConfig(state, action) {
   )
 }
 
-const toggleMessageReaction = (state, action) => {
+const toggleMessageReaction = (state, action, logger) => {
   // The service translates this to a delete if an identical reaction already exists
   // so we only need to call this RPC to toggle it on & off
   const {conversationIDKey, emoji, ordinal} = action.payload
@@ -2642,7 +2638,7 @@ const toggleMessageReaction = (state, action) => {
 const receivedBadgeState = (_, action) =>
   Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []})
 
-const setMinWriterRole = (_, action) => {
+const setMinWriterRole = (_, action, logger) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
   return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
@@ -2651,7 +2647,7 @@ const setMinWriterRole = (_, action) => {
   }).then(() => {})
 }
 
-const unfurlRemove = (state, action) => {
+const unfurlRemove = (state, action, logger) => {
   const {conversationIDKey, messageID} = action.payload
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
@@ -2762,7 +2758,7 @@ const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
     : []),
 ]
 
-const gregorPushState = (state, action) => {
+const gregorPushState = (state, action, logger) => {
   const actions = []
   const items = action.payload.state
 
@@ -2797,7 +2793,7 @@ const gregorPushState = (state, action) => {
   return actions
 }
 
-const prepareFulfillRequestForm = (state, action) => {
+const prepareFulfillRequestForm = (state, action, logger) => {
   const {conversationIDKey, ordinal} = action.payload
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   if (!message) {
@@ -2835,7 +2831,7 @@ const prepareFulfillRequestForm = (state, action) => {
   })
 }
 
-const addUsersToChannel = (_, action) => {
+const addUsersToChannel = (_, action, logger) => {
   const {conversationIDKey, usernames} = action.payload
   return RPCChatTypes.localBulkAddToConvRpcPromise(
     {convID: Types.keyToConversationID(conversationIDKey), usernames},

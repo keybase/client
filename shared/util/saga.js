@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import type {LogFn} from '../logger/types'
 import * as RS from 'redux-saga'
 import * as Effects from 'redux-saga/effects'
 import {convertToError} from '../util/errors'
@@ -10,6 +11,20 @@ import put from './typed-put'
 import {isArray} from 'lodash-es'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
+
+type SagaLogger = {
+  error: LogFn,
+  warn: LogFn,
+  info: LogFn,
+  debug: LogFn,
+}
+
+const makeSagaLogger = (actionType, fcnName) => ({
+  debug: (...args) => logger.debug(`${fcnName}: [${actionType}]`, ...args),
+  error: (...args) => logger.error(`${fcnName}: [${actionType}]`, ...args),
+  info: (...args) => logger.info(`${fcnName}: [${actionType}]`, ...args),
+  warn: (...args) => logger.warn(`${fcnName}: [${actionType}]`, ...args),
+})
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
 function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
@@ -23,11 +38,12 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 // TODO I couldn't get flow to figure out how to infer this, or even force you to explicitly do it
 // maybe flow-strict fixes this
 type MaybeAction = void | boolean | TypedActions | null
-function* chainAction<Actions>(
+function* chainAction<Actions: {+type: string}>(
   pattern: RS.Pattern,
   f: (
     state: TypedState,
-    action: Actions
+    action: Actions,
+    logger: SagaLogger
   ) => MaybeAction | $ReadOnlyArray<MaybeAction> | Promise<MaybeAction | $ReadOnlyArray<MaybeAction>>
 ): Generator<any, void, any> {
   type Fn = Actions => RS.Saga<void>
@@ -36,7 +52,8 @@ function* chainAction<Actions>(
   ): RS.Saga<void> {
     try {
       const state = yield* selectState()
-      let toPut = yield Effects.call(f, state, action)
+      const sl = makeSagaLogger(action.type, f.name)
+      let toPut = yield Effects.call(f, state, action, sl)
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
         for (var out of outActions) {
@@ -60,9 +77,9 @@ function* chainAction<Actions>(
   })
 }
 
-function* chainGenerator<Actions>(
+function* chainGenerator<Actions: {+type: string}>(
   pattern: RS.Pattern,
-  f: (state: TypedState, action: Actions) => Generator<any, void, any>
+  f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, void, any>
 ): Generator<any, void, any> {
   type Fn = Actions => RS.Saga<void>
   return yield Effects.takeEvery<Actions, void, Fn>(pattern, function* chainActionHelper(
@@ -70,7 +87,8 @@ function* chainGenerator<Actions>(
   ): RS.Saga<void> {
     try {
       const state = yield* selectState()
-      yield* f(state, action)
+      const sl = makeSagaLogger(action.type, f.name)
+      yield* f(state, action, sl)
     } catch (error) {
       // Convert to global error so we don't kill the takeEvery loop
       yield Effects.put(

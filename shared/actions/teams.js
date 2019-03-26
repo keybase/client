@@ -1,7 +1,6 @@
 // @flow
 // TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
 // not have every handler clear it themselves. this reduces the nubmer of actionChains
-import logger from '../logger'
 import {map} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
@@ -140,7 +139,7 @@ const getTeamProfileAddList = (state, action) =>
     return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist || [])})
   })
 
-const leaveTeam = (state, action) => {
+const leaveTeam = (state, action, logger) => {
   const {context, teamname} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
   return RPCTypes.teamsTeamLeaveRpcPromise(
@@ -166,7 +165,7 @@ const leftTeam = (state, action) => {
   }
 }
 
-const addPeopleToTeam = (state, action) => {
+const addPeopleToTeam = (state, action, logger) => {
   const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
   const ids = SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').toArray()
   logger.info(`Adding ${ids.length} people to ${teamname}`)
@@ -209,7 +208,7 @@ const addPeopleToTeam = (state, action) => {
     })
 }
 
-const getTeamRetentionPolicy = (state, action) => {
+const getTeamRetentionPolicy = (state, action, logger) => {
   const {teamname} = action.payload
   const teamID = Constants.getTeamID(state, teamname)
   if (!teamID) {
@@ -235,7 +234,7 @@ const getTeamRetentionPolicy = (state, action) => {
     .catch(() => TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamname}))
 }
 
-const saveTeamRetentionPolicy = (state, action) => {
+const saveTeamRetentionPolicy = (state, action, logger) => {
   const {teamname, policy} = action.payload
 
   // get teamID
@@ -259,7 +258,7 @@ const saveTeamRetentionPolicy = (state, action) => {
   ])
 }
 
-const updateTeamRetentionPolicy = (state, action) => {
+const updateTeamRetentionPolicy = (state, action, logger) => {
   const {convs} = action.payload
   if (convs.length === 0) {
     logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
@@ -275,7 +274,7 @@ const updateTeamRetentionPolicy = (state, action) => {
   }
 }
 
-function* inviteByEmail(_, action) {
+function* inviteByEmail(_, action, logger) {
   const {destSubPath, invitees, role, rootPath, sourceSubPath, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamLoadingInvites({invitees, loadingInvites: true, teamname}))
   try {
@@ -398,7 +397,7 @@ const editDescription = (_, action) => {
     )
 }
 
-const uploadAvatar = (_, action) => {
+const uploadAvatar = (_, action, logger) => {
   const {crop, filename, sendChatNotification, teamname} = action.payload
   return RPCTypes.teamsUploadTeamAvatarRpcPromise(
     {
@@ -428,7 +427,7 @@ const editMembership = (_, action) => {
   )
 }
 
-function* removeMemberOrPendingInvite(_, action) {
+function* removeMemberOrPendingInvite(_, action, logger) {
   const {teamname, username, email, inviteID} = action.payload
 
   const invitees = username || email || inviteID
@@ -474,7 +473,7 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
   return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
 }
 
-const inviteToTeamByPhone = (_, action) => {
+const inviteToTeamByPhone = (_, action, logger) => {
   const {teamname, role, phoneNumber, fullName = ''} = action.payload
   return RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
     {
@@ -551,7 +550,7 @@ function* createNewTeamFromConversation(state, action) {
   }
 }
 
-function* getDetails(_, action) {
+function* getDetails(_, action, logger) {
   const {teamname} = action.payload
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
@@ -742,7 +741,7 @@ function* addUserToTeams(state, action) {
   )
 }
 
-const getTeamOperations = (_, action) =>
+const getTeamOperations = (_, action, logger) =>
   RPCTypes.teamsCanUserPerformRpcPromise(
     {name: action.payload.teamname},
     Constants.teamWaitingKey(action.payload.teamname)
@@ -750,7 +749,7 @@ const getTeamOperations = (_, action) =>
     TeamsGen.createSetTeamCanPerform({teamOperation, teamname: action.payload.teamname})
   )
 
-function* getTeamPublicity(_, action) {
+function* getTeamPublicity(_, action, logger) {
   try {
     const teamname = action.payload.teamname
     // Get publicity settings for this team.
@@ -780,11 +779,11 @@ function* getTeamPublicity(_, action) {
 
     yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
   } catch (e) {
-    logger.error(e)
+    logger.error(e.message)
   }
 }
 
-const getChannelInfo = (_, action) => {
+const getChannelInfo = (_, action, logger) => {
   const {teamname, conversationIDKey} = action.payload
   return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise(
     {
@@ -840,7 +839,7 @@ const getChannels = (_, action) => {
   })
 }
 
-function* getTeams(state) {
+function* getTeams(state, _, logger) {
   const username = state.config.username
   if (!username) {
     logger.warn('getTeams while logged out')
@@ -996,7 +995,7 @@ function* saveChannelMembership(state, action) {
   }
 }
 
-function* createChannel(_, action) {
+function* createChannel(_, action, logger) {
   const {channelname, description, teamname, rootPath, sourceSubPath, destSubPath} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
@@ -1217,7 +1216,7 @@ const teamAvatarUpdated = (_, action) => {
   }
 }
 
-const teamChangedByName = (state, action) => {
+const teamChangedByName = (state, action, logger) => {
   const {teamName} = action.payload.params
   logger.info(`Got teamChanged for ${teamName} from service`)
   const selectedTeamNames = Constants.getSelectedTeamNames(state)
@@ -1260,7 +1259,7 @@ const updateTopic = (state, action) => {
   )
 }
 
-function* addTeamWithChosenChannels(state, action) {
+function* addTeamWithChosenChannels(state, action, logger) {
   const existingTeams = state.teams.teamsWithChosenChannels
   const {teamname} = action.payload
   if (state.teams.teamsWithChosenChannels.has(teamname)) {
