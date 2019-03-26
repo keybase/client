@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"math"
 	"math/big"
@@ -13,6 +14,12 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	clockwork "github.com/keybase/clockwork"
 )
+
+// Excludes `Params` from being logged.
+func (s Start) String() string {
+	return fmt.Sprintf("{StartTime:%v CommitmentWindowMsec:%v RevealWindowMsec:%v SlackMsec:%v CommitmentCompleteWindowMsec:%v}",
+		s.StartTime, s.CommitmentWindowMsec, s.RevealWindowMsec, s.SlackMsec, s.CommitmentWindowMsec)
+}
 
 type GameMessageWrapped struct {
 	Sender              UserDevice
@@ -27,6 +34,10 @@ func (m GameMessageWrapped) isForwardable() bool {
 	return t != MessageType_END
 }
 
+func (m GameMessageWrapped) GameMetadata() GameMetadata {
+	return m.Msg.Md
+}
+
 func (g GameMetadata) ToKey() GameKey {
 	return GameKey(strings.Join([]string{g.Initiator.U.String(), g.Initiator.D.String(), g.ConversationID.String(), g.GameID.String()}, ","))
 }
@@ -37,10 +48,6 @@ func (g GameMetadata) String() string {
 
 func (g GameMetadata) check() bool {
 	return g.Initiator.check() && !g.ConversationID.IsNil() && g.GameID.Check()
-}
-
-func (m GameMessageWrapped) GameMetadata() GameMetadata {
-	return m.Msg.Md
 }
 
 type GameKey string
@@ -756,8 +763,7 @@ func (d *Dealer) handleMessageOthers(c context.Context, msg *GameMessageWrapped)
 }
 
 func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) error {
-
-	d.dh.CLogf(ctx, "flip.Dealer: Incoming: %+v", *msg)
+	d.dh.CLogf(ctx, "flip.Dealer: Incoming: %+v", msg)
 
 	t, err := msg.Msg.Body.T()
 	if err != nil {

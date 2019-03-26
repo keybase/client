@@ -129,6 +129,7 @@ type FlipManager struct {
 	visualizer       *FlipVisualizer
 	clock            clockwork.Clock
 	ri               func() chat1.RemoteInterface
+	started          bool
 	shutdownMu       sync.Mutex
 	shutdownCh       chan struct{}
 	dealerShutdownCh chan struct{}
@@ -196,6 +197,11 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
 	m.shutdownMu.Lock()
+	if m.started {
+		m.shutdownMu.Unlock()
+		return
+	}
+	m.started = true
 	var dealerCtx context.Context
 	shutdownCh := make(chan struct{})
 	dealerShutdownCh := make(chan struct{})
@@ -203,6 +209,7 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	m.dealerShutdownCh = dealerShutdownCh
 	dealerCtx, m.dealerCancel = context.WithCancel(context.Background())
 	m.shutdownMu.Unlock()
+
 	go func(shutdownCh chan struct{}) {
 		m.dealer.Run(dealerCtx)
 		close(shutdownCh)
@@ -216,7 +223,10 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	defer m.Trace(ctx, func() error { return nil }, "Stop")()
 	m.dealer.Stop()
+
 	m.shutdownMu.Lock()
+	defer m.shutdownMu.Unlock()
+	m.started = false
 	if m.shutdownCh != nil {
 		m.dealerCancel()
 		close(m.shutdownCh)
@@ -224,11 +234,11 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	}
 	if m.dealerShutdownCh != nil {
 		ch = m.dealerShutdownCh
+		m.dealerShutdownCh = nil
 	} else {
 		ch = make(chan struct{})
 		close(ch)
 	}
-	m.shutdownMu.Unlock()
 	return ch
 }
 
@@ -238,8 +248,8 @@ func (m *FlipManager) makeBkgContext() context.Context {
 }
 
 func (m *FlipManager) isHostMessageInfoMsgID(msgID chat1.MessageID) bool {
-	// The first message in a flip thread is metadata about the flip, which is message ID 2 since
-	// conversations have an initial message from creation.
+	// The first message in a flip thread is metadata about the flip, which is
+	// message ID 2 since conversations have an initial message from creation.
 	return chat1.MessageID(2) == msgID
 }
 
@@ -248,7 +258,8 @@ func (m *FlipManager) startMsgID() chat1.MessageID {
 }
 
 func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
-	// The first message after the host message is the flip start message, which will have message ID 3
+	// The first message after the host message is the flip start message,
+	// which will have message ID 3
 	return m.startMsgID() == msgID
 }
 
