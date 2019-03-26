@@ -252,8 +252,11 @@ func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string,
 }
 
 func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSec) (err error) {
+	return StoreSecretAfterLoginWithLKSWithOptions(m, n, lks, nil)
+}
 
-	defer m.Trace("StoreSecretAfterLoginWithLKS", func() error { return err })()
+func StoreSecretAfterLoginWithLKSWithOptions(m MetaContext, n NormalizedUsername, lks *LKSec, options *SecretStoreOptions) (err error) {
+	defer m.Trace("StoreSecretAfterLoginWithLKSWithOptions", func() error { return err })()
 
 	secretStore := NewSecretStore(m.G(), n)
 	if secretStore == nil {
@@ -266,7 +269,15 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 		return err
 	}
 
-	return secretStore.StoreSecret(m, secret)
+	previousOptions := secretStore.GetOptions(m)
+	if options != nil {
+		secretStore.SetOptions(m, *options)
+	}
+	ret := secretStore.StoreSecret(m, secret)
+	if previousOptions != nil {
+		secretStore.SetOptions(m, *previousOptions)
+	}
+	return ret
 }
 
 func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {

@@ -637,6 +637,12 @@
 			"revisionTime": "2019-03-11T21:27:40Z"
 		},
 		{
+			"checksumSHA1": "0hiADJVMyRvRM3FpjwmkXUUCr5g=",
+			"path": "github.com/keybase/go-keychain/secretservice",
+			"revision": "6ca7174743ab8e24ed89c7ec29508cdef499a671",
+			"revisionTime": "2019-04-03T15:48:49Z"
+		},
+		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
 			"path": "github.com/keybase/go-logging",
 			"revision": "fd7c815c339f930ba61b060d1fa8037d3acc3b69",

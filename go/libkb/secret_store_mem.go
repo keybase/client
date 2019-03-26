@@ -41,3 +41,6 @@ func (s *SecretStoreMem) GetUsersWithStoredSecrets(m MetaContext) ([]string, err
 	}
 	return usernames, nil
 }
+
+func (s *SecretStoreMem) GetOptions(MetaContext) *SecretStoreOptions { return nil }
+func (s *SecretStoreMem) SetOptions(MetaContext, SecretStoreOptions) {}
