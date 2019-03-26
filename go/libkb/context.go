@@ -118,6 +118,18 @@ func (m MetaContext) ActiveDevice() *ActiveDevice {
 	return m.G().ActiveDevice
 }
 
+func (m MetaContext) NIST() (*NIST, error) {
+	nist, uid, err := m.ActiveDevice().NISTAndUID(m.Ctx())
+	if err != nil {
+		return nil, err
+	}
+	if !uid.Equal(m.CurrentUID()) {
+		m.Debug("MetaContext#NIST: Not returning nist, since for wrong UID: %s != %s", uid, m.CurrentUID())
+		return nil, nil
+	}
+	return nist, nil
+}
+
 func NewMetaContextTODO(g *GlobalContext) MetaContext {
 	return MetaContext{ctx: context.TODO(), g: g}
 }

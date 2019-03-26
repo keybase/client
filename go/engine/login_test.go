@@ -52,6 +52,25 @@ func TestLoginAndSwitchWithLogout(t *testing.T) {
 	return
 }
 
+func TestLoginTwiceLogoutOnce(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	u1 := CreateAndSignupFakeUser(tc, "first")
+	Logout(tc)
+	t.Logf("Logout first, and signup  u2")
+	u2 := CreateAndSignupFakeUser(tc, "secon")
+	t.Logf("Login u1")
+	u1.SwitchTo(tc.G, true)
+	t.Logf("Logged in u1")
+	u2.SwitchTo(tc.G, true)
+	eng := NewLogout()
+	mctx := NewMetaContextForTest(tc)
+	err := RunEngine2(mctx, eng)
+	require.NoError(t, err)
+	require.True(t, tc.G.ActiveDevice.Valid())
+	require.Equal(t, tc.G.ActiveDevice.UID(), u1.UID())
+}
+
 // Test login switching between two different users.
 func TestLoginAndSwitchWithoutLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
