@@ -8,10 +8,10 @@ type SearchHit = {|
 |}
 export type Props = {
   hits: Array<SearchHit>,
-  inProgress: boolean,
   loadSearchHit: number => void,
   onCancel: () => void,
   onSearch: string => void,
   selfHide: () => void,
+  status: Types.ThreadSearchStatus,
   style?: Styles.StylesCrossPlatform,
 }

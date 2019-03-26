@@ -21,7 +21,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   const info = Constants.getThreadSearchInfo(state, conversationIDKey)
   return {
     _hits: info.hits,
-    inProgress: info.inProgress,
+    status: info.status,
   }
 }
 
@@ -49,7 +49,6 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
     }))
     .toArray(),
   hotkeys: ['esc'],
-  inProgress: stateProps.inProgress,
   loadSearchHit: index => {
     const message = stateProps._hits.get(index, Constants.makeMessageText())
     if (message.id > 0) {
@@ -60,6 +59,7 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
   onHotkey: dispatchProps.onHotkey,
   onSearch: dispatchProps.onSearch,
   selfHide: dispatchProps.selfHide,
+  status: stateProps.status,
   style,
 })
 

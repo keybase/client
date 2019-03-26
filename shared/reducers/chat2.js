@@ -1011,11 +1011,11 @@ const rootReducer = (
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
         info.set('hits', info.hits.push(action.payload.message))
       )
-    case Chat2Gen.setThreadSearchInProgress:
+    case Chat2Gen.setThreadSearchStatus:
       return state.updateIn(
         ['threadSearchInfoMap', action.payload.conversationIDKey],
         (info = Constants.makeThreadSearchInfo()) => {
-          return info.set('inProgress', action.payload.inProgress)
+          return info.set('status', action.payload.status)
         }
       )
     case Chat2Gen.toggleThreadSearch:
@@ -1025,7 +1025,7 @@ const rootReducer = (
           (old = Constants.makeThreadSearchInfo()) => {
             return old.merge({
               hits: I.List(),
-              inProgress: false,
+              status: 'initial',
               visible: !old.visible,
             })
           }

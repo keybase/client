@@ -47,8 +47,10 @@ export type StaticConfig = I.RecordOf<_StaticConfig>
 export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
+export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
+
 export type _ThreadSearchInfo = {
-  inProgress: boolean,
+  status: ThreadSearchStatus,
   hits: I.List<Message.Message>,
   visible: boolean,
 }

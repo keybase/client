@@ -600,10 +600,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "message": "Types.Message"
     },
-    "setThreadSearchInProgress": {
-      "_description": "Set whether or not a thread search is in progress",
+    "setThreadSearchStatus": {
+      "_description": "Set the status of a thread search",
       "conversationIDKey": "Types.ConversationIDKey",
-      "inProgress": "boolean"
+      "status": "Types.ThreadSearchStatus"
     },
     "toggleThreadSearch": {
       "_description": "Toggle the display of the thread search window",

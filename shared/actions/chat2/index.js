@@ -1342,9 +1342,9 @@ function* threadSearch(state, action) {
     return message ? Saga.put(Chat2Gen.createThreadSearchResult({conversationIDKey, message})) : []
   }
   const onDone = () => {
-    return Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: false}))
+    return Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
   }
-  yield Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: true}))
+  yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}))
   try {
     yield RPCChatTypes.localSearchRegexpRpcSaga({
       incomingCallMap: {
@@ -1371,7 +1371,7 @@ function* threadSearch(state, action) {
     })
   } catch (e) {
     logger.error('search failed: ' + e.message)
-    yield Saga.put(Chat2Gen.createSetThreadSearchInProgress({conversationIDKey, inProgress: false}))
+    yield Saga.put(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
   }
 }
 

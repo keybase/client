@@ -10,11 +10,10 @@ const hitHeight = 30
 
 type State = {|
   selectedIndex: number,
-  showResultList: boolean,
 |}
 
 class ThreadSearch extends React.Component<Props, State> {
-  state = {selectedIndex: 0, showResultList: false}
+  state = {selectedIndex: 0}
   _text: string
 
   _submitSearch = () => {
@@ -63,18 +62,18 @@ class ThreadSearch extends React.Component<Props, State> {
     this._text = text
   }
 
-  _onFocus = () => {
-    this.setState({showResultList: true})
-  }
-
-  _onBlur = () => {
-    setTimeout(() => this.setState({showResultList: false}), 300)
-  }
-
   _onKeydown = e => {
     if (e.key === 'Escape') {
       this.props.selfHide()
     }
+  }
+
+  _inProgress = () => {
+    return this.props.status === 'inprogress'
+  }
+
+  _hasResults = () => {
+    return this.props.status === 'done' || this.props.hits.length > 0
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -94,20 +93,20 @@ class ThreadSearch extends React.Component<Props, State> {
               <Kb.PlainInput
                 autoFocus={true}
                 flexable={true}
-                onBlur={this._onBlur}
                 onChangeText={this._onChangedText}
                 onEnterKeyDown={this._submitSearch}
-                onFocus={this._onFocus}
                 onKeyDown={this._onKeydown}
                 placeholder="Search..."
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
-              {this.props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
-              {this.props.hits.length > 0 && (
+              {this._inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
+              {this._hasResults() && (
                 <Kb.Box2 direction="horizontal" gap="tiny">
                   <Kb.Text type="BodySmall" style={styles.results}>
-                    {this.state.selectedIndex + 1} of {this.props.hits.length}
+                    {this.props.status === 'done' && this.props.hits.length === 0
+                      ? 'No results'
+                      : `${this.state.selectedIndex + 1} of ${this.props.hits.length}`}
                   </Kb.Text>
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
@@ -127,13 +126,13 @@ class ThreadSearch extends React.Component<Props, State> {
           </Kb.Box2>
           <Kb.Button
             type="Primary"
-            disabled={this.props.inProgress}
+            disabled={this._inProgress()}
             onClick={this._submitSearch}
             label="Search"
           />
           <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
         </Kb.Box2>
-        {this.props.hits.length > 0 && this.state.showResultList && (
+        {this.props.hits.length > 0 && (
           <Kb.List2
             indexAsKey={true}
             items={this.props.hits}

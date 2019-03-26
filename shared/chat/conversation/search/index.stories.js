@@ -33,25 +33,31 @@ const hits = [
 const initial = {
   ...base,
   hits: [],
-  inProgress: false,
+  status: 'initial',
 }
 
 const started = {
   ...base,
   hits: [],
-  inProgress: true,
+  status: 'inprogress',
 }
 
 const partial = {
   ...base,
   hits,
-  inProgress: true,
+  status: 'inprogress',
 }
 
 const complete = {
   ...base,
   hits,
-  inProgress: false,
+  status: 'done',
+}
+
+const none = {
+  ...base,
+  hits: [],
+  status: 'done',
 }
 
 const load = () => {
@@ -61,6 +67,7 @@ const load = () => {
     .add('Started', () => <ThreadSearch {...started} />)
     .add('Partial', () => <ThreadSearch {...partial} />)
     .add('Complete', () => <ThreadSearch {...complete} />)
+    .add('No Results', () => <ThreadSearch {...none} />)
 }
 
 export default load
