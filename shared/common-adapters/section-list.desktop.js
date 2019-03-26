@@ -115,8 +115,12 @@ class SectionList extends React.Component<Props, State> {
       const item = this._flat[firstIndex]
       if (item) {
         if (this._parentRef.current && this._nextSectionHeaderRef.current) {
-          const {y} = this._parentRef.current.getBoundingClientRect()
-          const {y: nextY} = this._nextSectionHeaderRef.current.getBoundingClientRect()
+          const parentRef = this._parentRef.current
+          const nextRef = this._nextSectionHeaderRef.current
+          // $ForceType see https://github.com/facebook/flow/issues/5475
+          const {y}: DOMRect = parentRef.getBoundingClientRect()
+          // $ForceType
+          const {y: nextY}: DOMRect = nextRef.getBoundingClientRect()
           if (nextY <= y) {
             this.setState(p =>
               p.currentSectionFlatIndex !== this._nextSectionHeaderFlatIndex
