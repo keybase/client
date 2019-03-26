@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import * as Types from '../../constants/types/settings'
 
-export type Props = {
+export type Props = {|
   inviteEmail: string,
   inviteMessage: string,
   showMessageField: boolean,
@@ -16,6 +16,6 @@ export type Props = {
   onSelectPendingInvite: (invite: Types.PendingInvite) => void,
   waitingForResponse: boolean,
   error: ?Error,
-}
+|}
 
 export default class Invites extends Component<Props> {}
