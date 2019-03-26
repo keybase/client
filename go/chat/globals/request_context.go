@@ -131,7 +131,7 @@ func CtxAddLocalizerCancelable(ctx context.Context) context.Context {
 	return context.WithValue(ctx, localizerCancelableKey, true)
 }
 
-func RequestContext(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
+func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier) context.Context {
 	if breaks == nil {
 		breaks = new([]keybase1.TLFIdentifyFailure)
@@ -154,13 +154,13 @@ func RequestContext(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBe
 	return res
 }
 
-func BackgroundRequestContext(sourceCtx context.Context, g *Context) context.Context {
+func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 
 	rctx := libkb.CopyTagsToBackground(sourceCtx)
 
 	in := CtxIdentifyNotifier(sourceCtx)
 	if ident, breaks, ok := CtxIdentifyMode(sourceCtx); ok {
-		rctx = RequestContext(rctx, g, ident, breaks, in)
+		rctx = ChatCtx(rctx, g, ident, breaks, in)
 	}
 
 	// Overwrite trace tag

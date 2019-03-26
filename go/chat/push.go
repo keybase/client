@@ -94,7 +94,7 @@ func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.Inb
 			}
 		}
 		close(res)
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 	return res
 }
 
@@ -159,7 +159,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
 		}
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 	return res
 }
 
@@ -218,7 +218,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 		return errors.New("gregor handler for chat.tlffinalize: nil message body")
 	}
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 
 	var update chat1.TLFFinalizeUpdate
@@ -264,7 +264,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			g.G().ActivityNotifier.TLFFinalize(ctx, uid,
 				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
 		}
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
@@ -275,7 +275,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		return errors.New("gregor handler for chat.tlfresolve: nil message body")
 	}
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 
 	var update chat1.TLFResolveUpdate
@@ -317,7 +317,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			updateConv.Info.TlfName)
 		g.G().ActivityNotifier.TLFResolve(ctx, uid,
 			update.ConvID, updateConv.GetTopicType(), resolveInfo)
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
@@ -464,7 +464,7 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, 
 
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "Activity")()
 	if m.Body() == nil {
@@ -749,7 +749,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		} else {
 			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 	return nil
 }
 
@@ -835,7 +835,7 @@ func (g *PushHandler) notifyConversationsUpdate(ctx context.Context, uid gregor1
 
 func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "Typing")()
 	if m.Body() == nil {
@@ -871,7 +871,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 
 func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
 	if m.Body() == nil {
@@ -908,14 +908,14 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 		}
 		g.G().ActivityNotifier.KBFSToImpteamUpgrade(ctx, uid, update.ConvID, update.TopicType)
 		return nil
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
 
 func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	if m.Body() == nil {
@@ -970,14 +970,14 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		}
 
 		return nil
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
 
 func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
 	if m.Body() == nil {
@@ -1010,14 +1010,14 @@ func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBan
 		// Send out notifications
 		g.notifyConversationsUpdate(ctx, uid, update.ConvUpdates)
 		return nil
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
 
 func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "SetConvRetention")()
 	if m.Body() == nil {
@@ -1054,14 +1054,14 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvRetention(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
 
 func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "SetTeamRetention")()
 	if m.Body() == nil {
@@ -1107,14 +1107,14 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		for topicType, items := range convUIItems {
 			g.G().ActivityNotifier.SetTeamRetention(ctx, uid, update.TeamID, topicType, items)
 		}
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
 
 func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.RequestContext(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "SetConvSettings")()
 	if m.Body() == nil {
@@ -1151,7 +1151,7 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvSettings(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }
@@ -1201,7 +1201,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 			cids := convIDs[topicType]
 			g.G().ActivityNotifier.SubteamRename(ctx, uid, cids, topicType, items)
 		}
-	}(globals.BackgroundRequestContext(ctx, g.G()))
+	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
 }

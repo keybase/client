@@ -890,7 +890,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	// Unfurl
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
-		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundRequestContext(ctx, s.G()), boxed.ClientHeader.Sender, convID,
+		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender, convID,
 			unboxedMsg)
 	}
 	return nil, boxed, nil
@@ -1442,7 +1442,7 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
-			bctx := globals.RequestContext(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
+			bctx := globals.ChatCtx(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
 				bctx = globals.CtxAddOverrideNameInfoSource(bctx, s.testingNameInfoSource)

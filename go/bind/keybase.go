@@ -447,7 +447,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return nil
 	}
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.RequestContext(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
 	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",

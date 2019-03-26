@@ -548,7 +548,7 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 				return keybase1.CanonicalTlfName(impTeamName.String())
 			})
 		close(cb)
-	}(globals.BackgroundRequestContext(ctx, t.G()))
+	}(globals.BackgroundChatCtx(ctx, t.G()))
 	switch identBehavior {
 	case keybase1.TLFIdentifyBehavior_CHAT_GUI:
 		// For GUI mode, let's just let this identify roll in the background. We will be sending up

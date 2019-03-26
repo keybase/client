@@ -252,7 +252,7 @@ func presentInboxItem(item storage.SharedInboxItem, username string) storage.Sha
 func ExtensionGetInbox() (res string, err error) {
 	defer kbCtx.Trace("ExtensionGetInbox", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.RequestContext(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	uid, err := assertLoggedInUID(ctx, gc)
 	if err != nil {
@@ -292,7 +292,7 @@ func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1
 
 func extensionRegisterSendNonblock(ctx context.Context, gc *globals.Context, convID chat1.ConversationID,
 	outboxID chat1.OutboxID) {
-	bctx := globals.BackgroundRequestContext(ctx, gc)
+	bctx := globals.BackgroundChatCtx(ctx, gc)
 	go func(ctx context.Context) {
 		deviceID, err := extensionGetDeviceID(ctx, gc)
 		if err != nil {
@@ -429,7 +429,7 @@ func extensionNewSender(g *globals.Context) types.Sender {
 func ExtensionPostText(strConvID, name string, public bool, membersType int, body string) (err error) {
 	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.RequestContext(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
 	defer func() {
@@ -501,7 +501,7 @@ func ExtensionPostImage(strConvID, name string, public bool, membersType int,
 	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {
 	defer kbCtx.Trace("ExtensionPostImage", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.RequestContext(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
 	uid, err := assertLoggedInUID(ctx, gc)
@@ -559,7 +559,7 @@ func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
 	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {
 	defer kbCtx.Trace("ExtensionPostVideo", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.RequestContext(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
 	uid, err := assertLoggedInUID(ctx, gc)
@@ -607,7 +607,7 @@ func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 	caption string, filename string) (err error) {
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.RequestContext(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
 	uid, err := assertLoggedInUID(ctx, gc)
@@ -691,7 +691,7 @@ func putSavedConv(ctx context.Context, strConvID, name string, public bool, memb
 func ExtensionGetSavedConv() string {
 	defer kbCtx.Trace("ExtensionGetSavedConv", func() error { return nil })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.RequestContext(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	if _, err := assertLoggedInUID(ctx, gc); err != nil {
 		kbCtx.Log.CDebugf(ctx, "ExtensionGetSavedConv: failed to get uid: %s", err)

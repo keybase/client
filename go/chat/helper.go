@@ -208,7 +208,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 }
 
 func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) (err error) {
-	ctx = globals.RequestContext(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(h.G()))
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(h.G()))
 	defer h.Trace(ctx, func() error { return err }, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
 		tlfID, tlfName, public)()
 	var cryptKeys []keybase1.CryptKey
@@ -322,7 +322,7 @@ func (s *sendHelper) SendText(ctx context.Context, text string, outboxID *chat1.
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType,
 	outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
-	ctx = globals.RequestContext(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
+	ctx = globals.ChatCtx(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
 	if err := s.conversation(ctx); err != nil {
 		return chat1.OutboxID{}, nil, err
 	}
@@ -427,7 +427,7 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 }
 
 func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
-	ctx = globals.RequestContext(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(g))
+	ctx = globals.ChatCtx(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(g))
 	return newRecentConversationParticipants(g).get(ctx, myUID)
 }
 

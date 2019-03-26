@@ -159,7 +159,7 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 			b.Debug(ctx, "Localize: failed to queue: %s", err)
 			close(b.localizeCb)
 		}
-	}(globals.BackgroundRequestContext(ctx, b.G()))
+	}(globals.BackgroundChatCtx(ctx, b.G()))
 	return nil, nil
 }
 
@@ -185,7 +185,7 @@ func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipeline
 	l.Lock()
 	defer l.Unlock()
 	res = new(localizerPipelineJob)
-	res.ctx, res.cancelFn = context.WithCancel(globals.BackgroundRequestContext(l.ctx, g))
+	res.ctx, res.cancelFn = context.WithCancel(globals.BackgroundChatCtx(l.ctx, g))
 	res.retCh = l.retCh
 	res.uid = l.uid
 	res.completed = l.completed
@@ -240,7 +240,7 @@ func (l *localizerPipelineJob) complete(convID chat1.ConversationID) {
 func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convs []chat1.Conversation, retCh chan types.AsyncInboxResult) *localizerPipelineJob {
 	return &localizerPipelineJob{
-		ctx:     globals.BackgroundRequestContext(ctx, g),
+		ctx:     globals.BackgroundChatCtx(ctx, g),
 		retCh:   retCh,
 		uid:     uid,
 		pending: convs,
@@ -297,7 +297,7 @@ func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []
 		return errors.New("localizer not running")
 	}
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
-	job.ctx, job.cancelFn = context.WithCancel(globals.BackgroundRequestContext(ctx, s.G()))
+	job.ctx, job.cancelFn = context.WithCancel(globals.BackgroundChatCtx(ctx, s.G()))
 	if globals.IsLocalizerCancelableCtx(job.ctx) {
 		s.Debug(job.ctx, "queue: adding cancellable job")
 	}

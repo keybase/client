@@ -181,7 +181,7 @@ func (g *gregorTestConnection) HandlerName() string {
 }
 
 func newTestContext(tc *kbtest.ChatTestContext) context.Context {
-	return globals.RequestContext(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	return globals.ChatCtx(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		nil, NewCachingIdentifyNotifier(tc.Context()))
 }
 
@@ -649,7 +649,7 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 	var foundTaskCount int
 	var upto chat1.MessageID
 	for i := 0; ; i++ {
-		ctx := globals.RequestContext(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
+		ctx := globals.ChatCtx(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
 		trace, _ := globals.CtxTrace(ctx)
 		t.Logf("+ RetentionSweepConv(%v) (uptoWant %v) [chat-trace=%v]", convID.String(), uptoWant, trace)
 		res, err := tc.ri.RetentionSweepConv(ctx, convID)

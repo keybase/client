@@ -244,7 +244,7 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 
 func (m *FlipManager) makeBkgContext() context.Context {
 	ctx := context.Background()
-	return globals.RequestContext(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
+	return globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 }
 
 func (m *FlipManager) isHostMessageInfoMsgID(msgID chat1.MessageID) bool {
@@ -1236,7 +1236,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		return true
 	}
 	// Ignore anything from the current device
-	ctx = globals.BackgroundRequestContext(ctx, m.G())
+	ctx = globals.BackgroundChatCtx(ctx, m.G())
 	select {
 	case m.maybeInjectCh <- func() {
 		defer m.Trace(ctx, func() error { return nil },
@@ -1355,7 +1355,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			}
 			m.Debug(ctx, "loadGame: game had no action after pausing, sending error")
 			m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
-		}(globals.BackgroundRequestContext(ctx, m.G()), summary)
+		}(globals.BackgroundChatCtx(ctx, m.G()), summary)
 	} else {
 		m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
 	}
@@ -1431,7 +1431,7 @@ func (m *FlipManager) Clock() clockwork.Clock {
 
 // ServerTime implements the flip.DealersHelper interface
 func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
-	ctx = globals.RequestContext(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
+	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
 	if m.testingServerClock != nil {
 		return m.testingServerClock.Now(), nil
@@ -1489,7 +1489,7 @@ func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.Fli
 // SendChat implements the flip.DealersHelper interface
 func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
 	msg flip.GameMessageEncoded) (err error) {
-	ctx = globals.RequestContext(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
+	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {

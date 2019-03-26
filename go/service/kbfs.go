@@ -115,7 +115,7 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 	public := findFolderList(filename) == "public"
 
 	g := globals.NewContext(h.G(), h.ChatG())
-	ctx := globals.RequestContext(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
+	ctx := globals.ChatCtx(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		nil, chat.NewCachingIdentifyNotifier(g))
 	h.ChatG().FetchRetrier.Rekey(ctx, tlf, chat1.ConversationMembersType_KBFS, public)
 }
