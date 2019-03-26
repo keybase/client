@@ -18,6 +18,9 @@ const profileRoute = () => {
   const ShowcaseTeamOffer = require('./showcase-team-offer/container').default
   const ControlledRolePicker = require('../teams/role-picker/controlled-container').default
   const WalletConstants = require('../constants/wallets')
+  const ProofsList = require('./generic/proofs-list/container').default
+  const GenericEnterUsername = require('./generic/enter-username/container').default
+  const GenericProofSuccess = require('./generic/success/container').default
 
   const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
 
@@ -61,6 +64,22 @@ const profileRoute = () => {
         component: NonUserProfile,
       },
       profilePgp: pgpRoutes,
+      profileProofsList: {
+        children: {
+          profileGenericEnterUsername: {
+            children: {
+              profileGenericProofSuccess: {
+                component: GenericProofSuccess,
+                tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+              },
+            },
+            component: GenericEnterUsername,
+            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          },
+        },
+        component: ProofsList,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
       profileProveEnterUsername: proveEnterUsername,
       profileProveWebsiteChoice: {
         children: {proveEnterUsername},
@@ -96,9 +115,18 @@ export const newModalRoutes = {
     getScreen: () => require('./confirm-or-pending/container').default,
     upgraded: true,
   },
-  profileEdit: {getScreen: () => require('./edit-profile/container').default, upgraded: true},
+  profileEdit: {getScreen: () => require('./edit-profile/container').default},
   profileEditAvatar: {getScreen: () => require('./edit-avatar/container').default, upgraded: true},
+  profileGenericEnterUsername: {
+    getScreen: () => require('./generic/enter-username/container').default,
+    upgraded: true,
+  },
+  profileGenericProofSuccess: {
+    getScreen: () => require('./generic/success/container').default,
+    upgraded: true,
+  },
   profilePostProof: {getScreen: () => require('./post-proof/container').default, upgraded: true},
+  profileProofsList: {getScreen: () => require('./generic/proofs-list/container').default, upgraded: true},
   profileProveEnterUsername: {
     getScreen: () => require('./prove-enter-username/container').default,
     upgraded: true,
