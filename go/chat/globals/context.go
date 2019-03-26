@@ -10,16 +10,20 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+type keyfinderKey int
 type identifyNotifierKey int
 type chatTrace int
 type identifyModeKey int
+type upakfinderKey int
 type rateLimitKey int
 type nameInfoOverride int
 type localizerCancelableKeyTyp int
 
+var kfKey keyfinderKey
 var inKey identifyNotifierKey
 var chatTraceKey chatTrace
 var identModeKey identifyModeKey
+var upKey upakfinderKey
 var rlKey rateLimitKey
 var nameInfoOverrideKey nameInfoOverride
 var localizerCancelableKey localizerCancelableKeyTyp
@@ -27,6 +31,26 @@ var localizerCancelableKey localizerCancelableKeyTyp
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
 	breaks *[]keybase1.TLFIdentifyFailure
+}
+
+func CtxKeyFinder(ctx context.Context, g *Context) types.KeyFinder {
+	var kf types.KeyFinder
+	var ok bool
+	val := ctx.Value(kfKey)
+	if kf, ok = val.(types.KeyFinder); ok {
+		return kf
+	}
+	return g.CtxFactory.NewKeyFinder()
+}
+
+func CtxUPAKFinder(ctx context.Context, g *Context) types.UPAKFinder {
+	var up types.UPAKFinder
+	var ok bool
+	val := ctx.Value(upKey)
+	if up, ok = val.(types.UPAKFinder); ok {
+		return up
+	}
+	return g.CtxFactory.NewUPAKFinder()
 }
 
 func CtxIdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks *[]keybase1.TLFIdentifyFailure, ok bool) {
@@ -140,9 +164,17 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	if _, _, ok := CtxIdentifyMode(res); !ok {
 		res = CtxAddIdentifyMode(res, mode, breaks)
 	}
-	val := res.Value(inKey)
+	val := res.Value(kfKey)
+	if _, ok := val.(types.KeyFinder); !ok {
+		res = context.WithValue(res, kfKey, g.CtxFactory.NewKeyFinder())
+	}
+	val = res.Value(inKey)
 	if _, ok := val.(types.IdentifyNotifier); !ok {
 		res = context.WithValue(res, inKey, notifier)
+	}
+	val = res.Value(upKey)
+	if _, ok := val.(types.UPAKFinder); !ok {
+		res = context.WithValue(res, upKey, g.CtxFactory.NewUPAKFinder())
 	}
 	val = res.Value(rlKey)
 	if _, ok := val.(map[string]chat1.RateLimit); !ok {
@@ -171,7 +203,8 @@ func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 	if ni, ok := CtxOverrideNameInfoSource(sourceCtx); ok {
 		rctx = CtxAddOverrideNameInfoSource(rctx, ni)
 	}
-
+	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
+	rctx = context.WithValue(rctx, upKey, CtxUPAKFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, inKey, in)
 	if IsLocalizerCancelableCtx(sourceCtx) {
 		rctx = CtxAddLocalizerCancelable(rctx)

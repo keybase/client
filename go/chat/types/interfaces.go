@@ -333,6 +333,11 @@ type UPAKFinder interface {
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 }
 
+type ContextFactory interface {
+	NewKeyFinder() KeyFinder
+	NewUPAKFinder() UPAKFinder
+}
+
 type ProgressReporter func(bytesCompleted, bytesTotal int64)
 
 type AttachmentFetcher interface {

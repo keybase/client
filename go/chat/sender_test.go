@@ -236,10 +236,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	}
 	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(world.Fc)
+	g.CtxFactory = NewCtxFactory(g)
 	g.ConvSource = NewHybridConversationSource(g, boxer, chatStorage, getRI)
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.KeyFinder = NewKeyFinder(g)
-	g.UPAKFinder = NewCachingUPAKFinder(g)
 	g.InboxSource = NewHybridInboxSource(g, getRI)
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())

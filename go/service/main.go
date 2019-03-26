@@ -414,8 +414,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
-	g.KeyFinder = chat.NewKeyFinder(g)
-	g.UPAKFinder = chat.NewCachingUPAKFinder(g)
+	g.CtxFactory = chat.NewCtxFactory(g)
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)

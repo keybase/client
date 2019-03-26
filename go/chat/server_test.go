@@ -181,6 +181,10 @@ func (g *gregorTestConnection) HandlerName() string {
 }
 
 func newTestContext(tc *kbtest.ChatTestContext) context.Context {
+	if tc.ChatG.CtxFactory == nil {
+		g := globals.NewContext(tc.G, tc.ChatG)
+		g.CtxFactory = NewCtxFactory(g)
+	}
 	return globals.ChatCtx(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		nil, NewCachingIdentifyNotifier(tc.Context()))
 }
@@ -350,8 +354,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(c.world.Fc)
-	g.KeyFinder = NewKeyFinder(g)
-	g.UPAKFinder = NewCachingUPAKFinder(g)
+	g.CtxFactory = NewCtxFactory(g)
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
 	chatStorage.SetAssetDeleter(g.ConvSource)
@@ -5221,7 +5224,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			}
 			require.Empty(t, update.Breaks.Breaks)
 			globals.CtxIdentifyNotifier(ctx).Reset()
-			globals.NewContext(tc.G, tc.ChatG).KeyFinder.Reset()
+			globals.CtxKeyFinder(ctx, tc.Context()).Reset()
 		}
 
 		ctx := ctc.as(t, users[0]).startCtx

@@ -168,3 +168,51 @@ func (k *KeyFinderImpl) ShouldPairwiseMAC(ctx context.Context, tlfName string, t
 func tlfIDToTeamdID(tlfID chat1.TLFID) (keybase1.TeamID, error) {
 	return keybase1.TeamIDFromString(tlfID.String())
 }
+
+type KeyFinderMock struct {
+	cryptKeys []keybase1.CryptKey
+}
+
+var _ types.KeyFinder = (*KeyFinderMock)(nil)
+
+func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) types.KeyFinder {
+	return &KeyFinderMock{cryptKeys}
+}
+
+func (k *KeyFinderMock) Reset() {}
+
+func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
+	tlfName string, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
+	return k.cryptKeys[len(k.cryptKeys)-1], ni, nil
+}
+
+func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
+	tlfName string, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
+	for _, key := range k.cryptKeys {
+		if key.Generation() == keyGeneration {
+			return key, nil
+		}
+	}
+	return res, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
+}
+
+func (k *KeyFinderMock) EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
+func (k *KeyFinderMock) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
+func (k *KeyFinderMock) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
+	panic("unimplemented")
+}
+
+func (k *KeyFinderMock) SetNameInfoSourceOverride(ni types.NameInfoSource) {}

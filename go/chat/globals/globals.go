@@ -7,8 +7,7 @@ import (
 )
 
 type ChatContext struct {
-	KeyFinder           types.KeyFinder           // source of crypt keys
-	UPAKFinder          types.UPAKFinder          // source of verified user info
+	CtxFactory          types.ContextFactory      // source of verified user info and crypt keys
 	InboxSource         types.InboxSource         // source of remote inbox entries for chat
 	ConvSource          types.ConversationSource  // source of remote message bodies for chat
 	MessageDeliverer    types.MessageDeliverer    // background message delivery service

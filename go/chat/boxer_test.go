@@ -86,9 +86,6 @@ func setupChatTest(t *testing.T, name string) (*kbtest.ChatTestContext, *Boxer) 
 		TestContext: tc,
 		ChatG:       &globals.ChatContext{},
 	}
-	g := globals.NewContext(tc.G, ctc.ChatG)
-	g.KeyFinder = NewKeyFinder(g)
-	g.UPAKFinder = NewCachingUPAKFinder(g)
 	return &ctc, NewBoxer(ctc.Context())
 }
 
@@ -1410,9 +1407,9 @@ func TestChatMessageBodyHashReplay(t *testing.T) {
 
 		// Generate an encryption key and create a fake finder to fetch it.
 		key := cryptKey(t)
-		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
 		g := globals.NewContext(tc.G, tc.ChatG)
-		g.KeyFinder = finder
+		g.CtxFactory = newMockCtxFactory(g, []keybase1.CryptKey{*key})
+		boxerContext := globals.BackgroundChatCtx(context.TODO(), g)
 
 		// This message has an all zeros ConversationIDTriple, but that's fine. We
 		// can still extract the ConvID from it.
@@ -1433,18 +1430,18 @@ func TestChatMessageBodyHashReplay(t *testing.T) {
 		}
 
 		// Unbox the message once.
-		unboxed, err := boxer.UnboxMessage(context.TODO(), boxed, conv, nil)
+		unboxed, err := boxer.UnboxMessage(boxerContext, boxed, conv, nil)
 		require.NoError(t, err)
 		requireValidMessage(t, unboxed, "we expected msg4 to succeed")
 
 		// Unbox it again. This should be fine.
-		unboxed, err = boxer.UnboxMessage(context.TODO(), boxed, conv, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, boxed, conv, nil)
 		require.NoError(t, err)
 		requireValidMessage(t, unboxed, "we expected msg4 to succeed the second time too")
 
 		// Now try to unbox it again with a different MessageID. This must fail.
 		boxed.ServerHeader.MessageID = 2
-		unboxed, err = boxer.UnboxMessage(context.TODO(), boxed, conv, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, boxed, conv, nil)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "replay must be detected")
 	})
@@ -1463,9 +1460,9 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 
 		// Generate an encryption key and create a fake finder to fetch it.
 		key := cryptKey(t)
-		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
 		g := globals.NewContext(tc.G, tc.ChatG)
-		g.KeyFinder = finder
+		g.CtxFactory = newMockCtxFactory(g, []keybase1.CryptKey{*key})
+		boxerContext := globals.BackgroundChatCtx(context.TODO(), g)
 
 		// Everything below will use the zero convID.
 		convID := chat1.ConversationIDTriple{}.ToConversationID([2]byte{0, 0})
@@ -1494,7 +1491,7 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 		// Now unbox the first message. That caches its header hash. Leave the
 		// second one out of the cache for now though. (We'll use it to cause an
 		// error later.)
-		unboxed1, err := boxer.UnboxMessage(context.TODO(), boxed1, conv, nil)
+		unboxed1, err := boxer.UnboxMessage(boxerContext, boxed1, conv, nil)
 		require.NoError(t, err)
 
 		// Create two more messages, which both have bad prev pointers. Msg3 has a
@@ -1524,16 +1521,16 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 			},
 		})
 
-		unboxed, err := boxer.UnboxMessage(context.TODO(), boxed3, conv, nil)
+		unboxed, err := boxer.UnboxMessage(boxerContext, boxed3, conv, nil)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "msg3 has a known bad prev pointer and must fail to unbox")
 
-		unboxed, err = boxer.UnboxMessage(context.TODO(), boxed4, conv, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, boxed4, conv, nil)
 		require.NoError(t, err)
 		requireValidMessage(t, unboxed, "we expected msg4 to succeed")
 
 		// Now try to unbox msg2. Because of msg4's bad pointer, this should fail.
-		unboxed, err = boxer.UnboxMessage(context.TODO(), boxed2, conv, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, boxed2, conv, nil)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "msg2 should fail to unbox, because of msg4's bad pointer")
 	})
@@ -1553,9 +1550,9 @@ func TestChatMessageBadConvID(t *testing.T) {
 
 		// Generate an encryption key and create a fake finder to fetch it.
 		key := cryptKey(t)
-		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
 		g := globals.NewContext(tc.G, tc.ChatG)
-		g.KeyFinder = finder
+		g.CtxFactory = newMockCtxFactory(g, []keybase1.CryptKey{*key})
+		boxerContext := globals.BackgroundChatCtx(context.TODO(), g)
 
 		// This message has an all zeros ConversationIDTriple, but that's fine. We
 		// can still extract the ConvID from it.
@@ -1579,59 +1576,11 @@ func TestChatMessageBadConvID(t *testing.T) {
 			},
 		}
 
-		unboxed, err := boxer.UnboxMessage(context.TODO(), boxed, badConv, nil)
+		unboxed, err := boxer.UnboxMessage(boxerContext, boxed, badConv, nil)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "expected a bad convID to fail the unboxing")
 	})
 }
-
-type KeyFinderMock struct {
-	cryptKeys []keybase1.CryptKey
-}
-
-var _ types.KeyFinder = (*KeyFinderMock)(nil)
-
-func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) types.KeyFinder {
-	return &KeyFinderMock{cryptKeys}
-}
-
-func (k *KeyFinderMock) Reset() {}
-
-func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
-	tlfName string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
-	return k.cryptKeys[len(k.cryptKeys)-1], ni, nil
-}
-
-func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
-	tlfName string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
-	for _, key := range k.cryptKeys {
-		if key.Generation() == keyGeneration {
-			return key, nil
-		}
-	}
-	return res, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
-}
-
-func (k *KeyFinderMock) EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
-	panic("unimplemented")
-}
-
-func (k *KeyFinderMock) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
-	panic("unimplemented")
-}
-
-func (k *KeyFinderMock) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error) {
-	panic("unimplemented")
-}
-
-func (k *KeyFinderMock) SetNameInfoSourceOverride(ni types.NameInfoSource) {}
 
 func remarshalBoxed(t *testing.T, v chat1.MessageBoxed) chat1.MessageBoxed {
 	// encode

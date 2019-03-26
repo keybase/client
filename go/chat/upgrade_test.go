@@ -116,7 +116,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(iteam.KBFSTLFIDs()))
-	globals.NewContext(tc.G, tc.ChatG).KeyFinder.Reset()
+	globals.CtxKeyFinder(ctx, tc.Context()).Reset()
 	checkUnbox()
 }
 
