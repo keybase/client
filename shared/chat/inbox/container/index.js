@@ -80,14 +80,21 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const unreadIndices = []
-  for (let i = stateProps.rows.length - 1; i >= 0; i--) {
-    const row = stateProps.rows[i]
-    if (!['big', 'bigHeader'].includes(row.type)) {
-      // only check big teams for large inbox perf
-      break
-    }
-    if (row.conversationIDKey && stateProps._badgeMap.get(row.conversationIDKey)) {
-      unreadIndices.unshift(i)
+  if (!stateProps.filter) {
+    for (let i = stateProps.rows.length - 1; i >= 0; i--) {
+      const row = stateProps.rows[i]
+      if (!['big', 'bigHeader'].includes(row.type)) {
+        // only check big teams for large inbox perf
+        break
+      }
+      if (
+        row.conversationIDKey &&
+        stateProps._badgeMap.get(row.conversationIDKey) &&
+        (isMobile || row.conversationIDKey !== stateProps._selectedConversationIDKey)
+      ) {
+        // on mobile include all convos, on desktop only not currently selected convo
+        unreadIndices.unshift(i)
+      }
     }
   }
   return {
