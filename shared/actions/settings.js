@@ -442,7 +442,10 @@ const unfurlSettingsRefresh = (state, action) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
-      SettingsGen.createUnfurlSettingsRefreshed({mode: result.mode, whitelist: result.whitelist || []})
+      SettingsGen.createUnfurlSettingsRefreshed({
+        mode: result.mode,
+        whitelist: I.List(result.whitelist || []),
+      })
     )
     .catch(() =>
       SettingsGen.createUnfurlSettingsError({
@@ -455,7 +458,7 @@ const unfurlSettingsSaved = (state, action) =>
   ChatTypes.localSaveUnfurlSettingsRpcPromise(
     {
       mode: action.payload.mode,
-      whitelist: action.payload.whitelist,
+      whitelist: action.payload.whitelist.toArray(),
     },
     Constants.chatUnfurlWaitingKey
   )

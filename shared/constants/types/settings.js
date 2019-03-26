@@ -87,7 +87,7 @@ export type EmailState = I.RecordOf<_EmailState>
 
 export type _ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode,
-  unfurlWhitelist?: Array<string>,
+  unfurlWhitelist?: I.List<string>,
   unfurlError?: string,
 }
 export type ChatUnfurlState = I.RecordOf<_ChatUnfurlState>

@@ -15,6 +15,16 @@ export const makeNotifications: I.RecordFactory<Types._NotificationsState> = I.R
   groups: I.Map(),
 })
 
+export const makeUnfurl: I.RecordFactory<Types._ChatUnfurlState> = I.Record({
+  unfurlError: undefined,
+  unfurlMode: null,
+  unfurlWhitelist: I.List(),
+})
+
+export const makeChat: I.RecordFactory<Types._ChatState> = I.Record({
+  unfurl: makeUnfurl(),
+})
+
 export const makeEmail: I.RecordFactory<Types._EmailState> = I.Record({
   emails: null,
   error: null,
@@ -41,9 +51,7 @@ export const makePassphrase: I.RecordFactory<Types._PassphraseState> = I.Record(
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   allowDeleteAccount: false,
-  chat: {
-    unfurl: {},
-  },
+  chat: makeChat(),
   checkPassphraseIsCorrect: null,
   email: makeEmail(),
   invites: {

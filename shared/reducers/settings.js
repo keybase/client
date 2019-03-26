@@ -109,7 +109,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.unfurlSettingsSaved:
       return state.merge({
         chat: state.chat.merge({
-          unfurl: state.chat.unfurl.merge({
+          unfurl: Constants.makeUnfurl({
             unfurlError: undefined,
             unfurlMode: action.payload.mode,
             unfurlWhitelist: action.payload.whitelist,
