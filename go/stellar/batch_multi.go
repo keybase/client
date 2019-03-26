@@ -1,10 +1,13 @@
 package stellar
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 )
@@ -59,7 +62,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 			}
 			multiOps = append(multiOps, mop)
 		} else {
-			mop, err := prepareDirectOp(mctx, payment, recipient)
+			mop, err := prepareDirectOp(mctx, walletState, payment, recipient)
 			if err != nil {
 				makeResultError(&results[i], err)
 				continue
@@ -114,8 +117,44 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 	return res, nil
 }
 
-func prepareDirectOp(mctx libkb.MetaContext, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) (multiOp, error) {
-	return multiOp{}, nil
+func prepareDirectOp(mctx libkb.MetaContext, remoter remote.Remoter, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) (multiOp, error) {
+	op := multiOp{
+		Recipient: stellar1.AccountID(recipient.AccountID.String()),
+		Amount:    payment.Amount,
+	}
+
+	funded, err := isAccountFunded(mctx.Ctx(), remoter, op.Recipient)
+	if err != nil {
+		return op, err
+	}
+
+	if !funded {
+		if isAmountLessThanMin(payment.Amount, minAmountCreateAccountXLM) {
+			return op, fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountCreateAccountXLM, payment.Recipient)
+		}
+		op.CreateAccount = true
+	}
+
+	op.Op = stellar1.PaymentOp{
+		To:     &recipient.User.UV,
+		Direct: &stellar1.DirectOp{},
+	}
+
+	if len(payment.Message) > 0 {
+		noteClear := stellar1.NoteContents{
+			Note: payment.Message,
+		}
+		var recipientUv *keybase1.UserVersion
+		if recipient.User != nil {
+			recipientUv = &recipient.User.UV
+		}
+		op.Op.Direct.NoteB64, err = NoteEncryptB64(mctx, noteClear, recipientUv)
+		if err != nil {
+			return op, err
+		}
+	}
+
+	return op, nil
 }
 
 func prepareRelayOp(mctx libkb.MetaContext, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) (multiOp, error) {
