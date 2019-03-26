@@ -93,7 +93,7 @@ func (d *Dealer) UpdateCh() <-chan GameStateUpdateMessage {
 	return d.gameUpdateCh
 }
 
-// Run a dealer in a given context. It wil run as long as it isn't shutdown.
+// Run a dealer in a given context. It will run as long as it isn't shutdown.
 func (d *Dealer) Run(ctx context.Context) error {
 	d.shutdownMu.Lock()
 	shutdownCh := make(chan struct{})
