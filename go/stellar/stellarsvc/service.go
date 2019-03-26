@@ -555,6 +555,10 @@ func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (re
 		return res, err
 	}
 
+	if arg.UseMulti {
+		return stellar.BatchMulti(mctx, s.walletState, arg)
+	}
+
 	return stellar.Batch(mctx, s.walletState, arg)
 }
 
