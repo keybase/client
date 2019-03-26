@@ -48,24 +48,25 @@ const Desktop = (props: DownloadsProps) =>
         ))}
         {props.downloadKeys.length > 3 && (
           <Kb.WithTooltip text="Open Downloads folder">
-            <Kb.ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
-              <Kb.Icon
-                type="iconfont-ellipsis"
-                hint="Open downloads folder"
-                color={Styles.globalColors.black_50}
-              />
-            </Kb.ClickableBox>
+            <Kb.Icon
+              style={styles.iconBoxEllipsis}
+              type="iconfont-ellipsis"
+              hint="Open downloads folder"
+              color={Styles.globalColors.black_50}
+              padding="tiny"
+              onClick={props.openDownloadFolder}
+            />
           </Kb.WithTooltip>
         )}
         <Kb.Box style={styles.space} />
         <Kb.WithTooltip text="Open Downloads folder">
-          <Kb.ClickableBox style={styles.iconBoxOpenDownload} onClick={props.openDownloadFolder}>
-            <Kb.Icon
-              type="iconfont-folder-downloads"
-              hint="Open downloads folder"
-              color={Styles.globalColors.black_50}
-            />
-          </Kb.ClickableBox>
+          <Kb.Icon
+            type="iconfont-folder-downloads"
+            hint="Open downloads folder"
+            color={Styles.globalColors.black_50}
+            padding="tiny"
+            onClick={props.openDownloadFolder}
+          />
         </Kb.WithTooltip>
       </Kb.Box2>
     </>
@@ -88,10 +89,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.black_10,
     borderRadius: 4,
     marginLeft: Styles.globalMargins.xtiny,
-    padding: Styles.globalMargins.tiny,
-  },
-  iconBoxOpenDownload: {
-    padding: Styles.globalMargins.tiny,
   },
   space: {
     flex: 1,

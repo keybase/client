@@ -41,7 +41,7 @@ const profileRoute = () => {
     children: {
       addToTeam: {
         children: {
-          controlledRolePicker: {
+          teamControlledRolePicker: {
             children: {},
             component: ControlledRolePicker,
             tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
@@ -110,7 +110,6 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  controlledRolePicker: {getScreen: () => require('../teams/role-picker/controlled-container').default},
   profileAddToTeam: {getScreen: () => require('./add-to-team/container').default, upgraded: true},
   profileConfirmOrPending: {
     getScreen: () => require('./confirm-or-pending/container').default,
@@ -142,6 +141,7 @@ export const newModalRoutes = {
     getScreen: () => require('./showcase-team-offer/container').default,
     upgraded: true,
   },
+  teamControlledRolePicker: {getScreen: () => require('../teams/role-picker/controlled-container').default},
   ...require('./pgp/routes').newRoutes,
 }
 

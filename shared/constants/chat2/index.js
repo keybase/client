@@ -25,6 +25,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
+  containsLatestMessageMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -35,6 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,
+  messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -79,6 +81,8 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet())
+export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,

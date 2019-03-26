@@ -4,6 +4,9 @@
 package libkb
 
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -245,4 +248,90 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 		return s.mem.GetUsersWithStoredSecrets(m)
 	}
 	return s.disk.GetUsersWithStoredSecrets(m)
+}
+
+func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {
+	if s == nil || s.isNil() {
+		return errors.New("secret store is not available")
+	}
+	if s.disk != nil {
+		err = PrimeSecretStore(mctx, s.disk)
+		if err != nil {
+			return err
+		}
+	}
+	err = PrimeSecretStore(mctx, s.mem)
+	return err
+}
+
+func (s *SecretStoreLocked) IsPersistent() bool {
+	if s == nil || s.isNil() {
+		return false
+	}
+	return s.disk != nil
+}
+
+// PrimeSecretStore runs a test with current platform's secret store, trying to
+// store, retrieve, and then delete a secret with an arbitrary name. This should
+// be done before provisioning or logging in
+func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
+	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
+
+	// Generate test username and test secret
+	testUsername, err := RandString("test_ss_", 5)
+	// RandString returns base32 encoded random bytes, make it look like a
+	// Keybase username. This is not required, though.
+	testUsername = strings.ToLower(strings.Replace(testUsername, "=", "", -1))
+	if err != nil {
+		return err
+	}
+	randBytes, err := RandBytes(LKSecLen)
+	if err != nil {
+		return err
+	}
+	mctx.Debug("PrimeSecretStore: priming secret store with username %q and secret %v", testUsername, randBytes)
+	testNormUsername := NormalizedUsername(testUsername)
+	var secretF [LKSecLen]byte
+	copy(secretF[:], randBytes[:])
+	testSecret := LKSecFullSecret{f: &secretF}
+
+	defer func() {
+		err2 := ss.ClearSecret(mctx, testNormUsername)
+		mctx.Debug("PrimeSecretStore: clearing test secret store entry")
+		if err2 != nil {
+			mctx.Debug("PrimeSecretStore: clearing secret store entry returned an error: %s", err2)
+			if err == nil {
+				err = err2
+			} else {
+				mctx.Debug("suppressing store clearing error because something else has errored prior")
+			}
+		}
+	}()
+
+	// Try to fetch first, we should get an error back.
+	_, err = ss.RetrieveSecret(mctx, testNormUsername)
+	if err == nil {
+		return errors.New("managed to retrieve secret before storing it")
+	} else if err != nil {
+		mctx.Debug("PrimeSecretStore: error when retrieving secret that wasn't stored yet: %q, as expected", err)
+	}
+
+	// Put secret in secret store through `SecretStore` interface.
+	err = ss.StoreSecret(mctx, testNormUsername, testSecret)
+	if err != nil {
+		return fmt.Errorf("error while storing secret: %s", err)
+	}
+
+	// Recreate test store with same username, try to retrieve secret.
+	retrSecret, err := ss.RetrieveSecret(mctx, testNormUsername)
+	if err != nil {
+		return fmt.Errorf("error while retrieving secret: %s", err)
+	}
+	mctx.Debug("PrimeSecretStore: retrieved secret: %v", retrSecret.f)
+	if !retrSecret.Equal(testSecret) {
+		return errors.New("managed to retrieve test secret but it didn't match the stored one")
+	}
+
+	mctx.Debug("PrimeSecretStore: retrieved secret matched!")
+	return nil
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -154,7 +155,7 @@ type emptyKeyMetadata struct {
 	keyGen kbfsmd.KeyGen
 }
 
-var _ KeyMetadata = emptyKeyMetadata{}
+var _ libkey.KeyMetadata = emptyKeyMetadata{}
 
 func (kmd emptyKeyMetadata) TlfID() tlf.ID {
 	return kmd.tlfID

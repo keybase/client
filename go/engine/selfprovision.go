@@ -66,6 +66,10 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return fmt.Errorf("to self provision, you must be a cloned device")
 	}
 
+	if err = m.G().SecretStore().PrimeSecretStores(m); err != nil {
+		return SecretStoreNotFunctionalError{err}
+	}
+
 	uv, _ := e.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
 	// Pass the UV here so the passphrase stream is cached on the provisional
 	// login context
@@ -262,6 +266,6 @@ func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
 }
 
 func (e *SelfProvisionEngine) sendNotification(m libkb.MetaContext) {
-	e.G().KeyfamilyChanged(e.User.GetUID())
+	e.G().KeyfamilyChanged(m.Ctx(), e.User.GetUID())
 	e.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsername()))
 }

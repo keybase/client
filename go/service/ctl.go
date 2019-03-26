@@ -5,6 +5,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -32,7 +33,9 @@ func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
 }
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
-	return c.G().Log.RotateLogFile()
+	logFile, _ := c.G().Env.GetEffectiveLogFile()
+	// Redirect to log file even if not explicitly desired during service call
+	return logger.SetLogFileConfig(c.G().Env.GetLogFileConfig(logFile))
 }
 
 func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {

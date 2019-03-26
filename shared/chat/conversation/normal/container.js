@@ -26,7 +26,7 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
       outboxID: null,
@@ -40,6 +40,7 @@ const mapDispatchToProps = dispatch => ({
   },
   _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
     dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
+  jumpToRecent: () => dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
   onCancelSearch: () =>
     dispatch(Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})),
   onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
@@ -51,6 +52,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     conversationIDKey: stateProps.conversationIDKey,
     isPending: stateProps.isPending,
     isSearching: stateProps.isSearching,
+    jumpToRecent: dispatchProps.jumpToRecent,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelSearch: dispatchProps.onCancelSearch,
     onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
@@ -68,11 +70,14 @@ export default compose(
     mergeProps
   ),
   withStateHandlers(
-    {focusInputCounter: 0, scrollListDownCounter: 0, scrollListUpCounter: 0},
+    {focusInputCounter: 0, scrollListDownCounter: 0, scrollListToBottomCounter: 0, scrollListUpCounter: 0},
     {
       onFocusInput: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1}),
       onRequestScrollDown: ({scrollListDownCounter}) => () => ({
         scrollListDownCounter: scrollListDownCounter + 1,
+      }),
+      onRequestScrollToBottom: ({scrollListToBottomCounter}) => () => ({
+        scrollListToBottomCounter: scrollListToBottomCounter + 1,
       }),
       onRequestScrollUp: ({scrollListUpCounter}) => () => ({scrollListUpCounter: scrollListUpCounter + 1}),
     }

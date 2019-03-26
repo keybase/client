@@ -398,7 +398,7 @@ function* startProvisioning(state) {
       params: {
         clientType: RPCTypes.commonClientType.guiMain,
         deviceType: isMobile ? 'mobile' : 'desktop',
-        usernameOrEmail: username,
+        username: username,
       },
       waitingKey: Constants.waitingKey,
     })
@@ -407,12 +407,16 @@ function* startProvisioning(state) {
     ProvisioningManager.getSingleton().done(
       'provision call done w/ error' + finalError ? finalError.message : ' unknown error'
     )
-    // If it's a non-existent username, allow the opportunity to
+    // If it's a non-existent username or invalid, allow the opportunity to
     // correct it right there on the page.
-    if (finalError.code === RPCTypes.constantsStatusCode.scnotfound) {
-      yield Saga.put(ProvisionGen.createShowInlineError({inlineError: finalError}))
-    } else {
-      yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: false}))
+    switch (finalError.code) {
+      case RPCTypes.constantsStatusCode.scnotfound:
+      case RPCTypes.constantsStatusCode.scbadusername:
+        yield Saga.put(ProvisionGen.createShowInlineError({inlineError: finalError}))
+        break
+      default:
+        yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: false}))
+        break
     }
   }
 }

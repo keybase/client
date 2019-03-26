@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSecretStoreOps(t *testing.T) {
@@ -135,4 +137,13 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 	if len(usernames) != 0 {
 		t.Errorf("Expected no usernames, got %d", len(usernames))
 	}
+}
+
+func TestPrimeSecretStore(t *testing.T) {
+	tc := SetupTest(t, "secret_store", 1)
+	defer tc.Cleanup()
+
+	mctx := NewMetaContextForTest(tc)
+	err := mctx.G().SecretStore().PrimeSecretStores(mctx)
+	require.NoError(t, err)
 }

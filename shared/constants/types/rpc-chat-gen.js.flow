@@ -807,7 +807,7 @@ export type ChatSearchInboxResults = $ReadOnly<{hits?: ?Array<ChatSearchInboxHit
 export type ChatSearchIndexStatus = $ReadOnly<{percentIndexed: Int}>
 export type ChatSearchMatch = $ReadOnly<{startIndex: Int, endIndex: Int, match: String}>
 export type ChatSyncIncrementalConv = $ReadOnly<{conv: UnverifiedInboxUIItem, shouldUnbox: Boolean}>
-export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<ChatSyncIncrementalConv>}>
+export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<ChatSyncIncrementalConv>, removals?: ?Array<String>}>
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, cs /* convSettings */?: ?ConversationSettings}>
@@ -1122,7 +1122,7 @@ export type OutboxStateType =
   | 0 // SENDING_0
   | 1 // ERROR_1
 
-export type Pagination = $ReadOnly<{next: Bytes, previous: Bytes, num: Int, last: Boolean}>
+export type Pagination = $ReadOnly<{next: Bytes, previous: Bytes, num: Int, last: Boolean, forceFirstPage: Boolean}>
 export type PostFileAttachmentArg = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, filename: String, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, callerPreview?: ?MakePreviewRes, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec}>
 export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, outboxID: OutboxID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>

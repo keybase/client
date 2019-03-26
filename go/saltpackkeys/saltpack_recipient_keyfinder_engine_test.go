@@ -350,9 +350,10 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
 	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
-	tc.G.BustLocalUserCache(u2.GetUID())
+	m := libkb.NewMetaContextForTest(tc)
+	tc.G.BustLocalUserCache(m.Ctx(), u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()
-	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))
+	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	require.NoError(t, err)
 
 	u3, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
@@ -368,7 +369,7 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 		UseDeviceKeys: true,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	m = m.WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
@@ -581,9 +582,10 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
 	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
-	tc.G.BustLocalUserCache(u2.GetUID())
+	m := libkb.NewMetaContextForTest(tc)
+	tc.G.BustLocalUserCache(m.Ctx(), u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()
-	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))
+	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	require.NoError(t, err)
 
 	u3, err := kbtest.CreateAndSignupFakeUserPaper("spkfe", tc.G)
@@ -601,7 +603,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 		UseEntityKeys: true,
 	}
 	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	m = m.WithUIs(uis)
 	if err := engine.RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}

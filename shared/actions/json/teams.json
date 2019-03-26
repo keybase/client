@@ -13,9 +13,9 @@
     "createNewTeam": {
       "joinSubteam": "boolean",
       "teamname": "string",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
-      "destSubPath": "I.List<string>"
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
+      "destSubPath?": "I.List<string>"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
@@ -81,19 +81,19 @@
       "participant": "string"
     },
     "addPeopleToTeam": {
-      "destSubPath": "I.List<string>",
+      "destSubPath?": "I.List<string>",
       "role": "string",
-      "rootPath": "I.List<string>",
+      "rootPath?": "I.List<string>",
       "sendChatNotification": "boolean",
-      "sourceSubPath": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
     "inviteToTeamByEmail": {
-      "destSubPath": "I.List<string>",
+      "destSubPath?": "I.List<string>",
       "invitees": "string",
       "role": "Types.TeamRoleType",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
       "teamname": "string"
     },
     "inviteToTeamByPhone": {

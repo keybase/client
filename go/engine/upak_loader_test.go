@@ -285,7 +285,7 @@ func TestUPAKDeadlock(t *testing.T) {
 	fu := CreateAndSignupFakeUserPaper(tc, "upak")
 
 	// First clear the cache
-	tc.G.KeyfamilyChanged(fu.UID())
+	tc.G.KeyfamilyChanged(context.TODO(), fu.UID())
 
 	var wg sync.WaitGroup
 

@@ -11,6 +11,7 @@ import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
 import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   onAttach?: ?(paths: Array<string>) => void,
@@ -55,9 +56,8 @@ const SelfReset = (props: Props) => (
 const Folder = (props: Props) => (
   <Kb.BoxGrow>
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <FolderHeader path={props.path} routePath={props.routePath} />
+      {!flags.useNewRouter && <FolderHeader path={props.path} routePath={props.routePath} />}
       <Kbfs.Errs />
-      <Kb.Divider />
       {props.resetBannerType === 'self' ? <SelfReset {...props} /> : <WithContent {...props} />}
       <Footer />
     </Kb.Box2>

@@ -34,6 +34,8 @@ import (
 // conflict resolution
 type CtxCRTagKey int
 
+type failModeForTest int
+
 const (
 	// CtxCRIDKey is the type of the tag for unique operation IDs
 	// related to conflict resolution
@@ -59,12 +61,19 @@ const (
 	// If we have failed at CR 10 times, probably it's never going to work and
 	// we should give up.
 	maxConflictResolutionAttempts = 10
+
+	alwaysFailCR failModeForTest = iota
+	doNotAlwaysFailCR
 )
 
 // ErrTooManyCRAttempts is an error that indicates that CR has failed
 // too many times, and it being stopped.
 var ErrTooManyCRAttempts = errors.New(
 	"too many attempts at conflict resolution on this TLF")
+
+// ErrCRFailForTest indicates that CR is disabled for a test.
+var ErrCRFailForTest = errors.New(
+	"conflict resolution failed because test requested it")
 
 // CtxCROpID is the display name for the unique operation
 // conflict resolution ID tag.
@@ -96,6 +105,8 @@ type ConflictResolver struct {
 	currCancel    context.CancelFunc
 	lockNextTime  bool
 	canceledCount int
+
+	failModeForTest failModeForTest
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -3188,52 +3199,6 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	return nil
 }
 
-// maybeUnstageAfterFailure abandons this branch if there was a
-// conflict resolution failure due to missing blocks, caused by a
-// concurrent GCOp on the main branch.
-func (cr *ConflictResolver) maybeUnstageAfterFailure(ctx context.Context,
-	lState *kbfssync.LockState, mergedMDs []ImmutableRootMetadata,
-	err error) error {
-	// Make sure the error is related to a missing block.
-	_, isBlockNotFound := err.(kbfsblock.ServerErrorBlockNonExistent)
-	_, isBlockDeleted := err.(kbfsblock.ServerErrorBlockDeleted)
-	if !isBlockNotFound && !isBlockDeleted {
-		return err
-	}
-
-	// Make sure there was a GCOp on the main branch.
-	foundGCOp := false
-outer:
-	for _, rmd := range mergedMDs {
-		for _, op := range rmd.data.Changes.Ops {
-			if _, ok := op.(*GCOp); ok {
-				foundGCOp = true
-				break outer
-			}
-		}
-	}
-	if !foundGCOp {
-		return err
-	}
-
-	cr.log.CDebugf(ctx, "Unstaging due to a failed resolution: %v", err)
-	reportedError := CRAbandonStagedBranchError{err, cr.fbo.unmergedBID}
-	unstageErr := cr.fbo.unstageAfterFailedResolution(ctx, lState)
-	if unstageErr != nil {
-		cr.log.CDebugf(ctx, "Couldn't unstage: %v", unstageErr)
-		return err
-	}
-
-	head := cr.fbo.getTrustedHead(ctx, lState, mdNoCommit)
-	if head == (ImmutableRootMetadata{}) {
-		panic("maybeUnstageAfterFailure: head is nil (should be impossible)")
-	}
-	handle := head.GetTlfHandle()
-	cr.config.Reporter().ReportErr(
-		ctx, handle.GetCanonicalName(), handle.Type(), WriteMode, reportedError)
-	return nil
-}
-
 const conflictRecordVersion = 1
 
 type conflictRecord struct {
@@ -3300,10 +3265,10 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 //  - in the event of failure, it logs that CR failed and tries to record the
 //    failure to the DB.
 func (cr *ConflictResolver) recordFinishResolve(
-	ctx context.Context, ci conflictInput, receivedErr error) {
+	ctx context.Context, ci conflictInput,
+	panicVar interface{}, receivedErr error) {
 	db := cr.config.GetConflictResolutionDB()
 	key := cr.fbo.id().Bytes()
-	panicVar := recover()
 
 	// If we neither errored nor panicked, this CR succeeded and we can wipe
 	// the DB entry.
@@ -3345,7 +3310,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 		thisCR.ErrorString = fmt.Sprintf("%+v", receivedErr)
 	}
 	if panicVar != nil {
-		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %b", panicVar,
+		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %s", panicVar,
 			debug.Stack())
 	}
 
@@ -3423,7 +3388,10 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			"Too many failed CR attempts for folder: %v", cr.fbo.id())
 		return
 	case nil:
-		defer func() { cr.recordFinishResolve(ctx, ci, err) }()
+		defer func() {
+			r := recover()
+			cr.recordFinishResolve(ctx, ci, r, err)
+		}()
 	default:
 		cr.log.CWarningf(ctx,
 			"Could not record conflict resolution attempt: %+v", err)
@@ -3466,13 +3434,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
+	if cr.failModeForTest == alwaysFailCR {
+		err = ErrCRFailForTest
+		return
+	}
+
 	var mergedMDs []ImmutableRootMetadata
-	defer func() {
-		if err != nil {
-			// writerLock is definitely unlocked by here.
-			err = cr.maybeUnstageAfterFailure(ctx, lState, mergedMDs, err)
-		}
-	}()
 
 	// Check if we need to deploy the nuclear option and completely
 	// block unmerged writes while we try to resolve.
@@ -3680,6 +3647,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// don't count against the quota forever.  (Though of course if we
 	// completely fail, we'll need to rely on a future complete scan
 	// to clean up the quota anyway . . .)
+}
+
+func (cr *ConflictResolver) clearConflictRecords() error {
+	db := cr.config.GetConflictResolutionDB()
+	key := cr.fbo.id().Bytes()
+	return db.Delete(key, nil)
 }
 
 func openCRDBInternal(config Config) (*LevelDb, error) {

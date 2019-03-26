@@ -70,7 +70,7 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 			s.Debug(ctx, "IsOffline: offline, but skipping delay since we already did it")
 			return offline
 		}
-		if s.G().AppState.State() != keybase1.AppState_FOREGROUND {
+		if s.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
 			s.Debug(ctx, "IsOffline: offline, but not waiting for anything since not in foreground")
 			return offline
 		}

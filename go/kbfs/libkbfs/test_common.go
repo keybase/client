@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -170,7 +171,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	// see if a local remote server is specified
 	mdServerAddr := os.Getenv(EnvTestMDServerAddr)
 	var mdServer MDServer
-	var keyServer KeyServer
+	var keyServer libkey.KeyServer
 	switch {
 	case mdServerAddr == TempdirServerAddr:
 		var err error
@@ -179,8 +180,8 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		if err != nil {
 			t.Fatal(err)
 		}
-		keyServer, err = NewKeyServerTempDir(
-			mdServerLocalConfigAdapter{config})
+		keyServer, err = libkey.NewKeyServerTempDir(
+			keyOpsConfigWrapper{config}, log)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -204,8 +205,8 @@ func MakeTestConfigOrBustLoggedInWithMode(
 			t.Fatal(err)
 		}
 		// shim for the key server too
-		keyServer, err = NewKeyServerMemory(
-			mdServerLocalConfigAdapter{config})
+		keyServer, err = libkey.NewKeyServerMemory(
+			keyOpsConfigWrapper{config}, log)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -300,7 +301,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	}
 
 	var mdServer MDServer
-	var keyServer KeyServer
+	var keyServer libkey.KeyServer
 	if s, ok := config.MDServer().(*MDServerRemote); ok {
 		remote, err := rpc.ParsePrioritizedRoundRobinRemote(s.RemoteAddress())
 		if err != nil {
@@ -318,8 +319,9 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 		mdServer = mdServerToCopy.copy(mdServerLocalConfigAdapter{c})
 
 		// use the same db but swap configs
-		keyServerToCopy := config.KeyServer().(*KeyServerLocal)
-		keyServer = keyServerToCopy.copy(mdServerLocalConfigAdapter{c})
+		keyServerToCopy := config.KeyServer().(*libkey.KeyServerLocal)
+		keyServer = keyServerToCopy.CopyWithConfigAndLogger(
+			keyOpsConfigWrapper{c}, c.MakeLogger(""))
 	}
 	c.SetMDServer(mdServer)
 	c.SetKeyServer(keyServer)
@@ -771,6 +773,20 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 		ops.cr.Resolve(baseCtx, ops.getCurrMDRevision(lState),
 			kbfsmd.RevisionUninitialized)
 	}
+	return nil
+}
+
+// SetCRFailureForTesting sets whether CR should always fail on the folder
+// branch.
+func SetCRFailureForTesting(ctx context.Context, config Config,
+	folderBranch FolderBranch, fail failModeForTest) error {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return errors.New("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOpsNoAdd(ctx, folderBranch)
+	ops.cr.failModeForTest = fail
 	return nil
 }
 

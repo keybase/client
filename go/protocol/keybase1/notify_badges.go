@@ -48,6 +48,18 @@ func (o WalletAccountInfo) DeepCopy() WalletAccountInfo {
 	}
 }
 
+type ResetState struct {
+	EndTime Time   `codec:"endTime" json:"end_time"`
+	Msg     string `codec:"msg" json:"msg"`
+}
+
+func (o ResetState) DeepCopy() ResetState {
+	return ResetState{
+		EndTime: o.EndTime.DeepCopy(),
+		Msg:     o.Msg,
+	}
+}
+
 type BadgeState struct {
 	NewTlfs                   int                     `codec:"newTlfs" json:"newTlfs"`
 	RekeysNeeded              int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
@@ -62,6 +74,7 @@ type BadgeState struct {
 	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
+	ResetState                ResetState              `codec:"resetState" json:"resetState"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -159,6 +172,7 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.UnreadWalletAccounts),
+		ResetState: o.ResetState.DeepCopy(),
 	}
 }
 

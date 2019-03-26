@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/pkg/errors"
 )
 
@@ -15,14 +16,14 @@ import (
 // using a disk-based block cache.
 type fileBlockMapDisk struct {
 	dirtyBcache *DirtyBlockCacheDisk
-	kmd         KeyMetadata
+	kmd         libkey.KeyMetadata
 	ptrs        map[BlockPointer]map[string]BlockPointer
 }
 
 var _ fileBlockMap = (*fileBlockMapDisk)(nil)
 
 func newFileBlockMapDisk(
-	dirtyBcache *DirtyBlockCacheDisk, kmd KeyMetadata) *fileBlockMapDisk {
+	dirtyBcache *DirtyBlockCacheDisk, kmd libkey.KeyMetadata) *fileBlockMapDisk {
 	return &fileBlockMapDisk{
 		dirtyBcache: dirtyBcache,
 		kmd:         kmd,

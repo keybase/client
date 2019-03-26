@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -19,7 +20,7 @@ import (
 // reading or writing, and also returns whether the block was already
 // dirty.  It may be called from new goroutines, and must handle any
 // required locks accordingly.
-type fileBlockGetter func(context.Context, KeyMetadata, BlockPointer,
+type fileBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
 	path, blockReqType) (fblock *FileBlock, wasDirty bool, err error)
 
 // fileData is a helper struct for accessing and manipulating data
@@ -31,7 +32,7 @@ type fileData struct {
 }
 
 func newFileData(file path, chargedTo keybase1.UserOrTeamID, crypto cryptoPure,
-	bsplit BlockSplitter, kmd KeyMetadata, getter fileBlockGetter,
+	bsplit BlockSplitter, kmd libkey.KeyMetadata, getter fileBlockGetter,
 	cacher dirtyBlockCacher, log logger.Logger) *fileData {
 	fd := &fileData{
 		getter: getter,
@@ -54,7 +55,7 @@ func (fd *fileData) rootBlockPointer() BlockPointer {
 }
 
 func (fd *fileData) blockGetter(
-	ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+	ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
 	file path, rtype blockReqType) (
 	block BlockWithPtrs, wasDirty bool, err error) {
 	return fd.getter(ctx, kmd, ptr, file, rtype)

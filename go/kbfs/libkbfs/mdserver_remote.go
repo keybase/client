@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -84,7 +85,7 @@ type MDServerRemote struct {
 var _ MDServer = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the KeyServer interface.
-var _ KeyServer = (*MDServerRemote)(nil)
+var _ libkey.KeyServer = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the AuthTokenRefreshHandler interface.
 var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)

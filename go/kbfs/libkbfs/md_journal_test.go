@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
@@ -32,12 +33,12 @@ type singleEncryptionKeyGetter struct {
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
+	ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }

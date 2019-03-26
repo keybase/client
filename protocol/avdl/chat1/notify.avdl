@@ -151,6 +151,7 @@ protocol NotifyChat {
 
   record ChatSyncIncrementalInfo {
     array<ChatSyncIncrementalConv> items;
+    array<string> removals; // Removed ConvIDs
   }
 
   variant ChatSyncResult switch (SyncInboxResType syncType) {

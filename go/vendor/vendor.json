@@ -15,30 +15,32 @@
 			"revision": ""
 		},
 		{
-			"checksumSHA1": "RPtpMc3jUR9RZC/Ccxw+NuVWWV4=",
+			"checksumSHA1": "uH8rNmMIuS++uGlnxvxg9JSU4yU=",
 			"origin": "github.com/keybase/fuse",
 			"path": "bazil.org/fuse",
-			"revision": "e3996deee1b03bec702b6a4d4f5b6f2154895e41",
-			"revisionTime": "2018-11-12T20:58:52Z"
+			"revision": "5a45981690d8c47319ea10f5f1c1ba6e2cc0147b",
+			"revisionTime": "2019-03-20T19:19:38Z"
 		},
 		{
-			"checksumSHA1": "duEBNH0Xz8VZFOi1F3t/RRTaEJs=",
+			"checksumSHA1": "0VZprIyGgeTGEUPP3OYMTJCRtJY=",
 			"origin": "github.com/keybase/fuse/fs",
 			"path": "bazil.org/fuse/fs",
-			"revision": "e3996deee1b03bec702b6a4d4f5b6f2154895e41",
-			"revisionTime": "2018-11-12T20:58:52Z"
+			"revision": "5a45981690d8c47319ea10f5f1c1ba6e2cc0147b",
+			"revisionTime": "2019-03-20T19:19:38Z"
 		},
 		{
 			"checksumSHA1": "wy8DrEJ4Al2iZk5hKQEbIqaghGM=",
+			"origin": "github.com/keybase/fuse/fs/fstestutil",
 			"path": "bazil.org/fuse/fs/fstestutil",
-			"revision": "65cc252bf6691cb3c7014bcb2c8dc29de91e3a7e",
-			"revisionTime": "2018-04-21T15:31:58Z"
+			"revision": "5a45981690d8c47319ea10f5f1c1ba6e2cc0147b",
+			"revisionTime": "2019-03-20T19:19:38Z"
 		},
 		{
 			"checksumSHA1": "NPgkh9UWMsaTtsAAs3kPrclHT9Y=",
+			"origin": "github.com/keybase/fuse/fuseutil",
 			"path": "bazil.org/fuse/fuseutil",
-			"revision": "65cc252bf6691cb3c7014bcb2c8dc29de91e3a7e",
-			"revisionTime": "2018-04-21T15:31:58Z"
+			"revision": "5a45981690d8c47319ea10f5f1c1ba6e2cc0147b",
+			"revisionTime": "2019-03-20T19:19:38Z"
 		},
 		{
 			"checksumSHA1": "hYtV4dXAd8dkPaVJZZ8tqJzKlBo=",
@@ -1575,10 +1577,10 @@
 			"revisionTime": "2017-05-17T20:25:26Z"
 		},
 		{
-			"checksumSHA1": "afJnZlrtxfTzpS7lu1yhU3xKVqw=",
+			"checksumSHA1": "yHMd/g8ueIs7upo4jAadM4DkBwE=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "833a04a10549a95dc34458c195cbad61bbb6cb4d",
-			"revisionTime": "2015-12-10T17:34:15-08:00"
+			"revision": "6c81ef8f67ca3f42fc9cd71dfbd5f35b0c4b5771",
+			"revisionTime": "2019-03-18T07:51:36Z"
 		},
 		{
 			"checksumSHA1": "6aa7Y4gpUDxYNt48cOT95zMjp9E=",

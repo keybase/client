@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -47,7 +48,7 @@ type CheckBlockOps struct {
 
 var _ BlockOps = (*CheckBlockOps)(nil)
 
-func (cbo *CheckBlockOps) Ready(ctx context.Context, kmd KeyMetadata,
+func (cbo *CheckBlockOps) Ready(ctx context.Context, kmd libkey.KeyMetadata,
 	block Block) (id kbfsblock.ID, plainSize int, readyBlockData ReadyBlockData,
 	err error) {
 	id, plainSize, readyBlockData, err = cbo.BlockOps.Ready(ctx, kmd, block)
@@ -543,10 +544,10 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 }
 
-func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, block Block, err error) {
+func expectBlock(config *ConfigMock, kmd libkey.KeyMetadata, blockPtr BlockPointer, block Block, err error) {
 	config.mockBops.EXPECT().Get(gomock.Any(), kmdMatcher{kmd},
 		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any()).
-		Do(func(ctx context.Context, kmd KeyMetadata,
+		Do(func(ctx context.Context, kmd libkey.KeyMetadata,
 			blockPtr BlockPointer, getBlock Block, lifetime BlockCacheLifetime) {
 			getBlock.Set(block)
 			config.BlockCache().Put(blockPtr, kmd.TlfID(), getBlock, lifetime)
@@ -684,7 +685,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 // the helper functions below, but all the callers would have to go
 // md.ReadOnly(), which doesn't buy us much in tests.
 
-func makeBP(id kbfsblock.ID, kmd KeyMetadata, config Config,
+func makeBP(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
 	u keybase1.UserOrTeamID) BlockPointer {
 	return BlockPointer{
 		ID:      id,
@@ -698,7 +699,7 @@ func makeBP(id kbfsblock.ID, kmd KeyMetadata, config Config,
 	}
 }
 
-func makeBI(id kbfsblock.ID, kmd KeyMetadata, config Config,
+func makeBI(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
 	u keybase1.UserOrTeamID, encodedSize uint32) BlockInfo {
 	return BlockInfo{
 		BlockPointer: makeBP(id, kmd, config, u),
@@ -706,7 +707,7 @@ func makeBI(id kbfsblock.ID, kmd KeyMetadata, config Config,
 	}
 }
 
-func makeIFP(id kbfsblock.ID, kmd KeyMetadata, config Config,
+func makeIFP(id kbfsblock.ID, kmd libkey.KeyMetadata, config Config,
 	u keybase1.UserOrTeamID, encodedSize uint32,
 	off Int64Offset) IndirectFilePtr {
 	return IndirectFilePtr{
@@ -2807,7 +2808,7 @@ func getOrCreateSyncInfo(
 	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)
 }
 
-func makeBlockStateDirty(config Config, kmd KeyMetadata, p path,
+func makeBlockStateDirty(config Config, kmd libkey.KeyMetadata, p path,
 	ptr BlockPointer) {
 	ops := getOps(config, kmd.TlfID())
 	lState := makeFBOLockState()
@@ -4346,7 +4347,7 @@ func waitForPrefetchInTest(
 
 func waitForIndirectPtrBlocksInTest(
 	t *testing.T, ctx context.Context, config Config, node Node,
-	kmd KeyMetadata) {
+	kmd libkey.KeyMetadata) {
 	t.Helper()
 	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
 	require.NoError(t, err)

@@ -9,6 +9,8 @@ import Rows from '../row/rows-container'
 import * as FsCommon from '../common'
 import * as RowCommon from '../row/common'
 import Breadcrumb from '../header/breadcrumb-container.desktop.js'
+import NavHeaderTitle from '../nav-header/title-container'
+import flags from '../../util/feature-flags'
 
 type Props = {
   index: number,
@@ -33,7 +35,7 @@ const NewFolder = ({onNewFolder}) => (
 
 const DesktopHeaders = (props: Props) => (
   <>
-    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} />
+    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} refreshTag="destination-picker" />
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
@@ -47,7 +49,11 @@ const DesktopHeaders = (props: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
-      <Breadcrumb path={props.parentPath} inDestinationPicker={true} routePath={props.routePath} />
+      {flags.useNewRouter ? (
+        <NavHeaderTitle inDestinationPicker={true} path={props.parentPath} />
+      ) : (
+        <Breadcrumb path={props.parentPath} inDestinationPicker={true} routePath={props.routePath} />
+      )}
       {!!props.onNewFolder && <NewFolder onNewFolder={props.onNewFolder} />}
     </Kb.Box2>
   </>

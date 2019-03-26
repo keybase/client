@@ -140,8 +140,8 @@ show_cryptosquirrel() {
   [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
 }
 
-warn_if_unwritable() {
-  if [ -w "$1" ]; then
+warn_if_exists_and_unwritable() {
+  if ! [ -e "$1" ] || [ -w "$1" ]; then
       return
   fi
   echo "WARNING: Cannot write to $1. Did you previously run 'run_keybase' with sudo?"
@@ -154,8 +154,9 @@ init() {
   logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
   runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 
-  warn_if_unwritable "$logdir"
-  warn_if_unwritable "$runtime_dir"
+  warn_if_exists_and_unwritable "$logdir"
+  warn_if_exists_and_unwritable "$runtime_dir"
+  warn_if_exists_and_unwritable "$HOME/.local/share/keybase/keybase.leveldb"
 
   # Cannot do in go due to background processes being piped to log in bash
   mkdir -p "$logdir"

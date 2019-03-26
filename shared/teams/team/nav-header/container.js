@@ -1,10 +1,15 @@
 // @flow
 import * as Constants from '../../../constants/teams'
-import * as FsGen from '../../../actions/fs-gen'
+import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {HeaderRightActions as _HeaderRightActions, HeaderTitle as _HeaderTitle} from '.'
+import * as SearchGen from '../../../actions/search-gen'
+import {
+  HeaderRightActions as _HeaderRightActions,
+  HeaderTitle as _HeaderTitle,
+  SubHeader as _SubHeader,
+} from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
@@ -23,7 +28,7 @@ const mapStateToProps = (state, {teamname}) => {
 const mapDispatchToProps = (dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   onOpenFolder: () =>
-    dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`)})),
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -48,7 +53,7 @@ const mapStateToPropsTitle = (state, {teamname}) => {
   const description = Constants.getTeamPublicitySettings(state, teamname).description
   const members = Constants.getTeamMemberCount(state, teamname)
   return {
-    _canEditDescription: Constants.getCanPerform(state, teamname).editTeamDescription,
+    _canEditDescAvatar: Constants.getCanPerform(state, teamname).editTeamDescription,
     description,
     members,
     role,
@@ -57,15 +62,24 @@ const mapStateToPropsTitle = (state, {teamname}) => {
 }
 
 const mapDispatchToPropsTitle = (dispatch, {teamname}) => ({
+  onEditAvatar: () =>
+    // On mobile we show the image picker first before opening the dialog. This
+    // is a desktop-only component right now, so just do this.
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],
+      })
+    ),
   onEditDescription: () =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'editTeamDescription'}]})
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
 })
 const mergePropsTitle = (stateProps, dispatchProps) => ({
   description: stateProps.description,
   members: stateProps.members,
-  onEditDescription: stateProps._canEditDescription ? dispatchProps.onEditDescription : null,
+  onEditAvatar: stateProps._canEditDescAvatar ? dispatchProps.onEditAvatar : null,
+  onEditDescription: stateProps._canEditDescAvatar ? dispatchProps.onEditDescription : null,
   role: stateProps.role,
   teamname: stateProps.teamname,
 })
@@ -76,3 +90,26 @@ export const HeaderTitle = Container.namedConnect<OwnProps, _, _, _, _>(
   mergePropsTitle,
   'TeamHeaderTitle'
 )(_HeaderTitle)
+
+const mapStateToPropsSub = (state, {teamname}) => ({
+  _canAddSelf: Constants.getCanPerform(state, teamname).joinTeam,
+  _you: state.config.username,
+})
+
+const mapDispatchToPropsSub = dispatch => ({
+  onAddSelf: (you: string, teamname: string) => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
+    dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
+  },
+})
+
+const mergePropsSub = (stateProps, dispatchProps, {teamname}) => ({
+  onAddSelf: stateProps._canAddSelf ? () => dispatchProps.onAddSelf(stateProps._you, teamname) : null,
+})
+
+export const SubHeader = Container.namedConnect<OwnProps, _, _, _, _>(
+  mapStateToPropsSub,
+  mapDispatchToPropsSub,
+  mergePropsSub,
+  'TeamSubHeader'
+)(_SubHeader)

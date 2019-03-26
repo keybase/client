@@ -7,8 +7,9 @@ import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
 
 type Props = {|
-  badUsernameError: boolean,
   error: string,
+  inlineError: string,
+  inlineSignUpLink: boolean,
   onBack: () => void,
   onForgotUsername: () => void,
   onGoToSignup: () => void,
@@ -16,14 +17,16 @@ type Props = {|
   submittedUsername: string,
 |}
 
-const BadUsernameError = (props: {|onGoToSignup: () => void|}) => (
+const InlineError = (props: {|onGoToSignup: ?() => void, error: string|}) => (
   <Kb.Box2 direction="vertical" centerChildren={true}>
     <Kb.Text type="BodySmallError" style={styles.error}>
-      This username doesn't exist.
+      {props.error}
     </Kb.Text>
-    <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
-      Sign up for a new account?
-    </Kb.Text>
+    {!!props.onGoToSignup && (
+      <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
+        Sign up for a new account?
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
 
@@ -31,6 +34,16 @@ class Username extends React.Component<Props, State> {
   state = {username: ''}
 
   render() {
+    let errorTextComponent
+    if (this.props.submittedUsername === this.state.username && !!this.props.inlineError) {
+      errorTextComponent = (
+        <InlineError
+          error={this.props.inlineError}
+          onGoToSignup={this.props.inlineSignUpLink ? this.props.onGoToSignup : null}
+        />
+      )
+    }
+
     return (
       <Container style={styles.container} outerStyle={styles.outerStyle} onBack={() => this.props.onBack()}>
         <Kb.UserCard style={styles.card} outerStyle={styles.outerCard}>
@@ -39,13 +52,7 @@ class Username extends React.Component<Props, State> {
             style={styles.input}
             hintText="Username"
             errorText={this.props.submittedUsername === this.state.username ? this.props.error : ''}
-            errorTextComponent={
-              this.props.submittedUsername === this.state.username && this.props.badUsernameError ? (
-                <BadUsernameError onGoToSignup={this.props.onGoToSignup} />
-              ) : (
-                undefined
-              )
-            }
+            errorTextComponent={errorTextComponent}
             onEnterKeyDown={() => this.props.onSubmit(this.state.username)}
             onChangeText={text => this.setState({username: text})}
             value={this.state.username}
