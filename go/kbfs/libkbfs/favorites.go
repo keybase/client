@@ -31,6 +31,9 @@ const (
 	favoritesDiskCacheFilename       = "kbfsFavorites.leveldb"
 	favoritesDiskCacheVersion        = 2
 	favoritesDiskCacheStorageVersion = 1
+	// How long to block on favorites refresh when cache is expired (e.g.,
+	// on startup). Reasonably low in case we're offline.
+	favoritesServerTimeoutWhenCacheExpired = 500 * time.Millisecond
 )
 
 var errNoFavoritesCache = errors.New("disk favorites cache not present")
@@ -317,16 +320,25 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 
 	kbpki := f.config.KBPKI()
 	// Fetch a new list if:
-	//  * The user asked us to refresh
-	//  * We haven't fetched it before
-	//  * It's stale
-	if (req.refresh || f.favCache == nil || f.config.Clock().Now().After(
-		f.cacheExpireTime)) && !req.clear {
-
+	//  (1) The user asked us to refresh
+	//  (2) We haven't fetched it before
+	//  (3) It's stale
+	//
+	// If just (3), use a short timeout so we can return the correct result
+	// quickly when offline.
+	needFetch := (req.refresh || f.favCache == nil) && !req.clear
+	wantFetch := f.config.Clock().Now().After(f.cacheExpireTime) && !req.clear
+	if needFetch || wantFetch {
+		getCtx := req.ctx
+		if !needFetch {
+			timeoutCtx, cancel := context.WithTimeout(req.ctx, favoritesServerTimeoutWhenCacheExpired)
+			defer cancel()
+			getCtx = timeoutCtx
+		}
 		// load cache from server
-		favResult, err := kbpki.FavoriteList(req.ctx)
+		favResult, err := kbpki.FavoriteList(getCtx)
 		if err != nil {
-			if req.refresh || f.favCache == nil {
+			if needFetch {
 				// if we're supposed to refresh the cache and it's not
 				// working, mark the current cache expired.
 				now := f.config.Clock().Now()
@@ -337,6 +349,10 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			}
 			// If we weren't explicitly asked to refresh, we can return possibly
 			// stale favorites rather than return nothing.
+			if err == context.DeadlineExceeded {
+				// TODO: make sure this doesn't get queued like 10 times
+				go f.RefreshCache(context.Background())
+			}
 			f.log.CDebugf(req.ctx,
 				"Serving possibly stale favorites; new data could not be"+
 					" fetched: %v", err)
@@ -367,7 +383,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				f.newCache[*favorites.NewFolderFromProtocol(
 					folder)] = favorites.DataFrom(folder)
 			}
-			if err == nil {
+			if sessionErr == nil {
 				// Add favorites for the current user, that cannot be deleted.
 				f.favCache[favorites.Folder{
 					Name: string(session.Name),
