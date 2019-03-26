@@ -43,7 +43,7 @@ export type _NotificationsSettingsState = {
 export type NotificationsSettingsState = I.RecordOf<_NotificationsSettingsState>
 
 export type _NotificationsGroupState = {
-  settings: I.Map<string, NotificationsSettingsState>,
+  settings: I.List<NotificationsSettingsState>,
   unsubscribedFromAll: boolean,
 }
 export type NotificationsGroupState = I.RecordOf<_NotificationsGroupState>
@@ -75,8 +75,9 @@ export type _PassphraseState = {
 }
 export type PassphraseState = I.RecordOf<_PassphraseState>
 
+export type EmailRow = I.RecordOf<RPCTypes.Email>
 export type _EmailState = {
-  emails: ?I.List<I.RecordOf<RPCTypes.Email>>,
+  emails: ?I.List<EmailRow>,
   newEmail: string,
   error: ?Error,
 }

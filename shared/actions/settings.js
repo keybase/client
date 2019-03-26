@@ -375,7 +375,7 @@ const deleteAccountForever = (state, action) => {
 
 const loadSettings = () =>
   RPCTypes.userLoadMySettingsRpcPromise().then(settings =>
-    SettingsGen.createLoadedSettings({emails: settings.emails})
+    SettingsGen.createLoadedSettings({emails: I.List(settings.emails || [])})
   )
 
 const getRememberPassphrase = () =>

@@ -12,15 +12,13 @@ const mapStateToProps = state => {
   const {emails} = state.settings.email
   const {rememberPassphrase} = state.settings.passphrase
   let accountProps
-  if (emails) {
+  if (emails && emails.count() > 0) {
     let emailProps = {}
-    if (emails.count()) {
-      const email = emails.get(0)
-      if (email) {
-        emailProps = {
-          email: email.get('email'),
-          isVerified: email.get('isVerified'),
-        }
+    const email = emails.get(0)
+    if (email) {
+      emailProps = {
+        email: email.email,
+        isVerified: email.isVerified,
       }
     }
     accountProps = {

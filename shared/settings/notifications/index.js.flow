@@ -1,24 +1,14 @@
 // @flow
 import {Component} from 'react'
-
-export type Settings = Array<{
-  description: string,
-  name: string,
-  subscribed: boolean,
-}>
-
-export type Group = {
-  settings: Settings,
-  unsubscribedFromAll: boolean,
-}
+import * as Types from '../../constants/types/settings'
 
 export type Props = {
   allowEdit: boolean,
   groups: {
-    app_push?: Group,
-    email?: Group,
-    sms?: Group,
-    security?: Group,
+    app_push?: Types._NotificationsGroupState,
+    email?: Types._NotificationsGroupState,
+    sms?: Types._NotificationsGroupState,
+    security?: Types._NotificationsGroupState,
   },
   onToggle: (groupName: string, name: string) => void,
   onToggleUnsubscribeAll: (group: string) => void,

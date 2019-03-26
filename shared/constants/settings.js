@@ -11,8 +11,25 @@ export const makeNotifications: I.RecordFactory<Types._NotificationsState> = I.R
 })
 
 export const makeNotificationsGroup: I.RecordFactory<Types._NotificationsGroupState> = I.Record({
-  settings: I.Record(),
+  settings: I.List(),
   unsubscribedFromAll: false,
+})
+
+export const makeEmail: I.RecordFactory<Types._EmaiStatel> = I.Record({
+  emails: null,
+  error: null,
+  newEmail: '',
+})
+
+export const makePassphrase: I.RecordFactory<Types._PassphraseState> = I.Record({
+  error: null,
+  hasPGPKeyOnServer: null,
+  newPassphrase: new HiddenString(''),
+  newPassphraseConfirm: new HiddenString(''),
+  newPassphraseConfirmError: null,
+  newPassphraseError: null,
+  randomPW: null,
+  rememberPassphrase: true,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -21,11 +38,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
     unfurl: {},
   },
   checkPassphraseIsCorrect: null,
-  email: {
-    emails: null,
-    error: null,
-    newEmail: '',
-  },
+  email: makeEmail(),
   invites: {
     acceptedInvites: I.List(),
     error: null,
@@ -33,16 +46,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   },
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
-  passphrase: {
-    error: null,
-    hasPGPKeyOnServer: null,
-    newPassphrase: new HiddenString(''),
-    newPassphraseConfirm: new HiddenString(''),
-    newPassphraseConfirmError: null,
-    newPassphraseError: null,
-    randomPW: null,
-    rememberPassphrase: true,
-  },
+  passphrase: makePassphrase(),
   waitingForResponse: false,
 })
 

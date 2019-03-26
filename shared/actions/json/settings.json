@@ -35,7 +35,7 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "?Array<RPCTypes.Email>"
+      "emails": "?I.List<RPCTypes.Email>"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {

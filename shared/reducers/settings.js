@@ -66,7 +66,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.merge({notifications: state.notifications.merge({allowEdit: true})})
     case SettingsGen.notificationsRefreshed:
       return state.merge({
-        notifications: state.notifications.merge({allowEdit: true, groups: I.Map(...action.payload.notifications)})})
+        notifications: state.notifications.merge({allowEdit: true, groups: {...action.payload.notifications}})})
     case SettingsGen.invitesRefreshed:
       return state.merge({invites: state.invites.merge(action.payload.invites)})
     case SettingsGen.invitesSent:
@@ -77,7 +77,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.invitesClearError:
       return state.merge({invites: state.invites.merge({error: null})})
     case SettingsGen.loadedSettings:
-      return state.merge({email: state.email.merge({emails: I.List(action.payload.emails || [])})})
+    console.warn('in loadedsettings', action.payload, state.email)
+      return state.merge({email: state.email.merge({emails: action.payload.emails})})
     case SettingsGen.loadedRememberPassphrase:
     case SettingsGen.onChangeRememberPassphrase:
       return state.merge({passphrase: state.passphrase.merge({rememberPassphrase: action.payload.remember})})

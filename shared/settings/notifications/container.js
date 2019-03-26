@@ -11,10 +11,10 @@ import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {||}
 const mapStateToProps = (state, ownProps: {}) => {
-  const notifications = state.settings.notifications.toObject()
+  const notifications = state.settings.notifications
   console.warn('notifications is', notifications)
   return {
-    ...notifications,
+    groups: notifications.groups,
     mobileHasPermissions: state.push.hasPermissions,
     sound: state.config.notifySound,
     waitingForResponse: state.settings.waitingForResponse,
