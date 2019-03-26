@@ -14,10 +14,13 @@ const mapStateToProps = state => {
   let accountProps
   if (emails) {
     let emailProps = {}
-    if (emails.length) {
-      emailProps = {
-        email: emails[0].email,
-        isVerified: emails[0].isVerified,
+    if (emails.count()) {
+      const email = emails.get(0)
+      if (email) {
+        emailProps = {
+          email: email.get('email'),
+          isVerified: email.get('isVerified'),
+        }
       }
     }
     accountProps = {

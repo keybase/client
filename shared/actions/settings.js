@@ -66,7 +66,7 @@ function* toggleNotifications(state) {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const current = state.settings.notifications
 
-    if (!current || !current.groups.email) {
+    if (!current || !current.groups.get('email')) {
       throw new Error('No notifications loaded yet')
     }
 

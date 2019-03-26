@@ -2,11 +2,11 @@
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import * as I from 'immutable'
-import type {Email, Time} from './rpc-gen'
+import * as RPCTypes from './rpc-gen'
 
 type InviteBase = {
   id: string,
-  created: Time,
+  created: RPCTypes.Time,
 }
 
 export type PendingInvite = {
@@ -50,13 +50,16 @@ export type NotificationsGroupState = I.RecordOf<_NotificationsGroupState>
 
 export type NotificationGroups = 'email' | 'app_push' | 'sms'
 
+export type _NotificationSettingsStateGroup = {
+  email?: NotificationsGroupState,
+  app_push?: NotificationsGroupState,
+  sms?: NotificationsGroupState,
+}
+export type NotificationSettingsStateGroup = I.RecordOf<NotificationSettingsStateGroup>
+
 export type _NotificationsState = {
   allowEdit: boolean,
-  groups: {
-    email?: NotificationsGroupState,
-    app_push?: NotificationsGroupState,
-    sms?: NotificationsGroupState,
-  },
+  groups: NotificationSettingsStateGroup,
 }
 export type NotificationsState = I.RecordOf<_NotificationsState>
 
@@ -73,26 +76,29 @@ export type _PassphraseState = {
 export type PassphraseState = I.RecordOf<_PassphraseState>
 
 export type _EmailState = {
-  emails: ?I.List<Email>,
+  emails: ?I.List<I.RecordOf<RPCTypes.Email>>,
   newEmail: string,
   error: ?Error,
 }
 export type EmailState = I.RecordOf<_EmailState>
 
-export type ChatUnfurlState = {
+export type _ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode,
   unfurlWhitelist?: Array<string>,
   unfurlError?: string,
 }
-export type ChatState = {
+export type ChatUnfurlState = I.RecordOf<_ChatUnfurlState>
+
+export type _ChatState = {
   unfurl: ChatUnfurlState,
 }
+export type ChatState = I.RecordOf<_ChatState>
 
 export type _State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
   invites: InvitesState,
-  notifications: I.RecordOf<NotificationsState>,
+  notifications: NotificationsState,
   email: EmailState,
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,

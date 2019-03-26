@@ -5,13 +5,13 @@ import type {TypedState} from './reducer'
 import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 
-export const makeNotifications: I.RecordFactory<Types.NotificationsState> = I.Record({
+export const makeNotifications: I.RecordFactory<Types._NotificationsState> = I.Record({
   allowEdit: false,
-  groups: I.Map(),
+  groups: I.Record(),
 })
 
-export const makeNotificationsGroup: I.RecordFactory<Types.NotificationsGroupState> = I.Record({
-  settings: I.Map(),
+export const makeNotificationsGroup: I.RecordFactory<Types._NotificationsGroupState> = I.Record({
+  settings: I.Record(),
   unsubscribedFromAll: false,
 })
 

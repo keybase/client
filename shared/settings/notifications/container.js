@@ -10,12 +10,16 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 
 type OwnProps = {||}
-const mapStateToProps = (state, ownProps: {}) => ({
-  ...state.settings.notifications,
-  mobileHasPermissions: state.push.hasPermissions,
-  sound: state.config.notifySound,
-  waitingForResponse: state.settings.waitingForResponse,
-})
+const mapStateToProps = (state, ownProps: {}) => {
+  const notifications = state.settings.notifications.toObject()
+  console.warn('notifications is', notifications)
+  return {
+    ...notifications,
+    mobileHasPermissions: state.push.hasPermissions,
+    sound: state.config.notifySound,
+    waitingForResponse: state.settings.waitingForResponse,
+  }
+}
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
