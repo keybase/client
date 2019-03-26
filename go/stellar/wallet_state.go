@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"golang.org/x/sync/errgroup"
 )
 
 // ErrAccountNotFound is returned when the account is not in
@@ -182,18 +183,23 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 		return err
 	}
 
-	var lastErr error
+	gp, gctx := errgroup.WithContext(mctx.Ctx())
+	gmctx := libkb.NewMetaContext(gctx, w.G())
+
 	for _, account := range bundle.Accounts {
-		a, _ := w.accountStateBuild(account.AccountID)
-		a.updateEntry(account)
-		if err := a.Refresh(mctx, w.G().NotifyRouter, reason); err != nil {
-			mctx.Debug("error refreshing account %s: %s", account.AccountID, err)
-			lastErr = err
-		}
+		gp.Go(func() error {
+			a, _ := w.accountStateBuild(account.AccountID)
+			a.updateEntry(account)
+			if err := a.Refresh(gmctx, w.G().NotifyRouter, reason); err != nil {
+				gmctx.Debug("error refreshing account %s: %s", account.AccountID, err)
+				return err
+			}
+			return nil
+		})
 	}
-	if lastErr != nil {
-		mctx.Debug("RefreshAll last error: %s", lastErr)
-		return lastErr
+
+	if err := gp.Wait(); err != nil {
+		return err
 	}
 
 	w.Lock()
