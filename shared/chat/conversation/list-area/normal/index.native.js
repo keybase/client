@@ -9,6 +9,7 @@ import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
 
 class ConversationList extends React.PureComponent<Props> {
+  _listRef = React.createRef()
   _renderItem = ({index, item}) => {
     if (item === 'specialTop') {
       return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
@@ -74,6 +75,16 @@ class ConversationList extends React.PureComponent<Props> {
     minIndexForVisible: 0,
   }
 
+  componentDidUpdate(prevProps: Props) {
+    const list = this._listRef.current
+    if (!list) {
+      return
+    }
+    if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
+      list.scrollToIndex({index: this.props.centeredOrdinal, viewPosition: 0.5})
+    }
+  }
+
   render() {
     return (
       <ErrorBoundary>
@@ -92,6 +103,7 @@ class ConversationList extends React.PureComponent<Props> {
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}
             removeClippedSubviews={true}
+            forwardedRef={this._listRef}
           />
         </Box>
       </ErrorBoundary>
