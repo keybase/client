@@ -30,14 +30,9 @@ const Breadcrumb = Kb.OverlayParentHOC(
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       {props.ancestors.length > 2 && (
         <React.Fragment key="dropdown">
-          <Kb.Icon
-            type="iconfont-folder-dropdown"
-            style={Styles.collapseStyles([styles.icon, styles.dropdown])}
-            color={Styles.globalColors.black_50}
-            hoverColor={Styles.globalColors.black}
-            onClick={props.toggleShowingMenu}
-            ref={props.setAttachmentRef}
-          />
+          <Kb.Text key="dots" type="BodyTiny" onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+            •••
+          </Kb.Text>
           <Kb.FloatingMenu
             containerStyle={styles.floating}
             attachTo={props.getAttachmentRef}
@@ -65,7 +60,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
       )}
       {props.ancestors.slice(-2).map(path => (
         <React.Fragment key={`text-${path}`}>
-          <Kb.Text key={`slash-${Types.pathToString(path)}`} type="BodyTiny">
+          <Kb.Text key={`slash-${Types.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
             /
           </Kb.Text>
           <Kb.Text
@@ -118,5 +113,9 @@ const styles = Styles.styleSheetCreate({
   },
   rootTitle: {
     marginLeft: Styles.globalMargins.xsmall,
+  },
+  slash: {
+    paddingLeft: Styles.globalMargins.xxtiny,
+    paddingRight: Styles.globalMargins.xxtiny,
   },
 })

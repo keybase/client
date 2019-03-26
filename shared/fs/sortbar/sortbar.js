@@ -2,19 +2,11 @@
 import * as React from 'react'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
-import {
-  Box,
-  ClickableBox,
-  Text,
-  Icon,
-  iconCastPlatformStyles,
-  FloatingMenu,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 
 export type SortBarProps = {
+  canSort: boolean,
   folderIsPending: boolean,
   sortSetting: Types.SortSetting,
   sortSettingToAction: Types.SortSetting => () => void,
@@ -34,67 +26,65 @@ const getPopupItems = sortSettingToAction =>
       onClick: sortSettingToAction(sortSetting),
       title: sortSettingText,
       view: (
-        <Box style={styles.sortSetting}>
-          <Box>
-            <Icon
-              type={sortSettingIconType}
-              style={iconCastPlatformStyles(styles.icon)}
-              color={Styles.isMobile ? Styles.globalColors.blue : Styles.globalColors.black}
-              fontSize={Styles.isMobile ? 17 : 13}
-            />
-          </Box>
-          <Text type={Styles.isMobile ? 'BodyBig' : 'Body'} style={styles.text}>
+        <Kb.Box style={styles.sortSetting}>
+          <Kb.Icon
+            type={sortSettingIconType}
+            padding="xtiny"
+            color={Styles.isMobile ? Styles.globalColors.blue : Styles.globalColors.black}
+            fontSize={Styles.isMobile ? 17 : 13}
+          />
+          <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Body'} style={styles.text}>
             {sortSettingText}
-          </Text>
-        </Box>
+          </Kb.Text>
+        </Kb.Box>
       ),
     }
   })
 
-const SortBar = (props: SortBarProps & OverlayParentProps) => {
+const SortBar = (props: SortBarProps & Kb.OverlayParentProps) => {
   const {sortSettingIconType, sortSettingText} = Types.sortSettingToIconTypeAndText(props.sortSetting)
   return (
-    <Box style={styles.sortBar}>
-      <ClickableBox onClick={props.toggleShowingMenu} style={styles.sortSetting} ref={props.setAttachmentRef}>
-        <Box>
-          <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
-        </Box>
-        <Text type="BodySmallSemibold">{sortSettingText}</Text>
-      </ClickableBox>
-      <FloatingMenu
-        attachTo={props.getAttachmentRef}
-        visible={props.showingMenu}
-        onHidden={props.toggleShowingMenu}
-        position="bottom left"
-        closeOnSelect={true}
-        items={getPopupItems(props.sortSettingToAction)}
-      />
-      {props.folderIsPending ? (
-        <Box style={styles.loading}>
-          <Text type="BodySmall"> Loading ... </Text>
-        </Box>
-      ) : null}
-    </Box>
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.sortBar}
+      gap="small"
+      gapStart={true}
+      gapEnd={true}
+      centerChildren={true}
+    >
+      {props.folderIsPending && <Kb.ProgressIndicator type="Small" />}
+      <Kb.Box style={styles.flex} />
+      {props.canSort && (
+        <>
+          <Kb.ClickableBox
+            onClick={props.toggleShowingMenu}
+            style={styles.sortSetting}
+            ref={props.setAttachmentRef}
+          >
+            <Kb.Icon type={sortSettingIconType} padding="xtiny" fontSize={11} />
+            <Kb.Text type="BodySmallSemibold">{sortSettingText}</Kb.Text>
+          </Kb.ClickableBox>
+          <Kb.FloatingMenu
+            attachTo={props.getAttachmentRef}
+            visible={props.showingMenu}
+            onHidden={props.toggleShowingMenu}
+            position="bottom left"
+            closeOnSelect={true}
+            items={getPopupItems(props.sortSettingToAction)}
+          />
+        </>
+      )}
+    </Kb.Box2>
   )
 }
 
-export const height = Styles.isMobile ? 32 : 24
+export const height = Styles.isMobile ? 40 : 32
 
 const styles = Styles.styleSheetCreate({
-  icon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  loading: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginLeft: 'auto',
-    marginRight: 32,
-  },
+  flex: {flex: 1},
   sortBar: {
-    ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue5,
     height,
-    paddingLeft: 16,
   },
   sortSetting: {
     ...Styles.globalStyles.flexBoxRow,
@@ -110,4 +100,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default OverlayParentHOC(SortBar)
+export default Kb.OverlayParentHOC(SortBar)
