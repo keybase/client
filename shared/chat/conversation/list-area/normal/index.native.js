@@ -7,9 +7,11 @@ import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
 import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
+import JumpToRecent from './jump-to-recent'
 
 class ConversationList extends React.PureComponent<Props> {
   _listRef = React.createRef()
+  _lastCenteredOrdinal = 0
   _renderItem = ({index, item}) => {
     if (item === 'specialTop') {
       return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
@@ -60,13 +62,17 @@ class ConversationList extends React.PureComponent<Props> {
 
   // Was using onEndReached but that was really flakey
   _onViewableItemsChanged = ({viewableItems}) => {
+    if (viewableItems.length <= 2) {
+      // need at least one viewable message to do anything (not counting specials)
+      return
+    }
     const topRecord = viewableItems[viewableItems.length - 1]
+    const bottomRecord = viewableItems[0]
     if (topRecord && topRecord.item === 'specialTop') {
-      const ordinalRecord = viewableItems[viewableItems.length - 2]
-      // ignore if we don't have real messages
-      if (ordinalRecord && ordinalRecord.item !== 'specialBottom') {
-        this.props.loadOlderMessages(this.props.messageOrdinals.get(ordinalRecord.item))
-      }
+      this.props.loadOlderMessages()
+    }
+    if (bottomRecord && bottomRecord.item === 'specialBottom' && !this.props.containsLatestMessage) {
+      this.props.loadNewerMessages()
     }
   }
 
@@ -75,13 +81,33 @@ class ConversationList extends React.PureComponent<Props> {
     minIndexForVisible: 0,
   }
 
+  _getOrdinalIndex = target => {
+    for (let i = 0; i < this.props.messageOrdinals.size; i++) {
+      const ordinal = this.props.messageOrdinals.get(i, 0)
+      if (ordinal === target) {
+        return i
+      }
+    }
+    return -1
+  }
+
   componentDidUpdate(prevProps: Props) {
     const list = this._listRef.current
     if (!list) {
       return
     }
-    if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
-      list.scrollToIndex({index: this.props.centeredOrdinal, viewPosition: 0.5})
+
+    if (
+      !!this.props.centeredOrdinal &&
+      (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
+        this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() ||
+        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last())
+    ) {
+      const index = this._getOrdinalIndex(this.props.centeredOrdinal)
+      if (index >= 0) {
+        this._lastCenteredOrdinal = this.props.centeredOrdinal
+        list.scrollToIndex({index, viewPosition: 0.5})
+      }
     }
   }
 
@@ -105,6 +131,9 @@ class ConversationList extends React.PureComponent<Props> {
             removeClippedSubviews={true}
             forwardedRef={this._listRef}
           />
+          {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
+            <JumpToRecent onClick={this.props.onJumpToRecent} style={styles.jumpToRecent} />
+          )}
         </Box>
       </ErrorBoundary>
     )
@@ -114,9 +143,14 @@ class ConversationList extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate({
   container: {
     flex: 1,
+    position: 'relative',
   },
   contentContainer: {
     bottom: -mobileTypingContainerHeight,
+  },
+  jumpToRecent: {
+    bottom: 0,
+    position: 'absolute',
   },
 })
 
