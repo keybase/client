@@ -15,26 +15,41 @@ type State = {|
 class ThreadSearch extends React.Component<Props, State> {
   state = {selectedIndex: 0}
   _text: string
+  _lastSearch: string
 
   _submitSearch = () => {
+    this._lastSearch = this._text
     this.setState({selectedIndex: 0})
     this.props.onSearch(this._text)
   }
 
+  _selectResult = index => {
+    this.props.loadSearchHit(index)
+    this.setState({selectedIndex: index})
+  }
+
+  _onEnter = () => {
+    if (this._lastSearch === this._text) {
+      this._onUp()
+    } else {
+      this._submitSearch()
+    }
+  }
+
   _onUp = () => {
     if (this.state.selectedIndex >= this.props.hits.length - 1) {
+      this._selectResult(0)
       return
     }
-    this.props.loadSearchHit(this.state.selectedIndex + 1)
-    this.setState({selectedIndex: this.state.selectedIndex + 1})
+    this._selectResult(this.state.selectedIndex + 1)
   }
 
   _onDown = () => {
     if (this.state.selectedIndex <= 0) {
+      this._selectResult(this.props.hits.length - 1)
       return
     }
-    this.props.loadSearchHit(this.state.selectedIndex - 1)
-    this.setState({selectedIndex: this.state.selectedIndex - 1})
+    this._selectResult(this.state.selectedIndex - 1)
   }
 
   _renderHit = (index, item) => {
@@ -63,8 +78,30 @@ class ThreadSearch extends React.Component<Props, State> {
   }
 
   _onKeydown = e => {
-    if (e.key === 'Escape') {
-      this.props.selfHide()
+    switch (e.key) {
+      case 'Escape':
+        this.props.selfHide()
+        break
+      case 'g':
+        if (e.ctrlKey || e.metaKey) {
+          if (e.shiftKey) {
+            this._onDown()
+          } else {
+            this._onUp()
+          }
+        }
+        break
+      case 'ArrowUp':
+        this._onUp()
+        break
+      case 'ArrowDown':
+        this._onDown()
+        break
+      case 'Enter':
+        if (e.shiftKey) {
+          this._onDown()
+        }
+        break
     }
   }
 
@@ -78,8 +115,7 @@ class ThreadSearch extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
-      this.props.loadSearchHit(0)
-      this.setState({selectedIndex: 0})
+      this._selectResult(0)
     }
   }
 
@@ -94,7 +130,7 @@ class ThreadSearch extends React.Component<Props, State> {
                 autoFocus={true}
                 flexable={true}
                 onChangeText={this._onChangedText}
-                onEnterKeyDown={this._submitSearch}
+                onEnterKeyDown={this._onEnter}
                 onKeyDown={this._onKeydown}
                 placeholder="Search..."
               />
