@@ -120,9 +120,9 @@ var fromRegex = regexp.MustCompile("^from:(@?[a-z0-9][a-z0-9_]+)")
 func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg) chat1.SearchRegexpArg {
 	query := arg.Query
 	// From
-	if match := fromRegex.FindStringSubmatch(query); match != nil {
+	if match := fromRegex.FindStringSubmatch(query); match != nil && len(match) == 2 {
 		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
-		arg.Opts.SentBy = strings.TrimSpace(match[1])
+		arg.Opts.SentBy = strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
 	}
 	// Regex
 	if query[0] == '/' && query[len(query)-1] == '/' {

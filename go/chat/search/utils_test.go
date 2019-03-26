@@ -96,10 +96,27 @@ func TestTokenize(t *testing.T) {
 }
 
 func TestUpgradeRegexpArg(t *testing.T) {
-	arg := chat1.SearchRegexpArg{
-		Query: "from:karenm hi mike",
+	sentByCase := func(query, resQuery, resSentBy string) {
+		arg := chat1.SearchRegexpArg{
+			Query: query,
+		}
+		res := UpgradeRegexpArgFromQuery(arg)
+		require.Equal(t, resQuery, res.Query)
+		require.Equal(t, resSentBy, res.Opts.SentBy)
 	}
-	res := UpgradeRegexpArgFromQuery(arg)
-	require.Equal(t, "hi mike", res.Query)
-	require.Equal(t, "karenm", res.Opts.SentBy)
+	sentByCase("from:karenm hi mike", "hi mike", "karenm")
+	sentByCase("from:@karenm hi mike", "hi mike", "karenm")
+	sentByCase("from:@karenm          hi mike          ", "hi mike", "karenm")
+	sentByCase("from: hi mike", "from: hi mike", "")
+
+	regexpCase := func(query, resQuery string, isRegex bool) {
+		arg := chat1.SearchRegexpArg{
+			Query: query,
+		}
+		res := UpgradeRegexpArgFromQuery(arg)
+		require.Equal(t, resQuery, res.Query)
+		require.Equal(t, isRegex, res.IsRegex)
+	}
+	regexpCase("/mike.*always/", "mike.*always", true)
+	regexpCase("X/mike.*always/", "X/mike.*always/", false)
 }
