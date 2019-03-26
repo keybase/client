@@ -183,7 +183,7 @@ class Inbox extends React.PureComponent<Props, State> {
     if (this._firstOffscreenIdx <= 0 || !this._scrollDiv.current) {
       return
     }
-    let top = 100 // // give it some space below
+    let top = 100 // give it some space below
     for (let i = this._lastVisibleIdx; i <= this._firstOffscreenIdx; i++) {
       top += this._itemSizeGetter(i)
     }
