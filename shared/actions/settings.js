@@ -72,29 +72,26 @@ function* toggleNotifications(state) {
 
     let JSONPayload = []
     let chatGlobalArg = {}
-    current.groups.keySeq().forEach(groupName => {
-      const group = current.groups.get(groupName)
-      if (group) {
-        if (groupName === Constants.securityGroup) {
-          // Special case this since it will go to chat settings endpoint
-          group.settings.forEach(
-            setting =>
-              (chatGlobalArg[
-                `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
-              ] = !!setting.subscribed)
-          )
-        } else {
-          group.settings.forEach(setting =>
-            JSONPayload.push({
-              key: `${setting.name}|${groupName}`,
-              value: setting.subscribed ? '1' : '0',
-            })
-          )
+    current.groups.map((group, groupName) => {
+      if (groupName === Constants.securityGroup) {
+        // Special case this since it will go to chat settings endpoint
+        group.settings.forEach(
+          setting =>
+            (chatGlobalArg[
+              `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
+            ] = !!setting.subscribed)
+        )
+      } else {
+        group.settings.forEach(setting =>
           JSONPayload.push({
-            key: `unsub|${groupName}`,
-            value: group.unsubscribedFromAll ? '1' : '0',
+            key: `${setting.name}|${groupName}`,
+            value: setting.subscribed ? '1' : '0',
           })
-        }
+        )
+        JSONPayload.push({
+          key: `unsub|${groupName}`,
+          value: group.unsubscribedFromAll ? '1' : '0',
+        })
       }
     })
 
