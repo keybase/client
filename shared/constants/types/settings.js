@@ -28,26 +28,29 @@ export type Invitation = {
   url: string,
 }
 
-export type InvitesState = {|
+export type _InvitesState = {|
   pendingInvites: I.List<PendingInvite>,
   acceptedInvites: I.List<AcceptedInvite>,
   error: ?Error,
 |}
+export type InvitesState = I.RecordOf<_InvitesState>
 
-export type NotificationsSettingsState = {
+export type _NotificationsSettingsState = {
   name: string,
   subscribed: boolean,
   description: string,
 }
+export type NotificationsSettingsState = I.RecordOf<_NotificationsSettingsState>
 
-export type NotificationsGroupState = {
-  settings: ?Array<NotificationsSettingsState>,
+export type _NotificationsGroupState = {
+  settings: I.Map<string, NotificationsSettingsState>,
   unsubscribedFromAll: boolean,
 }
+export type NotificationsGroupState = I.RecordOf<_NotificationsGroupState>
 
 export type NotificationGroups = 'email' | 'app_push' | 'sms'
 
-export type NotificationsState = {
+export type _NotificationsState = {
   allowEdit: boolean,
   groups: {
     email?: NotificationsGroupState,
@@ -55,8 +58,9 @@ export type NotificationsState = {
     sms?: NotificationsGroupState,
   },
 }
+export type NotificationsState = I.RecordOf<_NotificationsState>
 
-export type PassphraseState = {
+export type _PassphraseState = {
   newPassphrase: HiddenString,
   newPassphraseConfirm: HiddenString,
   error: ?Error,
@@ -66,12 +70,14 @@ export type PassphraseState = {
   rememberPassphrase: boolean,
   randomPW: ?boolean,
 }
+export type PassphraseState = I.RecordOf<_PassphraseState>
 
-export type EmailState = {
-  emails: ?Array<Email>,
+export type _EmailState = {
+  emails: ?I.List<Email>,
   newEmail: string,
   error: ?Error,
 }
+export type EmailState = I.RecordOf<_EmailState>
 
 export type ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode,
@@ -82,17 +88,18 @@ export type ChatState = {
   unfurl: ChatUnfurlState,
 }
 
-export type State = {
+export type _State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
   invites: InvitesState,
-  notifications: NotificationsState,
+  notifications: I.RecordOf<NotificationsState>,
   email: EmailState,
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
   checkPassphraseIsCorrect: ?boolean,
 }
+export type State = I.RecordOf<_State>
 
 type AboutTab = 'settingsTabs.aboutTab'
 type AdvancedTab = 'settingsTabs.advancedTab'

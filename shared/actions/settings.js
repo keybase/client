@@ -242,11 +242,8 @@ function* refreshNotifications() {
   const delayThenEmptyTask = yield Saga._fork(function*(): Generator<any, void, any> {
     yield Saga.callUntyped(delay, 500)
     yield Saga.put(
-      // $FlowIssue this isn't type correct at all TODO
       SettingsGen.createNotificationsRefreshed({
-        notifications: {
-          groups: null,
-        },
+        notifications: Constants.makeNotifications(),
       })
     )
   })

@@ -5,7 +5,17 @@ import type {TypedState} from './reducer'
 import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 
-const initialState: Types.State = {
+export const makeNotifications: I.RecordFactory<Types.NotificationsState> = I.Record({
+  allowEdit: false,
+  groups: I.Map(),
+})
+
+export const makeNotificationsGroup: I.RecordFactory<Types.NotificationsGroupState> = I.Record({
+  settings: I.Map(),
+  unsubscribedFromAll: false,
+})
+
+export const makeState: I.RecordFactory<Types._State> = I.Record({
   allowDeleteAccount: false,
   chat: {
     unfurl: {},
@@ -22,15 +32,7 @@ const initialState: Types.State = {
     pendingInvites: I.List(),
   },
   lockdownModeEnabled: null,
-  notifications: {
-    allowEdit: false,
-    groups: {
-      email: {
-        settings: null,
-        unsubscribedFromAll: false,
-      },
-    },
-  },
+  notifications: makeNotifications(),
   passphrase: {
     error: null,
     hasPGPKeyOnServer: null,
@@ -42,15 +44,12 @@ const initialState: Types.State = {
     rememberPassphrase: true,
   },
   waitingForResponse: false,
-}
+})
 
-const traceInProgressKey = 'traceInProgress'
-
-const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
-
-const processorProfileInProgressKey = 'processorProfileInProgress'
-
-const processorProfileInProgress = (state: TypedState) =>
+export const traceInProgressKey = 'traceInProgress'
+export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
+export const processorProfileInProgressKey = 'processorProfileInProgress'
+export const processorProfileInProgress = (state: TypedState) =>
   WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
 
 export const aboutTab = 'settingsTabs.aboutTab'
@@ -78,10 +77,3 @@ export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPassphraseWaitingKey = 'settings:checkPassphrase'
 export const dontUseWaitingKey = 'settings:settingsPage'
-export {
-  initialState,
-  traceInProgressKey,
-  traceInProgress,
-  processorProfileInProgressKey,
-  processorProfileInProgress,
-}

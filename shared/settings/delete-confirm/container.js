@@ -9,10 +9,11 @@ import {compose, connect} from '../../util/container'
 type OwnProps = {||}
 class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   componentDidMount() {
+    console.warn('in cdm')
     this.props.setAllowDeleteAccount(false)
     this.props.setTimeout(() => {
       this.props.setAllowDeleteAccount(true)
-    }, 2000)
+    }, 5000)
   }
 
   componentWillUnmount() {
@@ -20,6 +21,7 @@ class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   }
 
   render() {
+    console.warn('in render')
     return <DeleteConfirm {...this.props} />
   }
 }
