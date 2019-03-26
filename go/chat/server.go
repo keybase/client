@@ -16,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/unfurl"
@@ -2318,6 +2319,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	}
 	ctx = h.getSearchContext(ctx)
 
+	arg = search.UpgradeRegexpArgFromQuery(arg)
 	var re *regexp.Regexp
 	if arg.IsRegex {
 		re, err = regexp.Compile(arg.Query)

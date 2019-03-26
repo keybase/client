@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -92,4 +93,39 @@ func TestTokenize(t *testing.T) {
 	}
 	// empty case
 	require.Nil(t, tokenize(""))
+}
+
+func TestUpgradeRegexpArg(t *testing.T) {
+	sentByCase := func(query, resQuery, resSentBy string) {
+		arg := chat1.SearchRegexpArg{
+			Query: query,
+		}
+		res := UpgradeRegexpArgFromQuery(arg)
+		require.Equal(t, resQuery, res.Query)
+		require.Equal(t, resSentBy, res.Opts.SentBy)
+	}
+	sentByCase("from:karenm hi mike", "hi mike", "karenm")
+	sentByCase("from:@karenm hi mike", "hi mike", "karenm")
+	sentByCase("from:@karenm          hi mike          ", "hi mike", "karenm")
+	sentByCase("from: hi mike", "from: hi mike", "")
+	sentByCase("hi mike from:karenm", "hi mike from:karenm", "")
+
+	regexpCase := func(query, resQuery string, isRegex bool) {
+		arg := chat1.SearchRegexpArg{
+			Query: query,
+		}
+		res := UpgradeRegexpArgFromQuery(arg)
+		require.Equal(t, resQuery, res.Query)
+		require.Equal(t, isRegex, res.IsRegex)
+	}
+	regexpCase("/mike.*always/", "mike.*always", true)
+	regexpCase("X/mike.*always/", "X/mike.*always/", false)
+
+	arg := chat1.SearchRegexpArg{
+		Query: "from:karenm /Lisa.*something/",
+	}
+	res := UpgradeRegexpArgFromQuery(arg)
+	require.Equal(t, "Lisa.*something", res.Query)
+	require.Equal(t, "karenm", res.Opts.SentBy)
+	require.True(t, res.IsRegex)
 }
