@@ -108,6 +108,7 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	sentByCase("from:@karenm hi mike", "hi mike", "karenm")
 	sentByCase("from:@karenm          hi mike          ", "hi mike", "karenm")
 	sentByCase("from: hi mike", "from: hi mike", "")
+	sentByCase("hi mike from:karenm", "hi mike from:karenm", "")
 
 	regexpCase := func(query, resQuery string, isRegex bool) {
 		arg := chat1.SearchRegexpArg{
@@ -119,4 +120,12 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	}
 	regexpCase("/mike.*always/", "mike.*always", true)
 	regexpCase("X/mike.*always/", "X/mike.*always/", false)
+
+	arg := chat1.SearchRegexpArg{
+		Query: "from:karenm /Lisa.*something/",
+	}
+	res := UpgradeRegexpArgFromQuery(arg)
+	require.Equal(t, "Lisa.*something", res.Query)
+	require.Equal(t, "karenm", res.Opts.SentBy)
+	require.True(t, res.IsRegex)
 }
