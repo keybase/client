@@ -44,11 +44,20 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.MessageDeliverer != nil {
 		<-c.ChatG.MessageDeliverer.Stop(context.TODO())
 	}
+	if c.ChatG.ConvLoader != nil {
+		<-c.ChatG.ConvLoader.Stop(context.TODO())
+	}
 	if c.ChatG.FetchRetrier != nil {
 		<-c.ChatG.FetchRetrier.Stop(context.TODO())
 	}
+	if c.ChatG.EphemeralPurger != nil {
+		<-c.ChatG.EphemeralPurger.Stop(context.TODO())
+	}
 	if c.ChatG.InboxSource != nil {
 		<-c.ChatG.InboxSource.Stop(context.TODO())
+	}
+	if c.ChatG.Indexer != nil {
+		<-c.ChatG.Indexer.Stop(context.TODO())
 	}
 	if c.ChatG.CoinFlipManager != nil {
 		<-c.ChatG.CoinFlipManager.Stop(context.TODO())
