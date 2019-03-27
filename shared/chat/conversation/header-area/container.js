@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as SearchConstants from '../../../constants/search'
 import {connect} from '../../../util/container'
+import {isMobile} from '../../../styles'
 import ConversationHeader from './normal/container'
 import Search from './search'
 import CreateTeamHeader from '../create-team-header/container'
@@ -60,4 +61,4 @@ const Connected = connect<OwnProps, _, _, _, _>(
 )(HeaderArea)
 
 const Empty = () => null
-export default (flags.useNewRouter ? Empty : Connected)
+export default (flags.useNewRouter && !isMobile ? Empty : Connected)
