@@ -25,7 +25,6 @@ type Props = {|
 
 class HeaderArea extends React.PureComponent<Props> {
   render() {
-    // TODO handle this in new router
     return this.props.isSearching ? (
       <React.Fragment>
         <Search />
