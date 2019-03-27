@@ -73,7 +73,7 @@ func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
 
 }
 
-// TODO Remove with CORE-9923
+// remove when ShouldUseParameterizedProofs is removed
 func (i *IdentifyOutcome) proofChecksSortedByProofType() []*LinkCheckResult {
 	// Treat DNS and Web as the same type, and sort them together
 	// in the same bucket.

@@ -2632,3 +2632,30 @@ func (e InvalidStellarAccountIDError) Error() string {
 func (e InvalidStellarAccountIDError) Verbose() string {
 	return fmt.Sprintf("Invalid Stellar address: %s", e.details)
 }
+
+//=============================================================================
+
+type ResetWithActiveDeviceError struct {
+}
+
+func NewResetWithActiveDeviceError() error {
+	return ResetWithActiveDeviceError{}
+}
+
+func (e ResetWithActiveDeviceError) Error() string {
+	return "You cannot reset your account if you have an active device!"
+}
+
+//=============================================================================
+
+type ResetMissingParamsError struct {
+	msg string
+}
+
+func NewResetMissingParamsError(msg string) error {
+	return ResetMissingParamsError{msg: msg}
+}
+
+func (e ResetMissingParamsError) Error() string {
+	return e.msg
+}

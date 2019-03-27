@@ -497,7 +497,7 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 }
 
 func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) {
-	ctx := Context(context.Background(), s.G(),
+	ctx := globals.ChatCtx(context.Background(), s.G(),
 		keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	appState := s.G().MobileAppState.State()
 	doFlush := func() {

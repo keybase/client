@@ -52,14 +52,14 @@ func pplGetLoginSession(m MetaContext, usernameOrEmail string) (*LoginSession, e
 	return ret, err
 }
 
-func pplPromptOnce(m MetaContext, usernameOrEmail string, ls *LoginSession, retryMsg string) (err error) {
+func pplPromptOnce(m MetaContext, ls *LoginSession, arg keybase1.GUIEntryArg) (err error) {
 	defer m.Trace("pplPromptOnce", func() error { return err })()
-	ppres, err := GetKeybasePassphrase(m, m.UIs().SecretUI, usernameOrEmail, retryMsg)
+	ppres, err := GetKeybasePassphrase(m, m.UIs().SecretUI, arg)
 	if err != nil {
 		return err
 	}
 
-	return pplGotPassphrase(m, usernameOrEmail, ppres.Passphrase, ls)
+	return pplGotPassphrase(m, arg.Username, ppres.Passphrase, ls)
 }
 
 func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, ls *LoginSession) (err error) {
@@ -99,17 +99,16 @@ func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, 
 	return nil
 }
 
-func pplPromptLoop(m MetaContext, usernameOrEmail string, maxAttempts int, ls *LoginSession) (err error) {
+func pplPromptLoop(m MetaContext, maxAttempts int, ls *LoginSession, arg keybase1.GUIEntryArg) (err error) {
 	defer m.Trace("pplPromptLoop", func() error { return err })()
-	retryMsg := ""
 	for i := 0; i < maxAttempts; i++ {
-		if err = pplPromptOnce(m, usernameOrEmail, ls, retryMsg); err == nil {
+		if err = pplPromptOnce(m, ls, arg); err == nil {
 			return nil
 		}
 		if _, badpw := err.(PassphraseError); !badpw {
 			return err
 		}
-		retryMsg = err.Error()
+		arg.RetryLabel = err.Error()
 	}
 	return err
 }
@@ -193,22 +192,25 @@ func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail strin
 	return nil
 }
 
-func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {
-
+func PassphraseLoginPromptWithArg(m MetaContext, maxAttempts int, arg keybase1.GUIEntryArg) (err error) {
 	defer m.Trace("PassphraseLoginPrompt", func() error { return err })()
 
-	var loginSession *LoginSession
+	if err = pplPromptCheckPreconditions(m, arg.Username); err != nil {
+		return err
+	}
+	if arg.Username, err = pplGetEmailOrUsername(m, arg.Username); err != nil {
+		return err
+	}
+	loginSession, err := pplGetLoginSession(m, arg.Username)
+	if err != nil {
+		return err
+	}
+	return pplPromptLoop(m, maxAttempts, loginSession, arg)
+}
 
-	if err = pplPromptCheckPreconditions(m, usernameOrEmail); err != nil {
-		return err
-	}
-	if usernameOrEmail, err = pplGetEmailOrUsername(m, usernameOrEmail); err != nil {
-		return err
-	}
-	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
-		return err
-	}
-	return pplPromptLoop(m, usernameOrEmail, maxAttempts, loginSession)
+func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {
+	arg := DefaultPassphrasePromptArg(m, usernameOrEmail)
+	return PassphraseLoginPromptWithArg(m, maxAttempts, arg)
 }
 
 func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {

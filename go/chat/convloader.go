@@ -433,13 +433,13 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(
-		Context(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		globals.ChatCtx(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 			b.identNotifier))
 	ctx := al.Ctx
 	alKey := b.addActiveLoadLocked(al)
 	b.Unlock()
 	if b.testingNameInfoSource != nil {
-		ctx = CtxAddTestingNameInfoSource(ctx, b.testingNameInfoSource)
+		ctx = globals.CtxAddOverrideNameInfoSource(ctx, b.testingNameInfoSource)
 		b.Debug(ctx, "setting testing nameinfo source: %T", b.testingNameInfoSource)
 	}
 	defer func() {
@@ -497,7 +497,7 @@ func newConvLoaderPagebackHook(g *globals.Context, curCalls, maxCalls int) func(
 		job.Priority = types.ConvLoaderPriorityLow
 		job.PostLoadHook = newConvLoaderPagebackHook(g, curCalls+1, maxCalls)
 		// Create a new context here so that we don't trip conv loader blocking rule
-		ctx = BackgroundContext(ctx, g)
+		ctx = globals.BackgroundChatCtx(ctx, g)
 		if err := g.ConvLoader.Queue(ctx, job); err != nil {
 			g.GetLog().CDebugf(ctx, "newConvLoaderPagebackHook: failed to queue job: job: %s err: %s",
 				job, err)

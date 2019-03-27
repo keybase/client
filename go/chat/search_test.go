@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -829,7 +830,7 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// Verify background syncing
 		g1.LocalChatDb.Nuke()
-		ictx := IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
+		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
 		opts.ForceReindex = false
 		res = runSearch(query, opts, true /* expectedReindex*/)

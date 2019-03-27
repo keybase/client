@@ -65,7 +65,7 @@ protocol account {
     neither are known the user will be prompted for their passphrase to start
     the process.
    */
-  void enterResetPipeline(int sessionID, string username, string email);
+  void enterResetPipeline(int sessionID, string usernameOrEmail);
 
   /** Aborts the reset process
    */

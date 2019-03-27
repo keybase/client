@@ -461,7 +461,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
-// TODO Remove with CORE-9923
+// remove when ShouldUseParameterizedProofs is removed
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,
