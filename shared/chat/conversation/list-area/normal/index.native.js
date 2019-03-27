@@ -8,6 +8,7 @@ import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adap
 import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
 import JumpToRecent from './jump-to-recent'
+import ThreadSearch from '../../search/container'
 
 class ConversationList extends React.PureComponent<Props> {
   _listRef = React.createRef()
@@ -131,6 +132,9 @@ class ConversationList extends React.PureComponent<Props> {
             removeClippedSubviews={true}
             forwardedRef={this._listRef}
           />
+          {this.props.showThreadSearch && (
+            <ThreadSearch style={styles.threadSearch} conversationIDKey={this.props.conversationIDKey} />
+          )}
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this.props.onJumpToRecent} style={styles.jumpToRecent} />
           )}
@@ -151,6 +155,10 @@ const styles = Styles.styleSheetCreate({
   jumpToRecent: {
     bottom: 0,
     position: 'absolute',
+  },
+  threadSearch: {
+    position: 'absolute',
+    bottom: 0,
   },
 })
 

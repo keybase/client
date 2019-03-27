@@ -26,6 +26,11 @@ const Wrapper = (props: {
     onLeftAction={props.onBack}
     rightActions={[
       {
+        icon: 'iconfont-search',
+        label: 'Search',
+        onPress: props.onToggleThreadSearch,
+      },
+      {
         icon: 'iconfont-info',
         label: 'Info',
         onPress: props.onToggleInfoPanel,
