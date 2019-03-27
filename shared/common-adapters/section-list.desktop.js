@@ -62,7 +62,7 @@ class SectionList extends React.Component<Props, State> {
     if (item.type === 'header') {
       if (this.props.stickySectionHeadersEnabled && !renderingSticky && item.flatSectionIndex === 0) {
         // don't render the first one since its always there
-        return null
+        return <Box2 direction="vertical" key="stickyPlaceholder" />
       }
       return (
         <Box2 direction="vertical" key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`} style={styles.box}>
