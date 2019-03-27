@@ -54,55 +54,59 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
           unsubscribedFromAll: !name && !unsubscribedFromAll,
         },
       }
-      return state.merge({
-        notifications: state.notifications.merge({
+      return state.update('notifications', notifications =>
+        notifications.merge({
           allowEdit: false,
           groups: state.notifications.groups.merge(I.Map(changed)),
-        }),
-      })
+        })
+      )
     case SettingsGen.notificationsSaved:
-      return state.merge({notifications: state.notifications.merge({allowEdit: true})})
+      return state.update('notifications', notifications => notifications.merge({allowEdit: true}))
     case SettingsGen.notificationsRefreshed:
-      return state.merge({
-        notifications: state.notifications.merge({
+      return state.update('notifications', notifications =>
+        notifications.merge({
           allowEdit: true,
           groups: action.payload.notifications,
-        }),
-      })
+        })
+      )
     case SettingsGen.invitesRefreshed:
-      return state.merge({invites: state.invites.merge(action.payload.invites)})
+      return state.update('invites', invites => invites.merge(action.payload.invites))
     case SettingsGen.invitesSent:
       // TODO this doesn't do anything with the actual valid payload
-      return state.merge({
-        invites: state.invites.merge({error: action.error ? action.payload.error : undefined}),
-      })
+      return state.update('invites', invites =>
+        invites.merge({error: action.error ? action.payload.error : undefined})
+      )
     case SettingsGen.invitesClearError:
-      return state.merge({invites: state.invites.merge({error: null})})
+      return state.update('invites', invites => invites.merge({error: null}))
     case SettingsGen.loadedSettings:
       return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
     case SettingsGen.loadedRememberPassphrase:
     case SettingsGen.onChangeRememberPassphrase:
-      return state.merge({passphrase: state.passphrase.merge({rememberPassphrase: action.payload.remember})})
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({rememberPassphrase: action.payload.remember})
+      )
     case SettingsGen.onChangeNewPassphrase:
-      return state.merge({
-        passphrase: state.passphrase.merge({error: null, newPassphrase: action.payload.passphrase}),
-      })
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({error: null, newPassphrase: action.payload.passphrase})
+      )
     case SettingsGen.loadedLockdownMode:
       return state.merge({lockdownModeEnabled: action.payload.status})
     case SettingsGen.onChangeNewPassphraseConfirm:
-      return state.merge({
-        passphrase: state.passphrase.merge({error: null, newPassphraseConfirm: action.payload.passphrase}),
-      })
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({error: null, newPassphraseConfirm: action.payload.passphrase})
+      )
     case SettingsGen.checkPassphrase:
       return state.merge({checkPassphraseIsCorrect: null})
     case SettingsGen.onUpdatedPGPSettings:
-      return state.merge({passphrase: state.passphrase.merge({hasPGPKeyOnServer: action.payload.hasKeys})})
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({hasPGPKeyOnServer: action.payload.hasKeys})
+      )
     case SettingsGen.onUpdatePassphraseError:
-      return state.merge({passphrase: state.passphrase.merge({error: action.payload.error})})
+      return state.update('passphrase', passphrase => passphrase.merge({error: action.payload.error}))
     case SettingsGen.onChangeNewEmail:
-      return state.merge({email: state.email.merge({error: null, newEmail: action.payload.email})})
+      return state.update('email', email => email.merge({error: null, newEmail: action.payload.email}))
     case SettingsGen.onUpdateEmailError:
-      return state.merge({email: state.email.merge({error: action.payload.error})})
+      return state.update('email', email => email.merge({error: action.payload.error}))
     case SettingsGen.waitingForResponse:
       return state.merge({waitingForResponse: action.payload.waiting})
     case SettingsGen.unfurlSettingsRefreshed:
@@ -121,10 +125,9 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
         chat: state.chat.merge({unfurl: state.chat.unfurl.merge({unfurlError: action.payload.error})}),
       })
     case SettingsGen.loadedHasRandomPw:
-      return state.merge({passphrase: state.passphrase.merge({randomPW: action.payload.randomPW})})
+      return state.update('passphrase', passphrase => passphrase.merge({randomPW: action.payload.randomPW}))
     case SettingsGen.loadedCheckPassphrase:
-      const {checkPassphraseIsCorrect} = action.payload
-      return state.merge({checkPassphraseIsCorrect})
+      return state.merge({checkPassphraseIsCorrect: action.payload.checkPassphraseIsCorrect})
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

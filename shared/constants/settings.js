@@ -67,9 +67,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   waitingForResponse: false,
 })
 
-export const traceInProgressKey = 'traceInProgress'
+export const traceInProgressKey = 'settings:traceInProgress'
 export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
-export const processorProfileInProgressKey = 'processorProfileInProgress'
+export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
 export const processorProfileInProgress = (state: TypedState) =>
   WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
 

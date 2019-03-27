@@ -43,7 +43,7 @@ export type _NotificationsSettingsState = {
 export type NotificationsSettingsState = I.RecordOf<_NotificationsSettingsState>
 
 export type _NotificationsGroupState = {
-  settings: Array<NotificationsSettingsState>,
+  settings: I.List<NotificationsSettingsState>,
   unsubscribedFromAll: boolean,
 }
 export type NotificationsGroupState = I.RecordOf<_NotificationsGroupState>

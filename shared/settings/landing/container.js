@@ -12,18 +12,12 @@ const mapStateToProps = state => {
   const {emails} = state.settings.email
   const {rememberPassphrase} = state.settings.passphrase
   let accountProps
-  if (emails && emails.count() > 0) {
-    let emailProps = {}
-    const email = emails.get(0)
-    if (email) {
-      emailProps = {
-        email: email.email,
-        isVerified: email.isVerified,
-      }
-    }
+  if (emails && emails.first()) {
+    const {email, isVerified} = emails.first()
     accountProps = {
-      ...emailProps,
+      email,
       hasRandomPW: state.settings.passphrase.randomPW,
+      isVerified,
       onChangeEmail: () => logger.debug('todo'),
       onChangePassphrase: () => logger.debug('todo'),
       rememberPassphrase,
