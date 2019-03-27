@@ -34,7 +34,7 @@ type Props = {|
 |}
 
 const IconClickable = props => (
-  <Kb.WithTooltip text="Other actions">
+  <Kb.WithTooltip text="More actions">
     <Kb.Icon
       type="iconfont-ellipsis"
       color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}

@@ -69,7 +69,8 @@ export const commonProvider = {
     path,
   }),
   NewFolder: ({path}: {path: Types.Path}) => ({
-    onNewFolder: Types.getPathLevel(path) > 2 ? Sb.action('onNewFolder') : null,
+    canCreateNewFolder: Types.getPathLevel(path) > 2,
+    onNewFolder: Sb.action('onNewFolder'),
   }),
   OpenChat: ({path}: {path: Types.Path}) => ({
     onChat: Constants.canChat(path) ? Sb.action('onChat') : null,
@@ -103,9 +104,9 @@ export const commonProvider = {
     refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
   UploadButton: ({path}: {path: Types.Path}) => ({
+    canUpload: Types.getPathLevel(path) > 2,
     openAndUpload: Sb.action('openAndUpload'),
     pickAndUpload: Sb.action('pickAndUpload'),
-    writable: Types.getPathLevel(path) > 2,
   }),
 }
 
