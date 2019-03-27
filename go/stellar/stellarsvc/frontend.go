@@ -560,7 +560,7 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 		return ErrAccountIDMissing
 	}
 
-	return stellar.ChangeAccountName(mctx, arg.AccountID, arg.NewName)
+	return stellar.ChangeAccountName(mctx, s.walletState, arg.AccountID, arg.NewName)
 }
 
 func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {

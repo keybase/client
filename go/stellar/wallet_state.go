@@ -166,6 +166,36 @@ func (w *WalletState) Primed() bool {
 	return w.refreshCount > 0
 }
 
+// UpdateAccountEntries gets the bundle from the server and updates the individual
+// account entries with the server's bundle information.
+func (w *WalletState) UpdateAccountEntries(mctx libkb.MetaContext, reason string) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("WalletState.UpdateAccountEntries [%s]", reason), func() error { return err })()
+
+	bundle, err := remote.FetchSecretlessBundle(mctx)
+	if err != nil {
+		return err
+	}
+
+	return UpdateAccountEntriesWithBundle(mctx, reason, bundle)
+}
+
+// UpdateAccountEntriesWithBundle updates the individual account entries with the
+// bundle information.
+func (w *WalletState) UpdateAccountEntriesWithBundle(mctx libkb.MetaContext, reason string, bundle *stellar1.Bundle) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("WalletState.UpdateAccountEntriesWithBundle [%s]", reason), func() error { return err })()
+
+	if bundle == nil {
+		return errors.New("nil bundle")
+	}
+
+	for _, account := range bundle.Accounts {
+		a, _ := w.accountStateBuild(account.AccountID)
+		a.updateEntry(account)
+	}
+
+	return nil
+}
+
 // RefreshAll refreshes all the accounts.
 func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 	_, err := w.refreshGroup.Do("RefreshAll", func() (interface{}, error) {

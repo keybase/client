@@ -331,6 +331,9 @@ func TestChangeWalletName(t *testing.T) {
 	chk("office lunch money", "you already have an account with that name")
 	chk("career debter", "")
 
+	// check to make sure that the stored entry in wallet state also changed.
+	tcs[0].Srv.walletState
+
 	accs, err = tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
 	require.NoError(t, err)
 	require.Len(t, accs, 1)
