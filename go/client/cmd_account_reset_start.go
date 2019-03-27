@@ -39,9 +39,6 @@ func (c *CmdAccountResetStart) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.usernameOrEmail = ctx.Args().Get(0)
-	if len(c.usernameOrEmail) == 0 {
-		return fmt.Errorf("username or email is required")
-	}
 	return nil
 }
 

@@ -2,7 +2,10 @@
 package engine
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // AccountReset is an engine.
@@ -58,8 +61,24 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	var self bool
 	var username, email string
 
+	arg := keybase1.GUIEntryArg{
+		SubmitLabel: "Submit",
+		CancelLabel: "I don't know",
+		WindowTitle: "Keybase passphrase",
+		Type:        keybase1.PassphraseType_PASS_PHRASE,
+		Username:    e.usernameOrEmail,
+		Prompt:      fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters) if you know it", e.usernameOrEmail, libkb.MinPassphraseLength),
+		Features: keybase1.GUIEntryFeatures{
+			ShowTyping: keybase1.Feature{
+				Allow:        true,
+				DefaultValue: false,
+				Readonly:     true,
+				Label:        "Show typing",
+			},
+		},
+	}
 	mctx = mctx.WithNewProvisionalLoginContext()
-	err = libkb.PassphraseLoginPromptWithPromptFn(mctx, e.usernameOrEmail, 3, libkb.ResetPassphrasePrompt)
+	err = libkb.PassphraseLoginPromptWithArg(mctx, 3, arg)
 	switch err.(type) {
 	case nil:
 		self = true

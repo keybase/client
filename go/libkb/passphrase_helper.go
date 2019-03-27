@@ -9,13 +9,10 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetKeybasePassphrase(m MetaContext, ui SecretUI, username,
-	retryMsg string, promptFn func(un string) string) (keybase1.GetPassphraseRes, error) {
+func GetKeybasePassphrase(m MetaContext, ui SecretUI, arg keybase1.GUIEntryArg) (keybase1.GetPassphraseRes, error) {
 	resCh := make(chan keybase1.GetPassphraseRes)
 	errCh := make(chan error)
 	go func() {
-		arg := DefaultPassphrasePromptArgWithPromptFn(m, username, promptFn)
-		arg.RetryLabel = retryMsg
 		res, err := GetPassphraseUntilCheckWithChecker(m, arg,
 			newUIPrompter(ui), &CheckPassphraseSimple)
 		if err != nil {
@@ -163,30 +160,16 @@ func DefaultPassphraseArg(m MetaContext) keybase1.GUIEntryArg {
 			},
 		},
 	}
-
 	return arg
 }
 
-func DefaultPassphrasePrompt(username string) string {
-	return fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
-}
-
-func ResetPassphrasePrompt(username string) string {
-	return fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters). If you don't know this, click cancel to continue.", username, MinPassphraseLength)
-}
-
-func DefaultPassphrasePromptArgWithPromptFn(m MetaContext, username string,
-	promptFn func(un string) string) keybase1.GUIEntryArg {
-	arg := DefaultPassphraseArg(m)
+func DefaultPassphrasePromptArg(mctx MetaContext, username string) keybase1.GUIEntryArg {
+	arg := DefaultPassphraseArg(mctx)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
-	arg.Prompt = promptFn(username)
+	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
 	return arg
-}
-
-func DefaultPassphrasePromptArg(m MetaContext, username string) keybase1.GUIEntryArg {
-	return DefaultPassphrasePromptArgWithPromptFn(m, username, DefaultPassphrasePrompt)
 }
 
 // PassphraseChecker is an interface for checking the format of a
