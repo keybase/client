@@ -11,7 +11,6 @@ const (
 	APISessionTypeNONE     APISessionType = 0
 	APISessionTypeOPTIONAL APISessionType = 1
 	APISessionTypeREQUIRED APISessionType = 2
-	APISessionTypeNONIST   APISessionType = 3
 )
 
 type APIArg struct {

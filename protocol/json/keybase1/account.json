@@ -190,11 +190,7 @@
           "type": "int"
         },
         {
-          "name": "username",
-          "type": "string"
-        },
-        {
-          "name": "email",
+          "name": "usernameOrEmail",
           "type": "string"
         }
       ],

@@ -9,13 +9,12 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetKeybasePassphrase(m MetaContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
+func GetKeybasePassphrase(m MetaContext, ui SecretUI, arg keybase1.GUIEntryArg) (keybase1.GetPassphraseRes, error) {
 	resCh := make(chan keybase1.GetPassphraseRes)
 	errCh := make(chan error)
 	go func() {
-		arg := DefaultPassphrasePromptArg(m, username)
-		arg.RetryLabel = retryMsg
-		res, err := GetPassphraseUntilCheckWithChecker(m, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+		res, err := GetPassphraseUntilCheckWithChecker(m, arg,
+			newUIPrompter(ui), &CheckPassphraseSimple)
 		if err != nil {
 			errCh <- err
 			return
@@ -161,12 +160,11 @@ func DefaultPassphraseArg(m MetaContext) keybase1.GUIEntryArg {
 			},
 		},
 	}
-
 	return arg
 }
 
-func DefaultPassphrasePromptArg(m MetaContext, username string) keybase1.GUIEntryArg {
-	arg := DefaultPassphraseArg(m)
+func DefaultPassphrasePromptArg(mctx MetaContext, username string) keybase1.GUIEntryArg {
+	arg := DefaultPassphraseArg(mctx)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
