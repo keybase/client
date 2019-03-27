@@ -1332,15 +1332,15 @@ func (mr *MockKBFSOpsMockRecorder) Read(arg0, arg1, arg2, arg3 interface{}) *gom
 }
 
 // RefreshCachedFavorites mocks base method
-func (m *MockKBFSOps) RefreshCachedFavorites(arg0 context.Context) {
+func (m *MockKBFSOps) RefreshCachedFavorites(arg0 context.Context, arg1 bool) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "RefreshCachedFavorites", arg0)
+	m.ctrl.Call(m, "RefreshCachedFavorites", arg0, arg1)
 }
 
 // RefreshCachedFavorites indicates an expected call of RefreshCachedFavorites
-func (mr *MockKBFSOpsMockRecorder) RefreshCachedFavorites(arg0 interface{}) *gomock.Call {
+func (mr *MockKBFSOpsMockRecorder) RefreshCachedFavorites(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).RefreshCachedFavorites), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).RefreshCachedFavorites), arg0, arg1)
 }
 
 // RefreshEditHistory mocks base method

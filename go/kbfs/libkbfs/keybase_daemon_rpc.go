@@ -465,6 +465,6 @@ func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifySe
 func (k *KeybaseDaemonRPC) FavoritesChanged(ctx context.Context,
 	uid keybase1.UID) error {
 	k.log.Debug("Received FavoritesChanged RPC.")
-	k.config.KBFSOps().RefreshCachedFavorites(ctx)
+	go k.config.KBFSOps().RefreshCachedFavorites(ctx, true)
 	return nil
 }
