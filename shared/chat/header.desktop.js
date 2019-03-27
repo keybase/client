@@ -54,8 +54,8 @@ const Header = (p: Props) => {
               <Kb.Icon
                 type="iconfont-shh"
                 style={styles.shhIconStyle}
-                color={styles.shhIconColor}
-                fontSize={styles.shhIconFontSize}
+                color={Styles.globalColors.black_20}
+                fontSize={20}
                 onClick={p.unMuteConversation}
               />
             )}
@@ -84,8 +84,6 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
-  shhIconColor: Styles.globalColors.black_20,
-  shhIconFontSize: 20,
   shhIconStyle: {
     marginLeft: Styles.globalMargins.xtiny,
   },
