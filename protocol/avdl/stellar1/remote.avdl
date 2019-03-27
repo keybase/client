@@ -57,8 +57,6 @@ protocol remote {
 
   record PaymentOp {
     union { null, keybase1.UserVersion } to; // nil for SBS/stellar address
-    string displayAmount;
-    string displayCurrency;
     union { null, DirectOp } direct;   // one of direct or relay will be non-nil
     union { null, RelayOp } relay;
   }

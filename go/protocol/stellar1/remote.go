@@ -143,11 +143,9 @@ func (o RelayOp) DeepCopy() RelayOp {
 }
 
 type PaymentOp struct {
-	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
-	DisplayAmount   string                `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency string                `codec:"displayCurrency" json:"displayCurrency"`
-	Direct          *DirectOp             `codec:"direct,omitempty" json:"direct,omitempty"`
-	Relay           *RelayOp              `codec:"relay,omitempty" json:"relay,omitempty"`
+	To     *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	Direct *DirectOp             `codec:"direct,omitempty" json:"direct,omitempty"`
+	Relay  *RelayOp              `codec:"relay,omitempty" json:"relay,omitempty"`
 }
 
 func (o PaymentOp) DeepCopy() PaymentOp {
@@ -159,8 +157,6 @@ func (o PaymentOp) DeepCopy() PaymentOp {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.To),
-		DisplayAmount:   o.DisplayAmount,
-		DisplayCurrency: o.DisplayCurrency,
 		Direct: (func(x *DirectOp) *DirectOp {
 			if x == nil {
 				return nil

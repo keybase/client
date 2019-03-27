@@ -187,14 +187,6 @@
           "name": "to"
         },
         {
-          "type": "string",
-          "name": "displayAmount"
-        },
-        {
-          "type": "string",
-          "name": "displayCurrency"
-        },
-        {
           "type": [
             null,
             "DirectOp"
