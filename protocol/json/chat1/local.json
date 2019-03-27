@@ -4188,6 +4188,10 @@
       ],
       "response": "SearchInboxRes"
     },
+    "cancelActiveSearch": {
+      "request": [],
+      "response": null
+    },
     "profileChatSearch": {
       "request": [
         {

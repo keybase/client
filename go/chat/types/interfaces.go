@@ -46,9 +46,9 @@ type NameInfoSource interface {
 	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
-	EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
-	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -253,9 +253,9 @@ type PushHandler interface {
 	OobmHandler
 }
 
-type AppState interface {
-	State() keybase1.AppState
-	NextUpdate() chan keybase1.AppState
+type MobileAppState interface {
+	State() keybase1.MobileAppState
+	NextUpdate() chan keybase1.MobileAppState
 }
 
 type TeamChannelSource interface {

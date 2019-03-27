@@ -28,24 +28,11 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 	return h.G().GetConfiguredAccounts(context)
 }
 
-type canLogoutRet struct {
-	libkb.AppStatusEmbed
-	CanLogout bool   `json:"can_logout"`
-	Reason    string `json:"reason,omitempty"`
-}
-
-// canLogout asks API server whether we should allow logging out or not.
-func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
-	err = mctx.G().API.GetDecode(mctx, libkb.APIArg{
-		Endpoint:    "user/can_logout",
-		SessionType: libkb.APISessionTypeREQUIRED,
-	}, &res)
-	return res, err
-}
-
 func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
 	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
-	return h.G().Logout(ctx)
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOGOUT")
+	eng := engine.NewLogout()
+	return engine.RunEngine2(mctx, eng)
 }
 
 func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.DeprovisionArg) error {
@@ -137,7 +124,7 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		SessionID:   arg.SessionID,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.UsernameOrEmail, arg.ClientType)
+	eng := engine.NewLoginWithUserSwitch(h.G(), arg.DeviceType, arg.Username, arg.ClientType, arg.DoUserSwitch)
 	return engine.RunEngine2(m, eng)
 }
 

@@ -142,6 +142,6 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 	if err := g.CardCache().Delete(u); err != nil {
 		mctx.Debug("Error in CardCache.Delete: %s", err)
 	}
-	g.UserChanged(u)
+	g.UserChanged(ctx, u)
 	return nil
 }

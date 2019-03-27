@@ -129,6 +129,7 @@ type FlipManager struct {
 	visualizer       *FlipVisualizer
 	clock            clockwork.Clock
 	ri               func() chat1.RemoteInterface
+	started          bool
 	shutdownMu       sync.Mutex
 	shutdownCh       chan struct{}
 	dealerShutdownCh chan struct{}
@@ -196,6 +197,11 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
 	m.shutdownMu.Lock()
+	if m.started {
+		m.shutdownMu.Unlock()
+		return
+	}
+	m.started = true
 	var dealerCtx context.Context
 	shutdownCh := make(chan struct{})
 	dealerShutdownCh := make(chan struct{})
@@ -203,6 +209,7 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	m.dealerShutdownCh = dealerShutdownCh
 	dealerCtx, m.dealerCancel = context.WithCancel(context.Background())
 	m.shutdownMu.Unlock()
+
 	go func(shutdownCh chan struct{}) {
 		m.dealer.Run(dealerCtx)
 		close(shutdownCh)
@@ -216,7 +223,10 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	defer m.Trace(ctx, func() error { return nil }, "Stop")()
 	m.dealer.Stop()
+
 	m.shutdownMu.Lock()
+	defer m.shutdownMu.Unlock()
+	m.started = false
 	if m.shutdownCh != nil {
 		m.dealerCancel()
 		close(m.shutdownCh)
@@ -224,11 +234,11 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	}
 	if m.dealerShutdownCh != nil {
 		ch = m.dealerShutdownCh
+		m.dealerShutdownCh = nil
 	} else {
 		ch = make(chan struct{})
 		close(ch)
 	}
-	m.shutdownMu.Unlock()
 	return ch
 }
 
@@ -238,8 +248,8 @@ func (m *FlipManager) makeBkgContext() context.Context {
 }
 
 func (m *FlipManager) isHostMessageInfoMsgID(msgID chat1.MessageID) bool {
-	// The first message in a flip thread is metadata about the flip, which is message ID 2 since
-	// conversations have an initial message from creation.
+	// The first message in a flip thread is metadata about the flip, which is
+	// message ID 2 since conversations have an initial message from creation.
 	return chat1.MessageID(2) == msgID
 }
 
@@ -248,7 +258,8 @@ func (m *FlipManager) startMsgID() chat1.MessageID {
 }
 
 func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
-	// The first message after the host message is the flip start message, which will have message ID 3
+	// The first message after the host message is the flip start message,
+	// which will have message ID 3
 	return m.startMsgID() == msgID
 }
 
@@ -1043,8 +1054,8 @@ func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipCo
 		return false
 	}
 	// Ignore any flip messages for non-active games when not in the foreground
-	appBkg := m.G().GetAppType() == libkb.MobileAppType &&
-		m.G().AppState.State() != keybase1.AppState_FOREGROUND
+	appBkg := m.G().IsMobileAppType() &&
+		m.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND
 	partViolation := m.isConvParticipationViolation(ctx, hostConvID)
 	return appBkg || partViolation
 }
@@ -1509,6 +1520,17 @@ func (m *FlipManager) Me() flip.UserDevice {
 		U: gregor1.UID(ad.UID().ToBytes()),
 		D: gregor1.DeviceID(hdid),
 	}
+}
+
+func (m *FlipManager) ShouldCommit(ctx context.Context) bool {
+	if !m.G().IsMobileAppType() {
+		should := m.G().DesktopAppState.AwakeAndUnlocked(m.G().MetaContext(ctx))
+		if !should {
+			m.Debug(ctx, "ShouldCommit -> false")
+		}
+		return should
+	}
+	return true
 }
 
 // clearGameCache should only be used by tests

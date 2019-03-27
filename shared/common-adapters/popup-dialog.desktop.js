@@ -95,7 +95,6 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.large,
     paddingRight: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.small,
-    zIndex: 30, // Put the popup on top of any sticky section headers.
   },
 })
 

@@ -16,13 +16,14 @@ type Props = {|
   childrenFiles: number,
   path: Types.Path,
   loadFolderList: () => void,
-  loadMimeType: () => void,
+  loadPathMetadata: () => void,
 |}
 
 class Header extends React.PureComponent<Props> {
   refresh = () => {
+    this.props.loadPathMetadata()
+    // need this to get chlidren file/folder count
     this.props.type === 'folder' && Types.getPathLevel(this.props.path) >= 3 && this.props.loadFolderList()
-    this.props.type === 'file' && this.props.loadMimeType()
   }
   componentDidMount() {
     this.refresh()

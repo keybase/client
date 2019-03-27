@@ -16,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/unfurl"
@@ -50,6 +51,9 @@ type Server struct {
 	clock             clockwork.Clock
 	convPageStatus    map[string]chat1.Pagination
 	cachedThreadDelay *time.Duration
+
+	searchMu       sync.Mutex
+	searchCancelFn context.CancelFunc
 
 	// Only for testing
 	rc                chat1.RemoteInterface
@@ -325,9 +329,9 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		return chat1.MarkAsReadLocalRes{}, err
 	}
 	// Don't send remote mark as read if we somehow get this in the background.
-	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
+	if h.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
-			h.G().AppState.State())
+			h.G().MobileAppState.State())
 		return chat1.MarkAsReadLocalRes{
 			Offline: h.G().InboxSource.IsOffline(ctx),
 		}, nil
@@ -598,7 +602,6 @@ func (h *Server) applyPagerModeIncoming(ctx context.Context, convID chat1.Conver
 			return &chat1.Pagination{
 				Num:      pagination.Num,
 				Previous: oldStored.Previous,
-				Last:     oldStored.Last,
 			}
 		}
 	}
@@ -714,12 +717,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
 		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
 		// to reset any delay checks or timers
-		switch h.G().AppState.State() {
-		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		switch h.G().MobileAppState.State() {
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 		default:
 			h.G().Syncer.Disconnected(ctx)
 		}
-		h.G().AppState.Update(keybase1.AppState_FOREGROUND)
+		h.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	}
 
 	// Set last select conversation on syncer
@@ -2281,6 +2284,30 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 	return h.G().ChatHelper.UpgradeKBFSToImpteam(ctx, tlfName, tlfID, public)
 }
 
+func (h *Server) cancelActiveSearchLocked() {
+	if h.searchCancelFn != nil {
+		h.searchCancelFn()
+		h.searchCancelFn = nil
+	}
+}
+
+func (h *Server) getSearchContext(ctx context.Context) context.Context {
+	// enforce a single search happening at a time
+	h.searchMu.Lock()
+	h.cancelActiveSearchLocked()
+	ctx, h.searchCancelFn = context.WithCancel(ctx)
+	h.searchMu.Unlock()
+	return ctx
+}
+
+func (h *Server) CancelActiveSearch(ctx context.Context) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "CancelActiveSearch")()
+	h.searchMu.Lock()
+	h.cancelActiveSearchLocked()
+	h.searchMu.Unlock()
+	return nil
+}
+
 func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (res chat1.SearchRegexpRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2290,7 +2317,9 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	if err != nil {
 		return res, err
 	}
+	ctx = h.getSearchContext(ctx)
 
+	arg = search.UpgradeRegexpArgFromQuery(arg)
 	var re *regexp.Regexp
 	if arg.IsRegex {
 		re, err = regexp.Compile(arg.Query)
@@ -2298,7 +2327,6 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 		// String queries are set case insensitive
 		re, err = utils.GetQueryRe(arg.Query)
 	}
-
 	if err != nil {
 		return res, err
 	}

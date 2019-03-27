@@ -14,6 +14,7 @@ import {type _Props as ExplodingMetaViewProps} from '../../messages/wrapper/expl
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
+import JumpToRecent from './jump-to-recent'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
@@ -49,6 +50,7 @@ const props = {
   lastMessageIsOurs: false,
   onFocusInput: Sb.action('onFocusInput'),
   scrollListDownCounter: 0,
+  scrollListToBottomCounter: 0,
   scrollListUpCounter: 0,
 }
 
@@ -219,6 +221,7 @@ type State = {|
   messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
   scrollListDownCounter: number,
+  scrollListToBottomCounter: number,
   scrollListUpCounter: number,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
@@ -233,6 +236,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       messageInjectionEnabled: false,
       messageOrdinals: makeMoreOrdinals(I.List(), 'append'),
       scrollListDownCounter: 0,
+      scrollListToBottomCounter: 0,
       scrollListUpCounter: 0,
     }
   }
@@ -310,11 +314,17 @@ class ThreadWrapper extends React.Component<Props, State> {
         </ButtonBar>
         <Thread
           {...props}
+          centeredOrdinal={null}
+          containsLatestMessage={true}
           conversationIDKey={this.state.conversationIDKey}
           messageOrdinals={this.state.messageOrdinals}
-          loadMoreMessages={this.onLoadMoreMessages}
+          loadOlderMessages={this.onLoadMoreMessages}
+          loadNewerMessages={this.onLoadMoreMessages}
+          onJumpToRecent={Sb.action('jump to recent')}
           scrollListUpCounter={this.state.scrollListUpCounter}
+          scrollListToBottomCounter={this.state.scrollListToBottomCounter}
           scrollListDownCounter={this.state.scrollListDownCounter}
+          showThreadSearch={false}
         />
       </React.Fragment>
     )
@@ -335,6 +345,7 @@ const load = () => {
         If you load Normal directly on start the fonts wont be loaded so it'll measure wrong
       </Text>
     ))
+    .add('Jump to Recent', () => <JumpToRecent onClick={Sb.action('onClick')} />)
 }
 
 export default load

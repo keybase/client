@@ -106,10 +106,9 @@ type SimpleFS struct {
 	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
 
-	subscribeLock              sync.RWMutex
-	subscribeCurrPathCanonical string
-	subscribeCurrPathFromGUI   string
-	subscribeCurrFB            libkbfs.FolderBranch
+	subscribeLock               sync.RWMutex
+	subscribeCurrTlfPathFromGUI string
+	subscribeCurrFB             libkbfs.FolderBranch
 
 	localHTTPServer *libhttpserver.Server
 }
@@ -589,27 +588,34 @@ func (k *SimpleFS) refreshSubscription(
 		return nil
 	}
 
+	tlfType, tlfNameFromGUI, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfPathFromGUI := tlfhandle.BuildCanonicalPathForTlfType(
+		tlfType, tlfNameFromGUI)
+
 	k.subscribeLock.Lock()
 	defer k.subscribeLock.Unlock()
 
 	// TODO: when favorites caching is ready, handle folder-list paths
 	// like `/keybase/private` here.
 
-	fb, subscribePathCanonical, err := k.getFolderBranchFromPath(ctx, path)
+	fb, _, err := k.getFolderBranchFromPath(ctx, path)
 	if err != nil {
 		return err
 	}
 	if fb == (libkbfs.FolderBranch{}) {
 		k.log.CDebugf(
-			ctx, "Ignoring subscription for empty TLF %s", subscribePathCanonical)
+			ctx, "Ignoring subscription for empty TLF %q", path)
 		return nil
 	}
 
-	if k.subscribeCurrPathCanonical == subscribePathCanonical {
+	if k.subscribeCurrFB == fb {
 		return nil
 	}
 
-	if k.subscribeCurrPathCanonical != "" {
+	if k.subscribeCurrFB != (libkbfs.FolderBranch{}) {
 		err = k.config.Notifier().UnregisterFromChanges(
 			[]libkbfs.FolderBranch{k.subscribeCurrFB}, k)
 		if err != nil {
@@ -617,14 +623,15 @@ func (k *SimpleFS) refreshSubscription(
 		}
 	}
 
-	k.log.CDebugf(ctx, "Subscribing to %s", subscribePathCanonical)
+	k.log.CDebugf(ctx, "Subscribing to %s", tlfPathFromGUI)
 	err = k.config.Notifier().RegisterForChanges(
 		[]libkbfs.FolderBranch{fb}, k)
 	if err != nil {
 		return err
 	}
-	k.subscribeCurrPathCanonical = subscribePathCanonical
-	k.subscribeCurrPathFromGUI = stdpath.Join("/keybase", path.Kbfs())
+	// We are subscribing on TLF level anyway, so just use TLF path when
+	// notifying GUI.
+	k.subscribeCurrTlfPathFromGUI = tlfPathFromGUI
 	k.subscribeCurrFB = fb
 	return nil
 }
@@ -1579,6 +1586,13 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 		return keybase1.Dirent{}, err
 	}
 
+	if arg.RefreshSubscription {
+		err = k.refreshSubscription(ctx, arg.Path)
+		if err != nil {
+			return keybase1.Dirent{}, err
+		}
+	}
+
 	// Use LStat so we don't follow symlinks.
 	fi, err := fs.Lstat(finalElem)
 	if err != nil {
@@ -2087,8 +2101,12 @@ var _ libkbfs.Observer = (*SimpleFS)(nil)
 
 // LocalChange implements the libkbfs.Observer interface for SimpleFS.
 func (k *SimpleFS) LocalChange(
-	_ context.Context, _ libkbfs.Node, _ libkbfs.WriteRange) {
-	// No-op.
+	ctx context.Context, node libkbfs.Node, _ libkbfs.WriteRange) {
+	k.subscribeLock.RLock()
+	defer k.subscribeLock.RUnlock()
+	if node.GetFolderBranch() == k.subscribeCurrFB {
+		k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrTlfPathFromGUI)
+	}
 }
 
 // BatchChanges implements the libkbfs.Observer interface for SimpleFS.
@@ -2104,10 +2122,8 @@ func (k *SimpleFS) BatchChanges(
 	go func() {
 		k.subscribeLock.RLock()
 		defer k.subscribeLock.RUnlock()
-		for fb := range fbs {
-			if fb == k.subscribeCurrFB {
-				k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPathFromGUI)
-			}
+		if fbs[k.subscribeCurrFB] {
+			k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrTlfPathFromGUI)
 		}
 	}()
 }
@@ -2249,6 +2265,22 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 
 	_, err = k.config.KBFSOps().SetSyncConfig(ctx, tlfID, arg.Config)
 	return err
+}
+
+// SimpleFSClearConflictState implements the SimpleFS interface.
+func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
+	path keybase1.Path) error {
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
 }
 
 // SimpleFSPing implements the SimpleFSInterface.

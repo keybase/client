@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -20,9 +21,9 @@ type KeyFinder interface {
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
 		kbfsEncrypted bool) (types.CryptKey, error)
-	EphemeralKeyForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+	EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
-	EphemeralKeyForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+	EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, teamID chat1.TLFID,
@@ -162,16 +163,17 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 		membersType, public, keyGeneration, kbfsEncrypted)
 }
 
-func (k *KeyFinderImpl) EphemeralKeyForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (k *KeyFinderImpl) EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (ek keybase1.TeamEk, err error) {
-	return k.createNameInfoSource(ctx, membersType).EphemeralEncryptionKey(ctx, tlfName, tlfID, membersType, public)
+	return k.createNameInfoSource(mctx.Ctx(), membersType).EphemeralEncryptionKey(
+		mctx, tlfName, tlfID, membersType, public)
 }
 
-func (k *KeyFinderImpl) EphemeralKeyForDecryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (k *KeyFinderImpl) EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
-	return k.createNameInfoSource(ctx, membersType).EphemeralDecryptionKey(
-		ctx, tlfName, tlfID, membersType, public, generation, contentCtime)
+	return k.createNameInfoSource(mctx.Ctx(), membersType).EphemeralDecryptionKey(
+		mctx, tlfName, tlfID, membersType, public, generation, contentCtime)
 }
 
 func (k *KeyFinderImpl) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,

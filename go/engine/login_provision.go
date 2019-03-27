@@ -90,6 +90,10 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		return err
 	}
 
+	if err := m.G().SecretStore().PrimeSecretStores(m); err != nil {
+		return SecretStoreNotFunctionalError{err}
+	}
+
 	var err error
 	e.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), e.arg.User.GetUID())
 	if err != nil {
@@ -118,7 +122,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 	e.displaySuccess(m)
 
-	m.G().KeyfamilyChanged(e.arg.User.GetUID())
+	m.G().KeyfamilyChanged(m.Ctx(), e.arg.User.GetUID())
 
 	// check to make sure local files stored correctly
 	verifyLocalStorage(m, e.username, e.arg.User.GetUID())

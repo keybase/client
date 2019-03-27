@@ -21,7 +21,7 @@ type RegexpSearcher struct {
 var _ types.RegexpSearcher = (*RegexpSearcher)(nil)
 
 func NewRegexpSearcher(g *globals.Context) *RegexpSearcher {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "searcher", false)
+	labeler := utils.NewDebugLabeler(g.GetLog(), "RegexpSearcher", false)
 	return &RegexpSearcher{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
@@ -35,6 +35,12 @@ func (s *RegexpSearcher) SetPageSize(pageSize int) {
 
 func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	queryRe *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Search")()
+	defer func() {
+		if uiCh != nil {
+			close(uiCh)
+		}
+	}()
 	pagination := &chat1.Pagination{Num: s.pageSize}
 
 	maxHits := opts.MaxHits
@@ -175,7 +181,11 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 				}
 				if uiCh != nil {
 					// Stream search hits back to the UI channel
-					uiCh <- searchHit
+					select {
+					case <-ctx.Done():
+						return nil, ctx.Err()
+					case uiCh <- searchHit:
+					}
 				}
 				hits = append(hits, searchHit)
 			}
@@ -183,9 +193,6 @@ func (s *RegexpSearcher) Search(ctx context.Context, uid gregor1.UID, convID cha
 				break
 			}
 		}
-	}
-	if uiCh != nil {
-		close(uiCh)
 	}
 	return hits, nil
 }

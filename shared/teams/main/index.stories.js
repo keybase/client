@@ -17,6 +17,11 @@ const teamNameToIsOpen = {
   'stripe.usa': false,
   techtonica: true,
 }
+const teamNameToCanManageChat = {
+  stripe: true,
+  'stripe.usa': false,
+  techtonica: true,
+}
 
 const load = () => {
   Sb.storiesOf('Teams/Main', module)
@@ -35,6 +40,7 @@ const load = () => {
           onCreateTeam={Sb.action('onCreateTeam')}
           onHideChatBanner={Sb.action('onHideChatBanner')}
           sawChatBanner={Sb.action('sawChatBanner')}
+          teamNameToCanManageChat={teamNameToCanManageChat}
           teamNameToIsOpen={teamNameToIsOpen}
           teamToRequest={{techtonica: 2}}
           teammembercounts={teammembercounts}

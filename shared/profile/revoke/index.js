@@ -75,7 +75,6 @@ const styleErrorBanner = {
   minHeight: Styles.globalMargins.large,
   padding: Styles.globalMargins.tiny,
   width: '100%',
-  zIndex: 1,
 }
 
 const styleErrorBannerText = {

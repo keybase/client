@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as I from 'immutable'
-import * as FsGen from '../actions/fs-gen'
+import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
@@ -24,6 +24,7 @@ const mapStateToProps = state => ({
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
   _newTeams: state.teams.getIn(['newTeams'], I.Set()),
   _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
+  _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
   _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
   _teamresetusers: state.teams.getIn(['teamNameToResetUsers'], I.Map()),
   loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
@@ -36,12 +37,12 @@ const headerActions = dispatch => ({
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {}, selected: 'showNewTeamDialog'}],
+        path: [{props: {}, selected: 'teamNewTeamDialog'}],
       })
     )
   },
   onJoinTeam: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['showJoinTeamDialog']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['teamJoinTeamDialog']}))
   },
 })
 const mapDispatchToProps = (dispatch, {routePath}) => ({
@@ -54,10 +55,10 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     ),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(
-      FsGen.createOpenPathInFilesTab({
-        path: FsTypes.stringToPath(`/keybase/team/${teamname}`),
-        routePath: flags.useNewRouter ? undefined : routePath,
-      })
+      FsConstants.makeActionForOpenPathInFilesTab(
+        FsTypes.stringToPath(`/keybase/team/${teamname}`),
+        flags.useNewRouter ? undefined : routePath
+      )
     ),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
@@ -78,6 +79,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     loaded: stateProps.loaded,
     newTeams: stateProps._newTeams.toArray(),
     sawChatBanner: stateProps.sawChatBanner,
+    teamNameToCanManageChat: stateProps._teamNameToRole.map(role => role !== 'none').toObject(),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
     teammembercounts: stateProps._teammembercounts.toObject(),

@@ -1545,7 +1545,8 @@ func (t *Team) teamEKPayload(ctx context.Context, recipients []keybase1.UID) (*t
 	if err != nil {
 		return nil, err
 	}
-	sig, boxes, metadata, box, err := ekLib.PrepareNewTeamEK(ctx, t.ID, sigKey, recipients)
+	mctx := libkb.NewMetaContext(ctx, t.G())
+	sig, boxes, metadata, box, err := ekLib.PrepareNewTeamEK(mctx, t.ID, sigKey, recipients)
 	if err != nil {
 		return nil, err
 	}
@@ -1561,7 +1562,8 @@ func (t *Team) teamEKPayload(ctx context.Context, recipients []keybase1.UID) (*t
 func (t *Team) storeTeamEKPayload(ctx context.Context, teamEKPayload *teamEKPayload) {
 	// Add the new teamEK box to local storage, if it was created above.
 	if teamEKPayload != nil && teamEKPayload.box != nil {
-		if err := t.G().GetTeamEKBoxStorage().Put(ctx, t.ID, teamEKPayload.metadata.Generation, *teamEKPayload.box); err != nil {
+		mctx := libkb.NewMetaContext(ctx, t.G())
+		if err := t.G().GetTeamEKBoxStorage().Put(mctx, t.ID, teamEKPayload.metadata.Generation, *teamEKPayload.box); err != nil {
 			t.G().Log.CErrorf(ctx, "error while saving teamEK box: %s", err)
 		}
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -106,6 +107,15 @@ const (
 	// Period between mark-and-sweep attempts.
 	markAndSweepPeriod = 1 * time.Hour
 )
+
+// ErrStillStagedAfterCR indicates that conflict resolution failed to take
+// the FBO out of staging.
+type ErrStillStagedAfterCR struct{}
+
+// Error implements the error interface.
+func (*ErrStillStagedAfterCR) Error() string {
+	return "conflict resolution didn't take us out of staging"
+}
 
 type fboMutexLevel kbfssync.MutexLevel
 
@@ -714,6 +724,37 @@ func (fbo *folderBranchOps) isUnmergedLocked(lState *kbfssync.LockState) bool {
 	return fbo.unmergedBID != kbfsmd.NullBranchID
 }
 
+var errJournalNotAvailable = errors.New("could not get journal for TLF")
+
+// clearConflictView tells the journal to move any pending writes elsewhere,
+// resets the CR counter, and resets the FBO to have a synced view of the TLF.
+func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
+	err error) {
+	// TODO(KBFS-3990): show the cleared conflict view under a special path,
+	//  so users can copy any unmerged files manually back into their synced
+	//  view before nuking it.
+
+	fbo.log.CDebugf(ctx, "Clearing conflict view")
+	defer func() {
+		fbo.log.CDebugf(ctx, "Done with clearConflictView: %+v", err)
+	}()
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	journalEnabled := TLFJournalEnabled(fbo.config, fbo.id())
+	if journalEnabled {
+		err = fbo.unstageLocked(ctx, lState, moveJournalsAway)
+	} else {
+		err = fbo.unstageLocked(ctx, lState, doPruneBranches)
+	}
+	if err != nil {
+		return err
+	}
+	return fbo.cr.clearConflictRecords()
+}
+
 func (fbo *folderBranchOps) setBranchIDLocked(
 	lState *kbfssync.LockState, unmergedBID kbfsmd.BranchID) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -806,7 +847,7 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 }
 
 func (fbo *folderBranchOps) getProtocolSyncConfig(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata) (
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.AssertAnyLocked(lState)
 
@@ -846,7 +887,7 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 }
 
 func (fbo *folderBranchOps) getProtocolSyncConfigUnlocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata) (
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
 	fbo.syncLock.RLock(lState)
 	defer fbo.syncLock.RUnlock(lState)
@@ -3204,8 +3245,8 @@ func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
 	ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Stat %s", getNodeIDStr(node))
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "Stat %s done: %+v",
-			getNodeIDStr(node), err)
+		fbo.deferLog.CDebugf(ctx, "Stat %s (%d bytes) done: %+v",
+			getNodeIDStr(node), ei.Size, err)
 	}()
 
 	var de DirEntry
@@ -4520,7 +4561,7 @@ func (fbo *folderBranchOps) CreateLink(
 // unrefEntry modifies md to unreference all relevant blocks for the
 // given entry.
 func (fbo *folderBranchOps) unrefEntryLocked(ctx context.Context,
-	lState *kbfssync.LockState, kmd KeyMetadata, ro op, dir path, de DirEntry,
+	lState *kbfssync.LockState, kmd libkey.KeyMetadata, ro op, dir path, de DirEntry,
 	name string) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 	if de.Type == Sym {
@@ -6556,12 +6597,26 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 		for _, op := range rmd.data.Changes.Ops {
 			for _, ptr := range op.Refs() {
 				if ptr != zeroPtr {
-					unmergedPtrs = append(unmergedPtrs, ptr)
+					unflushed, err := fbo.config.BlockServer().IsUnflushed(
+						ctx, rmd.tlfHandle.TlfID(), ptr.ID)
+					if err != nil {
+						return nil, err
+					}
+					if !unflushed {
+						unmergedPtrs = append(unmergedPtrs, ptr)
+					}
 				}
 			}
 			for _, update := range op.allUpdates() {
 				if update.Ref != zeroPtr {
-					unmergedPtrs = append(unmergedPtrs, update.Ref)
+					unflushed, err := fbo.config.BlockServer().IsUnflushed(
+						ctx, rmd.tlfHandle.TlfID(), update.Ref.ID)
+					if err != nil {
+						return nil, err
+					}
+					if !unflushed {
+						unmergedPtrs = append(unmergedPtrs, update.Ref)
+					}
 				}
 			}
 		}
@@ -6570,8 +6625,15 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	return unmergedPtrs, nil
 }
 
+type pruningBehavior int
+
+const (
+	doPruneBranches pruningBehavior = iota
+	moveJournalsAway
+)
+
 func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
-	lState *kbfssync.LockState) error {
+	lState *kbfssync.LockState, pruningBehavior pruningBehavior) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// fetch all of my unstaged updates, and undo them one at a time
@@ -6583,10 +6645,24 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 	}
 
 	// let the server know we no longer have need
-	if wasUnmergedBranch {
+	if wasUnmergedBranch && pruningBehavior == doPruneBranches {
 		err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), unmergedBID)
 		if err != nil {
 			return err
+		}
+	} else if pruningBehavior == moveJournalsAway {
+		jManager, err := GetJournalManager(fbo.config)
+		if err != nil {
+			return err
+		}
+
+		if tlfJournal, ok := jManager.getTLFJournal(fbo.id(), nil); ok {
+			err = tlfJournal.moveAway(ctx)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errJournalNotAvailable
 		}
 	}
 
@@ -6656,7 +6732,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 			lState := makeFBOLockState()
 			c <- fbo.doMDWriteWithRetry(ctx, lState,
 				func(lState *kbfssync.LockState) error {
-					return fbo.unstageLocked(freshCtx, lState)
+					return fbo.unstageLocked(freshCtx, lState, doPruneBranches)
 				})
 		}()
 
@@ -6895,8 +6971,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 			}
 			// If we are still staged after the wait, then we have a problem.
 			if fbo.isUnmerged(lState) {
-				return errors.Errorf("Conflict resolution didn't take us out " +
-					"of staging.")
+				return &ErrStillStagedAfterCR{}
 			}
 		}
 
@@ -7612,38 +7687,6 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 		ctx, lState, md, bps, newOps, blocksToDelete)
 }
 
-func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
-	lState *kbfssync.LockState) error {
-	// Take the writer lock.
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	// Last chance to get pre-empted.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
-	// We don't want context cancellation after this point, so use a linked
-	// context. There is no race since the linked context has an independent
-	// Done channel.
-	//
-	// Generally we don't want to have any errors in unstageLocked since and
-	// this solution is chosen because:
-	// * If the error is caused by a cancelled context then the recovery (archiving)
-	//   would need to use a separate context anyways.
-	// * In such cases we would have to be very careful where the error occurs
-	//   and what to archive, making that solution much more complicated.
-	// * The other "common" error case is losing server connection and after
-	//   detecting that we won't have much luck archiving things anyways.
-
-	ctx = newLinkedContext(ctx)
-	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
-		fbo.unmergedBID)
-	return fbo.unstageLocked(ctx, lState)
-}
-
 func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 	newBID kbfsmd.BranchID) {
 	lState := makeFBOLockState()
@@ -8315,7 +8358,7 @@ func (fbo *folderBranchOps) GetSyncConfig(
 }
 
 func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadata,
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata,
 	paths []string) (FolderSyncEncryptedPartialPaths, error) {
 	fbo.syncLock.AssertLocked(lState)
 

@@ -9,6 +9,7 @@ export type Props = {|
   onOpenFolder: null | (() => void),
   onShowProfile: (user: string) => void,
   onToggleInfoPanel: () => void,
+  onToggleThreadSearch: () => void,
   infoPanelOpen: boolean,
   teamName: ?string,
   participants: Array<string>,

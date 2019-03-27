@@ -262,7 +262,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	var newUserEKMetadata *keybase1.UserEkMetadata
 	ekLib := e.G().GetEKLib()
 	if !e.skipUserEKForTesting && addingNewPUK && ekLib != nil {
-		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m.Ctx(), *merkleRoot, *newPukSeed)
+		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m, *merkleRoot, *newPukSeed)
 		if err != nil {
 			return err
 		}
@@ -309,13 +309,13 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 
 	// Add the new userEK box to local storage, if it was created above.
 	if myUserEKBox != nil {
-		err = e.G().GetUserEKBoxStorage().Put(m.Ctx(), newUserEKMetadata.Generation, *myUserEKBox)
+		err = e.G().GetUserEKBoxStorage().Put(m, newUserEKMetadata.Generation, *myUserEKBox)
 		if err != nil {
 			m.Warning("error while saving userEK box: %s", err)
 		}
 	}
 
-	e.G().UserChanged(me.GetUID())
+	e.G().UserChanged(m.Ctx(), me.GetUID())
 
 	return nil
 }

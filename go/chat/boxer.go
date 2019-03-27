@@ -311,7 +311,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		var ephemeralSeed *keybase1.TeamEk
 		if boxed.IsEphemeral() {
 			ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
-				ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
+				b.G().MetaContext(ctx), tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
 				boxed.ClientHeader.TlfPublic, boxed.EphemeralMetadata().Generation,
 				&boxed.ServerHeader.Ctime)
 			if err != nil {
@@ -1309,7 +1309,7 @@ func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlainte
 	var pairwiseMACRecipients []keybase1.KID
 	if msg.IsEphemeral() {
 		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForEncryption(
-			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
+			b.G().MetaContext(ctx), tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 		if err != nil {
 			return res, NewBoxingCryptKeysError(err)
 		}

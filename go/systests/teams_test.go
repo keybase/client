@@ -390,7 +390,7 @@ func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams
 }
 
 func (u *userPlusDevice) readInviteEmails(email string) []string {
-	mctx := libkb.NewMetaContextForTest(*u.tc)
+	mctx := u.MetaContext()
 	arg := libkb.NewAPIArg("test/team/get_tokens")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("email", libkb.S{Val: email})
@@ -695,6 +695,10 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
 }
 
+func (u *userPlusDevice) kickAutoresetd() {
+	kickAutoresetd(u.tc.G, u.tc.T)
+}
+
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
 	res, err := u.lookupImplicitTeam2(create, displayName, public)
 	return res.TeamID, err
@@ -713,7 +717,7 @@ func (u *userPlusDevice) lookupImplicitTeam2(create bool, displayName string, pu
 }
 
 func (u *userPlusDevice) delayMerkleTeam(teamID keybase1.TeamID) {
-	mctx := libkb.NewMetaContextForTest(*u.tc)
+	mctx := u.MetaContext()
 	_, err := u.tc.G.API.Post(mctx, libkb.APIArg{
 		Endpoint: "test/merkled/delay_team",
 		Args: libkb.HTTPArgs{
@@ -864,6 +868,15 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 
 func (u *userPlusDevice) MetaContext() libkb.MetaContext {
 	return libkb.NewMetaContextForTest(*u.tc)
+}
+
+func kickAutoresetd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	mctx := libkb.NewMetaContextTODO(g)
+	_, err := g.API.Post(mctx, libkb.APIArg{
+		Endpoint:    "test/accelerate_autoresetd",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	})
+	require.NoError(t, err)
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {

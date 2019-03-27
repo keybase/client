@@ -194,3 +194,24 @@ func (h *AccountHandler) RecoverUsername(ctx context.Context, arg keybase1.Recov
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }
+
+// EnterPipeline allows a user to enter the reset pipeline. The user must
+// verify ownership of the account via an email confirmation or their password.
+// Resets are not allowed on a provisioned device.
+func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.EnterResetPipelineArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("EnterResetPipline", func() error { return err })()
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	eng := engine.NewAccountReset(h.G(), arg.Username, arg.Email)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
+}
+
+// CancelReset allows a user to cancel the reset process via an authenticated API call.
+func (h *AccountHandler) CancelReset(ctx context.Context, sessionID int) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return libkb.CancelResetPipeline(mctx)
+}

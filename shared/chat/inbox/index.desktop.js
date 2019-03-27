@@ -41,6 +41,7 @@ class Inbox extends React.PureComponent<Props, State> {
   // stuff for UnreadShortcut
   _firstOffscreenIdx: number = -1
   _lastVisibleIdx: number = -1
+  _scrollDiv = React.createRef()
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -58,6 +59,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
     // list changed
     if (this.props.rows.length !== prevProps.rows.length) {
+      this._calculateShowFloating()
       listRowsResized = true
     }
 
@@ -95,7 +97,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return 0
     }
 
-    return getRowHeight(row.type, !!this.props.filter.length, row.showButton)
+    return getRowHeight(row.type, !!this.props.filter.length, row.type === 'divider' && row.showButton)
   }
 
   _itemRenderer = (index, style) => {
@@ -148,6 +150,19 @@ class Inbox extends React.PureComponent<Props, State> {
     }
   }
 
+  _calculateShowFloating = () => {
+    if (this._lastVisibleIdx < 0) {
+      return
+    }
+    let showFloating = true
+    const row = this.props.rows[this._lastVisibleIdx]
+    if (!row || row.type !== 'small') {
+      showFloating = false
+    }
+
+    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+  }
+
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
     this._lastVisibleIdx = visibleStopIndex
     if (this.props.filter.length) {
@@ -167,24 +182,21 @@ class Inbox extends React.PureComponent<Props, State> {
       return arr
     }, [])
 
-    let showFloating = true
-    const row = this.props.rows[visibleStopIndex]
-    if (!row || row.type !== 'small') {
-      showFloating = false
-    }
-
-    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
-
+    this._calculateShowFloating()
     this._calculateShowUnreadShortcut()
 
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
   _scrollToUnread = () => {
-    if (this._firstOffscreenIdx <= 0 || !this._list) {
+    if (this._firstOffscreenIdx <= 0 || !this._scrollDiv.current) {
       return
     }
-    this._list.scrollToItem(this._firstOffscreenIdx, 'center')
+    let top = 100 // give it some space below
+    for (let i = this._lastVisibleIdx; i <= this._firstOffscreenIdx; i++) {
+      top += this._itemSizeGetter(i)
+    }
+    this._scrollDiv.current.scrollBy({behavior: 'smooth', top})
   }
 
   _setRef = (list: ?VariableSizeList<any>) => {
@@ -233,6 +245,7 @@ class Inbox extends React.PureComponent<Props, State> {
                   height={height}
                   width={width}
                   ref={this._setRef}
+                  outerRef={this._scrollDiv}
                   onItemsRendered={this._onItemsRendered}
                   itemCount={this.props.rows.length}
                   itemSize={this._itemSizeGetter}

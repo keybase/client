@@ -136,7 +136,10 @@ class Icon extends React.PureComponent<Props> {
         activeOpacity={0.8}
         underlayColor={props.underlayColor || Styles.globalColors.white}
         onClick={props.onClick}
-        style={props.style}
+        style={Styles.collapseStyles([
+          props.style,
+          this.props.padding && Shared.paddingStyles[this.props.padding],
+        ])}
       >
         {icon}
       </ClickableBox>

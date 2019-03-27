@@ -16,7 +16,6 @@ const Overlay = (props: Props) => {
       position={props.position || 'top center'}
       positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}
-      containerStyle={styles.outerContainer}
     >
       <Box2 direction="vertical" style={collapseStyles([styles.innerContainer, props.style])}>
         {props.children}
@@ -32,11 +31,6 @@ const styles = styleSheetCreate({
       borderRadius: 3,
       overflowX: 'hidden',
       overflowY: 'auto',
-    },
-  }),
-  outerContainer: platformStyles({
-    isElectron: {
-      zIndex: 30, // Put the floating box on top of any profile components and popup dialogs.
     },
   }),
 })

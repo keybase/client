@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
@@ -577,6 +578,9 @@ type KBFSOps interface {
 	NewNotificationChannel(
 		ctx context.Context, handle *tlfhandle.Handle,
 		convID chat1.ConversationID, channelName string)
+	// ClearConflictView moves the conflict view of the given TLF out of the
+	// way and resets the state of the TLF.
+	ClearConflictView(ctx context.Context, tlfID tlf.ID) error
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
 	// `handle` has the new TLF ID.
@@ -814,68 +818,10 @@ type KBPKI interface {
 	NotifyPathUpdated(ctx context.Context, path string) error
 }
 
-// KeyMetadata is an interface for something that holds key
-// information. This is usually implemented by RootMetadata.
-type KeyMetadata interface {
-	// TlfID returns the ID of the TLF for which this object holds
-	// key info.
-	TlfID() tlf.ID
-
-	// TypeForKeying returns the keying type for this MD.
-	TypeForKeying() tlf.KeyingType
-
-	// LatestKeyGeneration returns the most recent key generation
-	// with key data in this object, or PublicKeyGen if this TLF
-	// is public.
-	LatestKeyGeneration() kbfsmd.KeyGen
-
-	// GetTlfHandle returns the handle for the TLF. It must not
-	// return nil.
-	//
-	// TODO: Remove the need for this function in this interface,
-	// so that kbfsmd.RootMetadata can implement this interface
-	// fully.
-	GetTlfHandle() *tlfhandle.Handle
-
-	// IsWriter checks that the given user is a valid writer of the TLF
-	// right now.
-	IsWriter(
-		ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-		osg idutil.OfflineStatusGetter, uid keybase1.UID,
-		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
-
-	// HasKeyForUser returns whether or not the given user has
-	// keys for at least one device. Returns an error if the TLF
-	// is public.
-	HasKeyForUser(user keybase1.UID) (bool, error)
-
-	// GetTLFCryptKeyParams returns all the necessary info to
-	// construct the TLF crypt key for the given key generation,
-	// user, and device (identified by its crypt public key), or
-	// false if not found. This returns an error if the TLF is
-	// public.
-	GetTLFCryptKeyParams(
-		keyGen kbfsmd.KeyGen, user keybase1.UID,
-		key kbfscrypto.CryptPublicKey) (
-		kbfscrypto.TLFEphemeralPublicKey,
-		kbfscrypto.EncryptedTLFCryptKeyClientHalf,
-		kbfscrypto.TLFCryptKeyServerHalfID, bool, error)
-
-	// StoresHistoricTLFCryptKeys returns whether or not history keys are
-	// symmetrically encrypted; if not, they're encrypted per-device.
-	StoresHistoricTLFCryptKeys() bool
-
-	// GetHistoricTLFCryptKey attempts to symmetrically decrypt the key at the given
-	// generation using the current generation's TLFCryptKey.
-	GetHistoricTLFCryptKey(codec kbfscodec.Codec, keyGen kbfsmd.KeyGen,
-		currentKey kbfscrypto.TLFCryptKey) (
-		kbfscrypto.TLFCryptKey, error)
-}
-
 // KeyMetadataWithRootDirEntry is like KeyMetadata, but can also
 // return the root dir entry for the associated MD update.
 type KeyMetadataWithRootDirEntry interface {
-	KeyMetadata
+	libkey.KeyMetadata
 
 	// GetRootDirEntry returns the root directory entry for the
 	// associated MD.
@@ -886,7 +832,7 @@ type encryptionKeyGetter interface {
 	// GetTLFCryptKeyForEncryption gets the crypt key to use for
 	// encryption (i.e., with the latest key generation) for the
 	// TLF with the given metadata.
-	GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (
+	GetTLFCryptKeyForEncryption(ctx context.Context, kmd libkey.KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
 }
 
@@ -897,7 +843,7 @@ type mdDecryptionKeyGetter interface {
 	// (which in most cases is the same as mdToDecrypt) if it's not
 	// already cached.
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
-		kmdToDecrypt, kmdWithKeys KeyMetadata) (
+		kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
 }
 
@@ -905,7 +851,7 @@ type blockDecryptionKeyGetter interface {
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
-	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata,
+	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd libkey.KeyMetadata,
 		blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error)
 }
 
@@ -923,7 +869,7 @@ type KeyManager interface {
 	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
 	// for current devices. keys contains crypt keys from all generations, in
 	// order, starting from FirstValidKeyGen.
-	GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd KeyMetadata) (
+	GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd libkey.KeyMetadata) (
 		keys []kbfscrypto.TLFCryptKey, err error)
 
 	// Rekey checks the given MD object, if it is a private TLF,
@@ -1572,27 +1518,6 @@ type MDOps interface {
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error)
 }
 
-// KeyOps fetches server-side key halves from the key server.
-type KeyOps interface {
-	// GetTLFCryptKeyServerHalf gets a server-side key half for a
-	// device given the key half ID.
-	GetTLFCryptKeyServerHalf(ctx context.Context,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
-		cryptPublicKey kbfscrypto.CryptPublicKey) (
-		kbfscrypto.TLFCryptKeyServerHalf, error)
-
-	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
-	// set of users and devices.
-	PutTLFCryptKeyServerHalves(ctx context.Context,
-		keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error
-
-	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
-	// device given the key half ID.
-	DeleteTLFCryptKeyServerHalf(ctx context.Context,
-		uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
-}
-
 // PrefetchProgress tracks the number of bytes fetched for the block
 // tree rooted at a given block, along with the known total number of
 // bytes in that tree, and the start time of the prefetch.  Note that
@@ -1607,7 +1532,7 @@ type PrefetchProgress struct {
 type Prefetcher interface {
 	// ProcessBlockForPrefetch potentially triggers and monitors a prefetch.
 	ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block,
-		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
+		kmd libkey.KeyMetadata, priority int, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus, action BlockRequestAction)
 	// WaitChannelForBlockPrefetch returns a channel that can be used
 	// to wait for a block to finish prefetching or be canceled.  If
@@ -1642,13 +1567,13 @@ type BlockOps interface {
 	// object with its contents, if the logged-in user has read
 	// permission for that block. cacheLifetime controls the behavior of the
 	// write-through cache once a Get completes.
-	Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
+	Get(ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer,
 		block Block, cacheLifetime BlockCacheLifetime) error
 
 	// GetEncodedSize gets the encoded size of the block associated
 	// with the given block pointer (which belongs to the TLF with the
 	// given key metadata).
-	GetEncodedSize(ctx context.Context, kmd KeyMetadata,
+	GetEncodedSize(ctx context.Context, kmd libkey.KeyMetadata,
 		blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error)
 
 	// Ready turns the given block (which belongs to the TLF with
@@ -1656,7 +1581,7 @@ type BlockOps interface {
 	// and calculates its ID and size, so that we can do a bunch
 	// of block puts in parallel for every write. Ready() must
 	// guarantee that plainSize <= readyBlockData.QuotaSize().
-	Ready(ctx context.Context, kmd KeyMetadata, block Block) (
+	Ready(ctx context.Context, kmd libkey.KeyMetadata, block Block) (
 		id kbfsblock.ID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Delete instructs the server to delete the given block references.
@@ -2045,30 +1970,6 @@ type BlockSplitter interface {
 	SplitDirIfNeeded(block *DirBlock) ([]*DirBlock, *StringOffset)
 }
 
-// KeyServer fetches/writes server-side key halves from/to the key server.
-type KeyServer interface {
-	// GetTLFCryptKeyServerHalf gets a server-side key half for a
-	// device given the key half ID.
-	GetTLFCryptKeyServerHalf(ctx context.Context,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID,
-		cryptPublicKey kbfscrypto.CryptPublicKey) (
-		kbfscrypto.TLFCryptKeyServerHalf, error)
-
-	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
-	// set of users and devices.
-	PutTLFCryptKeyServerHalves(ctx context.Context,
-		keyServerHalves kbfsmd.UserDeviceKeyServerHalves) error
-
-	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
-	// device given the key half ID.
-	DeleteTLFCryptKeyServerHalf(ctx context.Context,
-		uid keybase1.UID, key kbfscrypto.CryptPublicKey,
-		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
-
-	// Shutdown is called to free any KeyServer resources.
-	Shutdown()
-}
-
 // NodeChange represents a change made to a node as part of an atomic
 // file system operation.
 type NodeChange struct {
@@ -2295,14 +2196,14 @@ type Config interface {
 	SetCodec(kbfscodec.Codec)
 	MDOps() MDOps
 	SetMDOps(MDOps)
-	KeyOps() KeyOps
-	SetKeyOps(KeyOps)
+	KeyOps() libkey.KeyOps
+	SetKeyOps(libkey.KeyOps)
 	SetBlockOps(BlockOps)
 	MDServer() MDServer
 	SetMDServer(MDServer)
 	SetBlockServer(BlockServer)
-	KeyServer() KeyServer
-	SetKeyServer(KeyServer)
+	KeyServer() libkey.KeyServer
+	SetKeyServer(libkey.KeyServer)
 	KeybaseService() KeybaseService
 	SetKeybaseService(KeybaseService)
 	BlockSplitter() BlockSplitter
@@ -2573,7 +2474,7 @@ type RekeyFSM interface {
 type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.  `action` determines
 	// what happens after the block is fetched successfully.
-	Request(ctx context.Context, priority int, kmd KeyMetadata,
+	Request(ctx context.Context, priority int, kmd libkey.KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
 		action BlockRequestAction) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that

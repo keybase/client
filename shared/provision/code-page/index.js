@@ -6,7 +6,6 @@ import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
-import {iconMeta} from '../../common-adapters/icon.constants'
 import {isAndroid} from '../../constants/platform'
 
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
@@ -270,28 +269,25 @@ const Instructions = (p: Props) => (
     ) : (
       <React.Fragment>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          On
+          On{' '}
           <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
-            {' '}
             {p.otherDeviceName}
           </Kb.Text>
           , go to
         </Kb.Text>
-        <Kb.Text center={true} type={textType} style={styles.instructions}>
-          Devices
-          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
-            {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
+            Devices
           </Kb.Text>
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
             Add device
           </Kb.Text>
-          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
-            {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
-          </Kb.Text>
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
             New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
-        </Kb.Text>
+        </Kb.Box2>
       </React.Fragment>
     )}
   </Kb.Box2>
@@ -390,20 +386,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   instructions: {color: Styles.globalColors.white},
-  instructionsCarets: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-      fontFamily: 'kb',
-      fontStyle: 'normal',
-      fontWeight: 'normal',
-    },
-    isElectron: {
-      WebkitFontSmoothing: 'antialiased',
-      fontVariant: 'normal',
-      speak: 'none',
-      textTransform: 'none',
-    },
-  }),
   instructionsContainer: {
     alignItems: 'center',
     flexWrap: 'wrap',

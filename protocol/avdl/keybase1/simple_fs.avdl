@@ -321,7 +321,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
+  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior, boolean refreshSubscription);
 
   /**
    Get revision info for a directory entry
@@ -369,6 +369,11 @@ protocol SimpleFS {
    Instructs KBFS to dump debugging info into its logs.
    */
   void simpleFSDumpDebuggingInfo();
+
+  /**
+   Clear the conflict state of a TLF.
+   */
+  void simpleFSClearConflictState(Path path);
 
   /**
    Get sync status.

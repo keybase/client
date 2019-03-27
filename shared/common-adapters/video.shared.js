@@ -39,7 +39,7 @@ const allowedHosts = ['127.0.0.1', 'localhost']
 
 const urlIsOK = url =>
   // This should be as limited as possible, to avoid injections.
-  /^[a-zA-Z0-9=.%:?/&]*$/.test(url) &&
+  /^[a-zA-Z0-9=.%:?/&-_]*$/.test(url) &&
   (__STORYBOOK__ || __STORYSHOT__ || allowedHosts.includes(new URL(url).hostname))
 
 type CheckURLProps = {

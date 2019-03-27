@@ -220,26 +220,6 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
-          <Folders profileUsername={this.props.username} />
-        </Kb.Box2>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            colorTypeToStyle(this.props.backgroundColorType),
-          ])}
-        />
-        <BioLayout {...this.props} />
-        <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
-            {this.props.reason}
-          </Kb.Text>
-          <Teams username={this.props.username} />
-          <Proofs {...this.props} />
           {flags.proofProviders && this.props.showOtherIdentities && (
             <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
               <Kb.Button
@@ -254,6 +234,39 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
+    ) : (
+      <>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.backgroundColor,
+            colorTypeToStyle(this.props.backgroundColorType),
+          ])}
+        />
+        <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+          <BioLayout {...this.props} />
+          <Kb.Box2 direction="vertical" style={styles.proofs}>
+            <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
+              {this.props.reason}
+            </Kb.Text>
+            <Teams username={this.props.username} />
+            <Proofs {...this.props} />
+            {flags.proofProviders && this.props.showOtherIdentities && (
+              <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
+                <Kb.Button
+                  label="Add other identities"
+                  labelStyle={styles.label}
+                  onClick={this.props.onAddIdentity}
+                  style={styles.addIdentityButton}
+                  type="Secondary"
+                />
+              </Kb.Box2>
+            )}
+            <Folders profileUsername={this.props.username} />
+          </Kb.Box2>
+        </Kb.Box2>
+      </>
     )
   }
 }
@@ -519,7 +532,6 @@ const styles = Styles.styleSheetCreate({
   reason: Styles.platformStyles({
     isElectron: {
       height: avatarSize / 2 + Styles.globalMargins.small,
-      zIndex: 1, // unclear why this layer is created
     },
     isMobile: {
       padding: Styles.globalMargins.tiny,

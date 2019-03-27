@@ -68,7 +68,8 @@ const (
 )
 
 const (
-	DBLookupUsername   = 0x00
+	DBLookupUsername = 0x00
+	// was once used to store latest merkle root with Key:"HEAD"
 	DBLookupMerkleRoot = 0x01
 )
 

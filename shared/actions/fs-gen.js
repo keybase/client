@@ -16,7 +16,6 @@ export const closeDestinationPicker = 'fs:closeDestinationPicker'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
-export const destinationPickerOpen = 'fs:destinationPickerOpen'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
 export const dismissFsError = 'fs:dismissFsError'
@@ -42,8 +41,6 @@ export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadingPath = 'fs:loadingPath'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
-export const mimeTypeLoad = 'fs:mimeTypeLoad'
-export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
@@ -52,11 +49,8 @@ export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
-export const openPathInFilesTab = 'fs:openPathInFilesTab'
 export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
-export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
-export const pathItemLoad = 'fs:pathItemLoad'
 export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
@@ -95,7 +89,6 @@ type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _CopyPayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
-type _DestinationPickerOpenPayload = $ReadOnly<{|routePath: I.List<string>, path: Types.Path, currentIndex: number|}>
 type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
 type _DismissFsErrorPayload = $ReadOnly<{|key: string|}>
@@ -118,11 +111,9 @@ type _HideSystemFileManagerIntegrationBannerPayload = void
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
 type _KbfsDaemonStatusChangedPayload = $ReadOnly<{|kbfsDaemonStatus: Types.KbfsDaemonStatus|}>
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
-type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path|}>
+type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path, refreshTag?: ?Types.RefreshTag|}>
 type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|address: string, token: string|}>
-type _MimeTypeLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
-type _MimeTypeLoadedPayload = $ReadOnly<{|path: Types.Path, mimeType: Types.Mime|}>
 type _MovePayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _NewFolderNamePayload = $ReadOnly<{|editID: Types.EditID, name: string|}>
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
@@ -131,12 +122,9 @@ type _NotifyTlfUpdatePayload = $ReadOnly<{|tlfPath: Types.Path|}>
 type _OpenAndUploadPayload = $ReadOnly<{|type: Types.OpenDialogType, parentPath: Types.Path|}>
 type _OpenFilesFromWidgetPayload = $ReadOnly<{|path: Types.Path, type: Types.PathType|}>
 type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|localPath: string|}>
-type _OpenPathInFilesTabPayload = $ReadOnly<{|path: Types.Path, routePath?: I.List<string>|}>
 type _OpenPathInSystemFileManagerPayload = $ReadOnly<{|path: Types.Path|}>
-type _OpenPathItemPayload = $ReadOnly<{|path: Types.Path, routePath: I.List<string>|}>
 type _OpenSecurityPreferencesPayload = void
-type _PathItemLoadPayload = $ReadOnly<{|path: Types.Path, identifyBehavior?: ?RPCTypes.TLFIdentifyBehavior, silenceErrors?: ?boolean|}>
-type _PathItemLoadedPayload = $ReadOnly<{|path: Types.Path, meta: Types.PathItem|}>
+type _PathItemLoadedPayload = $ReadOnly<{|path: Types.Path, pathItem: Types.PathItem|}>
 type _PickAndUploadPayload = $ReadOnly<{|type: Types.MobilePickType, parentPath: Types.Path|}>
 type _PlaceholderActionPayload = void
 type _RefreshDriverStatusPayload = void
@@ -174,7 +162,6 @@ export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPay
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
-export const createDestinationPickerOpen = (payload: _DestinationPickerOpenPayload) => ({payload, type: destinationPickerOpen})
 export const createDiscardEdit = (payload: _DiscardEditPayload) => ({payload, type: discardEdit})
 export const createDismissDownload = (payload: _DismissDownloadPayload) => ({payload, type: dismissDownload})
 export const createDismissFsError = (payload: _DismissFsErrorPayload) => ({payload, type: dismissFsError})
@@ -200,8 +187,6 @@ export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) =>
 export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({payload, type: loadPathMetadata})
 export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({payload, type: localHTTPServerInfo})
-export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({payload, type: mimeTypeLoad})
-export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({payload, type: mimeTypeLoaded})
 export const createMove = (payload: _MovePayload) => ({payload, type: move})
 export const createNewFolderName = (payload: _NewFolderNamePayload) => ({payload, type: newFolderName})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({payload, type: newFolderRow})
@@ -210,11 +195,8 @@ export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({pay
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({payload, type: openAndUpload})
 export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({payload, type: openFilesFromWidget})
 export const createOpenLocalPathInSystemFileManager = (payload: _OpenLocalPathInSystemFileManagerPayload) => ({payload, type: openLocalPathInSystemFileManager})
-export const createOpenPathInFilesTab = (payload: _OpenPathInFilesTabPayload) => ({payload, type: openPathInFilesTab})
 export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({payload, type: openPathInSystemFileManager})
-export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({payload, type: openSecurityPreferences})
-export const createPathItemLoad = (payload: _PathItemLoadPayload) => ({payload, type: pathItemLoad})
 export const createPathItemLoaded = (payload: _PathItemLoadedPayload) => ({payload, type: pathItemLoaded})
 export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({payload, type: pickAndUpload})
 export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => ({payload, type: placeholderAction})
@@ -253,7 +235,6 @@ export type CloseDestinationPickerPayload = {|+payload: _CloseDestinationPickerP
 export type CommitEditPayload = {|+payload: _CommitEditPayload, +type: 'fs:commitEdit'|}
 export type CopyPayload = {|+payload: _CopyPayload, +type: 'fs:copy'|}
 export type DeleteFilePayload = {|+payload: _DeleteFilePayload, +type: 'fs:deleteFile'|}
-export type DestinationPickerOpenPayload = {|+payload: _DestinationPickerOpenPayload, +type: 'fs:destinationPickerOpen'|}
 export type DiscardEditPayload = {|+payload: _DiscardEditPayload, +type: 'fs:discardEdit'|}
 export type DismissDownloadPayload = {|+payload: _DismissDownloadPayload, +type: 'fs:dismissDownload'|}
 export type DismissFsErrorPayload = {|+payload: _DismissFsErrorPayload, +type: 'fs:dismissFsError'|}
@@ -279,8 +260,6 @@ export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, 
 export type LoadPathMetadataPayload = {|+payload: _LoadPathMetadataPayload, +type: 'fs:loadPathMetadata'|}
 export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loadingPath'|}
 export type LocalHTTPServerInfoPayload = {|+payload: _LocalHTTPServerInfoPayload, +type: 'fs:localHTTPServerInfo'|}
-export type MimeTypeLoadPayload = {|+payload: _MimeTypeLoadPayload, +type: 'fs:mimeTypeLoad'|}
-export type MimeTypeLoadedPayload = {|+payload: _MimeTypeLoadedPayload, +type: 'fs:mimeTypeLoaded'|}
 export type MovePayload = {|+payload: _MovePayload, +type: 'fs:move'|}
 export type NewFolderNamePayload = {|+payload: _NewFolderNamePayload, +type: 'fs:newFolderName'|}
 export type NewFolderRowPayload = {|+payload: _NewFolderRowPayload, +type: 'fs:newFolderRow'|}
@@ -289,11 +268,8 @@ export type NotifyTlfUpdatePayload = {|+payload: _NotifyTlfUpdatePayload, +type:
 export type OpenAndUploadPayload = {|+payload: _OpenAndUploadPayload, +type: 'fs:openAndUpload'|}
 export type OpenFilesFromWidgetPayload = {|+payload: _OpenFilesFromWidgetPayload, +type: 'fs:openFilesFromWidget'|}
 export type OpenLocalPathInSystemFileManagerPayload = {|+payload: _OpenLocalPathInSystemFileManagerPayload, +type: 'fs:openLocalPathInSystemFileManager'|}
-export type OpenPathInFilesTabPayload = {|+payload: _OpenPathInFilesTabPayload, +type: 'fs:openPathInFilesTab'|}
 export type OpenPathInSystemFileManagerPayload = {|+payload: _OpenPathInSystemFileManagerPayload, +type: 'fs:openPathInSystemFileManager'|}
-export type OpenPathItemPayload = {|+payload: _OpenPathItemPayload, +type: 'fs:openPathItem'|}
 export type OpenSecurityPreferencesPayload = {|+payload: _OpenSecurityPreferencesPayload, +type: 'fs:openSecurityPreferences'|}
-export type PathItemLoadPayload = {|+payload: _PathItemLoadPayload, +type: 'fs:pathItemLoad'|}
 export type PathItemLoadedPayload = {|+payload: _PathItemLoadedPayload, +type: 'fs:pathItemLoaded'|}
 export type PickAndUploadPayload = {|+payload: _PickAndUploadPayload, +type: 'fs:pickAndUpload'|}
 export type PlaceholderActionPayload = {|+payload: _PlaceholderActionPayload, +type: 'fs:placeholderAction'|}
@@ -334,7 +310,6 @@ export type Actions =
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
-  | DestinationPickerOpenPayload
   | DiscardEditPayload
   | DismissDownloadPayload
   | DismissFsErrorPayload
@@ -360,8 +335,6 @@ export type Actions =
   | LoadPathMetadataPayload
   | LoadingPathPayload
   | LocalHTTPServerInfoPayload
-  | MimeTypeLoadPayload
-  | MimeTypeLoadedPayload
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
@@ -370,11 +343,8 @@ export type Actions =
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
   | OpenLocalPathInSystemFileManagerPayload
-  | OpenPathInFilesTabPayload
   | OpenPathInSystemFileManagerPayload
-  | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
-  | PathItemLoadPayload
   | PathItemLoadedPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
