@@ -10,6 +10,9 @@ import type {Props} from './index.types'
 import JumpToRecent from './jump-to-recent'
 
 class ConversationList extends React.PureComponent<Props> {
+  _listRef = React.createRef()
+  _lastCenteredOrdinal = 0
+
   _renderItem = ({index, item}) => {
     if (item === 'specialTop') {
       return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
@@ -85,12 +88,22 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
+  _jumpToRecent = () => {
+    const list = this._listRef.current
+    if (list) {
+      const index = this._getOrdinalIndex(this.props.messageOrdinals.first())
+      if (index >= 0) {
+        list.scrollToIndex({index})
+      }
+    }
+    this.props.onJumpToRecent()
+  }
+
   componentDidUpdate(prevProps: Props) {
-    /*  const list = this._listRef.current
+    const list = this._listRef.current
     if (!list) {
       return
     }
-
     if (
       !!this.props.centeredOrdinal &&
       (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
@@ -102,7 +115,7 @@ class ConversationList extends React.PureComponent<Props> {
         this._lastCenteredOrdinal = this.props.centeredOrdinal
         list.scrollToIndex({index, viewPosition: 0.5})
       }
-    } */
+    }
   }
 
   render() {
@@ -123,9 +136,10 @@ class ConversationList extends React.PureComponent<Props> {
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}
             removeClippedSubviews={true}
+            forwardedRef={this._listRef}
           />
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
-            <JumpToRecent onClick={this.props.onJumpToRecent} style={styles.jumpToRecent} />
+            <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
           )}
         </Box>
       </ErrorBoundary>
