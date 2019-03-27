@@ -40,18 +40,12 @@ const Actions = (p: Props) => {
   const chatButton = (
     <Kb.WaitingButton
       type="Primary"
+      icon="iconfont-chat"
       key="Chat"
       label="Chat"
       waitingKey={Constants.waitingKey}
       onClick={p.onChat}
-    >
-      <Kb.Icon
-        type="iconfont-chat"
-        sizeType="Small"
-        color={Styles.globalColors.white}
-        style={styles.chatIcon}
-      />
-    </Kb.WaitingButton>
+    />
   )
 
   if (p.onEditProfile) {
@@ -151,10 +145,6 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
       />
     </Kb.ClickableBox>
   )
-})
-
-const styles = Styles.styleSheetCreate({
-  chatIcon: {marginRight: Styles.globalMargins.tiny},
 })
 
 export default Actions

@@ -129,7 +129,7 @@ class Button extends React.Component<Props> {
           )}
           {!!this.props.label && (
             <Text
-              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
+              type={this.props.small ? 'BodySmallSemibold' : 'BodySemibold'}
               style={collapseStyles([labelStyle, this.props.labelStyle])}
             >
               {this.props.label}
@@ -154,12 +154,16 @@ const common = platformStyles({
     borderRadius,
     height: regularHeight,
     justifyContent: 'center',
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
   },
   isElectron: {
     display: 'inline-block',
     lineHeight: 'inherit',
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+  },
+  isMobile: {
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
   },
 })
 
@@ -194,8 +198,8 @@ const styles = styleSheetCreate({
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
-  progressNormal: {height: isMobile ? 32 : 24},
-  progressSmall: {height: isMobile ? 28 : 20},
+  progressNormal: {height: isMobile ? 28 : 20},
+  progressSmall: {height: isMobile ? 24 : 16},
   small: {
     borderRadius,
     height: smallHeight,
