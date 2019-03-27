@@ -117,7 +117,11 @@ class Button extends React.Component<Props> {
           {!this.props.waiting && this.props.children}
           {!!this.props.icon && (
             <Icon
-              color={labelStyle.color}
+              color={
+                labelStyle.color === globalColors.black && !!this.props.label
+                  ? globalColors.black_50
+                  : labelStyle.color
+              }
               sizeType={isMobile || !!this.props.label ? 'Small' : 'Default'}
               style={collapseStyles([!!this.props.label && styles.iconWithLabel])}
               type={this.props.icon}
