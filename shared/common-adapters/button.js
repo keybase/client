@@ -1,7 +1,7 @@
 // @flow
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon, {castPlatformStyles} from './icon'
+import Icon, {castPlatformStyles, type IconType} from './icon'
 import * as React from 'react'
 import Text from './text'
 import {
@@ -21,6 +21,7 @@ export type Props = {|
   onClick?: null | ((event: SyntheticEvent<>) => void),
   onMouseEnter?: Function,
   onMouseLeave?: Function,
+  icon?: IconType,
   label?: string,
   style?: StylesCrossPlatform,
   labelContainerStyle?: StylesCrossPlatform,
@@ -77,6 +78,10 @@ class Button extends React.Component<Props> {
       containerStyle = collapseStyles([containerStyle, styles.small])
     }
 
+    if (this.props.icon) {
+      containerStyle = collapseStyles([containerStyle, styles.icon])
+    }
+
     if (this.props.disabled || this.props.waiting) {
       containerStyle = collapseStyles([containerStyle, styles.opacity30])
     }
@@ -118,6 +123,7 @@ class Button extends React.Component<Props> {
               {this.props.label}
             </Text>
           )}
+          {!!this.props.icon && <Icon type={this.props.icon} color={labelStyle.color} />}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
@@ -125,8 +131,8 @@ class Button extends React.Component<Props> {
   }
 }
 
-const smallHeight = isMobile ? 32 : 28
-const regularHeight = isMobile ? 40 : 32
+const smallHeight = isMobile ? 28 : 24
+const regularHeight = isMobile ? 32 : 28
 const fullWidthHeight = isMobile ? 48 : 40
 
 const common = platformStyles({
@@ -160,6 +166,10 @@ const styles = styleSheetCreate({
     flexGrow: 1,
     height: fullWidthHeight,
     width: undefined,
+  },
+  icon: {
+    paddingLeft: globalMargins.xsmall,
+    paddingRight: globalMargins.xsmall,
   },
   labelContainer: {height: '100%', position: 'relative'},
   opacity0: {opacity: 0},

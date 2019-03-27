@@ -115,7 +115,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             hideUnderline={true}
             small={true}
             value={this.props.filter}
-            hintText="Jump to..."
+            hintText="Jump to chat..."
             onChangeText={this.props.onSetFilter}
             onFocus={this._startEditing}
             onBlur={this._stopEditing}
@@ -160,7 +160,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
                 fontSize={Styles.isMobile ? 20 : 16}
               />
               <Kb.Text type="BodySemibold" style={styles.text}>
-                Jump to...
+                Jump to chat...
               </Kb.Text>
               {!Styles.isMobile && !this.props.noShortcut && (
                 <Kb.Text type="BodySemibold" style={styles.textFaint}>
@@ -171,9 +171,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           </Kb.Box2>
           {!!this.props.onNewChat && (
             <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
-              <Kb.Button small={true} type="Primary" onClick={this.props.onNewChat}>
-                <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
-              </Kb.Button>
+              <Kb.Button type="Primary" onClick={this.props.onNewChat} icon="iconfont-compose" />
             </Kb.WithTooltip>
           )}
         </Kb.Box2>

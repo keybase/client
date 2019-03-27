@@ -45,7 +45,12 @@ const Actions = (p: Props) => {
       waitingKey={Constants.waitingKey}
       onClick={p.onChat}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
+      <Kb.Icon
+        type="iconfont-chat"
+        sizeType="Small"
+        color={Styles.globalColors.white}
+        style={styles.chatIcon}
+      />
     </Kb.WaitingButton>
   )
 
@@ -135,15 +140,7 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
 
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
-          <Kb.Icon
-            color={Styles.globalColors.black}
-            fontSize={Styles.isMobile ? 21 : 16}
-            type="iconfont-ellipsis"
-          />
-        </Kb.Button>
-      </Kb.Box2>
+      <Kb.Button onClick={null} type="Secondary" icon="iconfont-ellipsis" />
       <Kb.FloatingMenu
         closeOnSelect={true}
         attachTo={p.getAttachmentRef}
@@ -158,7 +155,6 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
 
 const styles = Styles.styleSheetCreate({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  dropdownButton: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
 })
 
 export default Actions
