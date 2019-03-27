@@ -212,6 +212,7 @@ const (
 	StatusCode_SCNISTBadClock                              StatusCode = 3219
 	StatusCode_SCNISTSigBadCtime                           StatusCode = 3220
 	StatusCode_SCBadSignupUsernameDeleted                  StatusCode = 3221
+	StatusCode_SCNoPaperKeys                               StatusCode = 3301
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -419,6 +420,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNISTBadClock":                              3219,
 	"SCNISTSigBadCtime":                           3220,
 	"SCBadSignupUsernameDeleted":                  3221,
+	"SCNoPaperKeys":                               3301,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -624,6 +626,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3219: "SCNISTBadClock",
 	3220: "SCNISTSigBadCtime",
 	3221: "SCBadSignupUsernameDeleted",
+	3301: "SCNoPaperKeys",
 }
 
 func (e StatusCode) String() string {

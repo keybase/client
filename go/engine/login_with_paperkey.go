@@ -6,7 +6,9 @@
 
 package engine
 
-import "github.com/keybase/client/go/libkb"
+import (
+	"github.com/keybase/client/go/libkb"
+)
 
 // LoginWithPaperKey is an engine.
 type LoginWithPaperKey struct {
