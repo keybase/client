@@ -76,6 +76,36 @@ class ConversationList extends React.PureComponent<Props> {
     minIndexForVisible: 0,
   }
 
+  _getOrdinalIndex = target => {
+    for (let i = 0; i < this.props.messageOrdinals.size; i++) {
+      const ordinal = this.props.messageOrdinals.get(i, 0)
+      if (ordinal === target) {
+        return i
+      }
+    }
+    return -1
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    /*  const list = this._listRef.current
+    if (!list) {
+      return
+    }
+
+    if (
+      !!this.props.centeredOrdinal &&
+      (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
+        this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() ||
+        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last())
+    ) {
+      const index = this._getOrdinalIndex(this.props.centeredOrdinal)
+      if (index >= 0) {
+        this._lastCenteredOrdinal = this.props.centeredOrdinal
+        list.scrollToIndex({index, viewPosition: 0.5})
+      }
+    } */
+  }
+
   render() {
     return (
       <ErrorBoundary>

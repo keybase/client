@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Sb from '../../../stories/storybook'
-import ThreadSearch from './index'
+import {ThreadSearchDesktop as ThreadSearch} from './index'
 
 const base = {
   loadSearchHit: Sb.action('loadSearchHit'),

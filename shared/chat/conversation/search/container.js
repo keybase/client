@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import {isMobile, namedConnect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
-import ThreadSearch from '.'
+import {ThreadSearchDesktop, ThreadSearchMobile} from '.'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -68,4 +68,4 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapDispatchToProps,
   mergeProps,
   'ThreadSearch'
-)(KeyHandler(ThreadSearch))
+)(KeyHandler(isMobile ? ThreadSearchMobile : ThreadSearchDesktop))
