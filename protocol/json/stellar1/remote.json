@@ -144,6 +144,86 @@
       ]
     },
     {
+      "type": "record",
+      "name": "DirectOp",
+      "fields": [
+        {
+          "type": "string",
+          "name": "noteB64"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RelayOp",
+      "fields": [
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "AccountID",
+          "name": "relayAccount"
+        },
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "boxB64"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentOp",
+      "fields": [
+        {
+          "type": [
+            null,
+            "keybase1.UserVersion"
+          ],
+          "name": "to"
+        },
+        {
+          "type": [
+            null,
+            "DirectOp"
+          ],
+          "name": "direct"
+        },
+        {
+          "type": [
+            null,
+            "RelayOp"
+          ],
+          "name": "relay"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentMultiPost",
+      "fields": [
+        {
+          "type": "keybase1.DeviceID",
+          "name": "fromDeviceID"
+        },
+        {
+          "type": "string",
+          "name": "signedTransaction"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentOp"
+          },
+          "name": "operations"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "PaymentSummaryType",
       "symbols": [
@@ -586,6 +666,16 @@
     },
     {
       "type": "record",
+      "name": "SubmitMultiRes",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AutoClaim",
       "fields": [
         {
@@ -915,6 +1005,19 @@
         }
       ],
       "response": "RelayClaimResult"
+    },
+    "submitMultiPayment": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "payment",
+          "type": "PaymentMultiPost"
+        }
+      ],
+      "response": "SubmitMultiRes"
     },
     "acquireAutoClaimLock": {
       "request": [

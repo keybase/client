@@ -659,6 +659,8 @@ protocol local {
     string message;
   }
 
-  BatchResultLocal batchLocal(string batchID, int timeoutSecs, array<BatchPaymentArg> payments);
+  // if useMulti is true, it will create one transaction for all the payments.
+  // if false, it will send them in individual transactions.
+  BatchResultLocal batchLocal(string batchID, int timeoutSecs, array<BatchPaymentArg> payments, boolean useMulti);
 
 }

@@ -1314,6 +1314,7 @@ type BatchLocalArg struct {
 	BatchID     string            `codec:"batchID" json:"batchID"`
 	TimeoutSecs int               `codec:"timeoutSecs" json:"timeoutSecs"`
 	Payments    []BatchPaymentArg `codec:"payments" json:"payments"`
+	UseMulti    bool              `codec:"useMulti" json:"useMulti"`
 }
 
 type LocalInterface interface {
