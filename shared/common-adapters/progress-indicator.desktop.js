@@ -13,12 +13,12 @@ const ProgressIndicator = ({white, style, type}: Props) => (
 
 const styles = Styles.styleSheetCreate({
   large: {
-    height: 32,
-    width: 32,
+    height: Styles.globalMargins.mediumLarge,
+    width: Styles.globalMargins.mediumLarge,
   },
   small: {
-    height: 24,
-    width: 24,
+    height: Styles.globalMargins.medium,
+    width: Styles.globalMargins.medium,
   },
 })
 
