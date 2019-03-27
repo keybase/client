@@ -321,7 +321,9 @@ var _ EphemeralPurger = (*DummyEphemeralPurger)(nil)
 
 func (d DummyEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyEphemeralPurger) Stop(ctx context.Context) chan struct{} {
-	return nil
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }
 func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
 	return nil
@@ -333,7 +335,9 @@ var _ Indexer = (*DummyIndexer)(nil)
 
 func (d DummyIndexer) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
-	return nil
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }
 func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
 	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
@@ -435,7 +439,9 @@ var _ CoinFlipManager = (*DummyCoinFlipManager)(nil)
 
 func (d DummyCoinFlipManager) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
-	return nil
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }
 func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string, outboxID *chat1.OutboxID) error {
 	return nil
