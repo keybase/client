@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
@@ -14,9 +13,12 @@ type Props = {|
   channel: ?string,
   desc: string,
   infoPanelOpen: boolean,
-  onToggleInfoPanel: () => void,
+  muted: boolean,
   onOpenFolder: () => void,
+  onToggleInfoPanel: () => void,
+  onToggleThreadSearch: () => void,
   participants: ?Array<string>,
+  unMuteConversation: () => void,
 |}
 
 const Header = (p: Props) => {
@@ -33,22 +35,34 @@ const Header = (p: Props) => {
         alignSelf="flex-end"
       >
         <Kb.Box2 direction="vertical" style={styles.grow}>
-          {p.channel ? (
-            <Kb.Text type="Header">{p.channel}</Kb.Text>
-          ) : p.participants ? (
-            <Kb.ConnectedUsernames
-              colorFollowing={true}
-              underline={true}
-              inline={false}
-              commaColor={Styles.globalColors.black_50}
-              type="Header"
-              usernames={p.participants}
-              onUsernameClicked="profile"
-              skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
-            />
-          ) : null}
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            {p.channel ? (
+              <Kb.Text type="Header">{p.channel}</Kb.Text>
+            ) : p.participants ? (
+              <Kb.ConnectedUsernames
+                colorFollowing={true}
+                underline={true}
+                inline={false}
+                commaColor={Styles.globalColors.black_50}
+                type="Header"
+                usernames={p.participants}
+                onUsernameClicked="profile"
+                skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
+              />
+            ) : null}
+            {p.muted && (
+              <Kb.Icon
+                type="iconfont-shh"
+                style={styles.shhIconStyle}
+                color={styles.shhIconColor}
+                fontSize={styles.shhIconFontSize}
+                onClick={p.unMuteConversation}
+              />
+            )}
+          </Kb.Box2>
           {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
         </Kb.Box2>
+        <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
         <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
         <Kb.Icon type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'} onClick={p.onToggleInfoPanel} />
       </Kb.Box2>
@@ -70,6 +84,11 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
+  shhIconColor: Styles.globalColors.black_20,
+  shhIconFontSize: 20,
+  shhIconStyle: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
 })
 
 const mapStateToProps = state => {
@@ -82,10 +101,15 @@ const mapStateToProps = state => {
     infoPanelOpen: Constants.isInfoPanelOpen(state),
   }
 }
+
 const mapDispatchToProps = dispatch => ({
   _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
+  onToggleThreadSearch: conversationIDKey => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
+  onUnMuteConversation: conversationIDKey =>
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
 })
+
 const mergeProps = (stateProps, dispatchProps) => {
   const meta = stateProps._meta
   return {
@@ -97,9 +121,12 @@ const mergeProps = (stateProps, dispatchProps) => {
         : null,
     desc: meta.description,
     infoPanelOpen: false, // not really needed stateProps.infoPanelOpen,
+    muted: meta.isMuted,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+    onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
     participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
+    unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
   }
 }
 
