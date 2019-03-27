@@ -1,12 +1,29 @@
 // @flow
 
 import * as React from 'react'
+import * as Types from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {formatTimeForMessages} from '../../../util/timestamp'
-import type {Props} from './index.types'
+import {teamsTeamGetSubteamsRpcPromise} from '../../../constants/types/rpc-gen'
 
 const hitHeight = 30
+const arrowSize = Styles.isMobile ? 20 : 16
+
+type SearchHit = {|
+  author: string,
+  summary: string,
+  timestamp: number,
+|}
+export type Props = {
+  hits: Array<SearchHit>,
+  loadSearchHit: number => void,
+  onCancel: () => void,
+  onSearch: string => void,
+  selfHide: () => void,
+  status: Types.ThreadSearchStatus,
+  style?: Styles.StylesCrossPlatform,
+}
 
 type State = {|
   selectedIndex: number,
@@ -121,10 +138,14 @@ class ThreadSearch extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={this.props.style}>
-        <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
-          <Kb.Box2 direction="horizontal" style={styles.inputContainer} fullWidth={true}>
-            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
+      <Kb.Box2
+        direction={Styles.isMobile ? 'horizontal' : 'vertical'}
+        fullWidth={!Styles.isMobile}
+        style={this.props.style}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={!Styles.isMobile} gap="tiny">
+          <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
+            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
               <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />
               <Kb.PlainInput
                 autoFocus={true}
@@ -133,6 +154,7 @@ class ThreadSearch extends React.Component<Props, State> {
                 onEnterKeyDown={this._onEnter}
                 onKeyDown={this._onKeydown}
                 placeholder="Search..."
+                returnKeyType="search"
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
@@ -146,13 +168,13 @@ class ThreadSearch extends React.Component<Props, State> {
                   </Kb.Text>
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
-                    fontSize={16}
+                    fontSize={arrowSize}
                     onClick={this._onUp}
                     type="iconfont-arrow-up"
                   />
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
-                    fontSize={16}
+                    fontSize={arrowSize}
                     onClick={this._onDown}
                     type="iconfont-arrow-down"
                   />
@@ -160,15 +182,24 @@ class ThreadSearch extends React.Component<Props, State> {
               )}
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Button
-            type="Primary"
-            disabled={this._inProgress()}
-            onClick={this._submitSearch}
-            label="Search"
-          />
-          <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
+          {!Styles.isMobile && (
+            <Kb.Button
+              type="Primary"
+              disabled={this._inProgress()}
+              onClick={this._submitSearch}
+              label="Search"
+            />
+          )}
+          {!Styles.isMobile && <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />}
+          {Styles.isMobile && (
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
+              <Kb.Text type="BodySemibold" onClick={this.props.onCancel}>
+                Done
+              </Kb.Text>
+            </Kb.Box2>
+          )}
         </Kb.Box2>
-        {this.props.hits.length > 0 && (
+        {!Styles.isMobile && this.props.hits.length > 0 && (
           <Kb.List2
             indexAsKey={true}
             items={this.props.hits}
@@ -183,6 +214,9 @@ class ThreadSearch extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  doneContainer: {
+    flexShrink: 0,
+  },
   hitList: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.blue5,
@@ -214,6 +248,7 @@ const styles = Styles.styleSheetCreate({
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
+    flex: 1,
     justifyContent: 'space-between',
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
@@ -222,10 +257,14 @@ const styles = Styles.styleSheetCreate({
   },
   outerContainer: {
     backgroundColor: Styles.globalColors.blue5,
+    justifyContent: 'space-between',
     padding: Styles.globalMargins.tiny,
   },
   progress: {
     height: 14,
+  },
+  queryContainer: {
+    flex: 1,
   },
   results: {
     color: Styles.globalColors.black_40,

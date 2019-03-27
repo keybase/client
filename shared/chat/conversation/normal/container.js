@@ -23,11 +23,13 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
+  const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   return {
     conversationIDKey,
     isPending,
     isSearching,
     showLoader,
+    showThreadSearch,
     threadLoadedOffline: meta.offline,
   }
 }
@@ -76,6 +78,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     showLoader: stateProps.showLoader,
+    showThreadSearch: stateProps.showThreadSearch,
     threadLoadedOffline: stateProps.threadLoadedOffline,
   }
 }

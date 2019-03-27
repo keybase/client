@@ -4,9 +4,11 @@ import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
-import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
+import {Box, Box2, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
+import JumpToRecent from './jump-to-recent'
+import ThreadSearch from '../../search/container'
 
 class ConversationList extends React.PureComponent<Props> {
   _renderItem = ({index, item}) => {
@@ -93,6 +95,12 @@ class ConversationList extends React.PureComponent<Props> {
             windowSize={5}
             removeClippedSubviews={true}
           />
+          <Box2 direction="vertical" gap="xtiny" style={styles.threadSearch}>
+            {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
+              <JumpToRecent onClick={this.props.onJumpToRecent} />
+            )}
+            {this.props.showThreadSearch && <ThreadSearch conversationIDKey={this.props.conversationIDKey} />}
+          </Box2>
         </Box>
       </ErrorBoundary>
     )
@@ -102,9 +110,15 @@ class ConversationList extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate({
   container: {
     flex: 1,
+    position: 'relative',
   },
   contentContainer: {
     bottom: -mobileTypingContainerHeight,
+  },
+
+  threadSearch: {
+    bottom: 0,
+    position: 'absolute',
   },
 })
 
