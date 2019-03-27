@@ -236,6 +236,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	}
 	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(world.Fc)
+	g.CtxFactory = NewCtxFactory(g)
 	g.ConvSource = NewHybridConversationSource(g, boxer, chatStorage, getRI)
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.InboxSource = NewHybridInboxSource(g, getRI)
@@ -284,7 +285,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	searcher.SetPageSize(2)
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
-	ictx := IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
+	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer

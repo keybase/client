@@ -1,19 +1,14 @@
-package chat
+package globals
 
 import (
 	"context"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
-
-type appTypeSource interface {
-	GetAppType() libkb.AppType
-}
 
 type keyfinderKey int
 type identifyNotifierKey int
@@ -22,6 +17,7 @@ type identifyModeKey int
 type upakfinderKey int
 type rateLimitKey int
 type nameInfoOverride int
+type localizerCancelableKeyTyp int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -30,21 +26,34 @@ var identModeKey identifyModeKey
 var upKey upakfinderKey
 var rlKey rateLimitKey
 var nameInfoOverrideKey nameInfoOverride
+var localizerCancelableKey localizerCancelableKeyTyp
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
 	breaks *[]keybase1.TLFIdentifyFailure
 }
 
-func IdentifyModeCtx(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
-	breaks *[]keybase1.TLFIdentifyFailure) context.Context {
-	if mode == keybase1.TLFIdentifyBehavior_UNSET {
-		mode = keybase1.TLFIdentifyBehavior_CHAT_CLI
+func CtxKeyFinder(ctx context.Context, g *Context) types.KeyFinder {
+	var kf types.KeyFinder
+	var ok bool
+	val := ctx.Value(kfKey)
+	if kf, ok = val.(types.KeyFinder); ok {
+		return kf
 	}
-	return context.WithValue(ctx, identModeKey, identModeData{mode: mode, breaks: breaks})
+	return g.CtxFactory.NewKeyFinder()
 }
 
-func IdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks *[]keybase1.TLFIdentifyFailure, ok bool) {
+func CtxUPAKFinder(ctx context.Context, g *Context) types.UPAKFinder {
+	var up types.UPAKFinder
+	var ok bool
+	val := ctx.Value(upKey)
+	if up, ok = val.(types.UPAKFinder); ok {
+		return up
+	}
+	return g.CtxFactory.NewUPAKFinder()
+}
+
+func CtxIdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks *[]keybase1.TLFIdentifyFailure, ok bool) {
 	var imd identModeData
 	val := ctx.Value(identModeKey)
 	if imd, ok = val.(identModeData); ok {
@@ -53,14 +62,12 @@ func IdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks 
 	return keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, false
 }
 
-func CtxKeyFinder(ctx context.Context, g *globals.Context) KeyFinder {
-	var kf KeyFinder
-	var ok bool
-	val := ctx.Value(kfKey)
-	if kf, ok = val.(KeyFinder); ok {
-		return kf
+func CtxAddIdentifyMode(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
+	breaks *[]keybase1.TLFIdentifyFailure) context.Context {
+	if mode == keybase1.TLFIdentifyBehavior_UNSET {
+		mode = keybase1.TLFIdentifyBehavior_CHAT_CLI
 	}
-	return NewKeyFinder(g)
+	return context.WithValue(ctx, identModeKey, identModeData{mode: mode, breaks: breaks})
 }
 
 func CtxIdentifyNotifier(ctx context.Context) types.IdentifyNotifier {
@@ -73,14 +80,8 @@ func CtxIdentifyNotifier(ctx context.Context) types.IdentifyNotifier {
 	return nil
 }
 
-func CtxUPAKFinder(ctx context.Context, g *globals.Context) types.UPAKFinder {
-	var up types.UPAKFinder
-	var ok bool
-	val := ctx.Value(upKey)
-	if up, ok = val.(types.UPAKFinder); ok {
-		return up
-	}
-	return NewCachingUPAKFinder(g)
+func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotifier) context.Context {
+	return context.WithValue(ctx, inKey, notifier)
 }
 
 func CtxAddRateLimit(ctx context.Context, rl []chat1.RateLimit) {
@@ -102,8 +103,16 @@ func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
 	return res
 }
 
-func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotifier) context.Context {
-	return context.WithValue(ctx, inKey, notifier)
+func CtxOverrideNameInfoSource(ctx context.Context) (types.NameInfoSource, bool) {
+	val := ctx.Value(nameInfoOverrideKey)
+	if ni, ok := val.(types.NameInfoSource); ok {
+		return ni, true
+	}
+	return nil, false
+}
+
+func CtxAddOverrideNameInfoSource(ctx context.Context, ni types.NameInfoSource) context.Context {
+	return context.WithValue(ctx, nameInfoOverrideKey, ni)
 }
 
 func CtxTrace(ctx context.Context) (string, bool) {
@@ -116,19 +125,7 @@ func CtxTrace(ctx context.Context) (string, bool) {
 	return "", false
 }
 
-func CtxTestingNameInfoSource(ctx context.Context) (types.NameInfoSource, bool) {
-	val := ctx.Value(nameInfoOverrideKey)
-	if ni, ok := val.(types.NameInfoSource); ok {
-		return ni, true
-	}
-	return nil, false
-}
-
-func CtxAddTestingNameInfoSource(ctx context.Context, ni types.NameInfoSource) context.Context {
-	return context.WithValue(ctx, nameInfoOverrideKey, ni)
-}
-
-func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
+func CtxAddLogTags(ctx context.Context, g *Context) context.Context {
 
 	// Add trace context value
 	trace := libkb.RandStringB64(3)
@@ -140,25 +137,36 @@ func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 	rpcTags := make(map[string]interface{})
 	rpcTags["user-agent"] = libkb.UserAgent
 	rpcTags["platform"] = libkb.GetPlatformString()
-	rpcTags["apptype"] = env.GetAppType()
+	rpcTags["apptype"] = g.GetAppType()
 	ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
 
 	return ctx
 }
 
-func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyBehavior,
+func IsLocalizerCancelableCtx(ctx context.Context) bool {
+	val := ctx.Value(localizerCancelableKey)
+	if _, ok := val.(bool); ok {
+		return true
+	}
+	return false
+}
+
+func CtxAddLocalizerCancelable(ctx context.Context) context.Context {
+	return context.WithValue(ctx, localizerCancelableKey, true)
+}
+
+func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier types.IdentifyNotifier) context.Context {
 	if breaks == nil {
 		breaks = new([]keybase1.TLFIdentifyFailure)
 	}
 	res := ctx
-	_, _, ok := IdentifyMode(res)
-	if !ok {
-		res = IdentifyModeCtx(res, mode, breaks)
+	if _, _, ok := CtxIdentifyMode(res); !ok {
+		res = CtxAddIdentifyMode(res, mode, breaks)
 	}
 	val := res.Value(kfKey)
-	if _, ok := val.(KeyFinder); !ok {
-		res = context.WithValue(res, kfKey, NewKeyFinder(g))
+	if _, ok := val.(types.KeyFinder); !ok {
+		res = context.WithValue(res, kfKey, g.CtxFactory.NewKeyFinder())
 	}
 	val = res.Value(inKey)
 	if _, ok := val.(types.IdentifyNotifier); !ok {
@@ -166,25 +174,25 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 	}
 	val = res.Value(upKey)
 	if _, ok := val.(types.UPAKFinder); !ok {
-		res = context.WithValue(res, upKey, NewCachingUPAKFinder(g))
+		res = context.WithValue(res, upKey, g.CtxFactory.NewUPAKFinder())
 	}
 	val = res.Value(rlKey)
 	if _, ok := val.(map[string]chat1.RateLimit); !ok {
 		res = context.WithValue(res, rlKey, make(map[string]chat1.RateLimit))
 	}
-	if _, ok = CtxTrace(res); !ok {
-		res = CtxAddLogTags(res, g.GetEnv())
+	if _, ok := CtxTrace(res); !ok {
+		res = CtxAddLogTags(res, g)
 	}
 	return res
 }
 
-func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Context {
+func BackgroundChatCtx(sourceCtx context.Context, g *Context) context.Context {
 
 	rctx := libkb.CopyTagsToBackground(sourceCtx)
 
 	in := CtxIdentifyNotifier(sourceCtx)
-	if ident, breaks, ok := IdentifyMode(sourceCtx); ok {
-		rctx = Context(rctx, g, ident, breaks, in)
+	if ident, breaks, ok := CtxIdentifyMode(sourceCtx); ok {
+		rctx = ChatCtx(rctx, g, ident, breaks, in)
 	}
 
 	// Overwrite trace tag
@@ -192,15 +200,14 @@ func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Co
 		rctx = context.WithValue(rctx, chatTraceKey, tr)
 	}
 
-	if ni, ok := CtxTestingNameInfoSource(sourceCtx); ok {
-		rctx = CtxAddTestingNameInfoSource(rctx, ni)
+	if ni, ok := CtxOverrideNameInfoSource(sourceCtx); ok {
+		rctx = CtxAddOverrideNameInfoSource(rctx, ni)
 	}
-
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, upKey, CtxUPAKFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, inKey, in)
-	if isLocalizerCancelableContext(sourceCtx) {
-		rctx = makeLocalizerCancelableContext(rctx)
+	if IsLocalizerCancelableCtx(sourceCtx) {
+		rctx = CtxAddLocalizerCancelable(rctx)
 	}
 	return rctx
 }
