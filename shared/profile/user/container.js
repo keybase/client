@@ -3,15 +3,16 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Kb from '../../common-adapters'
 import Profile2 from '.'
 import {memoize} from '../../util/memoize'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
-import {PeoplePageSearchBar} from '../../people/index.shared'
+import ProfileSearch from '../search/bar'
 
 type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()
@@ -59,11 +60,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       dispatch(Tracker2Gen.createGetProofSuggestions())
     }
   },
-  onAddIdentity: () => {}, // TODO
+  onAddIdentity: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']})),
   onBack: () => dispatch(ownProps.navigateUp()),
   onSearch: () => {
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'search'}]}))
   },
 })
 
@@ -92,24 +92,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showOtherIdentities: stateProps.userIsYou, // TODO: gate on available providers
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
-    ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
+    ? stateProps._suggestionKeys
+        .filter(s => !s.belowFold)
+        .map(s => s.assertionKey)
+        .toArray()
     : null,
   userIsYou: stateProps.userIsYou,
   username: stateProps.username,
   ...followToArray(stateProps.followers, stateProps.following),
 })
-
-const ConnectedHeader = Container.connect<{}, _, _, _, _>(
-  () => ({}),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSearch: () => {
-      dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'search'}]}))
-    },
-  }),
-  (s, d, o) => ({...o, ...s, ...d})
-)(PeoplePageSearchBar)
 
 const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
@@ -118,10 +109,24 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   'Profile2'
 )(Profile2)
 
+const Header = ({onSearch}) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <ProfileSearch onSearch={onSearch} />
+  </Kb.Box2>
+)
+const ConnectedHeader = Container.connect<{||}, _, _, _, _>(
+  () => ({}),
+  dispatch => ({
+    onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)(Header)
+
 // $FlowIssue lets fix this
 connected.navigationOptions = {
   header: undefined,
-  headerTitle: hp => <ConnectedHeader />,
+  headerHideBorder: true,
+  headerTitle: ConnectedHeader,
   headerTitleContainerStyle: {
     left: 60,
     right: 20,

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import DesktopStyle from '../common-adapters/desktop-style'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
@@ -12,11 +13,10 @@ export type Props = {
   onRemove: () => void,
 }
 
-const KeybaseUserBubble = (props: Props) => (
-  <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
-    <Kb.Avatar size={bubbleSize} username={props.username} />
-  </Kb.Box2>
-)
+const bubbleSize = 32
+const removeSize = 16
+
+const KeybaseUserBubbleMobile = (props: Props) => <Kb.Avatar size={bubbleSize} username={props.username} />
 
 const GeneralServiceBubble = (props: Props) => (
   <Kb.Icon
@@ -27,13 +27,40 @@ const GeneralServiceBubble = (props: Props) => (
   />
 )
 
+const DesktopBubble = (props: Props) => {
+  const realCSS = `
+    .hoverContainer { position: relative; }
+    .hoverContainer .hoverComponent { visibility: hidden; position: absolute; top: 0; right: 0; }
+    .hoverContainer:hover .hoverComponent { visibility: visible; }
+    `
+  return (
+    <Kb.Box2 direction="vertical" className="hoverContainer">
+      <DesktopStyle style={realCSS} />
+      <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
+        <Kb.ConnectedNameWithIcon
+          colorFollowing={true}
+          hideFollowingOverlay={true}
+          horizontal={false}
+          icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
+          iconBoxStyle={props.service !== 'keybase' ? styles.iconBox : undefined}
+          size="smaller"
+          username={props.username}
+        />
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" className="hoverComponent">
+        <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
 const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
   <Kb.WithTooltip text={prettyName} position={'top center'} containerStyle={styles.remove} className="remove">
     <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignCenter}>
       <Kb.Icon
         type={'iconfont-close'}
-        color={Styles.globalColors.white}
-        fontSize={16}
+        color={Styles.isMobile ? Styles.globalColors.white : Styles.globalColors.black_50_on_white}
+        fontSize={12}
         style={Kb.iconCastPlatformStyles(styles.removeIcon)}
       />
     </Kb.ClickableBox>
@@ -86,25 +113,26 @@ function SwapOnClickHoc<A>(
 
 const UserBubble = (props: Props) => {
   const NormalComponent = () =>
-    props.service === 'keybase' ? <KeybaseUserBubble {...props} /> : <GeneralServiceBubble {...props} />
+    props.service === 'keybase' ? <KeybaseUserBubbleMobile {...props} /> : <GeneralServiceBubble {...props} />
   const AlternateComponent = () => <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
-  const Component = Styles.isMobile
-    ? SwapOnClickHoc(NormalComponent, AlternateComponent)
-    : Kb.HoverHoc(NormalComponent, AlternateComponent)
+  const Component = SwapOnClickHoc(NormalComponent, AlternateComponent)
 
-  return <Component containerStyle={styles.container} />
+  return Styles.isMobile ? <Component containerStyle={styles.container} /> : <DesktopBubble {...props} />
 }
-
-const bubbleSize = 32
 
 const styles = Styles.styleSheetCreate({
   bubble: Styles.platformStyles({
-    common: {
+    common: {},
+    isElectron: {
+      flexShrink: 1,
+      marginLeft: Styles.globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
       height: bubbleSize,
       width: bubbleSize,
     },
   }),
-
   container: Styles.platformStyles({
     common: {
       marginBottom: Styles.globalMargins.xtiny,
@@ -112,27 +140,39 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
-
   generalService: Styles.platformStyles({
     isElectron: {
       lineHeight: '35px',
     },
   }),
-
+  // TODO: the service icons are too high without this - are they right?
+  iconBox: Styles.platformStyles({
+    isElectron: {
+      marginBottom: -3,
+      marginTop: 3,
+    },
+  }),
   remove: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.red,
       borderRadius: 100,
-      height: bubbleSize,
-      width: bubbleSize,
+      height: removeSize,
+      width: removeSize,
     },
     isElectron: {
+      backgroundColor: Styles.globalColors.white,
       cursor: 'pointer',
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.red,
+      height: bubbleSize,
+      width: bubbleSize,
     },
   }),
 
   removeBubbleTextAlignCenter: Styles.platformStyles({
     isElectron: {
+      margin: 'auto',
       textAlign: 'center',
     },
     isMobile: {
@@ -143,7 +183,7 @@ const styles = Styles.styleSheetCreate({
 
   removeIcon: Styles.platformStyles({
     isElectron: {
-      lineHeight: '34px',
+      lineHeight: '16px',
     },
     isMobile: {
       lineHeight: 34,

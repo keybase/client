@@ -16,14 +16,14 @@ export const cancelAddProof = 'profile:cancelAddProof'
 export const cancelPgpGen = 'profile:cancelPgpGen'
 export const checkProof = 'profile:checkProof'
 export const cleanupUsername = 'profile:cleanupUsername'
-export const dropPgp = 'profile:dropPgp'
+export const clearPlatformGeneric = 'profile:clearPlatformGeneric'
 export const editAvatar = 'profile:editAvatar'
 export const editProfile = 'profile:editProfile'
 export const finishRevoking = 'profile:finishRevoking'
 export const finishedWithKeyGen = 'profile:finishedWithKeyGen'
 export const generatePgp = 'profile:generatePgp'
 export const onClickAvatar = 'profile:onClickAvatar'
-export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
+export const proofParamsReceived = 'profile:proofParamsReceived'
 export const recheckProof = 'profile:recheckProof'
 export const revokeFinish = 'profile:revokeFinish'
 export const showUserProfile = 'profile:showUserProfile'
@@ -35,6 +35,8 @@ export const updateErrorText = 'profile:updateErrorText'
 export const updatePgpInfo = 'profile:updatePgpInfo'
 export const updatePgpPublicKey = 'profile:updatePgpPublicKey'
 export const updatePlatform = 'profile:updatePlatform'
+export const updatePlatformGenericChecking = 'profile:updatePlatformGenericChecking'
+export const updatePlatformGenericURL = 'profile:updatePlatformGenericURL'
 export const updateProofStatus = 'profile:updateProofStatus'
 export const updateProofText = 'profile:updateProofText'
 export const updateSigID = 'profile:updateSigID'
@@ -42,20 +44,20 @@ export const updateUsername = 'profile:updateUsername'
 export const uploadAvatar = 'profile:uploadAvatar'
 
 // Payload Types
-type _AddProofPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
+type _AddProofPayload = $ReadOnly<{|platform: string|}>
 type _BackToProfilePayload = void
 type _CancelAddProofPayload = void
 type _CancelPgpGenPayload = void
 type _CheckProofPayload = void
 type _CleanupUsernamePayload = void
-type _DropPgpPayload = $ReadOnly<{|kid: RPCTypes.KID|}>
+type _ClearPlatformGenericPayload = void
 type _EditAvatarPayload = void
 type _EditProfilePayload = $ReadOnly<{|bio: string, fullname: string, location: string|}>
 type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = $ReadOnly<{|shouldStoreKeyOnServer: boolean|}>
 type _GeneratePgpPayload = void
 type _OnClickAvatarPayload = $ReadOnly<{|username: string, openWebsite?: ?boolean|}>
-type _OutputInstructionsActionLinkPayload = void
+type _ProofParamsReceivedPayload = $ReadOnly<{|params: Types.ProveGenericParams|}>
 type _RecheckProofPayload = $ReadOnly<{|sigID: string|}>
 type _RevokeFinishPayload = void
 type _RevokeFinishPayloadError = $ReadOnly<{|error: string|}>
@@ -67,6 +69,8 @@ type _SubmitZcashAddressPayload = void
 type _UpdateErrorTextPayload = $ReadOnly<{|errorText: string, errorCode: ?number|}>
 type _UpdatePgpInfoPayload = $ReadOnly<{|pgpEmail1?: string, pgpEmail2?: string, pgpEmail3?: string, pgpErrorText?: string, pgpFullName?: string|}>
 type _UpdatePgpPublicKeyPayload = $ReadOnly<{|publicKey: string|}>
+type _UpdatePlatformGenericCheckingPayload = $ReadOnly<{|checking: boolean|}>
+type _UpdatePlatformGenericURLPayload = $ReadOnly<{|url: string|}>
 type _UpdatePlatformPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
 type _UpdateProofStatusPayload = $ReadOnly<{|found: boolean, status: RPCTypes.ProofStatus|}>
 type _UpdateProofTextPayload = $ReadOnly<{|proof: string|}>
@@ -85,14 +89,14 @@ export const createCancelAddProof = (payload: _CancelAddProofPayload) => ({paylo
 export const createCancelPgpGen = (payload: _CancelPgpGenPayload) => ({payload, type: cancelPgpGen})
 export const createCheckProof = (payload: _CheckProofPayload) => ({payload, type: checkProof})
 export const createCleanupUsername = (payload: _CleanupUsernamePayload) => ({payload, type: cleanupUsername})
-export const createDropPgp = (payload: _DropPgpPayload) => ({payload, type: dropPgp})
+export const createClearPlatformGeneric = (payload: _ClearPlatformGenericPayload) => ({payload, type: clearPlatformGeneric})
 export const createEditAvatar = (payload: _EditAvatarPayload) => ({payload, type: editAvatar})
 export const createEditProfile = (payload: _EditProfilePayload) => ({payload, type: editProfile})
 export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({payload, type: finishRevoking})
 export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({payload, type: finishedWithKeyGen})
 export const createGeneratePgp = (payload: _GeneratePgpPayload) => ({payload, type: generatePgp})
 export const createOnClickAvatar = (payload: _OnClickAvatarPayload) => ({payload, type: onClickAvatar})
-export const createOutputInstructionsActionLink = (payload: _OutputInstructionsActionLinkPayload) => ({payload, type: outputInstructionsActionLink})
+export const createProofParamsReceived = (payload: _ProofParamsReceivedPayload) => ({payload, type: proofParamsReceived})
 export const createRecheckProof = (payload: _RecheckProofPayload) => ({payload, type: recheckProof})
 export const createRevokeFinish = (payload: _RevokeFinishPayload) => ({payload, type: revokeFinish})
 export const createRevokeFinishError = (payload: _RevokeFinishPayloadError) => ({error: true, payload, type: revokeFinish})
@@ -104,6 +108,8 @@ export const createSubmitZcashAddress = (payload: _SubmitZcashAddressPayload) =>
 export const createUpdateErrorText = (payload: _UpdateErrorTextPayload) => ({payload, type: updateErrorText})
 export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload) => ({payload, type: updatePgpPublicKey})
 export const createUpdatePlatform = (payload: _UpdatePlatformPayload) => ({payload, type: updatePlatform})
+export const createUpdatePlatformGenericChecking = (payload: _UpdatePlatformGenericCheckingPayload) => ({payload, type: updatePlatformGenericChecking})
+export const createUpdatePlatformGenericURL = (payload: _UpdatePlatformGenericURLPayload) => ({payload, type: updatePlatformGenericURL})
 export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => ({payload, type: updateProofStatus})
 export const createUpdateProofText = (payload: _UpdateProofTextPayload) => ({payload, type: updateProofText})
 export const createUpdateSigID = (payload: _UpdateSigIDPayload) => ({payload, type: updateSigID})
@@ -117,14 +123,14 @@ export type CancelAddProofPayload = {|+payload: _CancelAddProofPayload, +type: '
 export type CancelPgpGenPayload = {|+payload: _CancelPgpGenPayload, +type: 'profile:cancelPgpGen'|}
 export type CheckProofPayload = {|+payload: _CheckProofPayload, +type: 'profile:checkProof'|}
 export type CleanupUsernamePayload = {|+payload: _CleanupUsernamePayload, +type: 'profile:cleanupUsername'|}
-export type DropPgpPayload = {|+payload: _DropPgpPayload, +type: 'profile:dropPgp'|}
+export type ClearPlatformGenericPayload = {|+payload: _ClearPlatformGenericPayload, +type: 'profile:clearPlatformGeneric'|}
 export type EditAvatarPayload = {|+payload: _EditAvatarPayload, +type: 'profile:editAvatar'|}
 export type EditProfilePayload = {|+payload: _EditProfilePayload, +type: 'profile:editProfile'|}
 export type FinishRevokingPayload = {|+payload: _FinishRevokingPayload, +type: 'profile:finishRevoking'|}
 export type FinishedWithKeyGenPayload = {|+payload: _FinishedWithKeyGenPayload, +type: 'profile:finishedWithKeyGen'|}
 export type GeneratePgpPayload = {|+payload: _GeneratePgpPayload, +type: 'profile:generatePgp'|}
 export type OnClickAvatarPayload = {|+payload: _OnClickAvatarPayload, +type: 'profile:onClickAvatar'|}
-export type OutputInstructionsActionLinkPayload = {|+payload: _OutputInstructionsActionLinkPayload, +type: 'profile:outputInstructionsActionLink'|}
+export type ProofParamsReceivedPayload = {|+payload: _ProofParamsReceivedPayload, +type: 'profile:proofParamsReceived'|}
 export type RecheckProofPayload = {|+payload: _RecheckProofPayload, +type: 'profile:recheckProof'|}
 export type RevokeFinishPayload = {|+payload: _RevokeFinishPayload, +type: 'profile:revokeFinish'|}
 export type RevokeFinishPayloadError = {|+error: true, +payload: _RevokeFinishPayloadError, +type: 'profile:revokeFinish'|}
@@ -136,6 +142,8 @@ export type SubmitZcashAddressPayload = {|+payload: _SubmitZcashAddressPayload, 
 export type UpdateErrorTextPayload = {|+payload: _UpdateErrorTextPayload, +type: 'profile:updateErrorText'|}
 export type UpdatePgpInfoPayload = {|+payload: _UpdatePgpInfoPayload, +type: 'profile:updatePgpInfo'|}
 export type UpdatePgpPublicKeyPayload = {|+payload: _UpdatePgpPublicKeyPayload, +type: 'profile:updatePgpPublicKey'|}
+export type UpdatePlatformGenericCheckingPayload = {|+payload: _UpdatePlatformGenericCheckingPayload, +type: 'profile:updatePlatformGenericChecking'|}
+export type UpdatePlatformGenericURLPayload = {|+payload: _UpdatePlatformGenericURLPayload, +type: 'profile:updatePlatformGenericURL'|}
 export type UpdatePlatformPayload = {|+payload: _UpdatePlatformPayload, +type: 'profile:updatePlatform'|}
 export type UpdateProofStatusPayload = {|+payload: _UpdateProofStatusPayload, +type: 'profile:updateProofStatus'|}
 export type UpdateProofTextPayload = {|+payload: _UpdateProofTextPayload, +type: 'profile:updateProofText'|}
@@ -152,14 +160,14 @@ export type Actions =
   | CancelPgpGenPayload
   | CheckProofPayload
   | CleanupUsernamePayload
-  | DropPgpPayload
+  | ClearPlatformGenericPayload
   | EditAvatarPayload
   | EditProfilePayload
   | FinishRevokingPayload
   | FinishedWithKeyGenPayload
   | GeneratePgpPayload
   | OnClickAvatarPayload
-  | OutputInstructionsActionLinkPayload
+  | ProofParamsReceivedPayload
   | RecheckProofPayload
   | RevokeFinishPayload
   | RevokeFinishPayloadError
@@ -171,6 +179,8 @@ export type Actions =
   | UpdateErrorTextPayload
   | UpdatePgpInfoPayload
   | UpdatePgpPublicKeyPayload
+  | UpdatePlatformGenericCheckingPayload
+  | UpdatePlatformGenericURLPayload
   | UpdatePlatformPayload
   | UpdateProofStatusPayload
   | UpdateProofTextPayload

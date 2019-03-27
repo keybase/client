@@ -24,40 +24,40 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
   onClickLink: () => dispatch(FsGen.createShowSendLinkToChat({path, routePath})),
 })
 
-const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(
-  props =>
-    Constants.canSendLinkToChat(Constants.parsePath(props.path)) && (
-      <>
-        <Kb.WithTooltip text="Send link to chat">
-          <Kb.Icon
-            type="iconfont-open-browser"
-            onClick={props.onClick}
-            color={Styles.globalColors.black_50}
-            hoverColor={Styles.globalColors.black}
-            style={Kb.iconCastPlatformStyles(styles.icon)}
-          />
-        </Kb.WithTooltip>
+const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
+  const parsedPath = Constants.parsePath(props.path)
+  const link = Constants.canSendLinkToChat(parsedPath)
+  const attachment = flags.sendAttachmentToChat && props.isFile
+  if (!link && !attachment) {
+    return null
+  }
+  return (
+    <>
+      <Kb.WithTooltip text="Send to chat">
+        <Kb.Icon
+          type="iconfont-open-browser"
+          onClick={props.toggleShowingMenu}
+          color={Styles.globalColors.black_50}
+          hoverColor={Styles.globalColors.black}
+          padding="tiny"
+          ref={props.setAttachmentRef}
+        />
+      </Kb.WithTooltip>
+      {props.showingMenu && (
         <Kb.FloatingMenu
           closeOnSelect={true}
           attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
-          position="bottom left"
+          position="bottom right"
           items={[
-            {onClick: props.onClickLink, title: 'Send link to chat'},
-            ...(flags.sendAttachmentToChat && Types.getPathLevel(props.path) > 3 && props.isFile
-              ? [{onClick: props.onClickAttachment, title: 'Send attachment to chat'}]
-              : []),
+            ...(link ? [{onClick: props.onClickLink, title: 'Send link to chat'}] : []),
+            ...(attachment ? [{onClick: props.onClickAttachment, title: 'Send attachment to chat'}] : []),
           ]}
         />
-      </>
-    )
-)
-
-const styles = Styles.styleSheetCreate({
-  icon: {
-    padding: Styles.globalMargins.tiny,
-  },
+      )}
+    </>
+  )
 })
 
 export default (!isMobile

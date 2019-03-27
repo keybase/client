@@ -1,6 +1,7 @@
 // @flow
 import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
+import * as More from '../constants/types/more'
 import * as Constants from '../constants/profile'
 import * as Flow from '../util/flow'
 import * as Validators from '../util/simple-validators'
@@ -72,15 +73,41 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       })
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
-    case ProfileGen.addProof:
+    case ProfileGen.addProof: {
+      const platform = action.payload.platform
+      const maybeNotGeneric = More.isPlatformsExpandedType(platform)
       return updateUsername(
         state.merge({
           errorCode: null,
           errorText: '',
-          platform: action.payload.platform,
+          platform: maybeNotGeneric,
+          platformGeneric: maybeNotGeneric ? null : platform,
         })
       )
+    }
+    case ProfileGen.proofParamsReceived:
+      return state.merge({
+        platformGenericParams: action.payload.params,
+      })
+    case ProfileGen.updatePlatformGenericURL:
+      return state.merge({
+        platformGenericURL: action.payload.url,
+      })
+    case ProfileGen.updatePlatformGenericChecking:
+      return state.merge({
+        platformGenericChecking: action.payload.checking,
+      })
     case ProfileGen.cancelAddProof: // fallthrough
+    case ProfileGen.clearPlatformGeneric:
+      return state.merge({
+        errorCode: null,
+        errorText: '',
+        platformGeneric: null,
+        platformGenericChecking: false,
+        platformGenericParams: null,
+        platformGenericURL: null,
+        username: '',
+      })
     case ProfileGen.recheckProof: // fallthrough
     case ProfileGen.checkProof:
       return state.merge({errorCode: null, errorText: ''})
@@ -90,13 +117,11 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     // Saga only actions
     case ProfileGen.backToProfile:
     case ProfileGen.cancelPgpGen:
-    case ProfileGen.dropPgp:
     case ProfileGen.editProfile:
     case ProfileGen.finishRevoking:
     case ProfileGen.finishedWithKeyGen:
     case ProfileGen.generatePgp:
     case ProfileGen.onClickAvatar:
-    case ProfileGen.outputInstructionsActionLink:
     case ProfileGen.showUserProfile:
     case ProfileGen.submitRevokeProof:
     case ProfileGen.submitUsername:

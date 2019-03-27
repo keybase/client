@@ -4,6 +4,7 @@ import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
+// TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
@@ -438,14 +439,13 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       return null
   }
 }
-export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
-  const strPath = pathToString(path)
-  const strTlfPath = pathToString(tlfPath)
-  return (
-    strPath.startsWith(strTlfPath) &&
-    (strPath.length === strTlfPath.length || strPath[strTlfPath.length] === '/')
-  )
-}
+export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
+  getPathElements(path1)
+    .slice(0, 3)
+    .join('/') ===
+  getPathElements(path2)
+    .slice(0, 3)
+    .join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]

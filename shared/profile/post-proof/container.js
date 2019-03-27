@@ -1,15 +1,13 @@
 // @flow
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import PostProof from '.'
-import {compose, connect, lifecycle, withStateHandlers} from '../../util/container'
-import {type ProvablePlatformsType} from '../../constants/types/more'
+import {connect} from '../../util/container'
 
-type OwnProps = {|
-  onAllowProofCheck: boolean,
-|}
+type OwnProps = {||}
 
-const mapStateToProps = (state, {onAllowProofCheck}) => {
+const mapStateToProps = state => {
   const profile = state.profile
 
   if (
@@ -23,39 +21,67 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
     throw new Error(`Invalid profile platform in PostProofContainer: ${profile.platform || ''}`)
   }
 
-  const platform: ProvablePlatformsType = profile.platform
+  const platform = profile.platform
+
+  let url = ''
+  let openLinkBeforeSubmit = false
+  let proofText = profile.proofText || ''
+  switch (platform) {
+    case 'twitter':
+      openLinkBeforeSubmit = true
+      url = profile.proofText ? `https://twitter.com/home?status=${profile.proofText || ''}` : ''
+      break
+    case 'github':
+      openLinkBeforeSubmit = true
+      url = 'https://gist.github.com/'
+      break
+    case 'reddit': // fallthrough
+    case 'facebook':
+      openLinkBeforeSubmit = true
+      url = profile.proofText ? profile.proofText : ''
+      proofText = ''
+      break
+    case 'hackernews':
+      openLinkBeforeSubmit = true
+      url = `https://news.ycombinator.com/user?id=${profile.username || ''}`
+      break
+    default:
+      break
+  }
 
   return {
     errorMessage: profile.errorText,
-    onCancelText: 'Cancel',
+    openLinkBeforeSubmit,
     platform,
     platformUserName: profile.username,
-    proofText: profile.proofText || '',
+    proofText,
+    url,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
-  onComplete: () => dispatch(ProfileGen.createCheckProof()),
-  proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
+  onCancel: () => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(ProfileGen.createCancelAddProof())
+  },
+  onSubmit: () => dispatch(ProfileGen.createCheckProof()),
 })
 
-export default (compose(
-  withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
-    onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
-  }),
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  lifecycle({
-    componentDidMount() {
-      // Activate the proof check after they've completed the first step for these services.
-      if (['facebook', 'twitter', 'reddit', 'github', 'hackernews'].includes(this.props.platform)) {
-        this.props.onAllowProofCheck(false)
-      }
-    },
-  })
-): any)(PostProof)
+const mergeProps = (stateProps, dispatchProps) => ({
+  copyToClipboard: dispatchProps.copyToClipboard,
+  errorMessage: stateProps.errorMessage,
+  onCancel: dispatchProps.onCancel,
+  onSubmit: dispatchProps.onSubmit,
+  openLinkBeforeSubmit: stateProps.openLinkBeforeSubmit,
+  platform: stateProps.platform,
+  platformUserName: stateProps.platformUserName,
+  proofText: stateProps.proofText,
+  url: stateProps.url,
+})
+
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(PostProof)

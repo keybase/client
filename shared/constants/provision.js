@@ -7,6 +7,7 @@ import HiddenString from '../util/hidden-string'
 import type {CommonResponseHandler, RPCError} from '../engine/types'
 
 export const waitingKey = 'provision:waiting'
+export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
 export const errorCausedByUsCanceling = (e: ?RPCError) =>
@@ -27,10 +28,11 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   error: new HiddenString(''),
   existingDevices: I.List(),
   finalError: null,
+  forgotUsernameResult: '',
   gpgImportError: null,
   inlineError: null,
   selectedDevice: null,
-  usernameOrEmail: '',
+  username: '',
 })
 
 const makeDevice: I.RecordFactory<Types._Device> = I.Record({
@@ -52,6 +54,17 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
       })
     default:
       throw new Error('Invalid device type detected: ' + type)
+  }
+}
+
+export const decodeForgotUsernameError = (error: RPCError) => {
+  switch (error.code) {
+    case RPCTypes.constantsStatusCode.scnotfound:
+      return "We couldn't find an account with that email address. Try again?"
+    case RPCTypes.constantsStatusCode.scinputerror:
+      return "That doesn't look like a valid email address. Try again?"
+    default:
+      return error.desc
   }
 }
 

@@ -4,6 +4,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type Feature string
@@ -26,14 +28,15 @@ func StringToFeatureFlags(s string) (ret FeatureFlags) {
 	return ret
 }
 
-// Admin returns true if the admin feature set is on
-func (set FeatureFlags) Admin() bool {
+// Admin returns true if the admin feature set is on or the user is a keybase
+// admin.
+func (set FeatureFlags) Admin(uid keybase1.UID) bool {
 	for _, f := range set {
 		if f == Feature("admin") {
 			return true
 		}
 	}
-	return false
+	return IsKeybaseAdmin(uid)
 }
 
 func (set FeatureFlags) HasFeature(feature Feature) bool {

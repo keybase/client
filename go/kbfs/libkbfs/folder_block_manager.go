@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -26,7 +27,7 @@ type fbmHelper interface {
 	getMostRecentFullyMergedMD(ctx context.Context) (
 		ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *GCOp) error
-	getLatestMergedRevision(lState *lockState) kbfsmd.Revision
+	getLatestMergedRevision(lState *kbfssync.LockState) kbfsmd.Revision
 }
 
 const (
@@ -846,6 +847,7 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 
 func getUnrefPointersFromMD(
 	rmd ImmutableRootMetadata, includeGC bool) (ptrs []BlockPointer) {
+	ptrMap := make(map[BlockPointer]bool)
 	for _, op := range rmd.data.Changes.Ops {
 		if _, ok := op.(*GCOp); !includeGC && ok {
 			continue
@@ -854,8 +856,8 @@ func getUnrefPointersFromMD(
 			// Can be zeroPtr in weird failed sync scenarios.
 			// See syncInfo.replaceRemovedBlock for an example
 			// of how this can happen.
-			if ptr != zeroPtr {
-				ptrs = append(ptrs, ptr)
+			if ptr != zeroPtr && !ptrMap[ptr] {
+				ptrMap[ptr] = true
 			}
 		}
 		for _, update := range op.allUpdates() {
@@ -863,10 +865,14 @@ func getUnrefPointersFromMD(
 			// two identical pointers (usually because of
 			// conflict resolution), so ignore that for quota
 			// reclamation purposes.
-			if update.Ref != update.Unref {
-				ptrs = append(ptrs, update.Unref)
+			if update.Ref != update.Unref && !ptrMap[update.Unref] {
+				ptrMap[update.Unref] = true
 			}
 		}
+	}
+	ptrs = make([]BlockPointer, 0, len(ptrMap))
+	for ptr := range ptrMap {
+		ptrs = append(ptrs, ptr)
 	}
 	return ptrs
 }
@@ -952,7 +958,7 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 		gco.AddUnrefBlock(BlockPointer{ID: id})
 	}
 
-	ctx, err := MakeExtendedIdentify(
+	ctx, err := tlfhandle.MakeExtendedIdentify(
 		// TLFIdentifyBehavior_KBFS_QR makes service suppress the tracker popup.
 		ctx, keybase1.TLFIdentifyBehavior_KBFS_QR)
 	if err != nil {
@@ -1062,7 +1068,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	if !isWriter {
-		return NewWriteAccessError(head.GetTlfHandle(), session.Name,
+		return tlfhandle.NewWriteAccessError(head.GetTlfHandle(), session.Name,
 			head.GetTlfHandle().GetCanonicalPath())
 	}
 
@@ -1174,7 +1180,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 
 func isPermanentQRError(err error) bool {
 	switch errors.Cause(err).(type) {
-	case WriteAccessError, kbfsmd.MetadataIsFinalError,
+	case tlfhandle.WriteAccessError, kbfsmd.MetadataIsFinalError,
 		RevokedDeviceVerificationError:
 		return true
 	default:
@@ -1207,12 +1213,12 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			timerChan = make(chan time.Time)
 		}
 
-		state := keybase1.AppState_FOREGROUND
+		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.shutdownChan:
 			return
 		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
-			for state != keybase1.AppState_FOREGROUND {
+			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", state)
 				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
@@ -1470,13 +1476,13 @@ func (fbm *folderBlockManager) cleanDiskCachesInBackground() {
 	// While in the foreground, clean the disk caches every time we learn about
 	// a newer latest merged revision for this TLF.
 	for {
-		state := keybase1.AppState_FOREGROUND
+		state := keybase1.MobileAppState_FOREGROUND
 		select {
 		case <-fbm.latestMergedChan:
 		case <-fbm.shutdownChan:
 			return
 		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
-			for state != keybase1.AppState_FOREGROUND {
+			for state != keybase1.MobileAppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing sync-cache cleaning while not foregrounded: "+
 						"state=%s", state)

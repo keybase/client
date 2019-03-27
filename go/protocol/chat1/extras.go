@@ -1086,7 +1086,7 @@ func (p *Pagination) String() string {
 
 // FirstPage returns true if the pagination object is not pointing in any direction
 func (p *Pagination) FirstPage() bool {
-	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0)
+	return p == nil || p.ForceFirstPage || (len(p.Next) == 0 && len(p.Previous) == 0)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
@@ -1419,14 +1419,6 @@ func (r *GetMessagesLocalRes) SetOffline() {
 }
 
 func (r *GetNextAttachmentMessageLocalRes) SetOffline() {
-	r.Offline = true
-}
-
-func (r *DownloadAttachmentLocalRes) SetOffline() {
-	r.Offline = true
-}
-
-func (r *DownloadFileAttachmentLocalRes) SetOffline() {
 	r.Offline = true
 }
 

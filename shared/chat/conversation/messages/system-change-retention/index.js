@@ -14,13 +14,16 @@ type Props = {|
   membersType: RPCChatTypes.ConversationMembersType,
   onClickUserAvatar: () => void,
   onManageRetention: () => void,
-  policy: RPCChatTypes.RetentionPolicy,
+  policy: ?RPCChatTypes.RetentionPolicy,
   user: string,
   you: string,
   timestamp: number,
 |}
 
 const getPolicySummary = props => {
+  if (!props.policy) {
+    return 'be retained indefinitely'
+  }
   switch (props.policy.typ) {
     case RPCChatTypes.commonRetentionPolicyType.none:
     case RPCChatTypes.commonRetentionPolicyType.retain:

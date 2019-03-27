@@ -1,14 +1,15 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {compose, connect, lifecycle, type RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import {HeaderOrPopup} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = Container.RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   return {
@@ -25,7 +26,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+const mapDispatchToProps = dispatch => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onCancel: (you: string) => {
     // sadly a little racy, doing this for now
@@ -36,11 +37,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
           guiID: Constants.generateGUIID(),
           ignoreCache: true,
           inTracker: false,
-          reason: 'teams maybe changed',
+          reason: '',
         })
       )
     }, 500)
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
@@ -61,13 +62,13 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
+export default Container.compose(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  lifecycle({
+  Container.lifecycle({
     componentDidMount() {
       this.props.loadTeams()
     },

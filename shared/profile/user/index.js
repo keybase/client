@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
 import {chunk} from 'lodash-es'
@@ -13,6 +14,7 @@ import Teams from './teams/container'
 import Folders from '../folders/container'
 import flags from '../../util/feature-flags'
 import shallowEqual from 'shallowequal'
+import PeopleSearch from '../search/bar'
 import * as Flow from '../../util/flow'
 
 type BackgroundColorType = 'red' | 'green' | 'blue'
@@ -59,33 +61,14 @@ const Header = p => (
     style={Styles.collapseStyles([styles.header, colorTypeToStyle(p.backgroundColorType)])}
   >
     {!flags.useNewRouter && (
-      <>
-        <Kb.BackButton
-          iconColor={Styles.globalColors.white}
-          textStyle={styles.backButton}
-          onClick={p.onBack}
-        />
-        <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
-          <Kb.Box2
-            direction="horizontal"
-            centerChildren={true}
-            className="hover-opacity"
-            gap="tiny"
-            style={styles.search}
-          >
-            <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
-            <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
-              Search people
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.ClickableBox>
-        <Kb.BackButton
-          iconColor={Styles.globalColors.white}
-          textStyle={styles.backButton}
-          onClick={() => {}}
-          style={styles.invisible}
-        />
-      </>
+      <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
+    )}
+    {!flags.useNewRouter && (
+      <Kb.Box2 direction="vertical" style={{flexGrow: 1, paddingRight: Styles.isMobile ? 16 : 0}}>
+        <Kb.Box2 direction="vertical" alignSelf="flex-end">
+          <PeopleSearch onSearch={p.onSearch} />
+        </Kb.Box2>
+      </Kb.Box2>
     )}
   </Kb.Box2>
 )
@@ -237,26 +220,6 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
-          <Folders profileUsername={this.props.username} />
-        </Kb.Box2>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            colorTypeToStyle(this.props.backgroundColorType),
-          ])}
-        />
-        <BioLayout {...this.props} />
-        <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
-            {this.props.reason}
-          </Kb.Text>
-          <Teams username={this.props.username} />
-          <Proofs {...this.props} />
           {flags.proofProviders && this.props.showOtherIdentities && (
             <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
               <Kb.Button
@@ -271,6 +234,39 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
+    ) : (
+      <>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.backgroundColor,
+            colorTypeToStyle(this.props.backgroundColorType),
+          ])}
+        />
+        <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+          <BioLayout {...this.props} />
+          <Kb.Box2 direction="vertical" style={styles.proofs}>
+            <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
+              {this.props.reason}
+            </Kb.Text>
+            <Teams username={this.props.username} />
+            <Proofs {...this.props} />
+            {flags.proofProviders && this.props.showOtherIdentities && (
+              <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
+                <Kb.Button
+                  label="Add other identities"
+                  labelStyle={styles.label}
+                  onClick={this.props.onAddIdentity}
+                  style={styles.addIdentityButton}
+                  type="Secondary"
+                />
+              </Kb.Box2>
+            )}
+            <Folders profileUsername={this.props.username} />
+          </Kb.Box2>
+        </Kb.Box2>
+      </>
     )
   }
 }
@@ -353,9 +349,6 @@ class User extends React.Component<Props, State> {
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
 
-  componentDidMount() {
-    this.props.onReload()
-  }
   componentDidUpdate(prevProps: Props) {
     if (this.props.username !== prevProps.username) {
       this.props.onReload()
@@ -377,37 +370,44 @@ class User extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-          {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
-          <Kb.SafeAreaViewTop
-            style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
-          />
-          {!!this.state.width && (
-            <Kb.SectionList
-              key={this.props.username + this.state.width /* forc render on user change or width change */}
-              stickySectionHeadersEnabled={true}
-              renderSectionHeader={this._renderSectionHeader}
-              keyExtractor={this._keyExtractor}
-              sections={[
-                this._bioTeamProofsSection,
-                {
-                  data: chunks,
-                  itemWidth,
-                  renderItem: this._renderOtherUsers,
-                },
-              ]}
-              style={Styles.collapseStyles([
-                styles.sectionList,
-                Styles.isMobile
-                  ? colorTypeToStyle(this.props.backgroundColorType)
-                  : {backgroundColor: Styles.globalColors.white},
-              ])}
-              contentContainerStyle={styles.sectionListContentStyle}
+      <Kb.Reloadable
+        reloadOnMount={true}
+        onReload={this.props.onReload}
+        onBack={this.props.onBack}
+        waitingKeys={[Constants.profileLoadWaitingKey]}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+          <Kb.Box2 direction="vertical" style={styles.innerContainer}>
+            {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
+            <Kb.SafeAreaViewTop
+              style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
             />
-          )}
+            {!!this.state.width && (
+              <Kb.SectionList
+                key={this.props.username + this.state.width /* forc render on user change or width change */}
+                stickySectionHeadersEnabled={true}
+                renderSectionHeader={this._renderSectionHeader}
+                keyExtractor={this._keyExtractor}
+                sections={[
+                  this._bioTeamProofsSection,
+                  {
+                    data: chunks,
+                    itemWidth,
+                    renderItem: this._renderOtherUsers,
+                  },
+                ]}
+                style={Styles.collapseStyles([
+                  styles.sectionList,
+                  Styles.isMobile
+                    ? colorTypeToStyle(this.props.backgroundColorType)
+                    : {backgroundColor: Styles.globalColors.white},
+                ])}
+                contentContainerStyle={styles.sectionListContentStyle}
+              />
+            )}
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.Reloadable>
     )
   }
 }
@@ -416,7 +416,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = Styles.isMobile ? 48 : 72
+const headerHeight = Styles.isMobile ? 48 : 80
 
 const styles = Styles.styleSheetCreate({
   addIdentityButton: {
@@ -471,7 +471,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
-      marginTop: Styles.globalMargins.small,
+      marginTop: flags.useNewRouter ? Styles.globalMargins.small : 0,
     },
     isElectron: {
       alignSelf: 'stretch',
@@ -532,7 +532,6 @@ const styles = Styles.styleSheetCreate({
   reason: Styles.platformStyles({
     isElectron: {
       height: avatarSize / 2 + Styles.globalMargins.small,
-      zIndex: 1, // unclear why this layer is created
     },
     isMobile: {
       padding: Styles.globalMargins.tiny,

@@ -155,20 +155,20 @@ const updateChangedFocus = (_, action) => {
   switch (action.payload.nextAppState) {
     case 'active':
       appFocused = true
-      logState = RPCTypes.appStateAppState.foreground
+      logState = RPCTypes.appStateMobileAppState.foreground
       break
     case 'background':
       appFocused = false
-      logState = RPCTypes.appStateAppState.background
+      logState = RPCTypes.appStateMobileAppState.background
       break
     case 'inactive':
       appFocused = false
-      logState = RPCTypes.appStateAppState.inactive
+      logState = RPCTypes.appStateMobileAppState.inactive
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.payload.nextAppState)
       appFocused = false
-      logState = RPCTypes.appStateAppState.foreground
+      logState = RPCTypes.appStateMobileAppState.foreground
   }
 
   logger.info(`setting app state on service to: ${logState}`)
@@ -358,7 +358,9 @@ const editAvatar = () =>
         resolve(ConfigGen.createFilePickerError({error: new Error(response.error)}))
       } else {
         resolve(
-          RouteTreeGen.createNavigateAppend({path: [{props: {image: response}, selected: 'editAvatar'}]})
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {image: response}, selected: 'profileEditAvatar'}],
+          })
         )
       }
     })

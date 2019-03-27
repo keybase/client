@@ -30,8 +30,8 @@ class MenuLayout extends Component<MenuLayoutProps> {
           item.onClick && item.onClick()
           if (this.props.closeOnClick && this.props.onHidden) {
             this.props.onHidden()
-            event.stopPropagation()
           }
+          event.stopPropagation()
         }}
       >
         {item.view}

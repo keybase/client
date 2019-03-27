@@ -25,11 +25,10 @@ func createTeam(tc libkb.TestContext) keybase1.TeamID {
 }
 
 func TestNewTeamEK(t *testing.T) {
-	tc, _ := ephemeralKeyTestSetup(t)
+	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	m := libkb.NewMetaContextForTest(tc)
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
@@ -37,14 +36,14 @@ func TestNewTeamEK(t *testing.T) {
 
 	// Before we've published any teamEK's, fetchTeamEKStatement should return
 	// nil.
-	nilStatement, _, _, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
+	nilStatement, _, _, err := fetchTeamEKStatement(mctx, teamID)
 	require.NoError(t, err)
 	require.Nil(t, nilStatement)
 
-	publishedMetadata, err := publishNewTeamEK(context.Background(), tc.G, teamID, merkleRoot)
+	publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
 
-	statementPtr, _, _, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
+	statementPtr, _, _, err := fetchTeamEKStatement(mctx, teamID)
 	require.NoError(t, err)
 	require.NotNil(t, statementPtr)
 	statement := *statementPtr
@@ -54,20 +53,20 @@ func TestNewTeamEK(t *testing.T) {
 
 	// We've stored the result in local storage
 	teamEKBoxStorage := tc.G.GetTeamEKBoxStorage()
-	maxGeneration, err := teamEKBoxStorage.MaxGeneration(context.Background(), teamID)
+	maxGeneration, err := teamEKBoxStorage.MaxGeneration(mctx, teamID, false)
 	require.NoError(t, err)
-	ek, err := teamEKBoxStorage.Get(context.Background(), teamID, maxGeneration, nil)
+	ek, err := teamEKBoxStorage.Get(mctx, teamID, maxGeneration, nil)
 	require.NoError(t, err)
 	require.Equal(t, ek.Metadata, publishedMetadata)
 
-	s := NewTeamEKBoxStorage(tc.G)
+	s := NewTeamEKBoxStorage()
 	// Put our storage in a bad state by deleting the maxGeneration
-	err = s.Delete(context.Background(), teamID, keybase1.EkGeneration(1))
+	err = s.Delete(mctx, teamID, keybase1.EkGeneration(1))
 	require.NoError(t, err)
 
 	// If we publish in a bad local state, we can successfully get the
 	// maxGeneration from the server and continue
-	publishedMetadata2, err := publishNewTeamEK(context.Background(), tc.G, teamID, merkleRoot)
+	publishedMetadata2, err := publishNewTeamEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, publishedMetadata2.Generation)
 }

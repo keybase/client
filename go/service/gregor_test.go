@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/badges"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -36,8 +37,15 @@ func broadcastMessageTesting(t *testing.T, h *gregorHandler, m gregor1.Message) 
 	return nil
 }
 
-func TestGregorHandler(t *testing.T) {
+func setupGregorTest(t *testing.T) (libkb.TestContext, *globals.Context) {
 	tc := libkb.SetupTest(t, "gregor", 2)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	g.CtxFactory = chat.NewCtxFactory(g)
+	return tc, g
+}
+
+func TestGregorHandler(t *testing.T) {
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
@@ -49,7 +57,7 @@ func TestGregorHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
 	require.Equal(t, "gregor", h.HandlerName(), "wrong name")
@@ -157,7 +165,7 @@ func (ui *showTrackerPopupIdentifyUI) Dismiss(_ libkb.MetaContext, username stri
 // given UID into a gregorHandler, the result is that a TrackEngine gets run
 // for that user.
 func TestShowTrackerPopupMessage(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
@@ -180,7 +188,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
 
@@ -392,20 +400,17 @@ func newGregordMock(logger logger.Logger) mockGregord {
 	return mockGregord{sm: sm, fc: fc, log: logger}
 }
 
-func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGregord, gregor1.UID) {
-	var err error
-	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+func setupSyncTests(t *testing.T, g *globals.Context) (*gregorHandler, mockGregord, gregor1.UID) {
+	user, err := kbtest.CreateAndSignupFakeUser("gregr", g.ExternalG())
+	require.NoError(t, err)
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
 
-	server := newGregordMock(tc.G.Log)
+	server := newGregordMock(g.ExternalG().Log)
 
 	return h, server, uid
 }
@@ -449,12 +454,12 @@ func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InB
 }
 
 func TestSyncFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
@@ -473,12 +478,12 @@ func TestSyncFresh(t *testing.T) {
 }
 
 func TestSyncNonFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
@@ -510,12 +515,12 @@ func TestSyncNonFresh(t *testing.T) {
 }
 
 func TestSyncSaveRestoreFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
@@ -545,7 +550,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
+	h = newGregorHandler(g)
 	h.testingEvents = newTestingEvents()
 	h.Init()
 
@@ -556,12 +561,12 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 }
 
 func TestSyncSaveRestoreNonFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	//Consume a bunch of messages to the server, and we'll sync them down
@@ -592,7 +597,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h = newGregorHandler(g)
 	h.testingEvents = newTestingEvents()
 	h.Init()
 
@@ -606,12 +611,12 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 }
 
 func TestSyncDismissal(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	// Consume msg
@@ -629,6 +634,48 @@ func TestSyncDismissal(t *testing.T) {
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
 
+func TestMessagesAddedDuringProcessing(t *testing.T) {
+	tc, g := setupGregorTest(t)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, g)
+	defer h.Shutdown()
+
+	totalNumberOfMessages := 10
+	numberToDoAsync := 5
+	// create a bunch of messages to be processed
+	var msgs []gregor1.Message
+	for i := 1; i <= totalNumberOfMessages; i++ {
+		msg := server.newIbm(uid)
+		msgs = append(msgs, msg)
+	}
+
+	blockUntilDone := make(chan struct{})
+	// fire off some of them asynchronously
+	go func() {
+		for i := 0; i < numberToDoAsync; i++ {
+			server.ConsumeMessage(context.TODO(), msgs[i])
+		}
+		blockUntilDone <- struct{}{}
+	}()
+	// do the rest synchronously
+	for i := numberToDoAsync; i < totalNumberOfMessages; i++ {
+		server.ConsumeMessage(context.TODO(), msgs[i])
+	}
+
+	// block until everything has had a chance to get called
+	select {
+	case <-blockUntilDone:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "async messages not consumed")
+	}
+
+	// all of the messages should have been consumed
+	_, consumedMessages := doServerSync(t, h, server)
+	require.Equal(t, len(consumedMessages), totalNumberOfMessages)
+}
+
 type dummyRemoteClient struct {
 	chat1.RemoteClient
 }
@@ -638,14 +685,14 @@ func (d dummyRemoteClient) GetUnreadUpdateFull(ctx context.Context, vers chat1.I
 }
 
 func TestGregorBadgesIBM(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
 	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
@@ -689,14 +736,14 @@ func TestGregorBadgesIBM(t *testing.T) {
 }
 
 func TestGregorTeamBadges(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
 	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
@@ -737,14 +784,14 @@ func TestGregorTeamBadges(t *testing.T) {
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
 // Instead it feeds chat updates directly to badger. So it's a pretty weak test.
 func TestGregorBadgesOOBM(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
 	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
-	h, _, _ := setupSyncTests(t, tc)
+	h, _, _ := setupSyncTests(t, g)
 	defer h.Shutdown()
 	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
@@ -789,12 +836,12 @@ func TestGregorBadgesOOBM(t *testing.T) {
 }
 
 func TestSyncDismissalExistingState(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
@@ -826,13 +873,12 @@ func TestSyncDismissalExistingState(t *testing.T) {
 }
 
 func TestSyncFutureDismissals(t *testing.T) {
-
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
@@ -862,8 +908,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 }
 
 func TestBroadcastRepeat(t *testing.T) {
-
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
@@ -874,7 +919,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	}
 
 	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
 
@@ -919,12 +964,12 @@ func badgeStateStats(bs keybase1.BadgeState) (res BadgeStateStats) {
 }
 
 func TestLocalDismissals(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
 	// Set up client and server
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	var refReplayMsgs []gregor.InBandMessage
@@ -976,10 +1021,10 @@ func (f flakeyIncomingClient) ConsumeMessage(ctx context.Context, m gregor1.Mess
 }
 
 func TestOfflineConsume(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 2)
+	tc, g := setupGregorTest(t)
 	defer tc.Cleanup()
 	tc.G.SetService()
-	h, server, uid := setupSyncTests(t, tc)
+	h, server, uid := setupSyncTests(t, g)
 	defer h.Shutdown()
 
 	fclient := newFlakeyIncomingClient(func() gregor1.IncomingInterface { return server })

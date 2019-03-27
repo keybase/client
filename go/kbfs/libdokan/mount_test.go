@@ -20,11 +20,13 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
@@ -2155,7 +2157,7 @@ func TestErrorFile(t *testing.T) {
 	}
 
 	// Make sure the root error file reads as expected
-	expectedErr := libkbfs.NoSuchUserError{Input: "janedoe"}
+	expectedErr := idutil.NoSuchUserError{Input: "janedoe"}
 
 	// test both the root error file and one in a directory
 	testForErrorText(t, filepath.Join(mnt.Dir, libkbfs.ErrorFile),
@@ -2186,7 +2188,7 @@ func (t *testMountObserver) BatchChanges(ctx context.Context,
 }
 
 func (t *testMountObserver) TlfHandleChange(ctx context.Context,
-	newHandle *libkbfs.TlfHandle) {
+	newHandle *tlfhandle.Handle) {
 	return
 }
 

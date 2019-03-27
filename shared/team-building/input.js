@@ -5,11 +5,13 @@ import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 
 type Props = {
+  hasMembers: boolean,
   onChangeText: (newText: string) => void,
   onEnterKeyDown: () => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
   onBackspace: () => void,
+  placeholder: string,
   searchString: string,
 }
 
@@ -52,7 +54,7 @@ const Input = (props: Props) => (
       autoFocus={true}
       globalCaptureKeypress={true}
       style={styles.input}
-      placeholder={'Enter any username'}
+      placeholder={props.placeholder}
       onChangeText={props.onChangeText}
       value={props.searchString}
       maxLength={50}

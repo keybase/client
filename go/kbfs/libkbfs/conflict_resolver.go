@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -32,6 +33,8 @@ import (
 // CtxCRTagKey is the type used for unique context tags related to
 // conflict resolution
 type CtxCRTagKey int
+
+type failModeForTest int
 
 const (
 	// CtxCRIDKey is the type of the tag for unique operation IDs
@@ -58,12 +61,19 @@ const (
 	// If we have failed at CR 10 times, probably it's never going to work and
 	// we should give up.
 	maxConflictResolutionAttempts = 10
+
+	alwaysFailCR failModeForTest = iota
+	doNotAlwaysFailCR
 )
 
 // ErrTooManyCRAttempts is an error that indicates that CR has failed
 // too many times, and it being stopped.
 var ErrTooManyCRAttempts = errors.New(
 	"too many attempts at conflict resolution on this TLF")
+
+// ErrCRFailForTest indicates that CR is disabled for a test.
+var ErrCRFailForTest = errors.New(
+	"conflict resolution failed because test requested it")
 
 // CtxCROpID is the display name for the unique operation
 // conflict resolution ID tag.
@@ -95,6 +105,8 @@ type ConflictResolver struct {
 	currCancel    context.CancelFunc
 	lockNextTime  bool
 	canceledCount int
+
+	failModeForTest failModeForTest
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -325,7 +337,8 @@ func (cr *ConflictResolver) checkDone(ctx context.Context) error {
 	}
 }
 
-func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
+func (cr *ConflictResolver) getMDs(
+	ctx context.Context, lState *kbfssync.LockState,
 	writerLocked bool) (unmerged []ImmutableRootMetadata,
 	merged []ImmutableRootMetadata, err error) {
 	// First get all outstanding unmerged MDs for this device.
@@ -571,7 +584,7 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 	}
 	kmd := mergedChains.mostRecentChainMDInfo
 	mergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, mergedPath)
-	if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+	if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -586,7 +599,7 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 		},
 	}
 	unmergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, unmergedPath)
-	if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+	if _, noExists := errors.Cause(err).(idutil.NoSuchNameError); noExists {
 		return false, nil
 	} else if err != nil {
 		return false, err
@@ -778,8 +791,9 @@ type createMapKey struct {
 // addChildBlocksIfIndirectFile adds refblocks for all child blocks of
 // the given file.  It will return an error if called with a pointer
 // that doesn't represent a file.
-func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
-	lState *lockState, unmergedChains *crChains, currPath path, op op) error {
+func (cr *ConflictResolver) addChildBlocksIfIndirectFile(
+	ctx context.Context, lState *kbfssync.LockState, unmergedChains *crChains,
+	currPath path, op op) error {
 	// For files with indirect pointers, add all child blocks
 	// as refblocks for the re-created file.
 	infos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
@@ -818,7 +832,7 @@ func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
 // for the conflicts to be resolved; all of these ops have their
 // writer info set to the given one.
 func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
-	lState *lockState, unmergedPath path,
+	lState *kbfssync.LockState, unmergedPath path,
 	unmergedChains, mergedChains *crChains,
 	currUnmergedWriterInfo writerInfo) (
 	path, BlockPointer, []*createOp, error) {
@@ -1059,7 +1073,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 // deleted unmerged chains that still have relevant operations to
 // resolve.
 func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
-	lState *lockState, unmergedPaths []path,
+	lState *kbfssync.LockState, unmergedPaths []path,
 	unmergedChains, mergedChains *crChains,
 	currUnmergedWriterInfo writerInfo) (
 	map[BlockPointer]path, []*createOp, []path, error) {
@@ -1235,7 +1249,7 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 // This always returns the merged MDs, even in an error case, to allow
 // the caller's error-handling code to unstage if necessary.
 func (cr *ConflictResolver) buildChainsAndPaths(
-	ctx context.Context, lState *lockState, writerLocked bool) (
+	ctx context.Context, lState *kbfssync.LockState, writerLocked bool) (
 	unmergedChains, mergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp,
 	unmerged, merged []ImmutableRootMetadata, err error) {
@@ -2257,7 +2271,7 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 }
 
 func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
-	lState *lockState, chains *crChains, mergedMostRecent BlockPointer,
+	lState *kbfssync.LockState, chains *crChains, mergedMostRecent BlockPointer,
 	parentPath path, name string, ptr BlockPointer, blocks fileBlockMap,
 	dirtyBcache DirtyBlockCacheSimple) (BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo
@@ -2315,7 +2329,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 }
 
 func (cr *ConflictResolver) doOneAction(
-	ctx context.Context, lState *lockState,
+	ctx context.Context, lState *kbfssync.LockState,
 	unmergedChains, mergedChains *crChains, unmergedPath path,
 	mergedPaths map[BlockPointer]path, chargedTo keybase1.UserOrTeamID,
 	actionMap map[BlockPointer]crActionList, dbm dirBlockMap,
@@ -2487,7 +2501,7 @@ func (cr *ConflictResolver) doOneAction(
 }
 
 func (cr *ConflictResolver) doActions(ctx context.Context,
-	lState *lockState, unmergedChains, mergedChains *crChains,
+	lState *kbfssync.LockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	actionMap map[BlockPointer]crActionList, dbm dirBlockMap,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCacheSimple) error {
@@ -2537,7 +2551,7 @@ type crRenameHelperKey struct {
 // all conflicts and actions have been resolved.  It returns the
 // complete slice of reverted operations.
 func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
-	lState *lockState, sortedPaths []path, chains *crChains,
+	lState *kbfssync.LockState, sortedPaths []path, chains *crChains,
 	otherChains *crChains) ([]op, error) {
 	var ops []op
 	// Build a map of directory {original, name} -> renamed original.
@@ -2678,7 +2692,7 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 // will move all of those updates into their proper locations within
 // the other operations.
 func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
-	lState *lockState, unmergedPaths []path,
+	lState *kbfssync.LockState, unmergedPaths []path,
 	unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata) (*RootMetadata, error) {
 	err := cr.checkDone(ctx)
@@ -2928,7 +2942,7 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 // node will need to send local notifications for, in order to
 // transition from the staged state to the merged state.
 func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
-	lState *lockState, md *RootMetadata,
+	lState *kbfssync.LockState, md *RootMetadata,
 	unmergedChains, mergedChains *crChains,
 	updates map[BlockPointer]BlockPointer) (
 	[]op, error) {
@@ -3051,7 +3065,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 // resolution visible to any nodes on the merged branch, and taking
 // the local node out of staged mode.
 func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
-	lState *lockState, md *RootMetadata,
+	lState *kbfssync.LockState, md *RootMetadata,
 	unmergedChains, mergedChains *crChains,
 	updates map[BlockPointer]BlockPointer,
 	bps blockPutState, blocksToDelete []kbfsblock.ID, writerLocked bool) error {
@@ -3085,7 +3099,7 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 // computes all remote and local notifications, and finalizes the
 // resolution process.
 func (cr *ConflictResolver) completeResolution(ctx context.Context,
-	lState *lockState, unmergedChains, mergedChains *crChains,
+	lState *kbfssync.LockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	dbm dirBlockMap, newFileBlocks fileBlockMap,
@@ -3185,51 +3199,6 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	return nil
 }
 
-// maybeUnstageAfterFailure abandons this branch if there was a
-// conflict resolution failure due to missing blocks, caused by a
-// concurrent GCOp on the main branch.
-func (cr *ConflictResolver) maybeUnstageAfterFailure(ctx context.Context,
-	lState *lockState, mergedMDs []ImmutableRootMetadata, err error) error {
-	// Make sure the error is related to a missing block.
-	_, isBlockNotFound := err.(kbfsblock.ServerErrorBlockNonExistent)
-	_, isBlockDeleted := err.(kbfsblock.ServerErrorBlockDeleted)
-	if !isBlockNotFound && !isBlockDeleted {
-		return err
-	}
-
-	// Make sure there was a GCOp on the main branch.
-	foundGCOp := false
-outer:
-	for _, rmd := range mergedMDs {
-		for _, op := range rmd.data.Changes.Ops {
-			if _, ok := op.(*GCOp); ok {
-				foundGCOp = true
-				break outer
-			}
-		}
-	}
-	if !foundGCOp {
-		return err
-	}
-
-	cr.log.CDebugf(ctx, "Unstaging due to a failed resolution: %v", err)
-	reportedError := CRAbandonStagedBranchError{err, cr.fbo.unmergedBID}
-	unstageErr := cr.fbo.unstageAfterFailedResolution(ctx, lState)
-	if unstageErr != nil {
-		cr.log.CDebugf(ctx, "Couldn't unstage: %v", unstageErr)
-		return err
-	}
-
-	head := cr.fbo.getTrustedHead(ctx, lState, mdNoCommit)
-	if head == (ImmutableRootMetadata{}) {
-		panic("maybeUnstageAfterFailure: head is nil (should be impossible)")
-	}
-	handle := head.GetTlfHandle()
-	cr.config.Reporter().ReportErr(
-		ctx, handle.GetCanonicalName(), handle.Type(), WriteMode, reportedError)
-	return nil
-}
-
 const conflictRecordVersion = 1
 
 type conflictRecord struct {
@@ -3296,10 +3265,10 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 //  - in the event of failure, it logs that CR failed and tries to record the
 //    failure to the DB.
 func (cr *ConflictResolver) recordFinishResolve(
-	ctx context.Context, ci conflictInput, receivedErr error) {
+	ctx context.Context, ci conflictInput,
+	panicVar interface{}, receivedErr error) {
 	db := cr.config.GetConflictResolutionDB()
 	key := cr.fbo.id().Bytes()
-	panicVar := recover()
 
 	// If we neither errored nor panicked, this CR succeeded and we can wipe
 	// the DB entry.
@@ -3341,7 +3310,7 @@ func (cr *ConflictResolver) recordFinishResolve(
 		thisCR.ErrorString = fmt.Sprintf("%+v", receivedErr)
 	}
 	if panicVar != nil {
-		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %b", panicVar,
+		thisCR.PanicString = fmt.Sprintf("panic(%s). stack: %s", panicVar,
 			debug.Stack())
 	}
 
@@ -3355,7 +3324,7 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 		_ = cr.config.(*ConfigLocal).EnableDiskLimiter(os.TempDir())
 
 		dbc, err = newDiskBlockCacheLocalForTest(
-			cr.config, syncCacheLimitTrackerType)
+			cr.config, crDirtyBlockCacheLimitTrackerType)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -3419,7 +3388,10 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			"Too many failed CR attempts for folder: %v", cr.fbo.id())
 		return
 	case nil:
-		defer func() { cr.recordFinishResolve(ctx, ci, err) }()
+		defer func() {
+			r := recover()
+			cr.recordFinishResolve(ctx, ci, r, err)
+		}()
 	default:
 		cr.log.CWarningf(ctx,
 			"Could not record conflict resolution attempt: %+v", err)
@@ -3462,13 +3434,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
+	if cr.failModeForTest == alwaysFailCR {
+		err = ErrCRFailForTest
+		return
+	}
+
 	var mergedMDs []ImmutableRootMetadata
-	defer func() {
-		if err != nil {
-			// writerLock is definitely unlocked by here.
-			err = cr.maybeUnstageAfterFailure(ctx, lState, mergedMDs, err)
-		}
-	}()
 
 	// Check if we need to deploy the nuclear option and completely
 	// block unmerged writes while we try to resolve.
@@ -3676,6 +3647,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// don't count against the quota forever.  (Though of course if we
 	// completely fail, we'll need to rely on a future complete scan
 	// to clean up the quota anyway . . .)
+}
+
+func (cr *ConflictResolver) clearConflictRecords() error {
+	db := cr.config.GetConflictResolutionDB()
+	key := cr.fbo.id().Bytes()
+	return db.Delete(key, nil)
 }
 
 func openCRDBInternal(config Config) (*LevelDb, error) {

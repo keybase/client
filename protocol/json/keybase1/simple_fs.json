@@ -958,6 +958,10 @@
             null,
             "TLFIdentifyBehavior"
           ]
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": "Dirent",
@@ -1048,6 +1052,16 @@
       "request": [],
       "response": null,
       "doc": "Instructs KBFS to dump debugging info into its logs."
+    },
+    "simpleFSClearConflictState": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Clear the conflict state of a TLF."
     },
     "simpleFSSyncStatus": {
       "request": [

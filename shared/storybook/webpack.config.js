@@ -61,7 +61,7 @@ module.exports = (storybookBaseConfig, configType) => {
       use: [fileLoaderRule],
     },
     {
-      test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
+      test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
       use: [fileLoaderRule],
     },
     {

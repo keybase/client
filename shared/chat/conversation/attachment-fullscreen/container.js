@@ -2,6 +2,7 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
 import {compose, withStateHandlers, connect, withProps} from '../../../util/container'
@@ -18,7 +19,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onDownloadAttachment: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
@@ -45,7 +46,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) =>
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
   onClose: () => {
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
 })
 

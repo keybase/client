@@ -1,7 +1,6 @@
 package ephemeral
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"sync"
@@ -55,38 +54,36 @@ type UserEKUnboxedMap map[keybase1.EkGeneration]keybase1.UserEk
 // We cache UserEKBoxes from the server in memory and a persist to a local
 // KVStore.
 type UserEKBoxStorage struct {
-	libkb.Contextified
 	sync.Mutex
 	indexed bool
 	cache   userEKBoxCache
 }
 
-func NewUserEKBoxStorage(g *libkb.GlobalContext) *UserEKBoxStorage {
+func NewUserEKBoxStorage() *UserEKBoxStorage {
 	return &UserEKBoxStorage{
-		Contextified: libkb.NewContextified(g),
-		cache:        make(userEKBoxCache),
+		cache: make(userEKBoxCache),
 	}
 }
 
-func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err error) {
-	uv, err := s.G().GetMeUV(ctx)
+func (s *UserEKBoxStorage) dbKey(mctx libkb.MetaContext) (dbKey libkb.DbKey, err error) {
+	uv, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return dbKey, err
 	}
-	key := fmt.Sprintf("userEphemeralKeyBox-%s-%s-%d", s.G().Env.GetUsername(), uv.EldestSeqno, userEKBoxStorageDBVersion)
+	key := fmt.Sprintf("userEphemeralKeyBox-%s-%s-%d", mctx.G().Env.GetUsername(), uv.EldestSeqno, userEKBoxStorageDBVersion)
 	return libkb.DbKey{
 		Typ: libkb.DBUserEKBox,
 		Key: key,
 	}, nil
 }
 
-func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache userEKBoxCache, err error) {
+func (s *UserEKBoxStorage) getCache(mctx libkb.MetaContext) (cache userEKBoxCache, err error) {
 	if !s.indexed {
-		key, err := s.dbKey(ctx)
+		key, err := s.dbKey(mctx)
 		if err != nil {
 			return s.cache, err
 		}
-		if _, err = s.G().GetKVStore().GetInto(&s.cache, key); err != nil {
+		if _, err = mctx.G().GetKVStore().GetInto(&s.cache, key); err != nil {
 			return s.cache, err
 		}
 		s.indexed = true
@@ -94,13 +91,13 @@ func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache userEKBoxCache, 
 	return s.cache, nil
 }
 
-func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGeneration,
+func (s *UserEKBoxStorage) Get(mctx libkb.MetaContext, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#Get: generation:%v", generation), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("UserEKBoxStorage#Get: generation:%v", generation), func() error { return err })()
 
 	s.Lock()
 
-	cache, err := s.getCache(ctx)
+	cache, err := s.getCache(mctx)
 	if err != nil {
 		s.Unlock()
 		return userEK, err
@@ -111,14 +108,20 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 	if !ok {
 		// We don't have anything in our cache, fetch from the server
 		s.Unlock() // release the lock while we fetch
-		return s.fetchAndStore(ctx, generation)
+		return s.fetchAndStore(mctx, generation)
 	}
 
 	defer s.Unlock() // release the lock after we unbox
 	if cacheItem.HasError() {
 		return userEK, cacheItem.Error()
 	}
-	return s.unbox(ctx, generation, cacheItem.UserEKBoxed, contentCtime)
+	userEK, err = s.unbox(mctx, generation, cacheItem.UserEKBoxed, contentCtime)
+	if err != nil { // if we can no longer unbox this, store the error
+		if perr := s.putLocked(mctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
+			mctx.Debug("unable to store unboxing error %v", perr)
+		}
+	}
+	return userEK, err
 }
 
 type UserEKBoxedResponse struct {
@@ -129,17 +132,28 @@ type UserEKBoxedResponse struct {
 	} `json:"result"`
 }
 
-func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-
-	mctx := libkb.NewMetaContext(ctx, s.G())
+func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("UserEKBoxStorage#fetchAndStore: generation: %v", generation), func() error { return err })()
+
+	// cache unboxing/missing box errors so we don't continually try to fetch
+	// something nonexistent.
+	defer func() {
+		switch err.(type) {
+		case EphemeralKeyError:
+			s.Lock()
+			defer s.Unlock()
+			if perr := s.putLocked(mctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
+				mctx.Debug("unable to store error %v", perr)
+			}
+		}
+	}()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek_box",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"generation":          libkb.U{Val: uint64(generation)},
-			"recipient_device_id": libkb.S{Val: string(s.G().Env.GetDeviceID())},
+			"recipient_device_id": libkb.S{Val: string(mctx.ActiveDevice().DeviceID())},
 		},
 	}
 
@@ -155,10 +169,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	}
 
 	if result.Result == nil {
-		err = newEKMissingBoxErr(ctx, s.G(), UserEKStr, generation)
-		if perr := s.put(ctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
-			s.G().Log.CDebugf(ctx, "unable to store: %v", perr)
-		}
+		err = newEKMissingBoxErr(mctx, UserEKStr, generation)
 		return userEK, err
 	}
 
@@ -178,7 +189,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	userEKMetadata := userEKStatement.CurrentUserEkMetadata
 	if generation != userEKMetadata.Generation {
 		// sanity check that we go the right generation
-		return userEK, newEKCorruptedErr(ctx, s.G(), UserEKStr, generation, userEKMetadata.Generation)
+		return userEK, newEKCorruptedErr(mctx, UserEKStr, generation, userEKMetadata.Generation)
 	}
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
@@ -186,16 +197,8 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 		Metadata:           userEKMetadata,
 	}
 
-	userEK, err = s.unbox(ctx, generation, userEKBoxed, nil)
+	userEK, err = s.unbox(mctx, generation, userEKBoxed, nil)
 	if err != nil {
-		// cache unboxing/missing box errors so we don't continually try to
-		// fetch something nonexistent.
-		switch err.(type) {
-		case EphemeralKeyError:
-			if perr := s.put(ctx, generation, userEKBoxed, err); perr != nil {
-				s.G().Log.CDebugf(ctx, "unable to store: %v", perr)
-			}
-		}
 		return userEK, err
 	}
 
@@ -207,49 +210,48 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 	}
 
 	// Store the boxed version, return the unboxed
-	err = s.Put(ctx, generation, userEKBoxed)
+	err = s.Put(mctx, generation, userEKBoxed)
 	return userEK, err
 }
 
-func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
-	return s.put(ctx, generation, userEKBoxed, nil /* ekErr */)
-}
-
-func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGeneration,
-	userEKBoxed keybase1.UserEkBoxed, ekErr error) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#put: generation:%v", generation), func() error { return err })()
-
+func (s *UserEKBoxStorage) Put(mctx libkb.MetaContext, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
 	s.Lock()
 	defer s.Unlock()
+	return s.putLocked(mctx, generation, userEKBoxed, nil /* ekErr */)
+}
+
+func (s *UserEKBoxStorage) putLocked(mctx libkb.MetaContext, generation keybase1.EkGeneration,
+	userEKBoxed keybase1.UserEkBoxed, ekErr error) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("UserEKBoxStorage#putLocked: generation:%v", generation), func() error { return err })()
 
 	// sanity check that we got the right generation
 	if userEKBoxed.Metadata.Generation != generation && ekErr == nil {
-		return newEKCorruptedErr(ctx, s.G(), UserEKStr, generation, userEKBoxed.Metadata.Generation)
+		return newEKCorruptedErr(mctx, UserEKStr, generation, userEKBoxed.Metadata.Generation)
 	}
 
-	key, err := s.dbKey(ctx)
+	key, err := s.dbKey(mctx)
 	if err != nil {
 		return err
 	}
-	cache, err := s.getCache(ctx)
+	cache, err := s.getCache(mctx)
 	if err != nil {
 		return err
 	}
 	cache[generation] = newUserEKBoxCacheItem(userEKBoxed, ekErr)
-	return s.G().GetKVStore().PutObj(key, nil, cache)
+	return mctx.G().GetKVStore().PutObj(key, nil, cache)
 }
 
-func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.EkGeneration,
+func (s *UserEKBoxStorage) unbox(mctx libkb.MetaContext, userEKGeneration keybase1.EkGeneration,
 	userEKBoxed keybase1.UserEkBoxed, contentCtime *gregor1.Time) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#unbox: generation:%v", userEKGeneration), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("UserEKBoxStorage#unbox: generation:%v", userEKGeneration), func() error { return err })()
 
-	deviceEKStorage := s.G().GetDeviceEKStorage()
-	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
+	deviceEKStorage := mctx.G().GetDeviceEKStorage()
+	deviceEK, err := deviceEKStorage.Get(mctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
-		s.G().Log.CDebugf(ctx, "unable to get from deviceEKStorage %v", err)
+		mctx.Debug("unable to get from deviceEKStorage %v", err)
 		switch err.(type) {
 		case erasablekv.UnboxError:
-			return userEK, newEKUnboxErr(ctx, s.G(), UserEKStr, userEKGeneration, DeviceEKStr,
+			return userEK, newEKUnboxErr(mctx, UserEKStr, userEKGeneration, DeviceEKStr,
 				userEKBoxed.DeviceEkGeneration, contentCtime)
 		}
 		return userEK, err
@@ -260,8 +262,8 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
-		s.G().Log.CDebugf(ctx, "unable to decrypt userEKBoxed %v", err)
-		return userEK, newEKUnboxErr(ctx, s.G(), UserEKStr, userEKGeneration, DeviceEKStr,
+		mctx.Debug("unable to decrypt userEKBoxed %v", err)
+		return userEK, newEKUnboxErr(mctx, UserEKStr, userEKGeneration, DeviceEKStr,
 			userEKBoxed.DeviceEkGeneration, contentCtime)
 	}
 
@@ -276,35 +278,35 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 	}, nil
 }
 
-func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
+func (s *UserEKBoxStorage) Delete(mctx libkb.MetaContext, generation keybase1.EkGeneration) (err error) {
 	s.Lock()
 	defer s.Unlock()
-	return s.deleteMany(ctx, []keybase1.EkGeneration{generation})
+	return s.deleteMany(mctx, []keybase1.EkGeneration{generation})
 }
 
-func (s *UserEKBoxStorage) deleteMany(ctx context.Context, generations []keybase1.EkGeneration) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("UserEKBoxStorage#deleteMany: generations:%v", generations), func() error { return err })()
+func (s *UserEKBoxStorage) deleteMany(mctx libkb.MetaContext, generations []keybase1.EkGeneration) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("UserEKBoxStorage#deleteMany: generations:%v", generations), func() error { return err })()
 
-	cache, err := s.getCache(ctx)
+	cache, err := s.getCache(mctx)
 	if err != nil {
 		return err
 	}
 	for _, generation := range generations {
 		delete(cache, generation)
 	}
-	key, err := s.dbKey(ctx)
+	key, err := s.dbKey(mctx)
 	if err != nil {
 		return err
 	}
-	return s.G().GetKVStore().PutObj(key, nil, cache)
+	return mctx.G().GetKVStore().PutObj(key, nil, cache)
 }
 
-func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKUnboxedMap, err error) {
-	defer s.G().CTraceTimed(ctx, "UserEKBoxStorage#GetAll", func() error { return err })()
+func (s *UserEKBoxStorage) GetAll(mctx libkb.MetaContext) (userEKs UserEKUnboxedMap, err error) {
+	defer mctx.TraceTimed("UserEKBoxStorage#GetAll", func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
-	cache, err := s.getCache(ctx)
+	cache, err := s.getCache(mctx)
 	if err != nil {
 		return userEKs, err
 	}
@@ -314,7 +316,7 @@ func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKUnboxedMap
 		if cacheItem.HasError() {
 			continue
 		}
-		userEK, err := s.unbox(ctx, generation, cacheItem.UserEKBoxed, nil)
+		userEK, err := s.unbox(mctx, generation, cacheItem.UserEKBoxed, nil)
 		if err != nil {
 			return userEKs, err
 		}
@@ -330,20 +332,20 @@ func (s *UserEKBoxStorage) ClearCache() {
 	s.indexed = false
 }
 
-func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {
-	defer s.G().CTraceTimed(ctx, "UserEKBoxStorage#MaxGeneration", func() error { return err })()
+func (s *UserEKBoxStorage) MaxGeneration(mctx libkb.MetaContext, includeErrs bool) (maxGeneration keybase1.EkGeneration, err error) {
+	defer mctx.TraceTimed("UserEKBoxStorage#MaxGeneration", func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
 
 	maxGeneration = -1
-	cache, err := s.getCache(ctx)
+	cache, err := s.getCache(mctx)
 	if err != nil {
 		return maxGeneration, err
 	}
 
 	for generation, cacheItem := range cache {
-		if cacheItem.HasError() {
+		if cacheItem.HasError() && !includeErrs {
 			continue
 		}
 		if generation > maxGeneration {
@@ -353,13 +355,13 @@ func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration key
 	return maxGeneration, nil
 }
 
-func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
+func (s *UserEKBoxStorage) DeleteExpired(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
+	defer mctx.TraceTimed("DeviceEKStorage#DeleteExpired", func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
 
-	cache, err := s.getCache(ctx)
+	cache, err := s.getCache(mctx)
 	if err != nil {
 		return nil, err
 	}
@@ -376,9 +378,9 @@ func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.M
 		}
 	}
 	now := keybase1.TimeFromSeconds(merkleRoot.Ctime()).Time()
-	expired = s.getExpiredGenerations(ctx, keyMap, now)
+	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	toDelete = append(toDelete, expired...)
-	return expired, s.deleteMany(ctx, toDelete)
+	return expired, s.deleteMany(mctx, toDelete)
 }
 
 // getExpiredGenerations calculates which keys have expired and are safe to
@@ -389,7 +391,7 @@ func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.M
 // determine expiration, we look at all of the current keys and account for any
 // gaps since we don't want to expire a key if it is still used to encrypt a
 // different key or ephemeral content.
-func (s *UserEKBoxStorage) getExpiredGenerations(ctx context.Context, keyMap keyExpiryMap, now time.Time) (expired []keybase1.EkGeneration) {
+func (s *UserEKBoxStorage) getExpiredGenerations(mctx libkb.MetaContext, keyMap keyExpiryMap, now time.Time) (expired []keybase1.EkGeneration) {
 	// Sort the generations we have so we can walk through them in order.
 	var keys []keybase1.EkGeneration
 	for k := range keyMap {
@@ -408,7 +410,7 @@ func (s *UserEKBoxStorage) getExpiredGenerations(ctx context.Context, keyMap key
 			}
 		}
 		if now.Sub(keyCtime) >= (libkb.MinEphemeralKeyLifetime + expiryOffset) {
-			s.G().Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v, %v, %v",
+			mctx.Debug("getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v, %v, %v",
 				generation, now, keyCtime, expiryOffset, keyMap, i, now.Sub(keyCtime), (libkb.MinEphemeralKeyLifetime + expiryOffset))
 			expired = append(expired, generation)
 		}

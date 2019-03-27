@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -220,7 +221,7 @@ func TestList(t *testing.T) {
 	testList(t, ctx, sfs, path1)
 
 	t.Log("Shouldn't have created the TLF")
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), config, "jdoe", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetRootNode(
@@ -721,7 +722,7 @@ type fsBlockerMaker struct {
 
 func (maker fsBlockerMaker) makeNewBlocker(
 	ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	create bool) (billy.Filesystem, error) {
 	fsMaker := libfs.NewFS
 	if !create {
@@ -1151,8 +1152,19 @@ func (sr *subscriptionReporter) requireNoNotification(t *testing.T) {
 	t.Helper()
 	select {
 	case <-sr.lastPathNotify:
-		t.Fatal("Got notification but expected none")
+		t.Fatalf("Got notification but expected none: %q", sr.lastPath)
 	case <-time.After(10 * time.Millisecond):
+	}
+}
+
+func (sr *subscriptionReporter) depleteExistingNotifications(t *testing.T) {
+	t.Helper()
+	for {
+		select {
+		case <-sr.lastPathNotify:
+		case <-time.After(10 * time.Millisecond):
+			return
+		}
 	}
 }
 
@@ -1214,10 +1226,33 @@ func TestRefreshSubscription(t *testing.T) {
 	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 
+	// Make sure notification works with file content change.
+	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`poo`))
+	syncFS(ctx, t, sfs, "/public/jdoe")
+	sr.waitForNotification(t)
+	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
+
+	// We might have more than one notifications in channel here, so deplete
+	// them before attempting more.
+	sr.depleteExistingNotifications(t)
+
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test3.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe,alice")
 	sr.requireNoNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
+
+	// Now subscribe to the first one again, but using SimpleFSStat.
+	path3 := keybase1.NewPathWithKbfs(`/private/jdoe,alice/test3.txt`)
+	_, err = sfs.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
+		Path:                path3,
+		RefreshSubscription: true,
+	})
+	require.NoError(t, err)
+
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test3.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe,alice")
+	sr.waitForNotification(t)
+	require.Equal(t, "/keybase/private/jdoe,alice", sr.LastPath())
 }
 
 func TestGetRevisions(t *testing.T) {

@@ -90,7 +90,7 @@ func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string
 	if err != nil {
 		b.Debug(ctx, "notifyTlfFinalize: failed to load finalize user, skipping user changed notification: err: %s", err.Error())
 	} else {
-		b.G().UserChanged(finalizeUser.GetUID())
+		b.G().UserChanged(ctx, finalizeUser.GetUID())
 	}
 }
 
@@ -497,9 +497,9 @@ func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
 }
 
 func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) {
-	ctx := Context(context.Background(), s.G(),
+	ctx := globals.ChatCtx(context.Background(), s.G(),
 		keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
-	appState := s.G().AppState.State()
+	appState := s.G().MobileAppState.State()
 	doFlush := func() {
 		s.createInbox().Flush(ctx, uid)
 		if s.testFlushCh != nil {
@@ -510,9 +510,9 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 		select {
 		case <-s.G().Clock().After(s.flushDelay):
 			doFlush()
-		case appState = <-s.G().AppState.NextUpdate(&appState):
+		case appState = <-s.G().MobileAppState.NextUpdate(&appState):
 			switch appState {
-			case keybase1.AppState_BACKGROUND:
+			case keybase1.MobileAppState_BACKGROUND:
 				doFlush()
 			}
 		case <-stopCh:

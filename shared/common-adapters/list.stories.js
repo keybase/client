@@ -47,7 +47,8 @@ const load = () =>
           indexAsKey={true}
           itemHeight={{
             getItemLayout: index => ({
-              height: index % 2 === 0 ? 32 : 64,
+              index,
+              length: index % 2 === 0 ? 32 : 64,
               offset: Math.floor(index / 2) * (32 + 64) + (index % 2) * 32,
             }),
             type: 'variable',

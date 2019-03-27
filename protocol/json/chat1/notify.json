@@ -497,6 +497,13 @@
             "items": "ChatSyncIncrementalConv"
           },
           "name": "items"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "removals"
         }
       ]
     },

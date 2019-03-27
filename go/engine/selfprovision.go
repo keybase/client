@@ -66,6 +66,10 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return fmt.Errorf("to self provision, you must be a cloned device")
 	}
 
+	if err = m.G().SecretStore().PrimeSecretStores(m); err != nil {
+		return SecretStoreNotFunctionalError{err}
+	}
+
 	uv, _ := e.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
 	// Pass the UV here so the passphrase stream is cached on the provisional
 	// login context
@@ -85,7 +89,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.ekReboxer = newEphemeralKeyReboxer(m)
+	e.ekReboxer = newEphemeralKeyReboxer()
 
 	// Make new device keys and sign them with current device keys
 	if err := e.provision(m, keys); err != nil {
@@ -100,7 +104,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// Cleanup EKs belonging to the old device.
 	if deviceEKStorage := m.G().GetDeviceEKStorage(); deviceEKStorage != nil {
-		if err = deviceEKStorage.ForceDeleteAll(m.Ctx(), e.User.GetNormalizedName()); err != nil {
+		if err = deviceEKStorage.ForceDeleteAll(m, e.User.GetNormalizedName()); err != nil {
 			m.Debug("unable to remove old ephemeral keys: %v", err)
 		}
 	}
@@ -117,7 +121,7 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	e.clearCaches(m)
-	e.sendNotification()
+	e.sendNotification(m)
 	return nil
 }
 
@@ -250,18 +254,18 @@ func (e *SelfProvisionEngine) syncSecretStore(m libkb.MetaContext) error {
 	return libkb.StoreSecretAfterLoginWithLKS(m, e.User.GetNormalizedName(), e.lks)
 }
 
-func (e *SelfProvisionEngine) clearCaches(m libkb.MetaContext) {
+func (e *SelfProvisionEngine) clearCaches(mctx libkb.MetaContext) {
 	// Any caches that are encrypted with the old device key should be cleared
 	// out here so we can re-populate and encrypt with the new key.
 	if _, err := e.G().LocalChatDb.Nuke(); err != nil {
-		m.Debug("unable to nuke LocalChatDb: %v", err)
+		mctx.Debug("unable to nuke LocalChatDb: %v", err)
 	}
 	if ekLib := e.G().GetEKLib(); ekLib != nil {
-		ekLib.ClearCaches()
+		ekLib.ClearCaches(mctx)
 	}
 }
 
-func (e *SelfProvisionEngine) sendNotification() {
-	e.G().KeyfamilyChanged(e.User.GetUID())
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+func (e *SelfProvisionEngine) sendNotification(m libkb.MetaContext) {
+	e.G().KeyfamilyChanged(m.Ctx(), e.User.GetUID())
+	e.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsername()))
 }

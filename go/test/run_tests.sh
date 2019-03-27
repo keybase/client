@@ -36,11 +36,6 @@ go get "github.com/stretchr/testify/assert"
 failures=()
 
 for i in $DIRS; do
-  if [ "$i" = "bind" ]; then
-    echo "Skipping bind"
-    continue
-  fi
-
   echo -n "$i......."
   if ! (cd $i && go test $FLAGS ) ; then
     failures+=("$i")

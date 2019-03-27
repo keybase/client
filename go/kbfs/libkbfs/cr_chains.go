@@ -9,9 +9,11 @@ import (
 	"sort"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -233,7 +235,7 @@ func (cc *crChain) isFile() bool {
 // state, but setAttr(mtime) can apply to either type; in that case,
 // we need to fetch the block to figure out the type.
 func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
-	kmd KeyMetadata, chains *crChains) error {
+	kmd libkey.KeyMetadata, chains *crChains) error {
 	if len(cc.ops) == 0 {
 		return nil
 	}
@@ -866,7 +868,7 @@ type chainMetadata interface {
 // newCRChains builds a new crChains object from the given list of
 // chainMetadatas, which must be non-empty.
 func newCRChains(
-	ctx context.Context, codec kbfscodec.Codec, osg OfflineStatusGetter,
+	ctx context.Context, codec kbfscodec.Codec, osg idutil.OfflineStatusGetter,
 	chainMDs []chainMetadata, fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
@@ -956,7 +958,7 @@ func newCRChains(
 // newCRChainsForIRMDs simply builds a list of chainMetadatas from the
 // given list of ImmutableRootMetadatas and calls newCRChains with it.
 func newCRChainsForIRMDs(
-	ctx context.Context, codec kbfscodec.Codec, osg OfflineStatusGetter,
+	ctx context.Context, codec kbfscodec.Codec, osg idutil.OfflineStatusGetter,
 	irmds []ImmutableRootMetadata, fbo *folderBlockOps,
 	identifyTypes bool) (ccs *crChains, err error) {
 	chainMDs := make([]chainMetadata, len(irmds))

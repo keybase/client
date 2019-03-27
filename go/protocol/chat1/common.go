@@ -564,10 +564,11 @@ func (e ConversationMemberStatus) String() string {
 }
 
 type Pagination struct {
-	Next     []byte `codec:"next" json:"next"`
-	Previous []byte `codec:"previous" json:"previous"`
-	Num      int    `codec:"num" json:"num"`
-	Last     bool   `codec:"last" json:"last"`
+	Next           []byte `codec:"next" json:"next"`
+	Previous       []byte `codec:"previous" json:"previous"`
+	Num            int    `codec:"num" json:"num"`
+	Last           bool   `codec:"last" json:"last"`
+	ForceFirstPage bool   `codec:"forceFirstPage" json:"forceFirstPage"`
 }
 
 func (o Pagination) DeepCopy() Pagination {
@@ -584,8 +585,9 @@ func (o Pagination) DeepCopy() Pagination {
 			}
 			return append([]byte{}, x...)
 		})(o.Previous),
-		Num:  o.Num,
-		Last: o.Last,
+		Num:            o.Num,
+		Last:           o.Last,
+		ForceFirstPage: o.ForceFirstPage,
 	}
 }
 

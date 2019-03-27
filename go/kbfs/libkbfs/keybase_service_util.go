@@ -5,10 +5,11 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/kbfs/tlf"
 	"sync"
 
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
@@ -41,8 +42,8 @@ func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, usernam
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's public TLF: %+v", err)
-	} else if publicHandle.tlfID != tlf.NullID {
-		err = config.DiskBlockCache().AddHomeTLF(ctx, publicHandle.tlfID)
+	} else if publicHandle.TlfID() != tlf.NullID {
+		err = config.DiskBlockCache().AddHomeTLF(ctx, publicHandle.TlfID())
 		if err != nil {
 			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
 				"for disk block cache: %+v", err)
@@ -53,8 +54,8 @@ func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, usernam
 	if err != nil {
 		log.CWarningf(ctx, "serviceLoggedIn: Failed to fetch TLF ID for "+
 			"user's private TLF: %+v", err)
-	} else if privateHandle.tlfID != tlf.NullID {
-		err = config.DiskBlockCache().AddHomeTLF(ctx, privateHandle.tlfID)
+	} else if privateHandle.TlfID() != tlf.NullID {
+		err = config.DiskBlockCache().AddHomeTLF(ctx, privateHandle.TlfID())
 		if err != nil {
 			log.CWarningf(ctx, "serviceLoggedIn: Failed to set home TLF "+
 				"for disk block cache: %+v", err)
@@ -64,13 +65,13 @@ func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, usernam
 	// Send to Favorites cache
 	info := homeTLFInfo{}
 	if publicHandle != nil {
-		teamID := publicHandle.toFavToAdd(false).Data.TeamID
+		teamID := publicHandle.ToFavToAdd(false).Data.TeamID
 		if teamID != nil {
 			info.PublicTeamID = *teamID
 		}
 	}
 	if privateHandle != nil {
-		teamID := privateHandle.toFavToAdd(false).Data.TeamID
+		teamID := privateHandle.ToFavToAdd(false).Data.TeamID
 		if teamID != nil {
 			info.PrivateTeamID = *teamID
 		}
@@ -80,7 +81,7 @@ func setHomeTlfIdsForDbcAndFavorites(ctx context.Context, config Config, usernam
 
 // serviceLoggedIn should be called when a new user logs in. It
 // shouldn't be called again until after serviceLoggedOut is called.
-func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
+func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionInfo,
 	bws TLFJournalBackgroundWorkStatus) (wg *sync.WaitGroup) {
 	wg = &sync.WaitGroup{} // To avoid returning a nil pointer.
 	log := config.MakeLogger("")

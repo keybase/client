@@ -72,7 +72,7 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 	uis := libkb.UIs{
 		ProvisionUI: &TestProvisionUI{},
 		LogUI:       g.UI.GetLogUI(),
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &GPGTestUI{},
 		SecretUI:    fu.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
@@ -116,10 +116,11 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 		SkipMail:                 true,
 		SkipPaper:                skipPaper,
 		GenerateRandomPassphrase: randomPW,
+		StoreSecret:              true,
 	}
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
-		GPGUI:    &gpgtestui{},
+		GPGUI:    &GPGTestUI{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}

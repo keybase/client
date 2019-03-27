@@ -92,13 +92,13 @@ func (r *AttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {
 func (r *AttachmentHTTPSrv) monitorAppState() {
 	ctx := context.Background()
 	r.Debug(ctx, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-r.G().AppState.NextUpdate(&state)
+		state = <-r.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND:
+		case keybase1.MobileAppState_FOREGROUND:
 			r.startHTTPSrv()
-		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
+		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			r.httpSrv.Stop()
 		}
 	}
@@ -217,7 +217,7 @@ func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) st
 }
 
 func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
 	strOutboxID := req.URL.Query().Get("key")
@@ -238,7 +238,7 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 }
 
 func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveUnfurlAsset")()
 	key := req.URL.Query().Get("key")
@@ -270,7 +270,7 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Re
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyLink")()
 	key := req.URL.Query().Get("key")
@@ -396,7 +396,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 }
 
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serve")()
 	key := req.URL.Query().Get("key")

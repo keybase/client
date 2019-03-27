@@ -4,14 +4,17 @@
     "import * as More from '../constants/types/more'"
   ],
   "actions": {
-    "addProof": {"platform": "More.PlatformsExpandedType"},
+    "addProof": {"platform": "string"},
+    "proofParamsReceived": {"params": "Types.ProveGenericParams"},
+    "updatePlatformGenericURL": {"url": "string"},
+    "updatePlatformGenericChecking": {"checking": "boolean"},
+    "clearPlatformGeneric": {},
     "backToProfile": {},
     "cancelAddProof": {},
     "cancelPgpGen": {},
     "checkProof": {},
     "recheckProof": {"sigID": "string"},
     "cleanupUsername": {},
-    "dropPgp": {"kid": "RPCTypes.KID"},
     "uploadAvatar": {
       "filename": "string",
       "crop?": "RPCTypes.ImageCropRect"
@@ -34,7 +37,6 @@
       "username": "string",
       "openWebsite?": "?boolean"
     },
-    "outputInstructionsActionLink": {},
     "showUserProfile": {"username": "string"},
     "submitZcashAddress": {},
     "submitBTCAddress": {},

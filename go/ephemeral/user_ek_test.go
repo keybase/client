@@ -1,7 +1,6 @@
 package ephemeral
 
 import (
-	"context"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
@@ -11,18 +10,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb.MerkleRoot, uid keybase1.UID) keybase1.EkGeneration {
+func publishAndVerifyUserEK(mctx libkb.MetaContext, t *testing.T,
+	merkleRoot libkb.MerkleRoot, uid keybase1.UID) keybase1.EkGeneration {
 
-	publishedMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
+	publishedMetadata, err := publishNewUserEK(mctx, merkleRoot)
 	require.NoError(t, err)
 
-	s := tc.G.GetUserEKBoxStorage()
-	userEK, err := s.Get(context.Background(), publishedMetadata.Generation, nil)
+	s := mctx.G().GetUserEKBoxStorage()
+	userEK, err := s.Get(mctx, publishedMetadata.Generation, nil)
 	require.NoError(t, err)
 	require.Equal(t, userEK.Metadata, publishedMetadata)
 
 	uids := []keybase1.UID{uid}
-	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	statements, err := fetchUserEKStatements(mctx, uids)
 	require.NoError(t, err)
 	statement, ok := statements[uid]
 	require.True(t, ok)
@@ -31,35 +31,34 @@ func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb
 	require.Equal(t, currentMetadata, publishedMetadata)
 
 	// We've stored the result in local storage
-	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
-	maxGeneration, err := userEKBoxStorage.MaxGeneration(context.Background())
+	userEKBoxStorage := mctx.G().GetUserEKBoxStorage()
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(mctx, false)
 	require.NoError(t, err)
-	ek, err := userEKBoxStorage.Get(context.Background(), maxGeneration, nil)
+	ek, err := userEKBoxStorage.Get(mctx, maxGeneration, nil)
 	require.NoError(t, err)
 	require.Equal(t, ek.Metadata, publishedMetadata)
 	return maxGeneration
 }
 
 func TestNewUserEK(t *testing.T) {
-	tc, user := ephemeralKeyTestSetup(t)
+	tc, mctx, user := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	m := libkb.NewMetaContextForTest(tc)
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
 	uid := tc.G.Env.GetUID()
-	maxGeneration := publishAndVerifyUserEK(t, tc, merkleRoot, uid)
+	maxGeneration := publishAndVerifyUserEK(mctx, t, merkleRoot, uid)
 
-	rawStorage := NewUserEKBoxStorage(tc.G)
+	rawStorage := NewUserEKBoxStorage()
 	// Put our storage in a bad state by deleting the maxGeneration
-	err = rawStorage.Delete(context.Background(), maxGeneration)
+	err = rawStorage.Delete(mctx, maxGeneration)
 	require.NoError(t, err)
 
 	// If we publish in a bad local state, we can successfully get the
 	// maxGeneration from the server and continue
-	publishedMetadata2, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
+	publishedMetadata2, err := publishNewUserEK(mctx, merkleRoot)
 	require.NoError(t, err)
 	require.EqualValues(t, maxGeneration+1, publishedMetadata2.Generation)
 
@@ -68,7 +67,7 @@ func TestNewUserEK(t *testing.T) {
 	err = user.Login(tc.G)
 	require.NoError(t, err)
 
-	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
+	publishAndVerifyUserEK(mctx, t, merkleRoot, uid)
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata
@@ -87,7 +86,8 @@ func TestDeviceRevokeNoNewUserEK(t *testing.T) {
 func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	tc := libkb.SetupTest(t, "testDeviceRevoke", 2)
 	defer tc.Cleanup()
-	NewEphemeralStorageAndInstall(tc.G)
+	mctx := libkb.NewMetaContextForTest(tc)
+	NewEphemeralStorageAndInstall(mctx)
 
 	// Include a paper key with this test user, so that we have something to
 	// revoke.
@@ -97,7 +97,7 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	// Confirm that the user has a userEK.
 	uid := tc.G.Env.GetUID()
 	uids := []keybase1.UID{uid}
-	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	statements, err := fetchUserEKStatements(mctx, uids)
 	require.NoError(t, err)
 	statement, ok := statements[uid]
 	require.True(t, ok)
@@ -120,24 +120,24 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: user.NewSecretUI(),
 	}
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
-	err = engine.RunEngine2(m, revokeEngine)
+	mctx = mctx.WithUIs(uis)
+	err = engine.RunEngine2(mctx, revokeEngine)
 	require.NoError(t, err)
 
 	// Finally, confirm that the revocation above rolled a new userEK.
 	if !skipUserEKForTesting {
-		statements, err = fetchUserEKStatements(context.Background(), tc.G, uids)
+		statements, err = fetchUserEKStatements(mctx, uids)
 		require.NoError(t, err)
 		statement, ok = statements[uid]
 		require.True(t, ok)
 		require.EqualValues(t, statement.CurrentUserEkMetadata.Generation, 2, "after revoke, should have userEK gen 2")
-		userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2, nil)
+		userEK, err := tc.G.GetUserEKBoxStorage().Get(mctx, 2, nil)
 		require.NoError(t, err)
 		require.Equal(t, statement.CurrentUserEkMetadata, userEK.Metadata)
 	}
 
 	// Confirm that we can make a new userEK after rolling the PUK
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 	lib := tc.G.GetEKLib()
@@ -145,20 +145,20 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	require.True(t, ok)
 	// disable background keygen
 	ekLib.Shutdown()
-	needed, err := ekLib.NewUserEKNeeded(context.Background())
+	needed, err := ekLib.NewUserEKNeeded(mctx)
 	require.NoError(t, err)
 	require.Equal(t, skipUserEKForTesting, needed)
-	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
+	publishAndVerifyUserEK(mctx, t, merkleRoot, uid)
 }
 
 func TestPukRollNewUserEK(t *testing.T) {
-	tc, user := ephemeralKeyTestSetup(t)
+	tc, mctx, user := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	// Confirm that the user has a userEK.
 	uid := tc.G.Env.GetUID()
 	uids := []keybase1.UID{uid}
-	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	statements, err := fetchUserEKStatements(mctx, uids)
 	require.NoError(t, err)
 	firstStatement, ok := statements[uid]
 	require.True(t, ok)
@@ -170,23 +170,23 @@ func TestPukRollNewUserEK(t *testing.T) {
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: user.NewSecretUI(),
 	}
-	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
-	err = engine.RunEngine2(m, rollEngine)
+	mctx = mctx.WithUIs(uis)
+	err = engine.RunEngine2(mctx, rollEngine)
 	require.NoError(t, err)
 
 	// Finally, confirm that the roll above also rolled a new userEK.
-	statements, err = fetchUserEKStatements(context.Background(), tc.G, uids)
+	statements, err = fetchUserEKStatements(mctx, uids)
 	require.NoError(t, err)
 	secondStatement, ok := statements[uid]
 	require.True(t, ok)
 	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
-	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2, nil)
+	userEK, err := tc.G.GetUserEKBoxStorage().Get(mctx, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
 
 	// Confirm that we can make a new userEK after rolling the PUK
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
+	publishAndVerifyUserEK(mctx, t, merkleRoot, uid)
 }

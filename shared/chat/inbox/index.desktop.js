@@ -1,5 +1,7 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
@@ -11,6 +13,7 @@ import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
+import UnreadShortcut from './unread-shortcut'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
@@ -19,16 +22,24 @@ import {inboxWidth, getRowHeight} from './row/sizes'
 
 type State = {
   showFloating: boolean,
+  showUnread: boolean,
 }
 
 class Inbox extends React.PureComponent<Props, State> {
   state = {
     showFloating: false,
+    showUnread: false,
   }
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
   _clearedFilterCount: number = 0
+  _selectedVisible: boolean = false
+
+  // stuff for UnreadShortcut
+  _firstOffscreenIdx: number = -1
+  _lastVisibleIdx: number = -1
+  _scrollDiv = React.createRef()
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -46,11 +57,16 @@ class Inbox extends React.PureComponent<Props, State> {
 
     // list changed
     if (this.props.rows.length !== prevProps.rows.length) {
+      this._calculateShowFloating()
       listRowsResized = true
     }
 
     if (listRowsResized) {
       this._list && this._list.resetAfterIndex(0)
+    }
+
+    if (!I.is(this.props.unreadIndices, prevProps.unreadIndices)) {
+      this._calculateShowUnreadShortcut()
     }
 
     if (this.props.filter && this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
@@ -79,14 +95,12 @@ class Inbox extends React.PureComponent<Props, State> {
       return 0
     }
 
-    return getRowHeight(row.type, !!this.props.filter.length, row.showButton)
+    return getRowHeight(row.type, !!this.props.filter.length, row.type === 'divider' && row.showButton)
   }
 
   _itemRenderer = (index, style) => {
     const row = this.props.rows[index]
-    const divStyle = virtualListMarks
-      ? Styles.collapseStyles([style, {backgroundColor: 'purple', overflow: 'hidden'}])
-      : style
+    const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
       return (
         <div style={divStyle}>
@@ -100,12 +114,13 @@ class Inbox extends React.PureComponent<Props, State> {
       )
     }
 
-    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey
-    const teamname = row.teamname
+    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+    const teamname = row.teamname || ''
+    const isHighlighted = index === 0 && !!this.props.filter && !this._selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}, isHighlighted && styles.hover])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
@@ -117,7 +132,37 @@ class Inbox extends React.PureComponent<Props, State> {
     )
   }
 
+  _calculateShowUnreadShortcut = () => {
+    if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      return
+    }
+
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this._lastVisibleIdx)
+    if (firstOffscreenIdx) {
+      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      this._firstOffscreenIdx = firstOffscreenIdx
+    } else {
+      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      this._firstOffscreenIdx = -1
+    }
+  }
+
+  _calculateShowFloating = () => {
+    if (this._lastVisibleIdx < 0) {
+      return
+    }
+    let showFloating = true
+    const row = this.props.rows[this._lastVisibleIdx]
+    if (!row || row.type !== 'small') {
+      showFloating = false
+    }
+
+    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+  }
+
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
+    this._lastVisibleIdx = visibleStopIndex
     if (this.props.filter.length) {
       return
     }
@@ -135,16 +180,22 @@ class Inbox extends React.PureComponent<Props, State> {
       return arr
     }, [])
 
-    let showFloating = true
-    const row = this.props.rows[visibleStopIndex]
-    if (!row || row.type !== 'small') {
-      showFloating = false
-    }
-
-    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+    this._calculateShowFloating()
+    this._calculateShowUnreadShortcut()
 
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
+
+  _scrollToUnread = () => {
+    if (this._firstOffscreenIdx <= 0 || !this._scrollDiv.current) {
+      return
+    }
+    let top = 100 // give it some space below
+    for (let i = this._lastVisibleIdx; i <= this._firstOffscreenIdx; i++) {
+      top += this._itemSizeGetter(i)
+    }
+    this._scrollDiv.current.scrollBy({behavior: 'smooth', top})
+  }
 
   _setRef = (list: ?VariableSizeList<any>) => {
     this._list = list
@@ -160,6 +211,11 @@ class Inbox extends React.PureComponent<Props, State> {
   _onSelectDown = () => this.props.onSelectDown()
 
   render() {
+    this._selectedVisible =
+      !!this.props.filter &&
+      !!this.props.rows.find(
+        r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
+      )
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
@@ -183,6 +239,7 @@ class Inbox extends React.PureComponent<Props, State> {
                   height={height}
                   width={width}
                   ref={this._setRef}
+                  outerRef={this._scrollDiv}
                   onItemsRendered={this._onItemsRendered}
                   itemCount={this.props.rows.length}
                   itemSize={this._itemSizeGetter}
@@ -195,6 +252,9 @@ class Inbox extends React.PureComponent<Props, State> {
           </div>
           {owl}
           {floatingDivider || <BuildTeam />}
+          {this.state.showUnread && !this.state.showFloating && (
+            <UnreadShortcut onClick={this._scrollToUnread} />
+          )}
         </div>
       </ErrorBoundary>
     )
@@ -213,6 +273,13 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
+  divider: {
+    backgroundColor: 'purple',
+    overflow: 'hidden',
+  },
+  hover: {
+    backgroundColor: Styles.globalColors.blueGrey2,
+  },
   list: {flex: 1},
 })
 

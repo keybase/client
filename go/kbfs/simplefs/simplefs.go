@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -22,6 +23,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libhttpserver"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -67,11 +69,11 @@ var errNoSuchHandle = simpleFSError{"No such handle"}
 var errNoResult = simpleFSError{"Async result not found"}
 
 type newFSFunc func(
-	context.Context, libkbfs.Config, *libkbfs.TlfHandle, libkbfs.BranchName,
+	context.Context, libkbfs.Config, *tlfhandle.Handle, libkbfs.BranchName,
 	string, bool) (billy.Filesystem, error)
 
 func defaultNewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	tlfHandle *tlfhandle.Handle, branch libkbfs.BranchName, subdir string,
 	create bool) (
 	billy.Filesystem, error) {
 	maker := libfs.NewFS
@@ -104,10 +106,9 @@ type SimpleFS struct {
 	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
 
-	subscribeLock              sync.RWMutex
-	subscribeCurrPathCanonical string
-	subscribeCurrPathFromGUI   string
-	subscribeCurrFB            libkbfs.FolderBranch
+	subscribeLock               sync.RWMutex
+	subscribeCurrTlfPathFromGUI string
+	subscribeCurrFB             libkbfs.FolderBranch
 
 	localHTTPServer *libhttpserver.Server
 }
@@ -206,7 +207,7 @@ func remoteTlfAndPath(path keybase1.Path) (
 }
 
 func (k *SimpleFS) branchNameFromPath(
-	ctx context.Context, tlfHandle *libkbfs.TlfHandle, path keybase1.Path) (
+	ctx context.Context, tlfHandle *tlfhandle.Handle, path keybase1.Path) (
 	libkbfs.BranchName, error) {
 	pt, err := path.PathType()
 	if err != nil {
@@ -348,7 +349,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		res[len(res)-1].Name = string(pname)
 		res[len(res)-1].DirentType = deTy2Ty(libkbfs.Dir)
 
-		handle, err := libfs.ParseTlfHandlePreferredQuick(
+		handle, err := tlfhandle.ParseHandlePreferredQuick(
 			ctx, k.config.KBPKI(), k.config, string(pname), t)
 		if err != nil {
 			k.log.Errorf("ParseTlfHandlePreferredQuick: %s %q %v", t, pname, err)
@@ -587,27 +588,34 @@ func (k *SimpleFS) refreshSubscription(
 		return nil
 	}
 
+	tlfType, tlfNameFromGUI, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfPathFromGUI := tlfhandle.BuildCanonicalPathForTlfType(
+		tlfType, tlfNameFromGUI)
+
 	k.subscribeLock.Lock()
 	defer k.subscribeLock.Unlock()
 
 	// TODO: when favorites caching is ready, handle folder-list paths
 	// like `/keybase/private` here.
 
-	fb, subscribePathCanonical, err := k.getFolderBranchFromPath(ctx, path)
+	fb, _, err := k.getFolderBranchFromPath(ctx, path)
 	if err != nil {
 		return err
 	}
 	if fb == (libkbfs.FolderBranch{}) {
 		k.log.CDebugf(
-			ctx, "Ignoring subscription for empty TLF %s", subscribePathCanonical)
+			ctx, "Ignoring subscription for empty TLF %q", path)
 		return nil
 	}
 
-	if k.subscribeCurrPathCanonical == subscribePathCanonical {
+	if k.subscribeCurrFB == fb {
 		return nil
 	}
 
-	if k.subscribeCurrPathCanonical != "" {
+	if k.subscribeCurrFB != (libkbfs.FolderBranch{}) {
 		err = k.config.Notifier().UnregisterFromChanges(
 			[]libkbfs.FolderBranch{k.subscribeCurrFB}, k)
 		if err != nil {
@@ -615,14 +623,15 @@ func (k *SimpleFS) refreshSubscription(
 		}
 	}
 
-	k.log.CDebugf(ctx, "Subscribing to %s", subscribePathCanonical)
+	k.log.CDebugf(ctx, "Subscribing to %s", tlfPathFromGUI)
 	err = k.config.Notifier().RegisterForChanges(
 		[]libkbfs.FolderBranch{fb}, k)
 	if err != nil {
 		return err
 	}
-	k.subscribeCurrPathCanonical = subscribePathCanonical
-	k.subscribeCurrPathFromGUI = stdpath.Join("/keybase", path.Kbfs())
+	// We are subscribing on TLF level anyway, so just use TLF path when
+	// notifying GUI.
+	k.subscribeCurrTlfPathFromGUI = tlfPathFromGUI
 	k.subscribeCurrFB = fb
 	return nil
 }
@@ -1174,7 +1183,7 @@ func (k *SimpleFS) doRemove(
 
 func (k *SimpleFS) pathsForSameTlfMove(
 	ctx context.Context, src, dst keybase1.Path) (
-	sameTlf bool, srcPath, dstPath string, tlfHandle *libkbfs.TlfHandle,
+	sameTlf bool, srcPath, dstPath string, tlfHandle *tlfhandle.Handle,
 	err error) {
 	srcType, err := src.PathType()
 	if err != nil {
@@ -1549,7 +1558,7 @@ func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 // SimpleFSStat - Get info about file
 func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (de keybase1.Dirent, err error) {
 	if arg.IdentifyBehavior != nil {
-		ctx, err = libkbfs.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
 		if err != nil {
 			return keybase1.Dirent{}, err
 		}
@@ -1575,6 +1584,13 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 		}, nil
 	default:
 		return keybase1.Dirent{}, err
+	}
+
+	if arg.RefreshSubscription {
+		err = k.refreshSubscription(ctx, arg.Path)
+		if err != nil {
+			return keybase1.Dirent{}, err
+		}
 	}
 
 	// Use LStat so we don't follow symlinks.
@@ -2039,7 +2055,7 @@ func (k *SimpleFS) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (
 // SimpleFSUserEditHistory returns the edit history for the logged-in user.
 func (k *SimpleFS) SimpleFSUserEditHistory(ctx context.Context) (
 	res []keybase1.FSFolderEditHistory, err error) {
-	session, err := libkbfs.GetCurrentSessionIfPossible(
+	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, k.config.KBPKI(), true)
 	// Return empty history if we are not logged in.
 	if err != nil {
@@ -2085,8 +2101,12 @@ var _ libkbfs.Observer = (*SimpleFS)(nil)
 
 // LocalChange implements the libkbfs.Observer interface for SimpleFS.
 func (k *SimpleFS) LocalChange(
-	_ context.Context, _ libkbfs.Node, _ libkbfs.WriteRange) {
-	// No-op.
+	ctx context.Context, node libkbfs.Node, _ libkbfs.WriteRange) {
+	k.subscribeLock.RLock()
+	defer k.subscribeLock.RUnlock()
+	if node.GetFolderBranch() == k.subscribeCurrFB {
+		k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrTlfPathFromGUI)
+	}
 }
 
 // BatchChanges implements the libkbfs.Observer interface for SimpleFS.
@@ -2102,16 +2122,14 @@ func (k *SimpleFS) BatchChanges(
 	go func() {
 		k.subscribeLock.RLock()
 		defer k.subscribeLock.RUnlock()
-		for fb := range fbs {
-			if fb == k.subscribeCurrFB {
-				k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPathFromGUI)
-			}
+		if fbs[k.subscribeCurrFB] {
+			k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrTlfPathFromGUI)
 		}
 	}()
 }
 
 // TlfHandleChange implements the libkbfs.Observer interface for SimpleFS.
-func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *libkbfs.TlfHandle) {
+func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *tlfhandle.Handle) {
 	// TODO: the GUI might eventually care about a handle change.
 }
 
@@ -2247,6 +2265,22 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 
 	_, err = k.config.KBFSOps().SetSyncConfig(ctx, tlfID, arg.Config)
 	return err
+}
+
+// SimpleFSClearConflictState implements the SimpleFS interface.
+func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
+	path keybase1.Path) error {
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
 }
 
 // SimpleFSPing implements the SimpleFSInterface.

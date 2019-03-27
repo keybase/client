@@ -78,7 +78,7 @@ export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
 type _AddParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
-type _AddPeopleToTeamPayload = $ReadOnly<{|destSubPath: I.List<string>, role: string, rootPath: I.List<string>, sendChatNotification: boolean, sourceSubPath: I.List<string>, teamname: string|}>
+type _AddPeopleToTeamPayload = $ReadOnly<{|destSubPath?: I.List<string>, role: string, rootPath?: I.List<string>, sendChatNotification: boolean, sourceSubPath?: I.List<string>, teamname: string|}>
 type _AddTeamWithChosenChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _AddToTeamPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType, sendChatNotification: boolean|}>
 type _AddUserToTeamsPayload = $ReadOnly<{|role: Types.TeamRoleType, teams: Array<string>, user: string|}>
@@ -88,7 +88,7 @@ type _ClearAddUserToTeamsResultsPayload = void
 type _ClearTeamRequestsPayload = $ReadOnly<{|teamname: string|}>
 type _CreateChannelPayload = $ReadOnly<{|teamname: string, channelname: string, description: ?string, rootPath: I.List<string>, sourceSubPath: I.List<string>, destSubPath: I.List<string>|}>
 type _CreateNewTeamFromConversationPayload = $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey, teamname: string|}>
-type _CreateNewTeamPayload = $ReadOnly<{|joinSubteam: boolean, teamname: string, rootPath: I.List<string>, sourceSubPath: I.List<string>, destSubPath: I.List<string>|}>
+type _CreateNewTeamPayload = $ReadOnly<{|joinSubteam: boolean, teamname: string, rootPath?: I.List<string>, sourceSubPath?: I.List<string>, destSubPath?: I.List<string>|}>
 type _DeleteChannelConfirmedPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey|}>
 type _DeleteChannelInfoPayload = $ReadOnly<{|teamname: Types.Teamname, conversationIDKey: ChatTypes.ConversationIDKey|}>
 type _EditMembershipPayload = $ReadOnly<{|teamname: string, username: string, role: Types.TeamRoleType|}>
@@ -103,7 +103,7 @@ type _GetTeamPublicityPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamsPayload = void
 type _IgnoreRequestPayload = $ReadOnly<{|teamname: string, username: string|}>
-type _InviteToTeamByEmailPayload = $ReadOnly<{|destSubPath: I.List<string>, invitees: string, role: Types.TeamRoleType, rootPath: I.List<string>, sourceSubPath: I.List<string>, teamname: string|}>
+type _InviteToTeamByEmailPayload = $ReadOnly<{|destSubPath?: I.List<string>, invitees: string, role: Types.TeamRoleType, rootPath?: I.List<string>, sourceSubPath?: I.List<string>, teamname: string|}>
 type _InviteToTeamByPhonePayload = $ReadOnly<{|teamname: string, role: Types.TeamRoleType, phoneNumber: string, fullName: string|}>
 type _JoinTeamPayload = $ReadOnly<{|teamname: string|}>
 type _LeaveTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'|}>

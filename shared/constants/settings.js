@@ -9,6 +9,7 @@ const initialState: Types.State = {
   chat: {
     unfurl: {},
   },
+  checkPassphraseIsCorrect: null,
   email: {
     emails: null,
     error: null,
@@ -62,6 +63,7 @@ export const fsTab = 'settingsTabs.fsTab'
 export const gitTab = 'settingsTabs.gitTab'
 export const invitationsTab = 'settingsTabs.invitationsTab'
 export const landingTab = 'settingsTabs.landingTab'
+export const logOutTab = 'settingsTabs.logOutTab'
 export const notificationsTab = 'settingsTabs.notificationsTab'
 export const passphraseTab = 'settingsTabs.passphrase'
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
@@ -73,6 +75,7 @@ export const walletsTab = 'settingsTabs.walletsTab'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
+export const checkPassphraseWaitingKey = 'settings:checkPassphrase'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export {
   initialState,

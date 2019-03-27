@@ -56,6 +56,21 @@
     },
     {
       "type": "record",
+      "name": "ResetState",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "endTime",
+          "jsonkey": "end_time"
+        },
+        {
+          "type": "string",
+          "name": "msg"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BadgeState",
       "fields": [
         {
@@ -134,6 +149,10 @@
             "items": "WalletAccountInfo"
           },
           "name": "unreadWalletAccounts"
+        },
+        {
+          "type": "ResetState",
+          "name": "resetState"
         }
       ]
     },

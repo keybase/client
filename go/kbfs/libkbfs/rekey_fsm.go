@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 )
@@ -355,7 +356,7 @@ func newRekeyStateStarted(fsm *rekeyFSM, task rekeyTask) *rekeyStateStarted {
 		fsm.log.CDebugf(ctx, "Processing rekey for %s", fsm.fbo.folderBranch.Tlf)
 		var res RekeyResult
 		err := fsm.fbo.doMDWriteWithRetryUnlessCanceled(ctx,
-			func(lState *lockState) (err error) {
+			func(lState *kbfssync.LockState) (err error) {
 				res, err = fsm.fbo.rekeyLocked(ctx, lState, task.promptPaper)
 				return err
 			})

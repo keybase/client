@@ -7,7 +7,9 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -34,7 +36,7 @@ func NewKeyManagerStandard(config Config) *KeyManagerStandard {
 // GetTLFCryptKeyForEncryption implements the KeyManager interface for
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
-	kmd KeyMetadata) (tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
+	kmd libkey.KeyMetadata) (tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	return km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd,
 		kmd.LatestKeyGeneration(), false)
 }
@@ -42,7 +44,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
 // GetTLFCryptKeyForMDDecryption implements the KeyManager interface
 // for KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
+	ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	return km.getTLFCryptKey(ctx, kmdWithKeys, kmdToDecrypt.LatestKeyGeneration(),
 		getTLFCryptKeyAnyDevice|getTLFCryptKeyDoCache)
@@ -51,7 +53,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 // GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (
 	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	return km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd, blockPtr.KeyGen, true)
 }
@@ -59,7 +61,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 // GetTLFCryptKeyOfAllGenerations implements the KeyManager interface for
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyOfAllGenerations(
-	ctx context.Context, kmd KeyMetadata) (
+	ctx context.Context, kmd libkey.KeyMetadata) (
 	keys []kbfscrypto.TLFCryptKey, err error) {
 	for g := kbfsmd.FirstValidKeyGen; g <= kmd.LatestKeyGeneration(); g++ {
 		var key kbfscrypto.TLFCryptKey
@@ -73,7 +75,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyOfAllGenerations(
 }
 
 func (km *KeyManagerStandard) getTLFCryptKeyUsingCurrentDevice(
-	ctx context.Context, kmd KeyMetadata, keyGen kbfsmd.KeyGen, cache bool) (
+	ctx context.Context, kmd libkey.KeyMetadata, keyGen kbfsmd.KeyGen, cache bool) (
 	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	flags := getTLFCryptKeyFlags(0)
 	if cache {
@@ -91,7 +93,7 @@ const (
 )
 
 func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
-	kmd KeyMetadata, keyGen kbfsmd.KeyGen, flags getTLFCryptKeyFlags) (
+	kmd libkey.KeyMetadata, keyGen kbfsmd.KeyGen, flags getTLFCryptKeyFlags) (
 	kbfscrypto.TLFCryptKey, error) {
 	tlfID := kmd.TlfID()
 
@@ -213,7 +215,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 }
 
 func (km *KeyManagerStandard) getTLFCryptKeyParams(
-	ctx context.Context, kmd KeyMetadata,
+	ctx context.Context, kmd libkey.KeyMetadata,
 	keyGen kbfsmd.KeyGen, uid keybase1.UID, username kbname.NormalizedUsername,
 	flags getTLFCryptKeyFlags) (
 	clientHalf kbfscrypto.TLFCryptKeyClientHalf,
@@ -444,13 +446,13 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 
 	// Let the service know that we're doing the identifies because of
 	// a rekey, so they can suppress popups in some cases.
-	ctx, err := MakeExtendedIdentify(
+	ctx, err := tlfhandle.MakeExtendedIdentify(
 		ctx, keybase1.TLFIdentifyBehavior_KBFS_REKEY)
 	if err != nil {
 		return err
 	}
 
-	return identifyUserList(
+	return tlfhandle.IdentifyUserList(
 		ctx, kbpki, kbpki, ids, tlfID.Type(),
 		km.config.OfflineAvailabilityForID(tlfID))
 }
@@ -517,7 +519,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, err
 	}
 
-	idGetter := constIDGetter{md.TlfID()}
+	idGetter := tlfhandle.ConstIDGetter{ID: md.TlfID()}
 	resolvedHandle, err := handle.ResolveAgain(
 		ctx, km.config.KBPKI(), idGetter, km.config)
 	if err != nil {
@@ -586,7 +588,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	if !isWriter && incKeyGen {
 		// Readers cannot create the first key generation
-		return false, nil, NewReadAccessError(resolvedHandle, session.Name, resolvedHandle.GetCanonicalPath())
+		return false, nil, tlfhandle.NewReadAccessError(
+			resolvedHandle, session.Name, resolvedHandle.GetCanonicalPath())
 	}
 
 	offline := km.config.OfflineAvailabilityForID(md.TlfID())

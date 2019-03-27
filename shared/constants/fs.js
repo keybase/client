@@ -5,6 +5,8 @@ import * as RPCTypes from './types/rpc-gen'
 import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
 import * as Flow from '../util/flow'
+import * as Tabs from './tabs'
+import * as SettingsConstants from './settings'
 import {type TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
@@ -14,6 +16,8 @@ import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {findKey} from 'lodash-es'
+import {type TypedActions} from '../actions/typed-actions-gen'
+import flags from '../util/feature-flags'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -499,13 +503,14 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
+const supportedImgMimeTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp'])
 export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
   if (mime && mime.displayPreview) {
     const mimeType = mime.mimeType
     if (mimeType === 'text/plain') {
       return 'text'
     }
-    if (mimeType.startsWith('image/')) {
+    if (supportedImgMimeTypes.has(mimeType)) {
       return 'image'
     }
     if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
@@ -589,22 +594,6 @@ export const showIgnoreFolder = (path: Types.Path, username?: string): boolean =
 
 export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
   isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
-
-// shouldUseOldMimeType determines if mimeType from newItem should reuse
-// what's in oldItem.
-export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
-  if (!oldItem.mimeType || newItem.mimeType) {
-    return false
-  }
-
-  return (
-    oldItem.type === newItem.type &&
-    oldItem.lastModifiedTimestamp === newItem.lastModifiedTimestamp &&
-    oldItem.lastWriter.uid === newItem.lastWriter.uid &&
-    oldItem.name === newItem.name &&
-    oldItem.size === newItem.size
-  )
-}
 
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
@@ -849,6 +838,7 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
       return false
     case 'group-tlf':
     case 'team-tlf':
+      return false
     case 'in-group-tlf':
     case 'in-team-tlf':
       return parsedPath.tlfType !== 'public'
@@ -856,6 +846,29 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
       return false
   }
+}
+
+export const canChat = (path: Types.Path) => {
+  const parsedPath = parsePath(path)
+  switch (parsedPath.kind) {
+    case 'root':
+    case 'tlf-list':
+      return false
+    case 'group-tlf':
+    case 'team-tlf':
+      return true
+    case 'in-group-tlf':
+    case 'in-team-tlf':
+      return true
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return false
+  }
+}
+
+export const isTeamPath = (path: Types.Path): boolean => {
+  const parsedPath = parsePath(path)
+  return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
 }
 
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
@@ -879,6 +892,78 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     ? Types.getLocalPathName(picker.source.localPath)
     : ''
 
+export const makeActionsForDestinationPickerOpen = (
+  index: number,
+  path: Types.Path,
+  routePath?: ?I.List<string>
+): Array<TypedActions> => [
+  FsGen.createSetDestinationPickerParentPath({
+    index,
+    path,
+  }),
+  flags.useNewRouter || !routePath
+    ? RouteTreeGen.createNavigateAppend({
+        path: [{props: {index}, selected: 'destinationPicker'}],
+      })
+    : RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: RouteTreeGen.createNavigateAppend({
+          path: [{props: {index}, selected: 'destinationPicker'}],
+        }),
+      }),
+]
+
+export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
+
+export const makeActionForOpenPathInFilesTab = flags.useNewRouter
+  ? (
+      path: Types.Path, // TODO: remove the second arg when we are done with migrating to nav2
+      routePath?: ?I.List<string>
+    ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'tabs.fsTab'}]})
+  : (path: Types.Path, routePath?: ?I.List<string>): TypedActions => {
+      const finalRoute = {props: {path}, selected: 'main'}
+      const routeChangeAction = isMobile
+        ? RouteTreeGen.createNavigateTo({
+            path:
+              path === defaultPath
+                ? fsRootRouteForNav1
+                : [
+                    ...fsRootRouteForNav1,
+                    // Construct all parent folders so back button works all the way back
+                    // to /keybase
+                    ...Types.getPathElements(path)
+                      .slice(1, -1) // fsTab default to /keybase, so we skip one here
+                      .reduce(
+                        (routes, elem) => [
+                          ...routes,
+                          {
+                            props: {
+                              path: routes.length
+                                ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                                : Types.stringToPath(`/keybase/${elem}`),
+                            },
+                            selected: 'main',
+                          },
+                        ],
+                        []
+                      ),
+                    finalRoute,
+                  ],
+          })
+        : RouteTreeGen.createNavigateTo({
+            path: [
+              Tabs.fsTab,
+              // Prepend the parent folder so when user clicks the back button they'd
+              // go back to the parent folder.
+              {props: {path: Types.getPathParent(path)}, selected: 'main'},
+              finalRoute,
+            ],
+          })
+      return routePath
+        ? RouteTreeGen.createPutActionIfOnPath({expectedPath: routePath, otherAction: routeChangeAction})
+        : routeChangeAction
+    }
+
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))
 
@@ -897,7 +982,7 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return 'Failed to load TLF lists.' + suffix
     case FsGen.refreshLocalHTTPServerInfo:
       return 'Failed to get information about internal HTTP server.' + suffix
-    case FsGen.pathItemLoad:
+    case FsGen.loadPathMetadata:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
@@ -909,8 +994,6 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return `Failed to save: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.upload:
       return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.` + suffix
-    case FsGen.mimeTypeLoad:
-      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.favoriteIgnore:
       return `Failed to ignore: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.openPathInSystemFileManager:
@@ -919,10 +1002,6 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
       return `Failed to open path: ${action.payload.localPath}.` + suffix
     case FsGen.deleteFile:
       return `Failed to delete file: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openPathItem:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.openPathInFilesTab:
-      return `Failed to open path: ${Types.pathToString(action.payload.path)}.` + suffix
     case FsGen.downloadSuccess:
       return (
         `Failed to ${humanizeDownloadIntent(action.payload.intent)}. ` +

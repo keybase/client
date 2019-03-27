@@ -2,8 +2,9 @@
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/chat2'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EditChannel, {type Props} from './edit-channel'
-import {connect, type RouteProps} from '../../util/container'
+import {connect, getRouteProps, type RouteProps} from '../../util/container'
 
 type OwnProps = RouteProps<
   {
@@ -13,13 +14,13 @@ type OwnProps = RouteProps<
   {waitingForSave: number}
 >
 
-const mapStateToProps = (state, {navigateUp, routePath, routeProps}) => {
-  const conversationIDKey = routeProps.get('conversationIDKey')
+const mapStateToProps = (state, ownProps) => {
+  const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
   if (!conversationIDKey) {
     throw new Error('conversationIDKey unexpectedly empty')
   }
 
-  const teamname = routeProps.get('teamname')
+  const teamname = getRouteProps(ownProps, 'teamname')
   if (!teamname) {
     throw new Error('teamname unexpectedly empty')
   }
@@ -54,11 +55,11 @@ const mapStateToProps = (state, {navigateUp, routePath, routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
+const mapDispatchToProps = dispatch => {
   return {
     _loadChannelInfo: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createGetChannelInfo({conversationIDKey, teamname})),
-    _navigateUp: () => dispatch(navigateUp()),
+    _navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
     _onConfirmedDelete: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamname})),
     _updateChannelName: (
@@ -71,7 +72,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
+const mergeProps = (stateProps, dispatchProps): Props => {
   const {teamname, conversationIDKey, channelName, topic} = stateProps
   const deleteRenameDisabled = channelName === 'general'
   return {

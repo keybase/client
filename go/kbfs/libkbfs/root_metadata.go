@@ -10,10 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -118,15 +121,15 @@ type RootMetadata struct {
 
 	// The TLF handle for this MD. May be nil if this object was
 	// deserialized (more common on the server side).
-	tlfHandle *TlfHandle
+	tlfHandle *tlfhandle.Handle
 }
 
-var _ KeyMetadata = (*RootMetadata)(nil)
+var _ libkey.KeyMetadata = (*RootMetadata)(nil)
 
 // makeRootMetadata makes a RootMetadata object from the given
 // parameters.
 func makeRootMetadata(bareMd kbfsmd.MutableRootMetadata,
-	extra kbfsmd.ExtraMetadata, handle *TlfHandle) *RootMetadata {
+	extra kbfsmd.ExtraMetadata, handle *tlfhandle.Handle) *RootMetadata {
 	if bareMd == nil {
 		panic("nil kbfsmd.MutableRootMetadata")
 	}
@@ -146,7 +149,7 @@ func makeRootMetadata(bareMd kbfsmd.MutableRootMetadata,
 // and handle. Note that if the given ID/handle are private, rekeying
 // must be done separately.
 func makeInitialRootMetadata(
-	ver kbfsmd.MetadataVer, tlfID tlf.ID, h *TlfHandle) (*RootMetadata, error) {
+	ver kbfsmd.MetadataVer, tlfID tlf.ID, h *tlfhandle.Handle) (*RootMetadata, error) {
 	bh, err := h.ToBareHandle()
 	if err != nil {
 		return nil, err
@@ -207,7 +210,7 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 		}
 	}
 
-	handleCopy := md.tlfHandle.deepCopy()
+	handleCopy := md.tlfHandle.DeepCopy()
 
 	rmd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
 
@@ -229,8 +232,8 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer kbfsmd.MetadataVer, codec kbfscodec.Codec,
-	keyManager KeyManager, merkleGetter merkleRootGetter,
-	teamKeyer teamKeysGetter, osg OfflineStatusGetter, mdID kbfsmd.ID,
+	keyManager KeyManager, merkleGetter idutil.MerkleRootGetter,
+	teamKeyer teamKeysGetter, osg idutil.OfflineStatusGetter, mdID kbfsmd.ID,
 	isWriter bool) (*RootMetadata, error) {
 	if mdID == (kbfsmd.ID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
@@ -250,7 +253,7 @@ func (md *RootMetadata) MakeSuccessor(
 		return nil, err
 	}
 
-	handleCopy := md.tlfHandle.deepCopy()
+	handleCopy := md.tlfHandle.DeepCopy()
 
 	newMd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
 	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
@@ -299,17 +302,18 @@ func (md *RootMetadata) MakeSuccessor(
 // plus it changes the handle.  (The caller is responsible for
 // ensuring that the handle change is valid.)
 func (md *RootMetadata) MakeSuccessorWithNewHandle(
-	ctx context.Context, newHandle *TlfHandle, latestMDVer kbfsmd.MetadataVer,
-	codec kbfscodec.Codec, keyManager KeyManager, merkleGetter merkleRootGetter,
-	teamKeyer teamKeysGetter, osg OfflineStatusGetter, mdID kbfsmd.ID,
-	isWriter bool) (*RootMetadata, error) {
+	ctx context.Context, newHandle *tlfhandle.Handle, latestMDVer kbfsmd.MetadataVer,
+	codec kbfscodec.Codec, keyManager KeyManager,
+	merkleGetter idutil.MerkleRootGetter, teamKeyer teamKeysGetter,
+	osg idutil.OfflineStatusGetter, mdID kbfsmd.ID, isWriter bool) (
+	*RootMetadata, error) {
 	mdCopy, err := md.deepCopy(codec)
 	if err != nil {
 		return nil, err
 	}
 
 	mdCopy.extra = nil
-	mdCopy.tlfHandle = newHandle.deepCopy()
+	mdCopy.tlfHandle = newHandle.DeepCopy()
 	mdCopy.SetWriters(newHandle.ResolvedWriters())
 	// Readers are not tracked explicitly in the MD, but their key
 	// bundles are cleared out with the `ClearForV4Migration()` call
@@ -324,7 +328,7 @@ func (md *RootMetadata) MakeSuccessorWithNewHandle(
 }
 
 // GetTlfHandle returns the TlfHandle for this RootMetadata.
-func (md *RootMetadata) GetTlfHandle() *TlfHandle {
+func (md *RootMetadata) GetTlfHandle() *tlfhandle.Handle {
 	if md.tlfHandle == nil {
 		panic(fmt.Sprintf("RootMetadata %v with no handle", md))
 	}
@@ -409,7 +413,7 @@ func (md *RootMetadata) SetLastGCRevision(rev kbfsmd.Revision) {
 // updateFromTlfHandle updates the current RootMetadata's fields to
 // reflect the given handle, which must be the result of running the
 // current handle with ResolveAgain().
-func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
+func (md *RootMetadata) updateFromTlfHandle(newHandle *tlfhandle.Handle) error {
 	// TODO: Strengthen check, e.g. make sure every writer/reader
 	// in the old handle is also a writer/reader of the new
 	// handle.
@@ -522,7 +526,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 		}},
 	}
 	fd := newFileData(file, id, nil, nil, md.ReadOnly(),
-		func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
+		func(_ context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
 			_ path, _ blockReqType) (*FileBlock, bool, error) {
 			fblock, ok := fileBlocks[ptr]
 			if !ok {
@@ -906,7 +910,7 @@ func (md *RootMetadata) GetHistoricTLFCryptKey(
 // right now.  Implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) IsWriter(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-	osg OfflineStatusGetter, uid keybase1.UID,
+	osg idutil.OfflineStatusGetter, uid keybase1.UID,
 	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	h := md.GetTlfHandle()
 	return IsWriterFromHandle(ctx, h, checker, osg, uid, verifyingKey)
@@ -916,7 +920,7 @@ func (md *RootMetadata) IsWriter(
 // right now.
 func (md *RootMetadata) IsReader(
 	ctx context.Context, checker kbfsmd.TeamMembershipChecker,
-	osg OfflineStatusGetter, uid keybase1.UID) (bool, error) {
+	osg idutil.OfflineStatusGetter, uid keybase1.UID) (bool, error) {
 	h := md.GetTlfHandle()
 	return isReaderFromHandle(ctx, h, checker, osg, uid)
 }

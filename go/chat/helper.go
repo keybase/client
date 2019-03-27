@@ -208,7 +208,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 }
 
 func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) (err error) {
-	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(h.G()))
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(h.G()))
 	defer h.Trace(ctx, func() error { return err }, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
 		tlfID, tlfName, public)()
 	var cryptKeys []keybase1.CryptKey
@@ -322,7 +322,7 @@ func (s *sendHelper) SendText(ctx context.Context, text string, outboxID *chat1.
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType,
 	outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
-	ctx = Context(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
+	ctx = globals.ChatCtx(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
 	if err := s.conversation(ctx); err != nil {
 		return chat1.OutboxID{}, nil, err
 	}
@@ -427,7 +427,7 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 }
 
 func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
-	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(g))
+	ctx = globals.ChatCtx(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(g))
 	return newRecentConversationParticipants(g).get(ctx, myUID)
 }
 
@@ -937,7 +937,7 @@ func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.Name
 		// NameInfoSource interface doesn't allow us to quickly lookup and create at the same time,
 		// so let's just do this manually here. Note: this will allow a user to dup impteamupgrade
 		// convs with unresolved assertions in them, the server can catch any normal convs being duped.
-		if override := GetOverrideNameInfoSource(ctx); override != nil {
+		if override, _ := globals.CtxOverrideNameInfoSource(ctx); override != nil {
 			return override.LookupID(ctx, n.tlfName, isPublic)
 		}
 		team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName,
@@ -1203,7 +1203,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {
-	if override := GetOverrideNameInfoSource(ctx); override != nil {
+	if override, _ := globals.CtxOverrideNameInfoSource(ctx); override != nil {
 		return override
 	}
 	switch membersType {
@@ -1218,11 +1218,4 @@ func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType c
 	}
 	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(g)
-}
-
-func GetOverrideNameInfoSource(ctx context.Context) types.NameInfoSource {
-	if override := ctx.Value(nameInfoOverrideKey); override != nil {
-		return override.(types.NameInfoSource)
-	}
-	return nil
 }

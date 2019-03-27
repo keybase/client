@@ -1,15 +1,18 @@
 // @flow
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Team from '.'
 import CustomTitle from './custom-title/container'
+import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
-import {connect, compose} from '../../util/container'
+import {connect, compose, getRouteProps, isMobile} from '../../util/container'
 import * as Constants from '../../constants/teams'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
 import type {RouteProps} from '../../route-tree/render-route'
+import flags from '../../util/feature-flags'
 
 // $FlowIssue
 type OwnProps = RouteProps<{teamname: string}, {}> & {selectedTab: string, setSelectedTab: string => void}
@@ -18,12 +21,12 @@ type OwnProps = RouteProps<{teamname: string}, {}> & {selectedTab: string, setSe
 const lastSelectedTabs = {}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const teamname = ownProps.routeProps.get('teamname')
+  const teamname = getRouteProps(ownProps, 'teamname')
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
 
-  const selectedTab = ownProps.selectedTab || lastSelectedTabs[teamname] || 'members'
+  const selectedTab = ownProps.selectedTab || 'members'
 
   return {
     ...(selectedTab === 'members' ? memberMapStateHelper(state, {teamname}) : {}),
@@ -34,13 +37,13 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps, setSelectedTab}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {setSelectedTab}: OwnProps) => ({
   _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
   _setSelectedTab: (teamname: string, selectedTab: string) => {
     lastSelectedTabs[teamname] = selectedTab
     setSelectedTab(selectedTab)
   },
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -59,7 +62,11 @@ const mergeProps = (stateProps, dispatchProps) => {
       tabSpecificRows = [{type: 'settings'}]
       break
   }
-  const rows = [{type: 'header'}, {type: 'tabs'}, ...tabSpecificRows]
+  const rows = [
+    ...(flags.useNewRouter && !isMobile ? [] : [{type: 'header'}]),
+    {type: 'tabs'},
+    ...tabSpecificRows,
+  ]
   const customComponent = <CustomTitle teamname={stateProps.teamname} />
   return {
     _load: () => dispatchProps._loadTeam(stateProps.teamname),
@@ -79,7 +86,7 @@ class Reloadable extends React.PureComponent<{
   componentDidUpdate(prevProps) {
     if (this.props.teamname !== prevProps.teamname) {
       this.props._load()
-      this.props.setSelectedTab('members')
+      this.props.setSelectedTab(lastSelectedTabs[this.props.teamname] || 'members')
     }
   }
 
@@ -105,7 +112,15 @@ type State = {|selectedTab: string|}
 
 // We don't use route state anymore
 class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, State> {
-  state = {selectedTab: 'members'}
+  static navigationOptions = ({navigation}: {navigation: any}) => ({
+    headerHideBorder: true,
+    headerRightActions: isMobile
+      ? undefined
+      : () => <HeaderRightActions teamname={navigation.getParam('teamname')} />,
+    headerTitle: isMobile ? undefined : () => <HeaderTitle teamname={navigation.getParam('teamname')} />,
+    subHeader: isMobile ? undefined : () => <SubHeader teamname={navigation.getParam('teamname')} />,
+  })
+  state = {selectedTab: lastSelectedTabs[this.props.teamname]}
   _setSelectedTab = selectedTab => {
     this.setState({selectedTab})
   }

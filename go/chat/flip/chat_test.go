@@ -67,6 +67,10 @@ func (c *chatClient) SendChat(ctx context.Context, conversationID chat1.Conversa
 	return nil
 }
 
+func (c *chatClient) ShouldCommit(ctx context.Context) bool {
+	return true
+}
+
 func (s *chatServer) archive(msg GameMessageWrappedEncoded) {
 	v := s.gameHistories[GameIDToKey(msg.GameID)]
 	cl := s.clock

@@ -160,11 +160,11 @@ func (b *BackgroundConvLoader) monitorAppState() {
 	ctx := context.Background()
 	suspended := false
 	b.Debug(ctx, "monitorAppState: starting up")
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-b.G().AppState.NextUpdate(&state)
+		state = <-b.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 			b.Debug(ctx, "monitorAppState: active state: %v", state)
 			// Only resume if we had suspended earlier (frontend can spam us with these)
 			if suspended {
@@ -172,7 +172,7 @@ func (b *BackgroundConvLoader) monitorAppState() {
 				b.Resume(ctx)
 				suspended = false
 			}
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.MobileAppState_BACKGROUND:
 			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
 			if !suspended {
 				b.Suspend(ctx)
@@ -433,13 +433,13 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(
-		Context(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		globals.ChatCtx(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 			b.identNotifier))
 	ctx := al.Ctx
 	alKey := b.addActiveLoadLocked(al)
 	b.Unlock()
 	if b.testingNameInfoSource != nil {
-		ctx = CtxAddTestingNameInfoSource(ctx, b.testingNameInfoSource)
+		ctx = globals.CtxAddOverrideNameInfoSource(ctx, b.testingNameInfoSource)
 		b.Debug(ctx, "setting testing nameinfo source: %T", b.testingNameInfoSource)
 	}
 	defer func() {
@@ -497,7 +497,7 @@ func newConvLoaderPagebackHook(g *globals.Context, curCalls, maxCalls int) func(
 		job.Priority = types.ConvLoaderPriorityLow
 		job.PostLoadHook = newConvLoaderPagebackHook(g, curCalls+1, maxCalls)
 		// Create a new context here so that we don't trip conv loader blocking rule
-		ctx = BackgroundContext(ctx, g)
+		ctx = globals.BackgroundChatCtx(ctx, g)
 		if err := g.ConvLoader.Queue(ctx, job); err != nil {
 			g.GetLog().CDebugf(ctx, "newConvLoaderPagebackHook: failed to queue job: job: %s err: %s",
 				job, err)

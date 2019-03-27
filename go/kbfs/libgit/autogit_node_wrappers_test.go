@@ -14,7 +14,9 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	gogit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -29,7 +31,7 @@ func TestAutogitNodeWrappersNoRepos(t *testing.T) {
 	shutdown := StartAutogit(config, 25)
 	defer shutdown()
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
@@ -69,6 +71,9 @@ func checkAutogitTwoFiles(t *testing.T, rootFS *libfs.FS) {
 	data2, err := ioutil.ReadAll(f2)
 	require.NoError(t, err)
 	require.Equal(t, "hello2", string(data2))
+	// Make sure a non-existent file gives the right error.
+	_, err = rootFS.Open(".kbfs_autogit/test/missing")
+	require.True(t, os.IsNotExist(errors.Cause(err)))
 }
 
 func TestAutogitRepoNode(t *testing.T) {
@@ -82,7 +87,7 @@ func TestAutogitRepoNode(t *testing.T) {
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
@@ -184,7 +189,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Public)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
@@ -266,7 +271,7 @@ func TestAutogitCommitFile(t *testing.T) {
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(

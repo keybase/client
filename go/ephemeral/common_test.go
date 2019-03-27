@@ -11,15 +11,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ephemeralKeyTestSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser) {
+func ephemeralKeyTestSetup(t *testing.T) (libkb.TestContext, libkb.MetaContext, *kbtest.FakeUser) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 
-	NewEphemeralStorageAndInstall(tc.G)
+	mctx := libkb.NewMetaContextForTest(tc)
+	NewEphemeralStorageAndInstall(mctx)
 
 	user, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	return tc, user
+	return tc, mctx, user
 }
 
 func TestTimeConversions(t *testing.T) {
@@ -42,30 +43,29 @@ func verifyTeamEK(t *testing.T, metadata keybase1.TeamEkMetadata, ek keybase1.Te
 }
 
 func TestEphemeralCloneError(t *testing.T) {
-	tc, _ := ephemeralKeyTestSetup(t)
+	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	g := tc.G
-	m := libkb.NewMetaContextForTest(tc)
-	ctx := m.Ctx()
 	teamID := createTeam(tc)
 
 	ekLib := g.GetEKLib()
-	teamEK1, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK1, created, err := ekLib.GetOrCreateLatestTeamEK(mctx, teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	// delete all our deviceEKs and make sure the error comes back as a cloning
 	// error since we simulate the cloned state.
-	libkb.CreateClonedDevice(tc, m)
+	libkb.CreateClonedDevice(tc, mctx)
 	deviceEKStorage := g.GetDeviceEKStorage()
 	s := deviceEKStorage.(*DeviceEKStorage)
-	allDevicEKs, err := s.GetAll(ctx)
+	allDevicEKs, err := s.GetAll(mctx)
 	require.NoError(t, err)
 	for _, dek := range allDevicEKs {
-		err = s.Delete(ctx, dek.Metadata.Generation)
+		err = s.Delete(mctx, dek.Metadata.Generation)
 		require.NoError(t, err)
 	}
-	_, err = g.GetTeamEKBoxStorage().Get(ctx, teamID, teamEK1.Metadata.Generation, nil)
+	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
@@ -73,36 +73,40 @@ func TestEphemeralCloneError(t *testing.T) {
 }
 
 func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
-	tc, _ := ephemeralKeyTestSetup(t)
+	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	g := tc.G
-	m := libkb.NewMetaContextForTest(tc)
-	ctx := m.Ctx()
 	teamID := createTeam(tc)
 
 	ekLib := g.GetEKLib()
-	teamEK1, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID)
+	teamEK1, created, err := ekLib.GetOrCreateLatestTeamEK(mctx, teamID)
 	require.NoError(t, err)
+	require.True(t, created)
 
 	deviceEKStorage := g.GetDeviceEKStorage()
 	s := deviceEKStorage.(*DeviceEKStorage)
-	allDevicEKs, err := s.GetAll(ctx)
+	allDevicEKs, err := s.GetAll(mctx)
 	require.NoError(t, err)
 	for _, dek := range allDevicEKs {
-		err = s.Delete(ctx, dek.Metadata.Generation)
+		err = s.Delete(mctx, dek.Metadata.Generation)
 		require.NoError(t, err)
 	}
 
 	creationCtime := gregor1.ToTime(time.Now().Add(time.Hour * -100))
-	_, err = g.GetTeamEKBoxStorage().Get(ctx, teamID, teamEK1.Metadata.Generation, &creationCtime)
+	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, &creationCtime)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
 	require.Contains(t, ekErr.HumanError(), DeviceProvisionedAfterContentCreationErrMsg)
 
+	// clear out cached error messages
+	g.GetEKLib().ClearCaches(mctx)
+	_, err = g.LocalDb.Nuke()
+	require.NoError(t, err)
+
 	// If no creation ctime is specified, we just get the default error message
-	_, err = g.GetTeamEKBoxStorage().Get(ctx, teamID, teamEK1.Metadata.Generation, nil)
+	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)

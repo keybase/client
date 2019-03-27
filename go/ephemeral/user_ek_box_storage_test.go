@@ -1,6 +1,7 @@
 package ephemeral
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -9,57 +10,59 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestUserEKBoxStorage(t *testing.T) {
-	tc, _ := ephemeralKeyTestSetup(t)
+	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
-	m := libkb.NewMetaContextForTest(tc)
 
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
 	// Login hooks should have run
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
-	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(context.Background())
+	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(mctx, false)
 	require.True(t, deviceEKMaxGen > 0)
 	require.NoError(t, err)
 
 	s := tc.G.GetUserEKBoxStorage()
-	userEKMaxGen, err := s.MaxGeneration(context.Background())
+	userEKMaxGen, err := s.MaxGeneration(mctx, false)
 	require.True(t, userEKMaxGen > 0)
 	require.NoError(t, err)
 
-	userEKMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
+	userEKMetadata, err := publishNewUserEK(mctx, merkleRoot)
 	require.NoError(t, err)
 
+	// Test get valid & unbox
+	userEK, err := s.Get(mctx, userEKMetadata.Generation, nil)
+	require.NoError(t, err)
+
+	verifyUserEK(t, userEKMetadata, userEK)
+
 	// Test Get nonexistent
-	nonexistent, err := s.Get(context.Background(), userEKMetadata.Generation+1, nil)
+	nonexistent, err := s.Get(mctx, userEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
-	// Test get valid & unbox
-	s.ClearCache()
-	userEK, err := s.Get(context.Background(), userEKMetadata.Generation, nil)
+	// include the cached error in the max
+	maxGeneration, err := s.MaxGeneration(mctx, true)
 	require.NoError(t, err)
-
-	verifyUserEK(t, userEKMetadata, userEK)
+	require.Equal(t, userEKMetadata.Generation+1, maxGeneration)
 
 	// Test MaxGeneration
-	maxGeneration, err := s.MaxGeneration(context.Background())
+	maxGeneration, err = s.MaxGeneration(mctx, false)
 	require.NoError(t, err)
 	require.True(t, maxGeneration > 0)
 
 	//	NOTE: We don't expose Delete on the interface put on the GlobalContext
 	//	since they should never be called, only DeleteExpired should be used.
 	//	GetAll is also not exposed since it' only needed for tests.
-	rawUserEKBoxStorage := NewUserEKBoxStorage(tc.G)
-	userEKs, err := rawUserEKBoxStorage.GetAll(context.Background())
+	rawUserEKBoxStorage := NewUserEKBoxStorage()
+	userEKs, err := rawUserEKBoxStorage.GetAll(mctx)
 	require.NoError(t, err)
 	require.EqualValues(t, maxGeneration, len(userEKs))
 
@@ -69,17 +72,17 @@ func TestUserEKBoxStorage(t *testing.T) {
 	verifyUserEK(t, userEKMetadata, userEK)
 
 	// Let's delete our deviceEK and verify we can't unbox the userEK
-	rawDeviceEKStorage := NewDeviceEKStorage(tc.G)
-	err = rawDeviceEKStorage.Delete(context.Background(), deviceEKMaxGen)
+	rawDeviceEKStorage := NewDeviceEKStorage(mctx)
+	err = rawDeviceEKStorage.Delete(mctx, deviceEKMaxGen)
 	require.NoError(t, err)
 
 	deviceEKStorage.ClearCache()
-	deviceEK, err := deviceEKStorage.Get(context.Background(), deviceEKMaxGen)
+	deviceEK, err := deviceEKStorage.Get(mctx, deviceEKMaxGen)
 	require.Error(t, err)
 	require.IsType(t, erasablekv.UnboxError{}, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
-	bad, err := s.Get(context.Background(), userEKMetadata.Generation, nil)
+	bad, err := s.Get(mctx, userEKMetadata.Generation, nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
@@ -87,10 +90,10 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Equal(t, keybase1.UserEk{}, bad)
 
 	// test delete
-	err = rawUserEKBoxStorage.Delete(context.Background(), userEKMetadata.Generation)
+	err = rawUserEKBoxStorage.Delete(mctx, userEKMetadata.Generation)
 	require.NoError(t, err)
 
-	userEK, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation, nil)
+	userEK, err = rawUserEKBoxStorage.Get(mctx, userEKMetadata.Generation, nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
@@ -98,25 +101,25 @@ func TestUserEKBoxStorage(t *testing.T) {
 
 	s.ClearCache()
 
-	maxGeneration, err = s.MaxGeneration(context.Background())
+	maxGeneration, err = s.MaxGeneration(mctx, false)
 	require.NoError(t, err)
 	require.EqualValues(t, userEKMaxGen, maxGeneration)
 
-	expired, err := s.DeleteExpired(context.Background(), merkleRoot)
+	expired, err := s.DeleteExpired(mctx, merkleRoot)
 	expected := []keybase1.EkGeneration(nil)
 	require.NoError(t, err)
 	require.Equal(t, expected, expired)
 
 	// Verify we store failures in the cache
 	t.Logf("cache failures")
-	nonexistent, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation+1, nil)
+	nonexistent, err = rawUserEKBoxStorage.Get(mctx, userEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
-	cache, err := rawUserEKBoxStorage.getCache(context.Background())
+	cache, err := rawUserEKBoxStorage.getCache(mctx)
 	require.NoError(t, err)
 	require.Len(t, cache, 3)
 
@@ -129,28 +132,29 @@ func TestUserEKBoxStorage(t *testing.T) {
 // migration or versioning between the keys. This test should blow up if we
 // break it unintentionally.
 func TestUserEKStorageKeyFormat(t *testing.T) {
-	tc, _ := ephemeralKeyTestSetup(t)
+	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	s := NewUserEKBoxStorage(tc.G)
-	uv, err := tc.G.GetMeUV(context.Background())
+	s := NewUserEKBoxStorage()
+	uv, err := tc.G.GetMeUV(context.TODO())
 	require.NoError(t, err)
 
-	key, err := s.dbKey(context.Background())
+	key, err := s.dbKey(mctx)
 	require.NoError(t, err)
-	expected := fmt.Sprintf("userEphemeralKeyBox-%s-%s-%d", s.G().Env.GetUsername(), uv.EldestSeqno, userEKBoxStorageDBVersion)
+	expected := fmt.Sprintf("userEphemeralKeyBox-%s-%s-%d", mctx.G().Env.GetUsername(), uv.EldestSeqno, userEKBoxStorageDBVersion)
 	require.Equal(t, expected, key.Key)
 }
 
 func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
 
-	s := NewUserEKBoxStorage(tc.G)
+	s := NewUserEKBoxStorage()
 	now := time.Now()
 
 	// Test empty
-	expired := s.getExpiredGenerations(context.Background(), make(keyExpiryMap), now)
+	expired := s.getExpiredGenerations(mctx, make(keyExpiryMap), now)
 	var expected []keybase1.EkGeneration
 	expected = nil
 	require.Equal(t, expected, expired)
@@ -159,7 +163,7 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 	keyMap := keyExpiryMap{
 		0: keybase1.ToTime(now),
 	}
-	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
+	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	expected = nil
 	require.Equal(t, expected, expired)
 
@@ -167,7 +171,7 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 	keyMap = keyExpiryMap{
 		0: keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness)),
 	}
-	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
+	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	expected = nil
 	require.Equal(t, expected, expired)
 
@@ -175,7 +179,7 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 	keyMap = keyExpiryMap{
 		0: keybase1.ToTime(now.Add(-(libkb.MaxEphemeralKeyStaleness + libkb.MinEphemeralKeyLifetime))),
 	}
-	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
+	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	expected = []keybase1.EkGeneration{0}
 	require.Equal(t, expected, expired)
 
@@ -184,12 +188,12 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 		0: keybase1.ToTime(now.Add(-(libkb.MaxEphemeralKeyStaleness + libkb.MinEphemeralKeyLifetime))),
 		1: keybase1.ToTime(now.Add(-(libkb.MinEphemeralKeyLifetime))),
 	}
-	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
+	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	expected = []keybase1.EkGeneration{0}
 	require.Equal(t, expected, expired)
 
 	// edge of deletion
-	expired = s.getExpiredGenerations(context.Background(), keyMap, now.Add(-time.Second))
+	expired = s.getExpiredGenerations(mctx, keyMap, now.Add(-time.Second))
 	expected = nil
 	require.Equal(t, expected, expired)
 
@@ -199,7 +203,7 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 	for i := 0; i < numKeys; i++ {
 		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = keybase1.ToTime(now.Add(-libkb.MaxEphemeralKeyStaleness * time.Duration(i)))
 	}
-	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
+	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	expected = []keybase1.EkGeneration{0, 1, 2}
 	require.Equal(t, expected, expired)
 
@@ -213,7 +217,7 @@ func TestUserEKBoxStorageDeleteExpiredKeys(t *testing.T) {
 		50: 1528724605000,
 		51: 1528811030000,
 	}
-	expired = s.getExpiredGenerations(context.Background(), keyMap, now)
+	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	expected = nil
 	require.Equal(t, expected, expired)
 }

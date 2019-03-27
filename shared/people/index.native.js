@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
-import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
+import {PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import flags from '../util/feature-flags'
+import ProfileSearch from '../profile/search/bar'
 
 export const Header = (props: Props) => (
   <Kb.HeaderHocHeader
@@ -23,7 +24,7 @@ export const Header = (props: Props) => (
         label: 'Avatar',
       },
     ]}
-    titleComponent={<PeoplePageSearchBar {...props} />}
+    titleComponent={<ProfileSearch onSearch={props.onSearch} />}
   />
 )
 

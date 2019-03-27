@@ -12,11 +12,13 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -41,7 +43,7 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	mockDaemon := NewMockKeybaseService(mockCtrl)
 	mockDaemon.EXPECT().LoadUserPlusKeys(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-		AnyTimes().Return(UserInfo{Name: "mockUser"}, nil)
+		AnyTimes().Return(idutil.UserInfo{Name: "mockUser"}, nil)
 	config.SetKeybaseService(mockDaemon)
 
 	timeoutCtx, cancel := context.WithTimeout(
@@ -88,6 +90,8 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 		writerFlags = kbfsmd.MetadataFlagUnmerged
 	}
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("fake key")
+	h := &tlfhandle.Handle{}
+	h.SetName("fake")
 	return MakeImmutableRootMetadata(&RootMetadata{
 		bareMd: &kbfsmd.RootMetadataV2{
 			WriterMetadataV2: kbfsmd.WriterMetadataV2{
@@ -101,7 +105,7 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 			Revision: rev,
 			PrevRoot: kbfsmd.FakeID(byte(rev - 1)),
 		},
-		tlfHandle: &TlfHandle{name: "fake"},
+		tlfHandle: h,
 		data: PrivateMetadata{
 			Changes: BlockChanges{
 				Ops: []op{newGCOp(0)}, // arbitrary op to fool unembed checks

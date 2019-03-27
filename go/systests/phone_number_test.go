@@ -127,29 +127,29 @@ func TestServerTrustResolveInvalidInput(t *testing.T) {
 	checkErr(err)
 }
 
-type mockListener struct {
+type mockPhoneListener struct {
 	libkb.NoopNotifyListener
 	addedPhones      []keybase1.PhoneNumber
 	verifiedPhones   []keybase1.PhoneNumber
 	supersededPhones []keybase1.PhoneNumber
 }
 
-var _ libkb.NotifyListener = (*mockListener)(nil)
+var _ libkb.NotifyListener = (*mockPhoneListener)(nil)
 
-func (n *mockListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber) {
+func (n *mockPhoneListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber) {
 	n.addedPhones = append(n.addedPhones, phoneNumber)
 }
 
-func (n *mockListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber) {
+func (n *mockPhoneListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber) {
 	n.verifiedPhones = append(n.verifiedPhones, phoneNumber)
 }
 
-func (n *mockListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {
+func (n *mockPhoneListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {
 	n.supersededPhones = append(n.supersededPhones, phoneNumber)
 }
 
-func setupUserWithMockListener(user *userPlusDevice) *mockListener {
-	userListener := &mockListener{
+func setupUserWithMockPhoneListener(user *userPlusDevice) *mockPhoneListener {
+	userListener := &mockPhoneListener{
 		addedPhones:      []keybase1.PhoneNumber(nil),
 		verifiedPhones:   []keybase1.PhoneNumber(nil),
 		supersededPhones: []keybase1.PhoneNumber(nil),
@@ -163,10 +163,10 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	ann := tt.addUser("ann")
-	annListener := setupUserWithMockListener(ann)
+	annListener := setupUserWithMockPhoneListener(ann)
 	defer ann.tc.Cleanup()
 	bob := tt.addUser("bob")
-	bobListener := setupUserWithMockListener(bob)
+	bobListener := setupUserWithMockPhoneListener(bob)
 	defer bob.tc.Cleanup()
 	tt.logUserNames()
 

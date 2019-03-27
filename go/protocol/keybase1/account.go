@@ -101,10 +101,19 @@ type RecoverUsernameArg struct {
 	Email     string `codec:"email" json:"email"`
 }
 
+type EnterResetPipelineArg struct {
+	SessionID       int    `codec:"sessionID" json:"sessionID"`
+	UsernameOrEmail string `codec:"usernameOrEmail" json:"usernameOrEmail"`
+}
+
+type CancelResetArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AccountInterface interface {
 	// Change the passphrase from old to new. If old isn't set, and force is false,
-	// then prompt at the UI for it. If old isn't set and force is true, then we'll
-	// try to force a passphrase change.
+	// then prompt at the UI for it. If old isn't set and force is true, then
+	// we'll try to force a passphrase change.
 	PassphraseChange(context.Context, PassphraseChangeArg) error
 	PassphrasePrompt(context.Context, PassphrasePromptArg) (GetPassphraseRes, error)
 	// * Check if user passphrase matches argument. Launches SecretUI prompt if
@@ -122,6 +131,12 @@ type AccountInterface interface {
 	GetLockdownMode(context.Context, int) (GetLockdownResponse, error)
 	SetLockdownMode(context.Context, SetLockdownModeArg) error
 	RecoverUsername(context.Context, RecoverUsernameArg) error
+	// Start reset process for the user based on their username or email.  If
+	// neither are known the user will be prompted for their passphrase to start
+	// the process.
+	EnterResetPipeline(context.Context, EnterResetPipelineArg) error
+	// Aborts the reset process
+	CancelReset(context.Context, int) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -263,6 +278,36 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
+			"enterResetPipeline": {
+				MakeArg: func() interface{} {
+					var ret [1]EnterResetPipelineArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]EnterResetPipelineArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]EnterResetPipelineArg)(nil), args)
+						return
+					}
+					err = i.EnterResetPipeline(ctx, typedArgs[0])
+					return
+				},
+			},
+			"cancelReset": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelResetArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CancelResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CancelResetArg)(nil), args)
+						return
+					}
+					err = i.CancelReset(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -272,8 +317,8 @@ type AccountClient struct {
 }
 
 // Change the passphrase from old to new. If old isn't set, and force is false,
-// then prompt at the UI for it. If old isn't set and force is true, then we'll
-// try to force a passphrase change.
+// then prompt at the UI for it. If old isn't set and force is true, then
+// we'll try to force a passphrase change.
 func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseChangeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
 	return
@@ -326,5 +371,20 @@ func (c AccountClient) SetLockdownMode(ctx context.Context, __arg SetLockdownMod
 
 func (c AccountClient) RecoverUsername(ctx context.Context, __arg RecoverUsernameArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsername", []interface{}{__arg}, nil)
+	return
+}
+
+// Start reset process for the user based on their username or email.  If
+// neither are known the user will be prompted for their passphrase to start
+// the process.
+func (c AccountClient) EnterResetPipeline(ctx context.Context, __arg EnterResetPipelineArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []interface{}{__arg}, nil)
+	return
+}
+
+// Aborts the reset process
+func (c AccountClient) CancelReset(ctx context.Context, sessionID int) (err error) {
+	__arg := CancelResetArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.account.cancelReset", []interface{}{__arg}, nil)
 	return
 }

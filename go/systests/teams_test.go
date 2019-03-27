@@ -11,6 +11,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -390,7 +391,7 @@ func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams
 }
 
 func (u *userPlusDevice) readInviteEmails(email string) []string {
-	mctx := libkb.NewMetaContextForTest(*u.tc)
+	mctx := u.MetaContext()
 	arg := libkb.NewAPIArg("test/team/get_tokens")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("email", libkb.S{Val: email})
@@ -695,6 +696,10 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
 }
 
+func (u *userPlusDevice) kickAutoresetd() {
+	kickAutoresetd(u.tc.G, u.tc.T)
+}
+
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
 	res, err := u.lookupImplicitTeam2(create, displayName, public)
 	return res.TeamID, err
@@ -713,7 +718,7 @@ func (u *userPlusDevice) lookupImplicitTeam2(create bool, displayName string, pu
 }
 
 func (u *userPlusDevice) delayMerkleTeam(teamID keybase1.TeamID) {
-	mctx := libkb.NewMetaContextForTest(*u.tc)
+	mctx := u.MetaContext()
 	_, err := u.tc.G.API.Post(mctx, libkb.APIArg{
 		Endpoint: "test/merkled/delay_team",
 		Args: libkb.HTTPArgs{
@@ -796,6 +801,25 @@ func (u *userPlusDevice) delete() {
 	require.NoError(u.tc.T, err)
 }
 
+func (u *userPlusDevice) logout() {
+	err := u.tc.G.Logout(context.TODO())
+	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) login() {
+	uis := libkb.UIs{
+		ProvisionUI: &kbtest.TestProvisionUI{},
+		LogUI:       u.tc.G.Log,
+		GPGUI:       &kbtest.GPGTestUI{},
+		SecretUI:    u.newSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.username},
+	}
+	li := engine.NewLogin(u.tc.G, libkb.DeviceTypeDesktop, u.username, keybase1.ClientType_CLI)
+	mctx := libkb.NewMetaContextTODO(u.tc.G).WithUIs(uis)
+	err := engine.RunEngine2(mctx, li)
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) loginAfterReset() {
 	u.loginAfterResetHelper(true)
 }
@@ -864,6 +888,15 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 
 func (u *userPlusDevice) MetaContext() libkb.MetaContext {
 	return libkb.NewMetaContextForTest(*u.tc)
+}
+
+func kickAutoresetd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	mctx := libkb.NewMetaContextTODO(g)
+	_, err := g.API.Post(mctx, libkb.APIArg{
+		Endpoint:    "test/accelerate_autoresetd",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	})
+	require.NoError(t, err)
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
@@ -1279,6 +1312,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.DeleteChannel)
 	require.True(t, annPerms.RenameChannel)
 	require.True(t, annPerms.EditChannelDescription)
+	require.True(t, annPerms.EditTeamDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.True(t, annPerms.SetMemberShowcase)
 	require.True(t, annPerms.SetRetentionPolicy)
@@ -1298,6 +1332,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.DeleteChannel)
 	require.True(t, bobPerms.RenameChannel)
 	require.True(t, bobPerms.EditChannelDescription)
+	require.True(t, bobPerms.EditTeamDescription)
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.True(t, bobPerms.SetMemberShowcase)
 	require.True(t, bobPerms.SetRetentionPolicy)
@@ -1318,6 +1353,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.DeleteChannel)
 	require.True(t, pamPerms.RenameChannel)
 	require.True(t, pamPerms.EditChannelDescription)
+	require.False(t, pamPerms.EditTeamDescription)
 	require.False(t, pamPerms.SetTeamShowcase)
 	require.True(t, pamPerms.SetMemberShowcase)
 	require.False(t, pamPerms.SetRetentionPolicy)
@@ -1338,6 +1374,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.DeleteChannel)
 	require.False(t, eddPerms.RenameChannel)
 	require.False(t, eddPerms.EditChannelDescription)
+	require.False(t, eddPerms.EditTeamDescription)
 	require.False(t, eddPerms.SetTeamShowcase)
 	require.True(t, eddPerms.SetMemberShowcase)
 	require.False(t, eddPerms.SetRetentionPolicy)
@@ -1361,6 +1398,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.DeleteChannel)
 	require.False(t, annPerms.RenameChannel)
 	require.False(t, annPerms.EditChannelDescription)
+	require.False(t, annPerms.EditTeamDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
 	require.False(t, annPerms.SetRetentionPolicy)
@@ -1379,6 +1417,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.DeleteChannel)
 	require.False(t, bobPerms.RenameChannel)
 	require.False(t, bobPerms.EditChannelDescription)
+	require.False(t, bobPerms.EditTeamDescription)
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.False(t, bobPerms.SetMemberShowcase)
 	require.False(t, bobPerms.SetRetentionPolicy)
@@ -1407,6 +1446,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.DeleteChannel)
 	require.False(t, donnyPerms.RenameChannel)
 	require.False(t, donnyPerms.EditChannelDescription)
+	require.False(t, donnyPerms.EditTeamDescription)
 	require.False(t, donnyPerms.SetTeamShowcase)
 	require.False(t, donnyPerms.SetMemberShowcase)
 	require.False(t, donnyPerms.SetRetentionPolicy)

@@ -16,8 +16,11 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -85,7 +88,8 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	c := make(chan error, n)
 	cl := &CounterLock{}
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
-	ops.mdWriterLock.locker = cl
+	ops.mdWriterLock = kbfssync.MakeLeveledMutex(
+		kbfssync.MutexLevel(fboMDWriter), cl)
 	for i := 0; i < n; i++ {
 		go func() {
 			_, _, _, err := ops.getRootNode(ctxStallGetForTLF)
@@ -484,30 +488,30 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 // in its KeyManager methods.
 type mdRecordingKeyManager struct {
 	lastKMDMu sync.RWMutex
-	lastKMD   KeyMetadata
+	lastKMD   libkey.KeyMetadata
 	delegate  KeyManager
 }
 
-func (km *mdRecordingKeyManager) getLastKMD() KeyMetadata {
+func (km *mdRecordingKeyManager) getLastKMD() libkey.KeyMetadata {
 	km.lastKMDMu.RLock()
 	defer km.lastKMDMu.RUnlock()
 	return km.lastKMD
 }
 
-func (km *mdRecordingKeyManager) setLastKMD(kmd KeyMetadata) {
+func (km *mdRecordingKeyManager) setLastKMD(kmd libkey.KeyMetadata) {
 	km.lastKMDMu.Lock()
 	defer km.lastKMDMu.Unlock()
 	km.lastKMD = kmd
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	ctx context.Context, kmd libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForEncryption(ctx, kmd)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
+	ctx context.Context, kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmdToDecrypt)
 	return km.delegate.GetTLFCryptKeyForMDDecryption(ctx,
@@ -515,14 +519,14 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (
 	kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyOfAllGenerations(
-	ctx context.Context, kmd KeyMetadata) (
+	ctx context.Context, kmd libkey.KeyMetadata) (
 	keys []kbfscrypto.TLFCryptKey, err error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
@@ -1521,7 +1525,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 
 	t.Log("Ensure that the block references have been removed rather than just archived")
 	bOps := config.BlockOps()
-	h, err := ParseTlfHandle(
+	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "test_user", tlf.Private)
 	require.NoError(t, err)
 	ptrs := make([]BlockPointer, len(pointerMap))

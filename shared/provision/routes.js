@@ -1,6 +1,6 @@
 // @flow
 import {makeLeafTags} from '../route-tree'
-import UsernameOrEmail from './username-or-email/container'
+import Username from './username-or-email/container'
 import SelectOtherDevice from './select-other-device/container'
 import Passphrase from './passphrase/container'
 import PaperKey from './paper-key/container'
@@ -8,6 +8,7 @@ import CodePage from './code-page/container'
 import SetPublicName from './set-public-name/container'
 import RegisterError from './error/container'
 import GPGSign from './gpg-sign/container'
+import ForgotUsername from './forgot-username/container'
 
 const addTags = component => ({
   component,
@@ -21,12 +22,13 @@ const children = {
     tags: makeLeafTags({hideStatusBar: true, underNotch: true}),
   },
   error: addTags(RegisterError),
+  forgotUsername: addTags(ForgotUsername),
   gpgSign: addTags(GPGSign),
   paperkey: addTags(PaperKey),
   passphrase: addTags(Passphrase),
   selectOtherDevice: addTags(SelectOtherDevice),
   setPublicName: addTags(SetPublicName),
-  usernameOrEmail: addTags(UsernameOrEmail),
+  username: addTags(Username),
 }
 
 export default children
@@ -34,11 +36,12 @@ export default children
 export const newRoutes = {
   codePage: {getScreen: () => CodePage},
   error: {getScreen: () => RegisterError},
+  forgotUsername: {getScreen: () => ForgotUsername},
   gpgSign: {getScreen: () => GPGSign},
   paperkey: {getScreen: () => PaperKey},
   passphrase: {getScreen: () => Passphrase},
   selectOtherDevice: {getScreen: () => SelectOtherDevice},
   setPublicName: {getScreen: () => SetPublicName},
-  usernameOrEmail: {getScreen: () => UsernameOrEmail},
+  username: {getScreen: () => Username},
 }
-export const newModalRoutes = { }
+export const newModalRoutes = {}

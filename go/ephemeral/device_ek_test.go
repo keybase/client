@@ -1,7 +1,6 @@
 package ephemeral
 
 import (
-	"context"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -10,19 +9,18 @@ import (
 )
 
 func TestNewDeviceEK(t *testing.T) {
-	tc, _ := ephemeralKeyTestSetup(t)
+	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	m := libkb.NewMetaContextForTest(tc)
-	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	publishedMetadata, err := publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
+	publishedMetadata, err := publishNewDeviceEK(mctx, merkleRoot)
 	require.NoError(t, err)
 
 	s := tc.G.GetDeviceEKStorage()
-	deviceEK, err := s.Get(context.Background(), publishedMetadata.Generation)
+	deviceEK, err := s.Get(mctx, publishedMetadata.Generation)
 	require.NoError(t, err)
 	// Clear out DeviceCtime since it won't be present in fetched data, it's
 	// only known locally.
@@ -30,31 +28,31 @@ func TestNewDeviceEK(t *testing.T) {
 	deviceEK.Metadata.DeviceCtime = 0
 	require.Equal(t, deviceEK.Metadata, publishedMetadata)
 
-	fetchedDevices, err := allActiveDeviceEKMetadata(context.Background(), tc.G, merkleRoot)
+	fetchedDevices, err := allActiveDeviceEKMetadata(mctx, merkleRoot)
 	require.NoError(t, err)
 
 	require.Equal(t, 1, len(fetchedDevices))
 	for _, fetchedDeviceMetadata := range fetchedDevices {
 		require.Equal(t, publishedMetadata, fetchedDeviceMetadata)
 	}
-	maxGeneration, err := s.MaxGeneration(context.Background())
+	maxGeneration, err := s.MaxGeneration(mctx, false)
 	require.NoError(t, err)
 
 	require.EqualValues(t, maxGeneration, publishedMetadata.Generation)
 
 	// If we publish again, we increase the generation
-	publishedMetadata2, err := publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
+	publishedMetadata2, err := publishNewDeviceEK(mctx, merkleRoot)
 	require.NoError(t, err)
 	require.EqualValues(t, maxGeneration+1, publishedMetadata2.Generation)
 
-	rawStorage := NewDeviceEKStorage(tc.G)
+	rawStorage := NewDeviceEKStorage(mctx)
 	// Put our storage in a bad state by deleting the maxGeneration
-	err = rawStorage.Delete(context.Background(), keybase1.EkGeneration(maxGeneration+1))
+	err = rawStorage.Delete(mctx, keybase1.EkGeneration(maxGeneration+1))
 	require.NoError(t, err)
 
 	// If we publish in a bad local state, we can successfully get the
 	// maxGeneration from the server and continue
-	publishedMetadata3, err := publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
+	publishedMetadata3, err := publishNewDeviceEK(mctx, merkleRoot)
 	require.NoError(t, err)
 	require.EqualValues(t, maxGeneration+2, publishedMetadata3.Generation)
 }

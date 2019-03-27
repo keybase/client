@@ -115,6 +115,7 @@ const metaMapReducer = (metaMap, action) => {
           map.clear().set(Constants.pendingConversationIDKey, pending)
         }
         const neverCreate = !!action.payload.neverCreate
+        map.deleteAll(action.payload.removals || [])
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
@@ -239,7 +240,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return action.payload.isPreview
           ? message.set('previewTransferState', 'downloading')
-          : message.set('transferProgress', action.payload.ratio).set('transferState', 'downloading')
+          : message
+              .set('transferProgress', action.payload.ratio)
+              .set('transferState', 'downloading')
+              .set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
@@ -253,14 +257,14 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         if (!message || message.type !== 'attachment') {
           return message
         }
-        return message.set('transferState', 'mobileSaving')
+        return message.set('transferState', 'mobileSaving').set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentMobileSaved:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
         }
-        return message.set('transferState', null)
+        return message.set('transferState', null).set('transferErrMsg', null)
       })
     case Chat2Gen.attachmentDownload:
       return messageMap.updateIn(
@@ -269,7 +273,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           if (!message || message.type !== 'attachment') {
             return message
           }
-          return message.set('transferState', 'downloading')
+          return message.set('transferState', 'downloading').set('transferErrMsg', null)
         }
       )
     case Chat2Gen.attachmentDownloaded:
@@ -279,11 +283,15 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           if (!message || message.type !== 'attachment') {
             return message
           }
-          const path = actionHasError(action) ? '' : action.payload.path
+          const path = action.payload.path || ''
           return message
             .set('downloadPath', path)
             .set('transferProgress', 0)
             .set('transferState', null)
+            .set(
+              'transferErrMsg',
+              actionHasError(action) ? action.payload.error || 'Error downloading attachment' : null
+            )
             .set('fileURLCached', true) // assume we have this on the service now
         }
       )
@@ -422,6 +430,7 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
       })
     case Chat2Gen.updateUnreadline:
@@ -465,6 +474,20 @@ const rootReducer = (
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
+    case Chat2Gen.loadMessagesFromSearchHit: {
+      let ordinal = messageIDToOrdinal(
+        state.messageMap,
+        state.pendingOutboxToOrdinal,
+        action.payload.conversationIDKey,
+        action.payload.messageID
+      )
+      if (!ordinal) {
+        ordinal = Types.numberToOrdinal(Types.messageIDToNumber(action.payload.messageID))
+      }
+      return ordinal
+        ? state.setIn(['messageCenterOrdinals', action.payload.conversationIDKey], ordinal)
+        : state
+    }
     case Chat2Gen.setPendingMode:
       return state.withMutations(_s => {
         const s = (_s: Types.State)
@@ -732,8 +755,33 @@ const rootReducer = (
         }
       )
 
+      let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          if (map.get(conversationIDKey, false)) {
+            return
+          }
+          const meta = state.metaMap.get(conversationIDKey, null)
+          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
+          let maxMsgID = 0
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map())
+          for (let i = ordinals.length - 1; i >= 0; i--) {
+            const ordinal = ordinals[i]
+            const message = convMsgMap.get(ordinal)
+            if (message && message.id > 0) {
+              maxMsgID = message.id
+              break
+            }
+          }
+          if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+            map.set(conversationIDKey, true)
+          }
+        })
+      })
+
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
+        s.set('containsLatestMessageMap', containsLatestMessageMap)
         // only if different
         if (!state.messageOrdinals.equals(messageOrdinals)) {
           s.set('messageOrdinals', messageOrdinals)
@@ -741,6 +789,13 @@ const rootReducer = (
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
+    case Chat2Gen.jumpToRecent:
+      return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.setContainsLastMessage:
+      return state.setIn(
+        ['containsLatestMessageMap', action.payload.conversationIDKey],
+        action.payload.contains
+      )
     case Chat2Gen.messageRetry: {
       const {conversationIDKey, outboxID} = action.payload
       const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
@@ -952,6 +1007,37 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
+    case Chat2Gen.threadSearchResult:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
+        info.set('hits', info.hits.push(action.payload.message))
+      )
+    case Chat2Gen.setThreadSearchStatus:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('status', action.payload.status)
+        }
+      )
+    case Chat2Gen.toggleThreadSearch:
+      return state
+        .updateIn(
+          ['threadSearchInfoMap', action.payload.conversationIDKey],
+          (old = Constants.makeThreadSearchInfo()) => {
+            return old.merge({
+              hits: I.List(),
+              status: 'initial',
+              visible: !old.visible,
+            })
+          }
+        )
+        .deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.threadSearch:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('hits', I.List())
+        }
+      )
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -982,16 +1068,20 @@ const rootReducer = (
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state
     case Chat2Gen.attachmentDownloaded:
-      const {message, path} = action.payload
+      const {message} = action.payload
       let nextState = state
       // check fullscreen attachment message in case we downloaded it
       if (
+        !action.error &&
         state.attachmentFullscreenMessage &&
         state.attachmentFullscreenMessage.conversationIDKey === message.conversationIDKey &&
         state.attachmentFullscreenMessage.id === message.id &&
         message.type === 'attachment'
       ) {
-        nextState = nextState.set('attachmentFullscreenMessage', message.set('downloadPath', path))
+        nextState = nextState.set(
+          'attachmentFullscreenMessage',
+          message.set('downloadPath', action.payload.path)
+        )
       }
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
@@ -1047,6 +1137,7 @@ const rootReducer = (
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
+    case Chat2Gen.loadNewerMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:

@@ -115,6 +115,7 @@
     // Got some new inbox rows
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>",
+      "removals?": "Array<Types.ConversationIDKey>", // convs to remove
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
@@ -235,6 +236,13 @@
     "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
+    "loadNewerMessagesDueToScroll": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadMessagesFromSearchHit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
     // Show a desktop notification
     "desktopNotification": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -325,7 +333,8 @@
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
       "message": "Types.Message",
-      "path?": "string"
+      "path?": "string",
+      "canError": {"error": "string", "message": "Types.Message"}
     },
     // We want to upload some attachments
     "attachmentsUpload": {
@@ -571,6 +580,34 @@
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "usernames": "Array<string>"
+    },
+    "jumpToRecent": {
+      "_description": "Jump to most recent messages in a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setContainsLastMessage": {
+      "_description": "Explicitly set whether a thread is loaded to the most recent message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "contains": "boolean"
+    },
+    "threadSearch": {
+      "_description": "Perform a search in a thread",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "HiddenString"
+    },
+    "threadSearchResult": {
+      "_description": "Record a new thread search result",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "message": "Types.Message"
+    },
+    "setThreadSearchStatus": {
+      "_description": "Set the status of a thread search",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "status": "Types.ThreadSearchStatus"
+    },
+    "toggleThreadSearch": {
+      "_description": "Toggle the display of the thread search window",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

@@ -146,6 +146,7 @@ export const getDeletableByDeleteHistory = (state: TypedState) =>
 
 const makeMessageMinimum = {
   author: '',
+  bodySummary: new HiddenString(''),
   conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
@@ -223,6 +224,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   showPlayButton: false,
   submitState: null,
   title: '',
+  transferErrMsg: null,
   transferProgress: 0,
   transferState: null,
   type: 'attachment',
@@ -352,11 +354,10 @@ const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannel
 const makeMessageSystemChangeRetention: I.RecordFactory<MessageTypes._MessageSystemChangeRetention> = I.Record(
   {
     ...makeMessageMinimum,
-    canChange: false,
     isInherit: false,
     isTeam: false,
     membersType: 0,
-    policy: RPCChatTypes.RetentionPolicy,
+    policy: null,
     reactions: I.Map(),
     type: 'systemChangeRetention',
     user: '',
@@ -688,6 +689,7 @@ const validUIMessagetoMessage = (
   const reactions = reactionMapToReactions(m.reactions)
   const common = {
     ...minimum,
+    bodySummary: new HiddenString(m.bodySummary),
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),

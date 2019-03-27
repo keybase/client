@@ -139,7 +139,7 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 		return err
 	}
 
-	mctx.G().UserChanged(uid)
+	mctx.G().UserChanged(mctx.Ctx(), uid)
 	return nil
 }
 
@@ -407,6 +407,27 @@ func SubmitRelayPayment(ctx context.Context, g *libkb.GlobalContext, post stella
 		return stellar1.PaymentResult{}, err
 	}
 	return res.PaymentResult, nil
+}
+
+type submitMultiResult struct {
+	libkb.AppStatusEmbed
+	SubmitMultiRes stellar1.SubmitMultiRes `json:"submit_multi_result"`
+}
+
+func SubmitMultiPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
+	payload := make(libkb.JSONPayload)
+	payload["payment"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitmultipayment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	}
+	var res submitMultiResult
+	mctx := libkb.NewMetaContext(ctx, g)
+	if err := g.API.PostDecode(mctx, apiArg, &res); err != nil {
+		return stellar1.SubmitMultiRes{}, err
+	}
+	return res.SubmitMultiRes, nil
 }
 
 type submitClaimResult struct {

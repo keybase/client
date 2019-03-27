@@ -149,6 +149,7 @@ class Usernames extends React.Component<Props> {
         negative={backgroundModeIsNegative(this.props.backgroundMode)}
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
+        ellipsizeMode="tail"
         {...(this.props.inline ? inlineProps : {})}
       >
         {!!this.props.prefix && (

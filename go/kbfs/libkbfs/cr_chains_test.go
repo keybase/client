@@ -9,11 +9,13 @@ import (
 	"testing"
 	"time"
 
+	idutiltest "github.com/keybase/client/go/kbfs/idutil/test"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -155,12 +157,12 @@ func newChainMDForTest(t *testing.T) rootMetadataWithKeyAndTimestamp {
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	nug := testNormalizedUsernameGetter{
+	nug := idutiltest.NormalizedUsernameGetter{
 		uid.AsUserOrTeam(): "fake_user",
 	}
 
 	ctx := context.Background()
-	h, err := MakeTlfHandle(
+	h, err := tlfhandle.MakeHandle(
 		ctx, bh, bh.Type(), nil, nug, nil, keybase1.OfflineAvailability_NONE)
 	require.NoError(t, err)
 

@@ -23,15 +23,21 @@ export type SiteIcon = {
   +path: string, // https://keybase.io/_/icons/twitter.png
   +width: number,
 }
+export type SiteIconSet = $ReadOnlyArray<SiteIcon>
 export type _Assertion = {
   assertionKey: string, // twitter:bob
+  belowFold: boolean, // suggestion in 'Other identities' dialog
   color: AssertionColor,
+  kid: string, // used to revoke pgp keys
   metas: $ReadOnlyArray<AssertionMeta>,
+  pickerText: string, // Text + subtext for 'Other identities' dialog
+  pickerSubtext: string,
+  pickerIcon: SiteIconSet, // Icon for 'Other identities' dialog
   priority: number, // sort order
   proofURL: string, // http://twitter.com/bob/post/1234
   sigID: string,
-  siteIcon: $ReadOnlyArray<SiteIcon>,
-  siteIconFull: $ReadOnlyArray<SiteIcon>, // full color icon
+  siteIcon: SiteIconSet,
+  siteIconFull: SiteIconSet, // full color icon
   siteURL: string, // https://twitter.com/bob
   state: AssertionState,
   timestamp: number, // can be 0

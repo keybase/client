@@ -5,7 +5,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
-import {connect} from '../../util/container'
+import {connect, getRouteProps} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import type {RouteProps} from '../../route-tree/render-route'
@@ -21,15 +21,15 @@ type OwnProps = RouteProps<
 >
 
 const mapStateToProps = (state, ownProps) => ({
-  createdTeam: ownProps.routeProps.get('createdTeam'),
+  createdTeam: getRouteProps(ownProps, 'createdTeam'),
   error: anyErrors(state, Constants.uploadAvatarWaitingKey),
-  image: ownProps.routeProps.get('image'),
-  sendChatNotification: ownProps.routeProps.get('sendChatNotification') || false,
+  image: getRouteProps(ownProps, 'image'),
+  sendChatNotification: getRouteProps(ownProps, 'sendChatNotification') || false,
   submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
-  teamname: ownProps.routeProps.get('teamname'),
+  teamname: getRouteProps(ownProps, 'teamname'),
 })
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   onClose: () => {
     dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
     dispatch(RouteTreeGen.createNavigateUp())
@@ -49,12 +49,15 @@ const networkErrorCodes = [
   RPCTypes.constantsStatusCode.scapinetworkerror,
   RPCTypes.constantsStatusCode.sctimeout,
 ]
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let error = ''
   if (stateProps.error) {
-    error = networkErrorCodes.includes(stateProps.error.code)
-      ? "We're having trouble connecting to the internet. Check your network and try again."
-      : "We don't support this type of image, try a different one."
+    error =
+      stateProps.error.code === RPCTypes.constantsStatusCode.scgeneric
+        ? stateProps.error.desc
+        : networkErrorCodes.includes(stateProps.error.code)
+        ? "We're having trouble connecting to the internet. Check your network and try again."
+        : "We don't support this type of image, try a different one."
   }
   return {
     createdTeam: stateProps.createdTeam,

@@ -12,6 +12,8 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -34,7 +36,7 @@ func NewStateChecker(config Config) *StateChecker {
 // findAllFileBlocks adds all file blocks found under this block to
 // the blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
-	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
+	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
 	file path, blockSizes map[BlockPointer]uint32) error {
 	infos, err := ops.blocks.GetIndirectFileBlockInfos(ctx, lState, kmd, file)
 	if err != nil {
@@ -50,7 +52,7 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 // findAllDirBlocks adds all dir blocks found under this block to the
 // blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
-	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
+	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
 	dir path, blockSizes map[BlockPointer]uint32) error {
 	infos, err := ops.blocks.GetIndirectDirBlockInfos(ctx, lState, kmd, dir)
 	if err != nil {
@@ -67,7 +69,7 @@ func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
 // the blockSizes map, and then recursively checks all
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
-	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
+	lState *kbfssync.LockState, ops *folderBranchOps, kmd libkey.KeyMetadata,
 	dir path, blockSizes map[BlockPointer]uint32) error {
 	children, err := ops.blocks.GetEntries(ctx, lState, kmd, dir)
 	if err != nil {

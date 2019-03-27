@@ -35,7 +35,7 @@ func TestLoginLogoutLogin(t *testing.T) {
 }
 
 // Test login switching between two different users.
-func TestLoginAndSwitch(t *testing.T) {
+func TestLoginAndSwitchWithLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -48,6 +48,51 @@ func TestLoginAndSwitch(t *testing.T) {
 	Logout(tc)
 	t.Logf("second logging back in")
 	u2.LoginOrBust(tc)
+
+	return
+}
+
+func TestLoginTwiceLogoutOnce(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	u1 := CreateAndSignupFakeUser(tc, "first")
+	Logout(tc)
+	t.Logf("Logout first, and signup  u2")
+	u2 := CreateAndSignupFakeUser(tc, "secon")
+	t.Logf("Login u1")
+	u1.SwitchTo(tc.G, true)
+	t.Logf("Logged in u1")
+	u2.SwitchTo(tc.G, true)
+	eng := NewLogout()
+	mctx := NewMetaContextForTest(tc)
+	err := RunEngine2(mctx, eng)
+	require.NoError(t, err)
+	require.True(t, tc.G.ActiveDevice.Valid())
+	require.Equal(t, tc.G.ActiveDevice.UID(), u1.UID())
+}
+
+// Test login switching between two different users.
+func TestLoginAndSwitchWithoutLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	u1 := CreateAndSignupFakeUser(tc, "first")
+	Logout(tc)
+	t.Logf("Logout first, and signup  u2")
+	u2 := CreateAndSignupFakeUser(tc, "secon")
+	t.Logf("Login u1")
+	u1.SwitchTo(tc.G, true)
+	t.Logf("Logged in u1")
+	u2.SwitchTo(tc.G, true)
+	t.Logf("Logged in u2")
+
+	swtch := func(u *FakeUser) {
+		err := u.SwitchTo(tc.G, false)
+		require.NoError(t, err)
+	}
+	for i := 0; i < 3; i++ {
+		swtch(u1)
+		swtch(u2)
+	}
 
 	return
 }
@@ -151,20 +196,136 @@ func TestUserEmails(t *testing.T) {
 	}
 }
 
+func TestProvisionDesktopAfterSwitch(t *testing.T) {
+	testProvisionAfterSwitch(t, true)
+}
+
+func TestProvisionAfterSwitchWithWrongUser(t *testing.T) {
+	testProvisionAfterSwitch(t, false)
+}
+
+func testProvisionAfterSwitch(t *testing.T, shouldItWork bool) {
+	// device X (provisioner) context:
+	t.Logf("setup X")
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	t.Logf("setup Y")
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	t.Logf("provisioner login")
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
+	Logout(tcX)
+
+	var secretX kex2.Secret
+	_, err := rand.Read(secretX[:])
+	require.NoError(t, err)
+
+	// Now make a user Pam
+	userPam := CreateAndSignupFakeUserPaper(tcX, "login")
+
+	userProvisionAs := userX
+	if !shouldItWork {
+		userProvisionAs = userPam
+	}
+
+	// Now switch back to userX, which may or may not be userProvisionAs (above)
+	userX.SwitchTo(tcX.G, true)
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	t.Logf("provisionee login")
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: userProvisionAs.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	assertError := func(err error) {
+		if shouldItWork {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+			require.True(t, strings.Contains(err.Error(), "is a different user than we wanted"))
+		}
+	}
+
+	// start provisionee
+	t.Logf("start provisionee")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		err := RunEngine2(m, eng)
+		assertError(err)
+	}()
+
+	// start provisioner
+	t.Logf("start provisioner")
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		uis := libkb.UIs{
+			SecretUI:    userProvisionAs.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		err := RunEngine2(m, provisioner)
+		assertError(err)
+	}()
+
+	secretFromY := <-secretCh
+
+	provisioner.AddSecret(secretFromY)
+
+	t.Logf("wait")
+	wg.Wait()
+
+	require.False(t, t.Failed(), "prior failure in a goroutine")
+
+	if !shouldItWork {
+		return
+	}
+
+	t.Logf("asserts")
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	// after provisioning, the passphrase stream should be cached
+	// (note that this just checks the passphrase stream, not 3sec)
+	assertPassphraseStreamCache(tcY)
+
+	// after provisioning, the device keys should be cached
+	assertDeviceKeysCached(tcY)
+
+	// after provisioning, the secret should be stored
+	assertSecretStored(tcY, userX.Username)
+
+}
+
 func TestProvisionDesktop(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		testProvisionDesktop(t, false, sigVersion, false)
+		testProvisionDesktop(t, false, sigVersion)
 	})
-}
-func TestProvisionDesktopWithEmail(t *testing.T) {
-	testProvisionDesktop(t, false, libkb.KeybaseNullSigVersion, true)
 }
 
 func TestProvisionDesktopPUK(t *testing.T) {
-	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion, false)
+	testProvisionDesktop(t, true, libkb.KeybaseNullSigVersion)
 }
 
-func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion, withEmail bool) {
+func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb.SigVersion) {
 	// device X (provisioner) context:
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -195,10 +356,6 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
-	}
-	if withEmail {
-		uis.LoginUI = &libkb.TestLoginUI{Username: userX.Email}
-		uis.SecretUI = userX.NewSecretUI()
 	}
 
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
@@ -523,12 +680,8 @@ func TestProvisionPassphraseBadName(t *testing.T) {
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err == nil {
-		t.Fatal("Provision via passphrase should have failed with bad name.")
-	}
-	if _, ok := err.(libkb.BadNameError); !ok {
-		t.Fatalf("Provision via passphrase err type: %T, expected libkb.BadNameError", err)
-	}
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
 }
 
 // If a user has (only) a synced pgp key, provision via passphrase
@@ -597,22 +750,10 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
-
-	// since this user didn't have any device keys, login should have fixed that:
-	testUserHasDeviceKey(tc)
-
-	// and they should not have a paper backup key
-	hasZeroPaperDev(tc, u1)
-
-	if err := AssertProvisioned(tc); err != nil {
-		t.Fatal(err)
-	}
-
-	// after provisioning, the secret should be stored
-	assertSecretStored(tc, u1.Username)
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 
 // Check that a bad passphrase fails to unlock a synced pgp key
@@ -2267,7 +2408,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
-		LoginUI:     &libkb.TestLoginUI{Username: users[0].Email},
+		LoginUI:     &libkb.TestLoginUI{Username: users[0].Username},
 		LogUI:       tc.G.UI.GetLogUI(),
 		SecretUI:    users[0].NewSecretUI(),
 		GPGUI:       &gpgtestui{},
@@ -2316,7 +2457,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		SecretUI:    users[2].NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
+	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Username, keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
@@ -2330,7 +2471,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 
 	Logout(tc)
 
-	// login via email works now (CORE-6284):
+	// login via email does not work anymore (CORE-10470)
 	uis = libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
@@ -2340,9 +2481,10 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	}
 	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
 
 // create a standard user with device keys, reset account, login.
@@ -3450,6 +3592,34 @@ func TestLoginAlready(t *testing.T) {
 	}
 }
 
+func TestLoginUsernameOnProvisionedDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+
+	secui := u1.NewCountSecretUI()
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, u1.Username, keybase1.ClientType_CLI)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
+		t.Fatalf("login with email should work now, got error: %s (%T)", err, err)
+	}
+
+	assertPassphraseStreamCache(tc)
+	assertDeviceKeysCached(tc)
+	assertSecretStored(tc, u1.Username)
+
+	require.Equal(t, 1, secui.CallCount, "expecting a passphrase prompt when logging in with username")
+}
+
 func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -3467,20 +3637,11 @@ func TestLoginEmailOnProvisionedDevice(t *testing.T) {
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, u1.Email, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatalf("login with email should work now, got error: %s (%T)", err, err)
-	}
-
-	assertPassphraseStreamCache(tc)
-	assertDeviceKeysCached(tc)
-	assertSecretStored(tc, u1.Username)
-
-	// make sure they only had to enter passphrase once:
-	if secui.CallCount != 1 {
-		t.Errorf("login with email, passphrase prompts: %d, expected 1", secui.CallCount)
-	}
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	require.IsType(t, libkb.BadUsernameError{}, err)
+	require.Contains(t, err.Error(), "not supported")
 }
-
 func TestBeforeResetDeviceName(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()

@@ -11,6 +11,7 @@ import (
 
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -75,7 +76,7 @@ func makeRandomBlockPointer(t *testing.T) BlockPointer {
 	}
 }
 
-func makeKMD() KeyMetadata {
+func makeKMD() libkey.KeyMetadata {
 	return emptyKeyMetadata{tlf.FakeID(0, tlf.Private), 1}
 }
 

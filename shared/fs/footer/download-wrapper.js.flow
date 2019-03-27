@@ -1,0 +1,5 @@
+// @flow
+import * as React from 'react'
+import {type Props} from './download'
+
+declare export default React.ComponentType<Props>

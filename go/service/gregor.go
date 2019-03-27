@@ -268,11 +268,11 @@ func (g *gregorHandler) Init() {
 
 func (g *gregorHandler) monitorAppState() {
 	// Wait for state updates and react accordingly
-	state := keybase1.AppState_FOREGROUND
+	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-g.G().AppState.NextUpdate(&state)
+		state = <-g.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.AppState_FOREGROUND, keybase1.AppState_BACKGROUNDACTIVE:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 			// Make sure the URI is set before attempting this (possible it isn't in a race)
 			if g.uri != nil {
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
@@ -280,7 +280,7 @@ func (g *gregorHandler) monitorAppState() {
 					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
 				}
 			}
-		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
+		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
 			g.Shutdown()
 		}
@@ -670,7 +670,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	g.replayCh <- replayThreadArg{
 		cli: cli,
 		t:   t,
-		ctx: chat.BackgroundContext(ctx, g.G()),
+		ctx: globals.BackgroundChatCtx(ctx, g.G()),
 	}
 
 	g.pushState(keybase1.PushReason_RECONNECTED)
@@ -755,7 +755,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	// Run SyncAll to both authenticate, and grab all the data we will need to run the
 	// various resync procedures for chat and notifications
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		chat.NewCachingIdentifyNotifier(g.G()))
 	g.chatLog.Debug(ctx, "OnConnect begin")
 	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{

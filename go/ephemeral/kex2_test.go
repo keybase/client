@@ -32,7 +32,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	tcX := libkb.SetupTest(t, "kex2provision", 2)
 	defer tcX.Cleanup()
 	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
-	NewEphemeralStorageAndInstall(tcX.G)
+	mctxX := libkb.NewMetaContextForTest(tcX)
+	NewEphemeralStorageAndInstall(mctxX)
 
 	// provisioner needs to be logged in
 	userX, err := kbtest.CreateAndSignupFakeUser("X", tcX.G)
@@ -46,23 +47,23 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		// explicitly sync it.
 		keyring, err := tcX.G.GetPerUserKeyring(context.Background())
 		require.NoError(t, err)
-		err = keyring.Sync(libkb.NewMetaContext(context.Background(), tcX.G))
+		err = keyring.Sync(mctxX)
 		require.NoError(t, err)
 
 		ekLib := tcX.G.GetEKLib()
-		err = ekLib.KeygenIfNeeded(context.Background())
+		err = ekLib.KeygenIfNeeded(mctxX)
 		require.NoError(t, err)
 	}
 
 	// After the provision, Y should have access to this userEK generation
 	userEKBoxStorageX := tcX.G.GetUserEKBoxStorage()
-	userEKGenX, err := userEKBoxStorageX.MaxGeneration(context.Background())
+	userEKGenX, err := userEKBoxStorageX.MaxGeneration(mctxX, false)
 	require.NoError(t, err)
 
 	var userEKX keybase1.UserEk
 	if upgradePerUserKey {
 		require.True(t, userEKGenX > 0)
-		userEKX, err = userEKBoxStorageX.Get(context.Background(), userEKGenX, nil)
+		userEKX, err = userEKBoxStorageX.Get(mctxX, userEKGenX, nil)
 		require.NoError(t, err)
 	} else {
 		require.EqualValues(t, userEKGenX, -1)
@@ -72,7 +73,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	tcY := libkb.SetupTest(t, "kex2provision", 2)
 	defer tcY.Cleanup()
 	tcY.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
-	NewEphemeralStorageAndInstall(tcY.G)
+	mctxY := libkb.NewMetaContextForTest(tcY)
+	NewEphemeralStorageAndInstall(mctxY)
 
 	var secretX kex2.Secret
 	_, err = rand.Read(secretX[:])
@@ -108,8 +110,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 				Type:        libkb.DeviceTypeDesktop,
 			}
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), fakeSalt())
-			m := libkb.NewMetaContextForTest(tcY).WithUIs(uis).WithNewProvisionalLoginContext()
-			return engine.RunEngine2(m, provisionee)
+			mctxY = mctxY.WithUIs(uis).WithNewProvisionalLoginContext()
+			return engine.RunEngine2(mctxY, provisionee)
 		})()
 		require.NoError(t, err, "provisionee")
 	}()
@@ -124,8 +126,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		}
 		provisioner := engine.NewKex2Provisioner(tcX.G, secretX, nil)
 		go provisioner.AddSecret(secretY)
-		m := libkb.NewMetaContextForTest(tcX).WithUIs(uis)
-		if err := engine.RunEngine2(m, provisioner); err != nil {
+		mctxX = mctxX.WithUIs(uis)
+		if err := engine.RunEngine2(mctxX, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -134,12 +136,12 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	wg.Wait()
 
 	deviceEKStorageY := tcY.G.GetDeviceEKStorage()
-	maxDeviceEKGenerationY, err := deviceEKStorageY.MaxGeneration(context.Background())
+	maxDeviceEKGenerationY, err := deviceEKStorageY.MaxGeneration(mctxY, false)
 	require.NoError(t, err)
 	if upgradePerUserKey {
 		// Confirm that Y has a deviceEK.
 		require.True(t, maxDeviceEKGenerationY > 0)
-		deviceEKY, err := deviceEKStorageY.Get(context.Background(), maxDeviceEKGenerationY)
+		deviceEKY, err := deviceEKStorageY.Get(mctxY, maxDeviceEKGenerationY)
 		require.NoError(t, err)
 		// Clear out DeviceCtime since it won't be present in fetched data,
 		// it's only known locally.
@@ -147,13 +149,13 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		deviceEKY.Metadata.DeviceCtime = 0
 
 		// Make sure the server knows about our device_ek
-		merkleRootPtr, err := tcY.G.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(tcY), libkb.EphemeralKeyMerkleFreshness)
+		merkleRootPtr, err := tcY.G.GetMerkleClient().FetchRootFromServer(mctxY, libkb.EphemeralKeyMerkleFreshness)
 		require.NoError(t, err)
 
-		fetchedDevices, err := allActiveDeviceEKMetadata(context.Background(), tcY.G, *merkleRootPtr)
+		fetchedDevices, err := allActiveDeviceEKMetadata(mctxY, *merkleRootPtr)
 		require.NoError(t, err)
 
-		deviceEKMetatdata, ok := fetchedDevices[tcY.G.ActiveDevice.DeviceID()]
+		deviceEKMetatdata, ok := fetchedDevices[mctxY.ActiveDevice().DeviceID()]
 		require.True(t, ok)
 		require.Equal(t, deviceEKY.Metadata, deviceEKMetatdata)
 
@@ -163,21 +165,21 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// Confirm Y has a userEK at the same generation as X. If we didn't have a
 	// PUK this generation will be -1.
 	userEKBoxStorageY := tcY.G.GetUserEKBoxStorage()
-	userEKGenY, err := userEKBoxStorageY.MaxGeneration(context.Background())
+	userEKGenY, err := userEKBoxStorageY.MaxGeneration(mctxY, false)
 	require.NoError(t, err)
 	require.EqualValues(t, userEKGenX, userEKGenY)
 
 	if upgradePerUserKey {
-		userEKY, err := userEKBoxStorageY.Get(context.Background(), userEKGenY, nil)
+		userEKY, err := userEKBoxStorageY.Get(mctxY, userEKGenY, nil)
 		require.NoError(t, err)
 		require.Equal(t, userEKX, userEKY)
 
 		// Now clear local store and make sure the server has reboxed userEK.
-		rawUserEKBoxStorage := NewUserEKBoxStorage(tcY.G)
-		rawUserEKBoxStorage.Delete(context.Background(), userEKGenY)
+		rawUserEKBoxStorage := NewUserEKBoxStorage()
+		rawUserEKBoxStorage.Delete(mctxY, userEKGenY)
 		userEKBoxStorageY.ClearCache()
 
-		userEKYFetched, err := userEKBoxStorageY.Get(context.Background(), userEKGenY, nil)
+		userEKYFetched, err := userEKBoxStorageY.Get(mctxY, userEKGenY, nil)
 		require.NoError(t, err)
 		require.Equal(t, userEKX, userEKYFetched)
 	}

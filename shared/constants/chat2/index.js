@@ -25,6 +25,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
+  containsLatestMessageMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -35,6 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,
+  messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -51,6 +53,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  threadSearchInfoMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
@@ -77,8 +80,19 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
   deletableByDeleteHistory: I.Set(),
 })
 
+export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
+  hits: I.List(),
+  status: 'initial',
+  visible: false,
+})
+
+export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
+
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet())
+export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
@@ -134,7 +148,7 @@ export const isUserActivelyLookingAtThisThread = (
   if (flags.useNewRouter) {
     const routePath = Router2.getVisiblePath()
     chatThreadSelected =
-      routePath[routePath.length - 1]?.routeName === isMobile ? 'chatConversation' : 'tabs.chatTab'
+      routePath[routePath.length - 1]?.routeName === (isMobile ? 'chatConversation' : 'tabs.chatTab')
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
@@ -242,7 +256,10 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
 
 export const threadRoute = isMobile
   ? [chatTab, 'chatConversation']
+  : flags.useNewRouter
+  ? [{props: {}, selected: chatTab}]
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100

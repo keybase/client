@@ -5,12 +5,16 @@ import type {RPCError} from '../../util/errors'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import {peopleTab} from '../../constants/tabs'
+import flags from '../../util/feature-flags'
+import openURL from '../../util/open-url'
 
 const checkProof = (state, action) => {
   const sigID = state.profile.sigID
+  const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
     return
   }
@@ -25,8 +29,19 @@ const checkProof = (state, action) => {
         })
       } else {
         return [
+          ProfileGen.createUpdateErrorText({
+            errorCode: null,
+            errorText: '',
+          }),
           ProfileGen.createUpdateProofStatus({found, status}),
-          RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}),
+          ...(isGeneric
+            ? []
+            : [
+                RouteTreeGen.createNavigateAppend({
+                  parentPath: [peopleTab],
+                  path: ['profileConfirmOrPending'],
+                }),
+              ]),
         ]
       }
     })
@@ -44,33 +59,34 @@ const recheckProof = (state, action) =>
     Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
   )
 
-const addProof = (_, action) => {
+// only let one of these happen at a time
+let addProofInProgress = false
+function* addProof(state, action) {
+  const service = More.isPlatformsExpandedType(action.payload.platform)
+  const genericService = service ? null : action.payload.platform
   // Special cases
-  switch (action.payload.platform) {
-    case 'dnsOrGenericWebSite':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveWebsiteChoice']})
-    case 'zcash':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
-    case 'btc':
-      return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
-    case 'pgp':
-      return RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['pgp']})
-    default:
-      // handled by addServiceProof
-      break
-  }
-}
-
-function* addServiceProof(_, action) {
-  const service = action.payload.platform
   switch (service) {
-    case 'dnsOrGenericWebSite': // fallthrough
+    case 'dnsOrGenericWebSite':
+      yield Saga.put(
+        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
+      )
+      return
+    case 'zcash': //  fallthrough
     case 'btc':
-    case 'zcash':
+      yield Saga.put(
+        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+      )
+      return
     case 'pgp':
-      return // already handled by addProof
+      yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePgp']}))
+      return
   }
 
+  if (addProofInProgress) {
+    logger.warn('addProof while one in progress')
+    return
+  }
+  addProofInProgress = true
   let _promptUsernameResponse
   let _outputInstructionsResponse
 
@@ -85,6 +101,7 @@ function* addServiceProof(_, action) {
   // TODO maybe remove engine cancelrpc?
   const cancelResponse = r => r.error(inputCancelError)
 
+  // We fork off some tasks for watch for events that come from the ui
   const cancelTask = yield Saga._fork(function*() {
     yield Saga.take(ProfileGen.cancelAddProof)
     canceled = true
@@ -100,30 +117,37 @@ function* addServiceProof(_, action) {
   })
 
   const checkProofTask = yield Saga._fork(function*() {
-    yield Saga.take(ProfileGen.checkProof)
-    if (_outputInstructionsResponse) {
-      _outputInstructionsResponse.result()
-      _outputInstructionsResponse = null
+    while (true) {
+      yield Saga.take(ProfileGen.checkProof)
+      if (_outputInstructionsResponse) {
+        _outputInstructionsResponse.result()
+        _outputInstructionsResponse = null
+      }
     }
   })
 
   const submitUsernameTask = yield Saga._fork(function*() {
-    yield Saga.take(ProfileGen.submitUsername)
-    yield Saga.put(ProfileGen.createCleanupUsername())
-    if (_promptUsernameResponse) {
-      yield Saga.put(
-        ProfileGen.createUpdateErrorText({
-          errorCode: null,
-          errorText: '',
-        })
-      )
-      const state = yield* Saga.selectState()
-      _promptUsernameResponse.result(state.profile.username)
-      _promptUsernameResponse = null
+    // loop since if we get errors we can get these events multiple times
+    while (true) {
+      yield Saga.take(ProfileGen.submitUsername)
+      yield Saga.put(ProfileGen.createCleanupUsername())
+      if (_promptUsernameResponse) {
+        yield Saga.put(
+          ProfileGen.createUpdateErrorText({
+            errorCode: null,
+            errorText: '',
+          })
+        )
+        const state = yield* Saga.selectState()
+        _promptUsernameResponse.result(state.profile.username)
+        _promptUsernameResponse = null
+      }
     }
   })
 
-  const promptUsername = ({prevError}, response) => {
+  const promptUsername = (args, response) => {
+    const {parameters, prevError} = args
+    // TODO get parameters from this
     if (canceled) {
       cancelResponse(response)
       return
@@ -136,9 +160,18 @@ function* addServiceProof(_, action) {
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
       )
     }
-    actions.push(
-      Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']}))
-    )
+    if (service) {
+      actions.push(
+        Saga.put(
+          RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+        )
+      )
+    } else if (genericService && parameters) {
+      actions.push(
+        Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
+      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']})))
+    }
     return actions
   }
 
@@ -163,9 +196,22 @@ function* addServiceProof(_, action) {
       }
     }
 
-    actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-    actions.push(Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['postProof']})))
+    if (service) {
+      actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
+      actions.push(
+        Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
+      )
+    } else if (proof) {
+      actions.push(Saga.put(ProfileGen.createUpdatePlatformGenericURL({url: proof})))
+      openURL(proof)
+      actions.push(Saga.put(ProfileGen.createCheckProof()))
+    }
     return actions
+  }
+
+  const checking = (_, response) => {
+    response.result()
+    return [Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: true}))]
   }
 
   const responseYes = (_, response) => response.result(true)
@@ -173,6 +219,7 @@ function* addServiceProof(_, action) {
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
       customResponseIncomingCallMap: {
+        'keybase.1.proveUi.checking': checking,
         'keybase.1.proveUi.okToCheck': responseYes,
         'keybase.1.proveUi.outputInstructions': outputInstructions,
         'keybase.1.proveUi.preProofWarning': responseYes,
@@ -186,8 +233,8 @@ function* addServiceProof(_, action) {
       params: {
         auto: false,
         force: true,
-        promptPosted: false,
-        service,
+        promptPosted: !!genericService, // proof protocol extended slightly for generic proofs
+        service: action.payload.platform,
         username: '',
       },
       waitingKey: Constants.waitingKey,
@@ -195,16 +242,24 @@ function* addServiceProof(_, action) {
     yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
     logger.info('Start Proof done: ', sigID)
     yield Saga.put(ProfileGen.createCheckProof())
+    if (genericService) {
+      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+    }
   } catch (error) {
     logger.warn('Error making proof')
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+    if (genericService) {
+      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+    }
   }
   cancelTask.cancel()
   checkProofTask.cancel()
   submitUsernameTask.cancel()
+  addProofInProgress = false
 }
 
-const cancelAddProof = state => ProfileGen.createShowUserProfile({username: state.config.username})
+const cancelAddProof = state =>
+  !flags.useNewRouter && ProfileGen.createShowUserProfile({username: state.config.username})
 
 const submitCryptoAddress = (state, action) => {
   if (!state.profile.usernameValid) {
@@ -231,7 +286,7 @@ const submitCryptoAddress = (state, action) => {
   )
     .then(() => [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok}),
-      RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}),
+      RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
     ])
     .catch((error: RPCError) => {
       logger.warn('Error making proof')
@@ -245,8 +300,7 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
     submitCryptoAddress
   )
   yield* Saga.chainAction<ProfileGen.CancelAddProofPayload>(ProfileGen.cancelAddProof, cancelAddProof)
-  yield* Saga.chainAction<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
-  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addServiceProof)
+  yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
   yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
 }
