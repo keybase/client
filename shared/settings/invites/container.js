@@ -8,9 +8,11 @@ import {connect, lifecycle, compose} from '../../util/container'
 
 type OwnProps = {||}
 const mapStateToProps = state => ({
-  ...state.settings.invites,
+  acceptedInvites: state.settings.invites.acceptedInvites,
+  error: state.settings.invites.error,
   inviteEmail: '',
   inviteMessage: '',
+  pendingInvites: state.settings.invites.pendingInvites,
   showMessageField: false,
   waitingForResponse: state.settings.waitingForResponse,
 })

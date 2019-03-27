@@ -72,7 +72,7 @@ function* toggleNotifications(state) {
 
     let JSONPayload = []
     let chatGlobalArg = {}
-    current.groups.map((group, groupName) => {
+    current.groups.forEach((group, groupName) => {
       if (groupName === Constants.securityGroup) {
         // Special case this since it will go to chat settings endpoint
         group.settings.forEach(
@@ -149,8 +149,8 @@ const refreshInvites = () =>
       }>,
     } = JSON.parse((json && json.body) || '')
 
-    const acceptedInvitesArray = []
-    const pendingInvitesArray = []
+    const acceptedInvites = []
+    const pendingInvites = []
 
     results.invitations.forEach(i => {
       const invite: Types.Invitation = {
@@ -171,17 +171,17 @@ const refreshInvites = () =>
       // 3: pending invitation code invite
       if (i.username && i.uid) {
         invite.type = 'accepted'
-        acceptedInvitesArray.push(invite)
+        acceptedInvites.push(invite)
       } else {
         invite.type = 'pending'
-        pendingInvitesArray.push(invite)
+        pendingInvites.push(invite)
       }
     })
     return SettingsGen.createInvitesRefreshed({
       invites: {
-        acceptedInvites: I.List(acceptedInvitesArray),
+        acceptedInvites: I.List(acceptedInvites),
         error: null,
-        pendingInvites: I.List(pendingInvitesArray),
+        pendingInvites: I.List(pendingInvites),
       },
     })
   })

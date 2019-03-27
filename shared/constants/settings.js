@@ -38,6 +38,12 @@ export const makeEmailRow: I.RecordFactory<Types._EmailRow> = I.Record({
   visibility: 0,
 })
 
+export const makeInvites: I.RecordFactory<Types._InvitesState> = I.Record({
+  acceptedInvites: I.List(),
+  error: null,
+  pendingInvites: I.List(),
+})
+
 export const makePassphrase: I.RecordFactory<Types._PassphraseState> = I.Record({
   error: null,
   hasPGPKeyOnServer: null,
@@ -54,11 +60,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   chat: makeChat(),
   checkPassphraseIsCorrect: null,
   email: makeEmail(),
-  invites: {
-    acceptedInvites: I.List(),
-    error: null,
-    pendingInvites: I.List(),
-  },
+  invites: makeInvites(),
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
   passphrase: makePassphrase(),
