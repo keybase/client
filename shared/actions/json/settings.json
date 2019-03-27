@@ -18,7 +18,7 @@
     },
     "invitesRefresh": {},
     "invitesRefreshed": {
-      "invites": "Types.InvitesState"
+      "invites": "Types._InvitesState"
     },
     "invitesSend": {
       "email": "string",
@@ -35,7 +35,7 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "?Array<RPCTypes.Email>"
+      "emails": "?I.List<Types.EmailRow>"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
@@ -46,11 +46,11 @@
     },
     "notificationsRefresh": {},
     "notificationsRefreshed": {
-      "notifications": "Types.NotificationsState"
+      "notifications": "I.Map<string, Types.NotificationsGroupState>"
     },
     "notificationsSaved": {},
     "notificationsToggle": {
-      "group": "Types.NotificationGroups",
+      "group": "string",
       "name?": "?string"
     },
     "onChangeNewEmail": {
@@ -95,7 +95,7 @@
     "unfurlSettingsSaved": {
       "_description": "Update unfurl settings from settings screen",
       "mode": "RPCChatTypes.UnfurlMode",
-      "whitelist": "Array<string>"
+      "whitelist": "I.List<string>"
     },
     "unfurlSettingsRefresh": {
       "_description": "Refresh unfurl settings"
@@ -103,7 +103,7 @@
     "unfurlSettingsRefreshed": {
       "_description": "Refreshed unfurl settings available",
       "mode": "RPCChatTypes.UnfurlMode",
-      "whitelist": "Array<string>"
+      "whitelist": "I.List<string>"
     },
     "unfurlSettingsError": {
       "_description": "An error occurred on the unfurl settings screen",
