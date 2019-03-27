@@ -198,8 +198,22 @@ export class ThreadSearchDesktop extends ThreadSearchBase {
 export class ThreadSearchMobile extends ThreadSearchBase {
   render() {
     return (
-      <Kb.Box2 direction={'horizontal'} style={this.props.style}>
+      <Kb.Box2 direction="horizontal" style={this.props.style}>
         <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
+          <Kb.Box2 direction="horizontal" gap="xtiny">
+            <Kb.Icon
+              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+              fontSize={arrowSize}
+              onClick={this.onUp}
+              type="iconfont-arrow-up"
+            />
+            <Kb.Icon
+              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+              fontSize={arrowSize}
+              onClick={this.onDown}
+              type="iconfont-arrow-down"
+            />
+          </Kb.Box2>
           <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
               <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />
@@ -221,24 +235,12 @@ export class ThreadSearchMobile extends ThreadSearchBase {
                       ? 'No results'
                       : `${this.state.selectedIndex + 1} of ${this.props.hits.length}`}
                   </Kb.Text>
-                  <Kb.Icon
-                    color={Styles.globalColors.black_50}
-                    fontSize={arrowSize}
-                    onClick={this.onUp}
-                    type="iconfont-arrow-up"
-                  />
-                  <Kb.Icon
-                    color={Styles.globalColors.black_50}
-                    fontSize={arrowSize}
-                    onClick={this.onDown}
-                    type="iconfont-arrow-down"
-                  />
                 </Kb.Box2>
               )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
-            <Kb.Text type="BodySemibold" onClick={this.props.onCancel}>
+            <Kb.Text type="BodySemibold" style={styles.done} onClick={this.props.onCancel}>
               Done
             </Kb.Text>
           </Kb.Box2>
@@ -249,6 +251,9 @@ export class ThreadSearchMobile extends ThreadSearchBase {
 }
 
 const styles = Styles.styleSheetCreate({
+  done: {
+    color: Styles.globalColors.blue,
+  },
   doneContainer: {
     flexShrink: 0,
   },
@@ -277,19 +282,26 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
-  inputContainer: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_20,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
+  inputContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      borderColor: Styles.globalColors.black_20,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      flex: 1,
+      justifyContent: 'space-between',
+    },
+    isElectron: {
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      padding: Styles.globalMargins.tiny,
+    },
+  }),
   outerContainer: {
     backgroundColor: Styles.globalColors.blue5,
     justifyContent: 'space-between',
