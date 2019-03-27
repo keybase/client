@@ -1763,6 +1763,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
+	res.UiConversations = utils.PresentConversationLocals(res.Conversations, h.G().Env.GetUsername().String())
 	return res, nil
 }
 

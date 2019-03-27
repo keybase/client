@@ -4399,6 +4399,7 @@ func (o MarkAsReadLocalRes) DeepCopy() MarkAsReadLocalRes {
 
 type FindConversationsLocalRes struct {
 	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
+	UiConversations  []InboxUIItem                 `codec:"uiConversations" json:"uiConversations"`
 	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4417,6 +4418,17 @@ func (o FindConversationsLocalRes) DeepCopy() FindConversationsLocalRes {
 			}
 			return ret
 		})(o.Conversations),
+		UiConversations: (func(x []InboxUIItem) []InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			ret := make([]InboxUIItem, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UiConversations),
 		Offline: o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {

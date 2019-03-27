@@ -1398,18 +1398,6 @@ function* previewConversationAfterFindExisting(state, action, results, users) {
     }
   }
 
-  if (results && results.conversations && results.conversations.length > 0) {
-    try {
-      yield Saga.put(
-        Chat2Gen.createUnhideConversation({
-          conversationIDKey: Types.conversationIDToKey(results.conversations[0].info.id),
-        })
-      )
-    } catch (e) {
-      logger.info('[previewConversationAfterFindExisting] error')
-    }
-  }
-
   // If we're previewing a team conversation we want to actually make an rpc call and add it to the inbox
   if (isTeam) {
     if (!existingConversationIDKey || existingConversationIDKey === Constants.noConversationIDKey) {
@@ -1502,6 +1490,11 @@ function* previewConversationFindExisting(state, action) {
       visibility: RPCTypes.commonTLFVisibility.private,
       ...params,
     })
+    yield Saga.put(
+      Chat2Gen.createMetasReceived({
+        metas: results.uiConversations.map(Constants.inboxUIItemToConversationMeta),
+      })
+    )
     yield* previewConversationAfterFindExisting(state, action, results, users)
   } else {
     yield* previewConversationAfterFindExisting(state, action, undefined, [])
