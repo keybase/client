@@ -69,7 +69,6 @@ const Header = (p: Props) => {
     </Kb.Box2>
   )
 }
-// }
 
 const styles = Styles.styleSheetCreate({
   container: {
