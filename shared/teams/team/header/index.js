@@ -91,14 +91,7 @@ const _TeamHeader = (props: Props) => (
       {/* Actions */}
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {props.canChat && (
-          <Kb.Button type="Primary" label="Chat" onClick={props.onChat}>
-            <Kb.Icon
-              type="iconfont-chat"
-              style={Kb.iconCastPlatformStyles(styles.chatIcon)}
-              color={Styles.globalColors.white}
-              size={22}
-            />
-          </Kb.Button>
+          <Kb.Button icon="iconfont-chat" type="Primary" label="Chat" onClick={props.onChat} />
         )}
         {props.canManageMembers && (
           <Kb.Button

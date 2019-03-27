@@ -104,13 +104,7 @@ const styles = Styles.styleSheetCreate({
 
 const DeviceHeader = ({onAddNew, waiting}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
-    <Kb.Button type="Primary" label="Add a device or paper key">
-      <Kb.Icon
-        type="iconfont-new"
-        color={Styles.globalColors.white}
-        style={Kb.iconCastPlatformStyles(headerStyles.icon)}
-      />
-    </Kb.Button>
+    <Kb.Button icon="iconfont-new" type="Primary" label="Add a device or paper key" />
   </Kb.ClickableBox>
 )
 const headerStyles = Styles.styleSheetCreate({

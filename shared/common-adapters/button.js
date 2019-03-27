@@ -115,6 +115,14 @@ class Button extends React.Component<Props> {
           ])}
         >
           {!this.props.waiting && this.props.children}
+          {!!this.props.icon && (
+            <Icon
+              color={labelStyle.color}
+              sizeType={isMobile || !!this.props.label ? 'Small' : 'Default'}
+              style={collapseStyles([!!this.props.label && styles.iconWithLabel])}
+              type={this.props.icon}
+            />
+          )}
           {!!this.props.label && (
             <Text
               type={this.props.small ? 'BodySemibold' : 'BodyBig'}
@@ -123,7 +131,6 @@ class Button extends React.Component<Props> {
               {this.props.label}
             </Text>
           )}
-          {!!this.props.icon && <Icon type={this.props.icon} color={labelStyle.color} />}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
@@ -158,6 +165,10 @@ const commonLabel = platformStyles({
     textAlign: 'center',
   },
   isElectron: {whiteSpace: 'pre'},
+  isMobile: {
+    position: 'relative',
+    top: 2,
+  },
 })
 
 const styles = styleSheetCreate({
@@ -170,6 +181,10 @@ const styles = styleSheetCreate({
   icon: {
     paddingLeft: globalMargins.xsmall,
     paddingRight: globalMargins.xsmall,
+  },
+  iconWithLabel: {
+    alignSelf: 'center',
+    marginRight: globalMargins.tiny,
   },
   labelContainer: {height: '100%', position: 'relative'},
   opacity0: {opacity: 0},
