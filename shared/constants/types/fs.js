@@ -297,21 +297,40 @@ export type _DestinationPicker = {
 
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
+export type SendAttachmentToChatState =
+  | 'none'
+  | 'pending-select-conversation'
+  | 'ready-to-send' // a conversation is selected
+  | 'sent'
+
 export type _SendAttachmentToChat = {
   filter: string,
   path: Path,
   convID: ChatTypes.ConversationIDKey,
+  state: SendAttachmentToChatState,
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
+export type SendLinkToChatState =
+  | 'none'
+  // when the modal is just shown and we don't know the convID(s) yet
+  | 'locating-conversation'
+  // only applicable to big teams with multiple channels
+  | 'pending-select-conversation'
+  // possibly without a convID, in which case we'll create it
+  | 'ready-to-send'
+  | 'sending'
+  | 'sent'
+
 export type _SendLinkToChat = {
-  path: Path,
+  // populated for teams only
+  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
   // This is the convID that we are sending into. So for group chats or small
   // teams, this is the conversation. For big teams, this is the selected
   // channel.
   convID: ChatTypes.ConversationIDKey,
-  // populated for teams only
-  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
+  path: Path,
+  state: SendLinkToChatState,
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 

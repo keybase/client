@@ -1380,6 +1380,7 @@ function* threadSearch(state, action) {
 
 function* messageSend(state, action) {
   const {conversationIDKey, text} = action.payload
+
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)

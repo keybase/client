@@ -35,7 +35,7 @@
   "chat.1.local.postHeadlineNonblock": {"promise": true},
   "chat.1.local.postMetadata": {"promise": true},
   "chat.1.local.postReactionNonblock": {"promise": true},
-  "chat.1.local.postTextNonblock": {"engineSaga": true},
+  "chat.1.local.postTextNonblock": {"engineSaga": true, "promise": true},
   "chat.1.local.previewConversationByIDLocal": {"promise": true},
   "chat.1.local.profileChatSearch": {"promise": true},
   "chat.1.local.resolveUnfurlPrompt": {"promise": true},

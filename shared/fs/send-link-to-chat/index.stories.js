@@ -10,7 +10,9 @@ export const provider = Sb.createPropProviderWithCommon({})
 
 const common = {
   onCancel: Sb.action('onCancel'),
+  onSent: Sb.action('onSent'),
   send: Sb.action('send'),
+  sendLinkToChatState: 'ready-to-send',
 }
 
 const channels = [
