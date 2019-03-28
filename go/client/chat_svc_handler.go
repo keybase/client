@@ -620,7 +620,6 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 			c.G().Log.Warning("failed to quarantine attachment download: %s", err)
 		}
 		fsink = NewFileSink(c.G(), opts.Output)
-
 	}
 	defer fsink.Close()
 	sink := c.G().XStreams.ExportWriter(fsink)
