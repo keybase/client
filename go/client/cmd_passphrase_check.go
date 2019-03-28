@@ -82,7 +82,7 @@ func (c *CmdPassphraseCheck) Run() error {
 	}
 
 	if !ret {
-		return errors.New("Invalid passphrase")
+		return errors.New("Invalid password")
 	}
 	c.G().Log.Info("Passphrase confirmed.")
 	return nil
