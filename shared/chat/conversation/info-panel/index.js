@@ -318,6 +318,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           <SmallTeamHeader
             key="small team header"
             teamname={row.teamname}
+            conversationIDKey={this.props.selectedConversationIDKey}
             isSmallTeam={row.isSmallTeam}
             participantCount={row.participantCount}
           />

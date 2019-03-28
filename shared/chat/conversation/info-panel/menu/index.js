@@ -2,11 +2,18 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as ChatTypes from '../../../../constants/types/chat2'
+
+export type ConvProps = {
+  teamType: ChatTypes.TeamType,
+  ignored: boolean,
+}
 
 export type Props = {
   attachTo: () => ?React.Component<any>,
   badgeSubscribe: boolean,
   canAddPeople: boolean,
+  convProps: ?ConvProps, // empty when this conv is for a team but no particular conv
   isSmallTeam: boolean,
   manageChannelsSubtitle: string,
   manageChannelsTitle: string,
@@ -19,6 +26,8 @@ export type Props = {
   onHidden: () => void,
   onInvite: () => void,
   onLeaveTeam: () => void,
+  onHideConv: () => void,
+  onUnhideConv: () => void,
   onManageChannels: () => void,
   onViewTeam: () => void,
 }
@@ -78,9 +87,10 @@ class InfoPanelMenu extends React.Component<Props> {
     const items = [
       ...(props.canAddPeople ? addPeopleItems : []),
       {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
+      this.hideItem(),
       channelItem,
       {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
-    ]
+    ].filter(item => item !== null)
 
     const header = {
       title: 'header',
@@ -98,6 +108,27 @@ class InfoPanelMenu extends React.Component<Props> {
         closeOnSelect={true}
       />
     )
+  }
+
+  hideItem() {
+    if (this.props.convProps == null) {
+      return null
+    }
+    const convProps = this.props.convProps
+    if (convProps.teamType === 'adhoc' || convProps.teamType === 'small') {
+      if (convProps.ignored) {
+        return {onClick: this.props.onUnhideConv, style: {borderTopWidth: 0}, title: 'Unhide conversation'}
+      } else {
+        return {
+          onClick: this.props.onHideConv,
+          style: {borderTopWidth: 0},
+          subTitle: 'Until next message',
+          title: 'Hide conversation',
+        }
+      }
+    } else {
+      return null
+    }
   }
 }
 

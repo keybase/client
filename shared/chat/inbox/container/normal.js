@@ -7,11 +7,12 @@ import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
 import {memoize} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 const smallTeamsCollapsedMaxShown = 5
 
 // Could make this faster by bookkeeping if this structure changed instead of if any item changed
-const splitMetas = memoize((metaMap: Types.MetaMap) => {
+const splitMetas = memoize((metaMap: Types.MetaMap, selectedConversation) => {
   const bigMetas: Array<Types.ConversationMeta> = []
   const smallMetas: Array<Types.ConversationMeta> = []
   metaMap.forEach((meta: Types.ConversationMeta, id) => {
@@ -19,7 +20,12 @@ const splitMetas = memoize((metaMap: Types.MetaMap) => {
       if (meta.teamType === 'big') {
         bigMetas.push(meta)
       } else {
-        smallMetas.push(meta)
+        if (
+          meta.status !== RPCChatTypes.commonConversationStatus.ignored ||
+          meta.conversationIDKey === selectedConversation
+        ) {
+          smallMetas.push(meta)
+        }
       }
     }
   })
@@ -28,7 +34,7 @@ const splitMetas = memoize((metaMap: Types.MetaMap) => {
 
 const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
 const getSmallRows = memoize(
-  (smallMetas, showAllSmallRows) => {
+  (smallMetas, showAllSmallRows, selectedConversation) => {
     let metas
     if (showAllSmallRows) {
       metas = smallMetas.sort(sortByTimestamp)
@@ -40,7 +46,11 @@ const getSmallRows = memoize(
     }
     return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
   },
-  ([newMetas, newShowSmallRows], [oldMetas, oldShowSmallRows]) =>
+  (
+    [newMetas, newShowSmallRows, newSelectedConversation],
+    [oldMetas, oldShowSmallRows, oldSelectedConversation]
+  ) =>
+    newSelectedConversation === oldSelectedConversation &&
     newShowSmallRows === oldShowSmallRows &&
     newMetas.length === oldMetas.length &&
     newMetas.every((a, idx) => {
@@ -78,9 +88,9 @@ const getBigRows = memoize(
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize<Types.MetaMap, boolean, void, void, _>(
-  (metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
-    const {bigMetas, smallMetas} = splitMetas(metaMap)
+const getRowsAndMetadata = memoize<Types.MetaMap, boolean, Types.ConversationIDKey, void, _>(
+  (metaMap: Types.MetaMap, smallTeamsExpanded: boolean, selectedConversation: Types.ConversationIDKey) => {
+    const {bigMetas, smallMetas} = splitMetas(metaMap, selectedConversation)
     const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
     const smallRows = getSmallRows(smallMetas, showAllSmallRows)
     const bigRows = getBigRows(bigMetas)

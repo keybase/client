@@ -386,17 +386,15 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
     ? meta.conversationIDKey
     : conv && Types.stringToConversationIDKey(conv.convID)
   const usernameToFullname = (conv && conv.fullNames) || {}
-  // We ignore inbox rows that are ignored/blocked/reported or have no content
+  // We ignore inbox rows that are blocked/reported or have no content
   const isADelete =
     conv &&
-    ([
-      RPCChatTypes.commonConversationStatus.ignored,
-      RPCChatTypes.commonConversationStatus.blocked,
-      RPCChatTypes.commonConversationStatus.reported,
-    ].includes(conv.status) ||
+    ([RPCChatTypes.commonConversationStatus.blocked, RPCChatTypes.commonConversationStatus.reported].includes(
+      conv.status
+    ) ||
       conv.isEmpty)
 
-  // We want to select a different convo if its cause we ignored/blocked/reported. Otherwise sometimes we get that a convo
+  // We want to select a different convo if its cause we blocked/reported. Otherwise sometimes we get that a convo
   // is empty which we don't want to select something else as sometimes we're in the middle of making it!
   const selectSomethingElse = conv ? !conv.isEmpty : false
   return meta
@@ -1589,6 +1587,11 @@ function* previewConversationFindExisting(state, action) {
       visibility: RPCTypes.commonTLFVisibility.private,
       ...params,
     })
+    yield Saga.put(
+      Chat2Gen.createMetasReceived({
+        metas: results.uiConversations.map(Constants.inboxUIItemToConversationMeta),
+      })
+    )
     yield* previewConversationAfterFindExisting(state, action, results, users)
   } else {
     yield* previewConversationAfterFindExisting(state, action, undefined, [])
@@ -1651,6 +1654,10 @@ const _maybeAutoselectNewestConversation = (state, action) => {
   if (!selectedMeta) {
     selected = Constants.noConversationIDKey
   }
+  let avoidConversationID = Constants.noConversationIDKey
+  if (action.type === Chat2Gen.hideConversation) {
+    avoidConversationID = selected
+  }
   if (action.type === Chat2Gen.metaDelete) {
     if (!action.payload.selectSomethingElse) {
       return
@@ -1676,7 +1683,9 @@ const _maybeAutoselectNewestConversation = (state, action) => {
       return
     }
   } else if (
-    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation) &&
+    (action.type === Chat2Gen.leaveConversation ||
+      action.type === Chat2Gen.blockConversation ||
+      action.type === Chat2Gen.hideConversation) &&
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
@@ -1696,8 +1705,17 @@ const _maybeAutoselectNewestConversation = (state, action) => {
       // Don't select a big team channel
       return false
     }
+    if (meta.status === RPCChatTypes.commonConversationStatus.ignored) {
+      return false
+    }
     if (avoidTeam && meta.teamname === avoidTeam) {
       // We just left this team, don't select a convo from it
+      return false
+    }
+    if (
+      avoidConversationID !== Constants.noConversationIDKey &&
+      meta.conversationIDKey === avoidConversationID
+    ) {
       return false
     }
     return true
@@ -2254,6 +2272,26 @@ function* blockConversation(_, action) {
     status: action.payload.reportUser
       ? RPCChatTypes.commonConversationStatus.reported
       : RPCChatTypes.commonConversationStatus.blocked,
+  })
+}
+
+function* hideConversation(_, action) {
+  // Nav to inbox but don't use findNewConversation since changeSelectedConversation
+  // does that with better information. It knows the conversation is hidden even before
+  // that state bounces back.
+  yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
+  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    status: RPCChatTypes.commonConversationStatus.ignored,
+  })
+}
+
+function* unhideConversation(_, action) {
+  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    status: RPCChatTypes.commonConversationStatus.unfiled,
   })
 }
 
@@ -2851,6 +2889,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messageSend,
       Chat2Gen.attachmentsUpload,
       Chat2Gen.blockConversation,
+      Chat2Gen.hideConversation,
       TeamsGen.leaveTeam,
     ],
     changeSelectedConversation
@@ -3032,6 +3071,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     updateNotificationSettings
   )
   yield* Saga.chainGenerator<Chat2Gen.BlockConversationPayload>(Chat2Gen.blockConversation, blockConversation)
+  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(Chat2Gen.hideConversation, hideConversation)
+  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(
+    Chat2Gen.unhideConversation,
+    unhideConversation
+  )
 
   yield* Saga.chainAction<Chat2Gen.SetConvRetentionPolicyPayload>(
     Chat2Gen.setConvRetentionPolicy,
