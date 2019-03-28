@@ -53,8 +53,10 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
     dispatch(FsGen.createSaveMedia({key, path}))
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
   },
-  _sendAttachmentToChat: () => dispatch(FsGen.createShowSendAttachmentToChat({path, routePath})),
-  _sendLinkToChat: () => dispatch(FsGen.createShowSendLinkToChat({path, routePath})),
+  _sendAttachmentToChat: () =>
+    Constants.makeActionsForShowSendAttachmentToChat(path, routePath).forEach(action => dispatch(action)),
+  _sendLinkToChat: () =>
+    Constants.makeActionsForShowSendLinkToChat(path, routePath).forEach(action => dispatch(action)),
   _sendToOtherApp: () => {
     const key = Constants.makeDownloadKey(path)
     dispatch(FsGen.createShareNative({key, path}))
