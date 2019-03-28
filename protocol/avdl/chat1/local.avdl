@@ -876,7 +876,8 @@ protocol local {
   MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
 
   record FindConversationsLocalRes {
-    array<ConversationLocal> conversations;
+    array<ConversationLocal> conversations; // for the cli / json api
+    array<InboxUIItem> uiConversations; // for the gui
 
     boolean offline;
     array<RateLimit> rateLimits;

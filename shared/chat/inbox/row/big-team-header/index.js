@@ -4,11 +4,13 @@ import * as Kb from '../../../../common-adapters'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
+import * as ChatTypes from '../../../../constants/types/chat2'
 
 type Props = {
   badgeSubscribe: boolean,
   onClick: () => void,
   teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
 } & Kb.OverlayParentProps
 
 class _BigTeamHeader extends React.PureComponent<Props> {
@@ -22,6 +24,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           teamname={props.teamname}
+          conversationIDKey={props.conversationIDKey}
           isSmallTeam={false}
         />
         <Kb.Avatar onClick={props.onClick} teamname={props.teamname} size={32} />

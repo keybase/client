@@ -119,7 +119,7 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.
 export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
+export type {ConversationMeta, MetaTrustedState, NotificationsType, TeamType} from './meta'
 export type {
   AttachmentType,
   ChatPaymentInfo,

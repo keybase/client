@@ -5,6 +5,7 @@ import * as Constants from '../../../../constants/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 import type {RowItem} from '../../index.types'
 import {memoize} from '../../../../util/memoize'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
   rows: Array<RowItem>,
@@ -20,6 +21,9 @@ const getMetaCounts = memoize((badges, metaMap) => {
   let hiddenCount = 0
   metaMap.forEach(meta => {
     if (meta.teamType === 'big') {
+      return
+    }
+    if (meta.status === RPCChatTypes.commonConversationStatus.ignored) {
       return
     }
     const id = meta.conversationIDKey

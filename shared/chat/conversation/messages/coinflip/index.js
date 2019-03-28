@@ -98,7 +98,6 @@ class CoinFlip extends React.Component<Props, State> {
         direction="vertical"
         style={Styles.collapseStyles([!this.props.errorInfo && styles.container])}
         fullWidth={true}
-        gap="tiny"
       >
         {this.props.errorInfo ? (
           <CoinFlipError error={this.props.errorInfo} />
@@ -132,19 +131,21 @@ class CoinFlip extends React.Component<Props, State> {
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {this.props.resultInfo && <CoinFlipResult result={this.props.resultInfo} />}
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.flipAgainContainer}>
-          {this.props.isSendError || !!this.props.errorInfo ? (
+        {this.props.isSendError || !!this.props.errorInfo ? (
+          <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.flipAgainContainer}>
             <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onFlipAgain} style={styles.error}>
               Try again
             </Kb.Text>
-          ) : (
-            this.props.phase === 'complete' && (
+          </Kb.Box2>
+        ) : (
+          this.props.phase === 'complete' && (
+            <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.flipAgainContainer}>
               <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onFlipAgain}>
                 Flip again
               </Kb.Text>
-            )
-          )}
-        </Kb.Box2>
+            </Kb.Box2>
+          )
+        )}
       </Kb.Box2>
     )
   }
