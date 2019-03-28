@@ -98,9 +98,7 @@ const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) =
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     }
   },
-  onHideConv: () => {
-    dispatch(ChatGen.createHideConversation({conversationIDKey}))
-  },
+  onHideConv: () => dispatch(ChatGen.createHideConversation({conversationIDKey})),
   onInvite: () => {
     if (flags.useNewRouter) {
       dispatch(
@@ -125,9 +123,7 @@ const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) =
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]}))
     dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
-  onUnhideConv: () => {
-    dispatch(ChatGen.createUnhideConversation({conversationIDKey}))
-  },
+  onUnhideConv: () => dispatch(ChatGen.createUnhideConversation({conversationIDKey})),
   onViewTeam: () => {
     if (flags.useNewRouter) {
       dispatch(RouteTreeGen.createClearModals())
