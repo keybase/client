@@ -2,19 +2,21 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {storyDecorator} from '../common-stories'
-import JoinOrLogin from '.'
+import EnterUsername from '.'
 
 const props = {
-  onCreateAccount: Sb.action('onCreateAccount'),
-  onDocumentation: Sb.action('onDocumentation'),
-  onFeedback: Sb.action('onFeedback'),
+  leftActionText: 'Back',
+  onBack: Sb.action('onBack'),
+  onChangeUsername: Sb.action('onChangeUsername'),
+  onContinue: Sb.action('onContinue'),
   onLogin: Sb.action('onLogin'),
+  title: 'Create account',
 }
 
 const load = () => {
   Sb.storiesOf('New signup', module)
     .addDecorator(storyDecorator)
-    .add('Enter username', () => <JoinOrLogin {...props} />)
+    .add('Enter username', () => <EnterUsername {...props} />)
 }
 
 export default load

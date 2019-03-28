@@ -16,19 +16,11 @@ const _JoinOrLogin = (props: Kb.PropsWithOverlay<Props>) => (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
       <InfoIcon onDocumentation={props.onDocumentation} onFeedback={props.onFeedback} />
     </Kb.Box2>
-    <Kb.Box2
-      centerChildren={true}
-      alignItems="center"
-      direction="vertical"
-      style={styles.body}
-      fullWidth={true}
-    >
-      <Kb.Box2 direction="vertical" alignItems="center" gap="small">
-        <Kb.Icon type="icon-keybase-logo-64" />
-        <Kb.Text type="HeaderBig" style={styles.text}>
-          Join Keybase
-        </Kb.Text>
-      </Kb.Box2>
+    <Kb.Box2 centerChildren={true} direction="vertical" gap="small" style={styles.body} fullWidth={true}>
+      <Kb.Icon type="icon-keybase-logo-64" />
+      <Kb.Text type="HeaderBig" style={styles.text}>
+        Join Keybase
+      </Kb.Text>
     </Kb.Box2>
     <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
       <Kb.Button

@@ -106,6 +106,7 @@ const styles = styleSheetCreate({
   container: platformStyles({
     common: {
       alignItems: 'center',
+      backgroundColor: globalColors.white,
       borderColor: globalColors.black_10,
       borderRadius: 4,
       borderStyle: 'solid',
