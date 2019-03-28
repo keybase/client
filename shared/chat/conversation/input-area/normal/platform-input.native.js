@@ -164,7 +164,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
-        {this.props.showTypingStatus && <Typing conversationIDKey={this.props.conversationIDKey} />}
+        {this.props.showTypingStatus && !this.props.suggestionsVisible && (
+          <Typing conversationIDKey={this.props.conversationIDKey} />
+        )}
         <Kb.Box style={styles.container}>
           {this.props.isEditing && (
             <Kb.Box style={styles.editingTabStyle}>
