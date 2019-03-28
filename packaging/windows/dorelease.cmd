@@ -71,11 +71,11 @@ if %ERRORLEVEL% EQU 0 (
     type old.hash
     echo "--- Current hash: ---"
     type rq.hash
-    call ..\..\..\packaging\windows\buildrq.bat || goto:build_error || EXIT /B 1
+    call ..\..\..\packaging\windows\buildrq.cmd || goto:build_error || EXIT /B 1
 )
 popd
 
-call %GOPATH%\src\github.com\keybase\client\packaging\windows\buildui.bat || goto:build_error || EXIT /B 1
+call %GOPATH%\src\github.com\keybase\client\packaging\windows\buildui.cmd || goto:build_error || EXIT /B 1
 
 ::Build Installer
 call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cmd || goto:build_error || EXIT /B 1

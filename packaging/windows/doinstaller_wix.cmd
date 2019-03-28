@@ -50,7 +50,7 @@ call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 :: prompter
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 
-if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.bat
+if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.cmd
 
 :: Double check that keybase is codesigned
 signtool verify /pa %PathName%
