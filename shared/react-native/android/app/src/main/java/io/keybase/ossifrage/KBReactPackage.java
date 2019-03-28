@@ -1,6 +1,5 @@
 package io.keybase.ossifrage;
 
-import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
@@ -10,12 +9,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import io.keybase.ossifrage.modules.IntentHandler;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.modules.NativeSettings;
-import io.keybase.ossifrage.modules.PushHandler;
 import io.keybase.ossifrage.modules.ScreenProtector;
 import io.keybase.ossifrage.modules.ShareFiles;
 
@@ -37,7 +36,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         final NativeSettings nativeSettings = new NativeSettings(reactApplicationContext);
         final NativeLogger nativeLogger = new NativeLogger(reactApplicationContext);
         final ShareFiles shareFiles = new ShareFiles(reactApplicationContext);
-        final PushHandler pushHandler = new PushHandler(reactApplicationContext);
+        final IntentHandler intentHandler = new IntentHandler(reactApplicationContext);
 
         killableModules.add(kbEngine);
 
@@ -48,7 +47,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         modules.add(nativeSettings);
         modules.add(nativeLogger);
         modules.add(shareFiles);
-        modules.add(pushHandler);
+        modules.add(intentHandler);
 
         return modules;
     }

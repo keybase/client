@@ -1,50 +1,34 @@
 package io.keybase.ossifrage;
 
 import android.annotation.TargetApi;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.icu.util.Output;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 
-import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
+import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactFragmentActivity;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.common.LifecycleState;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
 
-import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.StandardCopyOption;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.UUID;
 
-import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
+import io.keybase.ossifrage.modules.IntentHandler;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
@@ -85,135 +69,6 @@ public class MainActivity extends ReactFragmentActivity {
         return instanceManager.getCurrentReactContext();
     }
 
-    private void handleNotificationIntentWithContext(Intent intent, ReactContext reactContext) {
-        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-        if (emitter == null) {
-            NativeLogger.warn("notification emitter not ready");
-            return;
-        }
-        WritableMap evt = Arguments.createMap();
-        evt.putString("convID", intent.getStringExtra("convID"));
-        evt.putString("type", "chat.newmessage");
-        evt.putBoolean("userInteraction", true);
-        emitter.emit("androidIntentNotification", evt);
-    }
-
-    private void handleNotificationIntent(final Intent intent) {
-        if (!intent.getBooleanExtra("isNotification", false)) return;
-        intent.removeExtra("isNotification");
-        NativeLogger.info("launching from notification");
-
-        final ReactContext reactContext = getReactContext();
-        if (reactContext == null) {
-            NativeLogger.warn("react context not ready");
-            (new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    // Try for 10 seconds
-                    int millisecondsToSleep = 18000;
-                    int millisecondsPerSleep = 6000;
-                    int numSleeps = millisecondsToSleep / millisecondsPerSleep;
-                    for (int i=0; i < numSleeps; i++) {
-                        try {
-                            Thread.sleep(millisecondsPerSleep);
-                        } catch (InterruptedException ex) {
-                            Thread.currentThread().interrupt();
-                        }
-                        final ReactContext reactContext = getReactContext();
-                        if (reactContext == null) {
-                            continue;
-                        }
-                        // FIXME: Currently this is very sloppy. Even after reactContext is no
-                        // longer null, it's possible to error when trying to route from the
-                        // resulting action.
-                        handleNotificationIntentWithContext(intent, reactContext);
-                        return;
-                    }
-                }
-            })).run();
-            return;
-        }
-
-        this.handleNotificationIntentWithContext(intent, reactContext);
-    }
-
-    private void handleSendIntentStream(Intent intent) {
-        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        if (uri == null) return;
-
-        String filePath = null;
-        if (uri.getScheme().equals("content")) {
-            ContentResolver resolver = getContentResolver();
-            String mimeType = resolver.getType(uri);
-            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
-            String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
-            File file = new File(getCacheDir(), filename);
-            try {
-                InputStream istream = resolver.openInputStream(uri);
-                OutputStream ostream = new FileOutputStream(file);
-
-                byte[] buf = new byte[64 * 1024];
-                int len;
-                while ((len = istream.read(buf)) != -1) {
-                    ostream.write(buf, 0, len);
-                }
-                filePath = file.getPath();
-            } catch (IOException ex) {
-                Log.w(TAG, "error writing shared file " + uri.toString());
-            }
-        } else {
-            filePath = uri.getPath();
-        }
-
-        if (filePath == null) return;
-
-        ReactContext reactContext = getReactContext();
-        if (reactContext == null) return;
-
-        WritableMap evt = Arguments.createMap();
-        evt.putString("path", filePath);
-
-        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-        if (emitter != null) {
-            emitter.emit("onShareData", evt);
-        }
-    }
-
-    private void handleSendIntentMultipleStreams(Intent intent) {
-        ArrayList<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-        if (uris == null) return;
-
-        // TODO: do something with the intent streams.
-    }
-
-    private void handleSendIntentText(Intent intent) {
-        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-        if (sharedText == null) return;
-
-        ReactContext reactContext = getReactContext();
-        if (reactContext == null) return;
-
-        WritableMap evt = Arguments.createMap();
-        evt.putString("text", sharedText);
-        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-        if (emitter != null) {
-            emitter.emit("onShareText", evt);
-        }
-    }
-
-    private void handleIntent(Intent intent) {
-        if (intent == null) return;
-
-        this.handleNotificationIntent(intent);
-        this.handleSendIntentText(intent);
-        this.handleSendIntentStream(intent);
-        this.handleSendIntentMultipleStreams(intent);
-    }
-
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
@@ -239,6 +94,18 @@ public class MainActivity extends ReactFragmentActivity {
                 mainWindow.setBackgroundDrawableResource(R.color.white);
             }
         }, 300);
+
+        // Wait for the reactContext, then send the intent.
+        ReactInstanceManager mReactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
+        mReactInstanceManager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
+            public void onReactContextInitialized(ReactContext reactContext) {
+                reactContext.getNativeModule(IntentHandler.class).handleIntent(getIntent());
+            }
+        });
+        if (!mReactInstanceManager.hasStartedCreatingInitialContext()) {
+            // Construct it in the background
+            mReactInstanceManager.createReactContextInBackground();
+        }
     }
 
     @Override
@@ -290,7 +157,6 @@ public class MainActivity extends ReactFragmentActivity {
     protected void onResume() {
         super.onResume();
         Keybase.setAppStateForeground();
-        handleIntent(getIntent());
     }
 
     @Override
