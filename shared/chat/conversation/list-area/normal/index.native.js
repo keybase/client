@@ -11,9 +11,13 @@ import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
 import JumpToRecent from './jump-to-recent'
 
+const debugEnabled = false
+
+const _debug = debugEnabled ? s => logger.debug('_scroll: ' + s) : s => {}
+
 class ConversationList extends React.PureComponent<Props> {
   _listRef = React.createRef()
-  _lastCenteredOrdinal = 0
+  _scrollCenterTarget = null
 
   _renderItem = ({index, item}) => {
     if (item === 'specialTop') {
@@ -52,6 +56,20 @@ class ConversationList extends React.PureComponent<Props> {
     return ordinalIndex
   }
 
+  _getIndexFromItem = item => {
+    return this._getItemCount(this.props.messageOrdinals) - item - 2
+  }
+
+  _getOrdinalIndex = target => {
+    for (let item = 0; item < this.props.messageOrdinals.size; item++) {
+      const ordinal = this.props.messageOrdinals.get(item, 0)
+      if (ordinal === target) {
+        return this._getIndexFromItem(item)
+      }
+    }
+    return -1
+  }
+
   _getItemCount = messageOrdinals => (messageOrdinals ? messageOrdinals.size + 2 : 2)
 
   _keyExtractor = item => {
@@ -67,6 +85,7 @@ class ConversationList extends React.PureComponent<Props> {
   // Was using onEndReached but that was really flakey
   _onViewableItemsChanged = ({viewableItems}) => {
     const topRecord = viewableItems[viewableItems.length - 1]
+    const bottomRecord = viewableItems[0]
     if (topRecord && topRecord.item === 'specialTop') {
       const ordinalRecord = viewableItems[viewableItems.length - 2]
       // ignore if we don't have real messages
@@ -74,24 +93,35 @@ class ConversationList extends React.PureComponent<Props> {
         this.props.loadOlderMessages(this.props.messageOrdinals.get(ordinalRecord.item))
       }
     }
-    // if things have changed on the screen, then try to scroll to centered ordinal if applicable
-    this._scrollToCentered()
+    if (!topRecord || !bottomRecord) {
+      _debug(`_onViewableItemsChanged: bailing out because of no record`)
+      return
+    }
+
+    const bottomIndex = this._getIndexFromItem(viewableItems[0].item)
+    const upperIndex = this._getIndexFromItem(viewableItems[viewableItems.length - 1].item)
+    const middleIndex = bottomIndex + Math.floor((upperIndex - bottomIndex) / 2)
+    _debug(`_onViewableItemsChanged: first: ${bottomIndex} last: ${upperIndex} middle: ${middleIndex}`)
+    if (!this._scrollCenterTarget) {
+      _debug(`_onViewableItemsChanged: no center target`)
+      return
+    }
+
+    if (
+      !(bottomIndex <= this._scrollCenterTarget && this._scrollCenterTarget <= upperIndex) ||
+      middleIndex !== this._scrollCenterTarget
+    ) {
+      _debug(`_onViewableItemsChanged: scrolling to: ${this._scrollCenterTarget}`)
+      this._scrollToCentered()
+    } else {
+      _debug(`_onViewableItemsChanged: cleared`)
+      this._scrollCenterTarget = null
+    }
   }
 
   // not highly documented. keeps new content from shifting around the list if you're scrolled up
   _maintainVisibleContentPosition = {
     minIndexForVisible: 0,
-  }
-
-  _getOrdinalIndex = target => {
-    const itemCount = this._getItemCount(this.props.messageOrdinals)
-    for (let ordinalIndex = 0; ordinalIndex < this.props.messageOrdinals.size; ordinalIndex++) {
-      const ordinal = this.props.messageOrdinals.get(ordinalIndex, 0)
-      if (ordinal === target) {
-        return itemCount - ordinalIndex - 2
-      }
-    }
-    return -1
   }
 
   _jumpToRecent = () => {
@@ -110,14 +140,12 @@ class ConversationList extends React.PureComponent<Props> {
     if (!list) {
       return
     }
-    // If the centered ordinal is set and different than previous, try to scroll to the corresponding
-    // index
-    if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== this._lastCenteredOrdinal) {
-      const index = this._getOrdinalIndex(this.props.centeredOrdinal)
-      if (index >= 0) {
-        this._lastCenteredOrdinal = this.props.centeredOrdinal
-        list.scrollToIndex({index, viewPosition: 0.5})
-      }
+    const index = this._getOrdinalIndex(this.props.centeredOrdinal)
+    if (index >= 0) {
+      // $FlowIssue
+      _debug(`_scrollToCentered: ordinal: ${this.props.centeredOrdinal} index: ${index}`)
+      this._scrollCenterTarget = index
+      list.scrollToIndex({animated: false, index, viewPosition: 0.5})
     }
   }
 
@@ -127,18 +155,27 @@ class ConversationList extends React.PureComponent<Props> {
     averageItemLength: number,
   }) => {
     logger.warn(
-      `_onScrollToIndexFailed: failed to scroll to index: centeredOrdinal: ${Types.ordinalToNumber(
+      `_scroll: _onScrollToIndexFailed: failed to scroll to index: centeredOrdinal: ${Types.ordinalToNumber(
         this.props.centeredOrdinal || Types.numberToOrdinal(0)
       )} arg: ${JSON.stringify(info)}`
     )
+    const list = this._listRef.current
+    if (list) {
+      list.scrollToIndex({animated: false, index: info.highestMeasuredFrameIndex})
+    }
   }
 
   componentDidUpdate(prevProps: Props) {
     // if the ordinals are the same but something changed, attempt to scroll to centered
-    if (
-      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first() &&
-      this.props.messageOrdinals.last() === prevProps.messageOrdinals.last()
-    ) {
+    _debug(
+      // $FlowIssue
+      `componentDidUpdate: center: ${this.props.centeredOrdinal} oldCenter: ${
+        // $FlowIssue
+        prevProps.centeredOrdinal
+      } first: ${this.props.messageOrdinals.first()} last: ${this.props.messageOrdinals.last()} oldFirst: ${prevProps.messageOrdinals.first()} oldLast: ${prevProps.messageOrdinals.last()}`
+    )
+    if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
+      _debug(`componentDidUpdate: attempting scroll`)
       this._scrollToCentered()
     }
   }

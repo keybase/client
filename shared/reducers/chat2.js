@@ -474,20 +474,6 @@ const rootReducer = (
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
-    case Chat2Gen.loadMessagesFromSearchHit: {
-      let ordinal = messageIDToOrdinal(
-        state.messageMap,
-        state.pendingOutboxToOrdinal,
-        action.payload.conversationIDKey,
-        action.payload.messageID
-      )
-      if (!ordinal) {
-        ordinal = Types.numberToOrdinal(Types.messageIDToNumber(action.payload.messageID))
-      }
-      return ordinal
-        ? state.setIn(['messageCenterOrdinals', action.payload.conversationIDKey], ordinal)
-        : state
-    }
     case Chat2Gen.setPendingMode:
       return state.withMutations(_s => {
         const s = (_s: Types.State)
@@ -779,8 +765,25 @@ const rootReducer = (
         })
       })
 
+      let messageCenterOrdinals = state.messageCenterOrdinals
+      let centeredMessageIDs = action.payload.centeredMessageIDs || []
+      centeredMessageIDs.forEach(cm => {
+        let ordinal = messageIDToOrdinal(
+          state.messageMap,
+          state.pendingOutboxToOrdinal,
+          cm.conversationIDKey,
+          cm.messageID
+        )
+        if (!ordinal) {
+          ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
+        }
+        messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, ordinal)
+      })
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
+        if (centeredMessageIDs.length > 0) {
+          s.set('messageCenterOrdinals', messageCenterOrdinals)
+        }
         s.set('containsLatestMessageMap', containsLatestMessageMap)
         // only if different
         if (!state.messageOrdinals.equals(messageOrdinals)) {
@@ -1169,6 +1172,7 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
+    case Chat2Gen.loadMessagesFromSearchHit:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
