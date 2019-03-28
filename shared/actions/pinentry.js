@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as PinentryGen from '../actions/pinentry-gen'
+import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -25,7 +26,8 @@ const onConnect = () => {
 const onGetPassword = (state, action) => {
   logger.info('Asked for password')
   const {pinentry} = action.payload.params
-  const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = pinentry
+  const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
+  const retryLabel = pinentry.retryLabel === Constants.invalidPasswordErrorString ? 'Incorrect password.' : pinentry.retryLabel
 
   // Stash response
   _response = action.payload.response
