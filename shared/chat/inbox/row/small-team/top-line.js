@@ -4,10 +4,12 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
+import * as ChatTypes from '../../../../constants/types/chat2'
 
 type Props = {
   channelname?: string,
   teamname?: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
   hasUnread: boolean,
   iconHoverColor: string,
   participants: Array<string>,
@@ -42,6 +44,7 @@ class _SimpleTopLine extends React.Component<Props> {
             onHidden={this.props.toggleShowingMenu}
             isSmallTeam={true}
             teamname={(this.props.participants.length && this.props.participants[0]) || ''}
+            conversationIDKey={this.props.conversationIDKey}
           />
         )}
         <Kb.Box style={styles.insideContainer}>

@@ -26,8 +26,6 @@ const styles = Styles.styleSheetCreate({
       borderColor: Styles.globalColors.white,
       borderRadius: 3,
       borderStyle: 'solid',
-      paddingBottom: 1,
-      paddingTop: 1,
     },
     isElectron: {
       borderWidth: 1,
@@ -37,7 +35,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       borderWidth: 2,
-      height: 18,
       marginLeft: -5,
       marginTop: -1,
     },
