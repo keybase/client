@@ -23,7 +23,7 @@ export default function makeMenu(window: any) {
     submenu: [
       {accelerator: 'CmdOrCtrl+=', label: 'Zoom In', role: 'zoomIn'},
       {label: 'Zoom Out', role: 'zoomOut'},
-      {label: 'Reset zoom ', role: 'resetZoom'},
+      {label: 'Reset Zoom', role: 'resetZoom'},
       {label: 'Minimize', role: 'minimize'},
       {accelerator: 'CmdOrCtrl+W', label: 'Close', role: 'close'},
       {type: 'separator'},
