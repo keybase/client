@@ -319,7 +319,7 @@ export const constantsStatusCode = {
   scnistbadclock: 3219,
   scnistsigbadctime: 3220,
   scbadsignupusernamedeleted: 3221,
-  scnopaperkeys: 3301,
+  scnopaperkeys: 3605,
 }
 
 export const ctlDbType = {
