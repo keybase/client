@@ -58,6 +58,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
     showGiphySearch,
+    showTypingStatus:
+      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
@@ -162,6 +164,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   showCommandMarkdown: stateProps.showCommandMarkdown,
   showGiphySearch: stateProps.showGiphySearch,
+  showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
