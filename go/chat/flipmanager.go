@@ -982,9 +982,9 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	go func() {
 		var err error
 		topicName := m.gameTopicNameFromGameID(gameID)
-		conv, err = m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
+		conv, err = NewConversationWithMemberSourceConv(ctx, m.G(), uid, tlfName, &topicName,
 			chat1.TopicType_DEV, hostConv.GetMembersType(),
-			keybase1.TLFVisibility_PRIVATE, &hostConvID)
+			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, &hostConvID)
 		convCreatedCh <- err
 	}()
 
