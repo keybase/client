@@ -1,10 +1,12 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
 import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
+import logger from '../../../../logger'
 import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
 import JumpToRecent from './jump-to-recent'
@@ -46,7 +48,8 @@ class ConversationList extends React.PureComponent<Props> {
     }
 
     // return ordinalIndex
-    return itemCountIncludingSpecial - index - 2
+    const ordinalIndex = itemCountIncludingSpecial - index - 2
+    return ordinalIndex
   }
 
   _getItemCount = messageOrdinals => (messageOrdinals ? messageOrdinals.size + 2 : 2)
@@ -71,6 +74,8 @@ class ConversationList extends React.PureComponent<Props> {
         this.props.loadOlderMessages(this.props.messageOrdinals.get(ordinalRecord.item))
       }
     }
+    // if things have changed on the screen, then try to scroll to centered ordinal if applicable
+    this._scrollToCentered()
   }
 
   // not highly documented. keeps new content from shifting around the list if you're scrolled up
@@ -79,10 +84,11 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   _getOrdinalIndex = target => {
-    for (let i = 0; i < this.props.messageOrdinals.size; i++) {
-      const ordinal = this.props.messageOrdinals.get(i, 0)
+    const itemCount = this._getItemCount(this.props.messageOrdinals)
+    for (let ordinalIndex = 0; ordinalIndex < this.props.messageOrdinals.size; ordinalIndex++) {
+      const ordinal = this.props.messageOrdinals.get(ordinalIndex, 0)
       if (ordinal === target) {
-        return i
+        return itemCount - ordinalIndex - 2
       }
     }
     return -1
@@ -99,22 +105,41 @@ class ConversationList extends React.PureComponent<Props> {
     this.props.onJumpToRecent()
   }
 
-  componentDidUpdate(prevProps: Props) {
+  _scrollToCentered = () => {
     const list = this._listRef.current
     if (!list) {
       return
     }
-    if (
-      !!this.props.centeredOrdinal &&
-      (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
-        this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() ||
-        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last())
-    ) {
+    // If the centered ordinal is set and different than previous, try to scroll to the corresponding
+    // index
+    if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== this._lastCenteredOrdinal) {
       const index = this._getOrdinalIndex(this.props.centeredOrdinal)
       if (index >= 0) {
         this._lastCenteredOrdinal = this.props.centeredOrdinal
         list.scrollToIndex({index, viewPosition: 0.5})
       }
+    }
+  }
+
+  _onScrollToIndexFailed = (info: {
+    index: number,
+    highestMeasuredFrameIndex: number,
+    averageItemLength: number,
+  }) => {
+    logger.warn(
+      `_onScrollToIndexFailed: failed to scroll to index: centeredOrdinal: ${Types.ordinalToNumber(
+        this.props.centeredOrdinal || Types.numberToOrdinal(0)
+      )} arg: ${JSON.stringify(info)}`
+    )
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    // if the ordinals are the same but something changed, attempt to scroll to centered
+    if (
+      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first() &&
+      this.props.messageOrdinals.last() === prevProps.messageOrdinals.last()
+    ) {
+      this._scrollToCentered()
     }
   }
 
@@ -137,6 +162,7 @@ class ConversationList extends React.PureComponent<Props> {
             windowSize={5}
             removeClippedSubviews={true}
             forwardedRef={this._listRef}
+            onScrollToIndexFailed={this._onScrollToIndexFailed}
           />
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
