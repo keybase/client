@@ -44,10 +44,7 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   // If android launched due to push
   RNEmitter.addListener('androidIntentNotification', (evt) => {
     logger.info('[PushAndroidIntent]', evt && evt.type)
-    if (!evt) {
-      return
-    }
-    const notification = Constants.normalizePush(evt)
+    const notification = evt && Constants.normalizePush(evt)
     if (!notification) {
       return
     }

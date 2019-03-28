@@ -42,6 +42,7 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
     @Override
     public void onMessageReceived(RemoteMessage message) {
         NativeLogger.info("KeybasePushNotificationListenerService onMessageReceived");
+
         final Bundle bundle = new Bundle();
         for (Map.Entry<String, String> entry : message.getData().entrySet()) {
             bundle.putString(entry.getKey(), entry.getValue());
@@ -71,7 +72,8 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
             String convID = bundle.getString("c");
             String payload = bundle.getString("m");
             Integer membersType = Integer.parseInt(bundle.getString("t"));
-            PushNotifier notifier = new KBPushNotifier(getApplicationContext());
+            KBPushNotifier notifier = new KBPushNotifier(getApplicationContext());
+            notifier.setBundle(bundle);
             switch (type) {
                 case "chat.newmessageSilent_2": {
                     Boolean displayPlaintext = "true".equals(bundle.getString("n"));
