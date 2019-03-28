@@ -44,26 +44,26 @@ export const makeInvites: I.RecordFactory<Types._InvitesState> = I.Record({
   pendingInvites: I.List(),
 })
 
-export const makePassphrase: I.RecordFactory<Types._PassphraseState> = I.Record({
+export const makePassword: I.RecordFactory<Types._PasswordState> = I.Record({
   error: null,
   hasPGPKeyOnServer: null,
-  newPassphrase: new HiddenString(''),
-  newPassphraseConfirm: new HiddenString(''),
-  newPassphraseConfirmError: null,
-  newPassphraseError: null,
+  newPassword: new HiddenString(''),
+  newPasswordConfirm: new HiddenString(''),
+  newPasswordConfirmError: null,
+  newPasswordError: null,
   randomPW: null,
-  rememberPassphrase: true,
+  rememberPassword: true,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   allowDeleteAccount: false,
   chat: makeChat(),
-  checkPassphraseIsCorrect: null,
+  checkPasswordIsCorrect: null,
   email: makeEmail(),
   invites: makeInvites(),
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
-  passphrase: makePassphrase(),
+  password: makePassword(),
   waitingForResponse: false,
 })
 
@@ -86,7 +86,7 @@ export const invitationsTab = 'settingsTabs.invitationsTab'
 export const landingTab = 'settingsTabs.landingTab'
 export const logOutTab = 'settingsTabs.logOutTab'
 export const notificationsTab = 'settingsTabs.notificationsTab'
-export const passphraseTab = 'settingsTabs.passphrase'
+export const passwordTab = 'settingsTabs.password'
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const screenprotectorTab = 'settingsTabs.screenprotector'
 export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
@@ -96,5 +96,5 @@ export const walletsTab = 'settingsTabs.walletsTab'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
-export const checkPassphraseWaitingKey = 'settings:checkPassphrase'
+export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'

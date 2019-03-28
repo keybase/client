@@ -29,8 +29,8 @@
         "error": "Error"
       }
     },
-    "loadRememberPassphrase": {},
-    "loadedRememberPassphrase": {
+    "loadRememberPassword": {},
+    "loadedRememberPassword": {
       "remember": "boolean"
     },
     "loadSettings": {},
@@ -56,25 +56,25 @@
     "onChangeNewEmail": {
       "email": "string"
     },
-    "onChangeNewPassphrase": {
-      "passphrase": "HiddenString"
+    "onChangeNewPassword": {
+      "password": "HiddenString"
     },
-    "onChangeNewPassphraseConfirm": {
-      "passphrase": "HiddenString"
+    "onChangeNewPasswordConfirm": {
+      "password": "HiddenString"
     },
-    "onChangeRememberPassphrase": {
+    "onChangeRememberPassword": {
       "remember": "boolean"
     },
-    "onChangeShowPassphrase": {},
+    "onChangeShowPassword": {},
     "onSubmitNewEmail": {},
-    "onSubmitNewPassphrase": {
+    "onSubmitNewPassword": {
       "thenSignOut": "boolean"
     },
     "onUpdateEmailError": {
       "error": "Error"
     },
     "onUpdatePGPSettings": {},
-    "onUpdatePassphraseError": {
+    "onUpdatePasswordError": {
       "error": "Error"
     },
     "onUpdatedPGPSettings": {
@@ -113,11 +113,11 @@
     "loadedHasRandomPw": {
       "randomPW": "boolean"
     },
-    "checkPassphrase": {
-      "passphrase": "HiddenString"
+    "checkPassword": {
+      "password": "HiddenString"
     },
-    "loadedCheckPassphrase": {
-      "checkPassphraseIsCorrect": "?boolean"
+    "loadedCheckPassword": {
+      "checkPasswordIsCorrect": "?boolean"
     }
   }
 }

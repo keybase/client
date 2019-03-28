@@ -8,7 +8,7 @@
     "startProvision": {},
     "provisionError": {"error": "?HiddenString"},
     "submitUsername": {"username": "string"},
-    "submitPassphrase": {"passphrase": "HiddenString"},
+    "submitPassword": {"password": "HiddenString"},
     "submitPaperkey": {"paperkey": "HiddenString"},
     "submitTextCode": {"phrase": "HiddenString"},
     "submitDeviceSelect": {"name": "string"},
@@ -37,7 +37,7 @@
     "showInlineError": {
       "inlineError": "RPCError"
     },
-    "showPassphrasePage": {
+    "showPasswordPage": {
       "error": "?HiddenString"
     },
     "showPaperkeyPage": {

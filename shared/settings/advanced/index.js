@@ -37,7 +37,7 @@ const Advanced = (props: Props) => {
           disabled={disabled}
           label={
             'Forbid account changes from the website' +
-            (props.hasRandomPW ? ' (you need to set a passphrase first)' : '')
+            (props.hasRandomPW ? ' (you need to set a password first)' : '')
           }
           onCheck={props.onChangeLockdownMode}
           style={styles.checkbox}

@@ -22,8 +22,8 @@ const onConnect = () => {
     })
 }
 
-const onGetPassphrase = (state, action) => {
-  logger.info('Asked for passphrase')
+const onGetPassword = (state, action) => {
+  logger.info('Asked for password')
   const {pinentry} = action.payload.params
   const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = pinentry
 
@@ -49,10 +49,10 @@ const onNewPinentry = (_, action) =>
   })
 
 const onSubmit = (_, action) => {
-  const {passphrase} = action.payload
+  const {password} = action.payload
   if (_response) {
     // $FlowIssue flow is correct in that we need store secret but we weren't sending it before and i don't want to change any existing behavior
-    _response.result({passphrase})
+    _response.result({passphrase: password})
     _response = null
   }
 
@@ -80,7 +80,7 @@ function* pinentrySaga(): Saga.SagaGenerator<any, any> {
   getEngine().registerCustomResponse('keybase.1.secretUi.getPassphrase')
   yield* Saga.chainAction<EngineGen.Keybase1SecretUiGetPassphrasePayload>(
     EngineGen.keybase1SecretUiGetPassphrase,
-    onGetPassphrase
+    onGetPassword
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 }

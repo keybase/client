@@ -57,17 +57,17 @@ export type _NotificationsState = {
 
 export type NotificationsState = I.RecordOf<_NotificationsState>
 
-export type _PassphraseState = {
-  newPassphrase: HiddenString,
-  newPassphraseConfirm: HiddenString,
+export type _PasswordState = {
+  newPassword: HiddenString,
+  newPasswordConfirm: HiddenString,
   error: ?Error,
-  newPassphraseError: ?HiddenString,
-  newPassphraseConfirmError: ?HiddenString,
+  newPasswordError: ?HiddenString,
+  newPasswordConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
-  rememberPassphrase: boolean,
+  rememberPassword: boolean,
   randomPW: ?boolean,
 }
-export type PassphraseState = I.RecordOf<_PassphraseState>
+export type PasswordState = I.RecordOf<_PasswordState>
 
 // Record types don't play well with $ReadOnly types, which
 // RPCTypes.TeamSettings is, so we want to extract the underlying
@@ -103,10 +103,10 @@ export type _State = {
   invites: InvitesState,
   notifications: NotificationsState,
   email: EmailState,
-  passphrase: PassphraseState,
+  password: PasswordState,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
-  checkPassphraseIsCorrect: ?boolean,
+  checkPasswordIsCorrect: ?boolean,
 }
 export type State = I.RecordOf<_State>
 
@@ -122,7 +122,7 @@ type GitTab = 'settingsTabs.gitTab'
 type InvitationsTab = 'settingsTabs.invitationsTab'
 type LandingTab = 'settingsTabs.landingTab'
 type NotificationsTab = 'settingsTabs.notificationsTab'
-type PassphraseTab = 'settingsTabs.passphrase'
+type PasswordTab = 'settingsTabs.password'
 type ScreenprotectorTab = 'settingsTabs.screenprotector'
 type LogOutTab = 'settingsTabs.logOutTab'
 type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
@@ -143,7 +143,7 @@ export type Tab =
   | FsTab
   | LogOutTab
   | ScreenprotectorTab
-  | PassphraseTab
+  | PasswordTab
   | WalletsTab
   | ChatTab
 

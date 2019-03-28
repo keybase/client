@@ -6,10 +6,10 @@
   "actions": {
     "login": {
       "username": "string",
-      "passphrase": "HiddenString"
+      "password": "HiddenString"
     },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "loginError": { "error": "?HiddenString" },
+    "loginError": { "error": "?HiddenString" }
   }
 }
