@@ -7,7 +7,7 @@ import * as Styles from '../../../styles'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
 const hitHeight = 30
-const arrowSize = Styles.isMobile ? 20 : 16
+const arrowSize = Styles.isMobile ? 24 : 16
 
 type SearchHit = {|
   author: string,
@@ -200,7 +200,7 @@ export class ThreadSearchMobile extends ThreadSearchBase {
     return (
       <Kb.Box2 direction="horizontal" style={this.props.style}>
         <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
-          <Kb.Box2 direction="horizontal" gap="xtiny">
+          <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Icon
               color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
               fontSize={arrowSize}

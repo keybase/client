@@ -97,7 +97,7 @@ class ConversationList extends React.PureComponent<Props> {
   _jumpToRecent = () => {
     const list = this._listRef.current
     if (list) {
-      const index = this._getOrdinalIndex(this.props.messageOrdinals.first())
+      const index = this._getOrdinalIndex(this.props.messageOrdinals.last())
       if (index >= 0) {
         list.scrollToIndex({index})
       }
