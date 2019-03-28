@@ -166,6 +166,7 @@ class Inbox extends React.PureComponent<Props, State> {
     if (this.props.filter.length) {
       return
     }
+    this._calculateShowUnreadShortcut()
     if (this.props.clearedFilterCount > this._clearedFilterCount) {
       // just cleared out filter
       // re-rendering normal inbox for the first time
@@ -181,7 +182,6 @@ class Inbox extends React.PureComponent<Props, State> {
     }, [])
 
     this._calculateShowFloating()
-    this._calculateShowUnreadShortcut()
 
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
