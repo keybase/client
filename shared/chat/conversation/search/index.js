@@ -7,7 +7,6 @@ import * as Styles from '../../../styles'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
 const hitHeight = 30
-const arrowSize = Styles.isMobile ? 24 : 16
 
 type SearchHit = {|
   author: string,
@@ -143,7 +142,7 @@ export class ThreadSearchDesktop extends ThreadSearchBase {
         <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
           <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
-              <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />
+              <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} />
               <Kb.PlainInput
                 autoFocus={true}
                 flexable={true}
@@ -164,13 +163,11 @@ export class ThreadSearchDesktop extends ThreadSearchBase {
                   </Kb.Text>
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
-                    fontSize={arrowSize}
                     onClick={this.onUp}
                     type="iconfont-arrow-up"
                   />
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
-                    fontSize={arrowSize}
                     onClick={this.onDown}
                     type="iconfont-arrow-down"
                   />
@@ -203,20 +200,18 @@ export class ThreadSearchMobile extends ThreadSearchBase {
           <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Icon
               color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              fontSize={arrowSize}
               onClick={this.onUp}
               type="iconfont-arrow-up"
             />
             <Kb.Icon
               color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              fontSize={arrowSize}
               onClick={this.onDown}
               type="iconfont-arrow-down"
             />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
-              <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} fontSize={16} />
+              <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} />
               <Kb.PlainInput
                 autoFocus={true}
                 flexable={true}

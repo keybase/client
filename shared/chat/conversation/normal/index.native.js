@@ -7,7 +7,6 @@ import ListArea from '../list-area/container'
 import {Box, LoadingLine, Text, HeaderHocHeader} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import type {Props} from './index.types'
-import ThreadSearch from '../search/container'
 
 const Offline = () => (
   <Box
@@ -55,19 +54,15 @@ class Conversation extends React.PureComponent<Props> {
           conversationIDKey={this.props.conversationIDKey}
         />
         <Banner conversationIDKey={this.props.conversationIDKey} />
-        {!this.props.showThreadSearch ? (
-          <InputArea
-            isPending={this.props.isPending}
-            focusInputCounter={this.props.focusInputCounter}
-            jumpToRecent={this.props.jumpToRecent}
-            onRequestScrollDown={this.props.onRequestScrollDown}
-            onRequestScrollToBottom={this.props.onRequestScrollToBottom}
-            onRequestScrollUp={this.props.onRequestScrollUp}
-            conversationIDKey={this.props.conversationIDKey}
-          />
-        ) : (
-          <ThreadSearch conversationIDKey={this.props.conversationIDKey} />
-        )}
+        <InputArea
+          isPending={this.props.isPending}
+          focusInputCounter={this.props.focusInputCounter}
+          jumpToRecent={this.props.jumpToRecent}
+          onRequestScrollDown={this.props.onRequestScrollDown}
+          onRequestScrollToBottom={this.props.onRequestScrollToBottom}
+          onRequestScrollUp={this.props.onRequestScrollUp}
+          conversationIDKey={this.props.conversationIDKey}
+        />
       </Box>
     )
   }

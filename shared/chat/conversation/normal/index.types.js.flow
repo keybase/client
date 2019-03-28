@@ -10,7 +10,6 @@ export type Props = {
   scrollListToBottomCounter: number,
   scrollListUpCounter: number,
   showLoader: boolean,
-  showThreadSearch: boolean,
   onPaste: (data: Buffer) => void,
   onAttach: (paths: Array<string>) => void,
   onCancelSearch: () => void,
