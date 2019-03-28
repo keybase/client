@@ -15,6 +15,8 @@ const debugEnabled = false
 
 const _debug = debugEnabled ? s => logger.debug('_scroll: ' + s) : s => {}
 
+const targetHitArea = 1
+
 class ConversationList extends React.PureComponent<Props> {
   _listRef = React.createRef()
   _scrollCenterTarget = null
@@ -108,8 +110,10 @@ class ConversationList extends React.PureComponent<Props> {
     }
 
     if (
-      !(bottomIndex <= this._scrollCenterTarget && this._scrollCenterTarget <= upperIndex) ||
-      middleIndex !== this._scrollCenterTarget
+      !(
+        this._scrollCenterTarget <= middleIndex + targetHitArea &&
+        this._scrollCenterTarget >= middleIndex - targetHitArea
+      )
     ) {
       _debug(`_onViewableItemsChanged: scrolling to: ${this._scrollCenterTarget}`)
       this._scrollToCentered()
