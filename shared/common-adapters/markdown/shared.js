@@ -26,7 +26,7 @@ const serviceBeginDecorationTag = '\\$\\>kb\\$'
 const serviceEndDecorationTag = '\\$\\<kb\\$'
 function createServiceDecorationRegex(): ?RegExp {
   return new RegExp(
-    `^${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
+    `^[\\\\]*${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
   )
 }
 
