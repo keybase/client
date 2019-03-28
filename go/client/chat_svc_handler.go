@@ -616,9 +616,6 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	if opts.Output == "-" {
 		fsink = &StdoutSink{}
 	} else {
-		if err := attachments.Quarantine(ctx, opts.Output); err != nil {
-			c.G().Log.Warning("failed to quarantine attachment download: %s", err)
-		}
 		fsink = NewFileSink(c.G(), opts.Output)
 	}
 	defer fsink.Close()
@@ -654,6 +651,11 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		return c.errReply(err)
 	}
 	rlimits = append(rlimits, dres.RateLimits...)
+	if opts.Output != "-" {
+		if err := attachments.Quarantine(ctx, opts.Output); err != nil {
+			c.G().Log.Warning("failed to quarantine attachment download: %s", err)
+		}
+	}
 
 	res := SendRes{
 		Message: fmt.Sprintf("attachment downloaded to %s", opts.Output),
