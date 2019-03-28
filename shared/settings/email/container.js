@@ -10,9 +10,12 @@ const mapStateToProps = state => {
   const {emails, error} = state.settings.email
   let email = ''
   let isVerified = false
-  if (emails && emails.length > 0) {
-    email = emails[0].email
-    isVerified = emails[0].isVerified
+  if (emails && emails.count() > 0) {
+    const first_email = emails.get(0)
+    if (first_email) {
+      email = first_email.get('email')
+      isVerified = first_email.get('isVerified')
+    }
   }
   return {
     email,

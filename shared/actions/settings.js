@@ -1,18 +1,19 @@
 // @flow
 // TODO use WaitingGen which will allow more chainAction handlers
 import logger from '../logger'
+import * as I from 'immutable'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
+import * as Saga from '../util/saga'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
-import * as SettingsGen from '../actions/settings-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
+import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 
 const onUpdatePGPSettings = () =>
@@ -65,36 +66,34 @@ function* toggleNotifications(state) {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const current = state.settings.notifications
 
-    if (!current || !current.groups.email) {
+    if (!current || !current.groups.get('email')) {
       throw new Error('No notifications loaded yet')
     }
 
     let JSONPayload = []
     let chatGlobalArg = {}
-    for (const groupName in current.groups) {
-      const group = current.groups[groupName]
+    current.groups.forEach((group, groupName) => {
       if (groupName === Constants.securityGroup) {
         // Special case this since it will go to chat settings endpoint
-        for (const key in group.settings) {
-          const setting = group.settings[key]
-          chatGlobalArg[
-            `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
-          ] = !!setting.subscribed
-        }
+        group.settings.forEach(
+          setting =>
+            (chatGlobalArg[
+              `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
+            ] = !!setting.subscribed)
+        )
       } else {
-        for (const key in group.settings) {
-          const setting = group.settings[key]
+        group.settings.forEach(setting =>
           JSONPayload.push({
             key: `${setting.name}|${groupName}`,
             value: setting.subscribed ? '1' : '0',
           })
-        }
+        )
         JSONPayload.push({
           key: `unsub|${groupName}`,
           value: group.unsubscribedFromAll ? '1' : '0',
         })
       }
-    }
+    })
 
     const [result] = yield Saga.all([
       Saga.callUntyped(RPCTypes.apiserverPostJSONRpcPromise, {
@@ -174,12 +173,16 @@ const refreshInvites = () =>
         invite.type = 'accepted'
         acceptedInvites.push(invite)
       } else {
+        invite.type = 'pending'
         pendingInvites.push(invite)
       }
     })
-    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doesn't look anything like what we're pushing
     return SettingsGen.createInvitesRefreshed({
-      invites: {acceptedInvites, error: null, pendingInvites},
+      invites: {
+        acceptedInvites: I.List(acceptedInvites),
+        error: null,
+        pendingInvites: I.List(pendingInvites),
+      },
     })
   })
 
@@ -237,11 +240,8 @@ function* refreshNotifications() {
   const delayThenEmptyTask = yield Saga._fork(function*(): Generator<any, void, any> {
     yield Saga.callUntyped(delay, 500)
     yield Saga.put(
-      // $FlowIssue this isn't type correct at all TODO
       SettingsGen.createNotificationsRefreshed({
-        notifications: {
-          groups: null,
-        },
+        notifications: I.Map(),
       })
     )
   })
@@ -347,7 +347,7 @@ function* refreshNotifications() {
 
   yield Saga.put(
     SettingsGen.createNotificationsRefreshed({
-      notifications,
+      notifications: I.Map(notifications),
     })
   )
 }
@@ -372,8 +372,12 @@ const deleteAccountForever = (state, action) => {
 }
 
 const loadSettings = () =>
-  RPCTypes.userLoadMySettingsRpcPromise().then(settings =>
-    SettingsGen.createLoadedSettings({emails: settings.emails})
+  RPCTypes.userLoadMySettingsRpcPromise().then(
+    settings =>
+      settings.emails &&
+      SettingsGen.createLoadedSettings({
+        emails: I.List(settings.emails.map(row => Constants.makeEmailRow(row))),
+      })
   )
 
 const getRememberPassphrase = () =>
@@ -435,7 +439,10 @@ const unfurlSettingsRefresh = (state, action) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
-      SettingsGen.createUnfurlSettingsRefreshed({mode: result.mode, whitelist: result.whitelist || []})
+      SettingsGen.createUnfurlSettingsRefreshed({
+        mode: result.mode,
+        whitelist: I.List(result.whitelist || []),
+      })
     )
     .catch(() =>
       SettingsGen.createUnfurlSettingsError({
@@ -448,7 +455,7 @@ const unfurlSettingsSaved = (state, action) =>
   ChatTypes.localSaveUnfurlSettingsRpcPromise(
     {
       mode: action.payload.mode,
-      whitelist: action.payload.whitelist,
+      whitelist: action.payload.whitelist.toArray(),
     },
     Constants.chatUnfurlWaitingKey
   )

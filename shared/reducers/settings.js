@@ -1,22 +1,21 @@
 // @flow
 import logger from '../logger'
+import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
 
-function reducer(state: Types.State = Constants.initialState, action: SettingsGen.Actions): Types.State {
+const initialState: Types.State = Constants.makeState()
+
+function reducer(state: Types.State = initialState, action: SettingsGen.Actions): Types.State {
   switch (action.type) {
     case SettingsGen.resetStore:
-      return {...Constants.initialState}
+      return initialState
     case SettingsGen.setAllowDeleteAccount:
-      const {allow} = action.payload
-      return {
-        ...Constants.initialState,
-        allowDeleteAccount: allow,
-      }
+      return state.merge({allowDeleteAccount: action.payload.allow})
     case SettingsGen.notificationsToggle:
-      if (!state.notifications.groups.email) {
+      if (!state.notifications.groups.get('email')) {
         logger.warn('Trying to toggle while not loaded')
         return state
       } else if (!state.notifications.allowEdit) {
@@ -42,10 +41,8 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         }
       }
 
-      const {settings, unsubscribedFromAll} = state.notifications.groups[group] || {
-        settings: null,
-        unsubscribedFromAll: null,
-      }
+      const groupMap = state.notifications.groups.get(group) || Constants.makeNotificationsGroup()
+      const {settings, unsubscribedFromAll} = groupMap
       if (!settings) {
         logger.warn('Trying to toggle unknown settings')
         return state
@@ -57,197 +54,80 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
           unsubscribedFromAll: !name && !unsubscribedFromAll,
         },
       }
-      return {
-        ...state,
-        notifications: {
-          ...state.notifications,
+      return state.update('notifications', notifications =>
+        notifications.merge({
           allowEdit: false,
-          groups: {
-            ...state.notifications.groups,
-            ...changed,
-          },
-        },
-      }
+          groups: state.notifications.groups.merge(I.Map(changed)),
+        })
+      )
     case SettingsGen.notificationsSaved:
-      return {
-        ...state,
-        notifications: {
-          ...state.notifications,
-          allowEdit: true,
-        },
-      }
+      return state.update('notifications', notifications => notifications.merge({allowEdit: true}))
     case SettingsGen.notificationsRefreshed:
-      const {notifications} = action.payload
-      return {
-        ...state,
-        notifications: {
+      return state.update('notifications', notifications =>
+        notifications.merge({
           allowEdit: true,
-          groups: {
-            ...notifications,
-          },
-        },
-      }
+          groups: action.payload.notifications,
+        })
+      )
     case SettingsGen.invitesRefreshed:
-      const {invites} = action.payload
-      return {
-        ...state,
-        invites: {
-          ...state.invites,
-          ...invites,
-        },
-      }
+      return state.update('invites', invites => invites.merge(action.payload.invites))
     case SettingsGen.invitesSent:
       // TODO this doesn't do anything with the actual valid payload
-      return {
-        ...state,
-        invites: {
-          ...state.invites,
-          error: action.error ? action.payload.error : undefined,
-        },
-      }
+      return state.update('invites', invites =>
+        invites.merge({error: action.error ? action.payload.error : undefined})
+      )
     case SettingsGen.invitesClearError:
-      return {
-        ...state,
-        invites: {
-          ...state.invites,
-          error: null,
-        },
-      }
-    case SettingsGen.loadedSettings: {
-      return {
-        ...state,
-        email: {
-          ...state.email,
-          emails: action.payload.emails || [],
-        },
-      }
-    }
+      return state.update('invites', invites => invites.merge({error: null}))
+    case SettingsGen.loadedSettings:
+      return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
     case SettingsGen.loadedRememberPassphrase:
     case SettingsGen.onChangeRememberPassphrase:
-      const {remember} = action.payload
-      return {
-        ...state,
-        passphrase: {
-          ...state.passphrase,
-          rememberPassphrase: remember,
-        },
-      }
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({rememberPassphrase: action.payload.remember})
+      )
     case SettingsGen.onChangeNewPassphrase:
-      const {passphrase} = action.payload
-      return {
-        ...state,
-        passphrase: {
-          ...state.passphrase,
-          error: null,
-          newPassphrase: passphrase,
-        },
-      }
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({error: null, newPassphrase: action.payload.passphrase})
+      )
     case SettingsGen.loadedLockdownMode:
-      const {status} = action.payload
-      return {
-        ...state,
-        lockdownModeEnabled: status,
-      }
-    case SettingsGen.onChangeNewPassphraseConfirm: {
-      const {passphrase} = action.payload
-      return {
-        ...state,
-        passphrase: {
-          ...state.passphrase,
-          error: null,
-          newPassphraseConfirm: passphrase,
-        },
-      }
-    }
+      return state.merge({lockdownModeEnabled: action.payload.status})
+    case SettingsGen.onChangeNewPassphraseConfirm:
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({error: null, newPassphraseConfirm: action.payload.passphrase})
+      )
     case SettingsGen.checkPassphrase:
-      return {
-        ...state,
-        checkPassphraseIsCorrect: null,
-      }
+      return state.merge({checkPassphraseIsCorrect: null})
     case SettingsGen.onUpdatedPGPSettings:
-      const {hasKeys} = action.payload
-      return {
-        ...state,
-        passphrase: {
-          ...state.passphrase,
-          hasPGPKeyOnServer: hasKeys,
-        },
-      }
+      return state.update('passphrase', passphrase =>
+        passphrase.merge({hasPGPKeyOnServer: action.payload.hasKeys})
+      )
     case SettingsGen.onUpdatePassphraseError:
-      const {error} = action.payload
-      return {
-        ...state,
-        passphrase: {
-          ...state.passphrase,
-          error,
-        },
-      }
+      return state.update('passphrase', passphrase => passphrase.merge({error: action.payload.error}))
     case SettingsGen.onChangeNewEmail:
-      const {email} = action.payload
-      return {
-        ...state,
-        email: {
-          ...state.email,
-          error: null,
-          newEmail: email,
-        },
-      }
-    case SettingsGen.onUpdateEmailError: {
-      const {error} = action.payload
-      return {
-        ...state,
-        email: {
-          ...state.email,
-          error,
-        },
-      }
-    }
+      return state.update('email', email => email.merge({error: null, newEmail: action.payload.email}))
+    case SettingsGen.onUpdateEmailError:
+      return state.update('email', email => email.merge({error: action.payload.error}))
     case SettingsGen.waitingForResponse:
-      const {waiting} = action.payload
-      return {
-        ...state,
-        waitingForResponse: waiting,
-      }
+      return state.merge({waitingForResponse: action.payload.waiting})
     case SettingsGen.unfurlSettingsRefreshed:
     case SettingsGen.unfurlSettingsSaved:
-      const {mode, whitelist} = action.payload
-      return {
-        ...state,
-        chat: {
-          ...state.chat,
-          unfurl: {
+      return state.merge({
+        chat: state.chat.merge({
+          unfurl: Constants.makeUnfurl({
             unfurlError: undefined,
-            unfurlMode: mode,
-            unfurlWhitelist: whitelist,
-          },
-        },
-      }
+            unfurlMode: action.payload.mode,
+            unfurlWhitelist: action.payload.whitelist,
+          }),
+        }),
+      })
     case SettingsGen.unfurlSettingsError:
-      return {
-        ...state,
-        chat: {
-          ...state.chat,
-          unfurl: {
-            ...state.chat.unfurl,
-            unfurlError: action.payload.error,
-          },
-        },
-      }
+      return state.merge({
+        chat: state.chat.merge({unfurl: state.chat.unfurl.merge({unfurlError: action.payload.error})}),
+      })
     case SettingsGen.loadedHasRandomPw:
-      const {randomPW} = action.payload
-      return {
-        ...state,
-        passphrase: {
-          ...state.passphrase,
-          randomPW,
-        },
-      }
+      return state.update('passphrase', passphrase => passphrase.merge({randomPW: action.payload.randomPW}))
     case SettingsGen.loadedCheckPassphrase:
-      const {checkPassphraseIsCorrect} = action.payload
-      return {
-        ...state,
-        checkPassphraseIsCorrect,
-      }
+      return state.merge({checkPassphraseIsCorrect: action.payload.checkPassphraseIsCorrect})
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

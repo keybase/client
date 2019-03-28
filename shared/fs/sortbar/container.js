@@ -26,6 +26,7 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 const emptySet = I.Set()
 
 const mergeProps = ({sortSetting, _loadingPaths}, {sortSettingToAction}, {path}: OwnProps) => ({
+  canSort: path !== Constants.defaultPath,
   folderIsPending: _loadingPaths.get(path, emptySet).size > 0,
   sortSetting,
   sortSettingToAction,
@@ -40,14 +41,11 @@ const ConnectedSortBar = namedConnect<OwnProps, _, _, _, _>(
 
 export default ConnectedSortBar
 
-export const asRows = (path: Types.Path): Array<RowTypes.RowItemWithKey> =>
-  Types.getPathLevel(path) !== 1
-    ? [
-        {
-          height,
-          key: 'sort-bar',
-          node: <ConnectedSortBar path={path} />,
-          rowType: 'header',
-        },
-      ]
-    : []
+export const asRows = (path: Types.Path): Array<RowTypes.RowItemWithKey> => [
+  {
+    height,
+    key: 'sort-bar',
+    node: <ConnectedSortBar path={path} />,
+    rowType: 'header',
+  },
+] // We always show this, but just fill with blank at /keybase
