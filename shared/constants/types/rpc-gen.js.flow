@@ -1371,6 +1371,7 @@ export const constantsStatusCode = {
   scnistbadclock: 3219,
   scnistsigbadctime: 3220,
   scbadsignupusernamedeleted: 3221,
+  scnopaperkeys: 3605,
 }
 
 export const ctlDbType = {
@@ -2918,6 +2919,7 @@ export type StatusCode =
   | 3219 // SCNISTBadClock_3219
   | 3220 // SCNISTSigBadCtime_3220
   | 3221 // SCBadSignupUsernameDeleted_3221
+  | 3605 // SCNoPaperKeys_3605
 
 export type StellarAccount = $ReadOnly<{accountID: String, federationAddress: String, sigID: SigID}>
 export type Stream = $ReadOnly<{fd: Int}>

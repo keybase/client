@@ -155,7 +155,8 @@ func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) err
 	}
 	eng := engine.NewLoginWithPaperKey(h.G())
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	return engine.RunEngine2(m, eng)
+	err := engine.RunEngine2(m, eng)
+	return err
 }
 
 func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
