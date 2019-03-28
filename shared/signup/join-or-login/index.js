@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {InfoIcon} from '../common'
 
 type Props = {|
   onCreateAccount: () => void,
@@ -10,22 +11,10 @@ type Props = {|
   onLogin: () => void,
 |}
 
-const makeItems = props => [
-  {onClick: props.onFeedback, title: 'Send feedback'},
-  {onClick: props.onDocumentation, title: 'Documentation'},
-]
-
 const _JoinOrLogin = (props: Kb.PropsWithOverlay<Props>) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-      <Kb.Icon type="iconfont-info" onClick={props.toggleShowingMenu} ref={props.setAttachmentRef} />
-      <Kb.FloatingMenu
-        items={makeItems(props)}
-        attachTo={props.getAttachmentRef}
-        visible={props.showingMenu}
-        onHidden={props.toggleShowingMenu}
-        closeOnSelect={true}
-      />
+      <InfoIcon onDocumentation={props.onDocumentation} onFeedback={props.onFeedback} />
     </Kb.Box2>
     <Kb.Box2
       centerChildren={true}
