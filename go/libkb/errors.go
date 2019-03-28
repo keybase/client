@@ -419,7 +419,7 @@ type PassphraseError struct {
 }
 
 func (p PassphraseError) Error() string {
-	msg := "Bad passphrase"
+	msg := "Bad password"
 	if len(p.Msg) != 0 {
 		msg = msg + ": " + p.Msg + "."
 	}

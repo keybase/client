@@ -30,8 +30,8 @@ const getPasswordHandler = passphrase => (params, response) => {
     if (params.pinentry.retryLabel) {
       cancelOnCallback(params, response)
       let retryLabel = params.pinentry.retryLabel
-      if (retryLabel === 'Bad passphrase: Invalid passphrase. Server rejected login attempt..') {
-        retryLabel = 'Incorrect password'
+      if (retryLabel === Constants.invalidPasswordErrorString) {
+        retryLabel = 'Incorrect password.'
       }
       return Saga.put(LoginGen.createLoginError({error: new HiddenString(retryLabel)}))
     } else {
