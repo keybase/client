@@ -14,7 +14,7 @@ const props = {
 const load = () => {
   Sb.storiesOf('New signup', module)
     .addDecorator(storyDecorator)
-    .add('Join or login', () => <JoinOrLogin {...props} />)
+    .add('Enter username', () => <JoinOrLogin {...props} />)
 }
 
 export default load

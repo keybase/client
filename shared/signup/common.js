@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
+import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 
-type InfoIconProps = {
+type InfoIconProps = {|
   onDocumentation: () => void,
   onFeedback: () => void,
-}
+|}
 
 const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   <>
@@ -22,4 +23,19 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
     />
   </>
 )
-export const InfoIcon = Kb.OverlayParentHOC(_InfoIcon)
+export const InfoIcon = Container.compose(
+  Container.namedConnect<{}, _, _, _, _>(
+    () => ({}),
+    () => ({onDocumentation: () => {}, onFeedback: () => {}}),
+    (s, d, o) => ({...o, ...s, ...d}),
+    'SignupInfoIcon'
+  ),
+  Kb.OverlayParentHOC
+)(_InfoIcon)
+
+type HeaderProps = {|
+  onBack?: () => void,
+  title: string,
+|}
+
+const Header = (props: HeaderProps) => {}
