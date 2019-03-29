@@ -43,13 +43,24 @@ const CaptionedDangerIcon = ({
   caption,
   noDanger,
   onClick,
+  spinner,
 }: {
   icon?: Kb.IconType,
   caption: string,
   noDanger?: boolean,
   onClick: () => void,
+  spinner?: boolean,
 }) => {
   const color = noDanger ? null : Styles.globalColors.red
+  let slot = null
+  if (spinner) {
+    slot = <Kb.ProgressIndicator style={{marginRight: 10, width: Styles.globalMargins.medium}} />
+  } else if (icon) {
+    slot = <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={color} />
+  } else {
+    // spacer so that spinner doesn't move the text
+    slot = <Kb.Box style={{marginRight: 10, width: Styles.globalMargins.medium}} />
+  }
   return (
     <Kb.ClickableBox
       style={{
@@ -61,10 +72,11 @@ const CaptionedDangerIcon = ({
       }}
       onClick={onClick}
     >
-      {!!icon && <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={color} />}
+      {slot}
       <Kb.Text type="BodySemibold" style={{color: color}} className="hover-underline">
         {caption}
       </Kb.Text>
+      <Kb.Box style={{marginRight: 10, width: Styles.globalMargins.medium}} />
     </Kb.ClickableBox>
   )
 }

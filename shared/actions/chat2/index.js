@@ -2285,19 +2285,27 @@ function* hideConversation(_, action) {
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
   yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
-  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    status: RPCChatTypes.commonConversationStatus.ignored,
-  })
+  try {
+    yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+      conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      status: RPCChatTypes.commonConversationStatus.ignored,
+    }, Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey))
+  } catch (err) {
+    logger.error('Failed to hide conversation: ' + err)
+  }
 }
 
 function* unhideConversation(_, action) {
-  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    status: RPCChatTypes.commonConversationStatus.unfiled,
-  })
+  try {
+    yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
+      conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      status: RPCChatTypes.commonConversationStatus.unfiled,
+    }, Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey))
+  } catch (err) {
+    logger.error('Failed to unhide conversation: ' + err)
+  }
 }
 
 const setConvRetentionPolicy = (_, action) => {
