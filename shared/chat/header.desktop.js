@@ -21,54 +21,52 @@ type Props = {|
   unMuteConversation: () => void,
 |}
 
-const Header = (p: Props) => {
-  return (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
-      <Kb.Box2 direction="vertical" style={styles.left}>
-        <GatewayDest name="chatHeader" />
-      </Kb.Box2>
-      <Kb.Box2
-        direction="horizontal"
-        style={styles.right}
-        gap="small"
-        alignItems="flex-end"
-        alignSelf="flex-end"
-      >
-        <Kb.Box2 direction="vertical" style={styles.grow}>
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {p.channel ? (
-              <Kb.Text type="Header">{p.channel}</Kb.Text>
-            ) : p.participants ? (
-              <Kb.ConnectedUsernames
-                colorFollowing={true}
-                underline={true}
-                inline={false}
-                commaColor={Styles.globalColors.black_50}
-                type="Header"
-                usernames={p.participants}
-                onUsernameClicked="profile"
-                skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
-              />
-            ) : null}
-            {p.muted && (
-              <Kb.Icon
-                type="iconfont-shh"
-                style={styles.shhIconStyle}
-                color={Styles.globalColors.black_20}
-                fontSize={20}
-                onClick={p.unMuteConversation}
-              />
-            )}
-          </Kb.Box2>
-          {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
-        </Kb.Box2>
-        <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
-        <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
-        <Kb.Icon type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'} onClick={p.onToggleInfoPanel} />
-      </Kb.Box2>
+const Header = (p: Props) => (
+  <Kb.Box2 direction="horizontal" style={styles.container}>
+    <Kb.Box2 direction="vertical" style={styles.left}>
+      <GatewayDest name="chatHeader" />
     </Kb.Box2>
-  )
-}
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.right}
+      gap="small"
+      alignItems="flex-end"
+      alignSelf="flex-end"
+    >
+      <Kb.Box2 direction="vertical" style={styles.grow}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          {p.channel ? (
+            <Kb.Text type="Header">{p.channel}</Kb.Text>
+          ) : p.participants ? (
+            <Kb.ConnectedUsernames
+              colorFollowing={true}
+              underline={true}
+              inline={false}
+              commaColor={Styles.globalColors.black_50}
+              type="Header"
+              usernames={p.participants}
+              onUsernameClicked="profile"
+              skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
+            />
+          ) : null}
+          {p.muted && (
+            <Kb.Icon
+              type="iconfont-shh"
+              style={styles.shhIconStyle}
+              color={Styles.globalColors.black_20}
+              fontSize={20}
+              onClick={p.unMuteConversation}
+            />
+          )}
+        </Kb.Box2>
+        {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
+      </Kb.Box2>
+      <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
+      <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
+      <Kb.Icon type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'} onClick={p.onToggleInfoPanel} />
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate({
   container: {
