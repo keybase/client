@@ -165,7 +165,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 	xprt := http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           (&dialer).DialContext,
-		MaxIdleConns:          100,
+		MaxIdleConns:          200,
 		MaxIdleConnsPerHost:   100,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
