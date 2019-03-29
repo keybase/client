@@ -91,16 +91,13 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   youCanUnlock: I.List(),
 })
 
-export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
-  sortBy: 'name',
-  sortOrder: 'asc',
-})
-
-export const defaultSortSetting = makeSortSetting({})
+export const defaultSortSetting = 'name-asc'
 
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
-  sort: makeSortSetting(),
+  sort: defaultSortSetting,
 })
+
+export const defaultPathUserSetting = makePathUserSetting()
 
 export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
   entryType: 'unknown',
@@ -245,7 +242,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), defaultPathUserSetting]]),
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
