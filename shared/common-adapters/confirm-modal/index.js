@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Box2, Button, ButtonBar, HeaderOrPopup, Icon, Text, WaitingButton} from '..'
+import {Box, Box2, ButtonBar, HeaderOrPopup, Icon, Text, WaitingButton} from '..'
 import * as Styles from '../../styles'
 import type {IconType} from '../icon.constants'
 
@@ -38,7 +38,11 @@ class _ConfirmModal extends React.Component<Props> {
                 type={this.props.icon}
               />
             )}
-            {this.props.header}
+            {this.props.header && (
+              <Box2 alignItems="center" direction="vertical" style={styles.icon}>
+                {this.props.header}
+              </Box2>
+            )}
             <Text center={true} style={styles.text} type="HeaderBig">
               {this.props.prompt}
             </Text>
@@ -51,7 +55,7 @@ class _ConfirmModal extends React.Component<Props> {
         <Box2 direction="horizontal" style={styles.buttonBox}>
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Styles.isMobile && (
-              <Button
+              <WaitingButton
                 fullWidth={true}
                 type="Secondary"
                 label="Cancel"
@@ -59,7 +63,7 @@ class _ConfirmModal extends React.Component<Props> {
                 waitingKey={this.props.waitingKey}
               />
             )}
-            <Button
+            <WaitingButton
               fullWidth={true}
               type="Danger"
               label={this.props.confirmText || 'Confirm'}

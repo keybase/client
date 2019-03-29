@@ -48,7 +48,7 @@ const load = () => {
     buttonBar,
     checkbox,
     choiceList,
-    //confirmModal,
+    confirmModal,
     copyText,
     dropdown,
     formWithCheckbox,

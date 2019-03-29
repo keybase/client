@@ -66,6 +66,15 @@ const headerProps = {
 
 const load = () => {
   Sb.storiesOf('Common/Confirm Modal', module).add('Confirm', () => <ConfirmModal {...props} />)
+  Sb.storiesOf('Common/Confirm Modal', module).add('Confirm w/Button Text', () => (
+    <ConfirmModal {...confirmTextProps} />
+  ))
+  Sb.storiesOf('Common/Confirm Modal', module).add('Confirm alternate content', () => (
+    <ConfirmModal {...contentProps} />
+  ))
+  Sb.storiesOf('Common/Confirm Modal', module).add('Confirm alternate header', () => (
+    <ConfirmModal {...headerProps} />
+  ))
 }
 
 export default load
