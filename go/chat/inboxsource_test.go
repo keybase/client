@@ -123,7 +123,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, chat1.ConversationMembersType_KBFS, &conv)
+	}, chat1.ConversationMembersType_KBFS, &conv, nil)
 	require.NoError(t, err)
 	boxed := prepareRes.Boxed
 
