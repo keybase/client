@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/logger"
@@ -25,6 +27,12 @@ const (
 	diskCacheVersionFilename string = "version"
 	metered                         = true
 	unmetered                       = false
+	compactionTimeout               = 2 * time.Second
+)
+
+var (
+	compactionKey   = []byte("compactionKey")
+	compactionValue = []byte("compactionValue")
 )
 
 var leveldbOptions = &opt.Options{
@@ -35,19 +43,86 @@ var leveldbOptions = &opt.Options{
 	// X, and >=1024 on (most?) Linux machines. So set to a low
 	// number since we have multiple leveldb instances.
 	OpenFilesCacheCapacity: 10,
+	CompactionTotalSize:    15 * opt.MiB,
+	CompactionL0Trigger:    6,
 }
 
 // LevelDb is a libkbfs wrapper for leveldb.DB.
 type LevelDb struct {
 	*leveldb.DB
-	closer io.Closer
+	storageCloser io.Closer
+	options       *opt.Options
+
+	compactionLock   sync.Mutex
+	compactionQueued bool
+	compactionTime   time.Time
+	compactionTimer  *time.Timer
+	shutdownC        chan struct{}
+}
+
+// resets the compaction timer. When the compaction timer hits 0,
+// the DB considers compaction more strongly.
+func (ldb *LevelDb) resetTimer() {
+	ldb.compactionLock.Lock()
+	defer ldb.compactionLock.Unlock()
+	ldb.compactionTime = time.Now().Add(compactionTimeout)
+	if !ldb.compactionQueued {
+		ldb.compactionQueued = true
+		ldb.compactionTimer.Reset(compactionTimeout)
+	}
+}
+
+func (ldb *LevelDb) tryTriggerCompaction() {
+	ldb.compactionLock.Lock()
+	defer ldb.compactionLock.Unlock()
+	// If we're not supposed to be compacting yet, return early
+	if time.Now().After(ldb.compactionTime) {
+		ldb.compactionTimer.Reset(ldb.compactionTime.Sub(time.Now()))
+		return
+	}
+
+	ldb.compactionQueued = false
+
+	// set options to more compaction friendly
+	ldb.options.CompactionL0Trigger /= 2
+	ldb.options.CompactionTotalSize /= 2
+	ldb.DB.SetOptions(ldb.options)
+	ldb.options.CompactionL0Trigger *= 2
+	ldb.options.CompactionTotalSize *= 2
+
+	// make a trivial write to trigger compaction
+	err := ldb.DB.Put(compactionKey, compactionValue, nil)
+	if err != nil {
+		logger.New("LDB").Warning(
+			"Failed to write value to trigger compaction: %+v", err)
+	}
+	err = ldb.DB.Delete(compactionKey, nil)
+	if err != nil {
+		logger.New("LDB").Warning(
+			"Failed to delete value to trigger compaction: %+v", err)
+	}
+
+	// set the options back
+	ldb.DB.SetOptions(ldb.options)
+}
+
+func (ldb *LevelDb) loop() {
+	for {
+		select {
+		case <-ldb.compactionTimer.C:
+		case <-ldb.shutdownC:
+			return
+		}
+		ldb.tryTriggerCompaction()
+	}
 }
 
 // Close closes the DB.
 func (ldb *LevelDb) Close() (err error) {
 	err = ldb.DB.Close()
 	// Hide the closer error.
-	_ = ldb.closer.Close()
+	_ = ldb.storageCloser.Close()
+	ldb.shutdownC <- struct{}{}
 	return err
 }
 
@@ -59,6 +134,7 @@ func (ldb *LevelDb) Get(key []byte, ro *opt.ReadOptions) (
 			err = errors.WithStack(err)
 		}
 	}()
+	ldb.resetTimer()
 	return ldb.DB.Get(key, ro)
 }
 
@@ -115,7 +191,17 @@ func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 		stor.Close()
 		return nil, err
 	}
-	return &LevelDb{db, stor}, nil
+	ldb := &LevelDb{
+		DB:               db,
+		storageCloser:    stor,
+		options:          options,
+		compactionTimer:  time.NewTimer(compactionTimeout),
+		compactionQueued: true,
+		compactionTime:   time.Now(),
+		shutdownC:        make(chan struct{}),
+	}
+	go ldb.loop()
+	return ldb, nil
 }
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage

@@ -1014,6 +1014,12 @@ func (db *DB) GetProperty(name string) (value string, err error) {
 	return
 }
 
+// TODO: commit this to a fork of leveldb
+// SetOptions allows changing the DB options without restarting the DB session.
+func (db *DB) SetOptions(newOptions *opt.Options) {
+	db.s.setOptions(newOptions)
+}
+
 // DBStats is database statistics.
 type DBStats struct {
 	WriteDelayCount    int32
