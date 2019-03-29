@@ -3660,7 +3660,6 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 }
 
 func TestChatSrvGetInboxNonblockError(t *testing.T) {
-	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetInboxNonblockLocal", 1)
 		defer ctc.cleanup()
