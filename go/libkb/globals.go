@@ -982,7 +982,7 @@ func (g *GlobalContext) CallLoginHooks() {
 
 }
 
-func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
+func (g *GlobalContext) AddLogoutHook(hook LogoutHook, name string) {
 	g.hookMu.Lock()
 	defer g.hookMu.Unlock()
 	g.logoutHooks = append(g.logoutHooks, hook)
