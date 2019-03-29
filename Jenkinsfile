@@ -176,7 +176,7 @@ helpers.rootLinuxNode(env, {
                           sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
                           archive("kbfsfuse.tar.gz")
                           build([
-                              job: "/kbfs-server/master",
+                              job: "/kbfs-server/PR-633",
                               parameters: [
                                 string(
                                   name: 'kbfsProjectName',
