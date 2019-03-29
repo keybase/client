@@ -151,7 +151,9 @@
       ],
       "messages": "Array<Types.Message>",
       // true if these should be the only messages we know about
-      "shouldClearOthers?": "boolean"
+      "shouldClearOthers?": "boolean",
+      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID}>",
+      "forceContainsLatestCalc?": "boolean"
     },
     // Got an error sending a message
     "messageErrored": {

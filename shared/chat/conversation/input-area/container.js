@@ -4,7 +4,8 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import Normal from './normal/container'
 import Preview from './preview/container'
-import {connect} from '../../../util/container'
+import {connect, isMobile} from '../../../util/container'
+import ThreadSearch from '../search/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -19,11 +20,13 @@ type Props = {|
   ...OwnProps,
   isPreview: boolean,
   noInput: boolean,
+  showThreadSearch: boolean,
 |}
 
 const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
+  const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
 
   if (isPending) {
     if (!Constants.isValidConversationIDKey(conversationIDKey)) {
@@ -37,6 +40,7 @@ const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
     conversationIDKey,
     isPreview: meta.membershipType === 'youArePreviewing',
     noInput,
+    showThreadSearch,
   }
 }
 
@@ -47,6 +51,9 @@ class InputArea extends React.PureComponent<Props> {
     }
     if (this.props.isPreview) {
       return <Preview conversationIDKey={this.props.conversationIDKey} />
+    }
+    if (this.props.showThreadSearch && isMobile) {
+      return <ThreadSearch conversationIDKey={this.props.conversationIDKey} />
     }
     return (
       <Normal
