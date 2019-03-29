@@ -1044,6 +1044,7 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 		for _, tlfIDStruct := range shuffledSlice {
 			tlfID := tlfIDStruct.value
 			if cache.tlfCounts[tlfID] == 0 {
+				cache.log.CDebugf(ctx, "No blocks to delete in TLF %s", tlfID)
 				continue
 			}
 			tlfBytes := tlfID.Bytes()
