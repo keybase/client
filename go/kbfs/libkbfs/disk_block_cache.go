@@ -878,6 +878,9 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	}
 
 	cache.log.CDebugf(ctx, "Cache Delete numBlocks=%d", len(blockIDs))
+	defer func() {
+		cache.log.CDebugf(ctx, "Deleted numRequested=%d numRemoved=%d sizeRemoved=%d err=%+v", len(blockIDs), numRemoved, sizeRemoved, err)
+	}()
 	if cache.config.IsTestMode() {
 		for _, bID := range blockIDs {
 			cache.log.CDebugf(ctx, "Cache type=%d delete block ID %s",
