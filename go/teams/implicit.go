@@ -393,5 +393,5 @@ var _ libkb.MemLRUer = &implicitTeamCache{}
 func NewImplicitTeamCacheAndInstall(g *libkb.GlobalContext) {
 	cache := newImplicitTeamCache(g)
 	g.SetImplicitTeamCacher(cache)
-	g.AddLogoutHook(cache)
+	g.AddLogoutHook(cache, "implicitTeamCache")
 }

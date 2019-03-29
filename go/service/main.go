@@ -611,7 +611,7 @@ func (d *Service) startupGregor() {
 
 func (d *Service) addGlobalHooks() {
 	d.G().AddLoginHook(d)
-	d.G().AddLogoutHook(d)
+	d.G().AddLogoutHook(d, "service/Service")
 }
 
 func (d *Service) StartLoopbackServer() error {
