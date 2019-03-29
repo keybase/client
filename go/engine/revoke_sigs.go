@@ -96,7 +96,7 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	sig, _, _, err := libkb.SignJSON(proof, sigKey)
+	sig, _, linkID, err := libkb.SignJSON(proof.J, sigKey)
 	if err != nil {
 		return err
 	}
@@ -114,5 +114,5 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	return nil
+	return libkb.MerkleCheckPostedUserSig(m, me.GetUID(), proof.Seqno, linkID)
 }

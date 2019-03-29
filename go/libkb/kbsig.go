@@ -291,7 +291,20 @@ func (arg ProofMetadata) merkleRootInfo(m MetaContext) (ret *jsonw.Wrapper) {
 	return ret
 }
 
-func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
+func (arg ProofMetadata) ToJSON(m MetaContext) (*jsonw.Wrapper, error) {
+	res, err := arg.ToJSON2(m)
+	if err != nil {
+		return nil, err
+	}
+	return res.J, nil
+}
+
+type ProofMetadataSigned struct {
+	J     *jsonw.Wrapper
+	Seqno keybase1.Seqno
+}
+
+func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataSigned, err error) {
 	// if only Me exists, then that is the signing user too
 	if arg.SigningUser == nil && arg.Me != nil {
 		arg.SigningUser = arg.Me
@@ -334,12 +347,12 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 		ei = SigExpireIn
 	}
 
-	ret = jsonw.NewDictionary()
-	ret.SetKey("tag", jsonw.NewString("signature"))
-	ret.SetKey("ctime", jsonw.NewInt64(ctime))
-	ret.SetKey("expire_in", jsonw.NewInt(ei))
-	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
-	ret.SetKey("prev", prev)
+	j := jsonw.NewDictionary()
+	j.SetKey("tag", jsonw.NewString("signature"))
+	j.SetKey("ctime", jsonw.NewInt64(ctime))
+	j.SetKey("expire_in", jsonw.NewInt(ei))
+	j.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
+	j.SetKey("prev", prev)
 
 	var highSkip *HighSkip
 	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
@@ -364,12 +377,12 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 			} else {
 				highSkipObj.SetKey("hash", jsonw.NewNil())
 			}
-			ret.SetKey("high_skip", highSkipObj)
+			j.SetKey("high_skip", highSkipObj)
 		}
 	}
 
 	if arg.IgnoreIfUnsupported {
-		ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+		j.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
 	}
 	eldest := arg.Eldest
 	if eldest == "" {
@@ -402,16 +415,19 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 		body.SetKey("merkle_root", mr)
 	}
 
-	ret.SetKey("body", body)
+	j.SetKey("body", body)
 
 	// Save what kind of client we're running.
-	ret.SetKey("client", clientInfo(m))
+	j.SetKey("client", clientInfo(m))
 
 	if arg.SeqType != 0 {
-		ret.SetKey("seq_type", jsonw.NewInt(int(arg.SeqType)))
+		j.SetKey("seq_type", jsonw.NewInt(int(arg.SeqType)))
 	}
 
-	return
+	return &ProofMetadataSigned{
+		J:     j,
+		Seqno: seqno,
+	}, err
 }
 
 func (u *User) TrackingProofFor(m MetaContext, signingKey GenericKey, sigVersion SigVersion, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
@@ -590,17 +606,18 @@ func MakeSig(
 	return sig, sigID, linkID, err
 }
 
-func (u *User) RevokeKeysProof(m MetaContext, key GenericKey, kidsToRevoke []keybase1.KID, deviceToDisable keybase1.DeviceID, merkleRoot *MerkleRoot) (*jsonw.Wrapper, error) {
+func (u *User) RevokeKeysProof(m MetaContext, key GenericKey, kidsToRevoke []keybase1.KID,
+	deviceToDisable keybase1.DeviceID, merkleRoot *MerkleRoot) (*ProofMetadataSigned, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeRevoke,
 		SigningKey: key,
 		MerkleRoot: merkleRoot,
-	}.ToJSON(m)
+	}.ToJSON2(m)
 	if err != nil {
 		return nil, err
 	}
-	body := ret.AtKey("body")
+	body := ret.J.AtKey("body")
 	revokeSection := jsonw.NewDictionary()
 	revokeSection.SetKey("kids", jsonw.NewWrapper(kidsToRevoke))
 	body.SetKey("revoke", revokeSection)
@@ -618,17 +635,17 @@ func (u *User) RevokeKeysProof(m MetaContext, key GenericKey, kidsToRevoke []key
 	return ret, nil
 }
 
-func (u *User) RevokeSigsProof(m MetaContext, key GenericKey, sigIDsToRevoke []keybase1.SigID, merkleRoot *MerkleRoot) (*jsonw.Wrapper, error) {
+func (u *User) RevokeSigsProof(m MetaContext, key GenericKey, sigIDsToRevoke []keybase1.SigID, merkleRoot *MerkleRoot) (*ProofMetadataSigned, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeRevoke,
 		SigningKey: key,
 		MerkleRoot: merkleRoot,
-	}.ToJSON(m)
+	}.ToJSON2(m)
 	if err != nil {
 		return nil, err
 	}
-	body := ret.AtKey("body")
+	body := ret.J.AtKey("body")
 	revokeSection := jsonw.NewDictionary()
 	idsArray := jsonw.NewArray(len(sigIDsToRevoke))
 	for i, id := range sigIDsToRevoke {
