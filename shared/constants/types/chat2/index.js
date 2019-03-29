@@ -72,6 +72,7 @@ export type _State = {
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   focus: Focus,
   inboxFilter: string, // filters 'jump to chat'
+  infoPanelOpen: boolean, // whether any info panel is topmost
   inboxHasLoaded: boolean, // if we've ever loaded
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams

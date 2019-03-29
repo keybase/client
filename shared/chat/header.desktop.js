@@ -117,7 +117,7 @@ const mergeProps = (stateProps, dispatchProps) => {
         ? meta.teamname
         : null,
     desc: meta.description,
-    infoPanelOpen: false, // not really needed stateProps.infoPanelOpen,
+    infoPanelOpen: stateProps.infoPanelOpen,
     muted: meta.isMuted,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,

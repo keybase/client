@@ -215,15 +215,9 @@ const styles = Styles.styleSheetCreate({
       height: flags.useNewRouter ? undefined : 48,
       position: 'relative',
     },
-    isElectron: {
+    isElectron: !flags.useNewRouter ? undefined : {
       ...Styles.padding(0, Styles.globalMargins.xtiny),
       backgroundColor: Styles.globalColors.blueGrey,
-      ...(flags.useNewRouter
-        ? {
-            ...Styles.padding(0, 0),
-            backgroundColor: undefined,
-          }
-        : {}),
     },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.tiny),
