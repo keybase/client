@@ -22,8 +22,10 @@ if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   s3host="https://s3.amazonaws.com/$bucket_name"
 fi
 
-echo "Cleaning up packaging dir from previous runs"
-rm -rf "$dir/node_modules"
+if [ "$CUT_CORNERS" = "" ]; then
+  echo "Cleaning up packaging dir from previous runs"
+  rm -rf "$dir/node_modules"
+fi
 
 # Ensure we have packaging tools
 yarn install --pure-lockfile
@@ -44,9 +46,11 @@ updater_binpath=${UPDATER_BINPATH:-}
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 
-echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
-release_bin="$GOPATH/bin/release"
+if [ "$NO_PUBLISH" = "" ]; then
+  echo "Loading release tool"
+  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+  release_bin="$GOPATH/bin/release"
+fi
 
 if [ "$keybase_version" = "" ]; then
   if [ ! "$keybase_binpath" = "" ]; then
@@ -186,8 +190,10 @@ get_deps() {(
 package_electron() {(
   cd "$shared_dir"
 
-  echo "Cleaning up main node_modules from previous runs"
-  rm -rf "$shared_dir/node_modules"
+  if [ "$CUT_CORNERS" = "" ]; then
+    echo "Cleaning up main node_modules from previous runs"
+    rm -rf "$shared_dir/node_modules"
+  fi
 
   yarn install --pure-lockfile
   yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --outDir="$build_dir"
@@ -336,10 +342,18 @@ get_deps
 package_electron
 package_app
 update_plist
-sign
+if [ "$NO_PUBLISH" = "" ]; then
+  sign
+else
+   echo "Skipping code signing (NO_PUBLISH)"
+fi
 package_dmg
 create_sourcemap_zip
 create_zip
+if [ ! "$NO_PUBLISH" = "" ]; then
+   echo "Not publishing (NO_PUBLISH). Done."
+   exit 0
+fi
 kbsign
 update_json
 save
