@@ -433,10 +433,6 @@ type GetUPAKArg struct {
 	Uid UID `codec:"uid" json:"uid"`
 }
 
-type GetUPAKLiteArg struct {
-	Uid UID `codec:"uid" json:"uid"`
-}
-
 type UploadUserAvatarArg struct {
 	Filename string         `codec:"filename" json:"filename"`
 	Crop     *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
@@ -503,8 +499,6 @@ type UserInterface interface {
 	MeUserVersion(context.Context, MeUserVersionArg) (UserVersion, error)
 	// getUPAK returns a UPAK. Used mainly for debugging.
 	GetUPAK(context.Context, UID) (UPAKVersioned, error)
-	// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
-	GetUPAKLite(context.Context, UID) (UPKLiteV1AllIncarnations, error)
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
 	ProofSuggestions(context.Context, int) (ProofSuggestionsRes, error)
 	// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
@@ -808,21 +802,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getUPAKLite": {
-				MakeArg: func() interface{} {
-					var ret [1]GetUPAKLiteArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetUPAKLiteArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetUPAKLiteArg)(nil), args)
-						return
-					}
-					ret, err = i.GetUPAKLite(ctx, typedArgs[0].Uid)
-					return
-				},
-			},
 			"uploadUserAvatar": {
 				MakeArg: func() interface{} {
 					var ret [1]UploadUserAvatarArg
@@ -1033,13 +1012,6 @@ func (c UserClient) MeUserVersion(ctx context.Context, __arg MeUserVersionArg) (
 func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, err error) {
 	__arg := GetUPAKArg{Uid: uid}
 	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res)
-	return
-}
-
-// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
-func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UPKLiteV1AllIncarnations, err error) {
-	__arg := GetUPAKLiteArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res)
 	return
 }
 

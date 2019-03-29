@@ -19,7 +19,6 @@ type UPAKLoader interface {
 	ClearMemory()
 	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
 	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
-	LoadLite(arg LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
 	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error)
@@ -250,25 +249,6 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 	upak.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	err = u.putUPAKToCache(ctx, upak)
 	return err
-}
-
-func (u *CachedUPAKLoader) LoadLite(arg LoadUserArg) (*keybase1.UPKLiteV1AllIncarnations, error) {
-	m, tbs := arg.m.WithTimeBuckets()
-	arg.m = m
-	defer tbs.Record("CachedUPAKLoader.LoadLite")()
-	g := m.G()
-	uid := arg.uid
-
-	if uid.IsNil() {
-		return nil, errors.New("need a UID to load a UPAK lite")
-	}
-	lock := u.locktab.AcquireOnName(m.ctx, g, uid.String())
-	defer func() {
-		lock.Release(m.ctx)
-	}()
-
-	upakLite, err := LoadUPAKLite(arg)
-	return upakLite, err
 }
 
 // loadWithInfo loads a user from the CachedUPAKLoader object. The 'info'

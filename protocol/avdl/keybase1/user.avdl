@@ -143,12 +143,6 @@ protocol user {
   @lint("ignore")
   UPAKVersioned getUPAK(UID uid);
 
-  /**
-   getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
-  */
-  @lint("ignore")
-  UPKLiteV1AllIncarnations getUPAKLite(UID uid);
-
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 
   ProofSuggestionsRes proofSuggestions(int sessionID);
