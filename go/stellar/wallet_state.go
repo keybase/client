@@ -107,6 +107,19 @@ func (w *WalletState) BaseFee(mctx libkb.MetaContext) uint64 {
 	return w.options.BaseFee(mctx, w)
 }
 
+// AccountName returns the name for an account.
+func (w *WalletState) AccountName(accountID stellar1.AccountID) (string, error) {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return "", ErrAccountNotFound
+	}
+
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.name, nil
+}
+
 // accountState returns the AccountState object for an accountID.
 // If it doesn't exist in `accounts`, it will return nil, false.
 func (w *WalletState) accountState(accountID stellar1.AccountID) (*AccountState, bool) {
@@ -176,7 +189,7 @@ func (w *WalletState) UpdateAccountEntries(mctx libkb.MetaContext, reason string
 		return err
 	}
 
-	return UpdateAccountEntriesWithBundle(mctx, reason, bundle)
+	return w.UpdateAccountEntriesWithBundle(mctx, reason, bundle)
 }
 
 // UpdateAccountEntriesWithBundle updates the individual account entries with the
