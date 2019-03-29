@@ -5105,11 +5105,11 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg1 := prepareRes.Boxed
 		ts1 := prepareRes.TopicNameState
-		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg2 := prepareRes.Boxed
 		ts2 := prepareRes.TopicNameState
@@ -5171,7 +5171,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{

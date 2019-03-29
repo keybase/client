@@ -56,7 +56,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 
 	boxer := NewBoxer(tc.Context())
 	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
-	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv.Conv)
+	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv.Conv, nil)
 	require.NoError(t, err)
 	kbfsBoxed := prepareRes.Boxed
 	kbfsBoxed.ServerHeader = &chat1.MessageServerHeader{
@@ -76,7 +76,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	}
 	teamPlain := textMsgWithHeader(t, "team", header)
 	prepareRes, err = sender.Prepare(ctx, teamPlain,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv.Conv)
+		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv.Conv, nil)
 	require.NoError(t, err)
 	teamBoxed := prepareRes.Boxed
 	teamBoxed.ServerHeader = &chat1.MessageServerHeader{

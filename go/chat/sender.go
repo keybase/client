@@ -487,9 +487,14 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts types.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, inopts *types.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
 		return res, fmt.Errorf("cannot send message without type")
+	}
+	// set default options unless some are given to us
+	var opts types.SenderPrepareOptions
+	if inopts != nil {
+		opts = *inopts
 	}
 
 	msg, uid, err := s.addSenderToMessage(plaintext)
@@ -785,8 +790,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv,
-			types.SenderPrepareOptions{}); err != nil {
+		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv, nil); err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return nil, nil, err
 		}
@@ -1534,7 +1538,7 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts types.SenderPrepareOptions) (types.SenderPrepareResult, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts *types.SenderPrepareOptions) (types.SenderPrepareResult, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv, opts)
 }
 
