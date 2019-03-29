@@ -566,7 +566,11 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
-var chanNameMentionRegExp = regexp.MustCompile(`\B#([0-9a-zA-Z_-]+)`)
+// Start at the beginng of the line, space, or some hand picked artisanal
+// characters
+const ServiceDecorationPrefix = `(?:^|[\s([{:;.,!?"'])`
+
+var chanNameMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix + `#([0-9a-zA-Z_-]+)`)
 
 func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID, teamID chat1.TLFID,
 	ts types.TeamChannelSource) (res []chat1.ChannelNameMention) {
@@ -590,7 +594,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	return res
 }
 
-var atMentionRegExp = regexp.MustCompile(`\B@([a-z0-9][a-z0-9_]+)`)
+var atMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix + `@([a-z0-9][a-z0-9_]+)`)
 
 type nameMatch struct {
 	name     string
@@ -1927,7 +1931,7 @@ var decorateEnd = "$<kb$"
 var decorateEscapeRe = regexp.MustCompile(`\\*\$\>kb\$`)
 
 func EscapeForDecorate(ctx context.Context, body string) string {
-	// escape any natural occurences of begin so we don't bust markdown parser
+	// escape any natural occurrences of begin so we don't bust markdown parser
 	return decorateEscapeRe.ReplaceAllStringFunc(body, func(s string) string {
 		if len(s)%2 != 0 {
 			return `\` + s

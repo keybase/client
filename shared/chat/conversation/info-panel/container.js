@@ -10,6 +10,7 @@ import {connect, getRouteProps, isMobile, type RouteProps} from '../../../util/c
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -45,6 +46,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     canSetRetention,
     channelname: meta.channelname,
     description: meta.description,
+    ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
     isPreview: meta.membershipType === 'youArePreviewing',
     selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',
@@ -68,6 +70,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
       })
     )
   },
+  onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onShowBlockConversationDialog: () => {
@@ -95,6 +98,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
     )
   },
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
+  onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
 })
 
 // state props
@@ -107,16 +111,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   channelname: stateProps.channelname,
   customCancelText: 'Done',
   description: stateProps.description,
+  ignored: stateProps.ignored,
   isPreview: stateProps.isPreview,
   onBack: ownProps.onBack,
   onCancel: ownProps.onCancel,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
+  onHideConv: dispatchProps.onHideConv,
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
   onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
   onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
+  onUnhideConv: dispatchProps.onUnhideConv,
   participants: stateProps._participants
     .map(p => ({
       fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),

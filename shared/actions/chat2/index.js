@@ -902,6 +902,8 @@ function* loadMoreMessages(state, action) {
   let sd: scrollDirection = 'none'
   let messageIDControl = null
   let forceClear = false
+  let forceContainsLatestCalc = false
+  let centeredMessageIDs = []
 
   switch (action.type) {
     case ConfigGen.changedFocus:
@@ -969,7 +971,8 @@ function* loadMoreMessages(state, action) {
         pivot: action.payload.messageID,
       }
       forceClear = true
-      yield Saga.put(Chat2Gen.createSetContainsLastMessage({contains: false, conversationIDKey: key}))
+      forceContainsLatestCalc = true
+      centeredMessageIDs.push({conversationIDKey: key, messageID: action.payload.messageID})
       break
     case Chat2Gen.jumpToRecent:
       key = action.payload.conversationIDKey
@@ -1053,7 +1056,9 @@ function* loadMoreMessages(state, action) {
       actions.push(
         Saga.put(
           Chat2Gen.createMessagesAdd({
+            centeredMessageIDs,
             context: {conversationIDKey, type: 'threadLoad'},
+            forceContainsLatestCalc,
             messages,
             shouldClearOthers,
           })

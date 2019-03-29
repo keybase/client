@@ -223,6 +223,10 @@ type BoxerEncryptionInfo struct {
 	Version               chat1.MessageBoxedVersion
 }
 
+type SenderPrepareOptions struct {
+	SkipTopicNameState bool
+}
+
 type SenderPrepareResult struct {
 	Boxed               chat1.MessageBoxed
 	EncryptionInfo      BoxerEncryptionInfo

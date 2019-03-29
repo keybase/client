@@ -248,6 +248,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
+          this.props.centeredOrdinal && styles.centeredOrdinal,
         ]),
       }
       return this.props.decorate
@@ -533,6 +534,9 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
+  centeredOrdinal: {
+    backgroundColor: Styles.globalColors.yellow,
+  },
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
   containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
   containerNoUsername: Styles.platformStyles({

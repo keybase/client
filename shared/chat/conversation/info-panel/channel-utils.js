@@ -41,27 +41,32 @@ const DangerButton = (props: {label: string, onClick: () => void}) => (
 const CaptionedDangerIcon = ({
   icon,
   caption,
+  noDanger,
   onClick,
 }: {
-  icon: Kb.IconType,
+  icon?: Kb.IconType,
   caption: string,
+  noDanger?: boolean,
   onClick: () => void,
-}) => (
-  <Kb.ClickableBox
-    style={{
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    }}
-    onClick={onClick}
-  >
-    <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={Styles.globalColors.red} />
-    <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.red}} className="hover-underline">
-      {caption}
-    </Kb.Text>
-  </Kb.ClickableBox>
-)
+}) => {
+  const color = noDanger ? null : Styles.globalColors.red
+  return (
+    <Kb.ClickableBox
+      style={{
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+      }}
+      onClick={onClick}
+    >
+      {!!icon && <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={color} />}
+      <Kb.Text type="BodySemibold" style={{color: color}} className="hover-underline">
+        {caption}
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+}
 
 export {CaptionedButton, DangerButton, CaptionedDangerIcon}
