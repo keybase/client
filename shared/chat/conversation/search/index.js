@@ -27,66 +27,97 @@ type State = {|
   selectedIndex: number,
 |}
 
-class ThreadSearchBase extends React.Component<Props, State> {
-  state = {selectedIndex: 0}
-  _text: string
-  _lastSearch: string
+const ThreadSearch = ThreadSearcher => {
+  return class extends React.Component<Props, State> {
+    state = {selectedIndex: 0}
+    _text: string
+    _lastSearch: string
 
-  submitSearch = () => {
-    this._lastSearch = this._text
-    this.setState({selectedIndex: 0})
-    this.props.onSearch(this._text)
-  }
-
-  selectResult = (index: number) => {
-    this.props.loadSearchHit(index)
-    this.setState({selectedIndex: index})
-  }
-
-  onEnter = () => {
-    if (this._lastSearch === this._text) {
-      this.onUp()
-    } else {
-      this.submitSearch()
+    _submitSearch = () => {
+      this._lastSearch = this._text
+      this.setState({selectedIndex: 0})
+      this.props.onSearch(this._text)
     }
-  }
 
-  onUp = () => {
-    if (this.state.selectedIndex >= this.props.hits.length - 1) {
-      this.selectResult(0)
-      return
+    _selectResult = (index: number) => {
+      this.props.loadSearchHit(index)
+      this.setState({selectedIndex: index})
     }
-    this.selectResult(this.state.selectedIndex + 1)
-  }
 
-  onDown = () => {
-    if (this.state.selectedIndex <= 0) {
-      this.selectResult(this.props.hits.length - 1)
-      return
+    _onEnter = () => {
+      if (this._lastSearch === this._text) {
+        this._onUp()
+      } else {
+        this._submitSearch()
+      }
     }
-    this.selectResult(this.state.selectedIndex - 1)
-  }
 
-  onChangedText = (text: string) => {
-    this._text = text
-  }
+    _onUp = () => {
+      if (this.state.selectedIndex >= this.props.hits.length - 1) {
+        this._selectResult(0)
+        return
+      }
+      this._selectResult(this.state.selectedIndex + 1)
+    }
 
-  inProgress = () => {
-    return this.props.status === 'inprogress'
-  }
+    _onDown = () => {
+      if (this.state.selectedIndex <= 0) {
+        this._selectResult(this.props.hits.length - 1)
+        return
+      }
+      this._selectResult(this.state.selectedIndex - 1)
+    }
 
-  hasResults = () => {
-    return this.props.status === 'done' || this.props.hits.length > 0
-  }
+    _onChangedText = (text: string) => {
+      this._text = text
+    }
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
-      this.selectResult(0)
+    _inProgress = () => {
+      return this.props.status === 'inprogress'
+    }
+
+    _hasResults = () => {
+      return this.props.status === 'done' || this.props.hits.length > 0
+    }
+
+    componentDidUpdate(prevProps: Props) {
+      if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
+        this._selectResult(0)
+      }
+    }
+
+    render() {
+      return (
+        <ThreadSearcher
+          {...this.props}
+          submitSearch={this._submitSearch}
+          selectResult={this._selectResult}
+          selectedIndex={this.state.selectedIndex}
+          onEnter={this._onEnter}
+          onUp={this._onUp}
+          onDown={this._onDown}
+          onChangedText={this._onChangedText}
+          inProgress={this._inProgress}
+          hasResults={this._hasResults}
+        />
+      )
     }
   }
 }
 
-export class ThreadSearchDesktop extends ThreadSearchBase {
+type SearchProps = {
+  submitSearch: () => void,
+  selectResult: number => void,
+  onEnter: () => void,
+  onUp: () => void,
+  onDown: () => void,
+  onChangedText: string => void,
+  inProgress: () => boolean,
+  hasResults: () => boolean,
+  selectedIndex: number,
+}
+
+class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
   _onKeydown = e => {
     switch (e.key) {
       case 'Escape':
@@ -95,21 +126,21 @@ export class ThreadSearchDesktop extends ThreadSearchBase {
       case 'g':
         if (e.ctrlKey || e.metaKey) {
           if (e.shiftKey) {
-            this.onDown()
+            this.props.onDown()
           } else {
-            this.onUp()
+            this.props.onUp()
           }
         }
         break
       case 'ArrowUp':
-        this.onUp()
+        this.props.onUp()
         break
       case 'ArrowDown':
-        this.onDown()
+        this.props.onDown()
         break
       case 'Enter':
         if (e.shiftKey) {
-          this.onDown()
+          this.props.onDown()
         }
         break
     }
@@ -117,14 +148,7 @@ export class ThreadSearchDesktop extends ThreadSearchBase {
 
   _renderHit = (index, item) => {
     return (
-      <Kb.ClickableBox
-        key={index}
-        onClick={() => {
-          this.props.loadSearchHit(index)
-          this.setState({selectedIndex: index})
-        }}
-        style={styles.hitRow}
-      >
+      <Kb.ClickableBox key={index} onClick={() => this.props.selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
         <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
@@ -146,36 +170,41 @@ export class ThreadSearchDesktop extends ThreadSearchBase {
               <Kb.PlainInput
                 autoFocus={true}
                 flexable={true}
-                onChangeText={this.onChangedText}
-                onEnterKeyDown={this.onEnter}
+                onChangeText={this.props.onChangedText}
+                onEnterKeyDown={this.props.onEnter}
                 onKeyDown={this._onKeydown}
                 placeholder="Search..."
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
-              {this.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
-              {this.hasResults() && (
+              {this.props.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
+              {this.props.hasResults() && (
                 <Kb.Box2 direction="horizontal" gap="tiny">
                   <Kb.Text type="BodySmall" style={styles.results}>
                     {this.props.status === 'done' && this.props.hits.length === 0
                       ? 'No results'
-                      : `${this.state.selectedIndex + 1} of ${this.props.hits.length}`}
+                      : `${this.props.selectedIndex + 1} of ${this.props.hits.length}`}
                   </Kb.Text>
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
-                    onClick={this.onUp}
+                    onClick={this.props.onUp}
                     type="iconfont-arrow-up"
                   />
                   <Kb.Icon
                     color={Styles.globalColors.black_50}
-                    onClick={this.onDown}
+                    onClick={this.props.onDown}
                     type="iconfont-arrow-down"
                   />
                 </Kb.Box2>
               )}
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Button type="Primary" disabled={this.inProgress()} onClick={this.submitSearch} label="Search" />
+          <Kb.Button
+            type="Primary"
+            disabled={this.props.inProgress()}
+            onClick={this.props.submitSearch}
+            label="Search"
+          />
           <Kb.Button type="Secondary" onClick={this.props.onCancel} label="Cancel" />
         </Kb.Box2>
         {this.props.hits.length > 0 && (
@@ -192,7 +221,7 @@ export class ThreadSearchDesktop extends ThreadSearchBase {
   }
 }
 
-export class ThreadSearchMobile extends ThreadSearchBase {
+class ThreadSearchMobile extends React.Component<SearchProps & Props> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={this.props.style}>
@@ -200,12 +229,12 @@ export class ThreadSearchMobile extends ThreadSearchBase {
           <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Icon
               color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              onClick={this.onUp}
+              onClick={this.props.onUp}
               type="iconfont-arrow-up"
             />
             <Kb.Icon
               color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              onClick={this.onDown}
+              onClick={this.props.onDown}
               type="iconfont-arrow-down"
             />
           </Kb.Box2>
@@ -215,20 +244,20 @@ export class ThreadSearchMobile extends ThreadSearchBase {
               <Kb.PlainInput
                 autoFocus={true}
                 flexable={true}
-                onChangeText={this.onChangedText}
-                onEnterKeyDown={this.onEnter}
+                onChangeText={this.props.onChangedText}
+                onEnterKeyDown={this.props.onEnter}
                 placeholder="Search..."
                 returnKeyType="search"
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
-              {this.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
-              {this.hasResults() && (
+              {this.props.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
+              {this.props.hasResults() && (
                 <Kb.Box2 direction="horizontal" gap="tiny">
                   <Kb.Text type="BodySmall" style={styles.results}>
                     {this.props.status === 'done' && this.props.hits.length === 0
                       ? 'No results'
-                      : `${this.state.selectedIndex + 1} of ${this.props.hits.length}`}
+                      : `${this.props.selectedIndex + 1} of ${this.props.hits.length}`}
                   </Kb.Text>
                 </Kb.Box2>
               )}
@@ -244,6 +273,8 @@ export class ThreadSearchMobile extends ThreadSearchBase {
     )
   }
 }
+
+export default ThreadSearch(Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop)
 
 const styles = Styles.styleSheetCreate({
   done: {
