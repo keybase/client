@@ -20,12 +20,12 @@ const props = {
   onConfirm: Sb.action('onConfirm'),
   prompt: 'Are you sure…? (can go on 2 lines)',
 }
-// eslint-disable-next-line no-unused-vars
+
 const confirmTextProps = {
   ...props,
   confirmText: 'Yes, delete',
 }
-// eslint-disable-next-line no-unused-vars
+
 const contentProps = {
   ...props,
   content: (
@@ -48,7 +48,6 @@ const contentProps = {
   ),
 }
 
-// eslint-disable-next-line no-unused-vars
 const headerProps = {
   ...props,
   header: (
