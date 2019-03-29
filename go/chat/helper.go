@@ -1215,9 +1215,11 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			},
 		}
 	}
-
+	opts := types.SenderPrepareOptions{
+		SkipTopicNameState: n.findExistingMode == NewConvFindExistingSkip,
+	}
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)
-	prepareRes, err := sender.Prepare(ctx, msg, membersType, nil)
+	prepareRes, err := sender.Prepare(ctx, msg, membersType, nil, opts)
 	return &prepareRes.Boxed, prepareRes.TopicNameState, err
 }
 

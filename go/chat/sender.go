@@ -487,7 +487,7 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (res types.SenderPrepareResult, err error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts types.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
 		return res, fmt.Errorf("cannot send message without type")
 	}
@@ -565,10 +565,12 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
 	// server
-	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, membersType)
-	if err != nil {
-		s.Debug(ctx, "Prepare: error checking topic name state: %s", err)
-		return res, err
+	var topicNameState *chat1.TopicNameState
+	if !opts.SkipTopicNameState {
+		if topicNameState, err = s.checkTopicNameAndGetState(ctx, msg, membersType); err != nil {
+			s.Debug(ctx, "Prepare: error checking topic name state: %s", err)
+			return res, err
+		}
 	}
 
 	// encrypt the message
@@ -783,7 +785,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv); err != nil {
+		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv,
+			types.SenderPrepareOptions{}); err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return nil, nil, err
 		}
@@ -1531,8 +1534,8 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (types.SenderPrepareResult, error) {
-	return s.sender.Prepare(ctx, msg, membersType, conv)
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts types.SenderPrepareOptions) (types.SenderPrepareResult, error) {
+	return s.sender.Prepare(ctx, msg, membersType, conv, opts)
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
