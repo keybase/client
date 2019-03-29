@@ -88,7 +88,9 @@ class ConversationList extends React.PureComponent<Props> {
   _onViewableItemsChanged = ({viewableItems}) => {
     const topRecord = viewableItems[viewableItems.length - 1]
     const bottomRecord = viewableItems[0]
-    if (topRecord && topRecord.item === 'specialTop') {
+    // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
+    // attempting to scroll to a centered ordinal
+    if (!this._scrollCenterTarget && topRecord && topRecord.item === 'specialTop') {
       const ordinalRecord = viewableItems[viewableItems.length - 2]
       // ignore if we don't have real messages
       if (ordinalRecord && ordinalRecord.item !== 'specialBottom') {
