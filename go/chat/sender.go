@@ -603,34 +603,33 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// find @ mentions
 	var atMentions []gregor1.UID
 	chanMention := chat1.ChannelMention_NONE
-
-	switch plaintext.ClientHeader.MessageType {
-	case chat1.MessageType_TEXT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
-			plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
-	case chat1.MessageType_FLIP:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+	if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+		switch plaintext.ClientHeader.MessageType {
+		case chat1.MessageType_TEXT:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
+			atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
+				plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
+		case chat1.MessageType_FLIP:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
 			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 				plaintext.MessageBody.Flip().Text, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		case chat1.MessageType_EDIT:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
+			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
+				plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		case chat1.MessageType_SYSTEM:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
+			atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
+				s.G().GetUPAKLoader())
 		}
-	case chat1.MessageType_EDIT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
-			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
-	case chat1.MessageType_SYSTEM:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
-			s.G().GetUPAKLoader())
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label

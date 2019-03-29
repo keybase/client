@@ -1159,6 +1159,10 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
+	if topicType != chat1.TopicType_CHAT {
+		// only care about chat conversations for these mentions
+		return atMentions, atMentionUsernames, chanMention, channelNameMentions
+	}
 	chanMention = chat1.ChannelMention_NONE
 	typ, err := body.MessageType()
 	if err != nil {
