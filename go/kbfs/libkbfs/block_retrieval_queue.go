@@ -6,11 +6,12 @@ package libkbfs
 
 import (
 	"container/heap"
-	lru "github.com/hashicorp/golang-lru"
 	"io"
 	"reflect"
 	"sync"
 	"time"
+
+	lru "github.com/hashicorp/golang-lru"
 
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -610,6 +611,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		if err != nil {
 			brq.log.CDebugf(
 				retrieval.ctx, "Couldn't put block in cache: %+v", err)
+			// swallow the error if we were unable to put the block into caches.
+			err = nil
 		}
 	}
 
