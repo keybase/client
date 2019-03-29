@@ -679,7 +679,7 @@ func (cache *DiskBlockCacheLocal) Put(
 	encodedLen := int64(len(entry))
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
-			"cacheType=%d err=%+v", blockID, tlfID, blockLen, encodedLen,
+			"cacheType=%s err=%+v", blockID, tlfID, blockLen, encodedLen,
 			cache.cacheType, err)
 	}()
 	blockKey := blockID.Bytes()
