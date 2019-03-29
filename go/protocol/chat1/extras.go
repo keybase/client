@@ -705,6 +705,8 @@ func (b MessageBody) SearchableText() string {
 		return b.Requestpayment().Note
 	case MessageType_ATTACHMENT:
 		return b.Attachment().GetTitle()
+	case MessageType_FLIP:
+		return b.Flip().Text
 	default:
 		return ""
 	}
