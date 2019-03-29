@@ -67,7 +67,7 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		WindowTitle: "Keybase passphrase",
 		Type:        keybase1.PassphraseType_PASS_PHRASE,
 		Username:    e.usernameOrEmail,
-		Prompt:      fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters) if you know it", e.usernameOrEmail, libkb.MinPassphraseLength),
+		Prompt:      fmt.Sprintf("Please enter the Keybase password for %s (%d+ characters) if you know it", e.usernameOrEmail, libkb.MinPassphraseLength),
 		Features: keybase1.GUIEntryFeatures{
 			ShowTyping: keybase1.Feature{
 				Allow:        true,
