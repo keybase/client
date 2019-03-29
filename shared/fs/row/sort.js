@@ -35,6 +35,11 @@ export type SortableRowItem =
 
 type PathItemComparer = (a: SortableRowItem, b: SortableRowItem) => number
 
+const getSortBy = (sortSetting: Types.SortSetting) =>
+  sortSetting === 'name-asc' || sortSetting === 'name-desc' ? 'name' : 'time'
+const getOrder = (sortSetting: Types.SortSetting) =>
+  sortSetting === 'name-asc' || sortSetting === 'time-asc' ? 'asc' : 'desc'
+
 const getLastModifiedTimeStamp = (a: SortableRowItem) =>
   a.rowType === 'still' ? a.lastModifiedTimestamp : Date.now()
 
@@ -81,7 +86,7 @@ const getCommonComparer = memoize(
   }
 )
 
-const getComparerBySortBy = (sortBy: Types.SortBy): PathItemComparer => {
+const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
   switch (sortBy) {
     case 'name':
       return (a: SortableRowItem, b: SortableRowItem): number => {
@@ -112,7 +117,7 @@ const editingRowItemTieBreaker = (a: SortableRowItem, b: SortableRowItem): numbe
   return Types.editIDToString(a.editID).localeCompare(Types.editIDToString(b.editID))
 }
 
-const getComparer = ({sortBy, sortOrder}: Types.SortSetting, meUsername?: string) => (
+const getComparer = (sortSetting: Types.SortSetting, meUsername?: string) => (
   a: SortableRowItem,
   b: SortableRowItem
 ): number => {
@@ -121,9 +126,9 @@ const getComparer = ({sortBy, sortOrder}: Types.SortSetting, meUsername?: string
     return commonCompare
   }
 
-  const multiplier = sortOrder === 'desc' ? -1 : 1
+  const multiplier = getOrder(sortSetting) === 'desc' ? -1 : 1
 
-  const sortByCompare = getComparerBySortBy(sortBy)(a, b)
+  const sortByCompare = getComparerBySortBy(getSortBy(sortSetting))(a, b)
   if (sortByCompare !== 0) {
     return sortByCompare * multiplier
   }

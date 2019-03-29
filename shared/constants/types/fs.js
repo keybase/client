@@ -182,13 +182,7 @@ export type NewFolder = I.RecordOf<_NewFolder>
 
 export type Edit = NewFolder
 
-export type SortBy = 'name' | 'time'
-export type SortOrder = 'asc' | 'desc'
-export type _SortSetting = {
-  sortBy: SortBy,
-  sortOrder: SortOrder,
-}
-export type SortSetting = I.RecordOf<_SortSetting>
+export type SortSetting = 'name-asc' | 'name-desc' | 'time-asc' | 'time-desc'
 
 export type _PathUserSetting = {
   sort: SortSetting,
@@ -503,38 +497,6 @@ export const getLocalPathName = (localPath: LocalPath): string => {
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
-
-type sortSettingDisplayParams = {
-  sortSettingText: string,
-  sortSettingIconType: IconType,
-}
-
-export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
-  switch (s.sortBy) {
-    case 'name':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-arrow-full-down',
-            sortSettingText: 'Name ascending',
-          }
-        : {
-            sortSettingIconType: 'iconfont-arrow-full-up',
-            sortSettingText: 'Name descending',
-          }
-    case 'time':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-time',
-            sortSettingText: 'Recent first',
-          }
-        : {
-            sortSettingIconType: 'iconfont-time-reversed',
-            sortSettingText: 'Older first',
-          }
-    default:
-      throw new Error('invalid SortBy')
-  }
-}
 
 export type PathItemIconSpec =
   | {
