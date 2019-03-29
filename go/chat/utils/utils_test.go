@@ -232,6 +232,16 @@ func TestDecorateMentions(t *testing.T) {
 			body:   "@here what are you doing!",
 			result: "@here what are you doing!",
 		},
+		decorateMentionTest{
+			body:        `\@mikem,\@max please check out \#general, also \@here you should too`,
+			atMentions:  []string{"mikem", "max"},
+			chanMention: chat1.ChannelMention_HERE,
+			channelNameMentions: []chat1.ChannelNameMention{chat1.ChannelNameMention{
+				ConvID:    convID,
+				TopicName: "general",
+			}},
+			result: `\@mikem,\@max please check out \#general, also \@here you should too`,
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithMentions(context.TODO(), c.body, c.atMentions, c.chanMention,
