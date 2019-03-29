@@ -9,6 +9,7 @@ import button from './button.stories'
 import buttonBar from './button-bar.stories'
 import checkbox from './checkbox.stories'
 import choiceList from './choice-list.stories'
+import confirmModal from './ConfirmModal/index.stories'
 import copyText from './copy-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
@@ -47,6 +48,7 @@ const load = () => {
     buttonBar,
     checkbox,
     choiceList,
+    confirmModal,
     copyText,
     dropdown,
     formWithCheckbox,
