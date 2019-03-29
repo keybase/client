@@ -14,7 +14,7 @@ To build from existing binaries, specify binpaths:
 
 To re-package app from existing binaries from an installed app bundle:
 
-			X_BIN=/Applications/Keybase.app/Contents/SharedSupport/bin KEYBASE_BINPATH=$X_BIN/keybase KBFS_BINPATH=$X_BIN/kbfs GIT_REMOTE_KEYBASE_BINPATH=$X_BIN/git-remote-keybase KBNM_BINPATH=$X_BIN/kbnm UPDATER_BINPATH=$X_BIN/updater ./package_darwin.sh
+			KEYBASE_BINPATH=/Applications/Keybase.app/Contents/SharedSupport/bin/keybase KBFS_BINPATH=/Applications/Keybase.app/Contents/SharedSupport/bin/kbfs ./package_darwin.sh
 
 ## Prerelease
 
