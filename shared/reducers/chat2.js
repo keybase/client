@@ -744,7 +744,7 @@ const rootReducer = (
       let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
         Object.keys(convoToMessages).forEach(cid => {
           const conversationIDKey = Types.stringToConversationIDKey(cid)
-          if (map.get(conversationIDKey, false)) {
+          if (!action.payload.forceContainsLatestCalc && map.get(conversationIDKey, false)) {
             return
           }
           const meta = state.metaMap.get(conversationIDKey, null)
@@ -761,6 +761,8 @@ const rootReducer = (
           }
           if (meta && maxMsgID >= meta.maxVisibleMsgID) {
             map.set(conversationIDKey, true)
+          } else if (action.payload.forceContainsLatestCalc) {
+            map.set(conversationIDKey, false)
           }
         })
       })
