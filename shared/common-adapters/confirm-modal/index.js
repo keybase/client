@@ -1,22 +1,24 @@
 // @flow
 import * as React from 'react'
-import {Box, Box2, Button, ButtonBar, HeaderOrPopup, Icon, Text} from '..'
+import {Box, Box2, Button, ButtonBar, HeaderOrPopup, Icon, Text, WaitingButton} from '..'
 import * as Styles from '../../styles'
 import type {IconType} from '../icon.constants'
 
+// generally one of icon or header will be given
 export type Props = {|
   confirmText?: string,
   content?: React.Node,
   description: string,
+  header?: React.Node,
   icon?: IconType,
   onCancel: () => void,
   onConfirm: () => void,
   prompt: string,
+  waitingKey?: string,
 |}
 
 class _ConfirmModal extends React.Component<Props> {
   render() {
-    const confirmText = this.props.confirmText || 'Confirm'
     return (
       <Box style={styles.mobileFlex}>
         <Box2 direction="vertical" style={styles.container}>
@@ -29,16 +31,18 @@ class _ConfirmModal extends React.Component<Props> {
           >
             {this.props.icon && (
               <Icon
-                type={this.props.icon}
-                color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 20 : 48}
                 boxStyle={styles.icon}
+                color={Styles.globalColors.black_50}
+                fontSize={Styles.isMobile ? 64 : 48}
+                style={styles.icon}
+                type={this.props.icon}
               />
             )}
-            <Text style={styles.text} type="Header">
+            {this.props.header}
+            <Text center={true} style={styles.text} type="HeaderBig">
               {this.props.prompt}
             </Text>
-            <Text center={true} style={styles.text} type="BodySmall">
+            <Text center={true} style={styles.text} type="Body">
               {this.props.description}
             </Text>
             {this.props.content}
@@ -46,8 +50,22 @@ class _ConfirmModal extends React.Component<Props> {
         </Box2>
         <Box2 direction="horizontal" style={styles.buttonBox}>
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Button fullWidth={true} type="Secondary" label="Cancel" onClick={this.props.onCancel} />
-            <Button fullWidth={true} type="Danger" label={confirmText} onClick={this.props.onConfirm} />
+            {!Styles.isMobile && (
+              <Button
+                fullWidth={true}
+                type="Secondary"
+                label="Cancel"
+                onClick={this.props.onCancel}
+                waitingKey={this.props.waitingKey}
+              />
+            )}
+            <Button
+              fullWidth={true}
+              type="Danger"
+              label={this.props.confirmText || 'Confirm'}
+              onClick={this.props.onConfirm}
+              waitingKey={this.props.waitingKey}
+            />
           </ButtonBar>
         </Box2>
       </Box>
@@ -83,6 +101,8 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       flex: 1,
+      paddingBottom: 64,
+      paddingTop: 64,
       width: '100%',
     },
   }),

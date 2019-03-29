@@ -76,3 +76,25 @@ const _ReallyLeaveTeam = (props: Props) => (
 
 export default HeaderOnMobile(_ReallyLeaveTeam)
 export {Spinner}
+
+/*
+const Header = (props: Props) => (
+  <>
+    <Avatar teamname={props.name} size={64} />
+    <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+  </>
+)
+
+const _ReallyLeaveTeam = (props: Props) => (
+  <ConfirmModal
+    confirmText={`Are you sure you want to leave ${props.name}?`}
+    description={`You will lose access to all the ${props.name} chats and folders, and you won't be able to get back
+    unless an admin invites you.`}
+    header={Header(props)}
+    onCancel={props.onBack}
+    onConfirm={props.onLeave}
+    prompt={`Yes, leave ${props.name}`}
+    waitingKey={Constants.leaveTeamWaitingKey(props.name)}
+  />
+)
+*/
