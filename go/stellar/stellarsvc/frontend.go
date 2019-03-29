@@ -579,7 +579,7 @@ func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar
 		return ErrAccountIDMissing
 	}
 
-	return stellar.SetAccountAsPrimary(mctx, arg.AccountID)
+	return stellar.SetAccountAsPrimary(mctx, s.walletState, arg.AccountID)
 }
 
 func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.DeleteWalletAccountLocalArg) (err error) {
@@ -962,7 +962,15 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 		return ErrAccountIDMissing
 	}
 
-	return s.remoter.SetAccountMobileOnly(mctx.Ctx(), arg.AccountID)
+	if err = s.remoter.SetAccountMobileOnly(mctx.Ctx(), arg.AccountID); err != nil {
+		return err
+	}
+
+	if err = s.walletState.UpdateAccountEntries(mctx, "set account mobile only"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.SetAccountAllDevicesLocalArg) (err error) {
@@ -980,7 +988,15 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 		return ErrAccountIDMissing
 	}
 
-	return s.remoter.MakeAccountAllDevices(mctx.Ctx(), arg.AccountID)
+	if err = s.remoter.MakeAccountAllDevices(mctx.Ctx(), arg.AccountID); err != nil {
+		return err
+	}
+
+	if err = s.walletState.UpdateAccountEntries(mctx, "set account all devices"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Server) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (ret []stellar1.PredefinedInflationDestination, err error) {

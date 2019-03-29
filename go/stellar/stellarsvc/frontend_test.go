@@ -429,6 +429,10 @@ func TestSetAccountAsDefault(t *testing.T) {
 	u0addr := u0.StellarAccountID()
 	require.NotNil(t, u0addr)
 	require.Equal(t, additionalAccs[0], *u0addr)
+
+	isPrimary, err := tcs[0].Srv.walletState.IsPrimary(additionalAccs[0])
+	require.NoError(t, err)
+	require.True(t, isPrimary)
 }
 
 func testCreateOrLinkNewAccount(t *testing.T, create bool) {
@@ -2653,6 +2657,10 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
 	require.Equal(t, true, details.AccountModeEditable)
+
+	mode, err := tcs[0].Srv.walletState.AccountMode(accountID)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountMode_MOBILE, mode)
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }

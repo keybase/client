@@ -120,6 +120,33 @@ func (w *WalletState) AccountName(accountID stellar1.AccountID) (string, error) 
 	return a.name, nil
 }
 
+// IsPrimary returns true if an account is the primary account for the user.
+func (w *WalletState) IsPrimary(accountID stellar1.AccountID) (bool, error) {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return false, ErrAccountNotFound
+	}
+
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.isPrimary, nil
+}
+
+// AccountMode returns the mode of the account (USER or MOBILE).
+// MOBILE accounts can only get access to the secret key from a mobile device.
+func (w *WalletState) AccountMode(accountID stellar1.AccountID) (stellar1.AccountMode, error) {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return stellar1.AccountMode_NONE, ErrAccountNotFound
+	}
+
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.accountMode, nil
+}
+
 // accountState returns the AccountState object for an accountID.
 // If it doesn't exist in `accounts`, it will return nil, false.
 func (w *WalletState) accountState(accountID stellar1.AccountID) (*AccountState, bool) {
