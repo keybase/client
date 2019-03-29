@@ -211,6 +211,12 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 12,
     styleOverride: globalStyles.fontBold,
   },
+  BodyTinyLink: {
+    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
+    fontSize: 12,
+    isLink: true,
+    styleOverride: globalStyles.fontRegular,
+  },
   BodyTinySemibold: {
     colorForBackground: {...whiteNegative, positive: globalColors.black_50},
     fontSize: 12,
