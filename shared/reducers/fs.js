@@ -122,6 +122,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           team: action.payload.team,
         })
       )
+    case FsGen.setFolderViewFilter:
+      return state.set('folderViewFilter', action.payload.filter)
+    case FsGen.clearFolderViewFilter:
+      return state.set('folderViewFilter', '')
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
