@@ -293,32 +293,32 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
   )
 }
 
-function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
+function AccountPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
-        Passphrase:
+        Password:
       </Text>
       <Text type="Body" style={{flex: 1}}>
         •••••••••
       </Text>
-      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassphrase}>
+      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassword}>
         Edit
       </Text>
     </Box>
   )
 }
 
-function AccountFirstPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
+function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
-        Passphrase:
+        Password:
       </Text>
       <Text type="Body">
         Not set! You should{' '}
-        <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassphrase}>
-          set a passphrase
+        <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassword}>
+          set a password
         </Text>
         .
       </Text>
@@ -330,24 +330,24 @@ function Account({
   email,
   isVerified,
   onChangeEmail,
-  onChangePassphrase,
-  onChangeRememberPassphrase,
-  rememberPassphrase,
+  onChangePassword,
+  onChangeRememberPassword,
+  rememberPassword,
   hasRandomPW,
 }: AccountProps) {
-  const Passphrase = hasRandomPW ? AccountFirstPassphrase : AccountPassphrase
+  const Password = hasRandomPW ? AccountFirstPassword : AccountPassword
   const Email = email ? AccountEmail : AccountFirstEmail
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <Email email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider />
-      <Passphrase onChangePassphrase={onChangePassphrase} />
+      <Password onChangePassword={onChangePassword} />
       <Divider />
       {!hasRandomPW && (
         <Checkbox
-          checked={rememberPassphrase}
-          label="Remember my passphrase"
-          onCheck={onChangeRememberPassphrase}
+          checked={rememberPassword}
+          label="Remember my password"
+          onCheck={onChangeRememberPassword}
           style={{paddingTop: globalMargins.small}}
         />
       )}

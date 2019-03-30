@@ -69,8 +69,8 @@ function SettingsNav(props: Props) {
               text: 'Notifications',
             },
             {
-              onClick: () => props.onTabChange(Constants.passphraseTab),
-              text: props.hasRandomPW ? 'Set a passphrase' : 'Change passphrase',
+              onClick: () => props.onTabChange(Constants.passwordTab),
+              text: props.hasRandomPW ? 'Set a password' : 'Change password',
               textColor: props.hasRandomPW ? globalColors.red : undefined,
             },
             {

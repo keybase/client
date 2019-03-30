@@ -80,29 +80,29 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.update('invites', invites => invites.merge({error: null}))
     case SettingsGen.loadedSettings:
       return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
-    case SettingsGen.loadedRememberPassphrase:
-    case SettingsGen.onChangeRememberPassphrase:
-      return state.update('passphrase', passphrase =>
-        passphrase.merge({rememberPassphrase: action.payload.remember})
+    case SettingsGen.loadedRememberPassword:
+    case SettingsGen.onChangeRememberPassword:
+      return state.update('password', password =>
+        password.merge({rememberPassword: action.payload.remember})
       )
-    case SettingsGen.onChangeNewPassphrase:
-      return state.update('passphrase', passphrase =>
-        passphrase.merge({error: null, newPassphrase: action.payload.passphrase})
+    case SettingsGen.onChangeNewPassword:
+      return state.update('password', password =>
+        password.merge({error: null, newPassword: action.payload.password})
       )
     case SettingsGen.loadedLockdownMode:
       return state.merge({lockdownModeEnabled: action.payload.status})
-    case SettingsGen.onChangeNewPassphraseConfirm:
-      return state.update('passphrase', passphrase =>
-        passphrase.merge({error: null, newPassphraseConfirm: action.payload.passphrase})
+    case SettingsGen.onChangeNewPasswordConfirm:
+      return state.update('password', password =>
+        password.merge({error: null, newPasswordConfirm: action.payload.password})
       )
-    case SettingsGen.checkPassphrase:
-      return state.merge({checkPassphraseIsCorrect: null})
+    case SettingsGen.checkPassword:
+      return state.merge({checkPasswordIsCorrect: null})
     case SettingsGen.onUpdatedPGPSettings:
-      return state.update('passphrase', passphrase =>
-        passphrase.merge({hasPGPKeyOnServer: action.payload.hasKeys})
+      return state.update('password', password =>
+        password.merge({hasPGPKeyOnServer: action.payload.hasKeys})
       )
-    case SettingsGen.onUpdatePassphraseError:
-      return state.update('passphrase', passphrase => passphrase.merge({error: action.payload.error}))
+    case SettingsGen.onUpdatePasswordError:
+      return state.update('password', password => password.merge({error: action.payload.error}))
     case SettingsGen.onChangeNewEmail:
       return state.update('email', email => email.merge({error: null, newEmail: action.payload.email}))
     case SettingsGen.onUpdateEmailError:
@@ -125,9 +125,9 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
         chat: state.chat.merge({unfurl: state.chat.unfurl.merge({unfurlError: action.payload.error})}),
       })
     case SettingsGen.loadedHasRandomPw:
-      return state.update('passphrase', passphrase => passphrase.merge({randomPW: action.payload.randomPW}))
-    case SettingsGen.loadedCheckPassphrase:
-      return state.merge({checkPassphraseIsCorrect: action.payload.checkPassphraseIsCorrect})
+      return state.update('password', password => password.merge({randomPW: action.payload.randomPW}))
+    case SettingsGen.loadedCheckPassword:
+      return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -135,13 +135,13 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
     case SettingsGen.invitesSend:
-    case SettingsGen.loadRememberPassphrase:
+    case SettingsGen.loadRememberPassword:
     case SettingsGen.loadSettings:
     case SettingsGen.loadLockdownMode:
     case SettingsGen.notificationsRefresh:
-    case SettingsGen.onChangeShowPassphrase:
+    case SettingsGen.onChangeShowPassword:
     case SettingsGen.onSubmitNewEmail:
-    case SettingsGen.onSubmitNewPassphrase:
+    case SettingsGen.onSubmitNewPassword:
     case SettingsGen.onUpdatePGPSettings:
     case SettingsGen.onChangeLockdownMode:
     case SettingsGen.trace:

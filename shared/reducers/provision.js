@@ -14,13 +14,13 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.startProvision:
       return initialState
     case ProvisionGen.provisionError:
-    case ProvisionGen.showPassphrasePage: // fallthrough
+    case ProvisionGen.showPasswordPage: // fallthrough
     case ProvisionGen.showPaperkeyPage: // fallthrough
       return state.merge({
         error: action.payload.error || initialState.error,
         forgotUsernameResult: '',
       })
-    case ProvisionGen.submitPassphrase: // fallthrough
+    case ProvisionGen.submitPassword: // fallthrough
     case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
     case ProvisionGen.showFinalErrorPage:

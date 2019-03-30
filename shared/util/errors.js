@@ -96,7 +96,7 @@ export const niceError = (e: RPCError) => {
     case RPCTypes.constantsStatusCode.scbadloginusernotfound:
       return 'Looks like an incorrect user'
     case RPCTypes.constantsStatusCode.scbadloginpassword:
-      return 'Looks like a bad passphrase.'
+      return 'Looks like a bad password.'
     case RPCTypes.constantsStatusCode.scdeleted:
       return 'This user looks deleted.'
     case RPCTypes.constantsStatusCode.scalreadyloggedin:

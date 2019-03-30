@@ -27,9 +27,9 @@ class LoginRender extends Component<Props> {
     const inputProps = {
       autoFocus: true,
       errorText: this.props.error,
-      hintText: 'Passphrase',
+      hintText: 'Password',
       key: this.props.inputKey,
-      onChangeText: passphrase => this.props.passphraseChange(passphrase),
+      onChangeText: password => this.props.passwordChange(password),
       onEnterKeyDown: () => this.props.onSubmit(),
       ref: this._inputRef,
       style: {marginBottom: 0},
@@ -55,7 +55,7 @@ class LoginRender extends Component<Props> {
           {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
             <Kb.Box style={styles.deviceNotSecureContainer}>
               <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
-                Since you don't have a lock screen, you'll have to type your passphrase everytime.
+                Since you don't have a lock screen, you'll have to type your password everytime.
               </Kb.Text>
             </Kb.Box>
           )}
@@ -73,7 +73,7 @@ class LoginRender extends Component<Props> {
               checkboxesProps={checkboxProps}
             />
             <Kb.WaitingButton
-              disabled={!this.props.passphrase}
+              disabled={!this.props.password}
               waitingKey={Constants.waitingKey}
               style={{marginTop: 0, width: '100%'}}
               fullWidth={true}
@@ -84,10 +84,10 @@ class LoginRender extends Component<Props> {
             <Kb.Text
               type="BodySmallSecondaryLink"
               center={true}
-              onClick={this.props.onForgotPassphrase}
+              onClick={this.props.onForgotPassword}
               style={{marginTop: Styles.globalMargins.medium}}
             >
-              Forgot passphrase?
+              Forgot password?
             </Kb.Text>
           </Kb.UserCard>
           <Kb.Text

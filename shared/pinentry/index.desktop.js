@@ -6,7 +6,7 @@ import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapt
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 export type Props = {
-  onSubmit: (passphrase: string) => void,
+  onSubmit: (password: string) => void,
   onCancel: () => void,
   showTyping: RPCTypes.Feature,
   type: RPCTypes.PassphraseType,
@@ -21,7 +21,7 @@ type DefaultProps = {
 }
 
 type State = {
-  passphrase: string,
+  password: string,
   showTyping: boolean,
 }
 
@@ -33,7 +33,7 @@ class Pinentry extends Component<Props, State> {
     super(props)
 
     this.state = {
-      passphrase: '',
+      password: '',
       showTyping: this.props.showTyping.defaultValue,
     }
   }
@@ -43,8 +43,8 @@ class Pinentry extends Component<Props, State> {
   }
 
   _onSubmit = () => {
-    this.props.onSubmit(this.state.passphrase)
-    this.setState({passphrase: ''})
+    this.props.onSubmit(this.state.password)
+    this.setState({password: ''})
   }
 
   componentDidMount() {
@@ -61,11 +61,11 @@ class Pinentry extends Component<Props, State> {
       floatingHintTextOverride: string,
     |} = {
       [RPCTypes.passphraseCommonPassphraseType.verifyPassPhrase]: {
-        hintText: 'Verify Passphrase',
+        hintText: 'Verify Password',
         style: {marginBottom: 0},
       },
       [RPCTypes.passphraseCommonPassphraseType.passPhrase]: {
-        hintText: 'Passphrase',
+        hintText: 'Password',
         style: {marginBottom: 0},
       },
       [RPCTypes.passphraseCommonPassphraseType.paperKey]: {
@@ -101,10 +101,10 @@ class Pinentry extends Component<Props, State> {
             inputProps={{
               autoFocus: true,
               errorText: this.props.retryLabel,
-              onChangeText: passphrase => this.setState({passphrase}),
+              onChangeText: password => this.setState({password}),
               onEnterKeyDown: this._onSubmit,
               type: this.state.showTyping ? 'passwordVisible' : 'password',
-              value: this.state.passphrase,
+              value: this.state.password,
               ...typeStyle,
             }}
             checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60, ...checkboxContainerStyle}}
@@ -127,7 +127,7 @@ class Pinentry extends Component<Props, State> {
             type="Primary"
             label={this.props.submitLabel}
             onClick={this._onSubmit}
-            disabled={!this.state.passphrase}
+            disabled={!this.state.password}
           />
         </Box>
       </Box>
