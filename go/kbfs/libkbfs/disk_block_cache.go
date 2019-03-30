@@ -64,6 +64,19 @@ const (
 	priorityPrivateHome
 )
 
+func (p evictionPriority) String() string {
+	switch p {
+	case priorityNotHome:
+		return "non-home"
+	case priorityPublicHome:
+		return "public-home"
+	case priorityPrivateHome:
+		return "private-home"
+	default:
+		return "undefined"
+	}
+}
+
 // DiskBlockCacheLocal is the standard implementation for DiskBlockCache.
 type DiskBlockCacheLocal struct {
 	config     diskBlockCacheConfig
@@ -1038,6 +1051,8 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 
 		// blockIDs is a slice of blocks from which evictions will be selected.
 		blockIDs := make(blockIDsByTime, 0, numElements)
+
+		cache.log.CDebugf(ctx, "There are %d TLFs in priority \"%s\" for eviction", len(shuffledSlice), priorityToEvict)
 
 		// For each TLF until we get enough elements to select among,
 		// add its blocks to the eviction slice.
