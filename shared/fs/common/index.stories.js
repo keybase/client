@@ -55,6 +55,7 @@ const PathItemActionMenuProps = (props: any) => ({
   showInSystemFileManager: Sb.action('showInSystemFileManager'),
 })
 
+let folderViewFilter = ''
 export const commonProvider = {
   ConnectedErrs: () => ({
     errs: [],
@@ -63,6 +64,14 @@ export const commonProvider = {
     driverEnabled: false,
     enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
+  }),
+  FolderViewFilter: ({path}: {path: Types.Path}) => ({
+    filter: folderViewFilter,
+    onUpdate: (filter: string) => {
+      Sb.action('onUpdate')(filter)
+      folderViewFilter = filter
+    },
+    path,
   }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
     loadPathMetadata: Sb.action('loadPathMetadata'),

@@ -382,6 +382,7 @@ export type _State = {|
   downloads: Downloads,
   edits: Edits,
   errors: I.Map<string, FsError>,
+  folderViewFilter: string,
   kbfsDaemonStatus: KbfsDaemonStatus,
   loadingPaths: I.Map<Path, I.Set<string>>,
   localHTTPServerInfo: LocalHTTPServer,

@@ -12,8 +12,8 @@ type Props = {|
 const FsNavHeaderRightActions = (props: Props) => (
   <Kb.Box style={styles.outerContainer}>
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
-      <Kbfs.UploadButton path={props.path} />
-      {!Styles.isMobile && <Kb.Box style={styles.tinyGap} />}
+      <Kbfs.FolderViewFilter path={props.path} gap="tiny" />
+      <Kbfs.UploadButton path={props.path} desktopButtonGap="tiny" />
       <Kbfs.NewFolder path={props.path} />
       <Kbfs.SendInAppAction path={props.path} />
       <Kbfs.OpenInSystemFileManager path={props.path} />
@@ -40,7 +40,4 @@ const styles = Styles.styleSheetCreate({
       height: 39,
     },
   }),
-  tinyGap: {
-    width: Styles.globalMargins.tiny,
-  },
 })

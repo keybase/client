@@ -26,6 +26,10 @@
       "public": "I.Map<string, Types.Tlf>",
       "team": "I.Map<string, Types.Tlf>"
     },
+    "setFolderViewFilter": {
+      "filter": "string",
+    },
+    "clearFolderViewFilter":{},
     "pathItemLoaded": {
       "path": "Types.Path",
       "pathItem": "Types.PathItem"

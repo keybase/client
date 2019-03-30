@@ -6,7 +6,7 @@ import * as Kb from '../../common-adapters'
 import AddNew from './add-new-container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import {OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
+import {FolderViewFilter, OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
 
 const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
   <Kb.Box style={styles.headerContainer}>
@@ -24,6 +24,7 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
         <Kb.Box style={styles.folderHeaderContainer}>
           <Breadcrumb path={path} routePath={routePath} />
           <Kb.Box style={styles.folderHeaderEnd}>
+            <FolderViewFilter path={path} gap="tiny" />
             <AddNew path={path} />
             <OpenInSystemFileManager path={path} />
             {onChat && (
