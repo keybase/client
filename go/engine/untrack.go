@@ -18,6 +18,7 @@ type UntrackEngine struct {
 	arg                   *UntrackEngineArg
 	signingKeyPub         libkb.GenericKey
 	untrackStatementBytes []byte
+	untrackStatement      *libkb.ProofMetadataRes
 	libkb.Contextified
 }
 
@@ -69,12 +70,12 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
-	untrackStatement, err := e.arg.Me.UntrackingProofFor(m, e.signingKeyPub, e.arg.SigVersion, them)
+	e.untrackStatement, err = e.arg.Me.UntrackingProofFor(m, e.signingKeyPub, e.arg.SigVersion, them)
 	if err != nil {
 		return
 	}
 
-	e.untrackStatementBytes, err = untrackStatement.Marshal()
+	e.untrackStatementBytes, err = e.untrackStatement.J.Marshal()
 	if err != nil {
 		return
 	}
@@ -203,7 +204,7 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 	}
 
 	sigVersion := libkb.SigVersion(e.arg.SigVersion)
-	sig, sigID, _, err := libkb.MakeSig(
+	sig, sigID, linkID, err := libkb.MakeSig(
 		m,
 		signingKey,
 		libkb.LinkTypeUntrack,
@@ -236,7 +237,8 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        httpsArgs,
 	})
-	// xxx todo merkle check
-
-	return
+	if err != nil {
+		return err
+	}
+	return libkb.MerkleCheckPostedUserSig(m, me.GetUID(), e.untrackStatement.Seqno, linkID)
 }

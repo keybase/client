@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 // TrackToken is an engine.
@@ -18,7 +17,7 @@ type TrackToken struct {
 	arg                 *TrackTokenArg
 	them                *libkb.User
 	trackStatementBytes []byte
-	trackStatement      *jsonw.Wrapper
+	trackStatement      *libkb.ProofMetadataRes
 }
 
 type TrackTokenArg struct {
@@ -115,7 +114,7 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 		m.Debug("tracking proof err: %s", err)
 		return err
 	}
-	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
+	if e.trackStatementBytes, err = e.trackStatement.J.Marshal(); err != nil {
 		return err
 	}
 
@@ -204,7 +203,7 @@ func (e *TrackToken) loadThem(m libkb.MetaContext, username libkb.NormalizedUser
 }
 
 func (e *TrackToken) storeLocalTrack(m libkb.MetaContext) error {
-	return libkb.StoreLocalTrack(m, e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement)
+	return libkb.StoreLocalTrack(m, e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement.J)
 }
 
 func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) (err error) {
@@ -263,10 +262,11 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        httpsArgs,
 	})
-	// xxx todo merkle check
-
 	if err != nil {
 		m.Warning("api error: %s", err)
+		return err
+	}
+	if err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), e.trackStatement.Seqno, linkID); err != nil {
 		return err
 	}
 

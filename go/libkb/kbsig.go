@@ -430,30 +430,30 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 	}, err
 }
 
-func (u *User) TrackingProofFor(m MetaContext, signingKey GenericKey, sigVersion SigVersion, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
-	ret, err = ProofMetadata{
+func (u *User) TrackingProofFor(m MetaContext, signingKey GenericKey, sigVersion SigVersion, u2 *User, outcome *IdentifyOutcome) (*ProofMetadataRes, error) {
+	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeTrack,
 		SigningKey: signingKey,
 		SigVersion: sigVersion,
-	}.ToJSON(m)
+	}.ToJSON2(m)
 	if err == nil {
-		err = u2.ToTrackingStatement(ret.AtKey("body"), outcome)
+		err = u2.ToTrackingStatement(ret.J.AtKey("body"), outcome)
 	}
-	return
+	return ret, err
 }
 
-func (u *User) UntrackingProofFor(m MetaContext, signingKey GenericKey, sigVersion SigVersion, u2 *User) (ret *jsonw.Wrapper, err error) {
-	ret, err = ProofMetadata{
+func (u *User) UntrackingProofFor(m MetaContext, signingKey GenericKey, sigVersion SigVersion, u2 *User) (*ProofMetadataRes, error) {
+	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeUntrack,
 		SigningKey: signingKey,
 		SigVersion: sigVersion,
-	}.ToJSON(m)
+	}.ToJSON2(m)
 	if err == nil {
-		err = u2.ToUntrackingStatement(ret.AtKey("body"))
+		err = u2.ToUntrackingStatement(ret.J.AtKey("body"))
 	}
-	return
+	return ret, err
 }
 
 // arg.Me user is used to get the last known seqno in ProofMetadata.

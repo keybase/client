@@ -22,7 +22,7 @@ type Prove struct {
 	serviceType       libkb.ServiceType
 	serviceParameters *keybase1.ProveParameters
 	supersede         bool
-	proof             *libkb.ProofMetadataSigned
+	proof             *libkb.ProofMetadataRes
 	sig               string
 	sigID             keybase1.SigID
 	linkID            libkb.LinkID

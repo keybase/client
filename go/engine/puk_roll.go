@@ -139,10 +139,10 @@ func (e *PerUserKeyRoll) inner(mctx libkb.MetaContext) error {
 		return err
 	}
 	// Seqno when the per-user-key will be signed in.
-	pukSeqno := me.GetSigChainLastKnownSeqno()
+	pukSeqno := sig.Seqno
 
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = []libkb.JSONPayload{sig}
+	payload["sigs"] = []libkb.JSONPayload{sig.Payload}
 
 	mctx.Debug("PerUserKeyRoll pukBoxes:%v pukPrev:%v for generation %v",
 		len(pukBoxes), pukPrev != nil, gen)
@@ -183,7 +183,7 @@ func (e *PerUserKeyRoll) inner(mctx libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	if err = libkb.MerkleCheckPostedUserSig(mctx, uid, pukSeqno, linkID); err != nil {
+	if err = libkb.MerkleCheckPostedUserSig(mctx, uid, pukSeqno, sig.LinkID); err != nil {
 		return err
 	}
 	e.DidNewKey = true
