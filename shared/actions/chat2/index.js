@@ -1595,7 +1595,7 @@ function* previewConversationFindExisting(state, action) {
     })
     yield Saga.put(
       Chat2Gen.createMetasReceived({
-        metas: results.uiConversations.map(Constants.inboxUIItemToConversationMeta),
+        metas: (results.uiConversations || []).map(Constants.inboxUIItemToConversationMeta),
       })
     )
     yield* previewConversationAfterFindExisting(state, action, results, users)
