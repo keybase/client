@@ -56,6 +56,9 @@ Codesigning: see /keybase/team/keybase.builds.windows/readme.html
 `build_prerelease.cmd` builds most of the client executables
 `buildui.bat` builds the ui
 `buildrq.cmd` builds runquiet utility
+   - if you want this without code signing, try:
+      - from `go\tools\runquiet`:
+        `go build -ldflags "-H windowsgui" -o keybaserq.exe`
 `doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer
 `dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
 
