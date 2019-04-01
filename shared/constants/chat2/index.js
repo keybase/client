@@ -35,7 +35,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   giphyWindowMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
-  infoPanelOpen: false,
   isWalletsNew: true,
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
@@ -173,7 +172,7 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
 }
 export const isInfoPanelOpen = (state: TypedState) => {
   if (flags.useNewRouter) {
-    return state.chat2.infoPanelOpen
+    return Router2.getVisibleScreen()?.routeName === 'chatInfoPanel'
   } else {
     const routePath = getPath(state.routeTree.routeState, [chatTab])
     return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'

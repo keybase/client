@@ -74,7 +74,7 @@ const styles = Styles.styleSheetCreate({
     height: 40,
   },
   grow: {flexGrow: 1},
-  left: {width: 260},
+  left: {minWidth: 260},
   right: {
     flexGrow: 1,
     paddingBottom: Styles.globalMargins.xtiny,
