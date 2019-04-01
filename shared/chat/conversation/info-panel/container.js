@@ -50,6 +50,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     isPreview: meta.membershipType === 'youArePreviewing',
     selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',
+    spinnerForHide: state.waiting.counts.get(Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey), 0) > 0,
     teamname: meta.teamname,
   }
 }
@@ -132,6 +133,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     .toArray(),
   selectedConversationIDKey: stateProps.selectedConversationIDKey,
   smallTeam: stateProps.smallTeam,
+  spinnerForHide: stateProps.spinnerForHide,
   teamname: stateProps.teamname,
 })
 

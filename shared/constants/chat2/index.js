@@ -193,6 +193,8 @@ export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey)
 export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
+export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))

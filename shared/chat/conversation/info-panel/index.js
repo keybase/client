@@ -45,6 +45,7 @@ type InfoPanelProps = {|
   smallTeam: boolean,
   admin: boolean,
   ignored: boolean,
+  spinnerForHide: boolean,
 
   // Used by HeaderHoc.
   onBack: () => void,
@@ -331,6 +332,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             onClick={row.onHideConv}
             noDanger={true}
             icon="iconfont-remove"
+            spinner={this.props.spinnerForHide}
           />
         )
 
@@ -341,6 +343,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             caption="Unhide this conversation"
             onClick={row.onUnhideConv}
             noDanger={true}
+            spinner={this.props.spinnerForHide}
           />
         )
 
