@@ -12,7 +12,6 @@ import * as RCConstants from '../route-tree'
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'route-tree:'
 export const clearModals = 'route-tree:clearModals'
-export const dispatchNav2Action = 'route-tree:dispatchNav2Action'
 export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateTo = 'route-tree:navigateTo'
@@ -27,7 +26,6 @@ export const switchTo = 'route-tree:switchTo'
 
 // Payload Types
 type _ClearModalsPayload = void
-type _DispatchNav2ActionPayload = $ReadOnly<{|action: any|}>
 type _NavUpToScreenPayload = $ReadOnly<{|routeName: string|}>
 type _NavigateAppendPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path, replace?: boolean|}>
 type _NavigateToPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path, replace?: boolean|}>
@@ -41,10 +39,6 @@ type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, 
 type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators
-/**
- * Dispatch an action to react-navigation
- */
-export const createDispatchNav2Action = (payload: _DispatchNav2ActionPayload) => ({payload, type: dispatchNav2Action})
 /**
  * ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.
  */
@@ -69,7 +63,6 @@ export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: sw
 
 // Action Payloads
 export type ClearModalsPayload = {|+payload: _ClearModalsPayload, +type: 'route-tree:clearModals'|}
-export type DispatchNav2ActionPayload = {|+payload: _DispatchNav2ActionPayload, +type: 'route-tree:dispatchNav2Action'|}
 export type NavUpToScreenPayload = {|+payload: _NavUpToScreenPayload, +type: 'route-tree:navUpToScreen'|}
 export type NavigateAppendPayload = {|+payload: _NavigateAppendPayload, +type: 'route-tree:navigateAppend'|}
 export type NavigateToPayload = {|+payload: _NavigateToPayload, +type: 'route-tree:navigateTo'|}
@@ -86,7 +79,6 @@ export type SwitchToPayload = {|+payload: _SwitchToPayload, +type: 'route-tree:s
 // prettier-ignore
 export type Actions =
   | ClearModalsPayload
-  | DispatchNav2ActionPayload
   | NavUpToScreenPayload
   | NavigateAppendPayload
   | NavigateToPayload
