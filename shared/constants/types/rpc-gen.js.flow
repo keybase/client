@@ -237,7 +237,7 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'keybase.1.account.recoverUsername': {|
-    inParam: $ReadOnly<{|email: String|}>,
+    inParam: $ReadOnly<{|email: String, phone: PhoneNumber|}>,
     outParam: void,
   |},
   'keybase.1.account.setLockdownMode': {|

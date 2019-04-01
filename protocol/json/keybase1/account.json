@@ -184,6 +184,10 @@
         {
           "name": "email",
           "type": "string"
+        },
+        {
+          "name": "phone",
+          "type": "PhoneNumber"
         }
       ],
       "response": null

@@ -98,8 +98,9 @@ type SetLockdownModeArg struct {
 }
 
 type RecoverUsernameArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Email     string `codec:"email" json:"email"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Email     string      `codec:"email" json:"email"`
+	Phone     PhoneNumber `codec:"phone" json:"phone"`
 }
 
 type EnterResetPipelineArg struct {
