@@ -7,7 +7,6 @@ import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '..
 import {newRoutes as _loggedOutRoutes} from '../login/routes'
 import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
-import {newRoutes as provisionNewRoutes} from '../provision/routes'
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
