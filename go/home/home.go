@@ -45,7 +45,7 @@ func (r *rawGetHome) GetAppStatus() *libkb.AppStatus {
 
 func NewHome(g *libkb.GlobalContext) *Home {
 	home := &Home{Contextified: libkb.NewContextified(g)}
-	g.AddLogoutHook(home)
+	g.AddLogoutHook(home, "home")
 	return home
 }
 

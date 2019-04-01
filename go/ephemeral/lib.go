@@ -709,16 +709,20 @@ func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
 }
 
 func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
+	defer mctx.TraceTimed("EKLib.ClearCaches", func() error { return nil })()
 	e.Lock()
 	defer e.Unlock()
-
+	mctx.Debug("| EKLib.ClearCaches teamEKGenCache")
 	e.teamEKGenCache.Purge()
+	mctx.Debug("| EKLib.ClearCaches deviceEKStorage")
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()
 	}
+	mctx.Debug("| EKLib.ClearCaches userEKBoxStorage")
 	if userEKBoxStorage := mctx.G().GetUserEKBoxStorage(); userEKBoxStorage != nil {
 		userEKBoxStorage.ClearCache()
 	}
+	mctx.Debug("| EKLib.ClearCaches teamEKBoxStorage")
 	if teamEKBoxStorage := mctx.G().GetTeamEKBoxStorage(); teamEKBoxStorage != nil {
 		teamEKBoxStorage.ClearCache()
 	}
