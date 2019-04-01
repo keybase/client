@@ -94,9 +94,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.yellow3,
-    },
     isElectron: {
       borderRadius: 4,
       overflow: 'hidden',
