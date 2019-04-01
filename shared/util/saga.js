@@ -19,10 +19,11 @@ class SagaLogger {
   debug: LogFn
   isTagged = false
   constructor(actionType, fcnTag) {
-    this.debug = (...args) => logger.debug(`${fcnTag}: [${actionType}]`, ...args)
-    this.error = (...args) => logger.error(`${fcnTag}: [${actionType}]`, ...args)
-    this.info = (...args) => logger.info(`${fcnTag}: [${actionType}]`, ...args)
-    this.warn = (...args) => logger.warn(`${fcnTag}: [${actionType}]`, ...args)
+    const prefix = `${fcnTag} [${actionType}]:`
+    this.debug = (...args) => logger.debug(prefix, ...args)
+    this.error = (...args) => logger.error(prefix, ...args)
+    this.info = (...args) => logger.info(prefix, ...args)
+    this.warn = (...args) => logger.warn(prefix, ...args)
   }
   // call this first in your saga if you want chainAction / chainGenerator to log
   // before and after you run
