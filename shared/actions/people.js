@@ -110,9 +110,6 @@ const connected = () => {
 }
 
 const onNavigateTo = (state, action) => {
-  if (flags.useNewRouter) {
-    return // TODO fix this, see git for an example
-  }
   const list = I.List(action.payload.path)
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
@@ -123,9 +120,6 @@ const onNavigateTo = (state, action) => {
 }
 
 const onTabChange = (state, action) => {
-  if (flags.useNewRouter) {
-    return // TODO fix this, see git for an example
-  }
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
   const root = list.first()
@@ -149,8 +143,6 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<PeopleGen.GetPeopleDataPayload>(PeopleGen.getPeopleData, getPeopleData)
   yield* Saga.chainAction<PeopleGen.MarkViewedPayload>(PeopleGen.markViewed, markViewed)
   yield* Saga.chainAction<PeopleGen.SkipTodoPayload>(PeopleGen.skipTodo, skipTodo)
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
-  yield* Saga.chainAction<RouteTreeGen.NavigateToPayload>(RouteTreeGen.navigateTo, onNavigateTo)
   yield* Saga.chainAction<PeopleGen.DismissAnnouncementPayload>(
     PeopleGen.dismissAnnouncement,
     dismissAnnouncement
@@ -160,6 +152,11 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     homeUIRefresh
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
+
+  if (!flags.useNewRouter) {
+    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
+    yield* Saga.chainAction<RouteTreeGen.NavigateToPayload>(RouteTreeGen.navigateTo, onNavigateTo)
+  }
 }
 
 export default peopleSaga
