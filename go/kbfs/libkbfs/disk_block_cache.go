@@ -41,7 +41,7 @@ const (
 	defaultNumBlocksToEvictOnClear  int    = 100
 	defaultNumUnmarkedBlocksToCheck int    = 100
 	defaultClearTickerDuration             = 1 * time.Second
-	maxEvictionsPerPut              int    = 4
+	maxEvictionsPerPut              int    = 100
 	blockDbFilename                 string = "diskCacheBlocks.leveldb"
 	metaDbFilename                  string = "diskCacheMetadata.leveldb"
 	tlfDbFilename                   string = "diskCacheTLF.leveldb"
