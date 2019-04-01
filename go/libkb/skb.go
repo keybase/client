@@ -237,6 +237,24 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 	}
 	var unlocked []byte
 
+	fmt.Printf("SKB#UnlockSecretKey %d\n", s.Priv.Encryption)
+
+	if passphrase != "" && (tsec == nil || pps == nil) {
+		uid := s.uid
+		if uid.IsNil() {
+			uid = m.CurrentUID()
+		}
+		newTsec, newPps, err := UnverifiedPassphraseStream(m, uid, passphrase)
+		if err != nil {
+			fmt.Printf("err: %v s uid is %s\n", err, s.uid)
+		} else {
+			tsec = newTsec
+			pps = newPps
+			fmt.Printf("Caching passphrase stream: tsec=%v, pps=%v\n", (tsec != nil), (pps != nil))
+			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
+		}
+	}
+
 	switch {
 	case s.Priv.Encryption == 0:
 		m.Debug("case: Unlocked")
@@ -408,6 +426,7 @@ func (s *SKB) UnlockNoPrompt(m MetaContext, secretStore SecretStore) (ret Generi
 
 	// try using the passphrase stream cache
 	pps, tsec := m.PassphraseStreamAndTriplesec()
+	fmt.Printf("try using the passphrase stream cache %t %t\n", pps != nil, tsec != nil)
 	if tsec != nil || pps != nil {
 		key, err := s.UnlockSecretKey(m, "", tsec, pps, nil)
 		if err == nil {
