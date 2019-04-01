@@ -12,8 +12,6 @@ import (
 // Cancel the reset pipeline
 type CmdAccountResetCancel struct {
 	libkb.Contextified
-	username string
-	email    string
 }
 
 func NewCmdAccountResetCancel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -44,8 +42,7 @@ func (c *CmdAccountResetCancel) Run() error {
 	if err != nil {
 		return err
 	}
-	err = cli.CancelReset(context.Background(), 0)
-	if err != nil {
+	if err = cli.CancelReset(context.Background(), 0); err != nil {
 		return err
 	}
 	ui := c.G().UI.GetDumbOutputUI()
