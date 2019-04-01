@@ -475,21 +475,18 @@ func RandHexString(prefix string, numbytes int) (string, error) {
 }
 
 func Trace(log logger.Logger, msg string, f func() error) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.Debug("+ %s", msg)
+	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func TraceTimed(log logger.Logger, msg string, f func() error) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.Debug("+ %s", msg)
+	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
 	start := time.Now()
 	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
 }
 
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.CDebugf(ctx, "+ %s", msg)
+	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
 	return func() {
 		err := f()
 		if err != nil {
@@ -501,16 +498,14 @@ func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) 
 }
 
 func CTraceString(ctx context.Context, log logger.Logger, msg string, f func() string) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.CDebugf(ctx, "+ %s", msg)
+	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
 	return func() {
 		log.CDebugf(ctx, "- %s -> %s", msg, f())
 	}
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.CDebugf(ctx, "+ %s", msg)
+	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
 		err := f()
@@ -523,14 +518,12 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 }
 
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.Debug("+ %s", msg)
+	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %v", msg, f()) }
 }
 
 func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
-	log = log.CloneWithAddedDepth(1)
-	log.CDebugf(ctx, "+ %s", msg)
+	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
 }
 
