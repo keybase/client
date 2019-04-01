@@ -228,10 +228,22 @@ func (w *WalletState) UpdateAccountEntriesWithBundle(mctx libkb.MetaContext, rea
 		return errors.New("nil bundle")
 	}
 
+	active := make(map[stellar1.AccountID]bool)
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
 		a.updateEntry(account)
+		active[account.AccountID] = true
 	}
+
+	// clean out any unusued accounts
+	w.Lock()
+	for accountID, _ := range w.accounts {
+		if active[accountID] {
+			continue
+		}
+		delete(w.accounts, accountID)
+	}
+	w.Unlock()
 
 	return nil
 }
