@@ -439,7 +439,7 @@ func (j *blockJournal) putBlockData(
 func (j *blockJournal) appendBlock(
 	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
 	bufLenToAdd int64) error {
-	j.log.CDebugf(ctx, "Appending %block %s to journal", id)
+	j.log.CDebugf(ctx, "Appending block %s to journal", id)
 
 	if bufLenToAdd > 0 {
 		var putFiles int64 = filesPerBlockMax
