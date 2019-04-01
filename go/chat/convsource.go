@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -229,6 +230,21 @@ func (s *baseConversationSource) getUnreadlineRemote(ctx context.Context, convID
 		return nil, err
 	}
 	return res.UnreadlineID, nil
+}
+
+func (s *baseConversationSource) IsOffline(ctx context.Context) bool {
+	offline, connectedCh := s.getOfflineInfo()
+	if !offline {
+		return false
+	}
+	select {
+	case <-connectedCh:
+		s.Debug(ctx, "IsOffline: waited, and connected")
+		return false
+	case <-time.After(10 * time.Second):
+		s.Debug(ctx, "IsOffline: waited, and timed out")
+		return true
+	}
 }
 
 type RemoteConversationSource struct {
