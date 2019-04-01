@@ -18,6 +18,7 @@ type OwnProps = RouteProps<
 
 const mapStateToProps = (state, ownProps) => ({
   errorMessage: state.profile.revokeError,
+  icon: getRouteProps(ownProps, 'icon'),
   isWaiting: Waiting.anyWaiting(state, Constants.waitingKey),
   platform: getRouteProps(ownProps, 'platform'),
   platformHandle: getRouteProps(ownProps, 'platformHandle'),

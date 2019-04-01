@@ -5,10 +5,13 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/profile'
 import {capitalize} from 'lodash-es'
 import {subtitle as platformSubtitle} from '../../util/platforms'
+import {SiteIcon} from '../generic/shared'
 import type {PlatformsExpandedType} from '../../constants/types/more'
+import type {SiteIconSet} from '../../constants/types/tracker2'
 import Modal from '../modal'
 
 type Props = {|
+  icon: SiteIconSet,
   platform: PlatformsExpandedType,
   platformHandle: string,
   errorMessage?: ?string,

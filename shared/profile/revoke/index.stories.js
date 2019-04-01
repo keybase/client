@@ -4,6 +4,7 @@ import {action, storiesOf} from '../../stories/storybook'
 import Revoke from '.'
 
 const props = {
+  icon: [],
   isWaiting: false,
   onCancel: action('onCancel'),
   onRevoke: action('onRevoke'),
