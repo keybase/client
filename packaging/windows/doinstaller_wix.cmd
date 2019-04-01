@@ -50,7 +50,10 @@ call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 :: prompter
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 
-if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.cmd
+if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe (
+  call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.cmd
+  call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe
+)
 
 :: Double check that keybase is codesigned
 signtool verify /pa %PathName%
@@ -90,6 +93,12 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that the prompter exe is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that the keybaserq exe is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
