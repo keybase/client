@@ -1485,10 +1485,10 @@ function* previewConversationAfterFindExisting(state, action, results, users) {
     action.type === Chat2Gen.previewConversation && (action.payload.teamname || action.payload.channelname)
   if (action.type === Chat2Gen.previewConversation && action.payload.conversationIDKey) {
     existingConversationIDKey = action.payload.conversationIDKey
-  } else if (results && results.conversations && results.conversations.length > 0) {
+  } else if (results.length > 0) {
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
-    existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+    existingConversationIDKey = results[0].conversationIDKey
 
     // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
     // if it's a team avoid the flow and just preview & select the channel
@@ -1597,9 +1597,9 @@ function* previewConversationFindExisting(state, action) {
       .map(row => Constants.inboxUIItemToConversationMeta(row))
       .filter(Boolean)
     yield Saga.put(Chat2Gen.createMetasReceived({metas: resultMetas}))
-    yield* previewConversationAfterFindExisting(state, action, results, users)
+    yield* previewConversationAfterFindExisting(state, action, resultMetas, users)
   } else {
-    yield* previewConversationAfterFindExisting(state, action, undefined, [])
+    yield* previewConversationAfterFindExisting(state, action, [], [])
   }
 }
 
