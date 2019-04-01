@@ -55,6 +55,7 @@ const Connected = compose(
 // $FlowIssue lets fix this
 Connected.navigationOptions = {
   header: undefined,
+  headerTitle: 'Settings',
   title: 'Settings',
 }
 
