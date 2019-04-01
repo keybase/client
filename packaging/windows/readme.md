@@ -6,6 +6,11 @@
 - [go for windows](https://golang.org/dl)
 - Environment: `set GOPATH=C:\work`
 
+[git for windows](https://git-scm.com/downloads)
+- Select "Use Git and optional Unix tools from the Command Prompt" (so scripts with `rm` will work)
+- Checkout as-is, conmmit Unix style line endings
+- Use Windows' default console window (especially on Windows 10)
+
 ### Git
 
 - [git for windows](https://git-scm.com/downloads)
@@ -54,6 +59,9 @@ git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keyba
     - Try `C:\mingw-w64\.... instead`
 
 ## Building
+[GCC via Mingw-64](https://sourceforge.net/projects/mingw-w64/) (for building kbfsdokan)
+- Be sure and choose architecture x86-64, NOT i686
+- Also recommend not installing in `program files`, e.g. `C:\mingw-w64\...` instead of `C:\Program Files (x86)\mingw-w64\...`
 
 Environment:
 ```
@@ -76,14 +84,25 @@ Environment:
 
 Codesigning: see /keybase/team/keybase.builds.windows/readme.html
 
-## CMD Scripts
+## Building a debug installer without codesigning
+Environment:
+  `set KEYBASE_WINBUILD=0`
+
+Invoke the scripts to build the executables: `build_prerelease.cmd`, `buildrq.cmd` and `buildui.cmd`
+
+Update prompter executable:
+`cd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter`
+`msbuild WpfPrompter.sln /p:Configuration=Debug /t:Build`
+
+Installer:
+`cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers`
+`msbuild WIX_Installers.sln /p:Configuration=Debug /p:Platform=x64 /t:Build`
+
+## Production CMD Scripts
 `build_prerelease.cmd` builds most of the client executables
 `buildui.bat` builds the ui
 `buildrq.cmd` builds runquiet utility
-   - if you want this without code signing, try:
-      - from `go\tools\runquiet`:
-        `go build -ldflags "-H windowsgui" -o keybaserq.exe`
-`doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer
+`doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
 `dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
 
 # Upgrading Dokan
@@ -102,3 +121,28 @@ Optional: change the minimum version KBFS will work with: https://github.com/key
 #  Might be Useful...
 - [Chocolatey](https://chocolatey.org/install) (helpful for yarn)
   - then: `choco install yarn`
+
+# Installed Product Layout and Functionality
+The installer places/updates all the files and adds:
+- startup shortcut for
+- start menu shortcut
+- background tile color
+
+The service is invoked by the GUI with this command:
+`[INSTALLFOLDER]\keybaserq.exe keybase.exe --log-format=file --log-prefix="[INSTALLFOLDER]watchdog." ctl watchdog2`
+This starts a copy of keybase.exe in watchdog mode, which in turn runs the service and kbfs processes, restarting them if they die or are killed.
+If the service is closed with `keybase ctl stop`, which the GUI does when the widtget menu is used, the watchdog will see a different exit code and not restart the processes.
+
+`keybaserq.exe` has 2 main jobs: de-elevating permissions to run as current user, and running Keybase invisibly, without the CMD window appearing, since it is a console program.
+
+Notable executables
+`DokanSetup_redist.exe` - Dokan driver package, invoked from files tab in GUI
+`git-remote-keybase.exe` - GIT helper
+`kbfsdokan.exe` - kbfs
+`kbnm.exe` - browser extension
+`keybase.exe` - service
+`keybase.rq.exe` - quiet launcher and de-elevator
+`prompter.exe` - updater GUI
+`upd.exe` - updater
+`Gui\Keybase.exe` - GUI
+
