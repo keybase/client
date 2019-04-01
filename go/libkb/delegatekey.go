@@ -41,7 +41,7 @@ type Delegator struct {
 	SigningUser UserBasic      // kex2 doesn't have a full user, but does have basic user info
 
 	// Internal fields
-	proof        *ProofMetadataSigned
+	proof        *ProofMetadataRes
 	sig          string
 	sigID        keybase1.SigID
 	linkID       LinkID
@@ -200,7 +200,7 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 	return d.SignAndPost(m, proof)
 }
 
-func (d *Delegator) SignAndPost(m MetaContext, proof *ProofMetadataSigned) (err error) {
+func (d *Delegator) SignAndPost(m MetaContext, proof *ProofMetadataRes) (err error) {
 	d.proof = proof
 	if d.sig, d.sigID, d.linkID, err = SignJSON(proof.J, d.GetSigningKey()); err != nil {
 		m.Debug("| Failure in SignJson()")
