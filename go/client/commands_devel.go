@@ -47,6 +47,7 @@ func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.Global
 		NewCmdAccountReset(cl, g),
 		NewCmdAccountResetStart(cl, g),
 		NewCmdAccountResetCancel(cl, g),
+		NewCmdAccountResetTimeTravel(cl, g),
 	}
 }
 
