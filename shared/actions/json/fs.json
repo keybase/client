@@ -29,6 +29,23 @@
     "setFolderViewFilter": {
       "filter": "string",
     },
+    "tlfSyncConfigLoaded": {
+      "tlfType": "Types.TlfType",
+      "tlfName": "string",
+      "syncConfig": "Types.TlfSyncConfig",
+    },
+    "tlfSyncConfigsLoaded": {
+      "private": "I.Map<string, Types.TlfSyncConfig>",
+      "public": "I.Map<string, Types.TlfSyncConfig>",
+      "team": "I.Map<string, Types.TlfSyncConfig>"
+    },
+    "loadTlfSyncConfig": {
+      "path": "Types.Path",
+    },
+    "setTlfSyncConfig": {
+      "enabled": "boolean",
+      "path": "Types.Path"
+    },
     "pathItemLoaded": {
       "path": "Types.Path",
       "pathItem": "Types.PathItem"
@@ -115,10 +132,8 @@
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },
-    "notifySyncActivity": {},
     "openSecurityPreferences": {},
-    "refreshLocalHTTPServerInfo": {},
-    "localHTTPServerInfo": {
+    "refreshLocalHTTPServerInfo": {}, "localHTTPServerInfo": {
       "address": "string",
       "token": "string"
     },
@@ -223,8 +238,11 @@
       "key": "?string"
     },
     "waitForKbfsDaemon": {},
-    "kbfsDaemonStatusChanged": {
-      "kbfsDaemonStatus": "Types.KbfsDaemonStatus"
+    "kbfsDaemonRpcStatusChanged": {
+      "rpcStatus": "Types.KbfsDaemonRpcStatus"
+    },
+    "kbfsDaemonOnlineStatusChanged": {
+      "online": "boolean",
     },
 
     "placeholderAction": {}

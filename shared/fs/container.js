@@ -78,7 +78,7 @@ const useBare = isMobile
 
 class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
   waitForKbfsDaemonIfNeeded() {
-    if (this.props.kbfsDaemonStatus !== 'connected') {
+    if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
       // Always triggers whenever something changes if we are not connected.
       // Saga deduplicates redundant checks.
       this.props.waitForKbfsDaemon()
@@ -117,7 +117,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     }
   }
   render() {
-    if (this.props.kbfsDaemonStatus !== 'connected') {
+    if (this.props.kbfsDaemonStatus.rpcStatus !== 'connected') {
       return <KbfsDaemonNotRunning />
     }
     return (

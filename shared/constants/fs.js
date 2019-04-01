@@ -40,11 +40,24 @@ export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
 })
 export const emptyFolder = makeNewFolder()
 
+export const prefetchNotStarted: Types.PrefetchNotStarted = I.Record({state: 'not-started'})()
+
+export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'completet'})()
+
+export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> = I.Record({
+  bytesFetched: 0,
+  bytesTotal: 0,
+  endEstimate: 0,
+  startTime: 0,
+  state: 'in-progress',
+})
+
 const pathItemMetadataDefault = {
   badgeCount: 0,
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
   name: 'unknown',
+  prefetchStatus: prefetchNotStarted,
   size: 0,
   tlfMeta: undefined,
   writable: false,
@@ -81,6 +94,15 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 
 export const unknownPathItem = makeUnknownPathItem()
 
+export const tlfSyncEnabled: Types.TlfSyncEnabled = I.Record({mode: 'enabled'})()
+
+export const tlfSyncDisabled: Types.TlfSyncDisabled = I.Record({mode: 'disabled'})()
+
+export const makeTlfSyncPartial: I.RecordFactory<Types._TlfSyncPartial> = I.Record({
+  enabledPaths: I.List(),
+  mode: 'partial',
+})
+
 export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   isFavorite: false,
   isIgnored: false,
@@ -88,6 +110,7 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   name: '',
   needsRekey: false,
   resetParticipants: I.List(),
+  syncConfig: null,
   teamId: '',
   tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
@@ -237,13 +260,18 @@ export const makeSystemFileManagerIntegration: I.RecordFactory<Types._SystemFile
   }
 )
 
+export const makeKbfsDaemonStatus: I.RecordFactory<Types._KbfsDaemonStatus> = I.Record({
+  online: false,
+  rpcStatus: 'unknown',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
   folderViewFilter: '',
-  kbfsDaemonStatus: 'unknown',
+  kbfsDaemonStatus: makeKbfsDaemonStatus(),
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
@@ -259,8 +287,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
 
-export const fsPathToRpcPathString = (p: Types.Path): string =>
-  Types.pathToString(p).substring('/keybase'.length) || '/'
+export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
+  PathType: RPCTypes.simpleFSPathType.kbfs,
+  kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
+})
 
 export const getPathTextColor = (path: Types.Path) => {
   const elems = Types.getPathElements(path)
@@ -788,12 +818,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return makeParsedPathGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfName: elems[2],
             tlfType: 'private',
           })
         default:
           return makeParsedPathInGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
             rest: I.List(elems.slice(3)),
+            tlfName: elems[2],
             tlfType: 'private',
           })
       }
@@ -804,12 +836,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return makeParsedPathGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfName: elems[2],
             tlfType: 'public',
           })
         default:
           return makeParsedPathInGroupTlf({
             ...splitTlfIntoReadersAndWriters(elems[2]),
             rest: I.List(elems.slice(3)),
+            tlfName: elems[2],
             tlfType: 'public',
           })
       }
@@ -820,12 +854,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return makeParsedPathTeamTlf({
             team: elems[2],
+            tlfName: elems[2],
             tlfType: 'team',
           })
         default:
           return makeParsedPathInTeamTlf({
             rest: I.List(elems.slice(3)),
             team: elems[2],
+            tlfName: elems[2],
             tlfType: 'team',
           })
       }
@@ -894,6 +930,61 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     : picker.source.type === 'incoming-share'
     ? Types.getLocalPathName(picker.source.localPath)
     : ''
+
+const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path): boolean => {
+  switch (syncConfig.mode) {
+    case 'disabled':
+      return false
+    case 'enabled':
+      return true
+    case 'partial':
+      // TODO: when we enable partial sync lookup, remember to deal with
+      // potential ".." traversal as well.
+      return false
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig.mode)
+      return false
+  }
+}
+
+export const getSyncStatusInMergeProps = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  tlf: Types.Tlf,
+  pathItem: Types.PathItem,
+  uploadingPaths: I.Set<Types.Path>,
+  path: Types.Path
+): Types.SyncStatus => {
+  if (!tlf.syncConfig || pathItem === unknownPathItem) {
+    return 'unknown'
+  }
+  const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
+  // uploading state has higher priority
+  if (uploadingPaths.has(path)) {
+    return kbfsDaemonStatus.online ? 'uploading' : 'awaiting-to-upload'
+  }
+  if (!isPathEnabledForSync(tlfSyncConfig, path)) {
+    return 'online-only'
+  }
+
+  // TODO: what about 'sync-error'?
+
+  // We don't have an upload state, and sync is enabled for this path.
+  switch (pathItem.prefetchStatus.state) {
+    case 'not-started':
+      return 'awaiting-to-sync'
+    case 'complete':
+      return 'synced'
+    case 'in-progress':
+      if (!kbfsDaemonStatus.online) {
+        return 'awaiting-to-sync'
+      }
+      const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      return inProgress.bytesFetched / inProgress.bytesTotal
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus.state)
+      return 'unknown'
+  }
+}
 
 export const makeActionsForDestinationPickerOpen = (
   index: number,
@@ -1009,8 +1100,6 @@ export const erroredActionToMessage = (action: FsGen.Actions, error: string): st
   const timeoutExplain = 'An operation took too long to complete. Are you connected to the Internet?'
   const suffix = errorIsTimeout ? ` ${timeoutExplain}` : ''
   switch (action.type) {
-    case FsGen.notifySyncActivity:
-      return 'Failed to gather information about KBFS uploading activities.' + suffix
     case FsGen.move:
       return 'Failed to move file(s).' + suffix
     case FsGen.copy:

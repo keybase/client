@@ -124,6 +124,29 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.setFolderViewFilter:
       return state.set('folderViewFilter', action.payload.filter)
+    case FsGen.tlfSyncConfigLoaded:
+      return state.update('tlfs', tlfs =>
+        tlfs.update(action.payload.tlfType, tlfList =>
+          tlfList.update(
+            action.payload.tlfName,
+            tlf => tlf && tlf.set('syncConfig', action.payload.syncConfig)
+          )
+        )
+      )
+    case FsGen.tlfSyncConfigsLoaded:
+      return ['private', 'public', 'team'].reduce(
+        (state, tlfType) =>
+          state.update('tlfs', tlfs =>
+            tlfs.update(tlfType, tlfList =>
+              tlfList.withMutations(tlfList =>
+                (action.payload[tlfType] || I.Map()).forEach((syncConfig, tlfName) =>
+                  tlfList.update(tlfName, tlf => tlf && tlf.set('syncConfig', syncConfig))
+                )
+              )
+            )
+          ),
+        state
+      )
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
@@ -357,9 +380,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         pathItemActionMenu.set('downloadKey', action.payload.key)
       )
     case FsGen.waitForKbfsDaemon:
-      return state.set('kbfsDaemonStatus', 'waiting')
-    case FsGen.kbfsDaemonStatusChanged:
-      return state.set('kbfsDaemonStatus', action.payload.kbfsDaemonStatus)
+      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
+        kbfsDaemonStatus.set('rpcStatus', 'waiting')
+      )
+    case FsGen.kbfsDaemonRpcStatusChanged:
+      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
+        kbfsDaemonStatus.set('rpcStatus', action.payload.rpcStatus)
+      )
+    case FsGen.kbfsDaemonOnlineStatusChanged:
+      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
+        kbfsDaemonStatus.set('online', action.payload.online)
+      )
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:
@@ -392,7 +423,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.notifySyncActivity:
     case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
@@ -414,6 +444,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
     case FsGen.refreshDriverStatus:
+    case FsGen.loadTlfSyncConfig:
+    case FsGen.setTlfSyncConfig:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
