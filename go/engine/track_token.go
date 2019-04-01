@@ -263,6 +263,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        httpsArgs,
 	})
+	// xxx todo merkle check
 
 	if err != nil {
 		m.Warning("api error: %s", err)

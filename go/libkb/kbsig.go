@@ -748,7 +748,7 @@ func PerUserKeyProof(m MetaContext,
 	pukSigKID keybase1.KID,
 	pukEncKID keybase1.KID,
 	generation keybase1.PerUserKeyGeneration,
-	signingKey GenericKey) (*jsonw.Wrapper, error) {
+	signingKey GenericKey) (*ProofMetadataSigned, error) {
 
 	if me == nil {
 		return nil, fmt.Errorf("missing user object for proof")
@@ -758,7 +758,7 @@ func PerUserKeyProof(m MetaContext,
 		Me:         me,
 		LinkType:   LinkTypePerUserKey,
 		SigningKey: signingKey,
-	}.ToJSON(m)
+	}.ToJSON2(m)
 	if err != nil {
 		return nil, err
 	}
@@ -770,17 +770,23 @@ func PerUserKeyProof(m MetaContext,
 	// The caller is responsible for overwriting reverse_sig after signing.
 	pukSection.SetKey("reverse_sig", jsonw.NewNil())
 
-	body := ret.AtKey("body")
+	body := ret.J.AtKey("body")
 	body.SetKey("per_user_key", pukSection)
 
 	return ret, nil
+}
+
+type PerUserKeyProofReverseSignedRes struct {
+	Payload JSONPayload
+	Seqno   keybase1.Seqno
+	LinkID  LinkID
 }
 
 // Make a per-user key proof with a reverse sig.
 // Modifies the User `me` with a sigchain bump and key delegation.
 // Returns a JSONPayload ready for use in "sigs" in sig/multi.
 func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUserKeySeed, generation keybase1.PerUserKeyGeneration,
-	signer GenericKey) (JSONPayload, error) {
+	signer GenericKey) (*PerUserKeyProofReverseSignedRes, error) {
 
 	pukSigKey, err := perUserKeySeed.DeriveSigningKey()
 	if err != nil {
@@ -793,17 +799,17 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 	}
 
 	// Make reverse sig
-	jwRev, err := PerUserKeyProof(m, me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer)
+	forward, err := PerUserKeyProof(m, me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer)
 	if err != nil {
 		return nil, err
 	}
-	reverseSig, _, _, err := SignJSON(jwRev, pukSigKey)
+	reverseSig, _, _, err := SignJSON(forward.J, pukSigKey)
 	if err != nil {
 		return nil, err
 	}
 
 	// Make sig
-	jw := jwRev
+	jw := forward.J
 	jw.SetValueAtPath("body.per_user_key.reverse_sig", jsonw.NewString(reverseSig))
 	sig, sigID, linkID, err := SignJSON(jw, signer)
 	if err != nil {
@@ -824,12 +830,16 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
 	publicKeysEntry["encryption"] = pukEncKey.GetKID().String()
 
-	res := make(JSONPayload)
-	res["sig"] = sig
-	res["signing_kid"] = signer.GetKID().String()
-	res["type"] = LinkTypePerUserKey
-	res["public_keys"] = publicKeysEntry
-	return res, nil
+	payload := make(JSONPayload)
+	payload["sig"] = sig
+	payload["signing_kid"] = signer.GetKID().String()
+	payload["type"] = LinkTypePerUserKey
+	payload["public_keys"] = publicKeysEntry
+	return &PerUserKeyProofReverseSignedRes{
+		Payload: payload,
+		Seqno:   forward.Seqno,
+		LinkID:  linkID,
+	}, nil
 }
 
 // StellarProof creates a proof of a stellar wallet.

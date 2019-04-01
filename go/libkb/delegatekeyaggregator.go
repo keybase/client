@@ -11,7 +11,7 @@ import (
 
 // DelegatorAggregator manages delegating multiple keys in one post to the
 // server When run produces a map which goes into the 'key/multi' 'sigs' list.
-type AggSigProducer func() (JSONPayload, error)
+type AggSigProducer func() (JSONPayload, keybase1.Seqno, LinkID, error)
 
 // Run posts an array of delegations to the server. Keeping this simple as we
 // don't need any state (yet) `extra` is optional and adds an extra sig,
@@ -47,11 +47,13 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	}
 
 	if extra != nil {
-		x, err := extra()
+		x, seqno, linkID, err := extra()
 		if err != nil {
 			return err
 		}
 		args = append(args, x)
+		lastSeqno = seqno
+		lastLinkID = linkID
 	}
 
 	payload := make(JSONPayload)
