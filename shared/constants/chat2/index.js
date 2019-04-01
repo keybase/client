@@ -4,6 +4,7 @@ import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamBuildingConstants from '../../constants/team-building'
+import {clamp} from 'lodash-es'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
@@ -276,6 +277,17 @@ export const flipPhaseToString = (phase: number) => {
       return 'loading'
   }
 }
+
+export const clampImageSize = (width: number, height: number, maxSize: number) =>
+  height > width
+    ? {
+        height: clamp(height || 0, 0, maxSize),
+        width: (clamp(height || 0, 0, maxSize) * width) / (height || 1),
+      }
+    : {
+        height: (clamp(width || 0, 0, maxSize) * height) / (width || 1),
+        width: clamp(width || 0, 0, maxSize),
+      }
 
 export {
   getChannelForTeam,
