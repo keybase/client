@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -276,11 +275,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, errors.New("RemoteConversationSource.Pull called with empty convID")
 	}
 
-	// Insta fail if we are offline
-	if s.IsOffline(ctx) {
-		return chat1.ThreadView{}, OfflineError{}
-	}
-
 	// Get conversation metadata
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
@@ -324,11 +318,6 @@ func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.Conve
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 
-	// Insta fail if we are offline
-	if s.IsOffline(ctx) {
-		return nil, OfflineError{}
-	}
-
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: conv.GetConvID(),
 		MessageIDs:     msgIDs,
@@ -348,9 +337,6 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.U
 
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
-	if s.IsOffline(ctx) {
-		return nil, OfflineError{}
-	}
 	return s.boxer.UnboxMessages(ctx, msgs, conv)
 }
 
@@ -506,60 +492,6 @@ func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1
 	return continuousUpdate, nil
 }
 
-func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
-
-	// If we are offline, then bail out of here with no error
-	if s.IsOffline(ctx) {
-		s.Debug(ctx, "identifyTLF: not performing identify because offline")
-		return nil
-	}
-
-	for _, msg := range msgs {
-		if msg.IsValid() {
-
-			// Early out if we have stored a clean identify at some point
-			idBroken := s.storage.IsTLFIdentifyBroken(ctx, msg.Valid().ClientHeader.Conv.Tlfid)
-			if !idBroken {
-				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
-				return nil
-			}
-			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
-
-			var names []string
-			tlfID := msg.Valid().ClientHeader.Conv.Tlfid
-			switch conv.GetMembersType() {
-			case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
-				chat1.ConversationMembersType_IMPTEAMUPGRADE:
-				names = utils.SplitTLFName(tlfName)
-			case chat1.ConversationMembersType_TEAM:
-				// early out of team convs
-				return nil
-			}
-
-			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
-				msg.GetMessageID(), names, conv.GetConvID())
-			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic,
-				func() keybase1.TLFID {
-					return keybase1.TLFID(tlfID.String())
-				},
-				func() keybase1.CanonicalTlfName {
-					return keybase1.CanonicalTlfName(tlfName)
-				})
-			if err != nil {
-				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s err: %s", tlfName, conv.GetConvID(),
-					err)
-				return err
-			}
-
-			return nil
-		}
-	}
-
-	s.Debug(ctx, "identifyTLF: no identify performed, no valid messages found")
-	return nil
-}
-
 func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1.UID,
 	thread *chat1.ThreadView, conv chat1.Conversation, reason chat1.GetThreadReason) (holesFilled int, err error) {
 	defer s.Trace(ctx, func() error { return err }, "resolveHoles")()
@@ -583,11 +515,6 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 		// Nothing to do
 		return 0, nil
 	}
-	if s.IsOffline(ctx) {
-		// Don't attempt if we are offline
-		return 0, OfflineError{}
-	}
-
 	// Fetch all missing messages from server, and sub in the real ones into the placeholder slots
 	msgs, err := s.GetMessages(ctx, conv, uid, msgIDs, &reason)
 	if err != nil {
@@ -640,28 +567,19 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				query, pagination)
 		}
 		if err == nil {
-			// Do online only things
-			if !s.IsOffline(ctx) {
-				// Identify this TLF by running crypt keys
-				if ierr := s.identifyTLF(ctx, conv, uid, thread.Messages); ierr != nil {
-					s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-					return chat1.ThreadView{}, ierr
+			// Before returning the stuff, send remote request to mark as read if
+			// requested.
+			if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
+				readMsgID := thread.Messages[0].GetMessageID()
+				if err = s.MarkAsRead(ctx, convID, uid, readMsgID); err != nil {
+					return chat1.ThreadView{}, err
 				}
-				// Before returning the stuff, send remote request to mark as read if
-				// requested.
-				if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
-					readMsgID := thread.Messages[0].GetMessageID()
-					if err = s.MarkAsRead(ctx, convID, uid, readMsgID); err != nil {
-						return chat1.ThreadView{}, err
-					}
-					if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
-						return chat1.ThreadView{}, err
-					}
-				} else {
-					s.Debug(ctx, "Pull: skipping mark as read call")
+				if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
+					return chat1.ThreadView{}, err
 				}
+			} else {
+				s.Debug(ctx, "Pull: skipping mark as read call")
 			}
-
 			// Run post process stuff
 			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, true); err != nil {
 				return thread, err
@@ -672,11 +590,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	} else {
 		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
-	}
-
-	// Insta fail if we are offline
-	if s.IsOffline(ctx) {
-		return chat1.ThreadView{}, OfflineError{}
 	}
 
 	// Fetch the entire request on failure
@@ -855,11 +768,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
-		// Insta fail if we are offline
-		if s.IsOffline(ctx) {
-			return nil, OfflineError{}
-		}
-
 		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 			ConversationID: convID,
 			MessageIDs:     remoteMsgs,
@@ -894,13 +802,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 			res = append(res, rmsgsTab[msgIDs[index]])
 		}
 	}
-
-	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, conv, uid, res); ierr != nil {
-		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
-		return nil, ierr
-	}
-
 	return res, nil
 }
 
@@ -937,11 +838,6 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
 		} else {
-			// Insta fail if we are offline
-			if s.IsOffline(ctx) {
-				return nil, OfflineError{}
-			}
-
 			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv, nil)
 			if err != nil {
 				return res, err
@@ -956,13 +852,6 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 			return res, err
 		}
 	}
-
-	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, conv, uid, res); ierr != nil {
-		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-		return res, ierr
-	}
-
 	sort.Sort(utils.ByMsgUnboxedMsgID(res))
 	return res, nil
 }
