@@ -15,7 +15,7 @@ type Props = {
 
 const DevicePage = (props: Props) => {
   // $ForceType
-  const p: {navigation: any} = props
+  const p: void = props
   return <DevicePageReal {...p} />
 }
 
@@ -30,7 +30,6 @@ const provider = Sb.createPropProviderWithCommon({
       revokedAt: _revokedAt && _revoked ? new Date('2002-10-11T01:23:45').getTime() : null,
       type: _type,
     }),
-    navigation: {dispatch: Sb.action('Nav dispatch')},
     onBack: Sb.action('onback'),
     showRevokeDevicePage: _revoked ? null : Sb.action('showRevokeDevicePage'),
   }),

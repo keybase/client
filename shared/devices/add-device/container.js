@@ -7,7 +7,7 @@ import AddDevice from '.'
 import flags from '../../util/feature-flags'
 import type {RouteProps} from '../../route-tree/render-route'
 
-const mapDispatchToProps = (dispatch, {navigateUp, navigation}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onAddComputer: () => {
     if (!flags.useNewRouter) {
       dispatch(navigateUp())
@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigation}) => ({
   },
   onCancel: () => {
     if (flags.useNewRouter) {
-      // We don't have navigateUp in upgraded Routes
+      // We don't have ownProps.navigateUp in upgraded Routes
       dispatch(RouteTreeGen.createNavigateUp())
     } else {
       dispatch(navigateUp())

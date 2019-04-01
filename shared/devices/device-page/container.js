@@ -7,7 +7,7 @@ import {namedConnect, getRouteProps} from '../../util/container'
 import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-type OwnProps = {|navigation: any|}
+type OwnProps = {||}
 
 const mapStateToProps = (state, p: OwnProps) => {
   // TODO(newRouter) after committing to new router:
@@ -24,19 +24,16 @@ const mapStateToProps = (state, p: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _showRevokeDevicePage: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createShowRevokePage({deviceID})),
   onBack: () => {
-    if (flags.useNewRouter) {
-    } else {
+    if (!flags.useNewRouter) {
       dispatch(RouteTreeGen.createNavigateUp())
     }
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   device: stateProps.device,
   onBack: dispatchProps.onBack,
-  showRevokeDevicePage: () => {
-    dispatchProps._showRevokeDevicePage(stateProps.device.deviceID)
-  },
+  showRevokeDevicePage: () => dispatchProps._showRevokeDevicePage(stateProps.device.deviceID),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

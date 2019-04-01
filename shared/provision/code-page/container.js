@@ -1,5 +1,6 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
 import {compose, connect, isMobile, safeSubmit} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
@@ -25,7 +26,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => {
-    !flags.useNewRouter && dispatch(ownProps.navigateUp())
+    if (flags.useNewRouter) {
+      dispatch(RouteTreeGen.createNavigateUp())
+    } else {
+      dispatch(ownProps.navigateUp())
+    }
   },
   onSubmitTextCode: (code: string) =>
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),

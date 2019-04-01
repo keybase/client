@@ -370,7 +370,7 @@ class ProvisioningManager {
         response &&
           RouteTreeGen.createNavigateTo({
             parentPath: [],
-            path: doingDeviceAdd ? devicesRoot : [Tabs.loginTab],
+            path: doingDeviceAdd ? devicesRoot : [flags.useNewRouter ? 'login' : Tabs.loginTab],
           }),
       ]
     }
@@ -434,7 +434,11 @@ function* addNewDevice(state) {
     ProvisioningManager.getSingleton().done('add device success')
     // Now refresh and nav back
     yield Saga.put(DevicesGen.createLoad())
-    yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: devicesRoot, path: []}))
+    if (flags.useNewRouter) {
+      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [], path: devicesRoot}))
+    } else {
+      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: devicesRoot, path: []}))
+    }
     if (flags.useNewRouter) {
       yield Saga.put(RouteTreeGen.createClearModals())
     }
@@ -485,7 +489,9 @@ const showPaperkeyPage = state =>
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey'], replace: true})
 
 const showFinalErrorPage = (state, action) => {
-  const parentPath = action.payload.fromDeviceAdd ? devicesRoot : [Tabs.loginTab]
+  const parentPath = action.payload.fromDeviceAdd
+    ? devicesRoot
+    : [flags.useNewRouter ? 'login' : Tabs.loginTab]
   let path
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     path = ['error']
@@ -493,7 +499,9 @@ const showFinalErrorPage = (state, action) => {
     path = []
   }
 
-  return RouteTreeGen.createNavigateTo({parentPath, path, replace: true})
+  return RouteTreeGen.createNavigateTo(
+    !flags.useNewRouter ? {parentPath, path, replace: true} : {path: [...parentPath, ...path], replace: true}
+  )
 }
 
 const showUsernameEmailPage = () =>

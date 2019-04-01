@@ -6,9 +6,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
 import * as Kb from '../common-adapters'
-import {NavigationActions} from '@react-navigation/core'
 import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/container'
-import {partition, noop} from 'lodash-es'
+import {partition} from 'lodash-es'
 import flags from '../util/feature-flags'
 import type {RouteProps} from '../route-tree/render-route'
 
@@ -71,7 +70,9 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   }
 }
 
-class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof Devices>> {
+class ReloadableDevices extends React.PureComponent<
+  React.ElementConfig<typeof Devices> & {|clearBadges: () => void|}
+> {
   componentWillUnmount() {
     this.props.clearBadges()
   }
@@ -96,7 +97,6 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
           showPaperKeyNudge={this.props.showPaperKeyNudge}
           title={this.props.title}
           waiting={this.props.waiting}
-          clearBadges={noop}
         />
       </Kb.Reloadable>
     )

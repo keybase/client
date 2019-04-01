@@ -76,7 +76,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => {
     !flags.useNewRouter && dispatch(ownProps.navigateUp())
   },
-  onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
+  onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onSubmit: (password: string) =>
     dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),
 })

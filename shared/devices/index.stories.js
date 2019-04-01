@@ -66,7 +66,6 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   Devices: p => ({
     _stateOverride: p._stateOverride,
-    clearBadges: Sb.action('clearBadges'),
     hasNewlyRevoked: p.revoked.some(i => i.key === '7'),
     items: p.active,
     loadDevices: Sb.action('loaddevices'),
