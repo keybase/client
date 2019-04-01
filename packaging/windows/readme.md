@@ -19,7 +19,7 @@
 - Open a new command window to capture the environment changes and enter:
 - `cd %GOPATH%\src\github.com\keybase\client\shared`
 - `yarn install`
-- `yarn run package -- --arch ia32 --platform win32 --appVersion [version]`
+- `yarn run package -- --arch x64 --platform win32 --appVersion [version]`
 
 # Windows VMs
 - available [here](https://dev.windows.com/en-us/microsoft-edge/tools/vms/windows/)
