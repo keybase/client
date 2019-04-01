@@ -36,7 +36,7 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Payload Types
 type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'mobile'|}>
-type _ForgotUsernamePayload = $ReadOnly<{|email: string|}>
+type _ForgotUsernamePayload = $ReadOnly<{|email: string, phone: string|}>
 type _ForgotUsernameResultPayload = $ReadOnly<{|result: string|}>
 type _ProvisionErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
 type _ShowCodePagePayload = $ReadOnly<{|code: HiddenString, error: ?HiddenString|}>

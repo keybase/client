@@ -508,7 +508,10 @@ const showUsernameEmailPage = () =>
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['username']})
 
 const forgotUsername = (state, action) =>
-  RPCTypes.accountRecoverUsernameRpcPromise({email: action.payload.email}, Constants.forgotUsernameWaitingKey)
+  RPCTypes.accountRecoverUsernameRpcPromise(
+    {email: action.payload.email, phone: action.payload.phone},
+    Constants.forgotUsernameWaitingKey
+  )
     .then(result => ProvisionGen.createForgotUsernameResult({result: 'success'}))
     .catch(error =>
       ProvisionGen.createForgotUsernameResult({

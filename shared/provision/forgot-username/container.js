@@ -13,7 +13,7 @@ const mapStateToProps = state => ({
 
 const dispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSubmit: (email: string) => dispatch(ProvisionGen.createForgotUsername({email})),
+  onSubmit: (email: string) => dispatch(ProvisionGen.createForgotUsername({email, phone: ''})),
 })
 
 export default connect<OwnProps, _, _, _, _>(
