@@ -24,6 +24,9 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 
 	// Store all the args to build a single big json later
 	var args []JSONPayload
+	var uid keybase1.UID
+	var lastSeqno keybase1.Seqno
+	var lastLinkID LinkID
 
 	for i := range ds {
 		// Mutate the original and not a copy from range
@@ -36,6 +39,11 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 
 		flatArgs := d.postArg.flattenHTTPArgs(d.postArg.getHTTPArgs())
 		args = append(args, convertStringMapToJSONPayload(flatArgs))
+		if uid.IsNil() && d.Me != nil {
+			uid = d.Me.GetUID()
+		}
+		lastSeqno = d.proof.Seqno
+		lastLinkID = d.linkID
 	}
 
 	if extra != nil {
@@ -65,7 +73,10 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	apiArg.JSONPayload = payload
 
 	_, err = m.G().API.PostJSON(m, apiArg)
-	return err
+	if err != nil {
+		return err
+	}
+	return MerkleCheckPostedUserSig(m, uid, lastSeqno, lastLinkID)
 }
 
 // Make the "per_user_key" section of an API arg.

@@ -458,7 +458,17 @@ func (u *User) UntrackingProofFor(m MetaContext, signingKey GenericKey, sigVersi
 
 // arg.Me user is used to get the last known seqno in ProofMetadata.
 // If arg.Me == nil, set arg.Seqno.
-func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
+func KeyProof(m MetaContext, arg Delegator) (*jsonw.Wrapper, error) {
+	res, err := KeyProof2(m, arg)
+	if err != nil {
+		return nil, err
+	}
+	return res.J, nil
+}
+
+// arg.Me user is used to get the last known seqno in ProofMetadata.
+// If arg.Me == nil, set arg.Seqno.
+func KeyProof2(m MetaContext, arg Delegator) (ret *ProofMetadataSigned, err error) {
 	var kp *jsonw.Wrapper
 	includePGPHash := false
 
@@ -480,7 +490,7 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 		}
 
 		if kp, err = keySection.ToJSON(); err != nil {
-			return
+			return nil, err
 		}
 	}
 
@@ -505,13 +515,12 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 		HighSkipFallback: highSkipFallback,
 		PrevLinkID:       arg.PrevLinkID,
 		MerkleRoot:       arg.MerkleRoot,
-	}.ToJSON(m)
-
+	}.ToJSON2(m)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	body := ret.AtKey("body")
+	body := ret.J.AtKey("body")
 
 	if arg.Device != nil {
 		device := *arg.Device
@@ -523,12 +532,10 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 		}
 		body.SetKey("device", dw)
 	}
-
 	if kp != nil {
 		body.SetKey(string(arg.DelegationType), kp)
 	}
-
-	return
+	return ret, nil
 }
 
 func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceType, remotename string, sigVersion SigVersion) (ret *jsonw.Wrapper, err error) {
