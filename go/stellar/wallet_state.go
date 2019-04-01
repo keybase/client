@@ -107,6 +107,46 @@ func (w *WalletState) BaseFee(mctx libkb.MetaContext) uint64 {
 	return w.options.BaseFee(mctx, w)
 }
 
+// AccountName returns the name for an account.
+func (w *WalletState) AccountName(accountID stellar1.AccountID) (string, error) {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return "", ErrAccountNotFound
+	}
+
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.name, nil
+}
+
+// IsPrimary returns true if an account is the primary account for the user.
+func (w *WalletState) IsPrimary(accountID stellar1.AccountID) (bool, error) {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return false, ErrAccountNotFound
+	}
+
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.isPrimary, nil
+}
+
+// AccountMode returns the mode of the account (USER or MOBILE).
+// MOBILE accounts can only get access to the secret key from a mobile device.
+func (w *WalletState) AccountMode(accountID stellar1.AccountID) (stellar1.AccountMode, error) {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return stellar1.AccountMode_NONE, ErrAccountNotFound
+	}
+
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.accountMode, nil
+}
+
 // accountState returns the AccountState object for an accountID.
 // If it doesn't exist in `accounts`, it will return nil, false.
 func (w *WalletState) accountState(accountID stellar1.AccountID) (*AccountState, bool) {
@@ -164,6 +204,48 @@ func (w *WalletState) Primed() bool {
 	w.Lock()
 	defer w.Unlock()
 	return w.refreshCount > 0
+}
+
+// UpdateAccountEntries gets the bundle from the server and updates the individual
+// account entries with the server's bundle information.
+func (w *WalletState) UpdateAccountEntries(mctx libkb.MetaContext, reason string) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("WalletState.UpdateAccountEntries [%s]", reason), func() error { return err })()
+
+	bundle, err := remote.FetchSecretlessBundle(mctx)
+	if err != nil {
+		return err
+	}
+
+	return w.UpdateAccountEntriesWithBundle(mctx, reason, bundle)
+}
+
+// UpdateAccountEntriesWithBundle updates the individual account entries with the
+// bundle information.
+func (w *WalletState) UpdateAccountEntriesWithBundle(mctx libkb.MetaContext, reason string, bundle *stellar1.Bundle) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("WalletState.UpdateAccountEntriesWithBundle [%s]", reason), func() error { return err })()
+
+	if bundle == nil {
+		return errors.New("nil bundle")
+	}
+
+	active := make(map[stellar1.AccountID]bool)
+	for _, account := range bundle.Accounts {
+		a, _ := w.accountStateBuild(account.AccountID)
+		a.updateEntry(account)
+		active[account.AccountID] = true
+	}
+
+	// clean out any unusued accounts
+	w.Lock()
+	for accountID := range w.accounts {
+		if active[accountID] {
+			continue
+		}
+		delete(w.accounts, accountID)
+	}
+	w.Unlock()
+
+	return nil
 }
 
 // RefreshAll refreshes all the accounts.
