@@ -2286,11 +2286,15 @@ function* hideConversation(_, action) {
   // that state bounces back.
   yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
   try {
-    yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-      conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      status: RPCChatTypes.commonConversationStatus.ignored,
-    }, Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey))
+    yield* Saga.callPromise(
+      RPCChatTypes.localSetConversationStatusLocalRpcPromise,
+      {
+        conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        status: RPCChatTypes.commonConversationStatus.ignored,
+      },
+      Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey)
+    )
   } catch (err) {
     logger.error('Failed to hide conversation: ' + err)
   }
@@ -2298,11 +2302,15 @@ function* hideConversation(_, action) {
 
 function* unhideConversation(_, action) {
   try {
-    yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-      conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      status: RPCChatTypes.commonConversationStatus.unfiled,
-    }, Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey))
+    yield* Saga.callPromise(
+      RPCChatTypes.localSetConversationStatusLocalRpcPromise,
+      {
+        conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        status: RPCChatTypes.commonConversationStatus.unfiled,
+      },
+      Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey)
+    )
   } catch (err) {
     logger.error('Failed to unhide conversation: ' + err)
   }
