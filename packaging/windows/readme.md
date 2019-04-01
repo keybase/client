@@ -2,12 +2,12 @@
 ## Building Client Executables
 [go for windows](https://golang.org/dl)
 
-Environment: `set GOPATH`
+Environment: `set GOPATH=C:\work`
 
 [git for windows](https://git-scm.com/downloads)
 - Select "Use Git and optional Unix tools from the Command Prompt" (so scripts with `rm` will work)
 - Checkout as-is, conmmit Unix style line endings
-- Use Windows' default console window (especially on Windows 10)  
+- Use Windows' default console window (especially on Windows 10)
 
 [Chocolatey](https://chocolatey.org/install) (helpful for yarn)
 then: `choco install yarn`
@@ -19,12 +19,13 @@ then: `choco install yarn`
 [GCC via Mingw-64](https://sourceforge.net/projects/mingw-w64/) (for building kbfsdokan)
 - Be sure and choose architecture x86-64, NOT i686
 - Also recommend not installing in `program files`
+  - Try `C:\mingw-w64\.... instead`
 
 Environment:
 ```
-set PATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6_rev0\mingw64\bin;%PATH%
-set CC=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6_rev0\mingw64\bin\gcc
-set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6_rev0\mingw64\include
+set PATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin;%PATH%
+set CC=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\bin\gcc
+set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 ```
 
 ## Building Installers
@@ -33,7 +34,7 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6_rev0\mingw64\include
 (may require live.com account)
 
 Environment:
-`call C:\Program Files(x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat`
+`call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"`
 
 [.net 3.5.1](https://www.microsoft.com/en-us/download/details.aspx?id=22)
 
