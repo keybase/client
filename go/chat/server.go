@@ -464,7 +464,6 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
-		Offline:          h.G().ConvSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -508,7 +507,6 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
-		Offline:          h.G().ConvSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -877,8 +875,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 
 	// Clean up context
 	cancel()
-
-	res.Offline = h.G().ConvSource.IsOffline(ctx)
 	return res, fullErr
 }
 
@@ -1093,7 +1089,6 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 	}
 	return chat1.GetMessagesLocalRes{
 		Messages:         messages,
-		Offline:          h.G().ConvSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
 	}, nil
 }

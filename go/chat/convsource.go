@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -19,7 +18,6 @@ import (
 type baseConversationSource struct {
 	globals.Contextified
 	utils.DebugLabeler
-	*sourceOfflinable
 
 	boxer *Boxer
 	ri    func() chat1.RemoteInterface
@@ -30,11 +28,10 @@ type baseConversationSource struct {
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	labeler := utils.NewDebugLabeler(g.GetLog(), "baseConversationSource", false)
 	return &baseConversationSource{
-		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     labeler,
-		ri:               ri,
-		boxer:            boxer,
-		sourceOfflinable: newSourceOfflinable(g, labeler),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: labeler,
+		ri:           ri,
+		boxer:        boxer,
 	}
 }
 
@@ -230,21 +227,6 @@ func (s *baseConversationSource) getUnreadlineRemote(ctx context.Context, convID
 		return nil, err
 	}
 	return res.UnreadlineID, nil
-}
-
-func (s *baseConversationSource) IsOffline(ctx context.Context) bool {
-	offline, connectedCh := s.getOfflineInfo()
-	if !offline {
-		return false
-	}
-	select {
-	case <-connectedCh:
-		s.Debug(ctx, "IsOffline: waited, and connected")
-		return false
-	case <-time.After(10 * time.Second):
-		s.Debug(ctx, "IsOffline: waited, and timed out")
-		return true
-	}
 }
 
 type RemoteConversationSource struct {

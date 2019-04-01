@@ -65,8 +65,6 @@ type UnboxConversationInfo interface {
 }
 
 type ConversationSource interface {
-	Offlinable
-
 	AcquireConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	ReleaseConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 
