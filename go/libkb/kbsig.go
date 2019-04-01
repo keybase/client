@@ -538,13 +538,13 @@ func KeyProof2(m MetaContext, arg Delegator) (ret *ProofMetadataSigned, err erro
 	return ret, nil
 }
 
-func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceType, remotename string, sigVersion SigVersion) (ret *jsonw.Wrapper, err error) {
-	ret, err = ProofMetadata{
+func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceType, remotename string, sigVersion SigVersion) (*ProofMetadataSigned, error) {
+	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeWebServiceBinding,
 		SigningKey: signingKey,
 		SigVersion: sigVersion,
-	}.ToJSON(m)
+	}.ToJSON2(m)
 	if err != nil {
 		return nil, err
 	}
@@ -554,8 +554,7 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 		return nil, err
 	}
 	service.SetKey("entropy", jsonw.NewString(entropy))
-
-	ret.AtKey("body").SetKey("service", service)
+	ret.J.AtKey("body").SetKey("service", service)
 	return ret, err
 }
 

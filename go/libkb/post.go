@@ -18,10 +18,13 @@ type PostProofRes struct {
 }
 
 type PostProofArg struct {
+	UID               keybase1.UID
+	Seqno             keybase1.Seqno
 	Sig               string
 	SigInner          []byte
 	RemoteServiceType string
-	ID                keybase1.SigID
+	SigID             keybase1.SigID
+	LinkID            LinkID
 	RemoteUsername    string
 	ProofType         string
 	Supersede         bool
@@ -31,8 +34,8 @@ type PostProofArg struct {
 
 func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 	hargs := HTTPArgs{
-		"sig_id_base":     S{arg.ID.ToString(false)},
-		"sig_id_short":    S{arg.ID.ToShortID()},
+		"sig_id_base":     S{arg.SigID.ToString(false)},
+		"sig_id_short":    S{arg.SigID.ToShortID()},
 		"sig":             S{arg.Sig},
 		"is_remote_proof": B{true},
 		"supersede":       B{arg.Supersede},
@@ -49,7 +52,7 @@ func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 
-	res, err := m.G().API.Post(m, APIArg{
+	apiRes, err := m.G().API.Post(m, APIArg{
 		Endpoint:    "sig/post",
 		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
@@ -57,16 +60,23 @@ func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 	if err != nil {
 		return nil, err
 	}
-	var tmp PostProofRes
-	res.Body.AtKey("proof_text").GetStringVoid(&tmp.Text, &err)
-	res.Body.AtKey("proof_id").GetStringVoid(&tmp.ID, &err)
-	tmp.Metadata = res.Body.AtKey("proof_metadata")
 
-	var ret *PostProofRes
-	if err == nil {
-		ret = &tmp
+	err = MerkleCheckPostedUserSig(m, arg.UID, arg.Seqno, arg.LinkID)
+	if err != nil {
+		return nil, err
 	}
-	return ret, err
+
+	var res PostProofRes
+	res.Text, err = apiRes.Body.AtKey("proof_text").GetString()
+	if err != nil {
+		return nil, err
+	}
+	res.ID, err = apiRes.Body.AtKey("proof_id").GetString()
+	if err != nil {
+		return nil, err
+	}
+	res.Metadata = apiRes.Body.AtKey("proof_metadata")
+	return &res, nil
 }
 
 type PostAuthProofArg struct {
