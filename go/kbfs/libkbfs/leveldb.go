@@ -27,7 +27,7 @@ const (
 	diskCacheVersionFilename string = "version"
 	metered                         = true
 	unmetered                       = false
-	compactionTimeout               = 2 * time.Second
+	compactionTimeout               = 5 * time.Second
 )
 
 var (
@@ -76,8 +76,9 @@ func (ldb *LevelDb) tryTriggerCompaction() {
 	ldb.compactionLock.Lock()
 	defer ldb.compactionLock.Unlock()
 	// If we're not supposed to be compacting yet, return early
-	if time.Now().After(ldb.compactionTime) {
-		ldb.compactionTimer.Reset(ldb.compactionTime.Sub(time.Now()))
+	timeUntilCompact := ldb.compactionTime.Sub(time.Now())
+	if timeUntilCompact > 0 {
+		ldb.compactionTimer.Reset(timeUntilCompact)
 		return
 	}
 
