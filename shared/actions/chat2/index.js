@@ -1584,7 +1584,7 @@ function* previewConversationFindExisting(state, action) {
   )
 
   if (!conversationIDKey) {
-    const results = yield Saga.callUntyped(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+    const results = yield RPCChatTypes.localFindConversationsLocalRpcPromise({
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
       oneChatPerTLF: true,
@@ -1595,7 +1595,7 @@ function* previewConversationFindExisting(state, action) {
     })
     yield Saga.put(
       Chat2Gen.createMetasReceived({
-        metas: results.uiConversations.map(Constants.inboxUIItemToConversationMeta),
+        metas: (results.uiConversations || []).map(Constants.inboxUIItemToConversationMeta),
       })
     )
     yield* previewConversationAfterFindExisting(state, action, results, users)
