@@ -459,13 +459,14 @@ func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 	return cli.SimpleFSClearConflictState(ctx, path)
 }
 
-// SimpleFSPing implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSPing(ctx context.Context) error {
+// SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSAreWeConnectedToMDServer(
+	ctx context.Context) (bool, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
-		return err
+		return false, err
 	}
-	return cli.SimpleFSPing(ctx)
+	return cli.SimpleFSAreWeConnectedToMDServer(ctx)
 }

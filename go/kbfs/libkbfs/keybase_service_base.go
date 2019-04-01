@@ -1154,6 +1154,15 @@ func (k *KeybaseServiceBase) DecryptFavorites(ctx context.Context, dataToEncrypt
 	return k.kbfsClient.DecryptFavorites(ctx, dataToEncrypt)
 }
 
+// NotifyOnlineStatusChanged implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyOnlineStatusChanged(ctx context.Context,
+	online bool) error {
+	fmt.Printf("SONGGAO onlienStatus %v\n", online)
+	k.log.CDebugf(ctx, "Sending notification for onlineStatus: online=%v", online)
+	return k.kbfsClient.FSOnlineStatusChangedEvent(ctx, online)
+}
+
 // Notify implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	// Reduce log spam by not repeating log lines for

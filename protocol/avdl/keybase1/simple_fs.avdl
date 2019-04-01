@@ -486,5 +486,5 @@ protocol SimpleFS {
   // specified in `path`.
   void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
 
-  void simpleFSPing();
+  boolean simpleFSAreWeConnectedToMDServer();
 }

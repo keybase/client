@@ -630,6 +630,9 @@ type KeybaseService interface {
 	// DecryptFavorites decrypts cached favorites stored on disk.
 	DecryptFavorites(ctx context.Context, dataToDecrypt []byte) ([]byte, error)
 
+	// NotifyOnlineStatusChanged notifies about online/offline status
+	// changes.
+	NotifyOnlineStatusChanged(ctx context.Context, online bool) error
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 
@@ -901,6 +904,8 @@ type Reporter interface {
 		mode ErrorModeType, err error)
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
+	// NotifyOnlineStatusChanged sends the given notification to any sink.
+	OnlineStatusChanged(ctx context.Context, online bool)
 	// Notify sends the given notification to any sink.
 	Notify(ctx context.Context, notification *keybase1.FSNotification)
 	// NotifyPathUpdated sends the given notification to any sink.

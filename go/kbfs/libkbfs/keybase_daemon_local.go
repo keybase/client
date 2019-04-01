@@ -370,6 +370,11 @@ func (k *KeybaseDaemonLocal) DecryptFavorites(ctx context.Context,
 	return nil, checkContext(ctx)
 }
 
+// NotifyOnlineStatusChanged implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyOnlineStatusChanged(ctx context.Context, online bool) error {
+	return checkContext(ctx)
+}
+
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return checkContext(ctx)

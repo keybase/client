@@ -1149,9 +1149,9 @@
       ],
       "response": null
     },
-    "simpleFSPing": {
+    "simpleFSAreWeConnectedToMDServer": {
       "request": [],
-      "response": null
+      "response": "boolean"
     }
   },
   "namespace": "keybase.1"

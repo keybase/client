@@ -2979,6 +2979,20 @@ func (mr *MockKeybaseServiceMockRecorder) Notify(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockKeybaseService)(nil).Notify), arg0, arg1)
 }
 
+// NotifyOnlineStatusChanged mocks base method
+func (m *MockKeybaseService) NotifyOnlineStatusChanged(arg0 context.Context, arg1 bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyOnlineStatusChanged", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyOnlineStatusChanged indicates an expected call of NotifyOnlineStatusChanged
+func (mr *MockKeybaseServiceMockRecorder) NotifyOnlineStatusChanged(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOnlineStatusChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOnlineStatusChanged), arg0, arg1)
+}
+
 // NotifyPathUpdated mocks base method
 func (m *MockKeybaseService) NotifyPathUpdated(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -4603,6 +4617,18 @@ func (m *MockReporter) NotifySyncStatus(arg0 context.Context, arg1 *keybase1.FSP
 func (mr *MockReporterMockRecorder) NotifySyncStatus(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifySyncStatus", reflect.TypeOf((*MockReporter)(nil).NotifySyncStatus), arg0, arg1)
+}
+
+// OnlineStatusChanged mocks base method
+func (m *MockReporter) OnlineStatusChanged(arg0 context.Context, arg1 bool) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "OnlineStatusChanged", arg0, arg1)
+}
+
+// OnlineStatusChanged indicates an expected call of OnlineStatusChanged
+func (mr *MockReporterMockRecorder) OnlineStatusChanged(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnlineStatusChanged", reflect.TypeOf((*MockReporter)(nil).OnlineStatusChanged), arg0, arg1)
 }
 
 // ReportErr mocks base method

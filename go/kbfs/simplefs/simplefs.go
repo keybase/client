@@ -2283,7 +2283,15 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
 }
 
-// SimpleFSPing implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSPing(ctx context.Context) error {
-	return nil
+// SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, error) {
+	// This is kind of expensive, but we are only calling this from GUI right
+	// after KBFS daemon is connected. After that we rely on notifications.
+	// We can change this to diriectly get from currentStatus in KBFSOps if
+	// that changes.
+	status, _, err := k.config.KBFSOps().Status(ctx)
+	if err != nil {
+		return false, err
+	}
+	return status.FailingServices[libkbfs.MDServiceName] == nil, nil
 }

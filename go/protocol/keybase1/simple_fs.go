@@ -1368,7 +1368,7 @@ type SimpleFSSetFolderSyncConfigArg struct {
 	Config FolderSyncConfig `codec:"config" json:"config"`
 }
 
-type SimpleFSPingArg struct {
+type SimpleFSAreWeConnectedToMDServerArg struct {
 }
 
 type SimpleFSInterface interface {
@@ -1479,7 +1479,7 @@ type SimpleFSInterface interface {
 	SimpleFSReset(context.Context, Path) error
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
-	SimpleFSPing(context.Context) error
+	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1976,13 +1976,13 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
-			"simpleFSPing": {
+			"simpleFSAreWeConnectedToMDServer": {
 				MakeArg: func() interface{} {
-					var ret [1]SimpleFSPingArg
+					var ret [1]SimpleFSAreWeConnectedToMDServerArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.SimpleFSPing(ctx)
+					ret, err = i.SimpleFSAreWeConnectedToMDServer(ctx)
 					return
 				},
 			},
@@ -2253,7 +2253,7 @@ func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg S
 	return
 }
 
-func (c SimpleFSClient) SimpleFSPing(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSPing", []interface{}{SimpleFSPingArg{}}, nil)
+func (c SimpleFSClient) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res)
 	return
 }
