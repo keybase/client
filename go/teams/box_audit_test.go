@@ -2,7 +2,6 @@ package teams
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -426,12 +425,9 @@ func TestBoxAuditRaces(t *testing.T) {
 	}
 }
 
-// TestBoxAuditCalculation makes a team with three users, has one of them
-// revoke a device and another rotate the team, and makes sure both server and
-// client's view of the summaries match before and after. Finally, it checks to
-// make sure unmarshalAndVerifyBatchSummary actually does verify and if another
-// table's hash is encoded into the sigchain, the function returns a hash
-// mismatch error instead of just accepting the server's table.
+// TestBoxAuditCalculation makes sure we calculate summaries at different
+// merkle seqnos properly, regardless of users who are reset or who rotate
+// their devices.
 func TestBoxAuditCalculation(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
@@ -449,69 +445,143 @@ func TestBoxAuditCalculation(t *testing.T) {
 	puk := aU.User.GetComputedKeyFamily().GetLatestPerUserKey()
 	initSeqno := puk.Seqno
 
-	team, err := loadTeamForBoxAudit(aM, aTeamID)
-	require.NoError(t, err)
-	serverSummary, err := retrieveAndVerifySigchainSummary(aM, team)
-	require.NoError(t, err)
-	clientSummary, err := calculateExpectedSummary(aM, team)
-	require.NoError(t, err)
+	load := func(mctx libkb.MetaContext, teamID keybase1.TeamID) (team *Team, chainSummary, currentSummary *boxPublicSummary) {
+		team, err := loadTeamForBoxAudit(mctx, teamID)
+		require.NoError(t, err)
+		chainSummary, err = calculateChainSummary(mctx, team)
+		require.NoError(t, err)
+		currentSummary, err = calculateCurrentSummary(mctx, team)
+		require.NoError(t, err)
+		return team, chainSummary, currentSummary
+	}
+
+	team, chainSummary, currentSummary := load(aM, aTeamID)
 	expected := boxPublicSummaryTable{
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno,
 		cU.User.GetUID(): initSeqno,
 	}
-	require.Equal(t, expected, serverSummary.table)
-	require.Equal(t, expected, clientSummary.table)
+	require.Equal(t, expected, chainSummary.table)
+	require.Equal(t, expected, currentSummary.table)
 
 	t.Logf("B rotates PUK")
 	kbtest.RotatePaper(*bTc, bU)
+
+	team, chainSummary, currentSummary = load(cM, aTeamID)
+	newExpected := boxPublicSummaryTable{
+		aU.User.GetUID(): initSeqno,
+		bU.User.GetUID(): initSeqno + 3,
+		cU.User.GetUID(): initSeqno,
+	}
+	require.Equal(t, expected, chainSummary.table)
+	require.Equal(t, newExpected, currentSummary.table)
 
 	t.Logf("A rotates team")
 	err = team.Rotate(aM.Ctx())
 	require.NoError(t, err)
 
 	t.Logf("C checks summary")
-	// Need to reload team so we know the latest PTK generation to ask server the batches for
-	team, err = loadTeamForBoxAudit(cM, aTeamID)
-	require.NoError(t, err)
-	serverSummary, err = retrieveAndVerifySigchainSummary(cM, team)
-	require.NoError(t, err)
-	clientSummary, err = calculateExpectedSummary(cM, team)
-	require.NoError(t, err)
-	expected = boxPublicSummaryTable{
+	team, chainSummary, currentSummary = load(cM, aTeamID)
+	require.Equal(t, newExpected, chainSummary.table)
+	require.Equal(t, newExpected, currentSummary.table)
+
+	t.Logf("check after reset")
+	kbtest.ResetAccount(*cTc, cU)
+	newerExpected := boxPublicSummaryTable{
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno + 3,
-		cU.User.GetUID(): initSeqno,
 	}
-	require.Equal(t, expected, serverSummary.table)
-	require.Equal(t, expected, clientSummary.table)
+	team, chainSummary, currentSummary = load(aM, aTeamID)
+	require.Equal(t, newExpected, chainSummary.table)
+	require.Equal(t, newerExpected, currentSummary.table)
 
-	t.Logf("check we're verifying sigchain hash against server's claim")
-
-	sigchainClaimedTableHashPreimage := boxPublicSummaryTable{
-		aU.User.GetUID(): initSeqno,
-		bU.User.GetUID(): initSeqno + 3,
-		cU.User.GetUID(): initSeqno,
-	}
-	sigchainClaimedSummary, err := newBoxPublicSummaryFromTable(sigchainClaimedTableHashPreimage)
+	t.Logf("make some dummy links to test historical chain summary")
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
-	sigchainClaimedSummaryHash := sigchainClaimedSummary.Hash()
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	team, chainSummary, currentSummary = load(aM, aTeamID)
+	require.Equal(t, newExpected, chainSummary.table)
+	require.Equal(t, newerExpected, currentSummary.table)
 
-	// Simulate a malicious server rollback
-	serverClaimedTable := boxPublicSummaryTable{
+	t.Logf("make some more dummy links")
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	team, _, _ = load(aM, aTeamID)
+	err = team.Rotate(aM.Ctx())
+	require.NoError(t, err)
+	team, chainSummary, currentSummary = load(aM, aTeamID)
+	require.Equal(t, newerExpected, chainSummary.table)
+	require.Equal(t, newerExpected, currentSummary.table)
+}
+
+func TestBoxAuditSubteamCalculation(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	aU, bU, cU := fus[0], fus[1], fus[2]
+	aTc, bTc, cTc := tcs[0], tcs[1], tcs[2]
+	aM, _, _ := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc)
+	defer cleanup()
+
+	parentName, parentID := createTeam2(*tcs[0])
+	// A is not in subteam
+	subteamID, err := CreateSubteam(aM.Ctx(), aTc.G, "abc", parentName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subteamName, err := parentName.Append("abc")
+	require.NoError(t, err)
+	t.Logf("adding B as writer of team")
+	_, err = AddMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	t.Logf("adding C as writer of subteam")
+	_, err = AddMember(aM.Ctx(), aTc.G, subteamName.String(), cU.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	puk := aU.User.GetComputedKeyFamily().GetLatestPerUserKey()
+	initSeqno := puk.Seqno
+	load := func(mctx libkb.MetaContext, teamID keybase1.TeamID) (team *Team, chainSummary, currentSummary *boxPublicSummary) {
+		team, err := loadTeamForBoxAudit(mctx, teamID)
+		require.NoError(t, err)
+		chainSummary, err = calculateChainSummary(mctx, team)
+		require.NoError(t, err)
+		currentSummary, err = calculateCurrentSummary(mctx, team)
+		require.NoError(t, err)
+		return team, chainSummary, currentSummary
+	}
+
+	_, chainSummary, currentSummary := load(aM, parentID)
+	teamTable1 := boxPublicSummaryTable{
+		aU.User.GetUID(): initSeqno,
+		bU.User.GetUID(): initSeqno,
+	}
+	require.Equal(t, teamTable1, chainSummary.table)
+	require.Equal(t, teamTable1, currentSummary.table)
+
+	_, chainSummary, currentSummary = load(aM, *subteamID)
+	subteamTable1 := boxPublicSummaryTable{
+		aU.User.GetUID(): initSeqno,
+		cU.User.GetUID(): initSeqno,
+	}
+	require.Equal(t, subteamTable1, chainSummary.table)
+	require.Equal(t, subteamTable1, currentSummary.table)
+
+	t.Logf("make b an admin of parent, giving him boxes")
+	err = EditMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	_, chainSummary, currentSummary = load(aM, *subteamID)
+	t.Logf("check do not need to rotate to know about new admin in chainsummary")
+	subteamTable2 := boxPublicSummaryTable{
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno,
 		cU.User.GetUID(): initSeqno,
 	}
-	serverClaimedSummary, err := newBoxPublicSummaryFromTable(serverClaimedTable)
-	require.NoError(t, err)
-	serverClaimedSummaryEncoded := serverClaimedSummary.encoded
-	serverClaimedSummaryEncodedBase64d := base64.StdEncoding.EncodeToString(serverClaimedSummaryEncoded)
-
-	_, err = unmarshalAndVerifyBatchSummary(serverClaimedSummaryEncodedBase64d, sigchainClaimedSummaryHash)
-	require.Error(t, err)
-	msg := fmt.Sprintf("expected hash %x signed into sigchain, but got", sigchainClaimedSummaryHash)
-	require.True(t, strings.Contains(err.Error(), msg))
+	require.Equal(t, subteamTable2, chainSummary.table)
+	require.Equal(t, subteamTable2, currentSummary.table)
 }
 
 func TestBoxAuditOpen(t *testing.T) {
@@ -677,8 +747,6 @@ func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 
 	auditor := tc.G.GetTeamBoxAuditor()
 	attempt := auditor.Attempt(libkb.NewMetaContextForTest(tc), team.ID, false /* rotateBeforeAudit */)
-	fmt.Printf("%+v", attempt)
 	require.Nil(t, attempt.Error)
 	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
-
 }

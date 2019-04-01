@@ -31,6 +31,10 @@ func (n nullTeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.Team
 	return nil, fmt.Errorf("null team loader")
 }
 
+func (n nullTeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error {
+	return fmt.Errorf("null team loader")
+}
+
 // MapIDToName maps the team ID to the corresponding name, and can be serviced
 // from the team cache. If no entry is available in the cache, it is OK to return
 // an empty/nil TeamName, and callers are free to try again with a server access

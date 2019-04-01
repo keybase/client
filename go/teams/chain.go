@@ -567,8 +567,8 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 	return keybase1.TeamInvite{}, keybase1.UserVersion{}, false
 }
 
-func (t *TeamSigChainState) GetBoxSummaryHashes() map[keybase1.PerTeamKeyGeneration][]keybase1.BoxSummaryHash {
-	return t.inner.BoxSummaryHashes
+func (t *TeamSigChainState) GetMerkleRoots() map[keybase1.Seqno]keybase1.MerkleRootV2 {
+	return t.inner.MerkleRoots
 }
 
 // --------------------------------------------------
@@ -689,6 +689,10 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	if link.Seqno() == keybase1.Seqno(1) && !link.isStubbed() && !t.G().Env.Test.TeamNoHeadMerkleStore {
 		tmp := link.inner.Body.MerkleRoot.ToMerkleRootV2()
 		newState.inner.HeadMerkle = &tmp
+	}
+
+	if !link.isStubbed() && newState.inner.MerkleRoots != nil {
+		newState.inner.MerkleRoots[link.Seqno()] = link.inner.Body.MerkleRoot.ToMerkleRootV2()
 	}
 
 	return *newState, nil
@@ -975,6 +979,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				BoxSummaryHashes: make(map[keybase1.PerTeamKeyGeneration][]keybase1.BoxSummaryHash),
+				MerkleRoots:      make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1348,6 +1353,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				BoxSummaryHashes: make(map[keybase1.PerTeamKeyGeneration][]keybase1.BoxSummaryHash),
+				MerkleRoots:      make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())

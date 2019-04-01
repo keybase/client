@@ -479,6 +479,9 @@ protocol teams {
     // initial rotation of team member boxes and more for each link adding a
     // member.
     map<PerTeamKeyGeneration, array<BoxSummaryHash>> boxSummaryHashes;
+
+    // Merkle roots at each seqno
+    map<Seqno, MerkleRootV2> merkleRoots;
   }
 
   @typedef("string")

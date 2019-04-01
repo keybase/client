@@ -2195,6 +2195,29 @@ func (u UserPlusKeysV2AllIncarnations) ToUserVersion() UserVersion {
 	return u.Current.ToUserVersion()
 }
 
+func (u UserPlusKeysV2AllIncarnations) GetPerUserKeyAtSeqno(uv UserVersion, seqno Seqno, merkleSeqno Seqno) (*PerUserKey, error) {
+	incarnations := u.AllIncarnations()
+	for _, incarnation := range incarnations {
+		if incarnation.EldestSeqno == uv.EldestSeqno {
+			if incarnation.Reset != nil && incarnation.Reset.MerkleRoot.Seqno <= merkleSeqno {
+				return nil, nil
+			}
+			if len(incarnation.PerUserKeys) == 0 {
+				return nil, nil
+				// return nil, fmt.Errorf("no puks found for uv %v", uv)
+			}
+			for i := range incarnation.PerUserKeys {
+				perUserKey := incarnation.PerUserKeys[len(incarnation.PerUserKeys)-1-i]
+				if perUserKey.Seqno <= seqno {
+					return &perUserKey, nil
+				}
+			}
+			return nil, fmt.Errorf("didn't find per user key at seqno %d for uv %v", seqno, uv)
+		}
+	}
+	return nil, fmt.Errorf("didn't find uv %v in upak", uv)
+}
+
 // Can return nil.
 func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	if len(u.PerUserKeys) > 0 {

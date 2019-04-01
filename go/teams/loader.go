@@ -1357,9 +1357,36 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 // The specified team must be a subteam, or an error is returned.
 // Always sends a flurry of RPCs to get the most up to date info.
 func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error) {
-	me, err := l.world.getMe(ctx)
+	impAdminsMap := make(map[string]keybase1.UserVersion) // map to remove dups
+	err = l.MapTeamAncestors(ctx, func(t keybase1.TeamSigChainState) error {
+		ancestorChain := TeamSigChainState{inner: t}
+		// Gather the admins.
+		adminRoles := []keybase1.TeamRole{keybase1.TeamRole_OWNER, keybase1.TeamRole_ADMIN}
+		for _, role := range adminRoles {
+			uvs, err := ancestorChain.GetUsersWithRole(role)
+			if err != nil {
+				return err
+			}
+			for _, uv := range uvs {
+				impAdminsMap[uv.String()] = uv
+			}
+		}
+		return nil
+	}, teamID, "implicitAdminsAncestor", func(keybase1.TeamSigChainState) bool { return true })
 	if err != nil {
 		return nil, err
+	}
+	for _, uv := range impAdminsMap {
+		impAdmins = append(impAdmins, uv)
+	}
+	return impAdmins, nil
+}
+
+// MapTeamAncestors does NOT map over the team itself.
+func (l *TeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) (err error) {
+	me, err := l.world.getMe(ctx)
+	if err != nil {
+		return err
 	}
 
 	// Load the argument team
@@ -1369,57 +1396,62 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 		StaleOK: true, // We only use immutable fields.
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	teamChain := TeamSigChainState{inner: team.Chain}
 	if !teamChain.IsSubteam() {
-		return nil, fmt.Errorf("cannot get implicit admins of a root team: %v", teamID)
+		return fmt.Errorf("cannot map over parents of a root team: %v", teamID)
 	}
-
-	return l.implicitAdminsAncestor(ctx, teamID, teamChain.GetParentID())
+	return l.mapTeamAncestorsHelper(ctx, f, teamID, teamChain.GetParentID(), reason, forceFullReloadOnceToAssert)
 }
 
-func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1.TeamID, ancestorID *keybase1.TeamID) ([]keybase1.UserVersion, error) {
+func (l *TeamLoader) mapTeamAncestorsHelper(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, ancestorID *keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) (err error) {
 	me, err := l.world.getMe(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	impAdminsMap := make(map[string]keybase1.UserVersion) // map to remove dups
 
 	i := 0
 	for {
 		i++
 		if i >= 100 {
 			// Break in case there's a bug in this loop.
-			return nil, fmt.Errorf("stuck in a loop while getting implicit admins: %v", ancestorID)
+			return fmt.Errorf("stuck in a loop while mapping over team parents: %v", ancestorID)
 		}
 
-		// Use load2 so that we can use subteam-reader and get secretless teams.
-		ancestor, err := l.load2(ctx, load2ArgT{
+		load2Arg := load2ArgT{
 			teamID:        *ancestorID,
-			reason:        "implicitAdminsAncestor",
+			reason:        reason,
 			me:            me,
 			forceRepoll:   true, // Get the latest info.
 			readSubteamID: &teamID,
-		})
-		if err != nil {
-			return nil, err
 		}
+
+		var ancestor *load2ResT
+		for {
+			var err error
+			// Use load2 so that we can use subteam-reader and get secretless teams.
+			ancestor, err = l.load2(ctx, load2Arg)
+			if err != nil {
+				return err
+			}
+
+			if forceFullReloadOnceToAssert(ancestor.team.Chain) {
+				break
+			}
+			if load2Arg.forceFullReload {
+				return fmt.Errorf("failed to assert predicate in ancestor %v after full force reload", ancestor.team.ID())
+			}
+			load2Arg.forceFullReload = true
+		}
+
 		// Be wary, `ancestor` could be, and is likely, a secretless team.
 		// Do not let it out of sight.
 		ancestorChain := TeamSigChainState{inner: ancestor.team.Chain}
 
-		// Gather the admins.
-		adminRoles := []keybase1.TeamRole{keybase1.TeamRole_OWNER, keybase1.TeamRole_ADMIN}
-		for _, role := range adminRoles {
-			uvs, err := ancestorChain.GetUsersWithRole(role)
-			if err != nil {
-				return nil, err
-			}
-			for _, uv := range uvs {
-				impAdminsMap[uv.String()] = uv
-			}
+		err = f(ancestor.team.Chain)
+		if err != nil {
+			return err
 		}
 
 		if !ancestorChain.IsSubteam() {
@@ -1429,12 +1461,7 @@ func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1
 		ancestorID = ancestorChain.GetParentID()
 	}
 
-	var impAdmins []keybase1.UserVersion
-	for _, uv := range impAdminsMap {
-		impAdmins = append(impAdmins, uv)
-	}
-
-	return impAdmins, nil
+	return nil
 }
 
 func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error {

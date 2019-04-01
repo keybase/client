@@ -3,9 +3,6 @@ package teams
 import (
 	"bytes"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
@@ -14,7 +11,6 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -23,7 +19,7 @@ import (
 func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 	return mctx.G().Env.GetRunMode() == libkb.DevelRunMode ||
 		mctx.G().Env.RunningInCI() ||
-		mctx.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor)
+		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
 }
 
 const CurrentBoxAuditVersion Version = 4
@@ -436,37 +432,25 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 		return attempt
 	}
 
-	serverSummary, err := retrieveAndVerifySigchainSummary(mctx, team)
+	pastSummary, err := calculateChainSummary(mctx, team)
 	if err != nil {
 		attempt.Error = getErrorMessage(err)
 		return attempt
 	}
 
-	if serverSummary == nil {
-		msg := "got nil server summary"
-		attempt.Error = &msg
-		return attempt
-	}
-
-	clientSummary, err := calculateExpectedSummary(mctx, team)
+	currentSummary, err := calculateCurrentSummary(mctx, team)
 	if err != nil {
 		attempt.Error = getErrorMessage(err)
 		return attempt
 	}
 
-	if clientSummary == nil {
-		msg := "got nil client summary"
-		attempt.Error = &msg
-		return attempt
-	}
-
-	if !bytes.Equal(clientSummary.Hash(), serverSummary.Hash()) {
+	if !bytes.Equal(currentSummary.Hash(), pastSummary.Hash()) {
 		// No need to make these Warnings, because these could happen when a
 		// user has just changed their PUK and CLKR hasn't fired yet, or if the
 		// team doesn't have any box summary hashes in the sigchain yet, etc.
 		mctx.Debug("ERROR: Box audit summary mismatch")
-		mctx.Debug("Client summary: %+v", clientSummary.table)
-		mctx.Debug("Server summary: %+v", serverSummary.table)
+		mctx.Debug("Past summary: %+v", pastSummary.table)
+		mctx.Debug("Current summary: %+v", currentSummary.table)
 
 		attempt.Error = getErrorMessage(fmt.Errorf("box summary hash mismatch"))
 		return attempt
@@ -739,10 +723,10 @@ func NewBoxAuditJail(version Version) *BoxAuditJail {
 }
 
 func (a *BoxAuditor) shouldAudit(mctx libkb.MetaContext, team Team) (bool, *keybase1.BoxAuditAttemptResult, error) {
-	if team.IsSubteam() {
-		res := keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_SUBTEAM
-		return false, &res, nil
-	}
+	// if team.IsSubteam() {
+	// 	res := keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_SUBTEAM
+	// 	return false, &res, nil
+	// }
 	if team.IsOpen() {
 		res := keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_OPENTEAM
 		return false, &res, nil
@@ -783,47 +767,126 @@ func loadTeamForBoxAuditInner(mctx libkb.MetaContext, teamID keybase1.TeamID, fo
 		return nil, fmt.Errorf("got nil team from loader")
 	}
 
-	// If the team sigchain state was constructed with support for box summary
-	// hashes, the map will be non-nil but empty. It will only be nil if the
-	// state is cached from a team load before box summary hash support.
-	if team.GetBoxSummaryHashes() == nil {
+	// If the team sigchain state was constructed with support for the
+	// merkleRoots map, the map will be non-nil but empty. It will only be nil
+	// if the state is cached from a team load before box summary hash support.
+	if team.chain().GetMerkleRoots() == nil {
 		if force {
-			return nil, fmt.Errorf("failed to get a non-nil box summary map after full reload")
+			return nil, fmt.Errorf("failed to get a non-nil merkleRoots map after full reload")
 		}
 		return loadTeamForBoxAuditInner(mctx, teamID, true)
 	}
 	return team, nil
 }
 
-// calculateExpectedSummary loads all the UPAKs of the team's members and
-// generates all the PUK generations we expect the team's secret boxes to currently be encrypted for.
-func calculateExpectedSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {
-	defer mctx.TraceTimed("calculateExpectedSummary", func() error { return err })()
+type merkleCheckpoints map[keybase1.UserVersion]keybase1.Seqno
 
-	// We use a set because a UV could appear both explicit member and as an implicit admin
-	members, err := team.Members()
+func getAllPUKCheckpointsSinceMerkleSeqno(teamchain *TeamSigChainState, merkleSeqnoCheckpoint keybase1.Seqno) (merkleCheckpoints, error) {
+	checkpoints := make(merkleCheckpoints)
+	// We only check users currently in the team, which means we skip over any
+	// users, who for example, have reset (and possibly have added a new PUK),
+	// but have not been let back into the team by an admin.
+	for uv, logPoints := range teamchain.inner.UserLog {
+		logPoint := logPoints[len(logPoints)-1]
+		if logPoint.Role == keybase1.TeamRole_NONE {
+			continue
+		}
+		merkleSeqno := logPoint.SigMeta.PrevMerkleRootSigned.Seqno
+		latest := merkleSeqno
+		if latest < merkleSeqnoCheckpoint {
+			latest = merkleSeqnoCheckpoint
+		}
+		checkpoints[uv] = latest
+	}
+	return checkpoints, nil
+}
+
+// calculateCurrentSummary calculates the box summary as it is currently for
+// all users in the team (i.e., if the team were rotated right now, what the summary
+// should be afterwards).
+func calculateCurrentSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {
+	currentRoot, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, 5*time.Minute)
 	if err != nil {
 		return nil, err
 	}
-	memberUVs := members.AllUserVersions()
-
-	uvSet := make(map[keybase1.UserVersion]bool, len(memberUVs)) // prealloc; will be at least this size
-	for _, memberUV := range memberUVs {
-		uvSet[memberUV] = true
+	if currentRoot.Seqno() == nil {
+		return nil, fmt.Errorf("got nil current merkle root")
 	}
+	return calculateSummaryAtMerkleSeqno(mctx, team, currentRoot.Seqno())
+}
 
-	if team.IsSubteam() {
-		implicitAdminUVs, err := mctx.G().GetTeamLoader().ImplicitAdmins(mctx.Ctx(), team.ID)
+// calculateChainSummary calculates the box summary as implied by the team sigchain and previous links,
+// using the last known rotation and subsequent additions as markers for PUK freshness.
+func calculateChainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {
+	return calculateSummaryAtMerkleSeqno(mctx, team, nil)
+}
+
+// calculateSummaryAtMerkleSeqno calculates the summary at the merkleSeqno, and
+// if merkleSeqno is nil, it uses the merkle root at the beginning of the
+// team's (and its ancestors') generation.
+func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeqno *keybase1.Seqno) (summary *boxPublicSummary, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("calculateSummaryAtMerkleSeqno(%s, %v)", team.ID, merkleSeqno), func() error { return err })()
+
+	if merkleSeqno == nil {
+		tmp, err := merkleSeqnoAtGenerationInception(mctx, team.chain())
 		if err != nil {
 			return nil, err
 		}
-		for _, implicitAdminUV := range implicitAdminUVs {
-			uvSet[implicitAdminUV] = true
+		merkleSeqno = &tmp
+	}
+
+	checkpoints, err := getAllPUKCheckpointsSinceMerkleSeqno(team.chain(), *merkleSeqno)
+	if err != nil {
+		return nil, err
+	}
+
+	if team.IsSubteam() {
+		err = mctx.G().GetTeamLoader().MapTeamAncestors(mctx.Ctx(), func(t keybase1.TeamSigChainState) error {
+			chain := TeamSigChainState{inner: t}
+			var ancestorMerkleSeqno keybase1.Seqno
+			if merkleSeqno == nil {
+				ancestorMerkleSeqno, err = merkleSeqnoAtGenerationInception(mctx, team.chain())
+				if err != nil {
+					return err
+				}
+			} else {
+				ancestorMerkleSeqno = *merkleSeqno
+			}
+			ancestorCheckpoints, err := getAllPUKCheckpointsSinceMerkleSeqno(&chain, ancestorMerkleSeqno)
+			if err != nil {
+				return err
+			}
+			for ancestorUV, ancestorMerkleSeqno := range ancestorCheckpoints {
+				role, err := chain.GetUserRole(ancestorUV)
+				if err != nil {
+					return err
+				}
+				// Only add implicit admins to summary
+				if !role.IsOrAbove(keybase1.TeamRole_ADMIN) {
+					continue
+				}
+				// If the implicit admin is a descendant, only update the
+				// checkpoints if the implicit admin was added to the team at a
+				// later checkpoint (and so would have boxes refreshed at a
+				// newer merkle seqno).
+				currentCheckpoint, ok := checkpoints[ancestorUV]
+				if ok && ancestorMerkleSeqno <= currentCheckpoint {
+					continue
+				}
+				checkpoints[ancestorUV] = ancestorMerkleSeqno
+			}
+			return nil
+		}, team.ID, "team box audit", func(t keybase1.TeamSigChainState) bool {
+			chain := TeamSigChainState{inner: t}
+			return chain.GetMerkleRoots() != nil
+		})
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	uvs := make([]keybase1.UserVersion, 0, len(memberUVs))
-	for uv := range uvSet {
+	var uvs []keybase1.UserVersion
+	for uv := range checkpoints {
 		uvs = append(uvs, uv)
 	}
 
@@ -836,135 +899,71 @@ func calculateExpectedSummary(mctx libkb.MetaContext, team *Team) (summary *boxP
 	}
 
 	d := make(map[keybase1.UserVersion]keybase1.PerUserKey)
+	var processErr error
 	processResult := func(idx int, upak *keybase1.UserPlusKeysV2AllIncarnations) {
 		uv := uvs[idx]
+		checkpoint := checkpoints[uv]
+
 		if upak == nil {
-			mctx.Warning("got nil upak for uv %+v", uv)
-			return
-		}
-		puk := upak.Current.GetLatestPerUserKey()
-		if puk == nil {
-			mctx.Debug("skipping user %s who has no per-user-key; possibly reset", uv)
+			processErr = fmt.Errorf("got nil upak for uv %+v", uv)
+			mctx.Warning(processErr.Error())
 			return
 		}
 
-		if upak.Current.EldestSeqno != uv.EldestSeqno {
-			mctx.Debug("skipping user %s whose per-user-key is ahead of the team's member per-user-key; likely reset and needs to be readded", uv)
+		var perUserKey *keybase1.PerUserKey
+		leaf, _, err := mctx.G().GetMerkleClient().LookupLeafAtSeqno(mctx, keybase1.UserOrTeamID(uv.Uid), checkpoint)
+		if err != nil {
+			processErr = fmt.Errorf("failed to lookup leaf at merkle seqno %v for %v", checkpoint, uv)
+			mctx.Warning(processErr.Error())
+			return
+		}
+		if leaf == nil {
+			processErr = fmt.Errorf("got nil leaf at seqno %v for %v", checkpoint, uv)
+			mctx.Warning(processErr.Error())
+			return
+		}
+		if leaf.Public == nil {
+			processErr = fmt.Errorf("got nil leaf public at seqno %v for %v (leaf=%+v)", checkpoint, uv, leaf)
+			mctx.Warning(processErr.Error())
+			return
+		}
+		sigchainSeqno := leaf.Public.Seqno
+
+		perUserKey, err = upak.GetPerUserKeyAtSeqno(uv, sigchainSeqno, checkpoint)
+		if err != nil {
+			processErr := fmt.Errorf("failed to find peruserkey at seqno %v for upak", sigchainSeqno)
+			mctx.Warning(processErr.Error())
+			return
+		}
+		if perUserKey == nil {
+			// Not a critical error, since reset users have no current per user keys, for example.
+			mctx.Warning("%s has no per-user-key at seqno %v", uv, sigchainSeqno)
 			return
 		}
 
-		d[uv] = *puk
+		d[uv] = *perUserKey
 	}
 
 	err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, 0)
 	if err != nil {
 		return nil, err
 	}
-
-	summaryPtr, err := newBoxPublicSummary(d)
-	if err != nil {
-		return nil, err
+	if processErr != nil {
+		return nil, fmt.Errorf("got error while batch loading upaks for box audit: %s", processErr)
 	}
 
-	return summaryPtr, nil
+	return newBoxPublicSummary(d)
 }
 
-type summaryAuditBatch struct {
-	BatchID   int          `json:"batch_id"`
-	NonceTop  string       `json:"nonce_top"`
-	SenderKID keybase1.KID `json:"sender_kid"`
-	Summary   string       `json:"summary"`
-}
-
-type summaryAuditResponse struct {
-	Batches []summaryAuditBatch `json:"batches"`
-	libkb.AppStatusEmbed
-}
-
-func retrieveAndVerifySigchainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {
-	defer mctx.TraceTimed("retrieveAndVerifySigchainSummary", func() error { return err })()
-
-	// boxSummaryHashes should be non-nil because we did a force reload if it
-	// wasn't during loadTeamForBoxAudit.
-	boxSummaryHashes := team.GetBoxSummaryHashes()
-	g := team.Generation()
-	latestHashes := boxSummaryHashes[g]
-
-	a := libkb.NewAPIArg("team/audit")
-	a.Args = libkb.HTTPArgs{
-		"id":         libkb.S{Val: team.ID.String()},
-		"generation": libkb.I{Val: int(g)},
-		"public":     libkb.B{Val: team.IsPublic()},
-	}
-	a.SessionType = libkb.APISessionTypeREQUIRED
-	var response summaryAuditResponse
-	err = mctx.G().API.GetDecode(mctx, a, &response)
+// merkleSeqnoAtGenerationInception assumes TeamSigChainState.MerkleRoots is populated
+func merkleSeqnoAtGenerationInception(mctx libkb.MetaContext, teamchain *TeamSigChainState) (merkleSeqno keybase1.Seqno, err error) {
+	ptk, err := teamchain.GetLatestPerTeamKey()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-
-	// Assert server doesn't silently inject additional unchecked batches
-	if len(latestHashes) != len(response.Batches) {
-		return nil, fmt.Errorf("expected %d box summary hashes for generation %d; got %d from server",
-			len(latestHashes), g, len(response.Batches))
-	}
-
-	table := make(boxPublicSummaryTable)
-
-	for idx, batch := range response.Batches {
-		// Expect server to give us back IDs in the same order it'll be in the sigchain
-		expectedHash, err := hex.DecodeString(latestHashes[idx].String())
-		if err != nil {
-			return nil, err
-		}
-		partialTable, err := unmarshalAndVerifyBatchSummary(batch.Summary, expectedHash)
-		if err != nil {
-			return nil, err
-		}
-
-		for uid, seqno := range partialTable {
-			// NOTE It is possible to have more than one uid in a batch:
-			// if a subteam was created, implicit admins have boxes added for
-			// them by the creator. Then if the implicit admin was added to the
-			// team explicitly, the adder re-encrypts the boxes for them, even
-			// if their PUK is the same.
-			table[uid] = seqno
-		}
-	}
-
-	summaryPtr, err := newBoxPublicSummaryFromTable(table)
-	if err != nil {
-		return nil, err
-	}
-
-	return summaryPtr, nil
-}
-
-func unmarshalAndVerifyBatchSummary(batchSummary string, expectedHash []byte) (boxPublicSummaryTable, error) {
-	if len(expectedHash) == 0 {
-		return nil, fmt.Errorf("expected hash is empty")
-	}
-
-	msgpacked, err := base64.StdEncoding.DecodeString(batchSummary)
-	if err != nil {
-		return nil, err
-	}
-
-	actualHash := sha256.Sum256(msgpacked)
-	// Don't need constant time comparison.
-	if !bytes.Equal(expectedHash, actualHash[:]) {
-		return nil, fmt.Errorf("expected hash %x signed into sigchain, but got %x from server", expectedHash, actualHash)
-	}
-
-	mh := codec.MsgpackHandle{WriteExt: true}
-	var table boxPublicSummaryTable
-	dec := codec.NewDecoderBytes(msgpacked, &mh)
-	err = dec.Decode(&table)
-	if err != nil {
-		return nil, err
-	}
-
-	return table, nil
+	sigchainSeqno := ptk.Seqno
+	root := teamchain.GetMerkleRoots()[sigchainSeqno]
+	return root.Seqno, nil
 }
 
 // TeamIDKeys takes a set of DBKeys that must all be tid:-style DBKeys and
@@ -1032,7 +1031,7 @@ func (a *BoxAuditor) maybeGetJail(mctx libkb.MetaContext) (*BoxAuditJail, error)
 }
 
 func (a *BoxAuditor) maybeGetIntoVersioned(mctx libkb.MetaContext, v Versioned, dbKey libkb.DbKey) (found bool, err error) {
-	defer mctx.TraceTimed("maybeGetVersioned", func() error { return err })()
+	defer mctx.TraceTimed("maybeGetIntoVersioned", func() error { return err })()
 	found, err = mctx.G().LocalDb.GetInto(v, dbKey)
 	if err != nil {
 		mctx.Warning("Failed to unmarshal from db for key %+v: %s", dbKey, err)

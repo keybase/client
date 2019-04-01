@@ -1110,6 +1110,14 @@
             "keys": "PerTeamKeyGeneration"
           },
           "name": "boxSummaryHashes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleRoots"
         }
       ]
     },
