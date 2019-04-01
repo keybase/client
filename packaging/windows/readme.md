@@ -9,6 +9,16 @@ Environment: `set GOPATH=C:\work`
 - Checkout as-is, conmmit Unix style line endings
 - Use Windows' default console window (especially on Windows 10)
 
+- Open a command console and make a directory for cloning the repo, e.g.:
+```
+git clone https://github.com/keybase/client.git c:\work\src\github.com\keybase\client
+git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keybase\go-updater
+```
+
+- set GOPATH, e.g. `set GOPATH=c:\work`
+- `cd %GOPATH%\src\github.com\keybase\client\go\keybase`
+- `go build`
+
 [Chocolatey](https://chocolatey.org/install) (helpful for yarn)
 then: `choco install yarn`
 
