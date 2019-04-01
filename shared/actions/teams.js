@@ -1468,99 +1468,183 @@ const gregorPushState = (_, action) => {
 }
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam)
+  yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
   yield* Saga.chainAction<TeamsGen.GetTeamProfileAddListPayload>(
     TeamsGen.getTeamProfileAddList,
-    getTeamProfileAddList
+    getTeamProfileAddList,
+    'getTeamProfileAddList'
   )
-  yield* Saga.chainAction<TeamsGen.LeftTeamPayload>(TeamsGen.leftTeam, leftTeam)
-  yield* Saga.chainGenerator<TeamsGen.CreateNewTeamPayload>(TeamsGen.createNewTeam, createNewTeam)
-  yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam)
-  yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails)
+  yield* Saga.chainAction<TeamsGen.LeftTeamPayload>(TeamsGen.leftTeam, leftTeam, 'leftTeam')
+  yield* Saga.chainGenerator<TeamsGen.CreateNewTeamPayload>(
+    TeamsGen.createNewTeam,
+    createNewTeam,
+    'createNewTeam'
+  )
+  yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam, 'joinTeam')
+  yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails, 'getDetails')
   yield* Saga.chainAction<TeamsGen.GetDetailsForAllTeamsPayload>(
     TeamsGen.getDetailsForAllTeams,
-    getDetailsForAllTeams
+    getDetailsForAllTeams,
+    'getDetailsForAllTeams'
   )
-  yield* Saga.chainGenerator<TeamsGen.GetTeamPublicityPayload>(TeamsGen.getTeamPublicity, getTeamPublicity)
-  yield* Saga.chainAction<TeamsGen.GetTeamOperationsPayload>(TeamsGen.getTeamOperations, getTeamOperations)
+  yield* Saga.chainGenerator<TeamsGen.GetTeamPublicityPayload>(
+    TeamsGen.getTeamPublicity,
+    getTeamPublicity,
+    'getTeamPublicity'
+  )
+  yield* Saga.chainAction<TeamsGen.GetTeamOperationsPayload>(
+    TeamsGen.getTeamOperations,
+    getTeamOperations,
+    'getTeamOperations'
+  )
   yield* Saga.chainGenerator<TeamsGen.CreateNewTeamFromConversationPayload>(
     TeamsGen.createNewTeamFromConversation,
-    createNewTeamFromConversation
+    createNewTeamFromConversation,
+    'createNewTeamFromConversation'
   )
-  yield* Saga.chainAction<TeamsGen.GetChannelInfoPayload>(TeamsGen.getChannelInfo, getChannelInfo)
-  yield* Saga.chainAction<TeamsGen.GetChannelsPayload>(TeamsGen.getChannels, getChannels)
+  yield* Saga.chainAction<TeamsGen.GetChannelInfoPayload>(
+    TeamsGen.getChannelInfo,
+    getChannelInfo,
+    'getChannelInfo'
+  )
+  yield* Saga.chainAction<TeamsGen.GetChannelsPayload>(TeamsGen.getChannels, getChannels, 'getChannels')
   yield* Saga.chainGenerator<ConfigGen.LoggedInPayload, TeamsGen.GetTeamsPayload, TeamsGen.LeftTeamPayload>(
     [ConfigGen.loggedIn, TeamsGen.getTeams, TeamsGen.leftTeam],
-    getTeams
+    getTeams,
+    'getTeams'
   )
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
-    saveChannelMembership
+    saveChannelMembership,
+    'saveChannelMembership'
   )
-  yield* Saga.chainGenerator<TeamsGen.CreateChannelPayload>(TeamsGen.createChannel, createChannel)
-  yield* Saga.chainAction<TeamsGen.AddToTeamPayload>(TeamsGen.addToTeam, addToTeam)
-  yield* Saga.chainAction<TeamsGen.ReAddToTeamPayload>(TeamsGen.reAddToTeam, reAddToTeam)
-  yield* Saga.chainAction<TeamsGen.AddPeopleToTeamPayload>(TeamsGen.addPeopleToTeam, addPeopleToTeam)
-  yield* Saga.chainGenerator<TeamsGen.AddUserToTeamsPayload>(TeamsGen.addUserToTeams, addUserToTeams)
-  yield* Saga.chainGenerator<TeamsGen.InviteToTeamByEmailPayload>(TeamsGen.inviteToTeamByEmail, inviteByEmail)
-  yield* Saga.chainAction<TeamsGen.IgnoreRequestPayload>(TeamsGen.ignoreRequest, ignoreRequest)
-  yield* Saga.chainAction<TeamsGen.EditTeamDescriptionPayload>(TeamsGen.editTeamDescription, editDescription)
-  yield* Saga.chainAction<TeamsGen.UploadTeamAvatarPayload>(TeamsGen.uploadTeamAvatar, uploadAvatar)
-  yield* Saga.chainAction<TeamsGen.EditMembershipPayload>(TeamsGen.editMembership, editMembership)
+  yield* Saga.chainGenerator<TeamsGen.CreateChannelPayload>(
+    TeamsGen.createChannel,
+    createChannel,
+    'createChannel'
+  )
+  yield* Saga.chainAction<TeamsGen.AddToTeamPayload>(TeamsGen.addToTeam, addToTeam, 'addToTeam')
+  yield* Saga.chainAction<TeamsGen.ReAddToTeamPayload>(TeamsGen.reAddToTeam, reAddToTeam, 'reAddToTeam')
+  yield* Saga.chainAction<TeamsGen.AddPeopleToTeamPayload>(
+    TeamsGen.addPeopleToTeam,
+    addPeopleToTeam,
+    'addPeopleToTeam'
+  )
+  yield* Saga.chainGenerator<TeamsGen.AddUserToTeamsPayload>(
+    TeamsGen.addUserToTeams,
+    addUserToTeams,
+    'addUserToTeams'
+  )
+  yield* Saga.chainGenerator<TeamsGen.InviteToTeamByEmailPayload>(
+    TeamsGen.inviteToTeamByEmail,
+    inviteByEmail,
+    'inviteByEmail'
+  )
+  yield* Saga.chainAction<TeamsGen.IgnoreRequestPayload>(
+    TeamsGen.ignoreRequest,
+    ignoreRequest,
+    'ignoreRequest'
+  )
+  yield* Saga.chainAction<TeamsGen.EditTeamDescriptionPayload>(
+    TeamsGen.editTeamDescription,
+    editDescription,
+    'editDescription'
+  )
+  yield* Saga.chainAction<TeamsGen.UploadTeamAvatarPayload>(
+    TeamsGen.uploadTeamAvatar,
+    uploadAvatar,
+    'uploadAvatar'
+  )
+  yield* Saga.chainAction<TeamsGen.EditMembershipPayload>(
+    TeamsGen.editMembership,
+    editMembership,
+    'editMembership'
+  )
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberOrPendingInvitePayload>(
     TeamsGen.removeMemberOrPendingInvite,
-    removeMemberOrPendingInvite
+    removeMemberOrPendingInvite,
+    'removeMemberOrPendingInvite'
   )
-  yield* Saga.chainAction<TeamsGen.SetMemberPublicityPayload>(TeamsGen.setMemberPublicity, setMemberPublicity)
-  yield* Saga.chainAction<TeamsGen.UpdateTopicPayload>(TeamsGen.updateTopic, updateTopic)
-  yield* Saga.chainAction<TeamsGen.UpdateChannelNamePayload>(TeamsGen.updateChannelName, updateChannelname)
+  yield* Saga.chainAction<TeamsGen.SetMemberPublicityPayload>(
+    TeamsGen.setMemberPublicity,
+    setMemberPublicity,
+    'setMemberPublicity'
+  )
+  yield* Saga.chainAction<TeamsGen.UpdateTopicPayload>(TeamsGen.updateTopic, updateTopic, 'updateTopic')
+  yield* Saga.chainAction<TeamsGen.UpdateChannelNamePayload>(
+    TeamsGen.updateChannelName,
+    updateChannelname,
+    'updateChannelname'
+  )
   yield* Saga.chainAction<TeamsGen.DeleteChannelConfirmedPayload>(
     TeamsGen.deleteChannelConfirmed,
-    deleteChannelConfirmed
+    deleteChannelConfirmed,
+    'deleteChannelConfirmed'
   )
-  yield* Saga.chainAction<TeamsGen.BadgeAppForTeamsPayload>(TeamsGen.badgeAppForTeams, badgeAppForTeams)
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
+  yield* Saga.chainAction<TeamsGen.BadgeAppForTeamsPayload>(
+    TeamsGen.badgeAppForTeams,
+    badgeAppForTeams,
+    'badgeAppForTeams'
+  )
+  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange, 'onTabChange')
   yield* Saga.chainAction<TeamsGen.InviteToTeamByPhonePayload>(
     TeamsGen.inviteToTeamByPhone,
-    inviteToTeamByPhone
+    inviteToTeamByPhone,
+    'inviteToTeamByPhone'
   )
-  yield* Saga.chainGenerator<TeamsGen.SetPublicityPayload>(TeamsGen.setPublicity, setPublicity)
+  yield* Saga.chainGenerator<TeamsGen.SetPublicityPayload>(
+    TeamsGen.setPublicity,
+    setPublicity,
+    'setPublicity'
+  )
   yield* Saga.chainAction<TeamsGen.CheckRequestedAccessPayload>(
     TeamsGen.checkRequestedAccess,
-    checkRequestedAccess
+    checkRequestedAccess,
+    'checkRequestedAccess'
   )
   yield* Saga.chainAction<TeamsGen.GetTeamRetentionPolicyPayload>(
     TeamsGen.getTeamRetentionPolicy,
-    getTeamRetentionPolicy
+    getTeamRetentionPolicy,
+    'getTeamRetentionPolicy'
   )
   yield* Saga.chainAction<TeamsGen.SaveTeamRetentionPolicyPayload>(
     TeamsGen.saveTeamRetentionPolicy,
-    saveTeamRetentionPolicy
+    saveTeamRetentionPolicy,
+    'saveTeamRetentionPolicy'
   )
   yield* Saga.chainAction<Chat2Gen.UpdateTeamRetentionPolicyPayload>(
     Chat2Gen.updateTeamRetentionPolicy,
-    updateTeamRetentionPolicy
+    updateTeamRetentionPolicy,
+    'updateTeamRetentionPolicy'
   )
   yield* Saga.chainGenerator<TeamsGen.AddTeamWithChosenChannelsPayload>(
     TeamsGen.addTeamWithChosenChannels,
-    addTeamWithChosenChannels
+    addTeamWithChosenChannels,
+    'addTeamWithChosenChannels'
   )
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
     NotificationsGen.receivedBadgeState,
-    receivedBadgeState
+    receivedBadgeState,
+    'receivedBadgeState'
   )
-  yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
+  yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState, 'gregorPushState')
   yield* Saga.chainAction<EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload>(
     EngineGen.keybase1NotifyTeamAvatarUpdated,
-    teamAvatarUpdated
+    teamAvatarUpdated,
+    'teamAvatarUpdated'
   )
   yield* Saga.chainAction<EngineGen.Keybase1NotifyTeamTeamChangedByNamePayload>(
     EngineGen.keybase1NotifyTeamTeamChangedByName,
-    teamChangedByName
+    teamChangedByName,
+    'teamChangedByName'
   )
   yield* Saga.chainAction<
     EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
-  >([EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit], teamDeletedOrExit)
+  >(
+    [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
+    teamDeletedOrExit,
+    'teamDeletedOrExit'
+  )
 }
 
 export default teamsSaga

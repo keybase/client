@@ -1000,7 +1000,11 @@ const gregorPushState = (_, action) =>
   })
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(WalletsGen.createNewAccount, createNewAccount)
+  yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
+    WalletsGen.createNewAccount,
+    createNewAccount,
+    'createNewAccount'
+  )
   yield* Saga.chainAction<
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
@@ -1015,7 +1019,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
     ],
-    loadAccounts
+    loadAccounts,
+    'loadAccounts'
   )
   yield* Saga.chainAction<
     | WalletsGen.LoadAssetsPayload
@@ -1031,84 +1036,125 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.accountUpdateReceived,
       WalletsGen.accountsReceived,
     ],
-    loadAssets
+    loadAssets,
+    'loadAssets'
   )
   yield* Saga.chainAction<
     WalletsGen.LoadPaymentsPayload | WalletsGen.SelectAccountPayload | WalletsGen.LinkedExistingAccountPayload
-  >([WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount], loadPayments)
-  yield* Saga.chainAction<WalletsGen.LoadMorePaymentsPayload>(WalletsGen.loadMorePayments, loadMorePayments)
-  yield* Saga.chainAction<WalletsGen.DeleteAccountPayload>(WalletsGen.deleteAccount, deleteAccount)
+  >(
+    [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    loadPayments,
+    'loadPayments'
+  )
+  yield* Saga.chainAction<WalletsGen.LoadMorePaymentsPayload>(
+    WalletsGen.loadMorePayments,
+    loadMorePayments,
+    'loadMorePayments'
+  )
+  yield* Saga.chainAction<WalletsGen.DeleteAccountPayload>(
+    WalletsGen.deleteAccount,
+    deleteAccount,
+    'deleteAccount'
+  )
   yield* Saga.chainAction<WalletsGen.LoadPaymentDetailPayload>(
     WalletsGen.loadPaymentDetail,
-    loadPaymentDetail
+    loadPaymentDetail,
+    'loadPaymentDetail'
   )
-  yield* Saga.chainAction<WalletsGen.MarkAsReadPayload>(WalletsGen.markAsRead, markAsRead)
+  yield* Saga.chainAction<WalletsGen.MarkAsReadPayload>(WalletsGen.markAsRead, markAsRead, 'markAsRead')
   yield* Saga.chainAction<WalletsGen.LinkExistingAccountPayload>(
     WalletsGen.linkExistingAccount,
-    linkExistingAccount
+    linkExistingAccount,
+    'linkExistingAccount'
   )
   yield* Saga.chainAction<WalletsGen.ValidateAccountNamePayload>(
     WalletsGen.validateAccountName,
-    validateAccountName
+    validateAccountName,
+    'validateAccountName'
   )
   yield* Saga.chainAction<WalletsGen.ValidateSecretKeyPayload>(
     WalletsGen.validateSecretKey,
-    validateSecretKey
+    validateSecretKey,
+    'validateSecretKey'
   )
-  yield* Saga.chainAction<WalletsGen.ExportSecretKeyPayload>(WalletsGen.exportSecretKey, exportSecretKey)
+  yield* Saga.chainAction<WalletsGen.ExportSecretKeyPayload>(
+    WalletsGen.exportSecretKey,
+    exportSecretKey,
+    'exportSecretKey'
+  )
   yield* Saga.chainAction<WalletsGen.LoadDisplayCurrenciesPayload, WalletsGen.OpenSendRequestFormPayload>(
     [WalletsGen.loadDisplayCurrencies, WalletsGen.openSendRequestForm],
-    loadDisplayCurrencies
+    loadDisplayCurrencies,
+    'loadDisplayCurrencies'
   )
   yield* Saga.chainAction<WalletsGen.LoadSendAssetChoicesPayload>(
     WalletsGen.loadSendAssetChoices,
-    loadSendAssetChoices
+    loadSendAssetChoices,
+    'loadSendAssetChoices'
   )
   yield* Saga.chainAction<WalletsGen.LoadDisplayCurrencyPayload>(
     WalletsGen.loadDisplayCurrency,
-    loadDisplayCurrency
+    loadDisplayCurrency,
+    'loadDisplayCurrency'
   )
   yield* Saga.chainAction<WalletsGen.LoadInflationDestinationPayload>(
     WalletsGen.loadInflationDestination,
-    loadInflationDestination
+    loadInflationDestination,
+    'loadInflationDestination'
   )
   yield* Saga.chainAction<WalletsGen.SetInflationDestinationPayload>(
     WalletsGen.setInflationDestination,
-    setInflationDestination
+    setInflationDestination,
+    'setInflationDestination'
   )
   yield* Saga.chainAction<WalletsGen.DisplayCurrencyReceivedPayload>(
     WalletsGen.displayCurrencyReceived,
-    refreshAssets
+    refreshAssets,
+    'refreshAssets'
   )
   yield* Saga.chainAction<WalletsGen.ChangeDisplayCurrencyPayload>(
     WalletsGen.changeDisplayCurrency,
-    changeDisplayCurrency
+    changeDisplayCurrency,
+    'changeDisplayCurrency'
   )
   yield* Saga.chainAction<WalletsGen.SetAccountAsDefaultPayload>(
     WalletsGen.setAccountAsDefault,
-    setAccountAsDefault
+    setAccountAsDefault,
+    'setAccountAsDefault'
   )
   yield* Saga.chainAction<WalletsGen.ChangeAccountNamePayload>(
     WalletsGen.changeAccountName,
-    changeAccountName
+    changeAccountName,
+    'changeAccountName'
   )
-  yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(WalletsGen.selectAccount, navigateToAccount)
+  yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(
+    WalletsGen.selectAccount,
+    navigateToAccount,
+    'navigateToAccount'
+  )
   yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload, WalletsGen.ChangedAccountNamePayload>(
     [WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName],
-    navigateUp
+    navigateUp,
+    'navigateUp'
   )
   yield* Saga.chainAction<WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload>(
     [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount],
-    createdOrLinkedAccount
+    createdOrLinkedAccount,
+    'createdOrLinkedAccount'
   )
   yield* Saga.chainAction<WalletsGen.AccountsReceivedPayload>(
     WalletsGen.accountsReceived,
-    maybeSelectDefaultAccount
+    maybeSelectDefaultAccount,
+    'maybeSelectDefaultAccount'
   )
 
   // We don't call this for publicMemo/secretNote so the button doesn't
   // spinner as you type
-  yield* Saga.chainAction<WalletsGen.BuildPaymentPayload>(WalletsGen.buildPayment, buildPayment)
+  yield* Saga.chainAction<WalletsGen.BuildPaymentPayload>(
+    WalletsGen.buildPayment,
+    buildPayment,
+    'buildPayment'
+  )
   yield* Saga.chainAction<
     | WalletsGen.SetBuildingAmountPayload
     | WalletsGen.SetBuildingCurrencyPayload
@@ -1127,129 +1173,216 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.displayCurrencyReceived,
       WalletsGen.buildingPaymentIDReceived,
     ],
-    spawnBuildPayment
+    spawnBuildPayment,
+    'spawnBuildPayment'
   )
   yield* Saga.chainAction<WalletsGen.OpenSendRequestFormPayload>(
     WalletsGen.openSendRequestForm,
-    openSendRequestForm
+    openSendRequestForm,
+    'openSendRequestForm'
   )
-  yield* Saga.chainAction<WalletsGen.ReviewPaymentPayload>(WalletsGen.reviewPayment, reviewPayment)
-  yield* Saga.chainAction<WalletsGen.OpenSendRequestFormPayload>(WalletsGen.openSendRequestForm, startPayment)
+  yield* Saga.chainAction<WalletsGen.ReviewPaymentPayload>(
+    WalletsGen.reviewPayment,
+    reviewPayment,
+    'reviewPayment'
+  )
+  yield* Saga.chainAction<WalletsGen.OpenSendRequestFormPayload>(
+    WalletsGen.openSendRequestForm,
+    startPayment,
+    'startPayment'
+  )
   yield* Saga.chainAction<WalletsGen.AccountsReceivedPayload>(
     WalletsGen.accountsReceived,
-    maybePopulateBuildingCurrency
+    maybePopulateBuildingCurrency,
+    'maybePopulateBuildingCurrency'
   )
 
-  yield* Saga.chainAction<WalletsGen.DeletedAccountPayload>(WalletsGen.deletedAccount, deletedAccount)
+  yield* Saga.chainAction<WalletsGen.DeletedAccountPayload>(
+    WalletsGen.deletedAccount,
+    deletedAccount,
+    'deletedAccount'
+  )
 
-  yield* Saga.chainAction<WalletsGen.SendPaymentPayload>(WalletsGen.sendPayment, sendPayment)
+  yield* Saga.chainAction<WalletsGen.SendPaymentPayload>(WalletsGen.sendPayment, sendPayment, 'sendPayment')
   yield* Saga.chainAction<WalletsGen.SentPaymentPayload, WalletsGen.RequestedPaymentPayload>(
     [WalletsGen.sentPayment, WalletsGen.requestedPayment],
-    setLastSentXLM
+    setLastSentXLM,
+    'setLastSentXLM'
   )
   yield* Saga.chainAction<WalletsGen.SentPaymentPayload | WalletsGen.RequestedPaymentPayload>(
     [WalletsGen.sentPayment, WalletsGen.requestedPayment],
-    clearBuilding
+    clearBuilding,
+    'clearBuilding'
   )
   yield* Saga.chainAction<WalletsGen.SentPaymentPayload>(WalletsGen.sentPayment, clearBuiltPayment)
   yield* Saga.chainAction<WalletsGen.SentPaymentPayload | WalletsGen.AbandonPaymentPayload>(
     [WalletsGen.sentPayment, WalletsGen.abandonPayment],
-    clearErrors
+    clearErrors,
+    'clearErrors'
   )
 
   yield* Saga.chainAction<WalletsGen.SentPaymentPayload | WalletsGen.AbandonPaymentPayload>(
     [WalletsGen.abandonPayment, WalletsGen.sentPayment],
-    maybeNavigateAwayFromSendForm
+    maybeNavigateAwayFromSendForm,
+    'maybeNavigateAwayFromSendForm'
   )
 
-  yield* Saga.chainGenerator<WalletsGen.RequestPaymentPayload>(WalletsGen.requestPayment, requestPayment)
+  yield* Saga.chainGenerator<WalletsGen.RequestPaymentPayload>(
+    WalletsGen.requestPayment,
+    requestPayment,
+    'requestPayment'
+  )
   yield* Saga.chainAction<WalletsGen.RequestedPaymentPayload | WalletsGen.AbandonPaymentPayload>(
     [WalletsGen.requestedPayment, WalletsGen.abandonPayment],
-    clearBuiltRequest
+    clearBuiltRequest,
+    'clearBuiltRequest'
   )
   yield* Saga.chainAction<WalletsGen.RequestedPaymentPayload>(
     WalletsGen.requestedPayment,
-    maybeNavigateToConversation
+    maybeNavigateToConversation,
+    'maybeNavigateToConversation'
   )
 
   // Effects of abandoning payments
-  yield* Saga.chainAction<WalletsGen.AbandonPaymentPayload>(WalletsGen.abandonPayment, stopPayment)
+  yield* Saga.chainAction<WalletsGen.AbandonPaymentPayload>(
+    WalletsGen.abandonPayment,
+    stopPayment,
+    'stopPayment'
+  )
 
   yield* Saga.chainAction<WalletsGen.ExitFailedPaymentPayload>(
     WalletsGen.exitFailedPayment,
-    exitFailedPayment
+    exitFailedPayment,
+    'exitFailedPayment'
   )
-  yield* Saga.chainAction<WalletsGen.CancelRequestPayload>(WalletsGen.cancelRequest, cancelRequest)
-  yield* Saga.chainAction<WalletsGen.CancelPaymentPayload>(WalletsGen.cancelPayment, cancelPayment)
+  yield* Saga.chainAction<WalletsGen.CancelRequestPayload>(
+    WalletsGen.cancelRequest,
+    cancelRequest,
+    'cancelRequest'
+  )
+  yield* Saga.chainAction<WalletsGen.CancelPaymentPayload>(
+    WalletsGen.cancelPayment,
+    cancelPayment,
+    'cancelPayment'
+  )
 
   // Clear some errors on navigateUp, clear new txs on switchTab
-  yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeClearErrors)
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, maybeClearNewTxs)
+  yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(
+    RouteTreeGen.navigateUp,
+    maybeClearErrors,
+    'maybeClearErrors'
+  )
+  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(
+    RouteTreeGen.switchTo,
+    maybeClearNewTxs,
+    'maybeClearNewTxs'
+  )
 
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
     NotificationsGen.receivedBadgeState,
-    receivedBadgeState
+    receivedBadgeState,
+    'receivedBadgeState'
   )
 
   yield* Saga.chainAction<
     WalletsGen.LoadAccountsPayload | ConfigGen.LoggedInPayload | WalletsGen.LoadWalletDisclaimerPayload
-  >([WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletDisclaimer], loadWalletDisclaimer)
-  yield* Saga.chainAction<WalletsGen.AcceptDisclaimerPayload>(WalletsGen.acceptDisclaimer, acceptDisclaimer)
-  yield* Saga.chainAction<WalletsGen.CheckDisclaimerPayload>(WalletsGen.checkDisclaimer, checkDisclaimer)
+  >(
+    [WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletDisclaimer],
+    loadWalletDisclaimer,
+    'loadWalletDisclaimer'
+  )
+  yield* Saga.chainAction<WalletsGen.AcceptDisclaimerPayload>(
+    WalletsGen.acceptDisclaimer,
+    acceptDisclaimer,
+    'acceptDisclaimer'
+  )
   yield* Saga.chainAction<WalletsGen.CheckDisclaimerPayload>(
     WalletsGen.checkDisclaimer,
-    maybeNavToLinkExisting
+    checkDisclaimer,
+    'checkDisclaimer'
   )
-  yield* Saga.chainAction<WalletsGen.RejectDisclaimerPayload>(WalletsGen.rejectDisclaimer, rejectDisclaimer)
+  yield* Saga.chainAction<WalletsGen.CheckDisclaimerPayload>(
+    WalletsGen.checkDisclaimer,
+    maybeNavToLinkExisting,
+    'maybeNavToLinkExisting'
+  )
+  yield* Saga.chainAction<WalletsGen.RejectDisclaimerPayload>(
+    WalletsGen.rejectDisclaimer,
+    rejectDisclaimer,
+    'rejectDisclaimer'
+  )
 
   yield* Saga.chainAction<WalletsGen.LoadMobileOnlyModePayload, WalletsGen.SelectAccountPayload>(
     [WalletsGen.loadMobileOnlyMode, WalletsGen.selectAccount],
-    loadMobileOnlyMode
+    loadMobileOnlyMode,
+    'loadMobileOnlyMode'
   )
   yield* Saga.chainAction<WalletsGen.ChangeMobileOnlyModePayload>(
     WalletsGen.changeMobileOnlyMode,
-    changeMobileOnlyMode
+    changeMobileOnlyMode,
+    'changeMobileOnlyMode'
   )
-  yield* Saga.chainAction<WalletsGen.SetLastSentXLMPayload>(WalletsGen.setLastSentXLM, writeLastSentXLM)
+  yield* Saga.chainAction<WalletsGen.SetLastSentXLMPayload>(
+    WalletsGen.setLastSentXLM,
+    writeLastSentXLM,
+    'writeLastSentXLM'
+  )
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,
-    readLastSentXLM
+    readLastSentXLM,
+    'readLastSentXLM'
   )
   yield* Saga.chainAction<EngineGen.Stellar1NotifyAccountDetailsUpdatePayload>(
     EngineGen.stellar1NotifyAccountDetailsUpdate,
-    accountDetailsUpdate
+    accountDetailsUpdate,
+    'accountDetailsUpdate'
   )
   yield* Saga.chainAction<EngineGen.Stellar1NotifyAccountsUpdatePayload>(
     EngineGen.stellar1NotifyAccountsUpdate,
-    accountsUpdate
+    accountsUpdate,
+    'accountsUpdate'
   )
   yield* Saga.chainAction<EngineGen.Stellar1NotifyPendingPaymentsUpdatePayload>(
     EngineGen.stellar1NotifyPendingPaymentsUpdate,
-    pendingPaymentsUpdate
+    pendingPaymentsUpdate,
+    'pendingPaymentsUpdate'
   )
   yield* Saga.chainAction<EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload>(
     EngineGen.stellar1NotifyRecentPaymentsUpdate,
-    recentPaymentsUpdate
+    recentPaymentsUpdate,
+    'recentPaymentsUpdate'
   )
   yield* Saga.chainAction<EngineGen.Stellar1UiPaymentReviewedPayload>(
     EngineGen.stellar1UiPaymentReviewed,
-    paymentReviewed
+    paymentReviewed,
+    'paymentReviewed'
   )
 
   if (flags.airdrop) {
-    yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
-    yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
+    yield* Saga.chainAction<GregorGen.PushStatePayload>(
+      GregorGen.pushState,
+      gregorPushState,
+      'gregorPushState'
+    )
+    yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(
+      WalletsGen.changeAirdrop,
+      changeAirdrop,
+      'changeAirdrop'
+    )
     yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
       [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone],
-      updateAirdropDetails
+      updateAirdropDetails,
+      'updateAirdropDetails'
     )
     yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
       [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone],
-      updateAirdropState
+      updateAirdropState,
+      'updateAirdropState'
     )
     yield* Saga.chainAction<WalletsGen.HideAirdropBannerPayload | WalletsGen.ChangeAirdropPayload>(
       [WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop],
-      hideAirdropBanner
+      hideAirdropBanner,
+      'hideAirdropBanner'
     )
   }
 }

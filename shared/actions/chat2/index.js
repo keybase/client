@@ -2850,20 +2850,24 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     // Push us into the conversation
     yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(
       Chat2Gen.selectConversation,
-      mobileNavigateOnSelect
+      mobileNavigateOnSelect,
+      'mobileNavigateOnSelect'
     )
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
       Chat2Gen.messageAttachmentNativeShare,
-      mobileMessageAttachmentShare
+      mobileMessageAttachmentShare,
+      'mobileMessageAttachmentShare'
     )
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSavePayload>(
       Chat2Gen.messageAttachmentNativeSave,
-      mobileMessageAttachmentSave
+      mobileMessageAttachmentSave,
+      'mobileMessageAttachmentSave'
     )
     // Unselect the conversation when we go to the inbox
     yield* Saga.chainAction<any>(
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
-      mobileChangeSelection
+      mobileChangeSelection,
+      'mobileChangeSelection'
     )
   } else {
     yield* Saga.chainGenerator<Chat2Gen.DesktopNotificationPayload>(
@@ -2894,7 +2898,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.hideConversation,
       TeamsGen.leaveTeam,
     ],
-    changeSelectedConversation
+    changeSelectedConversation,
+    'changeSelectedConversation'
   )
   // Refresh the inbox
   yield* Saga.chainGenerator<
@@ -2909,19 +2914,36 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       EngineGen.chat1NotifyChatChatJoinedConversation,
       EngineGen.chat1NotifyChatChatLeftConversation,
     ],
-    inboxRefresh
+    inboxRefresh,
+    'inboxRefresh'
   )
   // Load teams
-  yield* Saga.chainAction<Chat2Gen.MetasReceivedPayload>(Chat2Gen.metasReceived, requestTeamsUnboxing)
+  yield* Saga.chainAction<Chat2Gen.MetasReceivedPayload>(
+    Chat2Gen.metasReceived,
+    requestTeamsUnboxing,
+    'requestTeamsUnboxing'
+  )
   // We've scrolled some new inbox rows into view, queue them up
-  yield* Saga.chainAction<Chat2Gen.MetaNeedsUpdatingPayload>(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
+  yield* Saga.chainAction<Chat2Gen.MetaNeedsUpdatingPayload>(
+    Chat2Gen.metaNeedsUpdating,
+    queueMetaToRequest,
+    'queueMetaToRequest'
+  )
   // We have some items in the queue to process
-  yield* Saga.chainGenerator<Chat2Gen.MetaHandleQueuePayload>(Chat2Gen.metaHandleQueue, requestMeta)
+  yield* Saga.chainGenerator<Chat2Gen.MetaHandleQueuePayload>(
+    Chat2Gen.metaHandleQueue,
+    requestMeta,
+    'requestMeta'
+  )
 
   // Actually try and unbox conversations
   yield* Saga.chainGenerator<
     Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload
-  >([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation, Chat2Gen.metasReceived], unboxRows)
+  >(
+    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation, Chat2Gen.metasReceived],
+    unboxRows,
+    'unboxRows'
+  )
 
   // Load the selected thread
   yield* Saga.chainGenerator<
@@ -2948,89 +2970,138 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.metasReceived,
       ConfigGen.changedFocus,
     ],
-    loadMoreMessages
+    loadMoreMessages,
+    'loadMoreMessages'
   )
 
   // get the unread (orange) line
-  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, getUnreadline)
+  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
+    Chat2Gen.selectConversation,
+    getUnreadline,
+    'getUnreadline'
+  )
 
-  yield* Saga.chainAction<Chat2Gen.MessageRetryPayload>(Chat2Gen.messageRetry, messageRetry)
-  yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)
-  yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit)
-  yield* Saga.chainAction<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, clearMessageSetEditing)
-  yield* Saga.chainAction<Chat2Gen.MessageDeletePayload>(Chat2Gen.messageDelete, messageDelete)
+  yield* Saga.chainAction<Chat2Gen.MessageRetryPayload>(Chat2Gen.messageRetry, messageRetry, 'messageRetry')
+  yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend, 'messageSend')
+  yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit, 'messageEdit')
+  yield* Saga.chainAction<Chat2Gen.MessageEditPayload>(
+    Chat2Gen.messageEdit,
+    clearMessageSetEditing,
+    'clearMessageSetEditing'
+  )
+  yield* Saga.chainAction<Chat2Gen.MessageDeletePayload>(
+    Chat2Gen.messageDelete,
+    messageDelete,
+    'messageDelete'
+  )
   yield* Saga.chainAction<Chat2Gen.MessageDeleteHistoryPayload>(
     Chat2Gen.messageDeleteHistory,
-    deleteMessageHistory
+    deleteMessageHistory,
+    'deleteMessageHistory'
   )
   yield* Saga.chainAction<Chat2Gen.ConfirmScreenResponsePayload>(
     Chat2Gen.confirmScreenResponse,
-    confirmScreenResponse
+    confirmScreenResponse,
+    'confirmScreenResponse'
   )
 
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.MessageSendPayload>(
     [Chat2Gen.selectConversation, Chat2Gen.messageSend],
-    clearInboxFilter
+    clearInboxFilter,
+    'clearInboxFilter'
   )
-  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(
+    Chat2Gen.selectConversation,
+    loadCanUserPerform,
+    'loadCanUserPerform'
+  )
 
   // Giphy
-  yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, unsentTextChanged)
-  yield* Saga.chainAction<Chat2Gen.GiphySendPayload>(Chat2Gen.giphySend, giphySend)
+  yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(
+    Chat2Gen.unsentTextChanged,
+    unsentTextChanged,
+    'unsentTextChanged'
+  )
+  yield* Saga.chainAction<Chat2Gen.GiphySendPayload>(Chat2Gen.giphySend, giphySend, 'giphySend')
 
   yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(
     Chat2Gen.unfurlResolvePrompt,
-    unfurlResolvePrompt
+    unfurlResolvePrompt,
+    'unfurlResolvePrompt'
   )
   yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(
     Chat2Gen.unfurlResolvePrompt,
-    unfurlDismissPrompt
+    unfurlDismissPrompt,
+    'unfurlDismissPrompt'
   )
-  yield* Saga.chainAction<Chat2Gen.UnfurlRemovePayload>(Chat2Gen.unfurlRemove, unfurlRemove)
+  yield* Saga.chainAction<Chat2Gen.UnfurlRemovePayload>(Chat2Gen.unfurlRemove, unfurlRemove, 'unfurlRemove')
 
   yield* Saga.chainGenerator<
     Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
-  >([Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers], previewConversationFindExisting)
-  yield* Saga.chainAction<Chat2Gen.OpenFolderPayload>(Chat2Gen.openFolder, openFolder)
+  >(
+    [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],
+    previewConversationFindExisting,
+    'previewConversationFindExisting'
+  )
+  yield* Saga.chainAction<Chat2Gen.OpenFolderPayload>(Chat2Gen.openFolder, openFolder, 'openFolder')
 
   // On login lets load the untrusted inbox. This helps make some flows easier
-  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, startupInboxLoad)
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, startupInboxLoad, 'startupInboxLoad')
 
   // Search handling
   yield* Saga.chainAction<Chat2Gen.SetPendingModePayload | SearchGen.UserInputItemsUpdatedPayload>(
     [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
-    updatePendingParticipants
+    updatePendingParticipants,
+    'updatePendingParticipants'
   )
   yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
-    clearSearchResults
+    clearSearchResults,
+    'clearSearchResults'
   )
   yield* Saga.chainAction<Chat2Gen.SetPendingConversationUsersPayload | Chat2Gen.SelectConversationPayload>(
     [Chat2Gen.setPendingConversationUsers, Chat2Gen.selectConversation],
-    getRecommendations
+    getRecommendations,
+    'getRecommendations'
   )
 
   yield* Saga.chainAction<Chat2Gen.AttachmentPreviewSelectPayload>(
     Chat2Gen.attachmentPreviewSelect,
-    attachmentPreviewSelect
+    attachmentPreviewSelect,
+    'attachmentPreviewSelect'
   )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentDownloadPayload>(
     Chat2Gen.attachmentDownload,
-    attachmentDownload
+    attachmentDownload,
+    'attachmentDownload'
   )
-  yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
-  yield* Saga.chainAction<Chat2Gen.AttachmentPastedPayload>(Chat2Gen.attachmentPasted, attachmentPasted)
+  yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(
+    Chat2Gen.attachmentsUpload,
+    attachmentsUpload,
+    'attachmentsUpload'
+  )
+  yield* Saga.chainAction<Chat2Gen.AttachmentPastedPayload>(
+    Chat2Gen.attachmentPasted,
+    attachmentPasted,
+    'attachmentPasted'
+  )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentFullscreenNextPayload>(
     Chat2Gen.attachmentFullscreenNext,
-    attachmentFullscreenNext
+    attachmentFullscreenNext,
+    'attachmentFullscreenNext'
   )
 
-  yield* Saga.chainAction<Chat2Gen.SendTypingPayload>(Chat2Gen.sendTyping, sendTyping)
+  yield* Saga.chainAction<Chat2Gen.SendTypingPayload>(Chat2Gen.sendTyping, sendTyping, 'sendTyping')
   yield* Saga.chainAction<Chat2Gen.ResetChatWithoutThemPayload>(
     Chat2Gen.resetChatWithoutThem,
-    resetChatWithoutThem
+    resetChatWithoutThem,
+    'resetChatWithoutThem'
   )
-  yield* Saga.chainAction<Chat2Gen.ResetLetThemInPayload>(Chat2Gen.resetLetThemIn, resetLetThemIn)
+  yield* Saga.chainAction<Chat2Gen.ResetLetThemInPayload>(
+    Chat2Gen.resetLetThemIn,
+    resetLetThemIn,
+    'resetLetThemIn'
+  )
 
   yield* Saga.chainAction<
     | Chat2Gen.MessagesAddPayload
@@ -3050,7 +3121,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       ConfigGen.changedActive,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],
-    markThreadAsRead
+    markThreadAsRead,
+    'markThreadAsRead'
   )
 
   yield* Saga.chainAction<
@@ -3060,169 +3132,256 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | TeamsGen.LeftTeamPayload
   >(
     [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
-    navigateToInbox
+    navigateToInbox,
+    'navigateToInbox'
   )
-  yield* Saga.chainAction<Chat2Gen.NavigateToThreadPayload>(Chat2Gen.navigateToThread, navigateToThread)
+  yield* Saga.chainAction<Chat2Gen.NavigateToThreadPayload>(
+    Chat2Gen.navigateToThread,
+    navigateToThread,
+    'navigateToThread'
+  )
 
-  yield* Saga.chainAction<Chat2Gen.JoinConversationPayload>(Chat2Gen.joinConversation, joinConversation)
-  yield* Saga.chainAction<Chat2Gen.LeaveConversationPayload>(Chat2Gen.leaveConversation, leaveConversation)
+  yield* Saga.chainAction<Chat2Gen.JoinConversationPayload>(
+    Chat2Gen.joinConversation,
+    joinConversation,
+    'joinConversation'
+  )
+  yield* Saga.chainAction<Chat2Gen.LeaveConversationPayload>(
+    Chat2Gen.leaveConversation,
+    leaveConversation,
+    'leaveConversation'
+  )
 
-  yield* Saga.chainAction<Chat2Gen.MuteConversationPayload>(Chat2Gen.muteConversation, muteConversation)
+  yield* Saga.chainAction<Chat2Gen.MuteConversationPayload>(
+    Chat2Gen.muteConversation,
+    muteConversation,
+    'muteConversation'
+  )
   yield* Saga.chainAction<Chat2Gen.UpdateNotificationSettingsPayload>(
     Chat2Gen.updateNotificationSettings,
-    updateNotificationSettings
+    updateNotificationSettings,
+    'updateNotificationSettings'
   )
-  yield* Saga.chainGenerator<Chat2Gen.BlockConversationPayload>(Chat2Gen.blockConversation, blockConversation)
-  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(Chat2Gen.hideConversation, hideConversation)
+  yield* Saga.chainGenerator<Chat2Gen.BlockConversationPayload>(
+    Chat2Gen.blockConversation,
+    blockConversation,
+    'blockConversation'
+  )
+  yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(
+    Chat2Gen.hideConversation,
+    hideConversation,
+    'hideConversation'
+  )
   yield* Saga.chainGenerator<Chat2Gen.HideConversationPayload>(
     Chat2Gen.unhideConversation,
-    unhideConversation
+    unhideConversation,
+    'unhideConversation'
   )
 
   yield* Saga.chainAction<Chat2Gen.SetConvRetentionPolicyPayload>(
     Chat2Gen.setConvRetentionPolicy,
-    setConvRetentionPolicy
+    setConvRetentionPolicy,
+    'setConvRetentionPolicy'
   )
   yield* Saga.chainAction<Chat2Gen.ToggleMessageCollapsePayload>(
     Chat2Gen.toggleMessageCollapse,
-    toggleMessageCollapse
+    toggleMessageCollapse,
+    'toggleMessageCollapse'
   )
   yield* Saga.chainGenerator<Chat2Gen.CreateConversationPayload>(
     Chat2Gen.createConversation,
-    createConversation
+    createConversation,
+    'createConversation'
   )
   yield* Saga.chainAction<Chat2Gen.MessageReplyPrivatelyPayload>(
     Chat2Gen.messageReplyPrivately,
-    messageReplyPrivately
+    messageReplyPrivately,
+    'messageReplyPrivately'
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.PreviewConversationPayload>(
     [Chat2Gen.selectConversation, Chat2Gen.previewConversation],
-    changePendingMode
+    changePendingMode,
+    'changePendingMode'
   )
-  yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
-  yield* Saga.chainAction<Chat2Gen.ToggleInfoPanelPayload>(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
+  yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(
+    Chat2Gen.openChatFromWidget,
+    openChatFromWidget,
+    'openChatFromWidget'
+  )
+  yield* Saga.chainAction<Chat2Gen.ToggleInfoPanelPayload>(
+    Chat2Gen.toggleInfoPanel,
+    toggleInfoPanel,
+    'toggleInfoPanel'
+  )
 
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
     Chat2Gen.setConvExplodingMode,
-    setConvExplodingMode
+    setConvExplodingMode,
+    'setConvExplodingMode'
   )
   yield* Saga.chainGenerator<Chat2Gen.HandleSeeingWalletsPayload>(
     Chat2Gen.handleSeeingWallets,
-    handleSeeingWallets
+    handleSeeingWallets,
+    'handleSeeingWallets'
   )
   yield* Saga.chainAction<Chat2Gen.ToggleMessageReactionPayload>(
     Chat2Gen.toggleMessageReaction,
-    toggleMessageReaction
+    toggleMessageReaction,
+    'toggleMessageReaction'
   )
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadStaticConfig)
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    loadStaticConfig,
+    'loadStaticConfig'
+  )
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
     NotificationsGen.receivedBadgeState,
-    receivedBadgeState
+    receivedBadgeState,
+    'receivedBadgeState'
   )
-  yield* Saga.chainAction<Chat2Gen.SetMinWriterRolePayload>(Chat2Gen.setMinWriterRole, setMinWriterRole)
-  yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
+  yield* Saga.chainAction<Chat2Gen.SetMinWriterRolePayload>(
+    Chat2Gen.setMinWriterRole,
+    setMinWriterRole,
+    'setMinWriterRole'
+  )
+  yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState, 'gregorPushState')
   yield* Saga.chainAction<Chat2Gen.PrepareFulfillRequestFormPayload>(
     Chat2Gen.prepareFulfillRequestForm,
-    prepareFulfillRequestForm
+    prepareFulfillRequestForm,
+    'prepareFulfillRequestForm'
   )
 
   yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
     Chat2Gen.selectConversation,
-    loadChannelInfos
+    loadChannelInfos,
+    'loadChannelInfos'
   )
 
-  yield* Saga.chainAction<Chat2Gen.AddUsersToChannelPayload>(Chat2Gen.addUsersToChannel, addUsersToChannel)
+  yield* Saga.chainAction<Chat2Gen.AddUsersToChannelPayload>(
+    Chat2Gen.addUsersToChannel,
+    addUsersToChannel,
+    'addUsersToChannel'
+  )
 
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPromptUnfurlPayload>(
     EngineGen.chat1NotifyChatChatPromptUnfurl,
-    onChatPromptUnfurl
+    onChatPromptUnfurl,
+    'onChatPromptUnfurl'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload>(
     EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
-    onChatAttachmentUploadProgress
+    onChatAttachmentUploadProgress,
+    'onChatAttachmentUploadProgress'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload>(
     EngineGen.chat1NotifyChatChatAttachmentUploadStart,
-    onChatAttachmentUploadStart
+    onChatAttachmentUploadStart,
+    'onChatAttachmentUploadStart'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatIdentifyUpdatePayload>(
     EngineGen.chat1NotifyChatChatIdentifyUpdate,
-    onChatIdentifyUpdate
+    onChatIdentifyUpdate,
+    'onChatIdentifyUpdate'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatInboxSyncStartedPayload>(
     EngineGen.chat1NotifyChatChatInboxSyncStarted,
-    onChatInboxSyncStarted
+    onChatInboxSyncStarted,
+    'onChatInboxSyncStarted'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatInboxSyncedPayload>(
     EngineGen.chat1NotifyChatChatInboxSynced,
-    onChatInboxSynced
+    onChatInboxSynced,
+    'onChatInboxSynced'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPaymentInfoPayload>(
     EngineGen.chat1NotifyChatChatPaymentInfo,
-    onChatPaymentInfo
+    onChatPaymentInfo,
+    'onChatPaymentInfo'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatRequestInfoPayload>(
     EngineGen.chat1NotifyChatChatRequestInfo,
-    onChatRequestInfo
+    onChatRequestInfo,
+    'onChatRequestInfo'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatSetConvRetentionPayload>(
     EngineGen.chat1NotifyChatChatSetConvRetention,
-    onChatSetConvRetention
+    onChatSetConvRetention,
+    'onChatSetConvRetention'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatSetConvSettingsPayload>(
     EngineGen.chat1NotifyChatChatSetConvSettings,
-    onChatSetConvSettings
+    onChatSetConvSettings,
+    'onChatSetConvSettings'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload>(
     EngineGen.chat1NotifyChatChatSetTeamRetention,
-    onChatSetTeamRetention
+    onChatSetTeamRetention,
+    'onChatSetTeamRetention'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatSubteamRenamePayload>(
     EngineGen.chat1NotifyChatChatSubteamRename,
-    onChatSubteamRename
+    onChatSubteamRename,
+    'onChatSubteamRename'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatTLFFinalizePayload>(
     EngineGen.chat1NotifyChatChatTLFFinalize,
-    onChatChatTLFFinalizePayload
+    onChatChatTLFFinalizePayload,
+    'onChatChatTLFFinalizePayload'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatThreadsStalePayload>(
     EngineGen.chat1NotifyChatChatThreadsStale,
-    onChatThreadStale
+    onChatThreadStale,
+    'onChatThreadStale'
   )
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatNewChatActivityPayload>(
     EngineGen.chat1NotifyChatNewChatActivity,
-    onNewChatActivity
+    onNewChatActivity,
+    'onNewChatActivity'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphySearchResultsPayload>(
     EngineGen.chat1ChatUiChatGiphySearchResults,
-    onGiphyResults
+    onGiphyResults,
+    'onGiphyResults'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload>(
     EngineGen.chat1ChatUiChatGiphyToggleResultWindow,
-    onGiphyToggleWindow
+    onGiphyToggleWindow,
+    'onGiphyToggleWindow'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatShowManageChannelsPayload>(
     EngineGen.chat1ChatUiChatShowManageChannels,
-    onChatShowManageChannels
+    onChatShowManageChannels,
+    'onChatShowManageChannels'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCoinFlipStatusPayload>(
     EngineGen.chat1ChatUiChatCoinFlipStatus,
-    onChatCoinFlipStatus
+    onChatCoinFlipStatus,
+    'onChatCoinFlipStatus'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandMarkdownPayload>(
     EngineGen.chat1ChatUiChatCommandMarkdown,
-    onChatCommandMarkdown
+    onChatCommandMarkdown,
+    'onChatCommandMarkdown'
   )
 
-  yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
+  yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(
+    Chat2Gen.threadSearch,
+    threadSearch,
+    'threadSearch'
+  )
   yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(
     Chat2Gen.toggleThreadSearch,
-    onToggleThreadSearch
+    onToggleThreadSearch,
+    'onToggleThreadSearch'
   )
-  yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(Chat2Gen.selectConversation, hideThreadSearch)
+  yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(
+    Chat2Gen.selectConversation,
+    hideThreadSearch,
+    'hideThreadSearch'
+  )
 
-  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')
 
   yield Saga.spawn(chatTeamBuildingSaga)
 }
