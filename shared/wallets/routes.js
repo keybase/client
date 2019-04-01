@@ -175,8 +175,8 @@ const WalletsSubNavigator = createNavigator(
 
 WalletsSubNavigator.navigationOptions = {
   header: undefined,
-  headerTitle: 'Wallets',
-  title: 'Wallets',
+  headerTitle: 'Wallet',
+  title: 'Wallet',
 }
 
 export const newRoutes = {
