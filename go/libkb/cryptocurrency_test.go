@@ -77,6 +77,7 @@ func TestAddressValidation(t *testing.T) {
 		{"bc11cerjvfmt8qr8xlp6pv4htjhwlj2wgdjnayc3cc", false},
 		{"bc20cerjvfmt8qr8xlp6pv4htjhwlj2wgdjnayc3cc", false},
 		{"bc1q7k78aepp3epmlzvxwvvhc4up849efeg7r5j0xk", true},
+		{"BC1QCERJVFMT8QR8XLP6PV4HTJHWLJ2WGDJNAYC3CC", true}, // uppercase is accepted
 		{"bc1qc7slrfxkknqcq2jevvvkdgvrt8080852dfjewde450xdlk4ugp7szw5tk9", true},
 	}
 	for _, testAddr := range btcTestAddrs {
