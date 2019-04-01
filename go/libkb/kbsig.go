@@ -656,18 +656,18 @@ func (u *User) RevokeSigsProof(m MetaContext, key GenericKey, sigIDsToRevoke []k
 	return ret, nil
 }
 
-func (u *User) CryptocurrencySig(m MetaContext, key GenericKey, address string, typ CryptocurrencyType, sigToRevoke keybase1.SigID, merkleRoot *MerkleRoot, sigVersion SigVersion) (*jsonw.Wrapper, error) {
+func (u *User) CryptocurrencySig(m MetaContext, key GenericKey, address string, typ CryptocurrencyType, sigToRevoke keybase1.SigID, merkleRoot *MerkleRoot, sigVersion SigVersion) (*ProofMetadataSigned, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeCryptocurrency,
 		SigningKey: key,
 		MerkleRoot: merkleRoot,
 		SigVersion: sigVersion,
-	}.ToJSON(m)
+	}.ToJSON2(m)
 	if err != nil {
 		return nil, err
 	}
-	body := ret.AtKey("body")
+	body := ret.J.AtKey("body")
 	currencySection := jsonw.NewDictionary()
 	currencySection.SetKey("address", jsonw.NewString(address))
 	currencySection.SetKey("type", jsonw.NewString(typ.String()))
