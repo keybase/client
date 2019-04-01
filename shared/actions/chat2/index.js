@@ -1584,7 +1584,7 @@ function* previewConversationFindExisting(state, action) {
   )
 
   if (!conversationIDKey) {
-    const results = yield Saga.callUntyped(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+    const results = yield RPCChatTypes.localFindConversationsLocalRpcPromise({
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
       oneChatPerTLF: true,
