@@ -8,11 +8,24 @@ type Props = {|
   onBack: () => void,
   onChangeUsername: string => void,
   onContinue: () => void,
-  onLogin: ?() => void,
+  onLogin: () => void, // route to login screen if username is taken
+  usernameTaken: ?string,
 |}
 
 const EnterUsername = (props: Props) => (
   <SignupScreen
+    banners={
+      props.usernameTaken
+        ? [
+            <Kb.Banner
+              key="usernameTaken"
+              actions={[{onClick: props.onLogin, title: `log in as ${props.usernameTaken}?`}]}
+              color="blue"
+              text="Sorry, this username is already taken. Did you mean to"
+            />,
+          ]
+        : null
+    }
     buttons={[{label: 'Continue', onClick: props.onContinue, type: 'PrimaryGreen'}]}
     onBack={props.onBack}
     title={Styles.isMobile ? 'Create account' : 'Create an account'}

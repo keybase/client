@@ -9,12 +9,14 @@ const props = {
   onChangeUsername: Sb.action('onChangeUsername'),
   onContinue: Sb.action('onContinue'),
   onLogin: Sb.action('onLogin'),
+  usernameTaken: null,
 }
 
 const load = () => {
   Sb.storiesOf('New signup', module)
     .addDecorator(storyDecorator)
     .add('Enter username', () => <EnterUsername {...props} />)
+    .add('Enter username - taken', () => <EnterUsername {...props} usernameTaken="chris" />)
 }
 
 export default load

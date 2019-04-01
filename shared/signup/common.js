@@ -75,6 +75,8 @@ const _SignupScreen = (props: SignupScreenProps) => (
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.body} fullWidth={true}>
         {props.children}
       </Kb.Box2>
+      {/* Banners after children so they go on top */}
+      {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
       <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
         {props.buttons.map(b => (
           <Kb.Button key={b.label} style={styles.button} {...b} />
@@ -91,9 +93,16 @@ const styles = Styles.styleSheetCreate({
     left: Styles.globalMargins.small,
     position: 'absolute',
   },
+  banners: {
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   blueBackground: {
     backgroundColor: Styles.globalColors.blueGrey,
     flex: 1,
+    position: 'relative',
   },
   body: {
     ...Styles.padding(
