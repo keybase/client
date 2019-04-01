@@ -237,7 +237,7 @@ func (w *WalletState) UpdateAccountEntriesWithBundle(mctx libkb.MetaContext, rea
 
 	// clean out any unusued accounts
 	w.Lock()
-	for accountID, _ := range w.accounts {
+	for accountID := range w.accounts {
 		if active[accountID] {
 			continue
 		}
