@@ -439,6 +439,10 @@ func (r *RemoteClientMock) SubmitRelayPayment(ctx context.Context, post stellar1
 	return r.Backend.SubmitRelayPayment(ctx, r.Tc, post)
 }
 
+func (r *RemoteClientMock) SubmitMultiPayment(ctx context.Context, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
+	return stellar1.SubmitMultiRes{}, errors.New("SubmitMultiPayment not mocked")
+}
+
 func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	return r.Backend.SubmitRelayClaim(ctx, r.Tc, post)
 }

@@ -28,6 +28,7 @@ export const allTextTypes = {
   BodySmallSuccess: 'BodySmallSuccess',
   BodySmallWallet: 'BodySmallWallet',
   BodyTiny: 'BodyTiny',
+  BodyTinyLink: 'BodyTinyLink',
   BodyTinySemibold: 'BodyTinySemibold',
   BodyTinyBold: 'BodyTinyBold',
   Header: 'Header',

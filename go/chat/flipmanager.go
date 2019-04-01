@@ -129,6 +129,7 @@ type FlipManager struct {
 	visualizer       *FlipVisualizer
 	clock            clockwork.Clock
 	ri               func() chat1.RemoteInterface
+	started          bool
 	shutdownMu       sync.Mutex
 	shutdownCh       chan struct{}
 	dealerShutdownCh chan struct{}
@@ -196,6 +197,11 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
 	m.shutdownMu.Lock()
+	if m.started {
+		m.shutdownMu.Unlock()
+		return
+	}
+	m.started = true
 	var dealerCtx context.Context
 	shutdownCh := make(chan struct{})
 	dealerShutdownCh := make(chan struct{})
@@ -203,6 +209,7 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	m.dealerShutdownCh = dealerShutdownCh
 	dealerCtx, m.dealerCancel = context.WithCancel(context.Background())
 	m.shutdownMu.Unlock()
+
 	go func(shutdownCh chan struct{}) {
 		m.dealer.Run(dealerCtx)
 		close(shutdownCh)
@@ -216,7 +223,10 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	defer m.Trace(ctx, func() error { return nil }, "Stop")()
 	m.dealer.Stop()
+
 	m.shutdownMu.Lock()
+	defer m.shutdownMu.Unlock()
+	m.started = false
 	if m.shutdownCh != nil {
 		m.dealerCancel()
 		close(m.shutdownCh)
@@ -224,22 +234,22 @@ func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	}
 	if m.dealerShutdownCh != nil {
 		ch = m.dealerShutdownCh
+		m.dealerShutdownCh = nil
 	} else {
 		ch = make(chan struct{})
 		close(ch)
 	}
-	m.shutdownMu.Unlock()
 	return ch
 }
 
 func (m *FlipManager) makeBkgContext() context.Context {
 	ctx := context.Background()
-	return Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
+	return globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 }
 
 func (m *FlipManager) isHostMessageInfoMsgID(msgID chat1.MessageID) bool {
-	// The first message in a flip thread is metadata about the flip, which is message ID 2 since
-	// conversations have an initial message from creation.
+	// The first message in a flip thread is metadata about the flip, which is
+	// message ID 2 since conversations have an initial message from creation.
 	return chat1.MessageID(2) == msgID
 }
 
@@ -248,7 +258,8 @@ func (m *FlipManager) startMsgID() chat1.MessageID {
 }
 
 func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
-	// The first message after the host message is the flip start message, which will have message ID 3
+	// The first message after the host message is the flip start message,
+	// which will have message ID 3
 	return m.startMsgID() == msgID
 }
 
@@ -971,9 +982,9 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	go func() {
 		var err error
 		topicName := m.gameTopicNameFromGameID(gameID)
-		conv, err = m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
+		conv, err = NewConversationWithMemberSourceConv(ctx, m.G(), uid, tlfName, &topicName,
 			chat1.TopicType_DEV, hostConv.GetMembersType(),
-			keybase1.TLFVisibility_PRIVATE, &hostConvID)
+			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, &hostConvID)
 		convCreatedCh <- err
 	}()
 
@@ -1225,7 +1236,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		return true
 	}
 	// Ignore anything from the current device
-	ctx = BackgroundContext(ctx, m.G())
+	ctx = globals.BackgroundChatCtx(ctx, m.G())
 	select {
 	case m.maybeInjectCh <- func() {
 		defer m.Trace(ctx, func() error { return nil },
@@ -1344,7 +1355,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			}
 			m.Debug(ctx, "loadGame: game had no action after pausing, sending error")
 			m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
-		}(BackgroundContext(ctx, m.G()), summary)
+		}(globals.BackgroundChatCtx(ctx, m.G()), summary)
 	} else {
 		m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
 	}
@@ -1420,7 +1431,7 @@ func (m *FlipManager) Clock() clockwork.Clock {
 
 // ServerTime implements the flip.DealersHelper interface
 func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
-	ctx = Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
+	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
 	if m.testingServerClock != nil {
 		return m.testingServerClock.Now(), nil
@@ -1478,7 +1489,7 @@ func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.Fli
 // SendChat implements the flip.DealersHelper interface
 func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
 	msg flip.GameMessageEncoded) (err error) {
-	ctx = Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
+	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {

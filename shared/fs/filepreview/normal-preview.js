@@ -8,6 +8,7 @@ import * as Kbfs from '../common'
 import Footer from '../footer/footer'
 import Header from './header-container'
 import View from './view-container'
+import flags from '../../util/feature-flags'
 
 type NormalPreviewProps = {
   path: Types.Path,
@@ -29,9 +30,8 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
     return (
       <Kb.BoxGrow>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-          <Header path={this.props.path} routePath={this.props.routePath} />
+          {!flags.useNewRouter && <Header path={this.props.path} routePath={this.props.routePath} />}
           <Kbfs.Errs />
-          <Kb.Divider />
           <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
             <View
               path={this.props.path}

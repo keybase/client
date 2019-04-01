@@ -22,7 +22,7 @@ type _DeleteEntityPayload = $ReadOnly<{|keyPath: Array<string>, ids: Iterable<an
 type _MergeEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
 type _NewPinentryPayload = $ReadOnly<{|showTyping: RPCTypes.Feature, type: RPCTypes.PassphraseType, sessionID: number, prompt: string, windowTitle: string, submitLabel: ?string, cancelLabel: ?string, retryLabel: ?string|}>
 type _OnCancelPayload = $ReadOnly<{|sessionID: number|}>
-type _OnSubmitPayload = $ReadOnly<{|sessionID: number, passphrase: string|}>
+type _OnSubmitPayload = $ReadOnly<{|sessionID: number, password: string|}>
 type _ReplaceEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
 type _SubtractEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.List<any>|}>
 

@@ -202,10 +202,12 @@ func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.En
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("EnterResetPipline", func() error { return err })()
 	uis := libkb.UIs{
+		LoginUI:   h.getLoginUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewAccountReset(h.G(), arg.Username, arg.Email)
+	eng := engine.NewAccountReset(h.G(), arg.UsernameOrEmail)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
 }
@@ -214,4 +216,18 @@ func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.En
 func (h *AccountHandler) CancelReset(ctx context.Context, sessionID int) error {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	return libkb.CancelResetPipeline(mctx)
+}
+
+// TimeTravelReset allows a user to move forward in the reset process via an authenticated API call [devel-only].
+func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeTravelResetArg) error {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	_, err := mctx.G().API.Post(mctx, libkb.APIArg{
+		Endpoint:    "autoreset/timetravel",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"duration_sec": libkb.I{Val: int(arg.Duration)},
+		},
+	})
+
+	return err
 }

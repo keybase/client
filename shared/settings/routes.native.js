@@ -13,7 +13,7 @@ const routeTree = () => {
   const GitRoute = require('../git/routes').default
   const FilesRoute = require('../fs/routes').default
   const WebLinks = require('./web-links.native').default
-  const Passphrase = require('./passphrase/container').default
+  const Password = require('./password/container').default
   const About = require('./about-container').default
   const NotificationsContainer = require('./notifications/container').default
   const DBNukeConfirm = require('./db-nuke-confirm/container').default
@@ -34,7 +34,7 @@ const routeTree = () => {
         },
         component: About,
       },
-      [Constants.passphraseTab]: {component: Passphrase},
+      [Constants.passwordTab]: {component: Password},
       [Constants.feedbackTab]: {component: Feedback},
       [Constants.landingTab]: {component: About},
       [Constants.screenprotectorTab]: {component: Screenprotector},
@@ -94,7 +94,7 @@ export const newRoutes = {
   [Constants.landingTab]: {getScreen: () => require('./about-container').default},
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
-  [Constants.passphraseTab]: {getScreen: () => require('./passphrase/container').default},
+  [Constants.passwordTab]: {getScreen: () => require('./password/container').default},
   [Constants.screenprotectorTab]: {getScreen: () => require('./screenprotector-container.native').default},
   dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},

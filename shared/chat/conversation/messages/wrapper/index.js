@@ -40,6 +40,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {|
+  centeredOrdinal: boolean,
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
@@ -247,6 +248,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
+          this.props.centeredOrdinal && styles.centeredOrdinal,
         ]),
       }
       return this.props.decorate
@@ -262,6 +264,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         className: Styles.classNames(
           {
             'WrapperMessage-author': this.props.showUsername,
+            'WrapperMessage-centered': this.props.centeredOrdinal,
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             'WrapperMessage-noOverflow': this.props.isPendingPayment,
@@ -531,6 +534,9 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
+  centeredOrdinal: {
+    backgroundColor: Styles.globalColors.yellow,
+  },
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
   containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
   containerNoUsername: Styles.platformStyles({

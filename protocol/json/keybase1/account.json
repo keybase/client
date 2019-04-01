@@ -4,6 +4,11 @@
     {
       "path": "passphrase_common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -190,11 +195,7 @@
           "type": "int"
         },
         {
-          "name": "username",
-          "type": "string"
-        },
-        {
-          "name": "email",
+          "name": "usernameOrEmail",
           "type": "string"
         }
       ],
@@ -210,6 +211,19 @@
       ],
       "response": null,
       "doc": "Aborts the reset process"
+    },
+    "timeTravelReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "duration",
+          "type": "gregor1.DurationSec"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

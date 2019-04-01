@@ -181,13 +181,17 @@ func (g *gregorTestConnection) HandlerName() string {
 }
 
 func newTestContext(tc *kbtest.ChatTestContext) context.Context {
-	return Context(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	if tc.ChatG.CtxFactory == nil {
+		g := globals.NewContext(tc.G, tc.ChatG)
+		g.CtxFactory = NewCtxFactory(g)
+	}
+	return globals.ChatCtx(context.Background(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		nil, NewCachingIdentifyNotifier(tc.Context()))
 }
 
 func newTestContextWithTlfMock(tc *kbtest.ChatTestContext, tlfMock types.NameInfoSource) context.Context {
 	ctx := newTestContext(tc)
-	return CtxAddTestingNameInfoSource(ctx, tlfMock)
+	return globals.CtxAddOverrideNameInfoSource(ctx, tlfMock)
 }
 
 type testUISource struct {
@@ -350,6 +354,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	chatStorage := storage.New(g, nil)
 	chatStorage.SetClock(c.world.Fc)
+	g.CtxFactory = NewCtxFactory(g)
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
 	chatStorage.SetAssetDeleter(g.ConvSource)
@@ -365,7 +370,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	searcher.SetPageSize(2)
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
-	ictx := IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
+	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
@@ -647,8 +652,8 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 	var foundTaskCount int
 	var upto chat1.MessageID
 	for i := 0; ; i++ {
-		ctx := Context(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
-		trace, _ := CtxTrace(ctx)
+		ctx := globals.ChatCtx(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
+		trace, _ := globals.CtxTrace(ctx)
 		t.Logf("+ RetentionSweepConv(%v) (uptoWant %v) [chat-trace=%v]", convID.String(), uptoWant, trace)
 		res, err := tc.ri.RetentionSweepConv(ctx, convID)
 		t.Logf("- RetentionSweepConv res: %+v", res)
@@ -3655,7 +3660,6 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 }
 
 func TestChatSrvGetInboxNonblockError(t *testing.T) {
-	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetInboxNonblockLocal", 1)
 		defer ctc.cleanup()
@@ -5100,11 +5104,11 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg1 := prepareRes.Boxed
 		ts1 := prepareRes.TopicNameState
-		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg2 := prepareRes.Boxed
 		ts2 := prepareRes.TopicNameState
@@ -5166,7 +5170,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv, nil)
 		require.NoError(t, err)
 		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{
@@ -5218,12 +5222,12 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				require.Fail(t, "no identify")
 			}
 			require.Empty(t, update.Breaks.Breaks)
-			CtxIdentifyNotifier(ctx).Reset()
-			CtxKeyFinder(ctx, tc.Context()).Reset()
+			globals.CtxIdentifyNotifier(ctx).Reset()
+			globals.CtxKeyFinder(ctx, tc.Context()).Reset()
 		}
 
 		ctx := ctc.as(t, users[0]).startCtx
-		ctx = CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
+		ctx = globals.CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc.Context()))
 		tc.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
 		tc1.Context().PushHandler.(*PushHandler).identNotifier = DummyIdentifyNotifier{}
 
@@ -5281,7 +5285,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
-		ctx = CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc1.Context()))
+		ctx = globals.CtxModifyIdentifyNotifier(ctx, NewSimpleIdentifyNotifier(tc1.Context()))
 		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 			ConversationID: ncres.Conv.Info.Id,
 			Msg: chat1.MessagePlaintext{

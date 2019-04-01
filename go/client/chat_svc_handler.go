@@ -9,6 +9,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -650,6 +651,11 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		return c.errReply(err)
 	}
 	rlimits = append(rlimits, dres.RateLimits...)
+	if opts.Output != "-" {
+		if err := attachments.Quarantine(ctx, opts.Output); err != nil {
+			c.G().Log.Warning("failed to quarantine attachment download: %s", err)
+		}
+	}
 
 	res := SendRes{
 		Message: fmt.Sprintf("attachment downloaded to %s", opts.Output),

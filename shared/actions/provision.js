@@ -266,10 +266,10 @@ class ProvisioningManager {
     response.result(action.payload.accepted)
   }
 
-  // User has an uploaded key so we can use a passphrase OR they selected a paperkey
-  getPassphraseHandler = (params, response) => {
+  // User has an uploaded key so we can use a password OR they selected a paperkey
+  getPasswordHandler = (params, response) => {
     if (this._done) {
-      logger.info('ProvisioningManager done, yet getPassphraseHandler called')
+      logger.info('ProvisioningManager done, yet getPasswordHandler called')
       return
     }
     this._stashResponse('keybase.1.secretUi.getPassphrase', response)
@@ -282,18 +282,16 @@ class ProvisioningManager {
 
     switch (params.pinentry.type) {
       case RPCTypes.passphraseCommonPassphraseType.passPhrase:
-        return Saga.put(
-          ProvisionGen.createShowPassphrasePage({error: error ? new HiddenString(error) : null})
-        )
+        return Saga.put(ProvisionGen.createShowPasswordPage({error: error ? new HiddenString(error) : null}))
       case RPCTypes.passphraseCommonPassphraseType.paperKey:
         return Saga.put(ProvisionGen.createShowPaperkeyPage({error: error ? new HiddenString(error) : null}))
       default:
-        throw new Error('Got confused about passphrase entry. Please send a log to us!')
+        throw new Error('Got confused about password entry. Please send a log to us!')
     }
   }
-  submitPassphraseOrPaperkey = (state, action) => {
+  submitPasswordOrPaperkey = (state, action) => {
     if (this._done) {
-      logger.info('ProvisioningManager done, yet submitPassphraseOrPaperkey called')
+      logger.info('ProvisioningManager done, yet submitPasswordOrPaperkey called')
       return
     }
     // local error, ignore
@@ -303,15 +301,15 @@ class ProvisioningManager {
 
     const response = this._getAndClearResponse('keybase.1.secretUi.getPassphrase')
     if (!response || !response.result) {
-      throw new Error('Tried to submit passphrase but missing callback')
+      throw new Error('Tried to submit password but missing callback')
     }
 
-    const passphrase =
-      action.type === ProvisionGen.submitPassphrase
-        ? action.payload.passphrase.stringValue()
+    const password =
+      action.type === ProvisionGen.submitPassword
+        ? action.payload.password.stringValue()
         : action.payload.paperkey.stringValue()
 
-    response.result({passphrase, storeSecret: false})
+    response.result({passphrase: password, storeSecret: false})
   }
 
   getCustomResponseIncomingCallMap = () =>
@@ -328,7 +326,7 @@ class ProvisioningManager {
           'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
           'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
           'keybase.1.provisionUi.switchToGPGSignOK': this.switchToGPGSignOKHandler,
-          'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
+          'keybase.1.secretUi.getPassphrase': this.getPasswordHandler,
         }
 
   getIncomingCallMap = () =>
@@ -454,8 +452,8 @@ const submitDeviceName = state => ProvisioningManager.getSingleton().submitDevic
 const submitTextCode = state => ProvisioningManager.getSingleton().submitTextCode(state)
 const submitGPGMethod = (state, action) => ProvisioningManager.getSingleton().submitGPGMethod(state, action)
 const submitGPGSignOK = (state, action) => ProvisioningManager.getSingleton().submitGPGSignOK(state, action)
-const submitPassphraseOrPaperkey = (state, action) =>
-  ProvisioningManager.getSingleton().submitPassphraseOrPaperkey(state, action)
+const submitPasswordOrPaperkey = (state, action) =>
+  ProvisioningManager.getSingleton().submitPasswordOrPaperkey(state, action)
 const maybeCancelProvision = (state: TypedState) =>
   ProvisioningManager.getSingleton().maybeCancelProvision(state)
 
@@ -478,9 +476,9 @@ const showGPGPage = state =>
   !state.provision.error.stringValue() &&
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['gpgSign'], replace: true})
 
-const showPassphrasePage = state =>
+const showPasswordPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['passphrase'], replace: true})
+  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['password'], replace: true})
 
 const showPaperkeyPage = state =>
   !state.provision.error.stringValue() &&
@@ -533,9 +531,9 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ProvisionGen.SubmitTextCodePayload>(ProvisionGen.submitTextCode, submitTextCode)
   yield* Saga.chainAction<ProvisionGen.SubmitGPGMethodPayload>(ProvisionGen.submitGPGMethod, submitGPGMethod)
   yield* Saga.chainAction<ProvisionGen.SubmitGPGSignOKPayload>(ProvisionGen.submitGPGSignOK, submitGPGSignOK)
-  yield* Saga.chainAction<ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload>(
-    [ProvisionGen.submitPassphrase, ProvisionGen.submitPaperkey],
-    submitPassphraseOrPaperkey
+  yield* Saga.chainAction<ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload>(
+    [ProvisionGen.submitPassword, ProvisionGen.submitPaperkey],
+    submitPasswordOrPaperkey
   )
 
   // Screens
@@ -553,9 +551,9 @@ function* provisionSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<ProvisionGen.ShowCodePagePayload>(ProvisionGen.showCodePage, showCodePage)
   yield* Saga.chainAction<ProvisionGen.ShowGPGPagePayload>(ProvisionGen.showGPGPage, showGPGPage)
-  yield* Saga.chainAction<ProvisionGen.ShowPassphrasePagePayload>(
-    ProvisionGen.showPassphrasePage,
-    showPassphrasePage
+  yield* Saga.chainAction<ProvisionGen.ShowPasswordPagePayload>(
+    ProvisionGen.showPasswordPage,
+    showPasswordPage
   )
   yield* Saga.chainAction<ProvisionGen.ShowPaperkeyPagePayload>(
     ProvisionGen.showPaperkeyPage,

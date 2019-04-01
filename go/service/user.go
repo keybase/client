@@ -634,6 +634,12 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 }
 
 func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {
+	if !h.G().ActiveDevice.Valid() {
+		h.G().Log.CDebugf(ctx, "CanLogout: looks like user is not logged in")
+		res.CanLogout = true
+		return res, nil
+	}
+
 	hasRandomPW, err := h.LoadHasRandomPw(ctx, keybase1.LoadHasRandomPwArg{
 		SessionID:   sessionID,
 		ForceRepoll: false,

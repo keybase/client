@@ -31,9 +31,13 @@ export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).t
 
 export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   assertionKey: '',
+  belowFold: false,
   color: 'gray',
   kid: '',
   metas: [],
+  pickerIcon: [],
+  pickerSubtext: '',
+  pickerText: '',
   priority: -1,
   proofURL: '',
   sigID: '',
@@ -137,8 +141,12 @@ export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Ass
   return makeAssertion({
     // we have a special case where we want to differentiate between a dns or web proof, so we have a special pseudo type we use
     assertionKey: ourKey,
+    belowFold: s.belowFold,
     color: 'gray',
-    metas: [],
+    metas: (s.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
+    pickerIcon: s.pickerIcon || [],
+    pickerSubtext: s.pickerSubtext,
+    pickerText: s.pickerText,
     proofURL: '',
     siteIcon: s.profileIcon || [],
     siteURL: '',

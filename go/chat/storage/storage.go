@@ -347,7 +347,6 @@ func (s *Storage) SetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 	defer s.Trace(ctx, func() error { return err }, "SetMaxMsgID")()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
-
 	return s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgID)
 }
 
@@ -834,7 +833,6 @@ func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid
 	defer s.Trace(ctx, func() error { return err }, "ClearAll")()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
-
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
 		return err
@@ -960,8 +958,6 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, iboxMaxMsgID chat1.MessageID,
 	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
-	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functions.
 	defer s.Trace(ctx, func() error { return err }, "FetchUpToLocalMaxMsgID")()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
 	defer lock.Release(ctx)
@@ -982,8 +978,6 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
-	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functions.
 	defer s.Trace(ctx, func() error { return err }, "Fetch")()
 	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), conv.GetConvID().String())
 	defer lock.Release(ctx)

@@ -1616,7 +1616,7 @@ func FormatAmount(mctx libkb.MetaContext, amount string, precisionTwo bool, roun
 // An empty name is not allowed.
 // Renaming an account to an already used name is blocked.
 // Maximum length of AccountNameMaxRunes runes.
-func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newName string) (err error) {
+func ChangeAccountName(m libkb.MetaContext, walletState *WalletState, accountID stellar1.AccountID, newName string) (err error) {
 	if newName == "" {
 		return fmt.Errorf("name required")
 	}
@@ -1642,10 +1642,14 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 		return fmt.Errorf("account not found: %v", accountID)
 	}
 	nextBundle := bundle.AdvanceBundle(*b)
-	return remote.Post(m, nextBundle)
+	if err := remote.Post(m, nextBundle); err != nil {
+		return err
+	}
+
+	return walletState.UpdateAccountEntriesWithBundle(m, "change account name", &nextBundle)
 }
 
-func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err error) {
+func SetAccountAsPrimary(m libkb.MetaContext, walletState *WalletState, accountID stellar1.AccountID) (err error) {
 	if accountID.IsNil() {
 		return errors.New("passed empty AccountID")
 	}
@@ -1675,7 +1679,11 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 		return fmt.Errorf("account not found: %v", accountID)
 	}
 	nextBundle := bundle.AdvanceAccounts(*b, []stellar1.AccountID{accountID})
-	return remote.PostWithChainlink(m, nextBundle)
+	if err = remote.PostWithChainlink(m, nextBundle); err != nil {
+		return err
+	}
+
+	return walletState.UpdateAccountEntriesWithBundle(m, "set account as primary", &nextBundle)
 }
 
 func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {

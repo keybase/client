@@ -33,14 +33,12 @@ export const StillCommon = (
         <Kb.Box2 direction="horizontal">
           <OpenInSystemFileManager path={props.path} />
           <SendInAppAction path={props.path} />
-          <Kb.WithTooltip text="Other actions">
-            <PathItemAction
-              path={props.path}
-              clickable={{type: 'icon'}}
-              routePath={props.routePath}
-              initView="root"
-            />
-          </Kb.WithTooltip>
+          <PathItemAction
+            path={props.path}
+            clickable={{type: 'icon'}}
+            routePath={props.routePath}
+            initView="root"
+          />
         </Kb.Box2>
       )
     }

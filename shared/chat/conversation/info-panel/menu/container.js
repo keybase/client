@@ -1,18 +1,23 @@
 // @flow
-import * as Constants from '../../../../constants/teams'
+import * as TeamConstants from '../../../../constants/teams'
+import * as ChatConstants from '../../../../constants/chat2'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
+import * as ChatGen from '../../../../actions/chat2-gen'
 import {namedConnect} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {teamsTab} from '../../../../constants/tabs'
 import flags from '../../../../util/feature-flags'
+import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type OwnProps = {
   attachTo: () => ?React.Component<any>,
   onHidden: () => void,
   isSmallTeam: boolean,
   teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
   visible: boolean,
 }
 
@@ -31,12 +36,21 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
   })
 }
 
-const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
+const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
+  let convProps = null
+  if (conversationIDKey !== ChatConstants.noConversationIDKey) {
+    const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
+    convProps = {
+      ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
+      teamType: meta.teamType,
+    }
+  }
   // skip a bunch of stuff for menus that aren't visible
   if (!visible) {
     return {
       badgeSubscribe: false,
       canAddPeople: false,
+      convProps,
       hasCanPerform: false,
       isSmallTeam: false,
       manageChannelsSubtitle: '',
@@ -45,10 +59,10 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
       teamname,
     }
   }
-  const yourOperations = Constants.getCanPerform(state, teamname)
+  const yourOperations = TeamConstants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
-  const hasCanPerform = Constants.hasCanPerform(state, teamname)
-  const badgeSubscribe = !Constants.isTeamWithChosenChannels(state, teamname)
+  const hasCanPerform = TeamConstants.hasCanPerform(state, teamname)
+  const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
 
   const manageChannelsTitle = isSmallTeam
     ? 'Create chat channels...'
@@ -59,50 +73,57 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
   return {
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
+    convProps,
     hasCanPerform,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
-    memberCount: Constants.getTeamMemberCount(state, teamname),
+    memberCount: TeamConstants.getTeamMemberCount(state, teamname),
     teamname,
   }
 }
 
-const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) => ({
   loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onAddPeople: () => {
     if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
     } else {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
         })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     }
   },
+  onHideConv: () => dispatch(ChatGen.createHideConversation({conversationIDKey})),
   onInvite: () => {
     if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'inviteByEmail'}]}))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamInviteByEmail'}]})
+      )
     } else {
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamInviteByEmail'}],
         })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     }
   },
   onLeaveTeam: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})
+    )
   },
   onManageChannels: () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]}))
     dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
+  onUnhideConv: () => dispatch(ChatGen.createUnhideConversation({conversationIDKey})),
   onViewTeam: () => {
     if (flags.useNewRouter) {
       dispatch(RouteTreeGen.createClearModals())

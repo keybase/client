@@ -108,6 +108,15 @@ const (
 	markAndSweepPeriod = 1 * time.Hour
 )
 
+// ErrStillStagedAfterCR indicates that conflict resolution failed to take
+// the FBO out of staging.
+type ErrStillStagedAfterCR struct{}
+
+// Error implements the error interface.
+func (*ErrStillStagedAfterCR) Error() string {
+	return "conflict resolution didn't take us out of staging"
+}
+
 type fboMutexLevel kbfssync.MutexLevel
 
 const (
@@ -713,6 +722,37 @@ func (fbo *folderBranchOps) isUnmergedLocked(lState *kbfssync.LockState) bool {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	return fbo.unmergedBID != kbfsmd.NullBranchID
+}
+
+var errJournalNotAvailable = errors.New("could not get journal for TLF")
+
+// clearConflictView tells the journal to move any pending writes elsewhere,
+// resets the CR counter, and resets the FBO to have a synced view of the TLF.
+func (fbo *folderBranchOps) clearConflictView(ctx context.Context) (
+	err error) {
+	// TODO(KBFS-3990): show the cleared conflict view under a special path,
+	//  so users can copy any unmerged files manually back into their synced
+	//  view before nuking it.
+
+	fbo.log.CDebugf(ctx, "Clearing conflict view")
+	defer func() {
+		fbo.log.CDebugf(ctx, "Done with clearConflictView: %+v", err)
+	}()
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	journalEnabled := TLFJournalEnabled(fbo.config, fbo.id())
+	if journalEnabled {
+		err = fbo.unstageLocked(ctx, lState, moveJournalsAway)
+	} else {
+		err = fbo.unstageLocked(ctx, lState, doPruneBranches)
+	}
+	if err != nil {
+		return err
+	}
+	return fbo.cr.clearConflictRecords()
 }
 
 func (fbo *folderBranchOps) setBranchIDLocked(
@@ -6557,12 +6597,26 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 		for _, op := range rmd.data.Changes.Ops {
 			for _, ptr := range op.Refs() {
 				if ptr != zeroPtr {
-					unmergedPtrs = append(unmergedPtrs, ptr)
+					unflushed, err := fbo.config.BlockServer().IsUnflushed(
+						ctx, rmd.tlfHandle.TlfID(), ptr.ID)
+					if err != nil {
+						return nil, err
+					}
+					if !unflushed {
+						unmergedPtrs = append(unmergedPtrs, ptr)
+					}
 				}
 			}
 			for _, update := range op.allUpdates() {
 				if update.Ref != zeroPtr {
-					unmergedPtrs = append(unmergedPtrs, update.Ref)
+					unflushed, err := fbo.config.BlockServer().IsUnflushed(
+						ctx, rmd.tlfHandle.TlfID(), update.Ref.ID)
+					if err != nil {
+						return nil, err
+					}
+					if !unflushed {
+						unmergedPtrs = append(unmergedPtrs, update.Ref)
+					}
 				}
 			}
 		}
@@ -6571,8 +6625,15 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	return unmergedPtrs, nil
 }
 
+type pruningBehavior int
+
+const (
+	doPruneBranches pruningBehavior = iota
+	moveJournalsAway
+)
+
 func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
-	lState *kbfssync.LockState) error {
+	lState *kbfssync.LockState, pruningBehavior pruningBehavior) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// fetch all of my unstaged updates, and undo them one at a time
@@ -6584,10 +6645,24 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 	}
 
 	// let the server know we no longer have need
-	if wasUnmergedBranch {
+	if wasUnmergedBranch && pruningBehavior == doPruneBranches {
 		err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), unmergedBID)
 		if err != nil {
 			return err
+		}
+	} else if pruningBehavior == moveJournalsAway {
+		jManager, err := GetJournalManager(fbo.config)
+		if err != nil {
+			return err
+		}
+
+		if tlfJournal, ok := jManager.getTLFJournal(fbo.id(), nil); ok {
+			err = tlfJournal.moveAway(ctx)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errJournalNotAvailable
 		}
 	}
 
@@ -6657,7 +6732,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 			lState := makeFBOLockState()
 			c <- fbo.doMDWriteWithRetry(ctx, lState,
 				func(lState *kbfssync.LockState) error {
-					return fbo.unstageLocked(freshCtx, lState)
+					return fbo.unstageLocked(freshCtx, lState, doPruneBranches)
 				})
 		}()
 
@@ -6896,8 +6971,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 			}
 			// If we are still staged after the wait, then we have a problem.
 			if fbo.isUnmerged(lState) {
-				return errors.Errorf("Conflict resolution didn't take us out " +
-					"of staging.")
+				return &ErrStillStagedAfterCR{}
 			}
 		}
 

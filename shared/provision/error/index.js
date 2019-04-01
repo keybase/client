@@ -64,7 +64,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
-            You can't authorize by passphrase, since you have established device or paper keys.
+            You can't authorize by password, since you have established device or paper keys.
           </Text>
           <Text center={true} type="Body">
             You can go back and pick a device or paper key, or{' '}
@@ -87,7 +87,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
         return (
           <Wrapper onBack={onBack}>
             <Text type="Body">
-              You can't provision using solely a passphrase, since you have active device keys.
+              You can't provision using solely a password, since you have active device keys.
             </Text>
             <Text type="BodySemibold">You have options:</Text>
             <List>
@@ -112,7 +112,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
         return (
           <Wrapper onBack={onBack}>
             <Text type="Body">
-              You can't provision using a passphrase, since you've established a PGP key.
+              You can't provision using a password, since you've established a PGP key.
             </Text>
             <Text type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
@@ -164,9 +164,9 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     case constantsStatusCode.scbadloginpassword:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">Looks like that's a bad passphrase.</Text>
+          <Text type="Body">Looks like that's a bad password.</Text>
           <Text center={true} type="BodyPrimaryLink" onClick={onPasswordReset}>
-            Reset your passphrase?
+            Reset your password?
           </Text>
         </Wrapper>
       )

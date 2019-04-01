@@ -4,7 +4,11 @@
     "import * as More from '../constants/types/more'"
   ],
   "actions": {
-    "addProof": {"platform": "More.PlatformsExpandedType"},
+    "addProof": {"platform": "string"},
+    "proofParamsReceived": {"params": "Types.ProveGenericParams"},
+    "updatePlatformGenericURL": {"url": "string"},
+    "updatePlatformGenericChecking": {"checking": "boolean"},
+    "clearPlatformGeneric": {},
     "backToProfile": {},
     "cancelAddProof": {},
     "cancelPgpGen": {},

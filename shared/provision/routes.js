@@ -2,7 +2,7 @@
 import {makeLeafTags} from '../route-tree'
 import Username from './username-or-email/container'
 import SelectOtherDevice from './select-other-device/container'
-import Passphrase from './passphrase/container'
+import Password from './password/container'
 import PaperKey from './paper-key/container'
 import CodePage from './code-page/container'
 import SetPublicName from './set-public-name/container'
@@ -25,7 +25,7 @@ const children = {
   forgotUsername: addTags(ForgotUsername),
   gpgSign: addTags(GPGSign),
   paperkey: addTags(PaperKey),
-  passphrase: addTags(Passphrase),
+  password: addTags(Password),
   selectOtherDevice: addTags(SelectOtherDevice),
   setPublicName: addTags(SetPublicName),
   username: addTags(Username),
@@ -39,7 +39,7 @@ export const newRoutes = {
   forgotUsername: {getScreen: () => ForgotUsername},
   gpgSign: {getScreen: () => GPGSign, upgraded: true},
   paperkey: {getScreen: () => PaperKey, upgraded: true},
-  passphrase: {getScreen: () => Passphrase, upgraded: true},
+  password: {getScreen: () => Password, upgraded: true},
   selectOtherDevice: {getScreen: () => SelectOtherDevice, upgraded: true},
   setPublicName: {getScreen: () => SetPublicName, upgraded: true},
   username: {getScreen: () => Username, upgraded: true},

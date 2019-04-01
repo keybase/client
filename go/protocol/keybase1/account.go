@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -102,13 +103,17 @@ type RecoverUsernameArg struct {
 }
 
 type EnterResetPipelineArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-	Email     string `codec:"email" json:"email"`
+	SessionID       int    `codec:"sessionID" json:"sessionID"`
+	UsernameOrEmail string `codec:"usernameOrEmail" json:"usernameOrEmail"`
 }
 
 type CancelResetArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type TimeTravelResetArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Duration  gregor1.DurationSec `codec:"duration" json:"duration"`
 }
 
 type AccountInterface interface {
@@ -138,6 +143,7 @@ type AccountInterface interface {
 	EnterResetPipeline(context.Context, EnterResetPipelineArg) error
 	// Aborts the reset process
 	CancelReset(context.Context, int) error
+	TimeTravelReset(context.Context, TimeTravelResetArg) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -309,6 +315,21 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
+			"timeTravelReset": {
+				MakeArg: func() interface{} {
+					var ret [1]TimeTravelResetArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TimeTravelResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TimeTravelResetArg)(nil), args)
+						return
+					}
+					err = i.TimeTravelReset(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -387,5 +408,10 @@ func (c AccountClient) EnterResetPipeline(ctx context.Context, __arg EnterResetP
 func (c AccountClient) CancelReset(ctx context.Context, sessionID int) (err error) {
 	__arg := CancelResetArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.account.cancelReset", []interface{}{__arg}, nil)
+	return
+}
+
+func (c AccountClient) TimeTravelReset(ctx context.Context, __arg TimeTravelResetArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.timeTravelReset", []interface{}{__arg}, nil)
 	return
 }

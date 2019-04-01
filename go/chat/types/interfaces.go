@@ -46,9 +46,9 @@ type NameInfoSource interface {
 	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
-	EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
-	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -135,7 +135,7 @@ type Sender interface {
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
 		joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
-		conv *chat1.Conversation) (SenderPrepareResult, error)
+		conv *chat1.Conversation, opts *SenderPrepareOptions) (SenderPrepareResult, error)
 }
 
 type InboxSource interface {
@@ -311,9 +311,31 @@ type IdentifyNotifier interface {
 	ResetOnGUIConnect()
 	Send(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks)
 }
+
+type KeyFinder interface {
+	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (CryptKey, NameInfo, error)
+	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
+		kbfsEncrypted bool) (CryptKey, error)
+	EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+	EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool,
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	ShouldPairwiseMAC(ctx context.Context, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
+	Reset()
+}
+
 type UPAKFinder interface {
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
+}
+
+type ContextFactory interface {
+	NewKeyFinder() KeyFinder
+	NewUPAKFinder() UPAKFinder
 }
 
 type ProgressReporter func(bytesCompleted, bytesTotal int64)

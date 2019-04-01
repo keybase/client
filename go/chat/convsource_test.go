@@ -6,7 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -39,7 +41,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_KBFS, nil)
+		chat1.ConversationMembersType_KBFS, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -173,7 +175,7 @@ func TestExplodeNow(t *testing.T) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_TEAM, nil)
+		chat1.ConversationMembersType_TEAM, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -307,7 +309,7 @@ func TestReactions(t *testing.T) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_TEAM, nil)
+		chat1.ConversationMembersType_TEAM, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 
@@ -771,12 +773,12 @@ func (f failingTlf) DecryptionKey(ctx context.Context, tlfName string, tlfID cha
 	return nil, nil
 }
 
-func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (f failingTlf) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
 	panic("unimplemented")
 }
 
-func (f failingTlf) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (f failingTlf) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
 	panic("unimplemented")
@@ -891,7 +893,7 @@ func TestGetThreadCaching(t *testing.T) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_KBFS, nil)
+		chat1.ConversationMembersType_KBFS, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -1008,7 +1010,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		prepareRes, err := sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
+		prepareRes, err := sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv, nil)
 		require.NoError(t, err)
 		msg = &prepareRes.Boxed
 
@@ -1089,7 +1091,7 @@ func TestConversationLocking(t *testing.T) {
 
 	t.Logf("Trace 1 can get multiple locks")
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx = globals.ChatCtx(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
 	acquires := 5
 	for i := 0; i < acquires; i++ {
@@ -1099,13 +1101,13 @@ func TestConversationLocking(t *testing.T) {
 	for i := 0; i < acquires; i++ {
 		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
 	}
-	require.Zero(t, len(hcs.lockTab.convLocks))
+	require.Zero(t, hcs.lockTab.NumLocks())
 
 	t.Logf("Trace 2 properly blocked by Trace 1")
-	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	ctx2 := globals.ChatCtx(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		&breaks, NewCachingIdentifyNotifier(tc.Context()))
 	blockCb := make(chan struct{}, 5)
-	hcs.lockTab.blockCb = &blockCb
+	hcs.lockTab.SetBlockCb(&blockCb)
 	cb := make(chan acquireRes)
 	blocked, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
 	require.NoError(t, err)
@@ -1135,7 +1137,7 @@ func TestConversationLocking(t *testing.T) {
 		require.Fail(t, "not blocked")
 	}
 	require.True(t, hcs.lockTab.Release(ctx2, uid, conv.GetConvID()))
-	require.Zero(t, len(hcs.lockTab.convLocks))
+	require.Zero(t, hcs.lockTab.NumLocks())
 
 	t.Logf("No trace")
 	blocked, err = timedAcquire(context.TODO(), t, hcs, uid, conv.GetConvID())
@@ -1144,7 +1146,7 @@ func TestConversationLocking(t *testing.T) {
 	blocked, err = timedAcquire(context.TODO(), t, hcs, uid, conv.GetConvID())
 	require.NoError(t, err)
 	require.False(t, blocked)
-	require.Zero(t, len(hcs.lockTab.convLocks))
+	require.Zero(t, hcs.lockTab.NumLocks())
 }
 
 func TestConversationLockingDeadlock(t *testing.T) {
@@ -1172,11 +1174,11 @@ func TestConversationLockingDeadlock(t *testing.T) {
 		chat1.ConversationMembersType_KBFS)
 
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx = globals.ChatCtx(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
-	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx2 := globals.ChatCtx(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
-	ctx3 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+	ctx3 := globals.ChatCtx(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
 		NewCachingIdentifyNotifier(tc.Context()))
 
 	blocked, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
@@ -1190,7 +1192,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	require.False(t, blocked)
 
 	blockCb := make(chan struct{}, 5)
-	hcs.lockTab.blockCb = &blockCb
+	hcs.lockTab.SetBlockCb(&blockCb)
 	cb := make(chan acquireRes)
 	go func() {
 		blocked, err = hcs.lockTab.Acquire(ctx, uid, conv2.GetConvID())
@@ -1202,7 +1204,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 		require.Fail(t, "not blocked")
 	}
 
-	hcs.lockTab.maxAcquireRetries = 1
+	hcs.lockTab.SetMaxAcquireRetries(1)
 	cb2 := make(chan acquireRes)
 	go func() {
 		blocked, err = hcs.lockTab.Acquire(ctx2, uid, conv3.GetConvID())
@@ -1227,7 +1229,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	select {
 	case res := <-cb3:
 		require.Error(t, res.err)
-		require.IsType(t, errConvLockTabDeadlock, res.err)
+		require.IsType(t, utils.ErrConvLockTabDeadlock, res.err)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "never failed")
 	}

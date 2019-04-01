@@ -123,7 +123,13 @@ class Icon extends React.PureComponent<Props> {
       }
 
       icon = (
-        <Text style={iconStyle} type={props.type} fontSize={fontSize} onPress={props.onClick}>
+        <Text
+          allowFontScaling={false}
+          style={iconStyle}
+          type={props.type}
+          fontSize={fontSize}
+          onPress={props.onClick}
+        >
           {code}
         </Text>
       )
@@ -136,7 +142,10 @@ class Icon extends React.PureComponent<Props> {
         activeOpacity={0.8}
         underlayColor={props.underlayColor || Styles.globalColors.white}
         onClick={props.onClick}
-        style={props.style}
+        style={Styles.collapseStyles([
+          props.style,
+          this.props.padding && Shared.paddingStyles[this.props.padding],
+        ])}
       >
         {icon}
       </ClickableBox>

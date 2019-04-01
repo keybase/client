@@ -14,7 +14,8 @@ import EditingRow from './editing'
 import PlaceholderRow from './placeholder'
 import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
-import {asRows as sortBarAsRows} from '../sortbar/container'
+import {topBarProvider} from '../top-bar/index.stories'
+import {asRows as topBarAsRow} from '../top-bar'
 
 export const rowsProvider = {
   ConnectedOpenHOC: (ownProps: any) => ({
@@ -25,7 +26,7 @@ export const rowsProvider = {
     destinationPickerIndex: o.destinationPickerIndex,
     items: [
       ...(o.headerRows || []),
-      ...sortBarAsRows(o.path),
+      ...topBarAsRow(o.path),
       {key: 'me', name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
       {
         key: 'me,abc',
@@ -107,6 +108,7 @@ export const rowsProvider = {
 
 const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
+  ...topBarProvider,
   ...rowsProvider,
 })
 

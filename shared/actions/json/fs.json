@@ -188,9 +188,9 @@
     "closeDestinationPicker": {},
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
-    "showSendAttachmentToChat": {
+
+    "initSendAttachmentToChat": {
       "path": "Types.Path",
-      "routePath?": "?I.List<string>"
     },
     "setSendAttachmentToChatConvID": {
       "convID": "ChatTypes.ConversationIDKey"
@@ -198,9 +198,9 @@
     "setSendAttachmentToChatFilter": {
       "filter": "string"
     },
-    "showSendLinkToChat": {
+    "sentAttachmentToChat":{},
+    "initSendLinkToChat": {
       "path": "Types.Path",
-      "routePath?": "?I.List<string>"
     },
     "setSendLinkToChatConvID": {
       "convID": "ChatTypes.ConversationIDKey"
@@ -208,6 +208,11 @@
     "setSendLinkToChatChannels": {
       "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
     },
+    "triggerSendLinkToChat":{},
+    "sentLinkToChat":{
+      "convID": "ChatTypes.ConversationIDKey"
+    },
+
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },

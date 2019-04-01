@@ -44,6 +44,29 @@ protocol remote {
     union { null, string } autoClaimToken; // Optional. Filled if this is an autoclaim.
   }
 
+  record DirectOp {
+    string noteB64; // b64-encoded EncryptedNote or empty string.
+  }
+
+  record RelayOp {
+    string toAssertion;     // Ex: 'mlsteele' or 'maxtaco@reddit'
+    AccountID relayAccount; // Address where the funds will be held
+    keybase1.TeamID teamID; // Impteam ID
+    string boxB64;          // b64-encoded EncryptedRelaySecret
+  }
+
+  record PaymentOp {
+    union { null, keybase1.UserVersion } to; // nil for SBS/stellar address
+    union { null, DirectOp } direct;   // one of direct or relay will be non-nil
+    union { null, RelayOp } relay;
+  }
+
+  record PaymentMultiPost {
+    keybase1.DeviceID fromDeviceID;
+    string signedTransaction;
+    array<PaymentOp> operations;
+  }
+
   enum PaymentSummaryType {
     NONE_0,
     STELLAR_1,
@@ -186,6 +209,12 @@ protocol remote {
   PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
+
+  record SubmitMultiRes {
+    TransactionID txID;
+  }
+
+  SubmitMultiRes submitMultiPayment(keybase1.UserVersion caller, PaymentMultiPost payment);
 
   // Acquire the UV-specific lock for autoclaims.
   // Returns a token, or an empty string if the lock is unavailable.

@@ -147,12 +147,12 @@ func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, 
 	return nil, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
 }
 
-func (t *KBFSNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *KBFSNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
 	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
 }
 
-func (t *KBFSNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (t *KBFSNameInfoSource) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
@@ -164,7 +164,7 @@ func (t *KBFSNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName stri
 }
 
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
-	identBehavior, _, ok := IdentifyMode(ctx)
+	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -181,7 +181,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	tlfName = string(username) + "," + tlfName
 
 	// call Identify and GetTLFCryptKeys concurrently:
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
+	group, ectx := errgroup.WithContext(globals.BackgroundChatCtx(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
 	doneCh := make(chan struct{})
@@ -232,7 +232,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 }
 
 func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
-	identBehavior, _, ok := IdentifyMode(ctx)
+	identBehavior, _, ok := globals.CtxIdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -240,7 +240,7 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call Identify and CanonicalTLFNameAndIDWithBreaks concurrently:
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
+	group, ectx := errgroup.WithContext(globals.BackgroundChatCtx(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
 	doneCh := make(chan struct{})

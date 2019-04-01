@@ -58,9 +58,9 @@ class Login extends React.Component<Props, State> {
       autoFocus: true,
       errorText: this.props.error,
       floatingHintTextOverride: '',
-      hintText: 'Passphrase',
+      hintText: 'Password',
       key: this.props.inputKey,
-      onChangeText: passphrase => this.props.passphraseChange(passphrase),
+      onChangeText: password => this.props.passwordChange(password),
       onEnterKeyDown: () => this.props.onSubmit(),
       ref: this._inputRef,
       type: this.props.showTyping ? 'passwordVisible' : 'password',
@@ -96,7 +96,7 @@ class Login extends React.Component<Props, State> {
             checkboxesProps={checkboxProps}
           />
           <Kb.WaitingButton
-            disabled={!this.props.passphrase}
+            disabled={!this.props.password}
             fullWidth={true}
             waitingKey={Constants.waitingKey}
             style={{marginTop: 0, width: '100%'}}
@@ -106,10 +106,10 @@ class Login extends React.Component<Props, State> {
           />
           <Kb.Text
             type="BodySmallSecondaryLink"
-            onClick={this.props.onForgotPassphrase}
+            onClick={this.props.onForgotPassword}
             style={{marginTop: 24}}
           >
-            Forgot passphrase?
+            Forgot password?
           </Kb.Text>
         </Kb.UserCard>
         <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>

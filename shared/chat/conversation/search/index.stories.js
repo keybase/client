@@ -5,38 +5,59 @@ import * as Sb from '../../../stories/storybook'
 import ThreadSearch from './index'
 
 const base = {
+  loadSearchHit: Sb.action('loadSearchHit'),
   onCancel: Sb.action('onCancel'),
-  onDown: Sb.action('onDown'),
   onSearch: Sb.action('onSearch'),
-  onUp: Sb.action('onUp'),
+  selfHide: Sb.action('selfHide'),
 }
+
+const hits = [
+  {
+    author: 'mikem',
+    summary: 'keybase is the best',
+    timestamp: 1542241021655,
+  },
+  {
+    author: 'karenm',
+    summary: 'keybase is the best sometimes when it works',
+    timestamp: 1542241021655,
+  },
+  {
+    author: 'patrick',
+    summary:
+      'keybase now supports stellar wallet for making psyments to friends and other internet people. MOre long text to see what we do in a case with a really long message hihihihi',
+    timestamp: 1542241021655,
+  },
+]
 
 const initial = {
   ...base,
-  inProgress: false,
-  selectedResult: 0,
-  totalResults: 0,
+  hits: [],
+  status: 'initial',
 }
 
 const started = {
   ...base,
-  inProgress: true,
-  selectedResult: 0,
-  totalResults: 0,
+  hits: [],
+  status: 'inprogress',
 }
 
 const partial = {
   ...base,
-  inProgress: true,
-  selectedResult: 4,
-  totalResults: 8,
+  hits,
+  status: 'inprogress',
 }
 
 const complete = {
   ...base,
-  inProgress: false,
-  selectedResult: 3,
-  totalResults: 8,
+  hits,
+  status: 'done',
+}
+
+const none = {
+  ...base,
+  hits: [],
+  status: 'done',
 }
 
 const load = () => {
@@ -46,6 +67,7 @@ const load = () => {
     .add('Started', () => <ThreadSearch {...started} />)
     .add('Partial', () => <ThreadSearch {...partial} />)
     .add('Complete', () => <ThreadSearch {...complete} />)
+    .add('No Results', () => <ThreadSearch {...none} />)
 }
 
 export default load

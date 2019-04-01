@@ -8,7 +8,7 @@ import PathItemAction, {type Clickable} from '.'
 type OwnProps = {|
   clickable: Clickable,
   path: Types.Path,
-  routePath: I.List<string>,
+  routePath?: ?I.List<string>,
   initView: Types.PathItemActionMenuView,
 |}
 
@@ -30,7 +30,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   init: dispatchProps.init,
   onHidden: () => dispatchProps._onHidden(stateProps._downloadKey),
   path: ownProps.path,
-  routePath: ownProps.routePath,
+  routePath: ownProps.routePath || I.List(),
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

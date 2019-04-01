@@ -6,8 +6,9 @@ import * as FsTypes from '../constants/types/fs'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
-  name: string,
   path: FsTypes.Path,
+  targetExtension?: string,
+  targetNameWithoutExtension: string,
   tlfType: FsTypes.TlfType,
   uploading: boolean,
   onClick: () => void,
@@ -37,15 +38,16 @@ type FilesPreviewProps = {|
 
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
       <Kb.Icon type="icon-file-16" style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
       {props.uploading && (
         <Kb.Box style={styles.iconBadgeBox}>
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
         </Kb.Box>
       )}
-      <Kb.Text type="Body" style={styles.fileUpdateName}>
-        {props.name}
+      <Kb.Text type="Body">
+        {props.targetNameWithoutExtension}
+        {props.targetExtension}
       </Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
@@ -168,14 +170,9 @@ const styles = Styles.styleSheetCreate({
   buttonContainer: {
     marginTop: Styles.globalMargins.tiny,
   },
-  fileUpdateName: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
   fileUpdateRow: {
-    alignItems: 'center',
     marginTop: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.small,
   },
   fullWidth: {
     // needed to avoid icon being pinched
@@ -193,8 +190,11 @@ const styles = Styles.styleSheetCreate({
     zIndex: 100,
   },
   iconStyle: {
+    flexShrink: 0,
     height: 16,
     marginRight: Styles.globalMargins.xtiny,
+    position: 'relative',
+    top: 1,
     width: 16,
   },
   tlfContainer: {

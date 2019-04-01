@@ -236,43 +236,43 @@ describe('checkedUsernameEmail', () => {
   })
 })
 
-describe('checkPassphrase', () => {
+describe('checkPassword', () => {
   it('passes must equal', () => {
     const state = Constants.makeState()
-    const action = SignupGen.createCheckPassphrase({
+    const action = SignupGen.createCheckPassword({
       pass1: new HiddenString('aaaaaaaaaaa'),
       pass2: new HiddenString('bbbbbbbbbb'),
     })
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.passphraseError.stringValue()).toEqual('Passphrases must match')
+    expect(nextState.signup.passwordError.stringValue()).toEqual('Passwords must match')
   })
   it('passes must be long enough', () => {
     const state = Constants.makeState()
-    const action = SignupGen.createCheckPassphrase({
+    const action = SignupGen.createCheckPassword({
       pass1: new HiddenString('12345'),
       pass2: new HiddenString('12345'),
     })
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.passphraseError.stringValue()).toEqual(
-      'Passphrase must be at least 8 characters long'
+    expect(nextState.signup.passwordError.stringValue()).toEqual(
+      'Password must be at least 8 characters long'
     )
   })
   it('passes must have values', () => {
     const state = Constants.makeState()
-    const action = SignupGen.createCheckPassphrase({pass1: new HiddenString(''), pass2: new HiddenString('')})
+    const action = SignupGen.createCheckPassword({pass1: new HiddenString(''), pass2: new HiddenString('')})
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.passphraseError.stringValue()).toEqual('Fields cannot be blank')
+    expect(nextState.signup.passwordError.stringValue()).toEqual('Fields cannot be blank')
   })
   it('passes get updated', () => {
     const state = Constants.makeState()
-    const action = SignupGen.createCheckPassphrase({
+    const action = SignupGen.createCheckPassword({
       pass1: new HiddenString('123456abcd'),
       pass2: new HiddenString('123456abcd'),
     })
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.passphraseError.stringValue()).toEqual('')
-    expect(nextState.signup.passphrase.stringValue()).toEqual(action.payload.pass1.stringValue())
-    expect(nextState.signup.passphrase.stringValue()).toEqual(action.payload.pass2.stringValue())
+    expect(nextState.signup.passwordError.stringValue()).toEqual('')
+    expect(nextState.signup.password.stringValue()).toEqual(action.payload.pass1.stringValue())
+    expect(nextState.signup.password.stringValue()).toEqual(action.payload.pass2.stringValue())
   })
 })
 

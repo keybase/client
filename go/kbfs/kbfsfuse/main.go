@@ -97,6 +97,9 @@ func start() *libfs.Error {
 			fuseLog, false /* superVerbose */)
 	}
 
+	logger.EnableBufferedLogging()
+	defer logger.Shutdown()
+
 	options := libfuse.StartOptions{
 		KbfsParams:        *kbfsParams,
 		PlatformParams:    *platformParams,

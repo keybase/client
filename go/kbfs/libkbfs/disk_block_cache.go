@@ -35,6 +35,7 @@ const (
 	defaultDiskBlockCacheMaxBytes   uint64 = 10 * (1 << 30)
 	defaultBlockCacheTableSize      int    = 50 * opt.MiB
 	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
+	defaultBlockCacheCapacity       int    = 8 * opt.MiB
 	evictionConsiderationFactor     int    = 3
 	defaultNumBlocksToEvict         int    = 10
 	defaultNumBlocksToEvictOnClear  int    = 100
@@ -200,6 +201,7 @@ func newDiskBlockCacheLocalFromStorage(
 	blockDbOptions := *leveldbOptions
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
 	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
+	blockDbOptions.BlockCacheCapacity = defaultBlockCacheCapacity
 	blockDbOptions.Filter = filter.NewBloomFilter(16)
 	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
 	if err != nil {
@@ -677,7 +679,7 @@ func (cache *DiskBlockCacheLocal) Put(
 	encodedLen := int64(len(entry))
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
-			"cacheType=%d err=%+v", blockID, tlfID, blockLen, encodedLen,
+			"cacheType=%s err=%+v", blockID, tlfID, blockLen, encodedLen,
 			cache.cacheType, err)
 	}()
 	blockKey := blockID.Bytes()
@@ -876,6 +878,9 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	}
 
 	cache.log.CDebugf(ctx, "Cache Delete numBlocks=%d", len(blockIDs))
+	defer func() {
+		cache.log.CDebugf(ctx, "Deleted numRequested=%d numRemoved=%d sizeRemoved=%d err=%+v", len(blockIDs), numRemoved, sizeRemoved, err)
+	}()
 	if cache.config.IsTestMode() {
 		for _, bID := range blockIDs {
 			cache.log.CDebugf(ctx, "Cache type=%d delete block ID %s",
@@ -1039,6 +1044,7 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 		for _, tlfIDStruct := range shuffledSlice {
 			tlfID := tlfIDStruct.value
 			if cache.tlfCounts[tlfID] == 0 {
+				cache.log.CDebugf(ctx, "No blocks to delete in TLF %s", tlfID)
 				continue
 			}
 			tlfBytes := tlfID.Bytes()

@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Flow from '../../util/flow'
+import * as Types from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -36,9 +37,11 @@ type None = {|
 
 type Props = {|
   onCancel: () => void,
+  onSent: () => void,
   conversation: Person | Group | SmallTeam | BigTeam | None,
   pathTextToCopy: string,
   send?: ?() => void,
+  sendLinkToChatState: Types.SendLinkToChatState,
 |}
 
 const getPermissionText = (props: Props) => {
@@ -174,25 +177,45 @@ const Footer = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.footer} gap="tiny">
     {!Styles.isMobile && <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />}
     {props.conversation.type !== 'none' && (
-      <Kb.Button type="Primary" label="Send in conversation" disabled={!props.send} onClick={props.send} />
+      <Kb.Button
+        type="Primary"
+        label="Send in conversation"
+        disabled={props.sendLinkToChatState !== 'ready-to-send'}
+        waiting={['locating-conversation', 'sending'].includes(props.sendLinkToChatState)}
+        onClick={props.send}
+      />
     )}
   </Kb.Box2>
 )
 
+class TriggerActionsWhenNeeded extends React.PureComponent<Props> {
+  componentDidUpdate(prevProps) {
+    prevProps.sendLinkToChatState === 'sending' &&
+      this.props.sendLinkToChatState === 'sent' &&
+      this.props.onSent()
+  }
+  render() {
+    return null
+  }
+}
+
 const SendLinkToChatMain = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.main}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
-      <Kb.CopyText text={props.pathTextToCopy} multiline={Styles.isMobile} />
+  <>
+    <TriggerActionsWhenNeeded {...props} />
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.main}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
+        <Kb.CopyText text={props.pathTextToCopy} multiline={Styles.isMobile} />
+      </Kb.Box2>
+      {props.conversation.type !== 'none' && (
+        <Kb.Text type="BodySmall" style={styles.onlyWhoGetAccess}>
+          {getPermissionText(props)}
+        </Kb.Text>
+      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
+        {props.conversation.type === 'big-team' && <BigTeamChannelDropdown {...props.conversation} />}
+      </Kb.Box2>
     </Kb.Box2>
-    {props.conversation.type !== 'none' && (
-      <Kb.Text type="BodySmall" style={styles.onlyWhoGetAccess}>
-        {getPermissionText(props)}
-      </Kb.Text>
-    )}
-    <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
-      {props.conversation.type === 'big-team' && <BigTeamChannelDropdown {...props.conversation} />}
-    </Kb.Box2>
-  </Kb.Box2>
+  </>
 )
 
 const DesktopSendLinkToChat = (props: Props) => (

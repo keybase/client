@@ -19,9 +19,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onFeedback: () => dispatch(ownProps.navigateAppend(['feedback'])),
-  onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
-  onLogin: (username: string, passphrase: string) =>
-    dispatch(LoginGen.createLogin({passphrase: new HiddenString(passphrase), username})),
+  onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
+  onLogin: (username: string, password: string) =>
+    dispatch(LoginGen.createLogin({password: new HiddenString(password), username})),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
 })
@@ -32,7 +32,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     error: stateProps.error,
     onFeedback: dispatchProps.onFeedback,
-    onForgotPassphrase: dispatchProps.onForgotPassphrase,
+    onForgotPassword: dispatchProps.onForgotPassword,
     onLogin: dispatchProps.onLogin,
     onSignup: dispatchProps.onSignup,
     onSomeoneElse: dispatchProps.onSomeoneElse,
@@ -42,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 type State = {
-  passphrase: string,
+  password: string,
   showTyping: boolean,
   selectedUser: string,
   inputKey: number,
@@ -50,13 +50,13 @@ type State = {
 
 type Props = {
   users: Array<string>,
-  onForgotPassphrase: () => void,
+  onForgotPassword: () => void,
   onSignup: () => void,
   onSomeoneElse: () => void,
   error: string,
   selectedUser: string,
   onFeedback: () => void,
-  onLogin: (user: string, passphrase: string) => void,
+  onLogin: (user: string, password: string) => void,
 }
 
 class LoginWrapper extends React.Component<Props, State> {
@@ -64,16 +64,16 @@ class LoginWrapper extends React.Component<Props, State> {
     super(props)
     this.state = {
       inputKey: 1,
-      passphrase: '',
+      password: '',
       selectedUser: props.selectedUser,
       showTyping: false,
     }
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    // Clear the passphrase when there's an error.
+    // Clear the password when there's an error.
     if (this.props.error !== prevProps.error) {
-      this.setState(p => ({inputKey: p.inputKey + 1, passphrase: ''}))
+      this.setState(p => ({inputKey: p.inputKey + 1, password: ''}))
     }
     if (this.props.selectedUser !== prevProps.selectedUser) {
       this.setState({selectedUser: this.props.selectedUser})
@@ -86,13 +86,13 @@ class LoginWrapper extends React.Component<Props, State> {
         error={this.props.error}
         inputKey={String(this.state.inputKey)}
         onFeedback={this.props.onFeedback}
-        onForgotPassphrase={this.props.onForgotPassphrase}
+        onForgotPassword={this.props.onForgotPassword}
         onLogin={this.props.onLogin}
         onSignup={this.props.onSignup}
         onSomeoneElse={this.props.onSomeoneElse}
-        onSubmit={() => this.props.onLogin(this.state.selectedUser, this.state.passphrase)}
-        passphrase={this.state.passphrase}
-        passphraseChange={passphrase => this.setState({passphrase})}
+        onSubmit={() => this.props.onLogin(this.state.selectedUser, this.state.password)}
+        password={this.state.password}
+        passwordChange={password => this.setState({password})}
         selectedUser={this.state.selectedUser}
         selectedUserChange={selectedUser => this.setState({selectedUser})}
         showTypingChange={showTyping => this.setState({showTyping})}

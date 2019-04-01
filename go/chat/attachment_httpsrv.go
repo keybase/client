@@ -217,7 +217,7 @@ func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) st
 }
 
 func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
 	strOutboxID := req.URL.Query().Get("key")
@@ -238,7 +238,7 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 }
 
 func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveUnfurlAsset")()
 	key := req.URL.Query().Get("key")
@@ -270,7 +270,7 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Re
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyLink")()
 	key := req.URL.Query().Get("key")
@@ -369,6 +369,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 		if _, err := w.Write([]byte(fmt.Sprintf(`
 			<html>
 				<head>
+					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
 					<title>Keybase Video Viewer</title>
 					<script>
 						window.togglePlay = function(data) {
@@ -383,8 +384,8 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 						  }
 					</script>
 				</head>
-				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" style="width: 100%%; border-radius: 8px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+				<body style="margin: 0px;">
+					<video id="vid" style="width: 100%%; height: 100%%; object-fit:fill; border-radius: 4px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
@@ -396,7 +397,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 }
 
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serve")()
 	key := req.URL.Query().Get("key")

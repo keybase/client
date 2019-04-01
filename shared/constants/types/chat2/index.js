@@ -47,6 +47,16 @@ export type StaticConfig = I.RecordOf<_StaticConfig>
 export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
+export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
+
+export type _ThreadSearchInfo = {
+  status: ThreadSearchStatus,
+  hits: I.List<Message.Message>,
+  visible: boolean,
+}
+
+export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
+
 // Where focus should be going to.
 // Null represents the default chat input.
 // This is very simple for now, but we can make
@@ -66,6 +76,7 @@ export type _State = {
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
+  messageCenterOrdinals: I.Map<Common.ConversationIDKey, Message.Ordinal>, // ordinals to center threads on
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: MetaMap, // metadata about a thread, There is a special node for the pending conversation
@@ -90,6 +101,8 @@ export type _State = {
   unsentTextMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>,
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>,
+  containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>,
+  threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>
@@ -106,7 +119,7 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): Message.
 export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(Message.outboxIDToString(outboxID), 'hex')
 
-export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
+export type {ConversationMeta, MetaTrustedState, NotificationsType, TeamType} from './meta'
 export type {
   AttachmentType,
   ChatPaymentInfo,

@@ -1,5 +1,6 @@
 // @flow
 import * as FsTypes from '../constants/types/fs'
+import * as Constants from '../constants/fs'
 import * as FsGen from '../actions/fs-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
@@ -19,8 +20,7 @@ const mapStateToProps = (state: State) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onClickAvatar: (username: string) =>
-    dispatch(ProfileGen.createShowUserProfile({username})),
+  _onClickAvatar: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   _onSelectPath: (path: FsTypes.Path, type: FsTypes.PathType) =>
     dispatch(FsGen.createOpenFilesFromWidget({path, type})),
 })
@@ -40,13 +40,19 @@ const mergeProps = (stateProps, dispatchProps) => ({
       tlf,
       // Default to private visibility--this should never happen though.
       tlfType,
-      updates: c.updates.map(({path, uploading}) => ({
-        name: FsTypes.getPathName(path),
-        onClick: () => dispatchProps._onSelectPath(path, 'file'),
-        path,
-        tlfType,
-        uploading,
-      })),
+      updates: c.updates.map(({path, uploading}) => {
+        const [targetNameWithoutExtension, targetExtension] = Constants.splitFileNameAndExtension(
+          FsTypes.getPathName(path)
+        )
+        return {
+          onClick: () => dispatchProps._onSelectPath(path, 'file'),
+          path,
+          targetExtension,
+          targetNameWithoutExtension,
+          tlfType,
+          uploading,
+        }
+      }),
       username: stateProps.username,
       writer: c.writer,
     }

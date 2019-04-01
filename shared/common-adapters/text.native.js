@@ -19,6 +19,7 @@ const styleMap = Object.keys(metaData).reduce(
         ...fontSizeToSizeStyle(meta.fontSize),
         color: meta.colorForBackground[mode] || Styles.globalColors.black,
         ...meta.styleOverride,
+        ...(meta.isLink ? {textDecorationLine: 'underline'} : {}),
       }
     })
     return map
@@ -81,15 +82,7 @@ class Text extends Component<Props> {
 
   render() {
     const baseStyle = styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
-    const dynamicStyle = this.props.negative
-      ? _getStyle(
-          this.props.type,
-          this.props.negative,
-          this.props.lineClamp,
-          !!this.props.onClick,
-          !!this.props.underline
-        )
-      : {}
+    const dynamicStyle = this.props.underline ? {textDecorationLine: 'underline'} : {}
 
     let style
     if (!Object.keys(dynamicStyle).length) {
@@ -129,27 +122,7 @@ class Text extends Component<Props> {
   }
 }
 
-// external things call this so leave the original alone
-function _getStyle(
-  type: TextType,
-  negative?: boolean,
-  lineClampNum?: ?number,
-  clickable?: ?boolean,
-  forceUnderline: boolean
-) {
-  if (!negative) {
-    return forceUnderline ? {textDecorationLine: 'underline'} : {}
-  }
-  // negative === true
-  const meta = metaData[type]
-  const colorStyle = {color: meta.colorForBackground.negative}
-  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
-
-  return {
-    ...colorStyle,
-    ...textDecoration,
-  }
-}
+// external things call this
 function getStyle(type: TextType, negative?: boolean, lineClampNum?: ?number, clickable?: ?boolean) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)

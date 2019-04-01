@@ -733,54 +733,54 @@ type Stellar interface {
 }
 
 type DeviceEKStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
-	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
-	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
-	MaxGeneration(ctx context.Context, includeErrs bool) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	Put(mctx MetaContext, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
+	Get(mctx MetaContext, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
+	GetAllActive(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
+	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 	// Dangerous! Only for deprovisioning.
-	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
+	ForceDeleteAll(mctx MetaContext, username NormalizedUsername) error
 	// For keybase log send
-	ListAllForUser(ctx context.Context) ([]string, error)
+	ListAllForUser(mctx MetaContext) ([]string, error)
 	// Called on login/logout hooks to set the logged in username in the EK log
-	SetLogPrefix()
+	SetLogPrefix(mctx MetaContext)
 }
 
 type UserEKBoxStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
-	Get(ctx context.Context, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
-	MaxGeneration(ctx context.Context, includeErrs bool) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	Put(mctx MetaContext, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
+	Get(mctx MetaContext, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
+	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 }
 
 type TeamEKBoxStorage interface {
-	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
-	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	MaxGeneration(ctx context.Context, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
-	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
-	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
-	Delete(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
+	Put(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
+	Get(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	MaxGeneration(mctx MetaContext, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
+	DeleteExpired(mctx MetaContext, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	PurgeCacheForTeamID(mctx MetaContext, teamID keybase1.TeamID) error
+	Delete(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
 	ClearCache()
 }
 
 type EKLib interface {
-	KeygenIfNeeded(ctx context.Context) error
-	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
-	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
-	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
+	KeygenIfNeeded(mctx MetaContext) error
+	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
+	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	PurgeCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
-	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
-	BoxLatestUserEK(ctx context.Context, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
-	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
-	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
-	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
-	ClearCaches()
+	SignedDeviceEKStatementFromSeed(mctx MetaContext, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
+	BoxLatestUserEK(mctx MetaContext, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
+	PrepareNewUserEK(mctx MetaContext, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
+	BoxLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
+	PrepareNewTeamEK(mctx MetaContext, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
+	ClearCaches(mctx MetaContext)
 	// For testing
-	NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (bool, error)
+	NewTeamEKNeeded(mctx MetaContext, teamID keybase1.TeamID) (bool, error)
 }
 
 type ImplicitTeamConflictInfoCacher interface {

@@ -2267,6 +2267,22 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	return err
 }
 
+// SimpleFSClearConflictState implements the SimpleFS interface.
+func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
+	path keybase1.Path) error {
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	tlfID := tlfHandle.TlfID()
+	return k.config.KBFSOps().ClearConflictView(ctx, tlfID)
+}
+
 // SimpleFSPing implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSPing(ctx context.Context) error {
 	return nil

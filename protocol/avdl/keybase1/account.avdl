@@ -2,6 +2,7 @@
 @namespace("keybase.1")
 protocol account {
   import idl "passphrase_common.avdl";
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   /**
     Change the passphrase from old to new. If old isn't set, and force is false,
@@ -65,9 +66,10 @@ protocol account {
     neither are known the user will be prompted for their passphrase to start
     the process.
    */
-  void enterResetPipeline(int sessionID, string username, string email);
+  void enterResetPipeline(int sessionID, string usernameOrEmail);
 
   /** Aborts the reset process
    */
   void cancelReset(int sessionID);
+  void timeTravelReset(int sessionID, gregor1.DurationSec duration);
 }

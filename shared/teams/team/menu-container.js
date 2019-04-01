@@ -30,14 +30,14 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [teamsTab, 'team'],
-        path: [{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}],
+        path: [{props: {makeSubteam: true, name: teamname}, selected: 'teamNewTeamDialog'}],
       })
     ),
   onLeaveTeam: () =>
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [teamsTab, 'team'],
-        path: [{props: {teamname}, selected: 'reallyLeaveTeam'}],
+        path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
   onManageChat: () =>

@@ -11,6 +11,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -390,7 +391,7 @@ func (u *userPlusDevice) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams
 }
 
 func (u *userPlusDevice) readInviteEmails(email string) []string {
-	mctx := libkb.NewMetaContextForTest(*u.tc)
+	mctx := u.MetaContext()
 	arg := libkb.NewAPIArg("test/team/get_tokens")
 	arg.Args = libkb.NewHTTPArgs()
 	arg.Args.Add("email", libkb.S{Val: email})
@@ -717,7 +718,7 @@ func (u *userPlusDevice) lookupImplicitTeam2(create bool, displayName string, pu
 }
 
 func (u *userPlusDevice) delayMerkleTeam(teamID keybase1.TeamID) {
-	mctx := libkb.NewMetaContextForTest(*u.tc)
+	mctx := u.MetaContext()
 	_, err := u.tc.G.API.Post(mctx, libkb.APIArg{
 		Endpoint: "test/merkled/delay_team",
 		Args: libkb.HTTPArgs{
@@ -797,6 +798,25 @@ func (u *userPlusDevice) delete() {
 	g.SetUI(&ui)
 	cmd := client.NewCmdAccountDeleteRunner(g)
 	err := cmd.Run()
+	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) logout() {
+	err := u.tc.G.Logout(context.TODO())
+	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) login() {
+	uis := libkb.UIs{
+		ProvisionUI: &kbtest.TestProvisionUI{},
+		LogUI:       u.tc.G.Log,
+		GPGUI:       &kbtest.GPGTestUI{},
+		SecretUI:    u.newSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.username},
+	}
+	li := engine.NewLogin(u.tc.G, libkb.DeviceTypeDesktop, u.username, keybase1.ClientType_CLI)
+	mctx := libkb.NewMetaContextTODO(u.tc.G).WithUIs(uis)
+	err := engine.RunEngine2(mctx, li)
 	require.NoError(u.tc.T, err)
 }
 

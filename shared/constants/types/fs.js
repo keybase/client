@@ -182,13 +182,7 @@ export type NewFolder = I.RecordOf<_NewFolder>
 
 export type Edit = NewFolder
 
-export type SortBy = 'name' | 'time'
-export type SortOrder = 'asc' | 'desc'
-export type _SortSetting = {
-  sortBy: SortBy,
-  sortOrder: SortOrder,
-}
-export type SortSetting = I.RecordOf<_SortSetting>
+export type SortSetting = 'name-asc' | 'name-desc' | 'time-asc' | 'time-desc'
 
 export type _PathUserSetting = {
   sort: SortSetting,
@@ -303,21 +297,40 @@ export type _DestinationPicker = {
 
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
+export type SendAttachmentToChatState =
+  | 'none'
+  | 'pending-select-conversation'
+  | 'ready-to-send' // a conversation is selected
+  | 'sent'
+
 export type _SendAttachmentToChat = {
   filter: string,
   path: Path,
   convID: ChatTypes.ConversationIDKey,
+  state: SendAttachmentToChatState,
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
+export type SendLinkToChatState =
+  | 'none'
+  // when the modal is just shown and we don't know the convID(s) yet
+  | 'locating-conversation'
+  // only applicable to big teams with multiple channels
+  | 'pending-select-conversation'
+  // possibly without a convID, in which case we'll create it
+  | 'ready-to-send'
+  | 'sending'
+  | 'sent'
+
 export type _SendLinkToChat = {
-  path: Path,
+  // populated for teams only
+  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
   // This is the convID that we are sending into. So for group chats or small
   // teams, this is the conversation. For big teams, this is the selected
   // channel.
   convID: ChatTypes.ConversationIDKey,
-  // populated for teams only
-  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
+  path: Path,
+  state: SendLinkToChatState,
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
@@ -503,38 +516,6 @@ export const getLocalPathName = (localPath: LocalPath): string => {
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
-
-type sortSettingDisplayParams = {
-  sortSettingText: string,
-  sortSettingIconType: IconType,
-}
-
-export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
-  switch (s.sortBy) {
-    case 'name':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-arrow-full-down',
-            sortSettingText: 'Name ascending',
-          }
-        : {
-            sortSettingIconType: 'iconfont-arrow-full-up',
-            sortSettingText: 'Name descending',
-          }
-    case 'time':
-      return s.sortOrder === 'asc'
-        ? {
-            sortSettingIconType: 'iconfont-time',
-            sortSettingText: 'Recent first',
-          }
-        : {
-            sortSettingIconType: 'iconfont-time-reversed',
-            sortSettingText: 'Older first',
-          }
-    default:
-      throw new Error('invalid SortBy')
-  }
-}
 
 export type PathItemIconSpec =
   | {

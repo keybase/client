@@ -595,6 +595,10 @@ func (u *smuUser) userVersion() keybase1.UserVersion {
 	return uv
 }
 
+func (u *smuUser) MetaContext() libkb.MetaContext {
+	return libkb.NewMetaContextForTest(*u.primaryDevice().tctx)
+}
+
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 	return u.primaryDevice().tctx.G
 }

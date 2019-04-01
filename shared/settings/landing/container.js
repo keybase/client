@@ -10,22 +10,17 @@ type OwnProps = {||}
 
 const mapStateToProps = state => {
   const {emails} = state.settings.email
-  const {rememberPassphrase} = state.settings.passphrase
+  const {rememberPassword} = state.settings.password
   let accountProps
-  if (emails) {
-    let emailProps = {}
-    if (emails.length) {
-      emailProps = {
-        email: emails[0].email,
-        isVerified: emails[0].isVerified,
-      }
-    }
+  if (emails && emails.first()) {
+    const {email, isVerified} = emails.first()
     accountProps = {
-      ...emailProps,
-      hasRandomPW: state.settings.passphrase.randomPW,
+      email,
+      hasRandomPW: state.settings.password.randomPW,
+      isVerified,
       onChangeEmail: () => logger.debug('todo'),
-      onChangePassphrase: () => logger.debug('todo'),
-      rememberPassphrase,
+      onChangePassword: () => logger.debug('todo'),
+      rememberPassword,
     }
   }
 
@@ -66,13 +61,13 @@ const mapStateToProps = state => {
 const mapDispatchToProps = (dispatch: (a: any) => void) => ({
   onBootstrap: () => {
     dispatch(SettingsGen.createLoadSettings())
-    dispatch(SettingsGen.createLoadRememberPassphrase())
+    dispatch(SettingsGen.createLoadRememberPassword())
     dispatch(SettingsGen.createLoadHasRandomPw())
   },
   onChangeEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changeEmail']})),
-  onChangePassphrase: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassphrase']})),
-  onChangeRememberPassphrase: (checked: boolean) =>
-    dispatch(SettingsGen.createOnChangeRememberPassphrase({remember: checked})),
+  onChangePassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassword']})),
+  onChangeRememberPassword: (checked: boolean) =>
+    dispatch(SettingsGen.createOnChangeRememberPassword({remember: checked})),
   onInfo: selectedLevel =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {selectedLevel}, selected: 'changePlan'}]})),
 })
@@ -92,8 +87,8 @@ const mergeProps = (stateProps, dispatchProps) => {
       account: {
         ...stateProps.originalProps.account,
         onChangeEmail: dispatchProps.onChangeEmail,
-        onChangePassphrase: dispatchProps.onChangePassphrase,
-        onChangeRememberPassphrase: (checked: boolean) => dispatchProps.onChangeRememberPassphrase(checked),
+        onChangePassword: dispatchProps.onChangePassword,
+        onChangeRememberPassword: (checked: boolean) => dispatchProps.onChangeRememberPassword(checked),
       },
       plan: {
         // $FlowIssue

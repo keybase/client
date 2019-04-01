@@ -16,7 +16,7 @@ type FullSelfer interface {
 	HandleUserChanged(u keybase1.UID) error
 	Update(ctx context.Context, u *User) error
 	New() FullSelfer
-	OnLogin() error
+	OnLogin(mctx MetaContext) error
 }
 
 type UncachedFullSelf struct {
@@ -44,7 +44,7 @@ func (n *UncachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) erro
 }
 
 func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error    { return nil }
-func (n *UncachedFullSelf) OnLogin() error                            { return nil }
+func (n *UncachedFullSelf) OnLogin(mctx MetaContext) error            { return nil }
 func (n *UncachedFullSelf) Update(ctx context.Context, u *User) error { return nil }
 
 func (n *UncachedFullSelf) New() FullSelfer { return NewUncachedFullSelf(n.G()) }
@@ -261,7 +261,7 @@ func (m *CachedFullSelf) HandleUserChanged(u keybase1.UID) error {
 }
 
 // OnLogin clears the cached self user if it differs from what's already cached.
-func (m *CachedFullSelf) OnLogin() error {
+func (m *CachedFullSelf) OnLogin(mctx MetaContext) error {
 	m.Lock()
 	defer m.Unlock()
 	if m.me != nil && !m.me.GetUID().Equal(m.G().GetMyUID()) {

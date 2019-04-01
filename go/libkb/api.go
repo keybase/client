@@ -218,8 +218,7 @@ func (c *countingReader) numRead() int {
 func noopFinisher() {}
 
 func getNIST(m MetaContext, sessType APISessionType) *NIST {
-	switch sessType {
-	case APISessionTypeNONE, APISessionTypeNONIST:
+	if sessType == APISessionTypeNONE {
 		return nil
 	}
 
@@ -227,7 +226,7 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 		return nil
 	}
 
-	nist, err := m.ActiveDevice().NIST(m.Ctx())
+	nist, err := m.NIST()
 	if nist == nil {
 		m.Debug("active device couldn't generate a NIST")
 		return nil

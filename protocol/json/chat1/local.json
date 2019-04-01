@@ -2625,6 +2625,13 @@
           "name": "conversations"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "uiConversations"
+        },
+        {
           "type": "boolean",
           "name": "offline"
         },
@@ -4187,6 +4194,10 @@
         }
       ],
       "response": "SearchInboxRes"
+    },
+    "cancelActiveSearch": {
+      "request": [],
+      "response": null
     },
     "profileChatSearch": {
       "request": [

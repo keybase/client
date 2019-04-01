@@ -34,11 +34,11 @@ import (
 type ShutdownHook func() error
 
 type LoginHook interface {
-	OnLogin() error
+	OnLogin(mctx MetaContext) error
 }
 
 type LogoutHook interface {
-	OnLogout(m MetaContext) error
+	OnLogout(mctx MetaContext) error
 }
 
 type StandaloneChatConnector interface {
@@ -118,7 +118,7 @@ type GlobalContext struct {
 	secretStore        *SecretStoreLocked        // SecretStore
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
-	logoutHooks        []LogoutHook              // call these on logout
+	logoutHooks        []NamedLogoutHook         // call these on logout
 	GregorState        GregorState               // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
 	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
@@ -264,11 +264,11 @@ func (g *GlobalContext) simulateServiceRestart() {
 func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
 	defer mctx.Trace("GlobalContext#Logout", func() error { return err })()
-	return g.logoutWithSecretKill(mctx, true)
+	return g.LogoutWithSecretKill(mctx, true)
 }
 
-func (g *GlobalContext) switchDoLogout(mctx MetaContext) (err error) {
-	return g.logoutWithSecretKill(mctx, false)
+func (g *GlobalContext) ClearStateForSwitchUsers(mctx MetaContext) (err error) {
+	return g.LogoutWithSecretKill(mctx, false)
 }
 
 func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedUsername, killSecrets bool) {
@@ -295,13 +295,12 @@ func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedU
 	delete(g.switchedUsers, username)
 }
 
-func (g *GlobalContext) logoutWithSecretKill(mctx MetaContext, killSecrets bool) (err error) {
+func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool) (err error) {
 
-	ctx := mctx.Ctx()
-	defer g.switchUserMu.Acquire(NewMetaContext(ctx, g), "Logout")()
+	defer g.switchUserMu.Acquire(mctx, "Logout")()
 
 	username := g.ActiveDevice.Username(mctx)
-	mctx.Debug("GlobalContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s)", username)
+	mctx.Debug("GlobalContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, secretKill: %v)", username, killSecrets)
 
 	g.ActiveDevice.Clear()
 
@@ -345,7 +344,7 @@ func (g *GlobalContext) logoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	}
 
 	// send logout notification
-	g.NotifyRouter.HandleLogout(ctx)
+	g.NotifyRouter.HandleLogout(mctx.Ctx())
 
 	g.FeatureFlags.Clear()
 
@@ -964,37 +963,49 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	mctx := NewMetaContextTODO(g)
 	g.Log.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
 	_, _ = g.GetPerUserKeyring(context.TODO())
 
 	// Do so outside the lock below
-	g.GetFullSelfer().OnLogin()
+	g.GetFullSelfer().OnLogin(mctx)
 
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
-		if err := h.OnLogin(); err != nil {
+		if err := h.OnLogin(mctx); err != nil {
 			g.Log.Warning("OnLogin hook error: %s", err)
 		}
 	}
 
 }
 
-func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
-	g.hookMu.Lock()
-	defer g.hookMu.Unlock()
-	g.logoutHooks = append(g.logoutHooks, hook)
+type NamedLogoutHook struct {
+	LogoutHook
+	name string
 }
 
-func (g *GlobalContext) CallLogoutHooks(m MetaContext) {
+func (g *GlobalContext) AddLogoutHook(hook LogoutHook, name string) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
+	g.logoutHooks = append(g.logoutHooks, NamedLogoutHook{
+		LogoutHook: hook,
+		name:       name,
+	})
+}
+
+func (g *GlobalContext) CallLogoutHooks(mctx MetaContext) {
+	defer mctx.TraceTimed("GlobalContext.CallLogoutHooks", func() error { return nil })()
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
-		if err := h.OnLogout(m); err != nil {
-			m.Warning("OnLogout hook error: %s", err)
+		mctx.Debug("+ Logout hook [%v]", h.name)
+		if err := h.OnLogout(mctx); err != nil {
+			mctx.Warning("| Logout hook [%v] : %s", h.name, err)
 		}
+		mctx.Debug("- Logout hook [%v]", h.name)
 	}
 }
 
@@ -1330,13 +1341,8 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 	return res, nil
 }
 
-// TODO CORE-9923: set this to true and remove it
-// Whether to use parameterized proofs apparatus on normal clients.
+// Whether to use parameterized proofs apparatus.
 // Affects non-parameterized proof listing too.
 func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
-	return g.Env.GetRunMode() == DevelRunMode ||
-		g.Env.RunningInCI() ||
-		g.Env.GetFeatureFlags().Admin(g.Env.GetUID()) ||
-		g.Env.GetProveBypass() ||
-		g.Env.GetFeatureFlags().HasFeature(ExperimentalGenericProofs)
+	return true
 }

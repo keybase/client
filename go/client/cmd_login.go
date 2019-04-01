@@ -19,6 +19,12 @@ import (
 )
 
 func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := []cli.Flag{
+		cli.BoolFlag{
+			Name:  "s, switch",
+			Usage: "switch out the current user for another",
+		},
+	}
 	cmd := cli.Command{
 		Name:         "login",
 		ArgumentHelp: "[username]",
@@ -26,6 +32,7 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdLoginRunner(g), "login", c)
 		},
+		Flags: flags,
 	}
 
 	// Note we'll only be able to set this via mode via Environment variable
@@ -41,11 +48,12 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 
 type CmdLogin struct {
 	libkb.Contextified
-	Username   string
-	clientType keybase1.ClientType
-	cancel     func()
-	done       chan struct{}
-	SessionID  int
+	Username     string
+	doUserSwitch bool
+	clientType   keybase1.ClientType
+	cancel       func()
+	done         chan struct{}
+	SessionID    int
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
@@ -83,10 +91,11 @@ func (c *CmdLogin) Run() error {
 
 	err = client.Login(ctx,
 		keybase1.LoginArg{
-			Username:   c.Username,
-			DeviceType: libkb.DeviceTypeDesktop,
-			ClientType: c.clientType,
-			SessionID:  c.SessionID,
+			Username:     c.Username,
+			DeviceType:   libkb.DeviceTypeDesktop,
+			ClientType:   c.clientType,
+			SessionID:    c.SessionID,
+			DoUserSwitch: c.doUserSwitch,
 		})
 	c.done <- struct{}{}
 
@@ -124,7 +133,7 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 			return fmt.Errorf("Invalid username. Valid usernames are: %s", checker.Hint)
 		}
 	}
-
+	c.doUserSwitch = ctx.Bool("switch")
 	return nil
 }
 

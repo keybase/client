@@ -9,8 +9,7 @@ import (
 )
 
 var txPattern = regexp.MustCompile(
-	// Start at the beginng of the line, space, or some hand picked artisanal characters
-	`(?:^|[\s([{:;.,!?"'])` +
+	utils.ServiceDecorationPrefix +
 		// Have a + in front
 		`\+` +
 		// Stellar decimal amount

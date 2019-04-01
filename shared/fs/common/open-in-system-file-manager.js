@@ -24,7 +24,7 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
   <WithTooltip text={`Show in ${fileUIName}`}>
     <Icon
       type="iconfont-finder"
-      style={iconCastPlatformStyles(styles.pathItemActionIcon)}
+      padding="tiny"
       fontSize={16}
       onClick={openInSystemFileManager}
       color={Styles.globalColors.black_50}
@@ -35,15 +35,17 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
 
 const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
   <>
-    <Icon
-      type="iconfont-finder"
-      style={iconCastPlatformStyles(styles.pathItemActionIcon)}
-      fontSize={16}
-      color={Styles.globalColors.black_50}
-      hoverColor={Styles.globalColors.black}
-      onClick={props.toggleShowingMenu}
-      ref={props.setAttachmentRef}
-    />
+    <WithTooltip text={`Show in ${fileUIName}`}>
+      <Icon
+        type="iconfont-finder"
+        padding="tiny"
+        fontSize={16}
+        color={Styles.globalColors.black_50}
+        hoverColor={Styles.globalColors.black}
+        onClick={props.toggleShowingMenu}
+        ref={props.setAttachmentRef}
+      />
+    </WithTooltip>
     <Overlay
       style={styles.popup}
       attachTo={props.getAttachmentRef}
@@ -88,9 +90,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.small,
     width: '100%',
-  },
-  pathItemActionIcon: {
-    padding: Styles.globalMargins.tiny,
   },
   popup: {
     backgroundColor: Styles.globalColors.white,

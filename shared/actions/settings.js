@@ -1,24 +1,25 @@
 // @flow
 // TODO use WaitingGen which will allow more chainAction handlers
 import logger from '../logger'
+import * as I from 'immutable'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
+import * as Saga from '../util/saga'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
-import * as SettingsGen from '../actions/settings-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
+import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
     .then(({hasServerKeys}) => SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys}))
-    .catch(error => SettingsGen.createOnUpdatePassphraseError({error}))
+    .catch(error => SettingsGen.createOnUpdatePasswordError({error}))
 
 function* onSubmitNewEmail(state) {
   try {
@@ -36,25 +37,25 @@ function* onSubmitNewEmail(state) {
   }
 }
 
-function* onSubmitNewPassphrase(state, action) {
+function* onSubmitNewPassword(state, action) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
-    if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
-      yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error: new Error("Passphrases don't match")}))
+    const {newPassword, newPasswordConfirm} = state.settings.password
+    if (newPassword.stringValue() !== newPasswordConfirm.stringValue()) {
+      yield Saga.put(SettingsGen.createOnUpdatePasswordError({error: new Error("Passwords don't match")}))
       return
     }
     yield* Saga.callPromise(RPCTypes.accountPassphraseChangeRpcPromise, {
       force: true,
       oldPassphrase: '',
-      passphrase: newPassphrase.stringValue(),
+      passphrase: newPassword.stringValue(),
     })
     yield Saga.put(RouteTreeGen.createNavigateUp())
     if (action.payload.thenSignOut) {
       yield Saga.put(ConfigGen.createLogout())
     }
   } catch (error) {
-    yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
+    yield Saga.put(SettingsGen.createOnUpdatePasswordError({error}))
   } finally {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: false}))
   }
@@ -65,36 +66,34 @@ function* toggleNotifications(state) {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const current = state.settings.notifications
 
-    if (!current || !current.groups.email) {
+    if (!current || !current.groups.get('email')) {
       throw new Error('No notifications loaded yet')
     }
 
     let JSONPayload = []
     let chatGlobalArg = {}
-    for (const groupName in current.groups) {
-      const group = current.groups[groupName]
+    current.groups.forEach((group, groupName) => {
       if (groupName === Constants.securityGroup) {
         // Special case this since it will go to chat settings endpoint
-        for (const key in group.settings) {
-          const setting = group.settings[key]
-          chatGlobalArg[
-            `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
-          ] = !!setting.subscribed
-        }
+        group.settings.forEach(
+          setting =>
+            (chatGlobalArg[
+              `${ChatTypes.commonGlobalAppNotificationSetting[setting.name]}`
+            ] = !!setting.subscribed)
+        )
       } else {
-        for (const key in group.settings) {
-          const setting = group.settings[key]
+        group.settings.forEach(setting =>
           JSONPayload.push({
             key: `${setting.name}|${groupName}`,
             value: setting.subscribed ? '1' : '0',
           })
-        }
+        )
         JSONPayload.push({
           key: `unsub|${groupName}`,
           value: group.unsubscribedFromAll ? '1' : '0',
         })
       }
-    }
+    })
 
     const [result] = yield Saga.all([
       Saga.callUntyped(RPCTypes.apiserverPostJSONRpcPromise, {
@@ -174,12 +173,16 @@ const refreshInvites = () =>
         invite.type = 'accepted'
         acceptedInvites.push(invite)
       } else {
+        invite.type = 'pending'
         pendingInvites.push(invite)
       }
     })
-    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doesn't look anything like what we're pushing
     return SettingsGen.createInvitesRefreshed({
-      invites: {acceptedInvites, error: null, pendingInvites},
+      invites: {
+        acceptedInvites: I.List(acceptedInvites),
+        error: null,
+        pendingInvites: I.List(pendingInvites),
+      },
     })
   })
 
@@ -237,11 +240,8 @@ function* refreshNotifications() {
   const delayThenEmptyTask = yield Saga._fork(function*(): Generator<any, void, any> {
     yield Saga.callUntyped(delay, 500)
     yield Saga.put(
-      // $FlowIssue this isn't type correct at all TODO
       SettingsGen.createNotificationsRefreshed({
-        notifications: {
-          groups: null,
-        },
+        notifications: I.Map(),
       })
     )
   })
@@ -347,7 +347,7 @@ function* refreshNotifications() {
 
   yield Saga.put(
     SettingsGen.createNotificationsRefreshed({
-      notifications,
+      notifications: I.Map(notifications),
     })
   )
 }
@@ -372,13 +372,17 @@ const deleteAccountForever = (state, action) => {
 }
 
 const loadSettings = () =>
-  RPCTypes.userLoadMySettingsRpcPromise().then(settings =>
-    SettingsGen.createLoadedSettings({emails: settings.emails})
+  RPCTypes.userLoadMySettingsRpcPromise().then(
+    settings =>
+      settings.emails &&
+      SettingsGen.createLoadedSettings({
+        emails: I.List(settings.emails.map(row => Constants.makeEmailRow(row))),
+      })
   )
 
-const getRememberPassphrase = () =>
+const getRememberPassword = () =>
   RPCTypes.configGetRememberPassphraseRpcPromise().then(remember =>
-    SettingsGen.createLoadedRememberPassphrase({remember})
+    SettingsGen.createLoadedRememberPassword({remember})
   )
 
 function* trace(_, action) {
@@ -403,16 +407,16 @@ function* processorProfile(_, action) {
   yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
 }
 
-const rememberPassphrase = (_, action) =>
+const rememberPassword = (_, action) =>
   RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 
-const checkPassphrase = (_, action) =>
+const checkPassword = (_, action) =>
   RPCTypes.accountPassphraseCheckRpcPromise(
     {
-      passphrase: action.payload.passphrase.stringValue(),
+      passphrase: action.payload.password.stringValue(),
     },
-    Constants.checkPassphraseWaitingKey
-  ).then(res => SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: res}))
+    Constants.checkPasswordWaitingKey
+  ).then(res => SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: res}))
 
 const loadLockdownMode = state =>
   state.config.loggedIn &&
@@ -435,7 +439,10 @@ const unfurlSettingsRefresh = (state, action) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
-      SettingsGen.createUnfurlSettingsRefreshed({mode: result.mode, whitelist: result.whitelist || []})
+      SettingsGen.createUnfurlSettingsRefreshed({
+        mode: result.mode,
+        whitelist: I.List(result.whitelist || []),
+      })
     )
     .catch(() =>
       SettingsGen.createUnfurlSettingsError({
@@ -448,7 +455,7 @@ const unfurlSettingsSaved = (state, action) =>
   ChatTypes.localSaveUnfurlSettingsRpcPromise(
     {
       mode: action.payload.mode,
-      whitelist: action.payload.whitelist,
+      whitelist: action.payload.whitelist.toArray(),
     },
     Constants.chatUnfurlWaitingKey
   )
@@ -463,13 +470,13 @@ const unfurlSettingsSaved = (state, action) =>
 // false (never the opposite way), and there are notifications set up when
 // this happens.
 const loadHasRandomPW = state =>
-  state.settings.passphrase.randomPW === null
+  state.settings.password.randomPW === null
     ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
         .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
         .catch(e => logger.warn('Error loading hasRandomPW:', e.message))
     : null
 
-// Mark that we are not randomPW anymore if we got a passphrase change.
+// Mark that we are not randomPW anymore if we got a password change.
 const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
@@ -494,9 +501,9 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail
   )
-  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPassphrasePayload>(
-    SettingsGen.onSubmitNewPassphrase,
-    onSubmitNewPassphrase
+  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
+    SettingsGen.onSubmitNewPassword,
+    onSubmitNewPassword
   )
   yield* Saga.chainAction<SettingsGen.OnUpdatePGPSettingsPayload>(
     SettingsGen.onUpdatePGPSettings,
@@ -507,13 +514,13 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.processorProfile,
     processorProfile
   )
-  yield* Saga.chainAction<SettingsGen.LoadRememberPassphrasePayload>(
-    SettingsGen.loadRememberPassphrase,
-    getRememberPassphrase
+  yield* Saga.chainAction<SettingsGen.LoadRememberPasswordPayload>(
+    SettingsGen.loadRememberPassword,
+    getRememberPassword
   )
-  yield* Saga.chainAction<SettingsGen.OnChangeRememberPassphrasePayload>(
-    SettingsGen.onChangeRememberPassphrase,
-    rememberPassphrase
+  yield* Saga.chainAction<SettingsGen.OnChangeRememberPasswordPayload>(
+    SettingsGen.onChangeRememberPassword,
+    rememberPassword
   )
   yield* Saga.chainAction<SettingsGen.LoadLockdownModePayload>(SettingsGen.loadLockdownMode, loadLockdownMode)
   yield* Saga.chainAction<SettingsGen.OnChangeLockdownModePayload>(
@@ -534,7 +541,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     passwordChanged
   )
 
-  yield* Saga.chainAction<SettingsGen.CheckPassphrasePayload>(SettingsGen.checkPassphrase, checkPassphrase)
+  yield* Saga.chainAction<SettingsGen.CheckPasswordPayload>(SettingsGen.checkPassword, checkPassword)
 }
 
 export default settingsSaga

@@ -7,7 +7,7 @@ import {passphraseCommonPassphraseType} from '../constants/types/rpc-gen'
 const props = {
   onCancel: action('onCancel'),
   onSubmit: action('onSubmit'),
-  prompt: 'Enter your passphrase to unlock the secret key for home computer.',
+  prompt: 'Enter your password to unlock the secret key for home computer.',
   retryLabel: undefined,
   showTyping: {allow: true, defaultValue: false, label: 'Show typing', readonly: false},
   type: passphraseCommonPassphraseType.passPhrase,
@@ -23,7 +23,7 @@ const paperkeyProps = {
 const load = () => {
   storiesOf('Pinentry', module)
     .add('Normal', () => <Pinentry {...props} />)
-    .add('Error', () => <Pinentry {...props} retryLabel={'That passphrase is incorrect.'} />)
+    .add('Error', () => <Pinentry {...props} retryLabel={'That password is incorrect.'} />)
     .add('Paperkey', () => <Pinentry {...paperkeyProps} />)
     .add('Paperkey Error', () => <Pinentry {...paperkeyProps} retryLabel={'That paperkey is invalid.'} />)
 }

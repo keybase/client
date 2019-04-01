@@ -106,7 +106,7 @@ func NewReacjiStore(g *globals.Context) *ReacjiStore {
 	}
 	// add a logout hook to clear the in-memory cache, but only add it once:
 	addReacjiMemCacheHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(reacjiMemCache)
+		g.ExternalG().AddLogoutHook(reacjiMemCache, "reacjiMemCache")
 	})
 	return &ReacjiStore{
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReacjiStore", false),

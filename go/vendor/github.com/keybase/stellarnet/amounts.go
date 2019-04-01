@@ -69,12 +69,12 @@ func ParseAmount(s string) (*big.Rat, error) {
 // `rate` is the amount of outside currency that 1 XLM is worth. Example: "0.9389014463" = PLN / XLM
 // The result is rounded to 7 digits past the decimal.
 // The rounding is arbitrary but expected to be sufficient precision.
-func ConvertXLMToOutside(XLMAmount, rate string) (outsideAmount string, err error) {
+func ConvertXLMToOutside(xlmAmount, rate string) (outsideAmount string, err error) {
 	rateRat, err := parseExchangeRate(rate)
 	if err != nil {
 		return "", err
 	}
-	amountInt64, err := ParseStellarAmount(XLMAmount)
+	amountInt64, err := ParseStellarAmount(xlmAmount)
 	if err != nil {
 		return "", fmt.Errorf("parsing amount to convert: %q", err)
 	}
@@ -87,7 +87,7 @@ func ConvertXLMToOutside(XLMAmount, rate string) (outsideAmount string, err erro
 // `rate` is the amount of outside currency that 1 XLM is worth. Example: "0.9389014463" = PLN / XLM
 // The result is rounded to 7 digits past the decimal (which is what XLM supports).
 // The result returned can of a greater magnitude than XLM supports.
-func ConvertOutsideToXLM(outsideAmount, rate string) (XLMAmount string, err error) {
+func ConvertOutsideToXLM(outsideAmount, rate string) (xlmAmount string, err error) {
 	rateRat, err := parseExchangeRate(rate)
 	if err != nil {
 		return "", err
