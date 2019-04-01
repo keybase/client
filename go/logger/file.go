@@ -47,6 +47,12 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 		w.config = *lfc
 	} else {
 		w = NewLogFileWriter(*lfc)
+
+		// Clean up the default logger, if it is in use
+		select {
+		case stdErrLoggingShutdown <- struct{}{}:
+		default:
+		}
 	}
 
 	if err := w.Open(time.Now()); err != nil {
@@ -54,7 +60,9 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 	}
 
 	if first {
-		fileBackend := logging.NewLogBackend(w, "", 0)
+		buf, shutdown, _ := NewAutoFlushingBufferedWriter(w, loggingFrequency)
+		w.stopFlushing = shutdown
+		fileBackend := logging.NewLogBackend(buf, "", 0)
 		logging.SetBackend(fileBackend)
 
 		stderrIsTerminal = false
@@ -69,6 +77,7 @@ type LogFileWriter struct {
 	file         *os.File
 	currentSize  int64
 	currentStart time.Time
+	stopFlushing chan<- struct{}
 }
 
 func NewLogFileWriter(config LogFileConfig) *LogFileWriter {
@@ -105,6 +114,8 @@ func (lfw *LogFileWriter) Close() error {
 	if lfw.file == nil {
 		return nil
 	}
+	lfw.stopFlushing <- struct{}{}
+
 	return lfw.file.Close()
 }
 

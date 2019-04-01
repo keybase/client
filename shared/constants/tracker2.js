@@ -141,8 +141,7 @@ export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Ass
   return makeAssertion({
     // we have a special case where we want to differentiate between a dns or web proof, so we have a special pseudo type we use
     assertionKey: ourKey,
-    // TODO use s.belowFold; currently service says false for everything
-    belowFold: ['mastokeyhole.herokuapp.com', 'mastodon.social'].includes(ourKey),
+    belowFold: s.belowFold,
     color: 'gray',
     metas: (s.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
     pickerIcon: s.pickerIcon || [],

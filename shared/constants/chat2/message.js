@@ -12,7 +12,6 @@ import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
 import * as WalletTypes from '../types/wallets'
 import HiddenString from '../../util/hidden-string'
-import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
@@ -618,18 +617,6 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
   }
 }
 
-const maxAttachmentPreviewSize = 320
-const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
-  height > width
-    ? {
-        height: clamp(height || 0, 0, maxAttachmentPreviewSize),
-        width: (clamp(height || 0, 0, maxAttachmentPreviewSize) * width) / (height || 1),
-      }
-    : {
-        height: (clamp(width || 0, 0, maxAttachmentPreviewSize) * height) / (width || 1),
-        width: clamp(width || 0, 0, maxAttachmentPreviewSize),
-      }
-
 export const isVideoAttachment = (message: Types.MessageAttachment) => message.fileType.startsWith('video')
 
 export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCChatTypes.AssetMetadata) => {
@@ -643,18 +630,16 @@ export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCCha
     return res
   }
   if (preview.assetType === RPCChatTypes.commonAssetMetadataType.image && preview.image) {
-    const wh = clampAttachmentPreviewSize(preview.image)
-    res.height = wh.height
-    res.width = wh.width
+    res.height = preview.image.height
+    res.width = preview.image.width
     res.attachmentType = 'image'
     // full is a video but preview is an image?
     if (full && full.assetType === RPCChatTypes.commonAssetMetadataType.video) {
       res.showPlayButton = true
     }
   } else if (preview.assetType === RPCChatTypes.commonAssetMetadataType.video && preview.video) {
-    const wh = clampAttachmentPreviewSize(preview.video)
-    res.height = wh.height
-    res.width = wh.width
+    res.height = preview.video.height
+    res.width = preview.video.width
     res.attachmentType = 'image'
   }
   return res

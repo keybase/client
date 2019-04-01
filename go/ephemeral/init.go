@@ -12,7 +12,7 @@ func NewEphemeralStorageAndInstall(mctx libkb.MetaContext) {
 	ekLib := NewEKLib(mctx)
 	mctx.G().SetEKLib(ekLib)
 	mctx.G().AddLoginHook(ekLib)
-	mctx.G().AddLogoutHook(ekLib)
+	mctx.G().AddLogoutHook(ekLib, "ekLib")
 	mctx.G().PushShutdownHook(func() error {
 		mctx.Debug("stopping background eklib loop")
 		ekLib.Shutdown()

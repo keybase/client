@@ -6596,10 +6596,10 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-framed-msgpack-rpc@1.1.15:
-  version "1.1.15"
-  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.15.tgz#6018505ae7b89a0d99bfa03c34cc16b964bbf6db"
-  integrity sha512-591pe4FAhOVZydCWFclgyuWdTDBBGKQfW032KEVRiDpnoHtokZZADb28C1HNfXke0oAJjwzvwRfhd2yi+JMQjw==
+framed-msgpack-rpc@1.1.18:
+  version "1.1.18"
+  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.18.tgz#97fd00d7ac922ef92b6e0a0a5804180976a40ef0"
+  integrity sha512-4j1UMqKLkIouIREnvoUd9+yMpY/s/Kokc4EgFeA3f+vnDa+3oHD+QwqqDxjNMD0C/jUx08s2CVCD7TVrT6br1Q==
   dependencies:
     iced-error "0.0.9"
     iced-lock "^1.0.2"

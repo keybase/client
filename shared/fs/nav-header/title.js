@@ -30,7 +30,12 @@ const Breadcrumb = Kb.OverlayParentHOC(
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       {props.ancestors.length > 2 && (
         <React.Fragment key="dropdown">
-          <Kb.Text key="dots" type="BodyTiny" onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+          <Kb.Text
+            key="dots"
+            type="BodyTinyLink"
+            onClick={props.toggleShowingMenu}
+            ref={props.setAttachmentRef}
+          >
             •••
           </Kb.Text>
           <Kb.FloatingMenu
@@ -65,13 +70,16 @@ const Breadcrumb = Kb.OverlayParentHOC(
           </Kb.Text>
           <Kb.Text
             key={`name-${Types.pathToString(path)}`}
-            type="BodyTiny"
+            type="BodyTinyLink"
             onClick={() => props.onOpenPath(path)}
           >
             {Types.getPathName(path)}
           </Kb.Text>
         </React.Fragment>
       ))}
+      <Kb.Text key={`slash-end}`} type="BodyTiny" style={styles.slash}>
+        /
+      </Kb.Text>
     </Kb.Box2>
   ))
 )

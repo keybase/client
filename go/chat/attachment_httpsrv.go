@@ -369,6 +369,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 		if _, err := w.Write([]byte(fmt.Sprintf(`
 			<html>
 				<head>
+					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
 					<title>Keybase Video Viewer</title>
 					<script>
 						window.togglePlay = function(data) {
@@ -383,8 +384,8 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 						  }
 					</script>
 				</head>
-				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" style="width: 100%%; border-radius: 8px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+				<body style="margin: 0px;">
+					<video id="vid" style="width: 100%%; height: 100%%; object-fit:fill; border-radius: 4px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {

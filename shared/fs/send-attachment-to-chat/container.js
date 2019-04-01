@@ -1,6 +1,6 @@
 // @flow
 import * as ChatGen from '../../actions/chat2-gen'
-import * as ChatConstants from '../../constants/chat2'
+import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import {type RouteProps} from '../../route-tree/render-route'
 import {namedConnect} from '../../util/container'
@@ -15,7 +15,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onSend: (conversationIDKey, path) => {
+  _send: (conversationIDKey, path) => {
     dispatch(
       ChatGen.createAttachmentsUpload({
         conversationIDKey,
@@ -36,6 +36,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       })
     )
     dispatch(ChatGen.createNavigateToThread())
+    dispatch(FsGen.createSentAttachmentToChat())
   },
   onCancel: () =>
     dispatch(flags.useNewRouter ? RouteTreeGen.createClearModals() : RouteTreeGen.createNavigateUp()),
@@ -43,15 +44,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownPropps) => ({
   onCancel: dispatchProps.onCancel,
-  onSend:
-    stateProps._sendAttachmentToChat.convID === ChatConstants.noConversationIDKey
-      ? null
-      : () =>
-          dispatchProps._onSend(
-            stateProps._sendAttachmentToChat.convID,
-            stateProps._sendAttachmentToChat.path
-          ),
   path: stateProps._sendAttachmentToChat.path,
+  send: () =>
+    dispatchProps._send(stateProps._sendAttachmentToChat.convID, stateProps._sendAttachmentToChat.path),
+  sendAttachmentToChatState: stateProps._sendAttachmentToChat.state,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

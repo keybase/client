@@ -44,7 +44,7 @@ func TestBackgroundPurge(t *testing.T) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := baseSender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, nil)
+		chat1.ConversationMembersType_IMPTEAMNATIVE, nil, nil)
 	firstMessageBoxed := prepareRes.Boxed
 	require.NoError(t, err)
 	conv2, err := ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{

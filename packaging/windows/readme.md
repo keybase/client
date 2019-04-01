@@ -58,4 +58,6 @@ Change the version the service considers new enough: https://github.com/keybase/
 Optional: change the minimum version KBFS will work with: https://github.com/keybase/client/blob/master/go/kbfs/dokan/loaddll.go#L110
 
 # Windows VMs
-available [here](https://dev.windows.com/en-us/microsoft-edge/tools/vms/windows/)
+- available [here](https://dev.windows.com/en-us/microsoft-edge/tools/vms/windows/)
+- full isos [here](https://www.microsoft.com/en-gb/software-download/windows10ISO), which might need product keys
+

@@ -135,7 +135,7 @@ type Sender interface {
 		clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
 		joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
-		conv *chat1.Conversation) (SenderPrepareResult, error)
+		conv *chat1.Conversation, opts *SenderPrepareOptions) (SenderPrepareResult, error)
 }
 
 type InboxSource interface {

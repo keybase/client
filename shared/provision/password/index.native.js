@@ -7,7 +7,7 @@ import {globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-class Passphrase extends Component<Props> {
+class Password extends Component<Props> {
   render() {
     const {showTyping, toggleShowTyping} = this.props
 
@@ -25,12 +25,12 @@ class Passphrase extends Component<Props> {
             inputProps={{
               autoFocus: true,
               errorText: this.props.error,
-              hintText: 'Passphrase',
+              hintText: 'Password',
               onChangeText: t => this.props.onChange(t),
               onEnterKeyDown: this.props.onSubmit,
               type: showTyping ? 'passwordVisible' : 'password',
               uncontrolled: true,
-              value: this.props.passphrase,
+              value: this.props.password,
             }}
             checkboxesProps={[{checked: !!showTyping, label: 'Show typing', onCheck: toggleShowTyping}]}
           />
@@ -41,15 +41,15 @@ class Passphrase extends Component<Props> {
             label="Continue"
             type="Primary"
             onClick={this.props.onSubmit}
-            disabled={!(this.props.passphrase && this.props.passphrase.length)}
+            disabled={!(this.props.password && this.props.password.length)}
           />
           <Text
             center={true}
             style={stylesForgot}
             type="BodySmallSecondaryLink"
-            onClick={this.props.onForgotPassphrase}
+            onClick={this.props.onForgotPassword}
           >
-            Forgot passphrase?
+            Forgot password?
           </Text>
         </UserCard>
       </Container>
@@ -68,4 +68,4 @@ const stylesCard = {
   alignItems: 'stretch',
 }
 
-export default Passphrase
+export default Password

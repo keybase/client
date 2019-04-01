@@ -7,6 +7,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../constants/types/chat2'
+import * as ChatConstants from '../../constants/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
@@ -690,96 +691,108 @@ const closeDestinationPicker = (state, action) => {
   ]
 }
 
-const showSendAttachmentToChat = (state, action) =>
-  action.payload.routePath
-    ? RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: action.payload.routePath,
-        otherAction: RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']}),
-      })
-    : RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']})
-
-function* showSendLinkToChat(state, action) {
+const initSendLinkToChat = (state, action) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
-  const routeChange = Saga.put(
-    action.payload.routePath
-      ? RouteTreeGen.createPutActionIfOnPath({
-          expectedPath: action.payload.routePath,
-          otherAction: RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']}),
-        })
-      : RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']})
-  )
   if (elems.length < 3 || elems[1] === 'public') {
-    // Not a TLF, or a public TLF; just show the modal and let user copy the path.
-    yield routeChange
+    // Not a TLF, or a public TLF; just let user copy the path.
     return
   }
 
-  const actions = [routeChange]
-
   if (elems[1] !== 'team') {
     // It's an impl team conversation. So resolve to a convID directly.
-    actions.push(
-      Saga.callUntyped(function*() {
-        const result = yield Saga.callPromise(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-          membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
-          oneChatPerTLF: false,
-          tlfName: elems[2],
-          topicName: '',
-          topicType: RPCChatTypes.commonTopicType.chat,
-          visibility: RPCTypes.commonTLFVisibility.private,
-        })
-
-        if (!result.conversations || !result.conversations.length) {
-          // TODO: error?
-          return
-        }
-
-        yield Saga.put(
-          FsGen.createSetSendLinkToChatConvID({
-            convID: ChatTypes.conversationIDToKey(result.conversations[0].info.id),
-          })
-        )
-      })
-    )
-  } else {
-    // It's a real team, but we don't know if it's a small team or big team. So
-    // call RPCChatTypes.localGetTLFConversationsLocalRpcPromise to get all
-    // channels. We could have used the Teams store, but then we are doing
-    // cross-store stuff and are depending on the Teams store. If this turns
-    // out to feel slow, we can probably cahce the results.
-    actions.push(
-      Saga.callUntyped(function*() {
-        const result = yield Saga.callPromise(RPCChatTypes.localGetTLFConversationsLocalRpcPromise, {
-          membersType: RPCChatTypes.commonConversationMembersType.team,
-          tlfName: elems[2],
-          topicType: RPCChatTypes.commonTopicType.chat,
-        })
-
-        if (!result.convs || !result.convs.length) {
-          // TODO: error?
-          return
-        }
-
-        yield Saga.put(
-          FsGen.createSetSendLinkToChatChannels({
-            channels: I.Map(result.convs.map(conv => [conv.convID, conv.channel])),
-          })
-        )
-
-        if (result.convs.length === 1) {
-          // Auto-select channel if it's the only one.
-          yield Saga.put(
-            FsGen.createSetSendLinkToChatConvID({
-              convID: ChatTypes.stringToConversationIDKey(result.convs[0].convID),
-            })
-          )
-        }
+    return RPCChatTypes.localFindConversationsLocalRpcPromise({
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      oneChatPerTLF: false,
+      tlfName: elems[2],
+      topicName: '',
+      topicType: RPCChatTypes.commonTopicType.chat,
+      visibility: RPCTypes.commonTLFVisibility.private,
+    }).then(result =>
+      // This action, no matter setting a real idKey or
+      // noConversationIDKey, causes a transition into 'read-to-send'
+      // state, which is what we want here. If we don't have a
+      // conversation we should create it when user tries to send.
+      FsGen.createSetSendLinkToChatConvID({
+        convID:
+          result.conversations && result.conversations.length
+            ? ChatTypes.conversationIDToKey(result.conversations[0].info.id)
+            : ChatConstants.noConversationIDKey,
       })
     )
   }
 
-  yield Saga.all(actions)
+  // It's a real team, but we don't know if it's a small team or big team. So
+  // call RPCChatTypes.localGetTLFConversationsLocalRpcPromise to get all
+  // channels. We could have used the Teams store, but then we are doing
+  // cross-store stuff and are depending on the Teams store. If this turns
+  // out to feel slow, we can probably cahce the results.
+
+  return RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
+    membersType: RPCChatTypes.commonConversationMembersType.team,
+    tlfName: elems[2],
+    topicType: RPCChatTypes.commonTopicType.chat,
+  }).then(result =>
+    !result.convs || !result.convs.length
+      ? null // TODO: is this possible for teams at all?
+      : [
+          FsGen.createSetSendLinkToChatChannels({
+            channels: I.Map(
+              result.convs.map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
+            ),
+          }),
+
+          ...(result.convs && result.convs.length === 1
+            ? [
+                // Auto-select channel if it's the only one.
+                FsGen.createSetSendLinkToChatConvID({
+                  convID: ChatTypes.stringToConversationIDKey(result.convs[0].convID),
+                }),
+              ]
+            : []),
+        ]
+  )
+}
+
+const triggerSendLinkToChat = (state, action) => {
+  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
+  if (elems.length < 3 || elems[1] === 'public') {
+    // Not a TLF, or a public TLF; no-op
+    return
+  }
+
+  return (elems[1] === 'team'
+    ? Promise.resolve({
+        conversationIDKey: state.fs.sendLinkToChat.convID,
+        tlfName: elems[2],
+      })
+    : RPCChatTypes.localNewConversationLocalRpcPromise({
+        // It's an impl team conversation. So first make sure it exists.
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+        tlfName: elems[2],
+        tlfVisibility: RPCTypes.commonTLFVisibility.private,
+        topicType: RPCChatTypes.commonTopicType.chat,
+      }).then(result => ({
+        conversationIDKey: ChatTypes.conversationIDToKey(result.conv.info.id),
+        tlfName: result.conv.info.tlfName,
+      }))
+  ).then(({conversationIDKey, tlfName}) =>
+    RPCChatTypes.localPostTextNonblockRpcPromise(
+      {
+        // intentional space in the end
+        body: `${Constants.escapePath(state.fs.sendLinkToChat.path)} `,
+        clientPrev: ChatConstants.getClientPrev(state, conversationIDKey),
+        conversationID: ChatTypes.keyToConversationID(conversationIDKey),
+        ephemeralLifetime: ChatConstants.getConversationExplodingMode(state, conversationIDKey) || undefined,
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        outboxID: null,
+        tlfName,
+        tlfPublic: false,
+      },
+      ChatConstants.waitingKeyPost
+    ).then(result => FsGen.createSentLinkToChat({convID: conversationIDKey}))
+  )
 }
 
 const clearRefreshTag = (state, action) => {
@@ -857,10 +870,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     FsGen.closeDestinationPicker,
     closeDestinationPicker
   )
-  yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
-  yield* Saga.chainAction<FsGen.ShowSendLinkToChatPayload>(
-    FsGen.showSendAttachmentToChat,
-    showSendAttachmentToChat
+  yield* Saga.chainAction<FsGen.InitSendLinkToChatPayload>(FsGen.initSendLinkToChat, initSendLinkToChat)
+  yield* Saga.chainAction<FsGen.TriggerSendLinkToChatPayload>(
+    FsGen.triggerSendLinkToChat,
+    triggerSendLinkToChat
   )
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
   yield* Saga.chainAction<FsGen.KbfsDaemonStatusChangedPayload>(

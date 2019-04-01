@@ -13,7 +13,7 @@ import {
   type SortableRowItem,
 } from './sort'
 import Rows from './rows'
-import {asRows as sortBarAsRows} from '../sortbar/container'
+import {asRows as topBarAsRow} from '../top-bar'
 
 type OwnProps = {|
   path: Types.Path, // path to the parent folder containering the rows
@@ -191,7 +191,7 @@ const mergeProps = (s, d, o: OwnProps) => {
     // $FlowIssue
     items: [
       ...(o.headerRows || []),
-      ...(isEmpty ? [] : sortBarAsRows(o.path)), // don't show sort bar in empty folders
+      ...(isEmpty ? [] : topBarAsRow(o.path)), // don't show sort bar in empty folders
       ...normalRowItems,
       // If we are in the destination picker, inject two empty rows so when
       // user scrolls to the bottom nothing is blocked by the

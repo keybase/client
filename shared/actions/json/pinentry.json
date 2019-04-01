@@ -29,7 +29,7 @@
     },
     "onSubmit": {
       "sessionID": "number",
-      "passphrase": "string"
+      "password": "string"
     },
     "onCancel": { "sessionID": "number" }
   }

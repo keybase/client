@@ -123,9 +123,12 @@ func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg) chat1.SearchRegexpArg 
 	if match := fromRegex.FindStringSubmatch(query); match != nil && len(match) == 2 {
 		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
 		arg.Opts.SentBy = strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
+		if len(query) == 0 {
+			query = "/.*/"
+		}
 	}
 	// Regex
-	if query[0] == '/' && query[len(query)-1] == '/' {
+	if len(query) > 0 && query[0] == '/' && query[len(query)-1] == '/' {
 		query = query[1 : len(query)-1]
 		arg.IsRegex = true
 	}

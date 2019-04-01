@@ -41,7 +41,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_KBFS, nil)
+		chat1.ConversationMembersType_KBFS, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -175,7 +175,7 @@ func TestExplodeNow(t *testing.T) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_TEAM, nil)
+		chat1.ConversationMembersType_TEAM, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -309,7 +309,7 @@ func TestReactions(t *testing.T) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_TEAM, nil)
+		chat1.ConversationMembersType_TEAM, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 
@@ -893,7 +893,7 @@ func TestGetThreadCaching(t *testing.T) {
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := sender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_KBFS, nil)
+		chat1.ConversationMembersType_KBFS, nil, nil)
 	require.NoError(t, err)
 	firstMessageBoxed := prepareRes.Boxed
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -1010,7 +1010,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		prepareRes, err := sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
+		prepareRes, err := sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv, nil)
 		require.NoError(t, err)
 		msg = &prepareRes.Boxed
 

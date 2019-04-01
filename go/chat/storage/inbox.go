@@ -110,7 +110,7 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	// add a logout hook to clear the in-memory inbox cache, but only add it once:
 	addInboxMemCacheHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(inboxMemCache)
+		g.ExternalG().AddLogoutHook(inboxMemCache, "chat/storage/inbox")
 	})
 
 	i := &Inbox{

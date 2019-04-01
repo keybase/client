@@ -3,7 +3,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as LoginGen from '../../actions/login-gen'
 import * as Constants from '../../constants/provision'
 import HiddenString from '../../util/hidden-string'
-import Passphrase from '.'
+import Password from '.'
 import React, {Component} from 'react'
 import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
@@ -18,46 +18,46 @@ type OwnProps = {|
 
 type State = {
   showTyping: boolean,
-  passphrase: ?string,
+  password: ?string,
 }
 
 type Props = {
   prompt: string,
-  onSubmit: (passphrase: string) => void,
+  onSubmit: (password: string) => void,
   onBack: () => void,
-  onForgotPassphrase: () => void,
+  onForgotPassword: () => void,
   waitingForResponse: boolean,
   error?: ?string,
   username: ?string,
 }
 
 // TODO remove this class
-class _Passphrase extends Component<Props, State> {
+class _Password extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
     super(props)
-    this.state = {passphrase: null, showTyping: false}
+    this.state = {password: null, showTyping: false}
   }
 
-  onChange(passphrase: string) {
-    this.setState({passphrase})
+  onChange(password: string) {
+    this.setState({password})
   }
 
   render() {
     return (
-      <Passphrase
+      <Password
         error={this.props.error}
         onBack={this.props.onBack}
         prompt={this.props.prompt}
         username={this.props.username}
         waitingForResponse={this.props.waitingForResponse}
-        onForgotPassphrase={() => {
-          this.props.onForgotPassphrase()
+        onForgotPassword={() => {
+          this.props.onForgotPassword()
           this.props.onBack()
         }}
-        passphrase={this.state.passphrase}
-        onSubmit={() => this.props.onSubmit(this.state.passphrase || '')}
+        password={this.state.password}
+        onSubmit={() => this.props.onSubmit(this.state.password || '')}
         onChange={p => this.onChange(p)}
         showTyping={this.state.showTyping}
         toggleShowTyping={showTyping => this.setState({showTyping})}
@@ -73,13 +73,13 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
-  onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
-  onSubmit: (passphrase: string) =>
-    dispatch(ProvisionGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
+  onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
+  onSubmit: (password: string) =>
+    dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),
 })
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})
-)(_Passphrase)
+)(_Password)

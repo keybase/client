@@ -10,8 +10,9 @@ import ChooseConversation from '../../chat/conversation-list/choose-conversation
 
 type Props = {|
   onCancel: () => void,
+  send?: ?() => void,
   path: Types.Path,
-  onSend?: ?() => void,
+  sendAttachmentToChatState: Types.SendAttachmentToChatState,
 |}
 
 const MobileWithHeader = Kb.HeaderHoc(
@@ -31,7 +32,7 @@ const MobileHeader = (props: Props) => (
         {Types.getPathName(props.path)}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={props.onSend}>
+    <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={props.send}>
       Send
     </Kb.Text>
   </Kb.Box2>
@@ -42,45 +43,53 @@ const DesktopConversationDropdown = ChooseConversationHOC<{|
 |}>(ChooseConversation)
 
 const DesktopSendAttachmentToChat = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
-      <Kb.Text type="Header">Attach in conversation</Kb.Text>
-    </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={desktopStyles.belly} fullWidth={true}>
+  <>
+    <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
+        <Kb.Text type="Header">Attach in conversation</Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={desktopStyles.belly} fullWidth={true}>
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          style={desktopStyles.pathItem}
+          gap="tiny"
+        >
+          <Kbfs.PathItemIcon size={48} path={props.path} badge="upload" />
+          <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
+        </Kb.Box2>
+        <DesktopConversationDropdown dropdownButtonStyle={desktopStyles.dropdown} />
+        <Kb.Input
+          floatingHintTextOverride="Title"
+          value={Types.getPathName(props.path)}
+          inputStyle={desktopStyles.input}
+          style={desktopStyles.input}
+        />
+      </Kb.Box2>
       <Kb.Box2
-        direction="vertical"
+        direction="horizontal"
         centerChildren={true}
+        style={desktopStyles.footer}
         fullWidth={true}
-        style={desktopStyles.pathItem}
         gap="tiny"
       >
-        <Kbfs.PathItemIcon size={48} path={props.path} badge="upload" />
-        <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
+        <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
+        <Kb.Button
+          type="Primary"
+          label="Send in conversation"
+          onClick={props.send}
+          disabled={props.sendAttachmentToChatState !== 'ready-to-send'}
+        />
       </Kb.Box2>
-      <DesktopConversationDropdown dropdownButtonStyle={desktopStyles.dropdown} />
-      <Kb.Input
-        floatingHintTextOverride="Title"
-        value={Types.getPathName(props.path)}
-        inputStyle={desktopStyles.input}
-        style={desktopStyles.input}
-      />
     </Kb.Box2>
-    <Kb.Box2
-      direction="horizontal"
-      centerChildren={true}
-      style={desktopStyles.footer}
-      fullWidth={true}
-      gap="tiny"
-    >
-      <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
-      <Kb.Button type="Primary" label="Send in conversation" onClick={props.onSend} />
-    </Kb.Box2>
-  </Kb.Box2>
+  </>
 )
 
 const SendAttachmentToChat = Styles.isMobile
   ? (props: Props) => <MobileWithHeader customComponent={<MobileHeader {...props} />} />
   : Kb.HeaderOrPopup(DesktopSendAttachmentToChat)
+
 export default SendAttachmentToChat
 
 const mobileStyles = Styles.styleSheetCreate({

@@ -487,9 +487,14 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (res types.SenderPrepareResult, err error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, inopts *types.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
 		return res, fmt.Errorf("cannot send message without type")
+	}
+	// set default options unless some are given to us
+	var opts types.SenderPrepareOptions
+	if inopts != nil {
+		opts = *inopts
 	}
 
 	msg, uid, err := s.addSenderToMessage(plaintext)
@@ -565,10 +570,12 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
 	// server
-	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, membersType)
-	if err != nil {
-		s.Debug(ctx, "Prepare: error checking topic name state: %s", err)
-		return res, err
+	var topicNameState *chat1.TopicNameState
+	if !opts.SkipTopicNameState {
+		if topicNameState, err = s.checkTopicNameAndGetState(ctx, msg, membersType); err != nil {
+			s.Debug(ctx, "Prepare: error checking topic name state: %s", err)
+			return res, err
+		}
 	}
 
 	// encrypt the message
@@ -596,34 +603,33 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// find @ mentions
 	var atMentions []gregor1.UID
 	chanMention := chat1.ChannelMention_NONE
-
-	switch plaintext.ClientHeader.MessageType {
-	case chat1.MessageType_TEXT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
-			plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
-	case chat1.MessageType_FLIP:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+	if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+		switch plaintext.ClientHeader.MessageType {
+		case chat1.MessageType_TEXT:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
+			atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
+				plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
+		case chat1.MessageType_FLIP:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
 			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 				plaintext.MessageBody.Flip().Text, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		case chat1.MessageType_EDIT:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
+			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
+				plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		case chat1.MessageType_SYSTEM:
+			if err = checkHeaderBodyTypeMatch(); err != nil {
+				return res, err
+			}
+			atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
+				s.G().GetUPAKLoader())
 		}
-	case chat1.MessageType_EDIT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
-			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
-	case chat1.MessageType_SYSTEM:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
-		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
-			s.G().GetUPAKLoader())
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
@@ -783,7 +789,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv); err != nil {
+		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv, nil); err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return nil, nil, err
 		}
@@ -1531,8 +1537,8 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (types.SenderPrepareResult, error) {
-	return s.sender.Prepare(ctx, msg, membersType, conv)
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts *types.SenderPrepareOptions) (types.SenderPrepareResult, error) {
+	return s.sender.Prepare(ctx, msg, membersType, conv, opts)
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,

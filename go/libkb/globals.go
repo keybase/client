@@ -118,7 +118,7 @@ type GlobalContext struct {
 	secretStore        *SecretStoreLocked        // SecretStore
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
-	logoutHooks        []LogoutHook              // call these on logout
+	logoutHooks        []NamedLogoutHook         // call these on logout
 	GregorState        GregorState               // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
 	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
@@ -982,19 +982,30 @@ func (g *GlobalContext) CallLoginHooks() {
 
 }
 
-func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
-	g.hookMu.Lock()
-	defer g.hookMu.Unlock()
-	g.logoutHooks = append(g.logoutHooks, hook)
+type NamedLogoutHook struct {
+	LogoutHook
+	name string
 }
 
-func (g *GlobalContext) CallLogoutHooks(m MetaContext) {
+func (g *GlobalContext) AddLogoutHook(hook LogoutHook, name string) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
+	g.logoutHooks = append(g.logoutHooks, NamedLogoutHook{
+		LogoutHook: hook,
+		name:       name,
+	})
+}
+
+func (g *GlobalContext) CallLogoutHooks(mctx MetaContext) {
+	defer mctx.TraceTimed("GlobalContext.CallLogoutHooks", func() error { return nil })()
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
-		if err := h.OnLogout(m); err != nil {
-			m.Warning("OnLogout hook error: %s", err)
+		mctx.Debug("+ Logout hook [%v]", h.name)
+		if err := h.OnLogout(mctx); err != nil {
+			mctx.Warning("| Logout hook [%v] : %s", h.name, err)
 		}
+		mctx.Debug("- Logout hook [%v]", h.name)
 	}
 }
 

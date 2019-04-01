@@ -165,10 +165,10 @@ func DefaultPassphraseArg(m MetaContext) keybase1.GUIEntryArg {
 
 func DefaultPassphrasePromptArg(mctx MetaContext, username string) keybase1.GUIEntryArg {
 	arg := DefaultPassphraseArg(mctx)
-	arg.WindowTitle = "Keybase passphrase"
+	arg.WindowTitle = "Keybase password"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
-	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
+	arg.Prompt = fmt.Sprintf("Please enter the Keybase password for %s (%d+ characters)", username, MinPassphraseLength)
 	return arg
 }
 

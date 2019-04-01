@@ -19,6 +19,9 @@ import {findKey} from 'lodash-es'
 import {type TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
+export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
+export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
+
 export const defaultPath = Types.stringToPath('/keybase')
 
 // See Installer.m: KBExitFuseKextError
@@ -91,16 +94,13 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   youCanUnlock: I.List(),
 })
 
-export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
-  sortBy: 'name',
-  sortOrder: 'asc',
-})
-
-export const defaultSortSetting = makeSortSetting({})
+export const defaultSortSetting = 'name-asc'
 
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
-  sort: makeSortSetting(),
+  sort: defaultSortSetting,
 })
+
+export const defaultPathUserSetting = makePathUserSetting()
 
 export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
   entryType: 'unknown',
@@ -193,12 +193,14 @@ export const makeSendAttachmentToChat: I.RecordFactory<Types._SendAttachmentToCh
   convID: ChatConstants.noConversationIDKey,
   filter: '',
   path: Types.stringToPath('/keybase'),
+  state: 'none',
 })
 
 export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
   channels: I.Map(),
   convID: ChatConstants.noConversationIDKey,
   path: Types.stringToPath('/keybase'),
+  state: 'none',
 })
 
 export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> = I.Record({
@@ -245,7 +247,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), defaultPathUserSetting]]),
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
@@ -963,6 +965,40 @@ export const makeActionForOpenPathInFilesTab = flags.useNewRouter
         ? RouteTreeGen.createPutActionIfOnPath({expectedPath: routePath, otherAction: routeChangeAction})
         : routeChangeAction
     }
+
+export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: ?I.List<string>) =>
+  !flags.useNewRouter && routePath
+    ? RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: action,
+      })
+    : action
+
+export const makeActionsForShowSendLinkToChat = (
+  path: Types.Path,
+  routePath?: ?I.List<string>
+): Array<TypedActions> => [
+  FsGen.createInitSendLinkToChat({path}),
+  putActionIfOnPathForNav1(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {path}, selected: 'sendLinkToChat'}],
+    }),
+    routePath
+  ),
+]
+
+export const makeActionsForShowSendAttachmentToChat = (
+  path: Types.Path,
+  routePath?: ?I.List<string>
+): Array<TypedActions> => [
+  FsGen.createInitSendAttachmentToChat({path}),
+  putActionIfOnPathForNav1(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {path}, selected: 'sendAttachmentToChat'}],
+    }),
+    routePath
+  ),
+]
 
 export const splitFileNameAndExtension = (fileName: string) =>
   ((str, idx) => [str.slice(0, idx), str.slice(idx)])(fileName, fileName.lastIndexOf('.'))

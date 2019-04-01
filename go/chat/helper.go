@@ -40,14 +40,14 @@ func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName s
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
 	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
-		topicType, membersType, vis, h.ri)
+		topicType, membersType, vis, h.ri, NewConvFindExistingNormal)
 }
 
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
 	return NewConversationWithMemberSourceConv(ctx, h.G(), uid, tlfName, topicName,
-		topicType, membersType, vis, h.ri, memberSourceConv)
+		topicType, membersType, vis, h.ri, NewConvFindExistingNormal, memberSourceConv)
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
@@ -336,7 +336,8 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 	}
 	uid := gregor1.UID(kuid.ToBytes())
 	conv, err := NewConversation(ctx, s.G(), uid, s.name, s.topicName,
-		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface)
+		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface,
+		NewConvFindExistingNormal)
 	if err != nil {
 		return err
 	}
@@ -863,17 +864,26 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 	return nil
 }
 
+type NewConvFindExistingMode int
+
+const (
+	NewConvFindExistingNormal NewConvFindExistingMode = iota
+	NewConvFindExistingSkip
+)
+
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
-	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, nil)
+	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, error) {
+	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, findExistingMode, nil)
 }
 
-func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
-	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
+func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	tlfName string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface,
+	findExistingMode NewConvFindExistingMode, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
 	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
-	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri, memberSourceConv)
+	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri,
+		findExistingMode, memberSourceConv)
 	return helper.create(ctx)
 }
 
@@ -889,11 +899,13 @@ type newConversationHelper struct {
 	memberSourceConv *chat1.ConversationID
 	vis              keybase1.TLFVisibility
 	ri               func() chat1.RemoteInterface
+	findExistingMode NewConvFindExistingMode
 }
 
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
-	ri func() chat1.RemoteInterface, memberSourceConv *chat1.ConversationID) *newConversationHelper {
+	ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode,
+	memberSourceConv *chat1.ConversationID) *newConversationHelper {
 	return &newConversationHelper{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
@@ -905,26 +917,33 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 		memberSourceConv: memberSourceConv,
 		vis:              vis,
 		ri:               ri,
+		findExistingMode: findExistingMode,
 	}
 }
 
 func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TLFID, topicName string,
 	dataSource types.InboxSourceDataSourceTyp) (res []chat1.ConversationLocal, err error) {
-	ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking,
-		dataSource, nil, &chat1.GetInboxLocalQuery{
-			Name: &chat1.NameQuery{
-				Name:        n.tlfName,
-				TlfID:       &tlfID,
-				MembersType: n.membersType,
-			},
-			TlfVisibility: &n.vis,
-			TopicName:     &topicName,
-			TopicType:     &n.topicType,
-		}, nil)
-	if err != nil {
-		return res, err
+	switch n.findExistingMode {
+	case NewConvFindExistingNormal:
+		ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking,
+			dataSource, nil, &chat1.GetInboxLocalQuery{
+				Name: &chat1.NameQuery{
+					Name:        n.tlfName,
+					TlfID:       &tlfID,
+					MembersType: n.membersType,
+				},
+				TlfVisibility: &n.vis,
+				TopicName:     &topicName,
+				TopicType:     &n.topicType,
+			}, nil)
+		if err != nil {
+			return res, err
+		}
+		return ib.Convs, nil
+	case NewConvFindExistingSkip:
+		return nil, nil
 	}
-	return ib.Convs, nil
+	return nil, nil
 }
 
 func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.NameInfo, err error) {
@@ -1196,9 +1215,11 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			},
 		}
 	}
-
+	opts := types.SenderPrepareOptions{
+		SkipTopicNameState: n.findExistingMode == NewConvFindExistingSkip,
+	}
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)
-	prepareRes, err := sender.Prepare(ctx, msg, membersType, nil)
+	prepareRes, err := sender.Prepare(ctx, msg, membersType, nil, &opts)
 	return &prepareRes.Boxed, prepareRes.TopicNameState, err
 }
 

@@ -239,7 +239,7 @@ const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
 
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
-// redirect to set passphrase screen.
+// redirect to set password screen.
 const startLogoutHandshakeIfAllowed = state =>
   RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
     if (canLogoutRes.canLogout) {
@@ -248,13 +248,13 @@ const startLogoutHandshakeIfAllowed = state =>
       const heading = canLogoutRes.reason
       if (isMobile) {
         return RouteTreeGen.createNavigateTo({
-          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passphraseTab}],
+          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
         })
       } else {
         return [
           RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab]}),
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {heading}, selected: 'changePassphrase'}],
+            path: [{props: {heading}, selected: 'changePassword'}],
           }),
         ]
       }

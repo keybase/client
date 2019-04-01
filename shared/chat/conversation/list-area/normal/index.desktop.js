@@ -63,8 +63,6 @@ class Thread extends React.PureComponent<Props, State> {
   // Set to ignore the the next scroll event
   _ignoreScrollOnetime = false
 
-  _lastCenteredOrdinal = 0
-
   // last height we saw from resize
   _scrollHeight: number = 0
 
@@ -249,17 +247,10 @@ class Thread extends React.PureComponent<Props, State> {
       return
     }
 
-    // Check to see if we jumped to some other set of ordinals, or that our centered ordinal is different
-    // than what we scroll to previously
-    if (
-      !!this.props.centeredOrdinal &&
-      (this.props.centeredOrdinal !== this._lastCenteredOrdinal ||
-        this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() ||
-        this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last())
-    ) {
+    // Check to see if our centered ordinal has changed, and if so, scroll to it
+    if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
       const lockedToBottom = false
       this.setState(p => (p.lockedToBottom === lockedToBottom ? null : {lockedToBottom}))
-      this._lastCenteredOrdinal = this.props.centeredOrdinal
       this._scrollHeight = 0 // setting this causes us to skip next resize
       this._scrollToCentered()
       return

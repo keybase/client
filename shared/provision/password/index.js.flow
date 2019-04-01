@@ -4,10 +4,10 @@ import {Component} from 'react'
 export type Props = {
   prompt: string,
   onSubmit: () => void,
-  onChange: (passphrase: string) => void,
-  passphrase: ?string,
+  onChange: (password: string) => void,
+  password: ?string,
   onBack: () => void,
-  onForgotPassphrase: () => void,
+  onForgotPassword: () => void,
   waitingForResponse: boolean,
   error?: ?string,
   username: ?string,
@@ -15,4 +15,4 @@ export type Props = {
   toggleShowTyping: () => void,
 }
 
-export default class Passphrase extends Component<Props> {}
+export default class Password extends Component<Props> {}

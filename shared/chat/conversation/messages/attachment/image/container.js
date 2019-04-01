@@ -2,6 +2,7 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Constants from '../../../../../constants/chat2'
 import {connect, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
@@ -43,6 +44,11 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
+  const {height, width} = Constants.clampImageSize(
+    message.previewWidth,
+    message.previewHeight,
+    Math.min(imgMaxWidth(), 320)
+  )
   // On mobile we use this icon to indicate we have the file stored locally, and it can be viewed. This is a
   // similar meaning to desktop.
   const arrowColor = !isMobile
@@ -73,7 +79,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     fileName: message.fileName,
     fullPath: message.fileURL,
     hasProgress,
-    height: message.previewHeight,
+    height,
     inlineVideoPlayable: message.inlineVideoPlayable,
     isCollapsed: message.isCollapsed,
     message,
@@ -95,7 +101,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     title: message.title,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     videoDuration: message.videoDuration || '',
-    width: Math.min(message.previewWidth, imgMaxWidth()),
+    width,
   }
 }
 

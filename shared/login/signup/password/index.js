@@ -3,7 +3,7 @@ import * as React from 'react'
 import {BlankAvatar, Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {|
-  passphrase: string,
+  password: string,
   error: string,
   onBack: () => void,
   onSubmit: (pass1: string, pass1: string) => void,
@@ -13,10 +13,10 @@ type State = {|
   pass2: string,
 |}
 
-class Passphrase extends React.Component<Props, State> {
+class Password extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {pass1: this.props.passphrase, pass2: this.props.passphrase}
+    this.state = {pass1: this.props.password, pass2: this.props.password}
   }
   _onSubmit = () => {
     this.props.onSubmit(this.state.pass1, this.state.pass2)
@@ -27,15 +27,15 @@ class Passphrase extends React.Component<Props, State> {
         <BlankAvatar />
         <Input
           autoFocus={true}
-          hintText="Create a passphrase"
+          hintText="Create a password"
           value={this.state.pass1}
           type="password"
-          errorText={this.props.passphrase === this.state.pass1 ? this.props.error : ''}
+          errorText={this.props.password === this.state.pass1 ? this.props.error : ''}
           onChangeText={pass1 => this.setState({pass1})}
           uncontrolled={true}
         />
         <Input
-          hintText="Confirm passphrase"
+          hintText="Confirm password"
           value={this.state.pass2}
           type="password"
           onEnterKeyDown={this._onSubmit}
@@ -48,4 +48,4 @@ class Passphrase extends React.Component<Props, State> {
   }
 }
 
-export default Passphrase
+export default Password

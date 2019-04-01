@@ -27,7 +27,7 @@ func newBlockEngine(g *globals.Context) *blockEngine {
 
 	// add a logout hook to clear the in-memory block cache, but only add it once:
 	addBlockHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(blockEngineMemCache)
+		g.ExternalG().AddLogoutHook(blockEngineMemCache, "blockEngineMemCache")
 	})
 
 	return &blockEngine{

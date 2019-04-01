@@ -138,9 +138,17 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _onChangeText = (text: string) => {
+    const skipThrottle = this._lastText && this._lastText.length > 0 && text.length === 0
     this.props.setUnsentText(text)
     this._lastText = text
-    throttled(this.props.sendTyping, !!text)
+
+    // If the input bar has been cleared, send typing notification right away
+    if (skipThrottle) {
+      throttled.cancel()
+      this.props.sendTyping(false)
+    } else {
+      throttled(this.props.sendTyping, !!text)
+    }
 
     // check if input matches a command with help text,
     // skip debouncing unsentText if so

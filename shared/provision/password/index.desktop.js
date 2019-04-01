@@ -7,7 +7,7 @@ import {globalColors} from '../../styles'
 
 import type {Props} from '.'
 
-class Passphrase extends Component<Props> {
+class Password extends Component<Props> {
   render() {
     return (
       <Container
@@ -23,10 +23,10 @@ class Passphrase extends Component<Props> {
             autoFocus={true}
             style={stylesInput}
             type="password"
-            hintText="Passphrase"
+            hintText="Password"
             onEnterKeyDown={() => this.props.onSubmit()}
             onChangeText={text => this.props.onChange(text)}
-            value={this.props.passphrase}
+            value={this.props.password}
             errorText={this.props.error}
           />
           <Button
@@ -34,10 +34,10 @@ class Passphrase extends Component<Props> {
             label="Continue"
             type="Primary"
             onClick={() => this.props.onSubmit()}
-            disabled={!(this.props.passphrase && this.props.passphrase.length)}
+            disabled={!(this.props.password && this.props.password.length)}
           />
-          <Text style={stylesForgot} type="BodySmallSecondaryLink" onClick={this.props.onForgotPassphrase}>
-            Forgot passphrase?
+          <Text style={stylesForgot} type="BodySmallSecondaryLink" onClick={this.props.onForgotPassword}>
+            Forgot password?
           </Text>
         </UserCard>
       </Container>
@@ -62,4 +62,4 @@ const stylesCard = {
   alignSelf: 'stretch',
 }
 
-export default Passphrase
+export default Password

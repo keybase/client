@@ -19,7 +19,7 @@ import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
     .then(({hasServerKeys}) => SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys}))
-    .catch(error => SettingsGen.createOnUpdatePassphraseError({error}))
+    .catch(error => SettingsGen.createOnUpdatePasswordError({error}))
 
 function* onSubmitNewEmail(state) {
   try {
@@ -37,25 +37,25 @@ function* onSubmitNewEmail(state) {
   }
 }
 
-function* onSubmitNewPassphrase(state, action) {
+function* onSubmitNewPassword(state, action) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
-    const {newPassphrase, newPassphraseConfirm} = state.settings.passphrase
-    if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
-      yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error: new Error("Passphrases don't match")}))
+    const {newPassword, newPasswordConfirm} = state.settings.password
+    if (newPassword.stringValue() !== newPasswordConfirm.stringValue()) {
+      yield Saga.put(SettingsGen.createOnUpdatePasswordError({error: new Error("Passwords don't match")}))
       return
     }
     yield* Saga.callPromise(RPCTypes.accountPassphraseChangeRpcPromise, {
       force: true,
       oldPassphrase: '',
-      passphrase: newPassphrase.stringValue(),
+      passphrase: newPassword.stringValue(),
     })
     yield Saga.put(RouteTreeGen.createNavigateUp())
     if (action.payload.thenSignOut) {
       yield Saga.put(ConfigGen.createLogout())
     }
   } catch (error) {
-    yield Saga.put(SettingsGen.createOnUpdatePassphraseError({error}))
+    yield Saga.put(SettingsGen.createOnUpdatePasswordError({error}))
   } finally {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: false}))
   }
@@ -380,9 +380,9 @@ const loadSettings = () =>
       })
   )
 
-const getRememberPassphrase = () =>
+const getRememberPassword = () =>
   RPCTypes.configGetRememberPassphraseRpcPromise().then(remember =>
-    SettingsGen.createLoadedRememberPassphrase({remember})
+    SettingsGen.createLoadedRememberPassword({remember})
   )
 
 function* trace(_, action) {
@@ -407,16 +407,16 @@ function* processorProfile(_, action) {
   yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
 }
 
-const rememberPassphrase = (_, action) =>
+const rememberPassword = (_, action) =>
   RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 
-const checkPassphrase = (_, action) =>
+const checkPassword = (_, action) =>
   RPCTypes.accountPassphraseCheckRpcPromise(
     {
-      passphrase: action.payload.passphrase.stringValue(),
+      passphrase: action.payload.password.stringValue(),
     },
-    Constants.checkPassphraseWaitingKey
-  ).then(res => SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: res}))
+    Constants.checkPasswordWaitingKey
+  ).then(res => SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: res}))
 
 const loadLockdownMode = state =>
   state.config.loggedIn &&
@@ -470,13 +470,13 @@ const unfurlSettingsSaved = (state, action) =>
 // false (never the opposite way), and there are notifications set up when
 // this happens.
 const loadHasRandomPW = state =>
-  state.settings.passphrase.randomPW === null
+  state.settings.password.randomPW === null
     ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
         .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
         .catch(e => logger.warn('Error loading hasRandomPW:', e.message))
     : null
 
-// Mark that we are not randomPW anymore if we got a passphrase change.
+// Mark that we are not randomPW anymore if we got a password change.
 const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
@@ -501,9 +501,9 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail
   )
-  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPassphrasePayload>(
-    SettingsGen.onSubmitNewPassphrase,
-    onSubmitNewPassphrase
+  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
+    SettingsGen.onSubmitNewPassword,
+    onSubmitNewPassword
   )
   yield* Saga.chainAction<SettingsGen.OnUpdatePGPSettingsPayload>(
     SettingsGen.onUpdatePGPSettings,
@@ -514,13 +514,13 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.processorProfile,
     processorProfile
   )
-  yield* Saga.chainAction<SettingsGen.LoadRememberPassphrasePayload>(
-    SettingsGen.loadRememberPassphrase,
-    getRememberPassphrase
+  yield* Saga.chainAction<SettingsGen.LoadRememberPasswordPayload>(
+    SettingsGen.loadRememberPassword,
+    getRememberPassword
   )
-  yield* Saga.chainAction<SettingsGen.OnChangeRememberPassphrasePayload>(
-    SettingsGen.onChangeRememberPassphrase,
-    rememberPassphrase
+  yield* Saga.chainAction<SettingsGen.OnChangeRememberPasswordPayload>(
+    SettingsGen.onChangeRememberPassword,
+    rememberPassword
   )
   yield* Saga.chainAction<SettingsGen.LoadLockdownModePayload>(SettingsGen.loadLockdownMode, loadLockdownMode)
   yield* Saga.chainAction<SettingsGen.OnChangeLockdownModePayload>(
@@ -541,7 +541,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     passwordChanged
   )
 
-  yield* Saga.chainAction<SettingsGen.CheckPassphrasePayload>(SettingsGen.checkPassphrase, checkPassphrase)
+  yield* Saga.chainAction<SettingsGen.CheckPasswordPayload>(SettingsGen.checkPassword, checkPassword)
 }
 
 export default settingsSaga

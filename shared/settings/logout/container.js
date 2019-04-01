@@ -10,31 +10,31 @@ import LogOut from '.'
 type OwnProps = {||}
 
 const mapStateToProps = state => ({
-  checkPassphraseIsCorrect: state.settings.checkPassphraseIsCorrect,
-  hasRandomPW: state.settings.passphrase.randomPW,
+  checkPasswordIsCorrect: state.settings.checkPasswordIsCorrect,
+  hasRandomPW: state.settings.password.randomPW,
   waitingForResponse: state.settings.waitingForResponse,
 })
 
 const mapDispatchToProps = dispatch => ({
   onCancel: () => {
-    dispatch(SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: null}))
+    dispatch(SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: null}))
     dispatch(RouteTreeGen.createNavigateUp())
   },
-  onCheckPassphrase: passphrase => {
-    if (passphrase) {
-      dispatch(SettingsGen.createCheckPassphrase({passphrase: new HiddenString(passphrase)}))
+  onCheckPassword: password => {
+    if (password) {
+      dispatch(SettingsGen.createCheckPassword({password: new HiddenString(password)}))
     }
   },
   onLogout: () => {
     dispatch(ConfigGen.createLogout())
-    dispatch(SettingsGen.createLoadedCheckPassphrase({checkPassphraseIsCorrect: null}))
+    dispatch(SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: null}))
   },
-  onSavePassphrase: (passphrase: string, passphraseConfirm: string) => {
-    dispatch(SettingsGen.createOnChangeNewPassphrase({passphrase: new HiddenString(passphrase)}))
+  onSavePassword: (password: string, passwordConfirm: string) => {
+    dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
     dispatch(
-      SettingsGen.createOnChangeNewPassphraseConfirm({passphrase: new HiddenString(passphraseConfirm)})
+      SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(passwordConfirm)})
     )
-    dispatch(SettingsGen.createOnSubmitNewPassphrase({thenSignOut: true}))
+    dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: true}))
   },
 })
 
