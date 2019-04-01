@@ -65,6 +65,12 @@ type SignupScreenProps = {|
   children: React.Node,
   onBack?: () => void,
   title: string,
+
+  // HACK - HeaderHoc isn't typed to add props correctly (and we're only using it conditionally here)
+  // add props from HeaderHoc as necessary
+  // Mobile only
+  rightActionLabel?: string,
+  onRightAction?: ?() => void,
 |}
 
 // Screens with header + body bg color (i.e. all but join-or-login)
