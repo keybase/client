@@ -282,7 +282,9 @@ class ProvisioningManager {
 
     switch (params.pinentry.type) {
       case RPCTypes.passphraseCommonPassphraseType.passPhrase:
-        return Saga.put(ProvisionGen.createShowPasswordPage({error: error ? new HiddenString(error) : null}))
+        return Saga.put(
+          ProvisionGen.createShowPasswordPage({error: error ? new HiddenString(error) : null})
+        )
       case RPCTypes.passphraseCommonPassphraseType.paperKey:
         return Saga.put(ProvisionGen.createShowPaperkeyPage({error: error ? new HiddenString(error) : null}))
       default:
@@ -508,10 +510,7 @@ const showUsernameEmailPage = () =>
   RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['username']})
 
 const forgotUsername = (state, action) =>
-  RPCTypes.accountRecoverUsernameRpcPromise(
-    {email: action.payload.email, phone: action.payload.phone},
-    Constants.forgotUsernameWaitingKey
-  )
+  RPCTypes.accountRecoverUsernameRpcPromise({email: action.payload.email}, Constants.forgotUsernameWaitingKey)
     .then(result => ProvisionGen.createForgotUsernameResult({result: 'success'}))
     .catch(error =>
       ProvisionGen.createForgotUsernameResult({

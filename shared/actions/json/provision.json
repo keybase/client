@@ -45,8 +45,7 @@
     },
     "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
     "forgotUsername": {
-      "email": "string",
-      "phone": "string"
+      "email": "string"
     },
     "forgotUsernameResult": {
       "result": "string"
