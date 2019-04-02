@@ -137,7 +137,7 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'chat.1.chatUi.chatGiphySearchResults': {|
-    inParam: $ReadOnly<{|convID: String, results?: ?Array<GiphySearchResult>|}>,
+    inParam: $ReadOnly<{|convID: String, results: GiphySearchResults|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatGiphyToggleResultWindow': {|
@@ -955,6 +955,7 @@ export type GetThreadReason =
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 export type GetUnreadlineRemoteRes = $ReadOnly<{unreadlineID?: ?MessageID, rateLimit?: ?RateLimit}>
 export type GiphySearchResult = $ReadOnly<{targetUrl: String, previewUrl: String, previewWidth: Int, previewHeight: Int, previewIsVideo: Boolean}>
+export type GiphySearchResults = $ReadOnly<{results?: ?Array<GiphySearchResult>, galleryUrl: String}>
 export type GlobalAppNotificationSetting =
   | 0 // NEWMESSAGES_0
   | 1 // PLAINTEXTMOBILE_1

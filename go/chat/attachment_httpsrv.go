@@ -269,10 +269,40 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Re
 	}
 }
 
+func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.Request, urlstr string) {
+	var videoStr string
+	urls := strings.Split(urlstr, ",")
+	for _, u := range urls {
+		videoStr += fmt.Sprintf(`
+			<video src="%s" playsinline webkit-playsinline autoplay />
+		`, u)
+	}
+	res := fmt.Sprintf(`<html>
+		<head>
+			<title>Keybase Giphy Gallery</title>
+		</head>
+		<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
+			<div display="flex" style="flex-direction: row">
+				%s
+			</div>
+		</body>
+	</html>`, videoStr)
+	if _, err := io.WriteString(w, res); err != nil {
+		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to write giphy gallery: %s",
+			err)
+	}
+}
+
 func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Request) {
 	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyLink")()
+	urls := req.URL.Query().Get("urls")
+	if len(urls) > 0 {
+		// check for gallery mode
+		r.serveGiphyGallery(w, req, urls)
+		return
+	}
 	key := req.URL.Query().Get("key")
 	val, ok := r.giphyMap.Get(key)
 	if !ok {

@@ -1144,6 +1144,28 @@ func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 	}
 }
 
+type GiphySearchResults struct {
+	Results    []GiphySearchResult `codec:"results" json:"results"`
+	GalleryUrl string              `codec:"galleryUrl" json:"galleryUrl"`
+}
+
+func (o GiphySearchResults) DeepCopy() GiphySearchResults {
+	return GiphySearchResults{
+		Results: (func(x []GiphySearchResult) []GiphySearchResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]GiphySearchResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Results),
+		GalleryUrl: o.GalleryUrl,
+	}
+}
+
 type UICoinFlipPhase int
 
 const (
@@ -1895,9 +1917,9 @@ type ChatStellarDoneArg struct {
 }
 
 type ChatGiphySearchResultsArg struct {
-	SessionID int                 `codec:"sessionID" json:"sessionID"`
-	ConvID    string              `codec:"convID" json:"convID"`
-	Results   []GiphySearchResult `codec:"results" json:"results"`
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	ConvID    string             `codec:"convID" json:"convID"`
+	Results   GiphySearchResults `codec:"results" json:"results"`
 }
 
 type ChatGiphyToggleResultWindowArg struct {

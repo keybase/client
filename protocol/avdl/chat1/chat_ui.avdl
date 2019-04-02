@@ -285,7 +285,11 @@ protocol chatUi {
     int previewHeight;
     boolean previewIsVideo;
   }
-  void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
+  record GiphySearchResults {
+    array<GiphySearchResult> results;
+    string galleryUrl;
+  }
+  void chatGiphySearchResults(int sessionID, string convID, GiphySearchResults results);
   void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show);
 
   void chatShowManageChannels(int sessionID, string teamname);

@@ -86,10 +86,6 @@ func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat
 
 func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "Preview")()
-	if s.G().GetAppType() == libkb.MobileAppType {
-		// no preview on mobile yet
-		return
-	}
 	s.Lock()
 	if s.currentOpCancelFn != nil {
 		s.currentOpCancelFn()

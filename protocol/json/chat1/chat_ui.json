@@ -1028,6 +1028,23 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GiphySearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "GiphySearchResult"
+          },
+          "name": "results"
+        },
+        {
+          "type": "string",
+          "name": "galleryUrl"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "UICoinFlipPhase",
       "symbols": [
@@ -1577,10 +1594,7 @@
         },
         {
           "name": "results",
-          "type": {
-            "type": "array",
-            "items": "GiphySearchResult"
-          }
+          "type": "GiphySearchResults"
         }
       ],
       "response": null
