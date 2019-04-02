@@ -11,7 +11,6 @@ import * as ChatTypes from '../constants/types/chat2'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
-export const clearFolderViewFilter = 'fs:clearFolderViewFilter'
 export const clearRefreshTag = 'fs:clearRefreshTag'
 export const closeDestinationPicker = 'fs:closeDestinationPicker'
 export const commitEdit = 'fs:commitEdit'
@@ -89,7 +88,6 @@ export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
-type _ClearFolderViewFilterPayload = void
 type _ClearRefreshTagPayload = $ReadOnly<{|refreshTag: Types.RefreshTag|}>
 type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
@@ -167,7 +165,6 @@ type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
-export const createClearFolderViewFilter = (payload: _ClearFolderViewFilterPayload) => ({payload, type: clearFolderViewFilter})
 export const createClearRefreshTag = (payload: _ClearRefreshTagPayload) => ({payload, type: clearRefreshTag})
 export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPayload) => ({payload, type: closeDestinationPicker})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
@@ -245,7 +242,6 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload) => (
 
 // Action Payloads
 export type CancelDownloadPayload = {|+payload: _CancelDownloadPayload, +type: 'fs:cancelDownload'|}
-export type ClearFolderViewFilterPayload = {|+payload: _ClearFolderViewFilterPayload, +type: 'fs:clearFolderViewFilter'|}
 export type ClearRefreshTagPayload = {|+payload: _ClearRefreshTagPayload, +type: 'fs:clearRefreshTag'|}
 export type CloseDestinationPickerPayload = {|+payload: _CloseDestinationPickerPayload, +type: 'fs:closeDestinationPicker'|}
 export type CommitEditPayload = {|+payload: _CommitEditPayload, +type: 'fs:commitEdit'|}
@@ -325,7 +321,6 @@ export type WaitForKbfsDaemonPayload = {|+payload: _WaitForKbfsDaemonPayload, +t
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
-  | ClearFolderViewFilterPayload
   | ClearRefreshTagPayload
   | CloseDestinationPickerPayload
   | CommitEditPayload

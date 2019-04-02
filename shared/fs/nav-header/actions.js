@@ -12,8 +12,8 @@ type Props = {|
 const FsNavHeaderRightActions = (props: Props) => (
   <Kb.Box style={styles.outerContainer}>
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
-      <Kbfs.FolderViewFilter path={props.path} gap="tiny" />
-      <Kbfs.UploadButton path={props.path} desktopButtonGap="tiny" />
+      <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
+      <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
       <Kbfs.NewFolder path={props.path} />
       <Kbfs.SendInAppAction path={props.path} />
       <Kbfs.OpenInSystemFileManager path={props.path} />
@@ -33,11 +33,21 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
+  folderViewFilter: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
   outerContainer: Styles.platformStyles({
     isElectron: {
       // this extra container make the inner container positioned at top of the
       // 40px space. 39 is because divider is part of this.
       height: 39,
+    },
+  }),
+  uploadButton: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
     },
   }),
 })

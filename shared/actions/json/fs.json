@@ -29,7 +29,6 @@
     "setFolderViewFilter": {
       "filter": "string",
     },
-    "clearFolderViewFilter":{},
     "pathItemLoaded": {
       "path": "Types.Path",
       "pathItem": "Types.PathItem"

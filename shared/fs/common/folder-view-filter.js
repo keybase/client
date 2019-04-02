@@ -9,9 +9,9 @@ import * as React from 'react'
 
 type Props = {|
   filter: string,
-  gap?: ?$Keys<typeof Styles.globalMargins>,
   onUpdate: string => void,
   path: Types.Path,
+  style?: ?Styles.StylesCrossPlatform,
 |}
 
 type State = {|
@@ -27,16 +27,22 @@ class FolderViewFilter extends React.PureComponent<Props, State> {
 
   _input = React.createRef()
 
-  _onBlur = () => this.setState({editing: false})
+  _onBlur = () => {
+    this.setState({editing: false})
+    this.props.onUpdate('')
+  }
   _onFocus = () => this.setState({editing: true})
+
+  _focus = () => {
+    this._input.current && this._input.current.focus()
+  }
+  _blur = () => this._input.current && this._input.current.blur()
+
   _onHotkey = (cmd: string) => {
-    cmd.endsWith('+f') && this._input.current && this._input.current.focus()
+    cmd.endsWith('+f') && this._focus()
   }
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
-    if (e.key === 'Escape' && !isComposingIME) {
-      this.props.onUpdate('')
-      this._input.current && this._input.current.blur()
-    }
+    e.key === 'Escape' && !isComposingIME && this._blur()
   }
 
   // Clear the filter if path changes, or if we get unmounted.
@@ -50,41 +56,40 @@ class FolderViewFilter extends React.PureComponent<Props, State> {
   render() {
     return (
       Types.getPathLevel(this.props.path) > 1 && (
-        <Kb.Box2
-          direction="horizontal"
-          style={Styles.collapseStyles([
-            styles.container,
-            !this.state.editing && styles.dark,
-            this.props.gap && {
-              marginLeft: Styles.globalMargins[this.props.gap],
-              marginRight: Styles.globalMargins[this.props.gap],
-            },
-          ])}
-          centerChildren={true}
-          gap="tiny"
-          gapStart={true}
-          gapEnd={true}
-        >
-          <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_35} sizeType="Default" />
-          <KeyHandler onHotkey={this._onHotkey} hotkeys={Platforms.isDarwin ? ['command+f'] : ['ctrl+f']} />
-          <Kb.Input
-            hideUnderline={true}
-            small={true}
-            value={this.props.filter}
-            hintText="Filter ..."
-            onChangeText={this.props.onUpdate}
-            onBlur={this._onBlur}
-            onFocus={this._onFocus}
-            onKeyDown={this._onKeyDown}
-            ref={this._input}
-          />
-          <Kb.Text
-            type="BodySemibold"
-            style={Styles.collapseStyles([styles.shortcutText, this.state.editing && styles.hidden])}
+        <Kb.ClickableBox onClick={this._focus}>
+          <KeyHandler onHotkey={this._onHotkey} hotkeys={[Platforms.isDarwin ? 'command+f' : 'ctrl+f']} />
+          <Kb.Box2
+            direction="horizontal"
+            style={Styles.collapseStyles([
+              styles.container,
+              !this.state.editing && styles.dark,
+              this.props.style,
+            ])}
+            centerChildren={true}
+            gap="tiny"
+            gapStart={true}
+            gapEnd={true}
           >
-            ({Platforms.shortcutSymbol}F)
-          </Kb.Text>
-        </Kb.Box2>
+            <Kb.NewInput
+              icon="iconfont-search"
+              hideBorder={true}
+              value={this.props.filter}
+              placeholder="Filter ..."
+              onChangeText={this.props.onUpdate}
+              onBlur={this._onBlur}
+              onFocus={this._onFocus}
+              onKeyDown={this._onKeyDown}
+              ref={this._input}
+              style={styles.input}
+            />
+            <Kb.Text
+              type="BodySemibold"
+              style={Styles.collapseStyles([styles.shortcutText, this.state.editing && styles.hidden])}
+            >
+              ({Platforms.shortcutSymbol}F)
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
       )
     )
   }
@@ -93,13 +98,16 @@ class FolderViewFilter extends React.PureComponent<Props, State> {
 const styles = Styles.styleSheetCreate({
   container: {
     borderRadius: Styles.borderRadius,
-    padding: Styles.globalMargins.xtiny,
+    padding: Styles.globalMargins.xxtiny,
   },
   dark: {
     backgroundColor: Styles.globalColors.black_10,
   },
   hidden: {
     opacity: 0,
+  },
+  input: {
+    backgroundColor: Styles.globalColors.transparent,
   },
   shortcutText: {
     color: Styles.globalColors.black_35,
@@ -108,7 +116,7 @@ const styles = Styles.styleSheetCreate({
 
 type OwnProps = {|
   path: Types.Path,
-  gap?: ?$Keys<typeof Styles.globalMargins>,
+  style?: ?Styles.StylesCrossPlatform,
 |}
 
 const mapStateToProps = state => ({
