@@ -81,6 +81,7 @@ class FolderViewFilter extends React.PureComponent<Props, State> {
               onKeyDown={this._onKeyDown}
               ref={this._input}
               style={styles.input}
+              containerStyle={styles.input}
             />
             <Kb.Text
               type="BodySemibold"
