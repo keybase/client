@@ -126,7 +126,6 @@ func (p *proofServices) loadServiceConfigs() {
 	p.clearServiceTypes()
 	p.registerServiceTypes(getStaticProofServices())
 	p.registerServiceTypes(services)
-	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)
 	for _, config := range config.DisplayConfigs {
 		p.displayConfigs[config.Key] = *config
 		if service, ok := p.externalServices[config.Key]; ok {
