@@ -175,7 +175,7 @@
       ],
       "response": null
     },
-    "recoverUsername": {
+    "recoverUsernameWithEmail": {
       "request": [
         {
           "name": "sessionID",
@@ -184,6 +184,15 @@
         {
           "name": "email",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "recoverUsernameWithPhone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         },
         {
           "name": "phone",

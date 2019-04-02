@@ -181,14 +181,27 @@ func (h *AccountHandler) PassphraseCheck(ctx context.Context, arg keybase1.Passp
 	return eng.GetResult(), err
 }
 
-func (h *AccountHandler) RecoverUsername(ctx context.Context, arg keybase1.RecoverUsernameArg) (err error) {
+func (h *AccountHandler) RecoverUsernameWithEmail(ctx context.Context, arg keybase1.RecoverUsernameWithEmailArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsername(%q,%q)", arg.Email, arg.Phone), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsernameWithEmail(%q)", arg.Email), func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/recover_username",
 		SessionType: libkb.APISessionTypeNONE,
 		Args: libkb.HTTPArgs{
-			"email":        libkb.S{Val: arg.Email},
+			"email": libkb.S{Val: arg.Email},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
+
+func (h *AccountHandler) RecoverUsernameWithPhone(ctx context.Context, arg keybase1.RecoverUsernameWithPhoneArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsernameWithPhone(%q)", arg.Phone), func() error { return err })()
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/recover_username",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
 			"phone_number": libkb.S{Val: arg.Phone.String()},
 		},
 	}

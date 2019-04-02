@@ -97,9 +97,13 @@ type SetLockdownModeArg struct {
 	Enabled   bool `codec:"enabled" json:"enabled"`
 }
 
-type RecoverUsernameArg struct {
+type RecoverUsernameWithEmailArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Email     string `codec:"email" json:"email"`
+}
+
+type RecoverUsernameWithPhoneArg struct {
 	SessionID int         `codec:"sessionID" json:"sessionID"`
-	Email     string      `codec:"email" json:"email"`
 	Phone     PhoneNumber `codec:"phone" json:"phone"`
 }
 
@@ -137,7 +141,8 @@ type AccountInterface interface {
 	ResetAccount(context.Context, ResetAccountArg) error
 	GetLockdownMode(context.Context, int) (GetLockdownResponse, error)
 	SetLockdownMode(context.Context, SetLockdownModeArg) error
-	RecoverUsername(context.Context, RecoverUsernameArg) error
+	RecoverUsernameWithEmail(context.Context, RecoverUsernameWithEmailArg) error
+	RecoverUsernameWithPhone(context.Context, RecoverUsernameWithPhoneArg) error
 	// Start reset process for the user based on their username or email.  If
 	// neither are known the user will be prompted for their passphrase to start
 	// the process.
@@ -271,18 +276,33 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
-			"recoverUsername": {
+			"recoverUsernameWithEmail": {
 				MakeArg: func() interface{} {
-					var ret [1]RecoverUsernameArg
+					var ret [1]RecoverUsernameWithEmailArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]RecoverUsernameArg)
+					typedArgs, ok := args.(*[1]RecoverUsernameWithEmailArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]RecoverUsernameArg)(nil), args)
+						err = rpc.NewTypeError((*[1]RecoverUsernameWithEmailArg)(nil), args)
 						return
 					}
-					err = i.RecoverUsername(ctx, typedArgs[0])
+					err = i.RecoverUsernameWithEmail(ctx, typedArgs[0])
+					return
+				},
+			},
+			"recoverUsernameWithPhone": {
+				MakeArg: func() interface{} {
+					var ret [1]RecoverUsernameWithPhoneArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RecoverUsernameWithPhoneArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RecoverUsernameWithPhoneArg)(nil), args)
+						return
+					}
+					err = i.RecoverUsernameWithPhone(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -392,8 +412,13 @@ func (c AccountClient) SetLockdownMode(ctx context.Context, __arg SetLockdownMod
 	return
 }
 
-func (c AccountClient) RecoverUsername(ctx context.Context, __arg RecoverUsernameArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsername", []interface{}{__arg}, nil)
+func (c AccountClient) RecoverUsernameWithEmail(ctx context.Context, __arg RecoverUsernameWithEmailArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithEmail", []interface{}{__arg}, nil)
+	return
+}
+
+func (c AccountClient) RecoverUsernameWithPhone(ctx context.Context, __arg RecoverUsernameWithPhoneArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithPhone", []interface{}{__arg}, nil)
 	return
 }
 

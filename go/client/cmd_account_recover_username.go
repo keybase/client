@@ -1,6 +1,3 @@
-// Copyright 2017 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
 package client
 
 import (
@@ -23,7 +20,7 @@ type CmdAccountRecoverUsername struct {
 func NewCmdAccountRecoverUsername(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "recover-username",
-		Usage: "Recover username via email or sms.",
+		Usage: "Recover username via email or SMS.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdAccountRecoverUsernameRunner(g)
 			cl.ChooseCommand(cmd, "recover-username", c)
@@ -48,8 +45,8 @@ func NewCmdAccountRecoverUsernameRunner(g *libkb.GlobalContext) *CmdAccountRecov
 func (c *CmdAccountRecoverUsername) ParseArgv(ctx *cli.Context) error {
 	c.email = ctx.String("email")
 	c.phone = keybase1.PhoneNumber(ctx.String("phone"))
-	if len(c.email) == 0 && len(c.phone) == 0 {
-		return fmt.Errorf("email or phone is required")
+	if (len(c.email) > 0 && len(c.phone) > 0) || (len(c.email) == 0 && len(c.phone) == 0) {
+		return fmt.Errorf("one of email or phone is required")
 	}
 	return nil
 }
@@ -59,8 +56,12 @@ func (c *CmdAccountRecoverUsername) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.RecoverUsername(context.Background(), keybase1.RecoverUsernameArg{
-		Email: c.email,
+	if len(c.email) > 0 {
+		return cli.RecoverUsernameWithEmail(context.Background(), keybase1.RecoverUsernameWithEmailArg{
+			Email: c.email,
+		})
+	}
+	return cli.RecoverUsernameWithPhone(context.Background(), keybase1.RecoverUsernameWithPhoneArg{
 		Phone: c.phone,
 	})
 }
