@@ -242,6 +242,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
+  folderViewFilter: '',
   kbfsDaemonStatus: 'unknown',
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),

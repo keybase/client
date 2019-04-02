@@ -26,6 +26,7 @@ type CommonProps = {|
   onSubmit: (text: string) => void,
   showCommandMarkdown: boolean,
   showGiphySearch: boolean,
+  showTypingStatus: boolean,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
   editText: string,

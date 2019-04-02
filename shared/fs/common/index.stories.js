@@ -64,6 +64,11 @@ export const commonProvider = {
     enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
+  FolderViewFilter: (props: any) => ({
+    filter: '',
+    onUpdate: Sb.action('onUpdate'),
+    ...props,
+  }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
     loadPathMetadata: Sb.action('loadPathMetadata'),
     path,

@@ -63,6 +63,7 @@ export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
 export const sentLinkToChat = 'fs:sentLinkToChat'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDriverStatus = 'fs:setDriverStatus'
+export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
@@ -139,6 +140,7 @@ type _SentAttachmentToChatPayload = void
 type _SentLinkToChatPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
 type _SetDestinationPickerParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetDriverStatusPayload = $ReadOnly<{|driverStatus: Types.DriverStatus|}>
+type _SetFolderViewFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetIncomingShareLocalPathPayload = $ReadOnly<{|localPath: Types.LocalPath|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _SetPathItemActionMenuDownloadKeyPayload = $ReadOnly<{|key: ?string|}>
@@ -215,6 +217,7 @@ export const createSentAttachmentToChat = (payload: _SentAttachmentToChatPayload
 export const createSentLinkToChat = (payload: _SentLinkToChatPayload) => ({payload, type: sentLinkToChat})
 export const createSetDestinationPickerParentPath = (payload: _SetDestinationPickerParentPathPayload) => ({payload, type: setDestinationPickerParentPath})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload) => ({payload, type: setDriverStatus})
+export const createSetFolderViewFilter = (payload: _SetFolderViewFilterPayload) => ({payload, type: setFolderViewFilter})
 export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({payload, type: setIncomingShareLocalPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
@@ -291,6 +294,7 @@ export type SentAttachmentToChatPayload = {|+payload: _SentAttachmentToChatPaylo
 export type SentLinkToChatPayload = {|+payload: _SentLinkToChatPayload, +type: 'fs:sentLinkToChat'|}
 export type SetDestinationPickerParentPathPayload = {|+payload: _SetDestinationPickerParentPathPayload, +type: 'fs:setDestinationPickerParentPath'|}
 export type SetDriverStatusPayload = {|+payload: _SetDriverStatusPayload, +type: 'fs:setDriverStatus'|}
+export type SetFolderViewFilterPayload = {|+payload: _SetFolderViewFilterPayload, +type: 'fs:setFolderViewFilter'|}
 export type SetIncomingShareLocalPathPayload = {|+payload: _SetIncomingShareLocalPathPayload, +type: 'fs:setIncomingShareLocalPath'|}
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
 export type SetPathItemActionMenuDownloadKeyPayload = {|+payload: _SetPathItemActionMenuDownloadKeyPayload, +type: 'fs:setPathItemActionMenuDownloadKey'|}
@@ -369,6 +373,7 @@ export type Actions =
   | SentLinkToChatPayload
   | SetDestinationPickerParentPathPayload
   | SetDriverStatusPayload
+  | SetFolderViewFilterPayload
   | SetIncomingShareLocalPathPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload

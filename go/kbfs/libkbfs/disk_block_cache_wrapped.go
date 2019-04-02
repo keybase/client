@@ -48,7 +48,7 @@ type diskBlockCacheWrapped struct {
 var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
 
 func (cache *diskBlockCacheWrapped) enableCache(
-	typ diskLimitTrackerType, cacheFolder string) (err error) {
+	typ diskLimitTrackerType, cacheFolder string, mode InitMode) (err error) {
 	cache.mtx.Lock()
 	defer cache.mtx.Unlock()
 	var cachePtr **DiskBlockCacheLocal
@@ -65,7 +65,7 @@ func (cache *diskBlockCacheWrapped) enableCache(
 		// idempotent.
 		return nil
 	}
-	if cache.config.IsTestMode() {
+	if mode.IsTestMode() {
 		*cachePtr, err = newDiskBlockCacheLocalForTest(
 			cache.config, typ)
 	} else {
@@ -76,19 +76,20 @@ func (cache *diskBlockCacheWrapped) enableCache(
 	return err
 }
 
-func newDiskBlockCacheWrapped(config diskBlockCacheConfig,
-	storageRoot string) (cache *diskBlockCacheWrapped, err error) {
+func newDiskBlockCacheWrapped(
+	config diskBlockCacheConfig, storageRoot string, mode InitMode) (
+	cache *diskBlockCacheWrapped, err error) {
 	cache = &diskBlockCacheWrapped{
 		config:      config,
 		storageRoot: storageRoot,
 	}
-	err = cache.enableCache(workingSetCacheLimitTrackerType,
-		workingSetCacheFolderName)
+	err = cache.enableCache(
+		workingSetCacheLimitTrackerType, workingSetCacheFolderName, mode)
 	if err != nil {
 		return nil, err
 	}
-	syncCacheErr := cache.enableCache(syncCacheLimitTrackerType,
-		syncCacheFolderName)
+	syncCacheErr := cache.enableCache(
+		syncCacheLimitTrackerType, syncCacheFolderName, mode)
 	if syncCacheErr != nil {
 		log := config.MakeLogger("DBC")
 		log.Warning("Could not initialize sync block cache.")
