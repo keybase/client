@@ -5,18 +5,18 @@ import {storyDecorator} from '../common-stories'
 import EnterUsername from '.'
 
 const props = {
-  leftActionText: 'Back',
   onBack: Sb.action('onBack'),
   onChangeUsername: Sb.action('onChangeUsername'),
   onContinue: Sb.action('onContinue'),
   onLogin: Sb.action('onLogin'),
-  title: 'Create account',
+  usernameTaken: null,
 }
 
 const load = () => {
   Sb.storiesOf('New signup', module)
     .addDecorator(storyDecorator)
     .add('Enter username', () => <EnterUsername {...props} />)
+    .add('Enter username - taken', () => <EnterUsername {...props} usernameTaken="chris" />)
 }
 
 export default load
