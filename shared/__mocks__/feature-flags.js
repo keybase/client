@@ -12,7 +12,7 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   dbCleanEnabled: false,
   enableDeleteFolder: false,
-  folderViewFilter: false,
+  folderViewFilter: true,
   foldersInProfileTab: true,
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,
