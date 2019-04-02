@@ -85,10 +85,10 @@ Invoke the scripts to build the executables: `build_prerelease.cmd`, and `buildu
 Invoke `doinstaller_wix.cmd debug`
 
 ## Production CMD Scripts
-`build_prerelease.cmd` builds most of the client executables
-`buildui.cmd` builds the ui
-`doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
-`dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
+- `build_prerelease.cmd` builds most of the client executables
+- `buildui.cmd` builds the ui
+- `doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
+- `dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
 
 # Upgrading Dokan
 Download `DokanSetup_redist.exe` from https://github.com/dokan-dev/dokany/releases
