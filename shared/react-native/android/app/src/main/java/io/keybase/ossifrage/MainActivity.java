@@ -94,18 +94,6 @@ public class MainActivity extends ReactFragmentActivity {
                 mainWindow.setBackgroundDrawableResource(R.color.white);
             }
         }, 300);
-
-        // Wait for the reactContext, then send the intent.
-        ReactInstanceManager mReactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
-        mReactInstanceManager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
-            public void onReactContextInitialized(ReactContext reactContext) {
-                reactContext.getNativeModule(IntentHandler.class).handleIntent(getIntent());
-            }
-        });
-        if (!mReactInstanceManager.hasStartedCreatingInitialContext()) {
-            // Construct it in the background
-            mReactInstanceManager.createReactContextInBackground();
-        }
     }
 
     @Override
