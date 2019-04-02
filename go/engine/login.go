@@ -69,6 +69,7 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 		&LoginProvisionedDevice{},
 		&loginLoadUser{},
 		&loginProvision{},
+		&LoginCheckAutoresetEngine{},
 	}
 }
 
@@ -124,6 +125,10 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 			m = m.CommitProvisionalLogin()
 		}
 	}()
+
+	if _, err := e.checkAutoreset(m); err != nil {
+		return err
+	}
 
 	m.Debug("loading login user for %q", e.username)
 	ueng := newLoginLoadUser(m.G(), e.username)
@@ -243,6 +248,15 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 	}
 
 	m.Debug("loginProvisionedDevice error: %s (not fatal, can continue to provision this device)", err)
+
+	return false, nil
+}
+
+func (e *Login) checkAutoreset(m libkb.MetaContext) (bool, error) {
+	eng := NewLoginCheckAutoresetEngine(m.G())
+	if err := eng.Run(m); err != nil {
+		return false, err
+	}
 
 	return false, nil
 }

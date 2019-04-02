@@ -244,6 +244,11 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	if !success {
 		return libkb.NewLoginRequiredError("login failed after passphrase verified")
 	}
+
+	if _, err = e.checkAutoreset(m); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -261,4 +266,13 @@ func (e *LoginProvisionedDevice) connectivityWarning(m libkb.MetaContext) {
 			m.Debug("after CheckReachability(), IsConnected() => %v (connected? %v)", connected, connected == libkb.ConnectivityMonitorYes)
 		}
 	}
+}
+
+func (e *LoginProvisionedDevice) checkAutoreset(m libkb.MetaContext) (bool, error) {
+	eng := NewLoginCheckAutoresetEngine(m.G())
+	if err := eng.Run(m); err != nil {
+		return false, err
+	}
+
+	return false, nil
 }
