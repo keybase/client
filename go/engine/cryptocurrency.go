@@ -74,9 +74,12 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 	var typ libkb.CryptocurrencyType
 	e.arg.Address = normalizeAddress(e.arg.Address)
 	typ, _, err = libkb.CryptocurrencyParseAndCheck(e.arg.Address)
-
 	if err != nil {
 		return libkb.InvalidAddressError{Msg: err.Error()}
+	}
+	if e.arg.Address[0:3] == "bc1" && !m.G().FeatureFlags.Enabled(m, libkb.CreateBTCBech32) {
+		// delete this around June 2019
+		return libkb.InvalidAddressError{Msg: "cannot sign bech32 bitcoin addresses yet"}
 	}
 
 	family := typ.ToCryptocurrencyFamily()

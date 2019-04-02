@@ -34,7 +34,7 @@ const (
 
 // Wallet and cryptocurrency are separate systems.
 // Wallet links have reverse signatures, and the control secrets are in keybase.
-// Whereas Cryptocurrency links are generally are public only and have no reverse sigs.
+// Whereas Cryptocurrency links are generally public only and have no reverse sigs.
 // CryptocurrencyFamily and WalletNetwork are defined next to each other so that
 // someone will notice if they start to overlap.
 type WalletNetwork string
@@ -177,7 +177,7 @@ func BtcAddrCheck(s string, _ *BtcOpts) (version int, pkhash []byte, err error) 
 		return version, pkhash, err
 	}
 	if typ != CryptocurrencyTypeBTC && typ != CryptocurrencyTypeBTCMultiSig && typ != CryptocurrencyTypeBTCSegwit {
-		return int(CryptocurrencyTypeNone), nil, errors.New("only support BTC vanila and multisig")
+		return int(CryptocurrencyTypeNone), nil, errors.New("unrecognizable btc address")
 	}
 	return int(typ), pkhash, nil
 }
