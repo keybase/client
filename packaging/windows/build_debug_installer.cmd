@@ -8,9 +8,18 @@ set KEYBASE_WINBUILD=0
 
 cd %GOPATH%\src\github.com\keybase\client\packaging\windows
 call .\build_prerelease.cmd
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 cd %GOPATH%\src\github.com\keybase\client\packaging\windows
 call .\buildui.cmd
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 cd %GOPATH%\src\github.com\keybase\client\packaging\windows
 call .\doinstaller_wix.cmd debug
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 cd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
