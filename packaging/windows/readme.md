@@ -6,11 +6,6 @@
 - [go for windows](https://golang.org/dl)
 - Environment: `set GOPATH=C:\work`
 
-[git for windows](https://git-scm.com/downloads)
-- Select "Use Git and optional Unix tools from the Command Prompt" (so scripts with `rm` will work)
-- Checkout as-is, conmmit Unix style line endings
-- Use Windows' default console window (especially on Windows 10)
-
 ### Git
 
 - [git for windows](https://git-scm.com/downloads)
@@ -72,38 +67,40 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 
 ## Building Installers
 
-[Visual Studio 2015 Professional](https://visualstudio.microsoft.com/vs/older-downloads/)
+- [Visual Studio 2015 Professional](https://visualstudio.microsoft.com/vs/older-downloads/)
 (may require live.com account)
 
-Environment:
-`call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"`
-
-[.net 3.5.1](https://www.microsoft.com/en-us/download/details.aspx?id=22)
-
-[WIX tools 3.11.1](http://wixtoolset.org/releases/)
-
-Codesigning: see /keybase/team/keybase.builds.windows/readme.html
+- Environment:
+  - `call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"`
+  - [.net 3.5.1](https://www.microsoft.com/en-us/download/details.aspx?id=22)
+  - [WIX tools 3.11.1](http://wixtoolset.org/releases/)
+  - Codesigning: see /keybase/team/keybase.builds.windows/readme.html
 
 ## Building a debug installer without codesigning
+
 Environment:
   `set KEYBASE_WINBUILD=0`
 
-Invoke the scripts to build the executables: `build_prerelease.cmd`, `buildrq.cmd` and `buildui.cmd`
+Invoke the scripts to build the executables: `build_prerelease.cmd`, and `buildui.cmd`
 
 Update prompter executable:
-`cd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter`
-`msbuild WpfPrompter.sln /p:Configuration=Debug /t:Build`
+```
+cd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
+msbuild WpfPrompter.sln /p:Configuration=Debug /t:Build
+```
 
 Installer:
-`cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers`
-`msbuild WIX_Installers.sln /p:Configuration=Debug /p:Platform=x64 /t:Build`
+```
+cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
+msbuild WIX_Installers.sln /p:Configuration=Debug /p:Platform=x64 /t:Build
+```
 
 ## Production CMD Scripts
-`build_prerelease.cmd` builds most of the client executables
-`buildui.bat` builds the ui
-`buildrq.cmd` builds runquiet utility
-`doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
-`dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
+
+- `build_prerelease.cmd` builds most of the client executables
+- `buildui.bat` builds the ui
+- `doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
+- `dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
 
 # Upgrading Dokan
 Download `DokanSetup_redist.exe` from https://github.com/dokan-dev/dokany/releases
