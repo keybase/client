@@ -10,6 +10,7 @@ import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} 
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
+import {isMobile} from '../constants/platform'
 import * as Tabs from '../constants/tabs'
 
 // We have normal routes, modal routes, and logged out routes
@@ -24,7 +25,7 @@ export type Route = {
 export const routes: {[key: string]: Route} = {}
 
 const _newRoutes = [
-  {route: deviceNewRoutes, tab: Tabs.devicesTab},
+  {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab},
   {route: chatNewRoutes, tab: Tabs.chatTab},
   {route: peopleNewRoutes, tab: Tabs.peopleTab},
   {route: profileNewRoutes, tab: Tabs.peopleTab},

@@ -6,6 +6,7 @@ import DevicePage from '.'
 import {namedConnect, getRouteProps} from '../../util/container'
 import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = {||}
 
@@ -24,7 +25,7 @@ const mapStateToProps = (state, p: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _showRevokeDevicePage: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createShowRevokePage({deviceID})),
   onBack: () => {
-    if (!flags.useNewRouter) {
+    if (!flags.useNewRouter || isMobile) {
       dispatch(RouteTreeGen.createNavigateUp())
     }
   },
