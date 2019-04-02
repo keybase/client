@@ -85,6 +85,8 @@ type SignupScreenProps = {|
   // Mobile only
   rightActionLabel?: string,
   onRightAction?: ?() => void,
+  leftAction?: 'back' | 'cancel',
+  leftActionText?: string,
 |}
 
 // Screens with header + body bg color (i.e. all but join-or-login)
@@ -106,6 +108,10 @@ const _SignupScreen = (props: SignupScreenProps) => (
   </Kb.Box2>
 )
 export const SignupScreen = Styles.isMobile ? Kb.HeaderHoc(_SignupScreen) : _SignupScreen
+SignupScreen.defaultProps = {
+  leftAction: 'cancel',
+  leftActionText: 'Back',
+}
 
 const styles = Styles.styleSheetCreate({
   backButton: {
