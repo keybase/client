@@ -25,10 +25,14 @@ public class KBPushNotifier implements PushNotifier {
 
     public void localNotification(String ident, String msg, long badgeCount, String soundName, String convID,
             String typ) {
+        // We need to specify these parameters so that the data returned
+        // from the launching intent is processed correctly.
+        // https://github.com/keybase/client/blob/95959e12d76612f455ab4a90835debff489eacf4/shared/actions/platform-specific/push.native.js#L363-L381
         Bundle bundle = (Bundle)this.bundle.clone();
         bundle.putBoolean("userInteraction", true);
         bundle.putString("type", "chat.newmessage");
         bundle.putString("convID", convID);
+
         Intent open_activity_intent = new Intent(context, MainActivity.class);
         open_activity_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         open_activity_intent.setPackage(context.getPackageName());
