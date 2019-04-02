@@ -109,11 +109,13 @@ class GitReloadable extends React.PureComponent<
   }
 }
 
-// $FlowIssue lets fix this
-GitReloadable.navigationOptions = {
-  header: undefined,
-  headerTitle: 'Git',
-  title: 'Git',
+if (!isMobile) {
+  // $FlowIssue lets fix this
+  GitReloadable.navigationOptions = {
+    header: undefined,
+    headerTitle: 'Git',
+    title: 'Git',
+  }
 }
 
 export default compose(
