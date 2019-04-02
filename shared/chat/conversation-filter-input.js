@@ -103,7 +103,11 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           direction="horizontal"
           fullWidth={true}
           gap={Styles.isMobile ? 'xsmall' : 'tiny'}
-          style={Styles.collapseStyles([styles.containerFiltering, this.props.style])}
+          style={Styles.collapseStyles([
+            styles.containerFiltering,
+            flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
+            this.props.style,
+          ])}
         >
           <Kb.Icon
             type="iconfont-search"
@@ -142,6 +146,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           style={Styles.collapseStyles([
             styles.containerNotFiltering,
             flags.useNewRouter && Styles.isMobile && styles.containerWithBackButton,
+            flags.useNewRouter && !Styles.isMobile && styles.whiteBg,
             this.props.style,
           ])}
           gapStart={true}
@@ -212,13 +217,15 @@ const styles = Styles.styleSheetCreate({
   }),
   containerNotFiltering: Styles.platformStyles({
     common: {
-      height: 48,
+      height: flags.useNewRouter ? undefined : 48,
       position: 'relative',
     },
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xtiny),
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
+    isElectron: !flags.useNewRouter
+      ? undefined
+      : {
+          ...Styles.padding(0, Styles.globalMargins.xtiny),
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.tiny),
       backgroundColor: Styles.globalColors.fastBlank,
@@ -277,6 +284,9 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_35,
     position: 'relative',
     top: 1,
+  },
+  whiteBg: {
+    backgroundColor: Styles.globalColors.white,
   },
 })
 
