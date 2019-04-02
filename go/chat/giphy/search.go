@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context/ctxhttp"
-	"golang.org/x/net/http2"
 )
 
 const apiKey = "ZsqoY64vpeo53oZH5ShgywcjLu1W8rIe"
@@ -65,7 +64,6 @@ func httpClient(host string) *http.Client {
 		ServerName: host,
 	}
 	xprt.TLSClientConfig = tlsConfig
-	http2.ConfigureTransport(&xprt)
 	return &http.Client{
 		Transport: &xprt,
 		Timeout:   10 * time.Second,
