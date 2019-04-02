@@ -252,6 +252,9 @@ const styles = Styles.styleSheetCreate({
   },
   input: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.medium},
+    isElectron: {
+      marginTop: -1,
+    },
     isMobile: {
       top: 3,
     },

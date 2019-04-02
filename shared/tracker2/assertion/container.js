@@ -6,6 +6,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsType from '../../constants/types/wallets'
 import * as Constants from '../../constants/tracker2'
+import * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
 
@@ -46,12 +47,12 @@ const mapDispatchToProps = dispatch => ({
   _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type})),
   _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
-  _onRevokeProof: (type: string, value: string, id: string) =>
+  _onRevokeProof: (type: string, value: string, id: string, icon: Types.SiteIconSet) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {platform: type, platformHandle: value, proofId: id},
+            props: {icon, platform: type, platformHandle: value, proofId: id},
             selected: 'profileRevoke',
           },
         ],
@@ -75,7 +76,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
   onRequestLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
-  onRevoke: () => dispatchProps._onRevokeProof(stateProps.type, stateProps.value, stateProps._sigID),
+  onRevoke: () =>
+    dispatchProps._onRevokeProof(
+      stateProps.type,
+      stateProps.value,
+      stateProps._sigID,
+      stateProps.siteIconFull
+    ),
   onSendLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
   onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),

@@ -37,6 +37,17 @@ const profileRoute = () => {
     component: ProveEnterUsername,
   })
 
+  const profileGenericEnterUsername = {
+    children: {
+      profileGenericProofSuccess: {
+        component: GenericProofSuccess,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
+    },
+    component: GenericEnterUsername,
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+  }
+
   return makeRouteDefNode({
     children: {
       addToTeam: {
@@ -59,6 +70,7 @@ const profileRoute = () => {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
+      profileGenericEnterUsername,
       profileNonUser: {
         children: {profile: profileRoute},
         component: NonUserProfile,
@@ -66,16 +78,7 @@ const profileRoute = () => {
       profilePgp: pgpRoutes,
       profileProofsList: {
         children: {
-          profileGenericEnterUsername: {
-            children: {
-              profileGenericProofSuccess: {
-                component: GenericProofSuccess,
-                tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-              },
-            },
-            component: GenericEnterUsername,
-            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-          },
+          profileGenericEnterUsername,
         },
         component: ProofsList,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
