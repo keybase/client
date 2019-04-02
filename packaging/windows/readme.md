@@ -1,13 +1,17 @@
 # Windows Build Setup
-## Building Client Executables
-[go for windows](https://golang.org/dl)
 
-Environment: `set GOPATH=C:\work`
+## Install Prereqs
 
-[git for windows](https://git-scm.com/downloads)
-- Select "Use Git and optional Unix tools from the Command Prompt" (so scripts with `rm` will work)
-- Checkout as-is, conmmit Unix style line endings
-- Use Windows' default console window (especially on Windows 10)
+### Go
+- [go for windows](https://golang.org/dl)
+- Environment: `set GOPATH=C:\work`
+
+### Git
+
+- [git for windows](https://git-scm.com/downloads)
+  - Select "Use Git and optional Unix tools from the Command Prompt" (so scripts with `rm` will work)
+  - Checkout as-is, conmmit Unix style line endings
+  - Use Windows' default console window (especially on Windows 10)
 
 - Open a command console and make a directory for cloning the repo, e.g.:
 ```
@@ -15,21 +19,41 @@ git clone https://github.com/keybase/client.git c:\work\src\github.com\keybase\c
 git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keybase\go-updater
 ```
 
+### Build Service, Etc
+
 - set GOPATH, e.g. `set GOPATH=c:\work`
 - `cd %GOPATH%\src\github.com\keybase\client\go\keybase`
 - `go build`
 
-[Chocolatey](https://chocolatey.org/install) (helpful for yarn)
-then: `choco install yarn`
+### Electron
 
-[node version manager](https://github.com/coreybutler/nvm-windows)
-`nvm install latest`
-`nvm use [version]`
+#### Node
 
-[GCC via Mingw-64](https://sourceforge.net/projects/mingw-w64/) (for building kbfsdokan)
-- Be sure and choose architecture x86-64, NOT i686
-- Also recommend not installing in `program files`
-  - Try `C:\mingw-w64\.... instead`
+- Easiest way is via [nodjs binary download](https://nodejs.org/en/download/)
+- Alternative way:
+  - [node version manager](https://github.com/coreybutler/nvm-windows):
+
+```
+> nvm install latest
+> nvm use [version]
+```
+
+#### Yarn
+
+`npm` should be in your path from the previous step. Then:
+
+```
+> npm i -g yarn
+```
+
+###  Mingpw
+
+- [GCC via Mingw-64](https://sourceforge.net/projects/mingw-w64/) (for building kbfsdokan)
+  - Be sure and choose architecture x86-64, NOT i686
+  - Also recommend not installing in `program files`
+    - Try `C:\mingw-w64\.... instead`
+
+## Building
 
 Environment:
 ```
@@ -75,3 +99,6 @@ Optional: change the minimum version KBFS will work with: https://github.com/key
 - available [here](https://dev.windows.com/en-us/microsoft-edge/tools/vms/windows/)
 - full isos [here](https://www.microsoft.com/en-gb/software-download/windows10ISO), which might need product keys
 
+#  Might be Useful...
+- [Chocolatey](https://chocolatey.org/install) (helpful for yarn)
+  - then: `choco install yarn`
