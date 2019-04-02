@@ -28,6 +28,7 @@ const (
 	metered                         = true
 	unmetered                       = false
 	compactionTimeout               = 5 * time.Second
+	skip                            = false
 )
 
 var (
@@ -43,7 +44,7 @@ var leveldbOptions = &opt.Options{
 	// X, and >=1024 on (most?) Linux machines. So set to a low
 	// number since we have multiple leveldb instances.
 	OpenFilesCacheCapacity: 10,
-	CompactionTotalSize:    15 * opt.MiB,
+	CompactionTotalSize:    20 * opt.MiB,
 	CompactionL0Trigger:    6,
 }
 
@@ -63,6 +64,9 @@ type LevelDb struct {
 // resets the compaction timer. When the compaction timer hits 0,
 // the DB considers compaction more strongly.
 func (ldb *LevelDb) resetTimer() {
+	if skip {
+		return
+	}
 	ldb.compactionLock.Lock()
 	defer ldb.compactionLock.Unlock()
 	ldb.compactionTime = time.Now().Add(compactionTimeout)
@@ -73,6 +77,9 @@ func (ldb *LevelDb) resetTimer() {
 }
 
 func (ldb *LevelDb) tryTriggerCompaction() {
+	if skip {
+		return
+	}
 	ldb.compactionLock.Lock()
 	defer ldb.compactionLock.Unlock()
 	// If we're not supposed to be compacting yet, return early
@@ -161,6 +168,7 @@ func (ldb *LevelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
 			err = errors.WithStack(err)
 		}
 	}()
+	ldb.resetTimer()
 	return ldb.DB.Put(key, value, wo)
 }
 
