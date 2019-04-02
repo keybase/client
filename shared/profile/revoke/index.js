@@ -32,11 +32,10 @@ const Revoke = (props: Props) => {
         </Kb.Box>
       )}
       <Kb.Box style={styleContentContainer}>
-        <Kb.PlatformIcon
-          platform={props.platform}
-          overlay={'icon-proof-broken'}
-          overlayColor={Styles.globalColors.red}
-        />
+        <Kb.Box style={stylePositionRelative}>
+          <SiteIcon set={props.icon} full={true} style={styleSiteIcon} />
+          <Kb.Icon type="icon-proof-broken" style={styleRevokeIcon} />
+        </Kb.Box>
         <Kb.Text center={!Styles.isMobile} style={stylePlatformUsername} type="Header">
           {props.platformHandle}
         </Kb.Text>
@@ -110,6 +109,9 @@ const stylePlatformSubtitle = {
 }
 const styleDescriptionText = {marginTop: Styles.globalMargins.medium}
 const styleReminderText = {marginTop: Styles.globalMargins.tiny}
+const stylePositionRelative = {position: 'relative'}
+const styleRevokeIcon = {bottom: -8, position: 'absolute', right: -10}
+const styleSiteIcon = Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48}
 
 function formatMessage(platform: PlatformsExpandedType) {
   if (platform === 'pgp') {
