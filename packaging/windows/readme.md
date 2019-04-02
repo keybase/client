@@ -82,23 +82,11 @@ Environment:
   `set KEYBASE_WINBUILD=0`
 
 Invoke the scripts to build the executables: `build_prerelease.cmd`, and `buildui.cmd`
-
-Update prompter executable:
-```
-cd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
-msbuild WpfPrompter.sln /p:Configuration=Debug /t:Build
-```
-
-Installer:
-```
-cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
-msbuild WIX_Installers.sln /p:Configuration=Debug /p:Platform=x64 /t:Build
-```
+Invoke `doinstaller_wix.cmd debug`
 
 ## Production CMD Scripts
-
 - `build_prerelease.cmd` builds most of the client executables
-- `buildui.bat` builds the ui
+- `buildui.cmd` builds the ui
 - `doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
 - `dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
 
