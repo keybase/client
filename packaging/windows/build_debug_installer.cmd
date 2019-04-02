@@ -7,9 +7,10 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 set KEYBASE_WINBUILD=0
 
 cd %GOPATH%\src\github.com\keybase\client\packaging\windows
-.\build_prerelease.cmd
+call .\build_prerelease.cmd
 cd %GOPATH%\src\github.com\keybase\client\packaging\windows
-.\buildui.cmd
+call .\buildui.cmd
 cd %GOPATH%\src\github.com\keybase\client\packaging\windows
-.\doinstaller_wix.cmd debug
+call .\doinstaller_wix.cmd debug
+cd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
