@@ -80,10 +80,17 @@ const revoke = (state, action) => {
   }
 }
 
-const navigateAfterRevoked = (state, action) =>
-  RouteTreeGen.createNavigateTo({
+const navigateAfterRevoked = (state, action) => {
+  if (flags.useNewRouter && !action.payload.wasCurrentDevice) {
+    return RouteTreeGen.createNavUpToScreen({
+      routeName: Constants.devicesTabLocation[Constants.devicesTabLocation.length - 1],
+    })
+  }
+
+  return RouteTreeGen.createNavigateTo({
     path: action.payload.wasCurrentDevice ? [Tabs.loginTab] : [...Constants.devicesTabLocation],
   })
+}
 
 const showRevokePage = (_, {payload: {deviceID}}) =>
   RouteTreeGen.createNavigateTo({
