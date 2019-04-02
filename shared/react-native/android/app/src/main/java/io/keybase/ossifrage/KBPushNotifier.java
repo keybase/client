@@ -25,14 +25,15 @@ public class KBPushNotifier implements PushNotifier {
 
     public void localNotification(String ident, String msg, long badgeCount, String soundName, String convID,
             String typ) {
+        Bundle bundle = (Bundle)this.bundle.clone();
+        bundle.putBoolean("userInteraction", true);
+        bundle.putString("type", "chat.newmessage");
+        bundle.putString("convID", convID);
         Intent open_activity_intent = new Intent(context, MainActivity.class);
         open_activity_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        open_activity_intent.putExtra("isNotification", true);
-        open_activity_intent.putExtra("convID", convID);
         open_activity_intent.setPackage(context.getPackageName());
+        open_activity_intent.putExtra("notification", bundle);
 
-        this.bundle.putBoolean("userInteraction", true);
-        open_activity_intent.putExtra("notification", this.bundle);
         PendingIntent pending_intent = PendingIntent.getActivity(this.context, 0, open_activity_intent,
             PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder mBuilder =
