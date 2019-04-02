@@ -1,8 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, HeaderOnMobile, Icon, MaybePopup, ProgressIndicator} from '../../common-adapters'
-import ConfirmModal from '../../common-adapters/confirm-modal'
+import {
+  Avatar,
+  Box,
+  ConfirmModal,
+  HeaderOnMobile,
+  Icon,
+  MaybePopup,
+  ProgressIndicator,
+} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {

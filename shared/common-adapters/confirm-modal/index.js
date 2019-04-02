@@ -1,6 +1,11 @@
 // @flow
 import * as React from 'react'
-import {Box, Box2, ButtonBar, HeaderOrPopup, Icon, Text, WaitingButton} from '..'
+import WaitingButton from '../waiting-button'
+import {Box, Box2} from '../box'
+import HeaderOrPopup from '../header-or-popup'
+import ButtonBar from '../button-bar'
+import Icon from '../icon'
+import Text from '../text'
 import * as Styles from '../../styles'
 import type {IconType} from '../icon.constants'
 
@@ -56,18 +61,18 @@ class _ConfirmModal extends React.Component<Props> {
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Styles.isMobile && (
               <WaitingButton
-                fullWidth={true}
                 type="Secondary"
                 label="Cancel"
                 onClick={this.props.onCancel}
+                style={styles.button}
                 waitingKey={this.props.waitingKey}
               />
             )}
             <WaitingButton
-              fullWidth={true}
               type="Danger"
               label={this.props.confirmText || 'Confirm'}
               onClick={this.props.onConfirm}
+              style={styles.button}
               waitingKey={this.props.waitingKey}
             />
           </ButtonBar>
@@ -79,6 +84,9 @@ class _ConfirmModal extends React.Component<Props> {
 const ConfirmModal = HeaderOrPopup(_ConfirmModal)
 
 const styles = Styles.styleSheetCreate({
+  button: {
+    flex: 1,
+  },
   buttonBar: Styles.platformStyles({
     isElectron: {
       minHeight: 40,
