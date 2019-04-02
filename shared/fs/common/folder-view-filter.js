@@ -134,7 +134,11 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   _onUpdate: (newFilter: string) => dispatch(FsGen.createSetFolderViewFilter({filter: newFilter})),
 })
 
-const mergeProps = (s, d, o) => ({...o, ...s, onUpdate: debounce(d._onUpdate, 250)})
+const mergeProps = (s, d, o) => ({
+  onUpdate: debounce(d._onUpdate, 250),
+  path: o.path,
+  style: o.style,
+})
 
 export default (Platforms.isMobile
   ? () => null
