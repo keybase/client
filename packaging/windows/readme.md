@@ -54,6 +54,9 @@ git clone https://github.com/keybase/go-updater.git c:\work\src\github.com\keyba
     - Try `C:\mingw-w64\.... instead`
 
 ## Building
+[GCC via Mingw-64](https://sourceforge.net/projects/mingw-w64/) (for building kbfsdokan)
+- Be sure and choose architecture x86-64, NOT i686
+- Also recommend not installing in `program files`, e.g. `C:\mingw-w64\...` instead of `C:\Program Files (x86)\mingw-w64\...`
 
 Environment:
 ```
@@ -64,27 +67,40 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 
 ## Building Installers
 
-[Visual Studio 2015 Professional](https://visualstudio.microsoft.com/vs/older-downloads/)
+- [Visual Studio 2015 Professional](https://visualstudio.microsoft.com/vs/older-downloads/)
 (may require live.com account)
 
+- Environment:
+  - `call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"`
+  - [.net 3.5.1](https://www.microsoft.com/en-us/download/details.aspx?id=22)
+  - [WIX tools 3.11.1](http://wixtoolset.org/releases/)
+  - Codesigning: see /keybase/team/keybase.builds.windows/readme.html
+
+## Building a debug installer without codesigning
+
 Environment:
-`call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"`
+  `set KEYBASE_WINBUILD=0`
 
-[.net 3.5.1](https://www.microsoft.com/en-us/download/details.aspx?id=22)
+Invoke the scripts to build the executables: `build_prerelease.cmd`, and `buildui.cmd`
 
-[WIX tools 3.11.1](http://wixtoolset.org/releases/)
+Update prompter executable:
+```
+cd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
+msbuild WpfPrompter.sln /p:Configuration=Debug /t:Build
+```
 
-Codesigning: see /keybase/team/keybase.builds.windows/readme.html
+Installer:
+```
+cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
+msbuild WIX_Installers.sln /p:Configuration=Debug /p:Platform=x64 /t:Build
+```
 
-## CMD Scripts
-`build_prerelease.cmd` builds most of the client executables
-`buildui.bat` builds the ui
-`buildrq.cmd` builds runquiet utility
-   - if you want this without code signing, try:
-      - from `go\tools\runquiet`:
-        `go build -ldflags "-H windowsgui" -o keybaserq.exe`
-`doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer
-`dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
+## Production CMD Scripts
+
+- `build_prerelease.cmd` builds most of the client executables
+- `buildui.bat` builds the ui
+- `doinstaller_wix.cmd` does codesigning on all the executabls and builds the installer (requires signing certificate)
+- `dorelease.cmd` calls the above scripts and copies to s3. Invoked by the build bot.
 
 # Upgrading Dokan
 Download `DokanSetup_redist.exe` from https://github.com/dokan-dev/dokany/releases
@@ -102,3 +118,28 @@ Optional: change the minimum version KBFS will work with: https://github.com/key
 #  Might be Useful...
 - [Chocolatey](https://chocolatey.org/install) (helpful for yarn)
   - then: `choco install yarn`
+
+# Installed Product Layout and Functionality
+The installer places/updates all the files and adds:
+- startup shortcut for
+- start menu shortcut
+- background tile color
+
+The service is invoked by the GUI with this command:
+`[INSTALLFOLDER]\keybaserq.exe keybase.exe --log-format=file --log-prefix="[INSTALLFOLDER]watchdog." ctl watchdog2`
+This starts a copy of keybase.exe in watchdog mode, which in turn runs the service and kbfs processes, restarting them if they die or are killed.
+If the service is closed with `keybase ctl stop`, which the GUI does when the widtget menu is used, the watchdog will see a different exit code and not restart the processes.
+
+`keybaserq.exe` has 2 main jobs: de-elevating permissions to run as current user, and running Keybase invisibly, without the CMD window appearing, since it is a console program.
+
+Notable executables
+`DokanSetup_redist.exe` - Dokan driver package, invoked from files tab in GUI
+`git-remote-keybase.exe` - GIT helper
+`kbfsdokan.exe` - kbfs
+`kbnm.exe` - browser extension
+`keybase.exe` - service
+`keybase.rq.exe` - quiet launcher and de-elevator
+`prompter.exe` - updater GUI
+`upd.exe` - updater
+`Gui\Keybase.exe` - GUI
+
