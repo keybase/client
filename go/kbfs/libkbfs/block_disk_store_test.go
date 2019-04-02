@@ -47,7 +47,9 @@ func putBlockDisk(
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 
-	didPut, err := s.put(ctx, true, bID, bCtx, data, serverHalf, "tag")
+	didPut, err := s.put(ctx, true, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+	err = s.addReference(ctx, bID, bCtx, "tag")
 	require.NoError(t, err)
 	require.True(t, didPut)
 
