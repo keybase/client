@@ -25,29 +25,29 @@ const Revoke = (props: Props) => {
   return (
     <Modal onCancel={props.onCancel} skipButton={true}>
       {!!props.errorMessage && (
-        <Kb.Box style={styleErrorBanner}>
-          <Kb.Text center={!Styles.isMobile} style={styleErrorBannerText} type="BodySemibold">
+        <Kb.Box style={styles.errorBanner}>
+          <Kb.Text center={!Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
             {props.errorMessage}
           </Kb.Text>
         </Kb.Box>
       )}
-      <Kb.Box style={styleContentContainer}>
-        <Kb.Box style={stylePositionRelative}>
-          <SiteIcon set={props.icon} full={true} style={styleSiteIcon} />
-          <Kb.Icon type="icon-proof-broken" style={styleRevokeIcon} />
+      <Kb.Box style={styles.contentContainer}>
+        <Kb.Box style={styles.positionRelative}>
+          <SiteIcon set={props.icon} full={true} style={styles.siteIcon} />
+          <Kb.Icon type="icon-proof-broken" style={styles.revokeIcon} />
         </Kb.Box>
-        <Kb.Text center={!Styles.isMobile} style={stylePlatformUsername} type="Header">
+        <Kb.Text center={!Styles.isMobile} style={styles.platformUsername} type="Header">
           {props.platformHandle}
         </Kb.Text>
         {!!platformHandleSubtitle && (
-          <Kb.Text style={stylePlatformSubtitle} type="Body">
+          <Kb.Text style={styles.platformSubtitle} type="Body">
             {platformHandleSubtitle}
           </Kb.Text>
         )}
-        <Kb.Text center={!Styles.isMobile} style={styleDescriptionText} type="Header">
+        <Kb.Text center={!Styles.isMobile} style={styles.descriptionText} type="Header">
           {formatMessage(props.platform)}
         </Kb.Text>
-        <Kb.Text center={!Styles.isMobile} style={styleReminderText} type="Body">
+        <Kb.Text center={!Styles.isMobile} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
         <Kb.ButtonBar>
@@ -69,49 +69,48 @@ const Revoke = (props: Props) => {
   )
 }
 
-const styleErrorBanner = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.red,
-  justifyContent: 'center',
-  minHeight: Styles.globalMargins.large,
-  padding: Styles.globalMargins.tiny,
-  width: '100%',
-}
-
-const styleErrorBannerText = {
-  color: Styles.globalColors.white,
-  maxWidth: 512,
-}
-
-const styleContentContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flexGrow: 1,
-  justifyContent: 'center',
-  margin: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
-  maxWidth: 512,
-  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
-}
-
-const stylePlatformUsername = Styles.platformStyles({
-  common: {
-    color: Styles.globalColors.red,
-    textDecorationLine: 'line-through',
+const styles = Styles.styleSheetCreate({
+  contentContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    margin: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
+    maxWidth: 512,
+    ...(Styles.isMobile ? {} : {textAlign: 'center'}),
   },
-  isElectron: {
-    maxWidth: 400,
-    overflowWrap: 'break-word',
+  descriptionText: {marginTop: Styles.globalMargins.medium},
+  errorBanner: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.red,
+    justifyContent: 'center',
+    minHeight: Styles.globalMargins.large,
+    padding: Styles.globalMargins.tiny,
+    width: '100%',
   },
+  errorBannerText: {
+    color: Styles.globalColors.white,
+    maxWidth: 512,
+  },
+  platformSubtitle: {
+    color: Styles.globalColors.black_20,
+  },
+  platformUsername: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.red,
+      textDecorationLine: 'line-through',
+    },
+    isElectron: {
+      maxWidth: 400,
+      overflowWrap: 'break-word',
+    },
+  }),
+  positionRelative: {position: 'relative'},
+  reminderText: {marginTop: Styles.globalMargins.tiny},
+  revokeIcon: {bottom: -8, position: 'absolute', right: -10},
+  siteIcon: Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
 })
-const stylePlatformSubtitle = {
-  color: Styles.globalColors.black_20,
-}
-const styleDescriptionText = {marginTop: Styles.globalMargins.medium}
-const styleReminderText = {marginTop: Styles.globalMargins.tiny}
-const stylePositionRelative = {position: 'relative'}
-const styleRevokeIcon = {bottom: -8, position: 'absolute', right: -10}
-const styleSiteIcon = Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48}
 
 function formatMessage(platform: PlatformsExpandedType) {
   if (platform === 'pgp') {
