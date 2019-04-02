@@ -6,7 +6,7 @@ import * as Types from '../constants/types/settings'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import SettingsContainer from './render'
 import {compose} from 'recompose'
-import {connect, lifecycle, isMobile} from '../util/container'
+import {connect, lifecycle} from '../util/container'
 import {type RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
@@ -52,13 +52,10 @@ const Connected = compose(
   })
 )(SettingsContainer)
 
-if (!isMobile) {
-  // $FlowIssue lets fix this
-  Connected.navigationOptions = {
-    header: undefined,
-    headerTitle: 'Settings',
-    title: 'Settings',
-  }
+// $FlowIssue lets fix this
+Connected.navigationOptions = {
+  header: undefined,
+  title: 'Settings',
 }
 
 export default Connected
