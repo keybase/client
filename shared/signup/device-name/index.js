@@ -24,7 +24,7 @@ const EnterDevicename = (props: Props) => (
       style={styles.flexOne}
     >
       <Kb.Icon type={Styles.isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
-      <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.NewInput
           autoFocus={true}
           containerStyle={styles.input}
@@ -32,7 +32,7 @@ const EnterDevicename = (props: Props) => (
           onChangeText={props.onChangeDevicename}
         />
         <Kb.Text type="BodySmall" style={styles.inputSub}>
-          Your device name will be public.
+          Your device name will be public and can not be changed in the future.
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
@@ -53,6 +53,12 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small),
       height: 48,
+    },
+  }),
+  inputBox: Styles.platformStyles({
+    isElectron: {
+      // need to set width so subtext will wrap
+      width: 368,
     },
   }),
   inputSub: {

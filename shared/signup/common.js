@@ -12,7 +12,7 @@ type InfoIconProps = {|
 
 const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   <>
-    <Kb.Icon type="iconfont-info" onClick={props.toggleShowingMenu} ref={props.setAttachmentRef} />
+    <Kb.Icon type="iconfont-question-mark" onClick={props.toggleShowingMenu} ref={props.setAttachmentRef} />
     <Kb.FloatingMenu
       items={[
         {onClick: props.onFeedback, title: 'Send feedback'},
@@ -47,7 +47,21 @@ export const Header = (props: HeaderProps) => (
       <InfoIcon />
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
-      {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
+      {props.onBack && (
+        <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+            <Kb.Icon
+              type="iconfont-arrow-left"
+              color={Styles.globalColors.black_50}
+              sizeType="Small"
+              style={styles.fixIconAlignment}
+            />
+            <Kb.Text type="Body" style={styles.backText}>
+              Back
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      )}
       <Kb.Text type="Header">{props.title}</Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
@@ -99,6 +113,9 @@ const styles = Styles.styleSheetCreate({
     left: Styles.globalMargins.small,
     position: 'absolute',
   },
+  backText: {
+    color: Styles.globalColors.black_50,
+  },
   banners: {
     left: 0,
     position: 'absolute',
@@ -133,6 +150,10 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
     },
   }),
+  fixIconAlignment: {
+    position: 'relative',
+    top: 2,
+  },
   infoIconContainer: {
     justifyContent: 'flex-end',
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
