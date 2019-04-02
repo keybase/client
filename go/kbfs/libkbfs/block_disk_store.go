@@ -567,6 +567,9 @@ func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, erro
 //
 // For performance reasons, this method can be called concurrently by
 // many goroutines for different blocks.
+//
+// Note that the block won't be get-able until `addReference`
+// explicitly adds a tag for it.
 func (s *blockDiskStore) put(
 	ctx context.Context, isRegularPut bool, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,

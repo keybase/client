@@ -288,7 +288,7 @@ type tlfJournal struct {
 	// block (in parallel with other blocks), then clear out the whole
 	// block journal before appending the block's entry to the block
 	// journal.  Should be taken before `journalLock`.
-	blockPutLock sync.RWMutex
+	blockPutFlushLock sync.RWMutex
 
 	// Protects all operations on blockJournal and mdJournal, and all
 	// the fields until the next blank line.
@@ -1400,8 +1400,8 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 			removedFiles)
 	}
 
-	j.blockPutLock.Lock()
-	defer j.blockPutLock.Unlock()
+	j.blockPutFlushLock.Lock()
+	defer j.blockPutFlushLock.Unlock()
 
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -2082,8 +2082,8 @@ func (j *tlfJournal) putBlockData(
 			filesPerBlockMax, putData, j.chargedTo)
 	}()
 
-	j.blockPutLock.RLock()
-	defer j.blockPutLock.RUnlock()
+	j.blockPutFlushLock.RLock()
+	defer j.blockPutFlushLock.RUnlock()
 
 	// Put the block data before taking the lock, so block puts can
 	// run in parallel.
