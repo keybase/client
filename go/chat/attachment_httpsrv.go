@@ -34,16 +34,18 @@ type AttachmentHTTPSrv struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	endpoint        string
-	pendingEndpoint string
-	unfurlEndpoint  string
-	giphyEndpoint   string
-	httpSrv         *kbhttp.Srv
-	urlMap          *lru.Cache
-	unfurlMap       *lru.Cache
-	giphyMap        *lru.Cache
-	fetcher         types.AttachmentFetcher
-	ri              func() chat1.RemoteInterface
+	endpoint             string
+	pendingEndpoint      string
+	unfurlEndpoint       string
+	giphyEndpoint        string
+	giphyGalleryEndpoint string
+	httpSrv              *kbhttp.Srv
+	urlMap               *lru.Cache
+	unfurlMap            *lru.Cache
+	giphyMap             *lru.Cache
+	giphyGalleryMap      *lru.Cache
+	fetcher              types.AttachmentFetcher
+	ri                   func() chat1.RemoteInterface
 }
 
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
@@ -61,18 +63,24 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	if err != nil {
 		panic(err)
 	}
+	ggm, err := lru.New(100)
+	if err != nil {
+		panic(err)
+	}
 	r := &AttachmentHTTPSrv{
-		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		endpoint:        "at",
-		pendingEndpoint: "pe",
-		unfurlEndpoint:  "uf",
-		giphyEndpoint:   "gf",
-		ri:              ri,
-		urlMap:          l,
-		unfurlMap:       um,
-		fetcher:         fetcher,
-		giphyMap:        gm,
+		Contextified:         globals.NewContextified(g),
+		DebugLabeler:         utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
+		endpoint:             "at",
+		pendingEndpoint:      "pe",
+		unfurlEndpoint:       "uf",
+		giphyEndpoint:        "gf",
+		giphyGalleryEndpoint: "gg",
+		ri:                   ri,
+		urlMap:               l,
+		unfurlMap:            um,
+		fetcher:              fetcher,
+		giphyMap:             gm,
+		giphyGalleryMap:      ggm,
 	}
 	r.initHTTPSrv()
 	r.startHTTPSrv()
@@ -137,6 +145,7 @@ func (r *AttachmentHTTPSrv) startHTTPSrv() {
 	r.httpSrv.HandleFunc("/"+r.pendingEndpoint, r.servePendingPreview)
 	r.httpSrv.HandleFunc("/"+r.unfurlEndpoint, r.serveUnfurlAsset)
 	r.httpSrv.HandleFunc("/"+r.giphyEndpoint, r.serveGiphyLink)
+	r.httpSrv.HandleFunc("/"+r.giphyGalleryEndpoint, r.serveGiphyGallery)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -216,6 +225,13 @@ func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) st
 	return url
 }
 
+func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, urls []string) string {
+	defer r.Trace(ctx, func() error { return nil }, "GetGiphyGalleryURL")()
+	url := r.getURL(ctx, "gg", r.giphyGalleryEndpoint, r.giphyGalleryMap, urls)
+	r.Debug(ctx, "GetGiphyGalleryURL: handler URL: %s", url)
+	return url
+}
+
 func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
 	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -269,20 +285,29 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Re
 	}
 }
 
-func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.Request, urlstr string) {
+func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.Request) {
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallery")()
+	key := req.URL.Query().Get("key")
+	urls, ok := r.giphyGalleryMap.Get(key)
+	if !ok {
+		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
+		return
+	}
 	var videoStr string
-	urls := strings.Split(urlstr, ",")
-	for _, u := range urls {
+	for _, u := range urls.([]string) {
 		videoStr += fmt.Sprintf(`
-			<video src="%s" playsinline webkit-playsinline autoplay />
+			<video src="%s" playsinline webkit-playsinline autoplay muted></video>
 		`, u)
 	}
-	res := fmt.Sprintf(`<html>
+	res := fmt.Sprintf(`
+	<html>
 		<head>
 			<title>Keybase Giphy Gallery</title>
 		</head>
 		<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-			<div display="flex" style="flex-direction: row">
+			<div style="display: flex; flex-direction: row; overflow: auto;">
 				%s
 			</div>
 		</body>
@@ -297,12 +322,6 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyLink")()
-	urls := req.URL.Query().Get("urls")
-	if len(urls) > 0 {
-		// check for gallery mode
-		r.serveGiphyGallery(w, req, urls)
-		return
-	}
 	key := req.URL.Query().Get("key")
 	val, ok := r.giphyMap.Get(key)
 	if !ok {

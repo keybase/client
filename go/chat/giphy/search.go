@@ -24,7 +24,8 @@ const MediaHost = "media.giphy.com"
 const Host = "giphy.com"
 const giphyProxy = "https://giphy-proxy.core.keybaseapi.com"
 
-func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult) {
+func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.AttachmentURLSrv) (res chat1.GiphySearchResults) {
+	var urls []string
 	for _, obj := range response.Data {
 		for typ, img := range obj.Images {
 			select {
@@ -46,15 +47,18 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 			if err != nil {
 				continue
 			}
-			res = append(res, chat1.GiphySearchResult{
+			url := srv.GetGiphyURL(mctx.Ctx(), img.MP4)
+			res.Results = append(res.Results, chat1.GiphySearchResult{
 				TargetUrl:      obj.URL,
-				PreviewUrl:     srv.GetGiphyURL(mctx.Ctx(), img.MP4),
+				PreviewUrl:     url,
 				PreviewHeight:  height,
 				PreviewWidth:   width,
 				PreviewIsVideo: true,
 			})
+			urls = append(urls, url)
 		}
 	}
+	res.GalleryUrl = srv.GetGiphyGalleryURL(mctx.Ctx(), urls)
 	return res
 }
 
@@ -82,7 +86,7 @@ func WebClient() *http.Client {
 	return httpClient(Host)
 }
 
-func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
+func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURLSrv) (res chat1.GiphySearchResults, err error) {
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		return res, err
@@ -130,7 +134,7 @@ func Asset(ctx context.Context, sourceURL string) (res io.ReadCloser, length int
 	return resp.Body, resp.ContentLength, nil
 }
 
-func Search(mctx libkb.MetaContext, query *string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
+func Search(mctx libkb.MetaContext, query *string, srv types.AttachmentURLSrv) (res chat1.GiphySearchResults, err error) {
 	var endpoint string
 	if query == nil {
 		// grab trending with no query

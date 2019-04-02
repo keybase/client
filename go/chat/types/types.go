@@ -305,6 +305,9 @@ func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 func (d DummyAttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
 	return ""
 }
+func (d DummyAttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, urls []string) string {
+	return ""
+}
 func (d DummyAttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {}
 
 type DummyStellarLoader struct{}

@@ -13,12 +13,12 @@ import (
 )
 
 type giphySearcher interface {
-	Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
+	Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) (chat1.GiphySearchResults, error)
 }
 
 type defaultGiphySearcher struct{}
 
-func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) (chat1.GiphySearchResults, error) {
 	return giphy.Search(mctx, query, urlsrv)
 }
 
@@ -66,17 +66,17 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
 		return err
 	}
-	if len(results) == 0 {
+	if len(results.Results) == 0 {
 		s.Debug(ctx, "Execute: failed to find any results")
 		return nil
 	}
-	res := results[libkb.RandIntn(len(results))]
+	res := results.Results[libkb.RandIntn(len(results.Results))]
 	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl, nil)
 	return err
 }
 
 func (n nullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-	results []chat1.GiphySearchResult) error {
+	results chat1.GiphySearchResults) error {
 	return nil
 }
 
