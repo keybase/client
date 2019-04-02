@@ -21,7 +21,6 @@ const SupportedVersion int = 1
 type proofServices struct {
 	sync.Mutex
 	libkb.Contextified
-	loaded           bool
 	externalServices map[string]libkb.ServiceType // map keys are ServiceType.Key()
 	displayConfigs   map[string]keybase1.ServiceDisplayConfig
 	suggestionFold   int
@@ -37,12 +36,13 @@ func newProofServices(g *libkb.GlobalContext) *proofServices {
 		externalServices: make(map[string]libkb.ServiceType),
 		displayConfigs:   make(map[string]keybase1.ServiceDisplayConfig),
 	}
-
-	staticServices := getStaticProofServices()
-	p.Lock()
-	defer p.Unlock()
-	p.registerServiceTypes(staticServices)
+	p.registerServiceTypes(getStaticProofServices())
 	return p
+}
+
+func (p *proofServices) clearServiceTypes() {
+	p.externalServices = make(map[string]libkb.ServiceType)
+	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)
 }
 
 func (p *proofServices) registerServiceTypes(services []libkb.ServiceType) {
@@ -123,8 +123,10 @@ func (p *proofServices) loadServiceConfigs() {
 	for _, config := range config.ProofConfigs {
 		services = append(services, NewGenericSocialProofServiceType(config))
 	}
-	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)
+	p.clearServiceTypes()
+	p.registerServiceTypes(getStaticProofServices())
 	p.registerServiceTypes(services)
+	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)
 	for _, config := range config.DisplayConfigs {
 		p.displayConfigs[config.Key] = *config
 		if service, ok := p.externalServices[config.Key]; ok {
