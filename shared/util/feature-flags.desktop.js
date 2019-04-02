@@ -33,6 +33,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   outOfDateBanner: true,
   proofProviders: true,
   sendAttachmentToChat: true,
+  useNewRouter: true,
 }
 
 // load overrides
