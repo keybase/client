@@ -172,12 +172,21 @@ export const newRoutes = {
     getScreen: () => {
       if (isMobile) {
         return require('./wallet/container').default
-      } else
-        return createNavigator(
+      } else {
+        const WalletsSubNavigator = createNavigator(
           WalletsSubNav,
           StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
           {}
         )
+
+        WalletsSubNavigator.navigationOptions = {
+          header: undefined,
+          headerTitle: 'Wallet',
+          title: 'Wallet',
+        }
+
+        return WalletsSubNavigator
+      }
     },
     upgraded: true,
   },

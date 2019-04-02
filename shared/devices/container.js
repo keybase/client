@@ -93,4 +93,13 @@ const Connected = compose(
   safeSubmitPerMount(['onBack'])
 )(ReloadableDevices)
 
+if (!isMobile) {
+  // $FlowIssue lets fix this
+  Connected.navigationOptions = {
+    header: undefined,
+    headerTitle: 'Devices',
+    title: 'Devices',
+  }
+}
+
 export default Connected
