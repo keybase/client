@@ -6,9 +6,9 @@ import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
 import * as Styles from '../../styles'
 import * as React from 'react'
+import {debounce} from 'lodash-es'
 
 type Props = {|
-  filter: string,
   onUpdate: string => void,
   path: Types.Path,
   style?: ?Styles.StylesCrossPlatform,
@@ -16,6 +16,7 @@ type Props = {|
 
 type State = {|
   editing: boolean,
+  filter: string,
 |}
 
 const KeyHandler = (Platforms.isMobile ? c => c : require('../../util/key-handler.desktop').default)(
@@ -23,14 +24,19 @@ const KeyHandler = (Platforms.isMobile ? c => c : require('../../util/key-handle
 )
 
 class FolderViewFilter extends React.PureComponent<Props, State> {
-  state = {editing: false}
+  state = {
+    editing: false,
+    filter: '',
+  }
+
+  _update = text => {
+    this.setState({filter: text})
+    this.props.onUpdate(text)
+  }
 
   _input = React.createRef()
 
-  _onBlur = () => {
-    this.setState({editing: false})
-    this.props.onUpdate('')
-  }
+  _onBlur = () => this.setState({editing: false})
   _onFocus = () => this.setState({editing: true})
 
   _focus = () => {
@@ -42,12 +48,15 @@ class FolderViewFilter extends React.PureComponent<Props, State> {
     cmd.endsWith('+f') && this._focus()
   }
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
-    e.key === 'Escape' && !isComposingIME && this._blur()
+    if (e.key === 'Escape' && !isComposingIME) {
+      this._blur()
+      this._update('')
+    }
   }
 
   // Clear the filter if path changes, or if we get unmounted.
   componentDidUpdate(prevProps) {
-    prevProps.path !== this.props.path && this.props.onUpdate('')
+    prevProps.path !== this.props.path && this._update('')
   }
   componentWillUnmount() {
     this.props.onUpdate('')
@@ -73,9 +82,9 @@ class FolderViewFilter extends React.PureComponent<Props, State> {
             <Kb.NewInput
               icon="iconfont-search"
               hideBorder={true}
-              value={this.props.filter}
+              value={this.state.filter}
               placeholder="Filter ..."
-              onChangeText={this.props.onUpdate}
+              onChangeText={this._update}
               onBlur={this._onBlur}
               onFocus={this._onFocus}
               onKeyDown={this._onKeyDown}
@@ -120,14 +129,12 @@ type OwnProps = {|
   style?: ?Styles.StylesCrossPlatform,
 |}
 
-const mapStateToProps = state => ({
-  filter: state.fs.folderViewFilter,
-})
+const mapStateToProps = state => ({})
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  onUpdate: (newFilter: string) => dispatch(FsGen.createSetFolderViewFilter({filter: newFilter})),
+  _onUpdate: (newFilter: string) => dispatch(FsGen.createSetFolderViewFilter({filter: newFilter})),
 })
 
-const mergeProps = (s, d, o) => ({...o, ...s, ...d})
+const mergeProps = (s, d, o) => ({...o, ...s, onUpdate: debounce(d._onUpdate, 250)})
 
 export default (Platforms.isMobile
   ? () => null
