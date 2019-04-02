@@ -24,7 +24,7 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
         <Kb.Box style={styles.folderHeaderContainer}>
           <Breadcrumb path={path} routePath={routePath} />
           <Kb.Box style={styles.folderHeaderEnd}>
-            <FolderViewFilter path={path} gap="tiny" />
+            <FolderViewFilter path={path} style={styles.folderViewFilter} />
             <AddNew path={path} />
             <OpenInSystemFileManager path={path} />
             {onChat && (
@@ -75,6 +75,10 @@ const styles = Styles.styleSheetCreate({
     height: 48,
     justifyContent: 'center',
     width: '100%',
+  },
+  folderViewFilter: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   headerContainer: {
     ...Styles.globalStyles.flexBoxColumn,

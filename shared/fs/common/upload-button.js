@@ -10,7 +10,7 @@ import {isDarwin, isMobile, isIOS} from '../../constants/platform'
 
 type OwnProps = {|
   path: Types.Path,
-  desktopButtonGap?: ?$Keys<typeof Styles.globalMargins>,
+  style?: ?Styles.StylesCrossPlatform,
 |}
 
 const UploadButton = Kb.OverlayParentHOC(props => {
@@ -24,12 +24,7 @@ const UploadButton = Kb.OverlayParentHOC(props => {
         type="Primary"
         onClick={props.openAndUpload('both')}
         label="Upload"
-        style={
-          props.desktopButtonGap && {
-            marginLeft: Styles.globalMargins[props.desktopButtonGap],
-            marginRight: Styles.globalMargins[props.desktopButtonGap],
-          }
-        }
+        style={props.style}
       />
     )
   }
@@ -49,12 +44,7 @@ const UploadButton = Kb.OverlayParentHOC(props => {
           onClick={props.toggleShowingMenu}
           label="Upload"
           ref={props.setAttachmentRef}
-          style={
-            props.desktopButtonGap && {
-              marginLeft: Styles.globalMargins[props.desktopButtonGap],
-              marginRight: Styles.globalMargins[props.desktopButtonGap],
-            }
-          }
+          style={props.style}
         />
       )}
       <Kb.FloatingMenu
@@ -104,7 +94,7 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 
 const mergeProps = (s, d, o) => ({
   canUpload: s._pathItem.type === 'folder' && s._pathItem.writable,
-  desktopButtonGap: o.desktopButtonGap,
+  style: o.style,
   ...d,
 })
 
