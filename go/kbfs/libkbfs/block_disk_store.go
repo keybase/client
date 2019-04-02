@@ -165,10 +165,15 @@ func (s *blockDiskStore) startOpOrWait(id kbfsblock.ID) (
 
 	waitCh = s.puts[id]
 	if waitCh == nil {
+		// If this caller is getting exclusive access to this `id`,
+		// make a channel, store it as receive-only in `puts`, and
+		// return it as send-only to the caller, to ensure that only
+		// this caller can finish the exclusive access.
 		ch := make(chan struct{})
 		s.puts[id] = ch
 		closeCh = ch
 	}
+
 	return closeCh, waitCh
 }
 
@@ -184,14 +189,18 @@ func (s *blockDiskStore) exclusify(ctx context.Context, id kbfsblock.ID) (
 	// Get a guarantee that we're acting exclusively on this
 	// particular block ID.
 	for {
+		// Repeatedly request exclusive access until until we don't
+		// get a non-nil channel to wait on.
 		closeCh, waitCh := s.startOpOrWait(id)
 		if waitCh == nil {
+			// If there's nothing to wait on, then we have exclusive
+			// access, so return.
 			return func() { s.finishOp(id, closeCh) }, nil
 		}
 		select {
 		case <-waitCh:
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, errors.WithStack(ctx.Err())
 		}
 	}
 }
@@ -561,7 +570,7 @@ func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, erro
 func (s *blockDiskStore) put(
 	ctx context.Context, isRegularPut bool, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf, tag string) (
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	putData bool, err error) {
 	cleanup, err := s.exclusify(ctx, id)
 	if err != nil {
@@ -617,14 +626,6 @@ func (s *blockDiskStore) put(
 			return false, err
 		}
 		err = ioutil.WriteFile(s.keyServerHalfPath(id), data, 0600)
-		if err != nil {
-			return false, err
-		}
-	}
-
-	if tag != "" {
-		err = s.addRefsExclusive(
-			id, []kbfsblock.Context{context}, liveBlockRef, tag)
 		if err != nil {
 			return false, err
 		}

@@ -228,12 +228,14 @@ func (b *BlockServerDisk) Put(
 		return errBlockServerDiskShutdown
 	}
 
-	_, err = tlfStorage.store.put(
-		ctx, true, id, context, buf, serverHalf, "tag")
+	_, err = tlfStorage.store.put(ctx, true, id, context, buf, serverHalf)
 	if err != nil {
 		return err
 	}
-
+	err = tlfStorage.store.addReference(ctx, id, context, "tag")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -263,8 +265,11 @@ func (b *BlockServerDisk) PutAgain(
 		return errBlockServerDiskShutdown
 	}
 
-	_, err = tlfStorage.store.put(
-		ctx, false, id, context, buf, serverHalf, "tag")
+	_, err = tlfStorage.store.put(ctx, false, id, context, buf, serverHalf)
+	if err != nil {
+		return err
+	}
+	err = tlfStorage.store.addReference(ctx, id, context, "tag")
 	if err != nil {
 		return err
 	}
