@@ -189,12 +189,12 @@ export const newRoutes = {
       }
     },
     upgraded: true,
-    ...(isMobile
-      ? {
-          ...sharedRoutes,
-        }
-      : {}),
   },
+  ...(isMobile
+    ? {
+        ...sharedRoutes,
+      }
+    : {}),
 }
 
 export const newModalRoutes = {
