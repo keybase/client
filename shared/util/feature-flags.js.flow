@@ -5,6 +5,7 @@ export type FeatureFlags = {|
   chatIndexProfilingEnabled: boolean,
   dbCleanEnabled: boolean,
   enableDeleteFolder: boolean,
+  folderViewFilter: boolean,
   foldersInProfileTab: boolean,
   moveOrCopy: boolean,
   // Enables the "Add up to 14 more people. Need more? Make it a team." feature
