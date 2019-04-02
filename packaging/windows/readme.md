@@ -78,38 +78,9 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 
 ## Building a debug installer without codesigning
 
-Environment:
-  `set KEYBASE_WINBUILD=0`
-
 Invoke the scripts to build the executables: `build_prerelease.cmd`, and `buildui.cmd`
-
-Update prompter executable:
-```
-cd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
-msbuild WpfPrompter.sln /p:Configuration=Debug /t:Build
-```
-
-Installer:
-```
-cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
-msbuild WIX_Installers.sln /p:Configuration=Debug /p:Platform=x64 /t:Build
-```
-
-## Production CMD Scripts
-
-## Building a debug installer without codesigning
-Environment:
-  `set KEYBASE_WINBUILD=0`
-
-Invoke the scripts to build the executables: `build_prerelease.cmd`, `buildrq.cmd` and `buildui.cmd`
-
-Update prompter executable:
-`cd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter`
-`msbuild WpfPrompter.sln /p:Configuration=Debug /t:Build`
-
-Installer:
-`cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers`
-`msbuild WIX_Installers.sln /p:Configuration=Debug /p:Platform=x64 /t:Build`
+Invoke installer build with `debug` argument:
+  `doinstaller_wix.cmd debug`
 
 ## Production CMD Scripts
 `build_prerelease.cmd` builds most of the client executables
