@@ -8,6 +8,7 @@ import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
+import flags from '../util/feature-flags'
 import type {RouteProps} from '../route-tree/render-route'
 
 const mapStateToProps = state => ({
@@ -16,10 +17,17 @@ const mapStateToProps = state => ({
   waiting: Constants.isWaiting(state),
 })
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigation}) => ({
+  clearBadges: () => dispatch(DevicesGen.createClearBadges()),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) =>
-    dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}])),
+  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
+    if (flags.useNewRouter) {
+      // We don't have navigateAppend in upgraded routes
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
+    } else {
+      dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}]))
+    }
+  },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -49,6 +57,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
   return {
     _stateOverride: null,
+    clearBadges: dispatchProps.clearBadges,
     hasNewlyRevoked: newlyRevokedIds.size > 0,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
@@ -61,7 +70,13 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   }
 }
 
-class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof Devices>> {
+class ReloadableDevices extends React.PureComponent<
+  React.ElementConfig<typeof Devices> & {|clearBadges: () => void|}
+> {
+  componentWillUnmount() {
+    this.props.clearBadges()
+  }
+
   render() {
     return (
       <Kb.Reloadable

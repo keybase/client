@@ -111,7 +111,14 @@ const DevicePage = (props: Props) => {
   }[props.device.type]
 
   return (
-    <Kb.Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
+    <Kb.Box2
+      direction="vertical"
+      gap="medium"
+      gapStart={true}
+      gapEnd={true}
+      fullWidth={true}
+      fullHeight={true}
+    >
       <Kb.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={props.device} />
       {!props.device.revokedAt && (

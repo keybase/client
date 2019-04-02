@@ -34,14 +34,14 @@ const children = {
 export default children
 
 export const newRoutes = {
-  codePage: {getScreen: () => CodePage},
-  error: {getScreen: () => RegisterError},
+  codePage: {getScreen: () => CodePage, upgraded: true},
+  error: {getScreen: () => RegisterError, upgraded: true},
   forgotUsername: {getScreen: () => ForgotUsername},
-  gpgSign: {getScreen: () => GPGSign},
-  paperkey: {getScreen: () => PaperKey},
-  password: {getScreen: () => Password},
-  selectOtherDevice: {getScreen: () => SelectOtherDevice},
-  setPublicName: {getScreen: () => SetPublicName},
-  username: {getScreen: () => Username},
+  gpgSign: {getScreen: () => GPGSign, upgraded: true},
+  paperkey: {getScreen: () => PaperKey, upgraded: true},
+  password: {getScreen: () => Password, upgraded: true},
+  selectOtherDevice: {getScreen: () => SelectOtherDevice, upgraded: true},
+  setPublicName: {getScreen: () => SetPublicName, upgraded: true},
+  username: {getScreen: () => Username, upgraded: true},
 }
 export const newModalRoutes = {}
