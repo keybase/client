@@ -38,7 +38,7 @@ const EnterUsername = (props: Props) => (
       fullWidth={true}
     >
       <Kb.Avatar size={96} />
-      <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.NewInput
           autoFocus={true}
           containerStyle={styles.input}
@@ -67,6 +67,12 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small),
       height: 48,
+    },
+  }),
+  inputBox: Styles.platformStyles({
+    isElectron: {
+      // need to set width so subtext will wrap
+      width: 368,
     },
   }),
   inputSub: {
