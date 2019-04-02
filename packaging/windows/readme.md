@@ -81,8 +81,13 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 Environment:
   `set KEYBASE_WINBUILD=0`
 
-Invoke the scripts to build the executables: `build_prerelease.cmd`, and `buildui.cmd`
-Invoke `doinstaller_wix.cmd debug`
+Invoke the scripts to build the executables:
+
+```cmd
+build_prerelease.cmd
+buildui.cmd
+doinstaller_wix.cmd debug
+```
 
 ## Production CMD Scripts
 - `build_prerelease.cmd` builds most of the client executables
