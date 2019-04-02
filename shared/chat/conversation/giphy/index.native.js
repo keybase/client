@@ -18,7 +18,6 @@ class GiphySearch extends React.Component<Props, State> {
             useWebKit={true}
             source={source}
             style={styles.webview}
-            scrollEnabled={false}
             automaticallyAdjustContentInsets={false}
             mediaPlaybackRequiresUserAction={false}
           />
@@ -32,10 +31,8 @@ class GiphySearch extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    borderColor: Styles.globalColors.black,
-    borderStyle: 'solid',
-    borderWidth: Styles.globalMargins.xtiny,
     height: 100,
+    justifyContent: 'center',
   },
   webview: {
     position: 'relative',

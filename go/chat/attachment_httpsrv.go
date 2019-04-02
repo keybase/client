@@ -298,7 +298,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 	var videoStr string
 	for _, u := range urls.([]string) {
 		videoStr += fmt.Sprintf(`
-			<video src="%s" playsinline webkit-playsinline autoplay muted></video>
+			<video src="%s" playsinline webkit-playsinline autoplay muted loop></video>
 		`, u)
 	}
 	res := fmt.Sprintf(`
@@ -306,8 +306,8 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 		<head>
 			<title>Keybase Giphy Gallery</title>
 		</head>
-		<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-			<div style="display: flex; flex-direction: row; overflow: auto;">
+		<body style="margin: 0px;">
+			<div style="display: flex; flex-direction: row; align-items: flex-end; overflow-x: auto; height: 100%%;">
 				%s
 			</div>
 		</body>
