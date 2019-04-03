@@ -7,7 +7,6 @@ import type {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
-import AddPeople from './add-people'
 import Participant from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
@@ -76,14 +75,6 @@ type InfoPanelProps = {|
 
 // FYI: Don't add a property of type ConversationIDKey to one of these rows or flow will explode
 // use this.props in _renderRow instead
-
-type AddPeopleRow = {
-  type: 'add people',
-  key: 'add people',
-  teamname: string,
-  isAdmin: boolean,
-  isGeneralChannel: boolean,
-}
 
 type ParticipantRow = {|
   type: 'participant',
@@ -182,6 +173,9 @@ type ParticipantCountRow = {
   key: 'participant count',
   label: string,
   participantCount: number,
+  teamname: ?string,
+  isAdmin: boolean,
+  isGeneralChannel: boolean,
 }
 
 type SmallTeamHeaderRow = {
@@ -237,7 +231,6 @@ type TeamHeaderRow =
   | JoinChannelRow
   | LeaveChannelRow
   | MinWriterRoleRow
-  | AddPeopleRow
 
 type Row =
   | ParticipantRow
@@ -265,16 +258,6 @@ const typeSizeEstimator = (row: Row): number => {
 class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
-      case 'add people':
-        return (
-          <AddPeople
-            key="add people"
-            isAdmin={row.isAdmin}
-            isGeneralChannel={row.isGeneralChannel}
-            teamname={row.teamname}
-            conversationIDKey={this.props.selectedConversationIDKey}
-          />
-        )
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
@@ -353,6 +336,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             key="participant count"
             label={row.label}
             participantCount={row.participantCount}
+            isAdmin={row.isAdmin}
+            isGeneralChannel={row.isGeneralChannel}
+            teamname={row.teamname}
+            conversationIDKey={this.props.selectedConversationIDKey}
           />
         )
 
@@ -465,26 +452,15 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           type: 'small team header',
         },
       ]
-      let addPeopleRow = false
       if (props.teamname && !props.isPreview && (props.admin || channelname !== 'general')) {
         // admins can add people to the team and to channels
         // anyone else can only add people to channels
-        subHeaderRows.push(
-          {
-            key: nextKey(),
-            marginBottom: 8,
-            marginTop: 8,
-            type: 'divider',
-          },
-          {
-            isAdmin: props.admin,
-            isGeneralChannel: channelname === 'general',
-            key: 'add people',
-            teamname: props.teamname,
-            type: 'add people',
-          }
-        )
-        addPeopleRow = true
+        subHeaderRows.push({
+          key: nextKey(),
+          marginBottom: 8,
+          marginTop: 8,
+          type: 'divider',
+        })
       }
       if (props.smallTeam) {
         // Small team.
@@ -494,7 +470,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           {
             key: nextKey(),
             marginBottom: 20,
-            marginTop: addPeopleRow ? 8 : 20,
+            marginTop: 20,
             type: 'divider',
           },
           {
@@ -563,9 +539,12 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             type: 'divider',
           },
           {
+            isAdmin: props.admin,
+            isGeneralChannel: props.channelname === 'general',
             key: 'participant count',
             label: 'In this team',
             participantCount,
+            teamname: props.teamname,
             type: 'participant count',
           },
         ]
@@ -581,9 +560,12 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           type: 'big team header',
         }
         const participantCountRow = {
+          isAdmin: props.admin,
+          isGeneralChannel: props.channelname === 'general',
           key: 'participant count',
           label: 'In this channel',
           participantCount,
+          teamname: props.teamname,
           type: 'participant count',
         }
 

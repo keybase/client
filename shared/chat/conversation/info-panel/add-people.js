@@ -60,7 +60,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   isAdmin: boolean,
   isGeneralChannel: boolean,
-  teamname: string,
+  teamname: ?string,
 }
 
 const mapDispatchToProps = dispatch => {
