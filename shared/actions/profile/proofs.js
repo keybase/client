@@ -9,6 +9,7 @@ import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import {peopleTab} from '../../constants/tabs'
+import {getPath} from '../../route-tree'
 import flags from '../../util/feature-flags'
 import openURL from '../../util/open-url'
 
@@ -145,6 +146,21 @@ function* addProof(state, action) {
     }
   })
 
+  const watchForNavUp = yield Saga._fork(function*() {
+    // TODO remove this when nav1 is removed
+    // nav2 should use navigationOptions.gesturesEnabled = false
+    // to disable sidestepping custom behavior on back
+    while (true) {
+      yield Saga.take(RouteTreeGen.navigateUp)
+      const state = yield Saga.selectState()
+      const path = getPath(state.routeTree.routeState)
+      if (!['profileGenericEnterUsername', 'profileProveEnterUsername'].includes(path.last()) && !canceled) {
+        // We nav'd away without canceling
+        yield Saga.put(ProfileGen.createCancelAddProof())
+      }
+    }
+  })
+
   const promptUsername = (args, response) => {
     const {parameters, prevError} = args
     if (canceled) {
@@ -262,6 +278,7 @@ function* addProof(state, action) {
   cancelTask.cancel()
   checkProofTask.cancel()
   submitUsernameTask.cancel()
+  watchForNavUp.cancel()
   addProofInProgress = false
 }
 
