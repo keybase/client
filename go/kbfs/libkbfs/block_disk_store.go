@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"context"
 	"path/filepath"
-	"strings"
+	_ "strings"
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/ioutil"
@@ -16,6 +16,9 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
 // blockDiskStore stores block data in flat files on disk.
@@ -81,6 +84,9 @@ type blockDiskStore struct {
 	codec kbfscodec.Codec
 	dir   string
 
+	blockDb *LevelDb
+	infoDb  *LevelDb
+
 	lock sync.Mutex
 	puts map[kbfsblock.ID]<-chan struct{}
 }
@@ -94,11 +100,16 @@ const filesPerBlockMax = 7
 // makeBlockDiskStore returns a new blockDiskStore for the given
 // directory.
 func makeBlockDiskStore(codec kbfscodec.Codec, dir string) *blockDiskStore {
-	return &blockDiskStore{
+	s := &blockDiskStore{
 		codec: codec,
 		dir:   dir,
 		puts:  make(map[kbfsblock.ID]<-chan struct{}),
 	}
+	err := s.clear()
+	if err != nil {
+		panic(err)
+	}
+	return s
 }
 
 // The functions below are for building various paths.
@@ -156,6 +167,14 @@ type blockJournalInfo struct {
 	codec.UnknownFieldSetHandler
 }
 
+// blockJournalData contains the data and key-half for a block.
+type blockJournalData struct {
+	Buf        []byte                             `codec:"b,omitempty"`
+	ServerHalf kbfscrypto.BlockCryptKeyServerHalf `codec:"s,omitempty"`
+
+	codec.UnknownFieldSetHandler
+}
+
 // TODO: Add caching for refs
 
 func (s *blockDiskStore) startOpOrWait(id kbfsblock.ID) (
@@ -209,23 +228,51 @@ func (s *blockDiskStore) exclusify(ctx context.Context, id kbfsblock.ID) (
 // have been called by the caller.
 func (s *blockDiskStore) getInfo(id kbfsblock.ID) (blockJournalInfo, error) {
 	var info blockJournalInfo
-	err := kbfscodec.DeserializeFromFile(s.codec, s.infoPath(id), &info)
-	if !ioutil.IsNotExist(err) && err != nil {
+
+	buf, err := s.infoDb.Get(id.Bytes(), nil)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+		// Make a new info map for this id.
+		info.Refs = make(blockRefMap)
+		return info, nil
+	default:
 		return blockJournalInfo{}, err
 	}
 
-	if info.Refs == nil {
-		info.Refs = make(blockRefMap)
+	err = s.codec.Decode(buf, &info)
+	if err != nil {
+		return blockJournalInfo{}, err
 	}
-
 	return info, nil
+	/*
+		var info blockJournalInfo
+		err := kbfscodec.DeserializeFromFile(s.codec, s.infoPath(id), &info)
+		if !ioutil.IsNotExist(err) && err != nil {
+			return blockJournalInfo{}, err
+		}
+
+		if info.Refs == nil {
+			info.Refs = make(blockRefMap)
+		}
+
+		return info, nil
+	*/
 }
 
 // putRefInfo stores the given references for the given ID.  exclusify
 // must have been called by the caller.
 func (s *blockDiskStore) putInfo(
 	id kbfsblock.ID, info blockJournalInfo) error {
-	return kbfscodec.SerializeToFile(s.codec, info, s.infoPath(id))
+	buf, err := s.codec.Encode(info)
+	if err != nil {
+		return err
+	}
+
+	return s.infoDb.Put(id.Bytes(), buf, nil)
+	/*
+		return kbfscodec.SerializeToFile(s.codec, info, s.infoPath(id))
+	*/
 }
 
 // addRefs adds references for the given contexts to the given ID, all
@@ -260,37 +307,64 @@ func (s *blockDiskStore) addRefsExclusive(
 // present.  `exclusify` must be called by the caller.
 func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	data, err := ioutil.ReadFile(s.dataPath(id))
-	if ioutil.IsNotExist(err) {
+	buf, err := s.blockDb.Get(id.Bytes(), nil)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			blockNonExistentError{id}
-	} else if err != nil {
+	default:
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	keyServerHalfPath := s.keyServerHalfPath(id)
-	buf, err := ioutil.ReadFile(keyServerHalfPath)
-	if ioutil.IsNotExist(err) {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
-			blockNonExistentError{id}
-	} else if err != nil {
+	var blockData blockJournalData
+	err = s.codec.Decode(buf, &blockData)
+	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	// Check integrity.
 
-	err = kbfsblock.VerifyID(data, id)
+	err = kbfsblock.VerifyID(blockData.Buf, id)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	var serverHalf kbfscrypto.BlockCryptKeyServerHalf
-	err = serverHalf.UnmarshalBinary(buf)
-	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
+	return blockData.Buf, blockData.ServerHalf, nil
 
-	return data, serverHalf, nil
+	/*
+		data, err := ioutil.ReadFile(s.dataPath(id))
+		if ioutil.IsNotExist(err) {
+			return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+				blockNonExistentError{id}
+		} else if err != nil {
+			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+		}
+
+		keyServerHalfPath := s.keyServerHalfPath(id)
+		buf, err := ioutil.ReadFile(keyServerHalfPath)
+		if ioutil.IsNotExist(err) {
+			return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+				blockNonExistentError{id}
+		} else if err != nil {
+			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+		}
+
+		// Check integrity.
+
+		err = kbfsblock.VerifyID(data, id)
+		if err != nil {
+			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+		}
+
+		var serverHalf kbfscrypto.BlockCryptKeyServerHalf
+		err = serverHalf.UnmarshalBinary(buf)
+		if err != nil {
+			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+		}
+
+		return data, serverHalf, nil
+	*/
 }
 
 // getData returns the data and server half for the given ID, if
@@ -385,13 +459,17 @@ func (s *blockDiskStore) hasContext(
 }
 
 func (s *blockDiskStore) hasDataExclusive(id kbfsblock.ID) (bool, error) {
-	_, err := ioutil.Stat(s.dataPath(id))
-	if ioutil.IsNotExist(err) {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-	return true, nil
+	return s.blockDb.Has(id.Bytes(), nil)
+
+	/*
+		_, err := ioutil.Stat(s.dataPath(id))
+		if ioutil.IsNotExist(err) {
+			return false, nil
+		} else if err != nil {
+			return false, err
+		}
+		return true, nil
+	*/
 }
 
 func (s *blockDiskStore) hasData(
@@ -462,13 +540,28 @@ func (s *blockDiskStore) getDataSize(
 	}
 	defer cleanup()
 
-	fi, err := ioutil.Stat(s.dataPath(id))
-	if ioutil.IsNotExist(err) {
+	buf, _, err := s.getDataExclusive(id)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
 		return 0, nil
-	} else if err != nil {
+	default:
 		return 0, err
 	}
-	return fi.Size(), nil
+
+	// TODO: put the size in the info maybe, so we can look it up
+	// without reading the whole data chunk?
+	return int64(len(buf)), nil
+
+	/*
+		fi, err := ioutil.Stat(s.dataPath(id))
+		if ioutil.IsNotExist(err) {
+			return 0, nil
+		} else if err != nil {
+			return 0, err
+		}
+		return fi.Size(), nil
+	*/
 }
 
 func (s *blockDiskStore) getDataWithContextExclusive(
@@ -501,59 +594,79 @@ func (s *blockDiskStore) getDataWithContext(
 func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error) {
 	res := make(map[kbfsblock.ID]blockRefMap)
 
-	fileInfos, err := ioutil.ReadDir(s.dir)
-	if ioutil.IsNotExist(err) {
-		return res, nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	for _, fi := range fileInfos {
-		name := fi.Name()
-		if !fi.IsDir() {
-			return nil, errors.Errorf("Unexpected non-dir %q", name)
-		}
-
-		subFileInfos, err := ioutil.ReadDir(filepath.Join(s.dir, name))
+	iter := s.infoDb.NewIterator(nil, nil)
+	defer iter.Release()
+	for iter.Next() {
+		id, err := kbfsblock.IDFromBytes(iter.Key())
 		if err != nil {
 			return nil, err
 		}
 
-		for _, sfi := range subFileInfos {
-			subName := sfi.Name()
-			if !sfi.IsDir() {
-				return nil, errors.Errorf("Unexpected non-dir %q",
-					subName)
-			}
+		info, err := s.getInfo(id)
+		if err != nil {
+			return nil, err
+		}
 
-			idPath := filepath.Join(
-				s.dir, name, subName, idFilename)
-			idBytes, err := ioutil.ReadFile(idPath)
-			if err != nil {
-				return nil, err
-			}
-
-			id, err := kbfsblock.IDFromString(string(idBytes))
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-
-			if !strings.HasPrefix(id.String(), name+subName) {
-				return nil, errors.Errorf(
-					"%q unexpectedly not a prefix of %q",
-					name+subName, id.String())
-			}
-
-			info, err := s.getInfo(id)
-			if err != nil {
-				return nil, err
-			}
-
-			if len(info.Refs) > 0 {
-				res[id] = info.Refs
-			}
+		if len(info.Refs) > 0 {
+			res[id] = info.Refs
 		}
 	}
+
+	/*
+		fileInfos, err := ioutil.ReadDir(s.dir)
+		if ioutil.IsNotExist(err) {
+			return res, nil
+		} else if err != nil {
+			return nil, err
+		}
+
+		for _, fi := range fileInfos {
+			name := fi.Name()
+			if !fi.IsDir() {
+				return nil, errors.Errorf("Unexpected non-dir %q", name)
+			}
+
+			subFileInfos, err := ioutil.ReadDir(filepath.Join(s.dir, name))
+			if err != nil {
+				return nil, err
+			}
+
+			for _, sfi := range subFileInfos {
+				subName := sfi.Name()
+				if !sfi.IsDir() {
+					return nil, errors.Errorf("Unexpected non-dir %q",
+						subName)
+				}
+
+				idPath := filepath.Join(
+					s.dir, name, subName, idFilename)
+				idBytes, err := ioutil.ReadFile(idPath)
+				if err != nil {
+					return nil, err
+				}
+
+				id, err := kbfsblock.IDFromString(string(idBytes))
+				if err != nil {
+					return nil, errors.WithStack(err)
+				}
+
+				if !strings.HasPrefix(id.String(), name+subName) {
+					return nil, errors.Errorf(
+						"%q unexpectedly not a prefix of %q",
+						name+subName, id.String())
+				}
+
+				info, err := s.getInfo(id)
+				if err != nil {
+					return nil, err
+				}
+
+				if len(info.Refs) > 0 {
+					res[id] = info.Refs
+				}
+			}
+		}
+	*/
 
 	return res, nil
 }
@@ -612,6 +725,20 @@ func (s *blockDiskStore) put(
 				existingServerHalf, serverHalf)
 		}
 	} else {
+		var blockData blockJournalData
+		blockData.Buf = buf
+		blockData.ServerHalf = serverHalf
+		encodedBuf, err := s.codec.Encode(blockData)
+		if err != nil {
+			return false, err
+		}
+
+		err = s.blockDb.Put(id.Bytes(), encodedBuf, nil)
+		if err != nil {
+			return false, err
+		}
+
+		/**
 		err = s.makeDir(id)
 		if err != nil {
 			return false, err
@@ -632,6 +759,7 @@ func (s *blockDiskStore) put(
 		if err != nil {
 			return false, err
 		}
+		*/
 	}
 
 	return !exists, nil
@@ -740,22 +868,86 @@ func (s *blockDiskStore) remove(ctx context.Context, id kbfsblock.ID) error {
 		return errors.Errorf(
 			"Trying to remove data for referenced block %s", id)
 	}
-	path := s.blockPath(id)
 
-	err = ioutil.RemoveAll(path)
+	err = s.blockDb.Delete(id.Bytes(), nil)
 	if err != nil {
 		return err
 	}
 
-	// Remove the parent (splayed) directory if it exists and is
-	// empty.
-	err = ioutil.Remove(filepath.Dir(path))
-	if ioutil.IsNotExist(err) || ioutil.IsExist(err) {
-		err = nil
+	return s.infoDb.Delete(id.Bytes(), nil)
+
+	/*
+
+		path := s.blockPath(id)
+
+		err = ioutil.RemoveAll(path)
+		if err != nil {
+			return err
+		}
+
+		// Remove the parent (splayed) directory if it exists and is
+		// empty.
+		err = ioutil.Remove(filepath.Dir(path))
+		if ioutil.IsNotExist(err) || ioutil.IsExist(err) {
+			err = nil
+		}
+		return err
+	*/
+}
+
+func (s *blockDiskStore) close() error {
+	if s.blockDb != nil {
+		err := s.blockDb.Close()
+		if err != nil {
+			return err
+		}
 	}
-	return err
+
+	if s.infoDb != nil {
+		err := s.infoDb.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *blockDiskStore) clear() error {
-	return ioutil.RemoveAll(s.dir)
+	err := s.close()
+	if err != nil {
+		return err
+	}
+
+	blockDbOptions := *leveldbOptions
+	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
+	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
+	blockDbOptions.BlockCacheCapacity = defaultBlockCacheCapacity
+	blockDbOptions.Filter = filter.NewBloomFilter(16)
+
+	blockDbPath := filepath.Join(s.dir, "blocks")
+	blockStorage, err := storage.OpenFile(blockDbPath, false)
+	if err != nil {
+		return err
+	}
+	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
+	if err != nil {
+		return err
+	}
+
+	infoDbPath := filepath.Join(s.dir, "infos")
+	infoStorage, err := storage.OpenFile(infoDbPath, false)
+	if err != nil {
+		return err
+	}
+	infoDb, err := openLevelDB(infoStorage)
+	if err != nil {
+		return err
+	}
+
+	s.blockDb = blockDb
+	s.infoDb = infoDb
+	return nil
+	/*
+		return ioutil.RemoveAll(s.dir)
+	*/
 }

@@ -193,7 +193,7 @@ func getAndCheckBlockData(ctx context.Context, t *testing.T, j *blockJournal,
 
 func TestBlockJournalBasic(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer func() { teardownBlockJournalTest(t, ctx, cancel, tempdir, j) }()
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
@@ -210,6 +210,8 @@ func TestBlockJournalBasic(t *testing.T) {
 
 	// Shutdown and restart.
 	err := j.checkInSyncForTest()
+	require.NoError(t, err)
+	err = j.s.close()
 	require.NoError(t, err)
 	j, err = makeBlockJournal(ctx, j.codec, tempdir, j.log)
 	require.NoError(t, err)
