@@ -76,6 +76,7 @@ type GlobalContext struct {
 	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	loadUserLockTab  LockTable
 	teamAuditor      TeamAuditor
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
@@ -1187,7 +1188,7 @@ func (g *GlobalContext) KeyfamilyChanged(ctx context.Context, u keybase1.UID) {
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleKeyfamilyChanged(u)
 		// TODO: remove this when KBFS handles KeyfamilyChanged
-		g.NotifyRouter.HandleUserChanged(u)
+		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "KeyfamilyChanged")
 	}
 }
 
@@ -1199,7 +1200,7 @@ func (g *GlobalContext) UserChanged(ctx context.Context, u keybase1.UID) {
 
 	g.BustLocalUserCache(ctx, u)
 	if g.NotifyRouter != nil {
-		g.NotifyRouter.HandleUserChanged(u)
+		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "G.UserChanged")
 	}
 
 	g.uchMu.Lock()
