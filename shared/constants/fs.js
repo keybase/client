@@ -248,7 +248,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), defaultPathUserSetting]]),
+  pathUserSettings: I.Map(),
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
