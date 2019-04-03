@@ -13,13 +13,14 @@ import (
 )
 
 type giphySearcher interface {
-	Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
+	Search(mctx libkb.MetaContext, query *string, limit int, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
 }
 
 type defaultGiphySearcher struct{}
 
-func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
-	return giphy.Search(mctx, query, urlsrv)
+func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, limit int,
+	urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+	return giphy.Search(mctx, query, limit, urlsrv)
 }
 
 type Giphy struct {
@@ -33,9 +34,6 @@ type Giphy struct {
 
 func NewGiphy(g *globals.Context) *Giphy {
 	usage := "Search for and post GIFs"
-	if g.GetAppType() == libkb.MobileAppType {
-		usage = "Post a random GIF"
-	}
 	return &Giphy{
 		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, true),
 		shownResults: make(map[string]*string),
@@ -55,13 +53,21 @@ func (s *Giphy) getQuery(text string) *string {
 	return query
 }
 
+func (s *Giphy) getLimit() int {
+	limit := 25
+	if s.G().GetAppType() == libkb.MobileAppType {
+		limit = 10
+	}
+	return limit
+}
+
 func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) (err error) {
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
 	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
-		s.G().AttachmentURLSrv)
+		s.getLimit(), s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
 		return err
@@ -118,7 +124,8 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	}
 	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true, false)
 	s.shownResults[convID.String()] = query
-	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query,
+
+	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query, s.getLimit(),
 		s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)

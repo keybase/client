@@ -339,18 +339,27 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallery")()
 	key := req.URL.Query().Get("key")
+	divStyle, err := url.QueryUnescape(req.URL.Query().Get("divstyle"))
+	if err != nil {
+		r.Debug(ctx, "serveGiphyGallery: failed to decode divstyle: %s", err)
+	}
+	vidStyle, err := url.QueryUnescape(req.URL.Query().Get("vidstyle"))
+	if err != nil {
+		r.Debug(ctx, "serveGiphyGallery: failed to decode vidstyle: %s", err)
+	}
 	infoInt, ok := r.giphyGalleryMap.Get(key)
 	if !ok {
 		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
 		return
 	}
+	r.Debug(ctx, "serveGiphyGallery: divStyle: %s vidStyle: %s", divStyle, vidStyle)
 	galleryInfo := infoInt.(giphyGalleryInfo)
 	var videoStr string
 	for _, res := range galleryInfo.results {
 		videoStr += fmt.Sprintf(`
-			<video src="%s" onclick="sendMessage('%s')" playsinline webkit-playsinline autoplay muted loop>
+			<video style="%s" src="%s" onclick="sendMessage('%s')" playsinline webkit-playsinline autoplay muted loop>
 			</video>
-		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
+		`, vidStyle, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
 			res.TargetUrl))
 	}
 	res := fmt.Sprintf(`
@@ -366,11 +375,11 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 			</script>
 		</head>
 		<body style="margin: 0px;">
-			<div style="display: flex; flex-direction: row; align-items: flex-end; overflow-x: auto; height: 100%%; -webkit-overflow-scrolling: touch;">
+			<div style="%s">
 				%s
 			</div>
 		</body>
-	</html>`, videoStr)
+	</html>`, divStyle, videoStr)
 	if _, err := io.WriteString(w, res); err != nil {
 		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to write giphy gallery: %s",
 			err)

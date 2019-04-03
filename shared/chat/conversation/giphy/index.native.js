@@ -7,8 +7,14 @@ import type {Props} from './index.types'
 
 class GiphySearch extends React.Component<Props, State> {
   render() {
+    const vidStyle = 'height: 100%25 ;'
+    const divStyle = `display: flex; flex-direction: row; height: 100%25 ; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap;  -webkit-overflow-scrolling: touch; border-top: 1px solid ${
+      Styles.globalColors.black_20
+    }; align-items: flex-end;`
     const source = {
-      uri: this.props.galleryURL,
+      uri: `${this.props.galleryURL}&divstyle=${encodeURIComponent(divStyle)}&vidstyle=${encodeURIComponent(
+        vidStyle
+      )}`,
     }
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
@@ -17,12 +23,13 @@ class GiphySearch extends React.Component<Props, State> {
             allowsInlineMediaPlayback={true}
             useWebKit={true}
             source={source}
-            style={styles.webview}
             automaticallyAdjustContentInsets={false}
             mediaPlaybackRequiresUserAction={false}
           />
         ) : (
-          <Kb.ProgressIndicator />
+          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+            <Kb.ProgressIndicator />
+          </Kb.Box2>
         )}
       </Kb.Box2>
     )
@@ -31,11 +38,7 @@ class GiphySearch extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    height: 100,
-    justifyContent: 'center',
-  },
-  webview: {
-    position: 'relative',
+    height: 80,
   },
 })
 
