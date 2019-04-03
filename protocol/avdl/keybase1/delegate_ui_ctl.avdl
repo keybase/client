@@ -11,6 +11,7 @@ protocol delegateUiCtl {
   void registerIdentify3UI();
   void registerChatUI();
   void registerGregorFirehose();
+  void registerResetUI();
 
   /**
    registerGregorFirehoseFilter allows a client to register for a filtered

@@ -40,6 +40,10 @@
       "request": [],
       "response": null
     },
+    "registerResetUI": {
+      "request": [],
+      "response": null
+    },
     "registerGregorFirehoseFiltered": {
       "request": [
         {

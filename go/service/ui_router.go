@@ -261,6 +261,5 @@ func (u *UIRouter) GetResetUI() (libkb.ResetUI, error) {
 		return nil, nil
 	}
 	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
-	uicli := keybase1.ResetUIClient{Cli: cli}
-	return uicli, nil
+	return NewRemoteResetUI(0, cli), nil
 }
