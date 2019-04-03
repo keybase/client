@@ -154,7 +154,16 @@ function* addProof(state, action) {
       yield Saga.take(RouteTreeGen.navigateUp)
       const state = yield Saga.selectState()
       const path = getPath(state.routeTree.routeState)
-      if (!['profileGenericEnterUsername', 'profileProveEnterUsername'].includes(path.last()) && !canceled) {
+      if (
+        ![
+          'profileGenericEnterUsername',
+          'profileProveEnterUsername',
+          'profileConfirmOrPending',
+          'profilePostProof',
+          'profileGenericProofSuccess',
+        ].includes(path.last()) &&
+        !canceled
+      ) {
         // We nav'd away without canceling
         yield Saga.put(ProfileGen.createCancelAddProof())
       }
