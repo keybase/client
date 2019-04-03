@@ -206,8 +206,9 @@ func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFil
 
 	// If they were in different order and we got triplesec bundle first, we
 	// would prompt for passphrase to get triplesec stream, and then prompt
-	// again to get passphrase stream to unlock LKSec bundle, prompting twice in total (assuming
-	// someone has both a server-synced bundle and local one).
+	// again to get passphrase stream to unlock LKSec bundle, prompting twice
+	// in total (assuming someone has both a server-synced bundle and local
+	// one).
 
 	for _, b := range ring.Blocks {
 		if !libkb.IsPGPAlgo(b.Type) {
