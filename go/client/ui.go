@@ -641,6 +641,10 @@ func (ui *UI) GetPgpUI() libkb.PgpUI {
 	return PgpUI{Contextified: libkb.NewContextified(ui.G()), w: ui.ErrorWriter()}
 }
 
+func (ui *UI) GetResetUI() libkb.ResetUI {
+	return ResetUI{Contextified: libkb.NewContextified(ui.G()), terminal: ui.GetTerminalUI()}
+}
+
 //============================================================
 
 type ProveUI struct {

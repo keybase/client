@@ -1,0 +1,36 @@
+{
+  "protocol": "resetUI",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "ResetPromptResult",
+      "symbols": [
+        "IGNORE_0",
+        "CANCEL_1",
+        "RESET_2"
+      ]
+    }
+  ],
+  "messages": {
+    "resetPrompt": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "text",
+          "type": "string"
+        },
+        {
+          "name": "reset",
+          "type": "boolean"
+        }
+      ],
+      "response": "ResetPromptResult",
+      "doc": "ResetPrompt asks user whether they would like to confirm an action\n   in the autoreset process."
+    }
+  },
+  "namespace": "keybase.1"
+}

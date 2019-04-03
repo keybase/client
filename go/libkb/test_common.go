@@ -376,6 +376,9 @@ func (n *nullui) GetPgpUI() PgpUI {
 func (n *nullui) GetProvisionUI(KexRole) ProvisionUI {
 	return nil
 }
+func (n *nullui) GetResetUI() ResetUI {
+	return nil
+}
 func (n *nullui) Prompt(string, bool, Checker) (string, error) {
 	return "", nil
 }

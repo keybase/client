@@ -22,6 +22,7 @@ const (
 	HomeUIKind
 	Identify3UIKind
 	ChatUIKind
+	ResetUIKind
 )
 
 func (u UIKind) String() string {
@@ -54,6 +55,8 @@ func (u UIKind) String() string {
 		return "Identify3UIKind"
 	case ChatUIKind:
 		return "ChatUI"
+	case ResetUIKind:
+		return "ResetUI"
 	}
 	panic(fmt.Sprintf("unhandled uikind: %d", u))
 }

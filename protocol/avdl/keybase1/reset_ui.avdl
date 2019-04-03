@@ -1,0 +1,15 @@
+@namespace("keybase.1")
+
+protocol resetUI {
+  enum ResetPromptResult {
+    IGNORE_0,
+    CANCEL_1,
+    RESET_2
+  }
+
+  /**
+   ResetPrompt asks user whether they would like to confirm an action
+   in the autoreset process.
+   */
+  ResetPromptResult resetPrompt(int sessionID, string text, boolean reset);
+}

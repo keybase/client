@@ -282,6 +282,7 @@ type UIs struct {
 	ProveUI     ProveUI
 	ProvisionUI ProvisionUI
 	SaltpackUI  SaltpackUI
+	ResetUI     ResetUI
 
 	// Usually set to `NONE`, meaning none specified.
 	// But if we know it, specify the end client type here
@@ -316,6 +317,8 @@ func (e UIs) HasUI(kind UIKind) bool {
 		return e.ProvisionUI != nil
 	case SaltpackUIKind:
 		return e.SaltpackUI != nil
+	case ResetUIKind:
+		return e.ResetUI != nil
 	}
 	panic(fmt.Sprintf("unhandled kind: %d", kind))
 }

@@ -446,6 +446,9 @@
         "keybase1RekeyUIRekeySendEvent": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'outParam'>) => void}"
         },
+        "keybase1ResetUIResetPrompt": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.resetUI.resetPrompt'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.resetUI.resetPrompt'>, 'outParam'>) => void}"
+        },
         "keybase1SaltpackUiSaltpackPromptForDecrypt": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'outParam'>) => void}"
         },

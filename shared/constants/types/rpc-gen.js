@@ -681,6 +681,12 @@ export const resetResetType = {
   delete: 2,
 }
 
+export const resetUIResetPromptResult = {
+  ignore: 0,
+  cancel: 1,
+  reset: 2,
+}
+
 export const runtimeRuntimeGroup = {
   unknown: 0,
   linuxlike: 1,
