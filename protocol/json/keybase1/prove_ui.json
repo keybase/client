@@ -182,10 +182,6 @@
         {
           "name": "sessionID",
           "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "string"
         }
       ],
       "response": "boolean"

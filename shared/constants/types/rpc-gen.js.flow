@@ -729,7 +729,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.proveUi.continueChecking': {|
-    inParam: $ReadOnly<{|name: String|}>,
+    inParam: void,
     outParam: Boolean,
   |},
   'keybase.1.proveUi.displayRecheckWarning': {|

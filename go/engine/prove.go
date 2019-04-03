@@ -335,7 +335,7 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 		m.Warning("prove ui Checking call error: %s", uierr)
 	}
 	for i := 0; ; i++ {
-		if shouldContinue, uierr := m.UIs().ProveUI.ContinueChecking(m.Ctx(), keybase1.ContinueCheckingArg{Name: p.serviceType.DisplayName()}); !shouldContinue || uierr != nil {
+		if shouldContinue, uierr := m.UIs().ProveUI.ContinueChecking(m.Ctx(), 0); !shouldContinue || uierr != nil {
 			if uierr != nil {
 				m.Warning("prove ui ContinueChecking call error: %s", uierr)
 			}

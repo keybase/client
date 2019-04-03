@@ -353,7 +353,7 @@ type ProveUI interface {
 	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
 	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
 	Checking(context.Context, keybase1.CheckingArg) error
-	ContinueChecking(context.Context, keybase1.ContinueCheckingArg) (bool, error)
+	ContinueChecking(context.Context, int) (bool, error)
 	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
