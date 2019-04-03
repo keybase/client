@@ -198,10 +198,6 @@ func (s *ScanKeys) KeyOwnerByEntity(entity *openpgp.Entity) *libkb.User {
 func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB) (err error) {
 	defer m.Trace("ScanKeys#coalesceBlocks", func() error { return err })()
 
-	if synced != nil {
-		s.skbs = append(s.skbs, synced)
-	}
-
 	for _, b := range ring.Blocks {
 		if !libkb.IsPGPAlgo(b.Type) {
 			continue
@@ -209,6 +205,10 @@ func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFil
 		// make sure uid set on each block:
 		b.SetUID(s.me.GetUID())
 		s.skbs = append(s.skbs, b)
+	}
+
+	if synced != nil {
+		s.skbs = append(s.skbs, synced)
 	}
 
 	return nil
