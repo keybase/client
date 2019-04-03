@@ -8,7 +8,6 @@ import Icon from '../icon'
 import Text from '../text'
 import * as Styles from '../../styles'
 import type {IconType} from '../icon.constants'
-import * as Shared from '../icon.shared'
 
 // generally one of icon or header will be given
 export type Props = {|
@@ -40,7 +39,7 @@ class _ConfirmModal extends React.PureComponent<Props> {
               <Icon
                 boxStyle={styles.icon}
                 color={Styles.globalColors.black_50}
-                fontSize={Shared.typeToFontSize('Big')}
+                fontSize={Styles.isMobile ? 64 : 48}
                 style={styles.icon}
                 type={iconType}
               />
