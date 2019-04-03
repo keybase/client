@@ -22,5 +22,23 @@ type ResetUI struct {
 }
 
 func (r ResetUI) ResetPrompt(ctx context.Context, arg keybase1.ResetPromptArg) (keybase1.ResetPromptResult, error) {
+	if arg.Reset {
+		ret, err := r.terminal.PromptYesNo(0, arg.Text+" Would you like to reset?", libkb.PromptDefaultNeither)
+		if err != nil {
+			return keybase1.ResetPromptResult_IGNORE, err
+		}
+		if ret {
+			return keybase1.ResetPromptResult_RESET, nil
+		}
+	}
+
+	ret, err := r.terminal.PromptYesNo(0, arg.Text+" Would you like to cancel?", libkb.PromptDefaultNeither)
+	if err != nil {
+		return keybase1.ResetPromptResult_IGNORE, err
+	}
+	if ret {
+		return keybase1.ResetPromptResult_CANCEL, nil
+	}
+
 	return keybase1.ResetPromptResult_IGNORE, nil
 }
