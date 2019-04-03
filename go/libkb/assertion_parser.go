@@ -32,7 +32,7 @@ func (t Token) getString() string {
 func (t Token) unexpectedError() error {
 	switch t.Typ {
 	case EOF:
-		return NewAssertionParseError("Unexpected EOF")
+		return NewAssertionParseError("Unexpected EOF parsing assertion")
 	case ERROR:
 		// Nothing was matched when arrived at t.value.
 		return NewAssertionParseError("Syntax error when parsing: %v", t.getString())

@@ -103,12 +103,12 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	sigInner, err := claim.Marshal()
+	sigInner, err := claim.J.Marshal()
 	if err != nil {
 		return err
 	}
 
-	sig, _, _, err := libkb.MakeSig(
+	sig, _, linkID, err := libkb.MakeSig(
 		m,
 		sigKey,
 		libkb.LinkTypeCryptocurrency,
@@ -144,6 +144,11 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,
 	})
+	if err != nil {
+		return err
+	}
+
+	err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), claim.Seqno, linkID)
 	if err != nil {
 		return err
 	}
