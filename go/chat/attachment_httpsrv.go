@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,6 +40,7 @@ type AttachmentHTTPSrv struct {
 	unfurlEndpoint       string
 	giphyEndpoint        string
 	giphyGalleryEndpoint string
+	giphySelectEndpoint  string
 	httpSrv              *kbhttp.Srv
 	urlMap               *lru.Cache
 	unfurlMap            *lru.Cache
@@ -75,6 +77,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 		unfurlEndpoint:       "uf",
 		giphyEndpoint:        "gf",
 		giphyGalleryEndpoint: "gg",
+		giphySelectEndpoint:  "gs",
 		ri:                   ri,
 		urlMap:               l,
 		unfurlMap:            um,
@@ -146,6 +149,7 @@ func (r *AttachmentHTTPSrv) startHTTPSrv() {
 	r.httpSrv.HandleFunc("/"+r.unfurlEndpoint, r.serveUnfurlAsset)
 	r.httpSrv.HandleFunc("/"+r.giphyEndpoint, r.serveGiphyLink)
 	r.httpSrv.HandleFunc("/"+r.giphyGalleryEndpoint, r.serveGiphyGallery)
+	r.httpSrv.HandleFunc("/"+r.giphySelectEndpoint, r.serveGiphyGallerySelect)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -225,9 +229,14 @@ func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) st
 	return url
 }
 
-func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, urls []string) string {
+func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
+	tlfName string, results []chat1.GiphySearchResult) string {
 	defer r.Trace(ctx, func() error { return nil }, "GetGiphyGalleryURL")()
-	url := r.getURL(ctx, "gg", r.giphyGalleryEndpoint, r.giphyGalleryMap, urls)
+	url := r.getURL(ctx, "gg", r.giphyGalleryEndpoint, r.giphyGalleryMap, giphyGalleryInfo{
+		results: results,
+		convID:  convID,
+		tlfName: tlfName,
+	})
 	r.Debug(ctx, "GetGiphyGalleryURL: handler URL: %s", url)
 	return url
 }
@@ -285,26 +294,72 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Re
 	}
 }
 
+type giphyGalleryInfo struct {
+	results []chat1.GiphySearchResult
+	convID  chat1.ConversationID
+	tlfName string
+}
+
+func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID chat1.ConversationID,
+	tlfName, targetURL string) string {
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "getGiphySelectURL: failed to get HTTP server address: %s", err)
+		return ""
+	}
+	return fmt.Sprintf("http://%s/%s?url=%s&convID=%s&tlfName=%s", addr, r.giphySelectEndpoint,
+		url.QueryEscape(targetURL), convID, tlfName)
+}
+
+func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(w http.ResponseWriter, req *http.Request) {
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallerySelect")()
+	url := req.URL.Query().Get("url")
+	strConvID := req.URL.Query().Get("convID")
+	tlfName := req.URL.Query().Get("tlfName")
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to decode convID: %s",
+			err)
+		return
+	}
+	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url); err != nil {
+		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to send giphy url: %s",
+			err)
+	}
+}
+
 func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.Request) {
 	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallery")()
 	key := req.URL.Query().Get("key")
-	urls, ok := r.giphyGalleryMap.Get(key)
+	infoInt, ok := r.giphyGalleryMap.Get(key)
 	if !ok {
 		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
 		return
 	}
+	galleryInfo := infoInt.(giphyGalleryInfo)
 	var videoStr string
-	for _, u := range urls.([]string) {
+	for _, res := range galleryInfo.results {
 		videoStr += fmt.Sprintf(`
-			<video src="%s" playsinline webkit-playsinline autoplay muted loop></video>
-		`, u)
+			<video src="%s" onclick="sendMessage('%s')" playsinline webkit-playsinline autoplay muted loop>
+			</video>
+		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
+			res.TargetUrl))
 	}
 	res := fmt.Sprintf(`
 	<html>
 		<head>
 			<title>Keybase Giphy Gallery</title>
+			<script>
+				window.sendMessage = function(url) {
+					var req = new XMLHttpRequest();
+					req.open("GET", url);
+					req.send();
+				}
+			</script>
 		</head>
 		<body style="margin: 0px;">
 			<div style="display: flex; flex-direction: row; align-items: flex-end; overflow-x: auto; height: 100%%;">

@@ -305,7 +305,8 @@ func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 func (d DummyAttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
 	return ""
 }
-func (d DummyAttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, urls []string) string {
+func (d DummyAttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
+	tlfName string, results []chat1.GiphySearchResult) string {
 	return ""
 }
 func (d DummyAttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {}

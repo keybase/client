@@ -401,7 +401,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.local.updateUnsentText': {|
-    inParam: $ReadOnly<{|conversationID: ConversationID, text: String|}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, text: String|}>,
     outParam: void,
   |},
 |}

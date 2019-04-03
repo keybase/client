@@ -13,12 +13,12 @@ import (
 )
 
 type giphySearcher interface {
-	Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) (chat1.GiphySearchResults, error)
+	Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
 }
 
 type defaultGiphySearcher struct{}
 
-func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) (chat1.GiphySearchResults, error) {
+func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
 	return giphy.Search(mctx, query, urlsrv)
 }
 
@@ -66,11 +66,11 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
 		return err
 	}
-	if len(results.Results) == 0 {
+	if len(results) == 0 {
 		s.Debug(ctx, "Execute: failed to find any results")
 		return nil
 	}
-	res := results.Results[libkb.RandIntn(len(results.Results))]
+	res := results[libkb.RandIntn(len(results))]
 	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl, nil)
 	return err
 }
@@ -84,7 +84,8 @@ func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat
 	return nil
 }
 
-func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
+func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	tlfName, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "Preview")()
 	s.Lock()
 	if s.currentOpCancelFn != nil {
@@ -122,5 +123,8 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
 		return
 	}
-	s.getChatUI().ChatGiphySearchResults(ctx, convID, results)
+	s.getChatUI().ChatGiphySearchResults(ctx, convID, chat1.GiphySearchResults{
+		Results:    results,
+		GalleryUrl: s.G().AttachmentURLSrv.GetGiphyGalleryURL(ctx, convID, tlfName, results),
+	})
 }
