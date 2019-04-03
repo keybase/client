@@ -1,13 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import {Box2, Button, FloatingMenu, OverlayParentHOC, type OverlayParentProps} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {compose, connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {teamsTab} from '../../../constants/tabs'
 
 type Props = {|
-  ...$Exact<OverlayParentProps>,
+  ...$Exact<Kb.OverlayParentProps>,
   isAdmin: boolean,
   isGeneralChannel: boolean,
   onAddPeople: () => void,
@@ -17,7 +18,6 @@ type Props = {|
 const _AddPeople = (props: Props) => {
   let menu = null
   let directAction = null
-  let directLabel = null
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
     const items = [
@@ -25,7 +25,7 @@ const _AddPeople = (props: Props) => {
       {onClick: props.onAddToChannel, title: 'To channel'},
     ]
     menu = (
-      <FloatingMenu
+      <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         items={items}
@@ -36,22 +36,22 @@ const _AddPeople = (props: Props) => {
     )
   } else {
     directAction = props.onAddPeople
-    directLabel = 'Add to team'
   }
   if (!props.isAdmin) {
     directAction = props.onAddToChannel
-    directLabel = 'Add to channel'
   }
   return (
-    <Box2 direction="horizontal" centerChildren={true}>
+    <Kb.Box2 direction="horizontal" centerChildren={true}>
       {menu}
-      <Button
+      <Kb.Button
         type="Primary"
         onClick={directAction || props.toggleShowingMenu}
-        label={directLabel || 'Add someone...'}
         ref={props.setAttachmentRef}
-      />
-    </Box2>
+        small={true}
+      >
+        <Kb.Icon type="iconfont-new" color={Styles.globalColors.white} />
+      </Kb.Button>
+    </Kb.Box2>
   )
 }
 _AddPeople.displayName = 'AddPeople'
@@ -95,7 +95,7 @@ const AddPeople = compose(
       onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),
     })
   ),
-  OverlayParentHOC
+  Kb.OverlayParentHOC
 )(_AddPeople)
 
 export default AddPeople

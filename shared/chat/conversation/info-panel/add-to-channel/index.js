@@ -113,8 +113,8 @@ class AddToChannel extends React.Component<Props, State> {
                 type="Primary"
                 label={
                   this.state.selected.size
-                    ? `Add ${this.state.selected.size} ${pluralize('user', this.state.selected.size)}`
-                    : 'Add'
+                    ? `!Add ${this.state.selected.size} ${pluralize('user', this.state.selected.size)}`
+                    : '!Add'
                 }
                 onClick={() => this.props.onSubmit(this.state.selected.toArray())}
               />

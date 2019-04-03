@@ -8,7 +8,7 @@ import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} fro
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participant from './participant'
-import {ParticipantCount} from './participant-count'
+import {ParticipantsHeader} from './participants-header'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
@@ -168,9 +168,9 @@ type UnhideThisConversationRow = {
   onUnhideConv: () => void,
 }
 
-type ParticipantCountRow = {
-  type: 'participant count',
-  key: 'participant count',
+type ParticipantsHeaderRow = {
+  type: 'participants header',
+  key: 'participants header',
   label: string,
   participantCount: number,
   teamname: ?string,
@@ -221,7 +221,7 @@ type TeamHeaderRow =
   | DividerRow
   | SpacerRow
   | NotificationsRow
-  | ParticipantCountRow
+  | ParticipantsHeaderRow
   | RetentionRow
   | ClearThisConversationRow
   | HideThisConversationRow
@@ -330,10 +330,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           />
         )
 
-      case 'participant count':
+      case 'participants header':
         return (
-          <ParticipantCount
-            key="participant count"
+          <ParticipantsHeader
+            key="participants header"
             label={row.label}
             participantCount={row.participantCount}
             isAdmin={row.isAdmin}
@@ -452,16 +452,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           type: 'small team header',
         },
       ]
-      if (props.teamname && !props.isPreview && (props.admin || channelname !== 'general')) {
-        // admins can add people to the team and to channels
-        // anyone else can only add people to channels
-        subHeaderRows.push({
-          key: nextKey(),
-          marginBottom: 8,
-          marginTop: 8,
-          type: 'divider',
-        })
-      }
       if (props.smallTeam) {
         // Small team.
         headerRows = [
@@ -541,11 +531,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           {
             isAdmin: props.admin,
             isGeneralChannel: props.channelname === 'general',
-            key: 'participant count',
+            key: 'participants header',
             label: 'In this team',
             participantCount,
             teamname: props.teamname,
-            type: 'participant count',
+            type: 'participants header',
           },
         ]
       } else {
@@ -562,11 +552,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         const participantCountRow = {
           isAdmin: props.admin,
           isGeneralChannel: props.channelname === 'general',
-          key: 'participant count',
+          key: 'participants header',
           label: 'In this channel',
           participantCount,
           teamname: props.teamname,
-          type: 'participant count',
+          type: 'participants header',
         }
 
         if (props.isPreview) {
