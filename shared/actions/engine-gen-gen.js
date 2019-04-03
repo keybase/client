@@ -138,6 +138,7 @@ export const keybase1PgpUiOutputSignatureSuccess = 'engine-gen:keybase1PgpUiOutp
 export const keybase1PgpUiOutputSignatureSuccessNonKeybase = 'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase'
 export const keybase1PgpUiShouldPushPrivate = 'engine-gen:keybase1PgpUiShouldPushPrivate'
 export const keybase1ProveUiChecking = 'engine-gen:keybase1ProveUiChecking'
+export const keybase1ProveUiContinueChecking = 'engine-gen:keybase1ProveUiContinueChecking'
 export const keybase1ProveUiDisplayRecheckWarning = 'engine-gen:keybase1ProveUiDisplayRecheckWarning'
 export const keybase1ProveUiOkToCheck = 'engine-gen:keybase1ProveUiOkToCheck'
 export const keybase1ProveUiOutputInstructions = 'engine-gen:keybase1ProveUiOutputInstructions'
@@ -306,6 +307,7 @@ type _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = $ReadOnly<{|params:
 type _Keybase1PgpUiOutputSignatureSuccessPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'outParam'>) => void}|}>
 type _Keybase1PgpUiShouldPushPrivatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'outParam'>) => void}|}>
 type _Keybase1ProveUiCheckingPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'outParam'>) => void}|}>
+type _Keybase1ProveUiContinueCheckingPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.continueChecking'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.continueChecking'>, 'outParam'>) => void}|}>
 type _Keybase1ProveUiDisplayRecheckWarningPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'outParam'>) => void}|}>
 type _Keybase1ProveUiOkToCheckPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'outParam'>) => void}|}>
 type _Keybase1ProveUiOutputInstructionsPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'outParam'>) => void}|}>
@@ -474,6 +476,7 @@ export const createKeybase1PgpUiOutputSignatureSuccess = (payload: _Keybase1PgpU
 export const createKeybase1PgpUiOutputSignatureSuccessNonKeybase = (payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload) => ({payload, type: keybase1PgpUiOutputSignatureSuccessNonKeybase})
 export const createKeybase1PgpUiShouldPushPrivate = (payload: _Keybase1PgpUiShouldPushPrivatePayload) => ({payload, type: keybase1PgpUiShouldPushPrivate})
 export const createKeybase1ProveUiChecking = (payload: _Keybase1ProveUiCheckingPayload) => ({payload, type: keybase1ProveUiChecking})
+export const createKeybase1ProveUiContinueChecking = (payload: _Keybase1ProveUiContinueCheckingPayload) => ({payload, type: keybase1ProveUiContinueChecking})
 export const createKeybase1ProveUiDisplayRecheckWarning = (payload: _Keybase1ProveUiDisplayRecheckWarningPayload) => ({payload, type: keybase1ProveUiDisplayRecheckWarning})
 export const createKeybase1ProveUiOkToCheck = (payload: _Keybase1ProveUiOkToCheckPayload) => ({payload, type: keybase1ProveUiOkToCheck})
 export const createKeybase1ProveUiOutputInstructions = (payload: _Keybase1ProveUiOutputInstructionsPayload) => ({payload, type: keybase1ProveUiOutputInstructions})
@@ -642,6 +645,7 @@ export type Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {|+payload: _
 export type Keybase1PgpUiOutputSignatureSuccessPayload = {|+payload: _Keybase1PgpUiOutputSignatureSuccessPayload, +type: 'engine-gen:keybase1PgpUiOutputSignatureSuccess'|}
 export type Keybase1PgpUiShouldPushPrivatePayload = {|+payload: _Keybase1PgpUiShouldPushPrivatePayload, +type: 'engine-gen:keybase1PgpUiShouldPushPrivate'|}
 export type Keybase1ProveUiCheckingPayload = {|+payload: _Keybase1ProveUiCheckingPayload, +type: 'engine-gen:keybase1ProveUiChecking'|}
+export type Keybase1ProveUiContinueCheckingPayload = {|+payload: _Keybase1ProveUiContinueCheckingPayload, +type: 'engine-gen:keybase1ProveUiContinueChecking'|}
 export type Keybase1ProveUiDisplayRecheckWarningPayload = {|+payload: _Keybase1ProveUiDisplayRecheckWarningPayload, +type: 'engine-gen:keybase1ProveUiDisplayRecheckWarning'|}
 export type Keybase1ProveUiOkToCheckPayload = {|+payload: _Keybase1ProveUiOkToCheckPayload, +type: 'engine-gen:keybase1ProveUiOkToCheck'|}
 export type Keybase1ProveUiOutputInstructionsPayload = {|+payload: _Keybase1ProveUiOutputInstructionsPayload, +type: 'engine-gen:keybase1ProveUiOutputInstructions'|}
@@ -812,6 +816,7 @@ export type Actions =
   | Keybase1PgpUiOutputSignatureSuccessPayload
   | Keybase1PgpUiShouldPushPrivatePayload
   | Keybase1ProveUiCheckingPayload
+  | Keybase1ProveUiContinueCheckingPayload
   | Keybase1ProveUiDisplayRecheckWarningPayload
   | Keybase1ProveUiOkToCheckPayload
   | Keybase1ProveUiOutputInstructionsPayload

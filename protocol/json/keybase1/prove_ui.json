@@ -177,6 +177,19 @@
       ],
       "response": null
     },
+    "continueChecking": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
     "displayRecheckWarning": {
       "request": [
         {

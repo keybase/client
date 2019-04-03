@@ -147,7 +147,6 @@ function* addProof(state, action) {
 
   const promptUsername = (args, response) => {
     const {parameters, prevError} = args
-    // TODO get parameters from this
     if (canceled) {
       cancelResponse(response)
       return
@@ -210,9 +209,16 @@ function* addProof(state, action) {
   }
 
   const checking = (_, response) => {
+    if (canceled) {
+      cancelResponse(response)
+      return
+    }
     response.result()
     return [Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: true}))]
   }
+
+  // service calls in when it polls to give us an opportunity to cancel
+  const continueChecking = (_, response) => (canceled ? response.result(false) : response.result(true))
 
   const responseYes = (_, response) => response.result(true)
 
@@ -220,6 +226,7 @@ function* addProof(state, action) {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
       customResponseIncomingCallMap: {
         'keybase.1.proveUi.checking': checking,
+        'keybase.1.proveUi.continueChecking': continueChecking,
         'keybase.1.proveUi.okToCheck': responseYes,
         'keybase.1.proveUi.outputInstructions': outputInstructions,
         'keybase.1.proveUi.preProofWarning': responseYes,

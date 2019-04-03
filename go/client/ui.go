@@ -711,6 +711,11 @@ func (p ProveUI) Checking(_ context.Context, arg keybase1.CheckingArg) error {
 	return nil
 }
 
+func (p ProveUI) ContinueChecking(_ context.Context, _ keybase1.ContinueCheckingArg) (bool, error) {
+	// Only used by UI to cancel during polling.
+	return true, nil
+}
+
 func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	p.render(arg.Text)
 	return nil
