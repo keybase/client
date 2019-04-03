@@ -26,7 +26,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       icon: s.pickerIcon,
       key: s.assertionKey,
       name: s.pickerText,
-      new: s.metas.reduce((acc, {label}) => acc || label === 'new', false),
+      new: s.metas.some(({label}) => label === 'new'),
     }))
     .toArray(),
   title: 'Prove your...',
