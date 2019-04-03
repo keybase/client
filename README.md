@@ -1,88 +1,88 @@
-## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
+zec-qt-wallet is a z-Addr first, Sapling compatible wallet and full node for zcashd that runs on Linux, Windows and macOS.
 
-Hi, and welcome to the Keybase client repo.  All our client apps (macOS,
-Windows, Linux, iOS, and Android) are being actively developed in this
-repository. Please, dig around.
+![Screenshot](docs/screenshot-main.png?raw=true)
+![Screenshots](docs/screenshot-sub.png?raw=true)
+# Installation
 
-### Warnings
+Head over to the releases page and grab the latest installers or binary. https://github.com/ZcashFoundation/zec-qt-wallet/releases
 
-We'd love you to read our source code.
+### Linux
 
-But - some of the things in this repo are explorations, and the app you build
-from source just *might not do what it says it's doing*. So, if you just want
-to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for macOS, Linux, or Windows.
+If you are on Debian/Ubuntu, please download the `.deb` package and install it.
+```
+sudo dpkg -i linux-deb-zec-qt-wallet-v0.5.2.deb
+sudo apt install -f
+```
 
-![Sharing](https://keybase.io/images/github/repo_share.png?)
+Or you can download and run the binaries directly.
+```
+tar -xvf zec-qt-wallet-v0.5.2.tar.gz
+./zec-qt-wallet-v0.5.2/zec-qt-wallet
+```
 
+### Windows
+Download and run the .msi installer and follow the prompts. Alternately, you can download the release binary, unzip it and double click on zec-qt-wallet to start.
 
-### Code Layout
+### macOS
+Double-click on the .dmg file to open it, and drag zec-qt-wallet on to the Applications link to install.
 
-* **go**: Core crypto libraries; the Keybase service; the command line client. [Learn More](go/README.md)
-* **shared/react-native**: Android and iOS apps developed with [React Native](https://facebook.github.io/react-native/).
-* **shared/desktop**: Desktop application for macOS, Linux, and Windows, made with the [Electron](https://github.com/atom/electron) framework, sharing React code with react-native.
-* **packaging**: Scripts for releasing packages across the various platforms.
-* **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)
-* **media**: Icons, graphics, media for Keybase apps.
-* **osx**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
+## zcashd
+zec-qt-wallet needs a Zcash node running zcashd. If you already have a zcashd node running, zec-qt-wallet will connect to it. 
 
-### Problems?
+If you don't have one, zec-qt-wallet will start its embedded zcashd node. 
 
-Report any issues with client software on this GitHub
-[issue tracker](https://github.com/keybase/client/issues).
-Internally, we track our progress using Jira, but all PRs come through GitHub
-for your review!
+Additionally, if this is the first time you're running zec-qt-wallet or a zcashd daemon, zec-qt-wallet will download the zcash params (~1.7 GB) and configure `zcash.conf` for you. 
 
-If you're having problems with the command line `keybase` client, take a
-look at [the troubleshooting doc](go/doc/troubleshooting.md).
+Pass `--no-embedded` to disable the embedded zcashd and force zec-qt-wallet to connect to an external node.
 
-If you're having problems with our Website, try the
-[keybase-issues](https://github.com/keybase/keybase-issues) issue tracker.
+## Compiling from source
+zec-qt-wallet is written in C++ 14, and can be compiled with g++/clang++/visual c++. It also depends on Qt5, which you can get from [here](https://www.qt.io/download). Note that if you are compiling from source, you won't get the embedded zcashd by default. You can either run an external zcashd, or compile zcashd as well. 
 
-We check and update both frequently.
+See detailed build instructions [on the wiki](https://github.com/ZcashFoundation/zec-qt-wallet/wiki/Compiling-from-source-code)
 
-### License
+### Building on Linux
 
-Most code is released under the New BSD (3 Clause) License.  If subdirectories
-include a different license, that license applies instead.
+```
+git clone https://github.com/ZcashFoundation/zec-qt-wallet.git
+cd zec-qt-wallet
+/path/to/qt5/bin/qmake zec-qt-wallet.pro CONFIG+=debug
+make -j$(nproc)
 
-### Development Guidelines
+./zec-qt-wallet
+```
 
-We check all git commits with pre-commit hooks generated via
-[pre-commit.com](http://pre-commit.com) pre-commit hooks.
-To enable use of these pre-commit hooks:
+### Building on Windows
+You need Visual Studio 2017 (The free C++ Community Edition works just fine). 
 
-* [Install](http://pre-commit.com/#install) the `pre-commit` utility. For some common cases:
-  * `pip install pre-commit`
-  * `brew install pre-commit`
-* Remove any existing pre-commit hooks via `rm .git/hooks/pre-commit`
-* Configure via `pre-commit install`
+From the VS Tools command prompt
+```
+git clone https://github.com/ZcashFoundation/zec-qt-wallet.git
+cd zec-qt-wallet
+c:\Qt5\bin\qmake.exe zec-qt-wallet.pro -spec win32-msvc CONFIG+=debug
+nmake
 
-Then proceed as normal.
+debug\zec-qt-wallet.exe
+```
 
-#### External Contributors
+To create the Visual Studio project files so you can compile and run from Visual Studio:
+```
+c:\Qt5\bin\qmake.exe zec-qt-wallet.pro -tp vc CONFIG+=debug
+```
 
-If you forked this repository on GitHub and made a PR, then it'll show up as
-having failed Jenkins CI. We do not build external PRs because it's a security
-risk to do so without a review first. If your PR is successfully reviewed by a
-member of the Keybase team, then we will merge your commits to a branch on our
-primary fork and build from there.
+### Building on macOS
+You need to install the Xcode app or the Xcode command line tools first, and then install Qt. 
 
+```
+git clone https://github.com/ZcashFoundation/zec-qt-wallet.git
+cd zec-qt-wallet
+/path/to/qt5/bin/qmake zec-qt-wallet.pro CONFIG+=debug
+make
 
-### Cryptography Notice
+./zec-qt-wallet.app/Contents/MacOS/zec-qt-wallet
+```
 
-This distribution includes cryptographic software. The country in which you
-currently reside may have restrictions on the import, possession, use, and/or
-re-export to another country, of encryption software. BEFORE using any
-encryption software, please check your country's laws, regulations and policies
-concerning the import, possession, or use, and re-export of encryption
-software, to see if this is permitted. See http://www.wassenaar.org/ for more
-information.
+### [Troubleshooting Guide & FAQ](https://github.com/ZcashFoundation/zec-qt-wallet/wiki/Troubleshooting-&-FAQ)
+Please read the [troubleshooting guide](https://github.com/ZcashFoundation/zec-qt-wallet/wiki/Troubleshooting-&-FAQ) for common problems and solutions.
+For support or other questions, tweet at [@zecqtwallet](https://twitter.com/zecqtwallet) or [file an issue](https://github.com/ZcashFoundation/zec-qt-wallet/issues).
 
-The U.S. Government Department of Commerce, Bureau of Industry and Security
-(BIS), has classified this software as Export Commodity Control Number (ECCN)
-5D002.C.1, which includes information security software using or performing
-cryptographic functions with asymmetric algorithms. The form and manner of this
-distribution makes it eligible for export under the License Exception ENC
-Technology Software Unrestricted (TSU) exception (see the BIS Export
-Administration Regulations, Section 740.13) for both object code and source
-code.
+_PS: zec-qt-wallet is NOT an official wallet, and is not affiliated with the Zerocoin Electric Coin Company in any way._

@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/fonts">
+        <file>res/Ubuntu-R.ttf</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>res/connected.gif</file>
+        <file>res/loading.gif</file>
+        <file>res/icon.ico</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file>res/zcashdlogo.gif</file>
+        <file>res/logobig.gif</file>
+    </qresource>
+    <qresource prefix="/translations">
+        <file>res/zec_qt_wallet_es.qm</file>
+        <file>res/zec_qt_wallet_fr.qm</file>
+        <file>res/zec_qt_wallet_pt.qm</file>
+    </qresource>
+</RCC>

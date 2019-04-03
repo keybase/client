@@ -1,0 +1,25 @@
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7', 'g++-8']
+
+before_install:
+ - sudo add-apt-repository ppa:beineri/opt-qt591-trusty -y
+ - sudo apt-get update -qq
+ - sudo apt-get install qt59base
+ - source /opt/qt59/bin/qt59-env.sh
+
+script:
+ - qmake -v
+ - clang++ -v
+ - g++-8 -v
+ - qmake zec-qt-wallet.pro CONFIG+=release -spec linux-g++
+ - make CC=gcc-8 CXX=g++-8 -j2
+ - make distclean
+ - qmake zec-qt-wallet.pro CONFIG+=release -spec linux-clang
+ - make CC=clang CXX=clang++ -j2
