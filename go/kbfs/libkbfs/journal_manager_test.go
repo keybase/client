@@ -418,7 +418,7 @@ func TestJournalManagerRestart(t *testing.T) {
 	require.NoError(t, err)
 
 	// Simulate a restart.
-
+	jManager.shutdown(ctx)
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
@@ -431,6 +431,9 @@ func TestJournalManagerRestart(t *testing.T) {
 	config.SetMDOps(jManager.mdOps())
 
 	// Get the block.
+
+	blockServer = config.BlockServer()
+	mdOps = config.MDOps()
 
 	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
@@ -894,6 +897,7 @@ func TestJournalManagerNukeEmptyJournalsOnRestart(t *testing.T) {
 
 	// Simulate a restart and make sure the journal doesn't come back
 	// up.
+	jManager.shutdown(ctx)
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
@@ -962,7 +966,7 @@ func TestJournalManagerTeamTLFWithRestart(t *testing.T) {
 	require.NoError(t, err)
 
 	// Simulate a restart.
-
+	jManager.shutdown(ctx)
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
@@ -981,6 +985,9 @@ func TestJournalManagerTeamTLFWithRestart(t *testing.T) {
 	require.Equal(t, id.AsUserOrTeam(), tj.chargedTo)
 
 	// Get the block.
+
+	blockServer = config.BlockServer()
+	mdOps = config.MDOps()
 
 	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)

@@ -480,13 +480,7 @@ func (s *blockDiskStore) hasData(
 	}
 	defer cleanup()
 
-	_, err = ioutil.Stat(s.dataPath(id))
-	if ioutil.IsNotExist(err) {
-		return false, nil
-	} else if err != nil {
-		return false, err
-	}
-	return true, nil
+	return s.hasDataExclusive(id)
 }
 
 func (s *blockDiskStore) isUnflushed(
@@ -541,17 +535,16 @@ func (s *blockDiskStore) getDataSize(
 	defer cleanup()
 
 	buf, _, err := s.getDataExclusive(id)
-	switch errors.Cause(err) {
+	switch errors.Cause(err).(type) {
 	case nil:
-	case ldberrors.ErrNotFound:
+		// TODO: put the size in the info maybe, so we can look it up
+		// without reading the whole data chunk?
+		return int64(len(buf)), nil
+	case blockNonExistentError:
 		return 0, nil
 	default:
 		return 0, err
 	}
-
-	// TODO: put the size in the info maybe, so we can look it up
-	// without reading the whole data chunk?
-	return int64(len(buf)), nil
 
 	/*
 		fi, err := ioutil.Stat(s.dataPath(id))

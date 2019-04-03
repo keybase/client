@@ -1910,6 +1910,7 @@ func (j *tlfJournal) shutdown(ctx context.Context) {
 	storedFiles := j.blockJournal.getStoredFiles()
 	j.diskLimiter.onJournalDisable(
 		ctx, storedBytes, unflushedBytes, storedFiles, j.chargedTo)
+	_ = j.blockJournal.s.close()
 
 	// Make further accesses error out.
 	j.blockJournal = nil
