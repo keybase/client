@@ -46,6 +46,8 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
 	defer mctx.TraceTimed("SecretStoreUpgradeable.StoreSecret", func() error { return err })()
 
+	mctx.Debug("@@@ IN STORE - SET OPTIONS %+v", s.options)
+
 	if s.shouldStoreInFallback(s.options) {
 		return s.b.StoreSecret(mctx, username, secret)
 	}

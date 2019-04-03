@@ -39,12 +39,16 @@ func (s *SecretStoreSecretService) maybeRetrieveSingleItem(mctx MetaContext, srv
 	if srv == nil {
 		return nil, fmt.Errorf("got nil d-bus secretservice")
 	}
-	items, err := srv.SearchCollection(secsrv.DefaultCollection, s.makeAttributes(mctx, username))
+	attributes := s.makeAttributes(mctx, username)
+	items, err := srv.SearchCollection(secsrv.DefaultCollection, attributes)
 	if err != nil {
 		return nil, err
 	}
-	if len(items) < 1 { // TODO and if > 1? clear all..or something
+	if len(items) < 1 {
 		return nil, nil
+	}
+	if len(items) > 1 {
+		mctx.Warning("found more than one match in keyring for query %+v", attributes)
 	}
 	item := items[0]
 	err = srv.Unlock([]dbus.ObjectPath{item})
@@ -158,6 +162,5 @@ func (s *SecretStoreSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (
 	return usernames, nil
 }
 
-// TODO if there are more than 1, what should we do? just delete all of them and fail?
 func (s *SecretStoreSecretService) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
 func (s *SecretStoreSecretService) SetOptions(MetaContext, *SecretStoreOptions) {}
