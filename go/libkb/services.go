@@ -174,7 +174,10 @@ func (t *BaseServiceType) CanMakeNewProofs(mctx MetaContext) bool {
 }
 
 func (t *BaseServiceType) IsNew(mctx MetaContext) bool {
-	return false
+	if t.displayConf == nil {
+		return false
+	}
+	return t.displayConf.New
 }
 
 //=============================================================================

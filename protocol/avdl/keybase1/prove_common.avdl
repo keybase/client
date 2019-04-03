@@ -147,6 +147,7 @@ protocol proveCommon {
     int priority;
     string key;
     union { null, string } group;
+    boolean new;
   }
 
   record ExternalServiceConfig {

@@ -324,7 +324,3 @@ func (t *GenericSocialProofServiceType) ProveParameters(mctx libkb.MetaContext) 
 		ButtonLabel: fmt.Sprintf("Authorize on %v", t.config.Domain),
 	}
 }
-
-func (t *GenericSocialProofServiceType) IsNew(mctx libkb.MetaContext) bool {
-	return true
-}
