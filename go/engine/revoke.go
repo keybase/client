@@ -240,7 +240,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 			return err
 		}
 		newPukSeqno = me.GetSigChainLastKnownSeqno()
-		sigsList = append(sigsList, sig1)
+		sigsList = append(sigsList, sig1.Payload)
 	}
 
 	// Push the revoke sig
@@ -299,9 +299,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-
-	err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), lastSeqno, lastLinkID)
-	if err != nil {
+	if err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), lastSeqno, lastLinkID); err != nil {
 		return err
 	}
 
