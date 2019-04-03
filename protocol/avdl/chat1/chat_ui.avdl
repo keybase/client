@@ -290,7 +290,7 @@ protocol chatUi {
     string galleryUrl;
   }
   void chatGiphySearchResults(int sessionID, string convID, GiphySearchResults results);
-  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show);
+  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show, boolean clearInput);
 
   void chatShowManageChannels(int sessionID, string teamname);
 

@@ -543,7 +543,8 @@
     "giphyToggleWindow": {
       "_description": "Toggle Giphy search preview window",
       "conversationIDKey": "Types.ConversationIDKey",
-      "show": "boolean"
+      "show": "boolean",
+      "clearInput": "boolean"
     },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"

@@ -328,6 +328,10 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(w http.ResponseWriter, req *
 		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to send giphy url: %s",
 			err)
 	}
+	ui, err := r.G().UIRouter.GetChatUI()
+	if err == nil && ui != nil {
+		ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+	}
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.Request) {
@@ -362,7 +366,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 			</script>
 		</head>
 		<body style="margin: 0px;">
-			<div style="display: flex; flex-direction: row; align-items: flex-end; overflow-x: auto; height: 100%%;">
+			<div style="display: flex; flex-direction: row; align-items: flex-end; overflow-x: auto; height: 100%%; -webkit-overflow-scrolling: touch;">
 				%s
 			</div>
 		</body>

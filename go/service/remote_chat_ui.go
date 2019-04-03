@@ -112,11 +112,12 @@ func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.
 }
 
 func (r *RemoteChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID,
-	show bool) error {
+	show, clearInput bool) error {
 	return r.cli.ChatGiphyToggleResultWindow(ctx, chat1.ChatGiphyToggleResultWindowArg{
-		SessionID: r.sessionID,
-		ConvID:    convID.String(),
-		Show:      show,
+		SessionID:  r.sessionID,
+		ConvID:     convID.String(),
+		Show:       show,
+		ClearInput: clearInput,
 	})
 }
 

@@ -80,7 +80,8 @@ func (n nullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.Con
 	return nil
 }
 
-func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error {
+func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID,
+	show, clearInput bool) error {
 	return nil
 }
 
@@ -105,7 +106,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if !s.Match(ctx, text) {
 		if _, ok := s.shownResults[convID.String()]; ok {
 			// tell UI to clear
-			s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false)
+			s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false, false)
 			delete(s.shownResults, convID.String())
 		}
 		return
@@ -115,7 +116,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Preview: same query given, skipping")
 		return
 	}
-	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true)
+	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true, false)
 	s.shownResults[convID.String()] = query
 	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query,
 		s.G().AttachmentURLSrv)

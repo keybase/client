@@ -141,7 +141,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.chatUi.chatGiphyToggleResultWindow': {|
-    inParam: $ReadOnly<{|convID: String, show: Boolean|}>,
+    inParam: $ReadOnly<{|convID: String, show: Boolean, clearInput: Boolean|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatInboxConversation': {|

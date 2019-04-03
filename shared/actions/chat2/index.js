@@ -2746,8 +2746,9 @@ const onGiphyResults = (state, action) => {
 }
 
 const onGiphyToggleWindow = (state, action) => {
-  const {convID, show} = action.payload.params
+  const {convID, show, clearInput} = action.payload.params
   return Chat2Gen.createGiphyToggleWindow({
+    clearInput,
     conversationIDKey: Types.stringToConversationIDKey(convID),
     show,
   })

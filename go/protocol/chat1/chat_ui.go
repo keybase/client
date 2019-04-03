@@ -1923,9 +1923,10 @@ type ChatGiphySearchResultsArg struct {
 }
 
 type ChatGiphyToggleResultWindowArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	ConvID    string `codec:"convID" json:"convID"`
-	Show      bool   `codec:"show" json:"show"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	ConvID     string `codec:"convID" json:"convID"`
+	Show       bool   `codec:"show" json:"show"`
+	ClearInput bool   `codec:"clearInput" json:"clearInput"`
 }
 
 type ChatShowManageChannelsArg struct {
