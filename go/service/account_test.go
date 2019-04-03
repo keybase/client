@@ -40,7 +40,7 @@ func TestCheckPassphrase(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestRecoverUsername(t *testing.T) {
+func TestRecoverUsernameWithEmail(t *testing.T) {
 	tc := libkb.SetupTest(t, "recu", 3)
 	defer tc.Cleanup()
 
@@ -54,20 +54,20 @@ func TestRecoverUsername(t *testing.T) {
 	// are testing if we can call this RPC on both logged and
 	// unlogged session.
 
-	err = handler.RecoverUsername(ctx, keybase1.RecoverUsernameArg{
+	err = handler.RecoverUsernameWithEmail(ctx, keybase1.RecoverUsernameWithEmailArg{
 		Email: fu.Email,
 	})
 	require.NoError(t, err)
 
 	kbtest.Logout(tc)
 
-	err = handler.RecoverUsername(ctx, keybase1.RecoverUsernameArg{
+	err = handler.RecoverUsernameWithEmail(ctx, keybase1.RecoverUsernameWithEmailArg{
 		Email: fu.Email,
 	})
 	require.NoError(t, err)
 
-	err = handler.RecoverUsername(ctx, keybase1.RecoverUsernameArg{
+	err = handler.RecoverUsernameWithEmail(ctx, keybase1.RecoverUsernameWithEmailArg{
 		Email: "bad+" + fu.Email,
 	})
-	require.Error(t, err)
+	require.NoError(t, err)
 }
