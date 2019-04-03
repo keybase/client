@@ -33,7 +33,7 @@ type SecretStore interface {
 	SecretRetriever
 	SecretStorer
 	GetOptions(mctx MetaContext) *SecretStoreOptions
-	SetOptions(mctx MetaContext, options SecretStoreOptions)
+	SetOptions(mctx MetaContext, options *SecretStoreOptions)
 }
 
 // SecretStoreall stores/retreives the keyring-resider secrets for **all** users
@@ -42,7 +42,7 @@ type SecretStoreAll interface {
 	RetrieveSecret(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error)
 	StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) error
 	GetOptions(mctx MetaContext) *SecretStoreOptions
-	SetOptions(mctx MetaContext, options SecretStoreOptions)
+	SetOptions(mctx MetaContext, options *SecretStoreOptions)
 	ClearSecret(mctx MetaContext, username NormalizedUsername) error
 	GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error)
 }
@@ -82,8 +82,8 @@ func (s *SecretStoreImp) StoreSecret(m MetaContext, secret LKSecFullSecret) erro
 	return s.store.StoreSecret(m, s.username, secret)
 }
 
-func (s *SecretStoreImp) GetOptions(MetaContext) *SecretStoreOptions { return nil }
-func (s *SecretStoreImp) SetOptions(MetaContext, SecretStoreOptions) {}
+func (s *SecretStoreImp) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
+func (s *SecretStoreImp) SetOptions(MetaContext, *SecretStoreOptions) {}
 
 // NewSecretStore returns a SecretStore interface that is only used for
 // a short period of time (i.e. one function block).  Multiple calls to RetrieveSecret()
@@ -286,8 +286,8 @@ func (s *SecretStoreLocked) IsPersistent() bool {
 	return s.disk != nil
 }
 
-func (s *SecretStoreLocked) GetOptions(MetaContext) *SecretStoreOptions { return nil }
-func (s *SecretStoreLocked) SetOptions(MetaContext, SecretStoreOptions) {}
+func (s *SecretStoreLocked) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
+func (s *SecretStoreLocked) SetOptions(MetaContext, *SecretStoreOptions) {}
 
 // PrimeSecretStore runs a test with current platform's secret store, trying to
 // store, retrieve, and then delete a secret with an arbitrary name. This should

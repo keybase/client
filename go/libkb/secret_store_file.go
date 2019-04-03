@@ -273,8 +273,8 @@ func (s *SecretStoreFile) noisepathV2(username NormalizedUsername) string {
 	return filepath.Join(s.dir, fmt.Sprintf("%s.ns2", username))
 }
 
-func (s *SecretStoreFile) GetOptions(MetaContext) *SecretStoreOptions { return nil }
-func (s *SecretStoreFile) SetOptions(MetaContext, SecretStoreOptions) {}
+func (s *SecretStoreFile) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
+func (s *SecretStoreFile) SetOptions(MetaContext, *SecretStoreOptions) {}
 
 func stripExt(path string) string {
 	for i := len(path) - 1; i >= 0 && !os.IsPathSeparator(path[i]); i-- {

@@ -93,8 +93,8 @@ func (k KeychainSecretStore) StoreSecret(mctx MetaContext, accountName Normalize
 	return err
 }
 
-func (k KeychainSecretStore) GetOptions(MetaContext) *SecretStoreOptions { return nil }
-func (k KeychainSecretStore) SetOptions(MetaContext, SecretStoreOptions) {}
+func (k KeychainSecretStore) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
+func (k KeychainSecretStore) SetOptions(MetaContext, *SecretStoreOptions) {}
 
 func (k KeychainSecretStore) storeSecret(mctx MetaContext, account keychainSlottedAccount, encodedSecret string) (err error) {
 	// try to clear an old secret if present

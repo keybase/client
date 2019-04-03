@@ -270,13 +270,9 @@ func StoreSecretAfterLoginWithLKSWithOptions(m MetaContext, n NormalizedUsername
 	}
 
 	previousOptions := secretStore.GetOptions(m)
-	if options != nil {
-		secretStore.SetOptions(m, *options)
-	}
+	secretStore.SetOptions(m, options)
 	ret := secretStore.StoreSecret(m, secret)
-	if previousOptions != nil {
-		secretStore.SetOptions(m, *previousOptions)
-	}
+	secretStore.SetOptions(m, previousOptions)
 	return ret
 }
 

@@ -159,5 +159,5 @@ func (s *SecretStoreSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (
 }
 
 // TODO if there are more than 1, what should we do? just delete all of them and fail?
-func (s *SecretStoreSecretService) GetOptions(MetaContext) *SecretStoreOptions { return nil }
-func (s *SecretStoreSecretService) SetOptions(MetaContext, SecretStoreOptions) {}
+func (s *SecretStoreSecretService) GetOptions(MetaContext) *SecretStoreOptions  { return nil }
+func (s *SecretStoreSecretService) SetOptions(MetaContext, *SecretStoreOptions) {}

@@ -97,5 +97,7 @@ func (s *SecretStoreUpgradeable) GetUsersWithStoredSecrets(mctx MetaContext) (us
 	return usernames, err
 }
 
-func (s *SecretStoreUpgradeable) GetOptions(MetaContext) *SecretStoreOptions { return nil }
-func (s *SecretStoreUpgradeable) SetOptions(MetaContext, SecretStoreOptions) {}
+func (s *SecretStoreUpgradeable) GetOptions(MetaContext) *SecretStoreOptions { return s.options }
+func (s *SecretStoreUpgradeable) SetOptions(_ MetaContext, options *SecretStoreOptions) {
+	s.options = options
+}
