@@ -153,7 +153,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         if (activity == null) {
             NativeLogger.warn("activity not yet initialized");
         }
-        handleIntent(getCurrentActivity().getIntent());
+        handleIntent(activity.getIntent());
     }
 
     @Override
