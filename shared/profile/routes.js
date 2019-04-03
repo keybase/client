@@ -85,6 +85,7 @@ const profileRoute = () => {
       },
       profileProveEnterUsername: proveEnterUsername,
       profileProveWebsiteChoice: {
+        children: {proveEnterUsername},
         component: ProveWebsiteChoice,
       },
       profileRevoke: {component: RevokeContainer},
