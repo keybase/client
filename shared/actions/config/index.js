@@ -316,7 +316,7 @@ const routeToInitialScreen = state => {
     // A follow
     if (state.config.startupFollowUser) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -329,7 +329,7 @@ const routeToInitialScreen = state => {
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return [
-            RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+            RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
             ProfileGen.createShowUserProfile({username}),
           ]
         }
@@ -357,7 +357,7 @@ const handleAppLink = (_, action) => {
   const username = Constants.urlToUsername(url)
   if (username) {
     return [
-      RouteTreeGen.createSwitchTo({path: [Tabs.profileTab]}),
+      RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
       ProfileGen.createShowUserProfile({username}),
     ]
   }
