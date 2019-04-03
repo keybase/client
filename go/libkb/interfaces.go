@@ -618,6 +618,7 @@ type ServiceType interface {
 	CanMakeNewProofs(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
+	IsNew(MetaContext) bool
 }
 
 type ExternalServicesCollector interface {

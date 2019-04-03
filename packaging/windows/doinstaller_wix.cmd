@@ -107,7 +107,7 @@ popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-IF %CONFIGURATION%=="Debug" (
+IF "%CONFIGURATION%"=="Debug" (
   EXIT /B 0
 )
 
