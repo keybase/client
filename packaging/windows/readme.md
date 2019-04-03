@@ -72,22 +72,28 @@ set CPATH=C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\mingw64\include
 
 - Environment:
   - `call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"`
-  - [.net 3.5.1](https://www.microsoft.com/en-us/download/details.aspx?id=22)
-  - [WIX tools 3.11.1](http://wixtoolset.org/releases/)
+  - [.net 3.5.1](https://www.microsoft.com/en-us/download/details.aspx?id=22) (needed for WIX)
+  - [WIX tools 3.11.1](http://wixtoolset.org/releases/) (needed to build the installer)
   - Codesigning: see /keybase/team/keybase.builds.windows/readme.html
 
 ## Building a debug installer without codesigning
 
-Environment:
-  `set KEYBASE_WINBUILD=0`
+- Environment:
+  - `set KEYBASE_WINBUILD=0`
 
-Invoke the scripts to build the executables:
+- Invoke the scripts to build the executables:
 
 ```cmd
 build_prerelease.cmd
 buildui.cmd
 doinstaller_wix.cmd debug
 ```
+
+- OR, there's a little script that combines the above:
+   - `.\build_debug_installer.cmd`
+
+- Make sure you restart `CMD.exe` after doing the above installs; otherwise, these scripts
+  won't be able to find WIX.
 
 ## Production CMD Scripts
 - `build_prerelease.cmd` builds most of the client executables
