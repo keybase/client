@@ -44,7 +44,7 @@ const _ReallyLeaveTeam = (props: Props) => (
       props.name
     } chats and folders, and you won't be able to get back
     unless an admin invites you.`}
-    header={Header(props)}
+    header={<Header {...props} />}
     onCancel={props.onBack}
     onConfirm={props.onLeave}
     prompt={`Are you sure you want to leave ${props.name}?`}

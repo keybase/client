@@ -8,6 +8,7 @@ import Icon from '../icon'
 import Text from '../text'
 import * as Styles from '../../styles'
 import type {IconType} from '../icon.constants'
+import * as Shared from '../icon.shared'
 
 // generally one of icon or header will be given
 export type Props = {|
@@ -22,8 +23,9 @@ export type Props = {|
   waitingKey?: string,
 |}
 
-class _ConfirmModal extends React.Component<Props> {
+class _ConfirmModal extends React.PureComponent<Props> {
   render() {
+    const iconType = this.props.icon || 'iconfont-wrenches' // for flow
     return (
       <Box style={styles.mobileFlex}>
         <Box2 direction="vertical" style={styles.container}>
@@ -38,9 +40,9 @@ class _ConfirmModal extends React.Component<Props> {
               <Icon
                 boxStyle={styles.icon}
                 color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 64 : 48}
+                fontSize={Shared.typeToFontSize('Big')}
                 style={styles.icon}
-                type={this.props.icon}
+                type={iconType}
               />
             )}
             {this.props.header && (
