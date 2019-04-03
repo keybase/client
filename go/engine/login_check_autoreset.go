@@ -27,7 +27,7 @@ func (e *LoginCheckAutoresetEngine) Name() string {
 
 func (e *LoginCheckAutoresetEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
-		libkb.LoginUIKind,
+		libkb.ResetUIKind,
 	}
 }
 

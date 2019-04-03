@@ -124,6 +124,10 @@ func (h *BaseHandler) getTeamsUI(sessionID int) keybase1.TeamsUiInterface {
 	return NewRemoteTeamsUI(sessionID, h.rpcClient())
 }
 
+func (h *BaseHandler) getResetUI(sessionID int) libkb.ResetUI {
+	return NewRemoteResetUI(sessionID, h.rpcClient())
+}
+
 func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {
 	c := h.rpcClient()
 	return &RemoteIdentifyUI{

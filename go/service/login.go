@@ -121,6 +121,7 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		ProvisionUI: h.getProvisionUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID, h.G()),
 		GPGUI:       h.getGPGUI(arg.SessionID),
+		ResetUI:     h.getResetUI(arg.SessionID),
 		SessionID:   arg.SessionID,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)

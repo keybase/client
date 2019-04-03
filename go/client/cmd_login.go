@@ -70,6 +70,7 @@ func (c *CmdLogin) Run() error {
 		NewLoginUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewGPGUIProtocol(c.G()),
+		NewResetUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err

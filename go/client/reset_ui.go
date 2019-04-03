@@ -6,8 +6,13 @@ package client
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
+
+func NewResetUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.ResetUIProtocol(g.UI.GetResetUI())
+}
 
 type ResetUI struct {
 	libkb.Contextified
