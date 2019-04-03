@@ -75,6 +75,8 @@ export function fontSize(type: IconType): ?Object {
 
 export function typeToFontSize(sizeType: SizeType) {
   switch (sizeType) {
+    case 'Huge':
+      return Styles.isMobile ? 64 : 48
     case 'Bigger':
       return Styles.isMobile ? 48 : 36
     case 'Big':

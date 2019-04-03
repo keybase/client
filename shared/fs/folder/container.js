@@ -9,6 +9,8 @@ import * as FsGen from '../../actions/fs-gen'
 const mapStateToProps = (state, {path}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
+  // TODO: figure out how to get this info
+  offline: false,
   resetBannerType: Constants.resetBannerType(state, path),
   shouldShowSFMIBanner: state.fs.sfmi.showingBanner,
 })
@@ -20,6 +22,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
+  offline: stateProps.offline,
   onAttach: stateProps._pathItem.writable ? dispatchProps.onAttach : null,
   path,
   resetBannerType: stateProps.resetBannerType,

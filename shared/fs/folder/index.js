@@ -12,6 +12,7 @@ import Rows from '../row/rows-container'
 import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 import flags from '../../util/feature-flags'
+import OfflineFolder from './offline'
 
 type Props = {|
   onAttach?: ?(paths: Array<string>) => void,
@@ -19,6 +20,7 @@ type Props = {|
   routePath: I.List<string>,
   shouldShowSFMIBanner: boolean,
   resetBannerType: Types.ResetBannerType,
+  offline: boolean,
 |}
 
 const WithContent = (props: Props) => (
@@ -58,7 +60,13 @@ const Folder = (props: Props) => (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       {!flags.useNewRouter && <FolderHeader path={props.path} routePath={props.routePath} />}
       <Kbfs.Errs />
-      {props.resetBannerType === 'self' ? <SelfReset {...props} /> : <WithContent {...props} />}
+      {props.resetBannerType === 'self' ? (
+        <SelfReset {...props} />
+      ) : props.offline ? (
+        <OfflineFolder />
+      ) : (
+        <WithContent {...props} />
+      )}
       <Footer />
     </Kb.Box2>
   </Kb.BoxGrow>
