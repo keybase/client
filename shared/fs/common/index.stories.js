@@ -16,7 +16,7 @@ import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
-import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
+import SyncStatus from '../sync-status'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -248,7 +248,20 @@ const load = () => {
         />
       </Kb.Box2>
     ))
+    .add('Sync Status', () => (
+      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
+        <SyncStatus status={'awaiting-to-sync'} folder={false} />
+        <SyncStatus status={'awaiting-to-upload'} folder={false} />
+        <SyncStatus status={'online-only'} folder={false} />
+        <SyncStatus status={'synced'} folder={false} />
+        <SyncStatus status={'sync-error'} folder={true} />
+        <SyncStatus status={'uploading'} folder={false} />
+        <SyncStatus status={0.3} folder={false} />
+      </Kb.Box2>
+    ))
 
+  // awaiting-to-sync, awaiting-to-upload, online-only, synced, error,
+  // uploading, syncing
   Sb.storiesOf('Files/PathItemIcon', module)
     .add('tlf list', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
