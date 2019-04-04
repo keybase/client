@@ -16,7 +16,6 @@ type LoginProvisionedDevice struct {
 	uid             keybase1.UID
 	deviceID        keybase1.DeviceID
 	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
-	reset           bool // Set to true if we've just reset the account
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
@@ -246,10 +245,6 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 		return libkb.NewLoginRequiredError("login failed after passphrase verified")
 	}
 
-	if e.reset, err = e.checkAutoreset(m); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -267,15 +262,4 @@ func (e *LoginProvisionedDevice) connectivityWarning(m libkb.MetaContext) {
 			m.Debug("after CheckReachability(), IsConnected() => %v (connected? %v)", connected, connected == libkb.ConnectivityMonitorYes)
 		}
 	}
-}
-
-func (e *LoginProvisionedDevice) checkAutoreset(m libkb.MetaContext) (bool, error) {
-	eng := newLoginCheckAutoresetEngine(m.G(), loginCheckAutoresetArgs{
-		username: e.username.String(),
-	})
-	if err := eng.Run(m); err != nil {
-		return false, err
-	}
-
-	return eng.reset, nil
 }

@@ -30,6 +30,8 @@ type loginProvision struct {
 	hasPGP         bool
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
+
+	resetPending bool
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -114,6 +116,9 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		}
 
 		return err
+	}
+	if e.resetPending {
+		return nil
 	}
 
 	// e.route is point of no return. If it succeeds, it means that
@@ -703,9 +708,6 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	if err != nil {
 		return err
 	}
-	if hasPUK {
-		arg.CanSelectNoDevice = false
-	}
 
 	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
@@ -715,17 +717,27 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	if len(id) == 0 {
 		// they chose not to use a device
 		m.Debug("user has devices, but chose not to use any of them")
-		if pgp {
-			if hasPUK {
-				m.Debug("user has a per-user-key, not attempting pgp provision")
-				return libkb.ProvisionViaDeviceRequiredError{}
-			}
-
+		if pgp && !hasPUK {
 			// they have pgp keys, so try that:
-			return e.tryPGP(m)
+			if err := e.tryPGP(m); err != nil {
+				// TODO: consider this flow with autoreset
+				return err
+			}
 		}
-		// tell them they need to reset their account
-		return libkb.ProvisionUnavailableError{}
+
+		m.G().Log.Info(`
+The only way to provision this device is with access to one of your existing
+devices. You can try again later, or if you have lost access to all your
+existing devices you can reset your account and start fresh:`)
+
+		// go into the reset flow
+		eng := NewAccountReset(m.G(), e.arg.User.GetName())
+		if err := eng.Run(m); err != nil {
+			return err
+		}
+
+		e.resetPending = eng.resetPending
+		return nil
 	}
 
 	m.Debug("user selected device %s", id)
