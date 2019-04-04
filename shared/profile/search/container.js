@@ -8,23 +8,10 @@ import {connect} from '../../util/container'
 // when we're instantiated via a route.
 type OwnProps = {|onClose?: () => void|}
 
-const mapDispatchToProps = (dispatch, ownProps) => {
-  const onClick = username => dispatch(createShowUserProfile({username}))
-  if (ownProps.onClose) {
-    // onClosed passed in, so use it.
-    const onClose: () => void = ownProps.onClose
-    return {
-      onClick,
-      onClose,
-    }
-  } else {
-    // Instantiated via route, so just navigate up on close.
-    return {
-      onClick,
-      onClose: () => dispatch(createNavigateUp()),
-    }
-  }
-}
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  onClick: username => dispatch(createShowUserProfile({username})),
+  onClose: ownProps.onClose || (() => dispatch(createNavigateUp())),
+})
 
 const mergeProps = (_, dispatchProps, ownProps) => {
   return {
