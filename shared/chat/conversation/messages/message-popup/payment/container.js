@@ -8,6 +8,7 @@ import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
+import flags from '../../../../../util/feature-flags'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
@@ -79,14 +80,32 @@ const sendMapDispatchToProps = dispatch => ({
     ),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createSelectAccount({accountID, reason: 'from-chat'}))
-    dispatch(
-      RouteTreeGen.createNavigateTo({
-        path: [
-          ...WalletConstants.walletPath,
-          {props: {accountID, paymentID}, selected: 'transactionDetails'},
-        ],
-      })
-    )
+    if (flags.useNewRouter) {
+      dispatch(
+        RouteTreeGen.createNavigateTo({
+          path: [WalletConstants.rootWalletTab],
+        })
+      )
+      dispatch(
+        RouteTreeGen.createNavigateTo({
+          path: ['wallet'],
+        })
+      )
+      dispatch(
+        RouteTreeGen.createNavigateTo({
+          path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
+        })
+      )
+    } else {
+      dispatch(
+        RouteTreeGen.createNavigateTo({
+          path: [
+            ...WalletConstants.walletPath,
+            {props: {accountID, paymentID}, selected: 'transactionDetails'},
+          ],
+        })
+      )
+    }
   },
 })
 
