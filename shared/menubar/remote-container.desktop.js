@@ -41,12 +41,12 @@ const mapDispatchToProps = dispatch => ({
     tab && dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
   },
   quit: () => {
+    !__DEV__ && (isWindows || isDarwin) &&
+      dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
     closeWindow()
     dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
     // In case dump log doens't exit for us
     setTimeout(() => {
-      !__DEV__ && (isWindows || isDarwin) &&
-        dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
       executeActionsForContext('quitButton')
     }, 2000)
   },
