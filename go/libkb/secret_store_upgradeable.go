@@ -25,6 +25,8 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 	if err1 == nil {
 		return secret, nil
 	}
+
+	mctx.Warning("Failed to find secret in system keyring (%s), falling back to file-based secret store.", err1)
 	secret, err2 := s.b.RetrieveSecret(mctx, username)
 	if !s.shouldUpgradeOpportunistically() {
 		return secret, err2
@@ -45,8 +47,6 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 
 func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
 	defer mctx.TraceTimed("SecretStoreUpgradeable.StoreSecret", func() error { return err })()
-
-	mctx.Debug("@@@ IN STORE - SET OPTIONS %+v", s.options)
 
 	if s.shouldStoreInFallback(s.options) {
 		return s.b.StoreSecret(mctx, username, secret)
@@ -74,7 +74,17 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 
 func (s *SecretStoreUpgradeable) ClearSecret(mctx MetaContext, username NormalizedUsername) (err error) {
 	defer mctx.TraceTimed("SecretStoreUpgradeable.ClearSecret", func() error { return err })()
-	return CombineErrors(s.a.ClearSecret(mctx, username), s.b.ClearSecret(mctx, username))
+	err1 := s.a.ClearSecret(mctx, username)
+	err2 := s.b.ClearSecret(mctx, username)
+	err = CombineErrors(err1, err2)
+	if err != nil {
+		mctx.Debug("Failed to clear secret in at least one store: %s", err2)
+	}
+	// Only return an error if both failed
+	if err1 != nil && err2 != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SecretStoreUpgradeable) GetUsersWithStoredSecrets(mctx MetaContext) (usernames []string, err error) {
@@ -95,8 +105,16 @@ func (s *SecretStoreUpgradeable) GetUsersWithStoredSecrets(mctx MetaContext) (us
 	for username := range usernameMap {
 		usernames = append(usernames, username)
 	}
+
 	err = CombineErrors(err1, err2)
-	return usernames, err
+	if err != nil {
+		mctx.Debug("Failed to GetUsersWithStoredSecrets in at least one store: %s", err2)
+	}
+	// Only return an error if both failed
+	if err1 != nil && err2 != nil {
+		return nil, err
+	}
+	return usernames, nil
 }
 
 func (s *SecretStoreUpgradeable) GetOptions(MetaContext) *SecretStoreOptions { return s.options }
