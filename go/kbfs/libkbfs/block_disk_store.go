@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/go-codec/codec"
 	"github.com/pkg/errors"
+	"github.com/syndtr/goleveldb/leveldb"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -84,6 +85,12 @@ type blockDiskStore struct {
 	codec kbfscodec.Codec
 	dir   string
 
+	batchLock      sync.RWMutex
+	currBlocks     map[kbfsblock.ID]blockJournalData
+	currBlockBatch *leveldb.Batch
+	currInfos      map[kbfsblock.ID]blockJournalInfo
+	currInfoBatch  *leveldb.Batch
+
 	blockDb *LevelDb
 	infoDb  *LevelDb
 
@@ -106,6 +113,10 @@ func makeBlockDiskStore(codec kbfscodec.Codec, dir string) *blockDiskStore {
 		puts:  make(map[kbfsblock.ID]<-chan struct{}),
 	}
 	err := s.clear()
+	if err != nil {
+		panic(err)
+	}
+	err = s.flush(nil)
 	if err != nil {
 		panic(err)
 	}
@@ -229,6 +240,13 @@ func (s *blockDiskStore) exclusify(ctx context.Context, id kbfsblock.ID) (
 func (s *blockDiskStore) getInfo(id kbfsblock.ID) (blockJournalInfo, error) {
 	var info blockJournalInfo
 
+	s.batchLock.RLock()
+	info, ok := s.currInfos[id]
+	s.batchLock.RUnlock()
+	if ok {
+		return info, nil
+	}
+
 	buf, err := s.infoDb.Get(id.Bytes(), nil)
 	switch errors.Cause(err) {
 	case nil:
@@ -269,7 +287,15 @@ func (s *blockDiskStore) putInfo(
 		return err
 	}
 
-	return s.infoDb.Put(id.Bytes(), buf, nil)
+	s.batchLock.Lock()
+	defer s.batchLock.Unlock()
+	s.currInfos[id] = info
+	s.currInfoBatch.Put(id.Bytes(), buf)
+	return nil
+	/*
+		return s.infoDb.Put(id.Bytes(), buf, nil)
+	*/
+
 	/*
 		return kbfscodec.SerializeToFile(s.codec, info, s.infoPath(id))
 	*/
@@ -307,6 +333,13 @@ func (s *blockDiskStore) addRefsExclusive(
 // present.  `exclusify` must be called by the caller.
 func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	s.batchLock.RLock()
+	data, ok := s.currBlocks[id]
+	s.batchLock.RUnlock()
+	if ok {
+		return data.Buf, data.ServerHalf, nil
+	}
+
 	buf, err := s.blockDb.Get(id.Bytes(), nil)
 	switch errors.Cause(err) {
 	case nil:
@@ -726,10 +759,17 @@ func (s *blockDiskStore) put(
 			return false, err
 		}
 
-		err = s.blockDb.Put(id.Bytes(), encodedBuf, nil)
-		if err != nil {
-			return false, err
-		}
+		s.batchLock.Lock()
+		s.currBlocks[id] = blockData
+		s.currBlockBatch.Put(id.Bytes(), encodedBuf)
+		s.batchLock.Unlock()
+
+		/*
+			err = s.blockDb.Put(id.Bytes(), encodedBuf, nil)
+			if err != nil {
+				return false, err
+			}
+		*/
 
 		/**
 		err = s.makeDir(id)
@@ -756,6 +796,29 @@ func (s *blockDiskStore) put(
 	}
 
 	return !exists, nil
+}
+
+func (s *blockDiskStore) flush(ctx context.Context) error {
+	s.batchLock.Lock()
+	defer s.batchLock.Unlock()
+
+	if s.currBlockBatch != nil {
+		err := s.blockDb.Write(s.currBlockBatch, nil)
+		if err != nil {
+			return err
+		}
+	}
+	if s.currInfoBatch != nil {
+		err := s.blockDb.Write(s.currInfoBatch, nil)
+		if err != nil {
+			return err
+		}
+	}
+	s.currBlockBatch = &leveldb.Batch{}
+	s.currInfoBatch = &leveldb.Batch{}
+	s.currBlocks = make(map[kbfsblock.ID]blockJournalData)
+	s.currInfos = make(map[kbfsblock.ID]blockJournalInfo)
+	return nil
 }
 
 func (s *blockDiskStore) addReference(
@@ -865,6 +928,11 @@ func (s *blockDiskStore) remove(ctx context.Context, id kbfsblock.ID) error {
 		return errors.Errorf(
 			"Trying to remove data for referenced block %s", id)
 	}
+
+	s.batchLock.Lock()
+	delete(s.currBlocks, id)
+	delete(s.currInfos, id)
+	s.batchLock.Unlock()
 
 	err = s.blockDb.Delete(id.Bytes(), nil)
 	if err != nil {

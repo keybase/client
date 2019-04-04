@@ -2315,6 +2315,11 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// TODO: remove the revision from the cache on any errors below?
 	// Tricky when the append is only queued.
 
+	err = j.blockJournal.s.flush(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
+	}
+
 	mdID, err := j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
 		rmd, isFirstRev)
@@ -2460,6 +2465,11 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	if !j.unflushedPaths.reinitializeWithResolution(
 		mdInfo, perRevMap, isPendingLocalSquash) {
 		return ImmutableRootMetadata{}, true, nil
+	}
+
+	err = j.blockJournal.s.flush(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
 	}
 
 	// First write the resolution to a new branch, and swap it with
