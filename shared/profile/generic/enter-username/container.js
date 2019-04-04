@@ -37,6 +37,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   error: stateProps.error,
   onBack: dispatchProps.onBack,
+  onCancel: dispatchProps.onBack,
   onChangeUsername: dispatchProps.onChangeUsername,
   onContinue: dispatchProps.onContinue,
   onSubmit: stateProps._platformURL ? () => openURL(stateProps._platformURL) : dispatchProps.onSubmit,
@@ -57,5 +58,10 @@ const ConnectedEnterUsername = Container.namedConnect<OwnProps, _, _, _, _>(
   mergeProps,
   'ConnectedEnterUsername'
 )(EnterUsername)
+
+// $FlowIssue lets fix this
+ConnectedEnterUsername.navigationOptions = {
+  gesturesEnabled: false,
+}
 
 export default ConnectedEnterUsername
