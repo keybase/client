@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -32,6 +33,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
     private static final String TAG = IntentHandler.class.getName();
     private final ReactApplicationContext reactContext;
+    private WritableMap shareData;
 
     protected void handleNotificationIntent(Intent intent) {
         if (!intent.getBooleanExtra("isNotification", false)) return;
@@ -91,6 +93,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         if (emitter != null) {
             emitter.emit("onShareData", evt);
         }
+        shareData = evt;
     }
 
     private void handleSendIntentMultipleStreams(Intent intent) {
@@ -113,6 +116,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         if (emitter != null) {
             emitter.emit("onShareText", evt);
         }
+        shareData = evt;
     }
 
     public void handleIntent(final Intent intent) {
@@ -163,15 +167,16 @@ public class IntentHandler extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void handlePushNotification(String convID, String payload, Integer membersType,
+    public void getShareIntentData(String convID, String payload, Integer membersType,
                                        Boolean displayPlaintext, Integer messageID, String pushID,
                                        Integer badgeCount, Integer unixTime, String soundName, Promise promise) {
-        try {
-            PushNotifier notifier = new KBPushNotifier(reactContext);
-            Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageID, pushID, badgeCount, unixTime, soundName, notifier);
-            promise.resolve(null);
-        } catch (Exception ex) {
-            promise.reject(ex);
+        Activity activity = getCurrentActivity();
+        if (activity == null) {
+            String err = "activity not yet initialized";
+            NativeLogger.warn(err);
+            promise.reject(new Exception(err));
+            return;
         }
+        promise.resolve(shareData);
     }
 }

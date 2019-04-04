@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as GregorGen from '../gregor-gen'
@@ -175,6 +176,18 @@ const updateChangedFocus = (_, action) => {
   return ConfigGen.createChangedFocus({appFocused})
 }
 
+const getStartupDetailsFromShare = (): Promise<null | {|localPath: FsTypes.LocalPath|} | {|text: string|}> =>
+  NativeModules.IntentHandler.getShareLocalPath()
+    .then(p => {
+      if (!p) return null
+      if (p.path) {
+        return {localPath: FsTypes.stringToLocalPath(p.path)}
+      }
+      if (p.text) {
+        return {text: p.text}
+      }
+    })
+
 function* clearRouteState() {
   yield Saga.spawn(() =>
     RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
@@ -268,22 +281,22 @@ function* loadStartupDetails() {
   )
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
+  const initialShare = yield Saga._fork(getStartupDetailsFromShare)
+  const [routeState, link, push, share] = yield Saga.join(routeStateTask, linkTask, initialPush, initialShare)
 
   // Top priority, push
   if (push) {
     startupWasFromPush = true
     startupConversation = push.startupConversation
     startupFollowUser = push.startupFollowUser
-  }
-
-  // Second priority, deep link
-  if (!startupWasFromPush && link) {
+  } else if (link) {
+    // Second priority, deep link
     startupLink = link
-  }
-
-  // Third priority, saved from last session
-  if (!startupWasFromPush && !startupLink && routeState) {
+  } else if (share) {
+    // Third priority, share
+    // TODO: handle share.localPath or share.text.
+  } else if (routeState) {
+    // Last priority, saved from last session
     try {
       if (flags.useNewRouter) {
         const item = JSON.parse(routeState)
