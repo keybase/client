@@ -76,6 +76,7 @@ type GlobalContext struct {
 	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	IDLocktab        LockTable
 	loadUserLockTab  LockTable
 	teamAuditor      TeamAuditor
 	stellar          Stellar          // Stellar related ops
