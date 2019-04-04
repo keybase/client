@@ -137,4 +137,14 @@
 .icon-gen-iconfont-spade::before {content: "\e979";}
 .icon-gen-iconfont-heads::before {content: "\e97a";}
 .icon-gen-iconfont-tails::before {content: "\e97b";}
+.icon-gen-iconfont-nav-2-people::before {content: "\e97c";}
+.icon-gen-iconfont-nav-2-chat::before {content: "\e97d";}
+.icon-gen-iconfont-nav-2-files::before {content: "\e97e";}
+.icon-gen-iconfont-nav-2-teams::before {content: "\e97f";}
+.icon-gen-iconfont-nav-2-wallets::before {content: "\e980";}
+.icon-gen-iconfont-nav-2-git::before {content: "\e981";}
+.icon-gen-iconfont-nav-2-devices::before {content: "\e982";}
+.icon-gen-iconfont-nav-2-settings::before {content: "\e983";}
+.icon-gen-iconfont-nav-2-more::before {content: "\e984";}
+.icon-gen-iconfont-wallet-transfer::before {content: "\e985";}
 

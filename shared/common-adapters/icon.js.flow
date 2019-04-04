@@ -1,9 +1,14 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from './icon.constants'
-import {type StylesCrossPlatform, type StylesCrossPlatformWithSomeDisallowed, type Color, globalMargins} from '../styles'
+import {
+  type StylesCrossPlatform,
+  type StylesCrossPlatformWithSomeDisallowed,
+  type Color,
+  globalMargins,
+} from '../styles'
 
-export type SizeType = 'Big' | 'Default' | 'Small' | 'Tiny'
+export type SizeType = 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
 // These must be passed as props
 type DisallowedStyles = {
