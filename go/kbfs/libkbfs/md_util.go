@@ -511,15 +511,16 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 
 	// Treat the unembedded block change like a file so we can reuse
 	// the file reading code.
-	file := data.Path{FolderBranch: data.FolderBranch{
-		Tlf:    tlfID,
-		Branch: data.MasterBranch,
-	},
+	file := data.Path{
+		FolderBranch: data.FolderBranch{
+			Tlf:    tlfID,
+			Branch: data.MasterBranch,
+		},
 		Path: []data.PathNode{{
 			BlockPointer: info.BlockPointer,
 			Name: fmt.Sprintf("<MD with block change pointer %s>",
-				info.BlockPointer)},
-		},
+				info.BlockPointer),
+		}},
 	}
 	getter := func(ctx context.Context, kmd libkey.KeyMetadata, ptr data.BlockPointer,
 		p data.Path, rtype data.BlockReqType) (*data.FileBlock, bool, error) {

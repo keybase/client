@@ -1505,9 +1505,9 @@ func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 	}
 
 	return rootEntry, data.Path{
-			FolderBranch: data.FolderBranch{Tlf: id},
-			Path:         nodes},
-		blocks
+		FolderBranch: data.FolderBranch{Tlf: id},
+		Path:         nodes,
+	}, blocks
 }
 
 func makeFile(
