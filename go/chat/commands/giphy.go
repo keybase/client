@@ -55,7 +55,7 @@ func (s *Giphy) getQuery(text string) *string {
 
 func (s *Giphy) getLimit() int {
 	limit := 25
-	if s.G().GetAppType() == libkb.MobileAppType {
+	if s.G().IsMobileAppType()  {
 		limit = 10
 	}
 	return limit
