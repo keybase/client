@@ -7,14 +7,8 @@ import type {Props} from './index.types'
 
 class GiphySearch extends React.Component<Props, State> {
   render() {
-    const vidStyle = 'height: 100%25 ;'
-    const divStyle = `display: flex; flex-direction: row; height: 100%25 ; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap;  -webkit-overflow-scrolling: touch; border-top: 1px solid ${
-      Styles.globalColors.black_20
-    }; align-items: flex-end;`
     const source = {
-      uri: `${this.props.galleryURL}&divstyle=${encodeURIComponent(divStyle)}&vidstyle=${encodeURIComponent(
-        vidStyle
-      )}`,
+      uri: this.props.galleryURL,
     }
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>

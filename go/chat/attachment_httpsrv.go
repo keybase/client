@@ -331,6 +331,8 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(w http.ResponseWriter, req *
 	ui, err := r.G().UIRouter.GetChatUI()
 	if err == nil && ui != nil {
 		ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+	} else {
+		r.Debug(ctx, "serveGiphyGallerySelect: failed to get chat UI: %s", err)
 	}
 }
 
@@ -339,27 +341,18 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 		NewSimpleIdentifyNotifier(r.G()))
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallery")()
 	key := req.URL.Query().Get("key")
-	divStyle, err := url.QueryUnescape(req.URL.Query().Get("divstyle"))
-	if err != nil {
-		r.Debug(ctx, "serveGiphyGallery: failed to decode divstyle: %s", err)
-	}
-	vidStyle, err := url.QueryUnescape(req.URL.Query().Get("vidstyle"))
-	if err != nil {
-		r.Debug(ctx, "serveGiphyGallery: failed to decode vidstyle: %s", err)
-	}
 	infoInt, ok := r.giphyGalleryMap.Get(key)
 	if !ok {
 		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
 		return
 	}
-	r.Debug(ctx, "serveGiphyGallery: divStyle: %s vidStyle: %s", divStyle, vidStyle)
 	galleryInfo := infoInt.(giphyGalleryInfo)
 	var videoStr string
 	for _, res := range galleryInfo.results {
 		videoStr += fmt.Sprintf(`
-			<video style="%s" src="%s" onclick="sendMessage('%s')" playsinline webkit-playsinline autoplay muted loop>
+			<video style="height: 100%%" src="%s" onclick="sendMessage('%s')" playsinline webkit-playsinline autoplay muted loop>
 			</video>
-		`, vidStyle, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
+		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
 			res.TargetUrl))
 	}
 	res := fmt.Sprintf(`
@@ -375,11 +368,11 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 			</script>
 		</head>
 		<body style="margin: 0px;">
-			<div style="%s">
+			<div style="display: flex; flex-direction: row; height: 100%%; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap;  -webkit-overflow-scrolling: touch; border-top: 1px solid rgba(0, 0, 0, 0.20); align-items: flex-end;">
 				%s
 			</div>
 		</body>
-	</html>`, divStyle, videoStr)
+	</html>`, videoStr)
 	if _, err := io.WriteString(w, res); err != nil {
 		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to write giphy gallery: %s",
 			err)
