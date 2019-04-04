@@ -57,7 +57,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         direction="horizontal"
         style={Styles.collapseStyles([styles.container, this.props.style])}
       >
-        <Kb.ClickableBox onClick={this.props.toggleShowingMenu}>
+        <Kb.ClickableBox onClick={this.props.toggleShowingMenu} style={styles.fullHeight}>
           <Kb.Box2
             direction="horizontal"
             style={styles.callingCodeContainer}
@@ -90,7 +90,6 @@ const styles = Styles.styleSheetCreate({
     borderRightColor: Styles.globalColors.black_10,
     borderRightWidth: 1,
     borderStyle: 'solid',
-    justifyContent: 'space-between',
   },
   container: {
     backgroundColor: Styles.globalColors.white,
@@ -99,6 +98,7 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
     borderWidth: 1,
   },
+  fullHeight: {height: '100%'},
   input: Styles.platformStyles({
     isElectron: {
       ...Styles.padding(0, Styles.globalMargins.xsmall),
