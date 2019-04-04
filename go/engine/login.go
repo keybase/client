@@ -69,7 +69,7 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 		&LoginProvisionedDevice{},
 		&loginLoadUser{},
 		&loginProvision{},
-		&LoginCheckAutoresetEngine{},
+		&loginCheckAutoresetEngine{},
 	}
 }
 
@@ -97,12 +97,13 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	m.Debug("Login: not currently logged in")
 
 	// First see if this device is already provisioned and it is possible to log in.
-	loggedInOK, err = e.loginProvisionedDevice(m, e.username)
+	var reset bool
+	loggedInOK, reset, err = e.loginProvisionedDevice(m, e.username)
 	if err != nil {
 		m.Debug("loginProvisionedDevice error: %s", err)
 		return err
 	}
-	if loggedInOK {
+	if loggedInOK && !reset {
 		m.Debug("loginProvisionedDevice success")
 		return nil
 	}
@@ -125,10 +126,6 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 			m = m.CommitProvisionalLogin()
 		}
 	}()
-
-	if _, err := e.checkAutoreset(m); err != nil {
-		return err
-	}
 
 	m.Debug("loading login user for %q", e.username)
 	ueng := newLoginLoadUser(m.G(), e.username)
@@ -156,6 +153,14 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	}
 
 	e.perUserKeyUpgradeSoft(m)
+
+	reset, err = e.checkAutoreset(m)
+	if err != nil {
+		m.Warning("autoreset err %s", err.Error())
+	}
+	if reset {
+		return e.Run(m)
+	}
 
 	m.Debug("Login provisioning success, sending login notification")
 	e.sendNotification(m)
@@ -230,7 +235,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	}
 }
 
-func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bool, error) {
+func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bool, bool, error) {
 	eng := NewLoginProvisionedDevice(m.G(), username)
 	err := RunEngine2(m, eng)
 	if err == nil {
@@ -238,25 +243,27 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 		m.Debug("LoginProvisionedDevice.Run() was successful")
 		// Note:  LoginProvisionedDevice Run() will send login notifications, no need to
 		// send here.
-		return true, nil
+		return true, eng.reset, nil
 	}
 
 	// if this device has been provisioned already and there was an error, then
 	// return that error.  Otherwise, ignore it and keep going.
 	if !e.notProvisionedErr(m, err) {
-		return false, err
+		return false, false, err
 	}
 
 	m.Debug("loginProvisionedDevice error: %s (not fatal, can continue to provision this device)", err)
 
-	return false, nil
+	return false, false, nil
 }
 
 func (e *Login) checkAutoreset(m libkb.MetaContext) (bool, error) {
-	eng := NewLoginCheckAutoresetEngine(m.G())
+	eng := newLoginCheckAutoresetEngine(m.G(), loginCheckAutoresetArgs{
+		username: e.username,
+	})
 	if err := eng.Run(m); err != nil {
 		return false, err
 	}
 
-	return false, nil
+	return eng.reset, nil
 }

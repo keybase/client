@@ -12,42 +12,50 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type LoginCheckAutoresetEngine struct {
+type loginCheckAutoresetEngine struct {
 	libkb.Contextified
+	arg   loginCheckAutoresetArgs
+	reset bool
 }
 
-func NewLoginCheckAutoresetEngine(g *libkb.GlobalContext) *LoginCheckAutoresetEngine {
-	return &LoginCheckAutoresetEngine{
+type loginCheckAutoresetArgs struct {
+	username string
+}
+
+func newLoginCheckAutoresetEngine(g *libkb.GlobalContext, arg loginCheckAutoresetArgs) *loginCheckAutoresetEngine {
+	return &loginCheckAutoresetEngine{
 		Contextified: libkb.NewContextified(g),
+		arg:          arg,
 	}
 }
 
-func (e *LoginCheckAutoresetEngine) Prereqs() Prereqs {
+func (e *loginCheckAutoresetEngine) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
-func (e *LoginCheckAutoresetEngine) Name() string {
-	return "LoginCheckAutoresetEngine"
+func (e *loginCheckAutoresetEngine) Name() string {
+	return "loginCheckAutoresetEngine"
 }
 
-func (e *LoginCheckAutoresetEngine) RequiredUIs() []libkb.UIKind {
+func (e *loginCheckAutoresetEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.ResetUIKind,
 	}
 }
 
-func (e *LoginCheckAutoresetEngine) SubConsumers() []libkb.UIConsumer {
-	return nil
+func (e *loginCheckAutoresetEngine) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{
+		&loginProvision{},
+	}
 }
 
-func (e *LoginCheckAutoresetEngine) Run(m libkb.MetaContext) (err error) {
+func (e *loginCheckAutoresetEngine) Run(m libkb.MetaContext) (err error) {
 	arg := libkb.NewRetryAPIArg("autoreset/status")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	res, err := m.G().API.Get(m, arg)
 	if err != nil {
 		return err
 	}
-	m.G().Log.Error("Autoreset dump %s", res.Body.MarshalToDebug())
 	resetID := res.Body.AtKey("reset_id")
 	if resetID.IsNil() {
 		// There's no autoreset pending
@@ -105,10 +113,29 @@ func (e *LoginCheckAutoresetEngine) Run(m libkb.MetaContext) (err error) {
 
 	switch promptRes {
 	case keybase1.ResetPromptResult_CANCEL:
-		m.G().Log.Error("Would cancel")
+		arg := libkb.NewAPIArg("autoreset/cancel")
+		arg.SessionType = libkb.APISessionTypeREQUIRED
+		payload := libkb.JSONPayload{
+			"src": "app",
+		}
+		arg.JSONPayload = payload
+		if _, err := m.G().API.Post(m, arg); err != nil {
+			return err
+		}
+		m.G().Log.Info("Your account's reset has been canceled.")
 		return nil
 	case keybase1.ResetPromptResult_RESET:
-		m.G().Log.Error("Would reset")
+		arg := libkb.NewAPIArg("autoreset/reset")
+		arg.SessionType = libkb.APISessionTypeREQUIRED
+		payload := libkb.JSONPayload{
+			"src": "app",
+		}
+		arg.JSONPayload = payload
+		if _, err := m.G().API.Post(m, arg); err != nil {
+			return err
+		}
+		m.G().Log.Info("Your account has been reset.")
+		e.reset = true
 		return nil
 	default:
 		// Ignore
