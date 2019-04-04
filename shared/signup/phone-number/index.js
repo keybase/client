@@ -16,7 +16,7 @@ type Props = {|
 const EnterPhoneNumber = (props: Props) => (
   <SignupScreen
     buttons={[
-      {label: 'Finish', onClick: props.onFinish, type: 'PrimaryGreen'},
+      {label: 'Continue', onClick: props.onFinish, type: 'PrimaryGreen'},
       ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Secondary'}]),
     ]}
     rightActionLabel="Skip"

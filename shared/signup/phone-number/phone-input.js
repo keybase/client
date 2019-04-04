@@ -7,7 +7,7 @@ import {countryData, AsYouTypeFormatter} from '../../util/phone-numbers/'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
 const getPlaceholder = countryCode => 'Ex: ' + countryData[countryCode].example
-const isNumeric = char => /^[0-9]$/.test(char)
+const filterNumeric = text => text.replace(/[^0-9]/g, '')
 const defaultCountry = 'US'
 
 type Props = {
@@ -26,13 +26,29 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   state = {country: this.props.defaultCountry || defaultCountry, formatted: ''}
   _formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
 
-  _onKeyDown = evt => {
-    const {key} = evt
-    if (isNumeric(key)) {
-      const formatted = this._formatter.inputDigit(key)
-      this.setState({formatted})
+  // AsYouTypeFormatter doesn't support backspace
+  // To get around this, on every text change:
+  // 1. Clear the formatter
+  // 2. Remove any non-numerics from the text
+  // 3. Feed the new text into the formatter char by char
+  // 4. Set the value of the input to the new formatted
+  _reformat = _newText => {
+    this._formatter.clear()
+    const newText = filterNumeric(_newText)
+    if (newText.trim().length === 0) {
+      this.setState({formatted: ''})
+      this._updateParent()
+      return
     }
+    for (let i = 0; i < newText.length - 1; i++) {
+      this._formatter.inputDigit(newText[i])
+    }
+    const formatted = this._formatter.inputDigit(newText[newText.length - 1])
+    this.setState({formatted})
+    this._updateParent()
   }
+
+  _updateParent = () => {}
 
   render() {
     return (
@@ -54,11 +70,13 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           </Kb.Box2>
         </Kb.ClickableBox>
         <Kb.PlainInput
+          autoFocus={true}
           style={styles.input}
+          flexable={true}
           keyboardType={isIOS ? 'number-pad' : 'numeric'}
           placeholder={getPlaceholder(this.state.country)}
+          onChangeText={this._reformat}
           value={this.state.formatted}
-          onKeyDown={this._onKeyDown}
         />
       </Kb.Box2>
     )
