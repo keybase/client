@@ -123,5 +123,6 @@ func main() {
 
 		os.Exit(err.Code)
 	}
+	fmt.Fprintf(os.Stderr, "kbfsdokan normal shutdown")
 	os.Exit(0)
 }
