@@ -66,6 +66,9 @@ func TestRecoverUsernameWithEmail(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// `"bad"+fu.Email will receive an email saying a "username was requested
+	// but no user exists in keybase" rather than returning an error so we don't
+	// expose to the caller if an email exists in the system or not.
 	err = handler.RecoverUsernameWithEmail(ctx, keybase1.RecoverUsernameWithEmailArg{
 		Email: "bad+" + fu.Email,
 	})
