@@ -914,8 +914,8 @@ func newCRChains(
 						BlockPointer: ptr,
 						Name: fmt.Sprintf(
 							"<MD rev %d>", chainMD.Revision()),
-					},
-					}})
+					}},
+				})
 			if err != nil {
 				return nil, err
 			}

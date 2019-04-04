@@ -11,7 +11,7 @@ import (
 
 // TestClock returns a set time as the current time.
 type TestClock struct {
-	l sync.Mutex
+	l sync.RWMutex
 	t time.Time
 }
 
@@ -31,8 +31,8 @@ func NewTestClockAndTimeNow() (*TestClock, time.Time) {
 
 // Now implements the Clock interface for TestClock.
 func (tc *TestClock) Now() time.Time {
-	tc.l.Lock()
-	defer tc.l.Unlock()
+	tc.l.RLock()
+	defer tc.l.RUnlock()
 	return tc.t
 }
 
