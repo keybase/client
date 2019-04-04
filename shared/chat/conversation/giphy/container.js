@@ -11,8 +11,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   const giphy = state.chat2.giphyResultMap.get(conversationIDKey, null)
   return {
-    previews: giphy?.results,
     galleryURL: giphy?.galleryUrl ?? '',
+    previews: giphy?.results,
   }
 }
 
