@@ -6,85 +6,92 @@ import ClickableBox from './clickable-box'
 import logger from '../logger'
 import type {IconType, Props} from './icon'
 import {NativeImage} from './native-image.native'
-import {NativeStyleSheet, NativeText} from './native-wrappers.native'
+import {NativeText} from './native-wrappers.native'
 import {iconMeta} from './icon.constants'
 
-// In order to optimize this commonly used component we use StyleSheet on all the default variants
-// so we can pass IDs around instead of full objects
-// $FlowIssue
-const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
-  const meta = iconMeta[type]
-  if (meta.gridSize) {
-    map[meta.gridSize] = {
-      fontSize: meta.gridSize,
+const Kb = {
+  ClickableBox,
+  NativeImage,
+  NativeText,
+}
+
+// 1. remove emotion
+// 2. make defaults ahead of time
+//
+
+const Text = React.memo(p => {
+  const style = {}
+
+  const color =
+    p.colorOverride ||
+    p.color ||
+    (p.style && p.style.color) ||
+    Shared.defaultColor(p.type) ||
+    (p.opacity && Styles.globalColors.lightGrey)
+
+  if (p.style) {
+    if (p.style.width !== undefined) {
+      style.width = p.style.width
+    }
+    if (p.style.backgroundColor) {
+      style.backgroundColor = p.style.backgroundColor
     }
   }
-  return map
-}, {})
 
-const styles = NativeStyleSheet.create(fontSizes)
+  if (color) {
+    style.color = color
+  }
+  if (p.textAlign !== undefined) {
+    style.textAlign = p.textAlign
+  }
 
-const Text = Styles.styled(NativeText)(
-  // static styles
-  {
-    color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
-    fontFamily: 'kb',
-    fontWeight: 'normal', // MUST set this or it can be inherited from outside text
-  },
-  // dynamic styles. check for undefined and send null
-  props =>
-    props.style && props.style.width !== undefined
-      ? {
-          width: props.style.width,
-        }
-      : null,
-  props => {
-    const color =
-      props.colorOverride ||
-      props.color ||
-      Shared.defaultColor(props.type) ||
-      (props.opacity && Styles.globalColors.lightGrey)
-    if (color) {
-      return {color}
-    } else return null
-  },
-  props =>
-    props.textAlign !== undefined
-      ? {
-          textAlign: props.textAlign,
-        }
-      : null,
-  props => {
-    if (props.fontSize !== undefined || (props.style && props.style.width !== undefined)) {
-      return {fontSize: props.fontSize || props.style.width}
+  if (p.fontSize !== undefined || (p.style && p.style.width !== undefined)) {
+    style.fontSize = p.fontSize || p.style.width
+  }
+
+  const temp = Shared.fontSize(Shared.typeToIconMapper(p.type))
+  if (temp) {
+    style.fontSize = temp.fontSize
+  }
+
+  // explicit
+  let fontSize
+  if (p.fontSize) {
+    fontSize = p.fontSize
+  } else {
+    fontSize = Shared.typeToFontSize(p.sizeType)
+  }
+
+  return (
+    <Kb.NativeText
+      style={[styles.text, style, p.style]}
+      allowFontScaling={false}
+      type={p.type}
+      fontSize={fontSize}
+      onPress={p.onClick}
+    >
+      {p.children}
+    </Kb.NativeText>
+  )
+})
+
+const Image = React.memo(p => {
+  let style
+  if (p.style) {
+    style = {}
+    if (p.style.width !== undefined) {
+      style.width = p.style.width
     }
-
-    const temp = Shared.fontSize(Shared.typeToIconMapper(props.type))
-    if (temp) {
-      return styles[temp.fontSize]
+    if (p.style.height !== undefined) {
+      style.height = p.style.height
     }
-    return null
-  },
-  props =>
-    props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
-)
+    if (p.style.backgroundColor) {
+      style.backgroundColor = p.style.backgroundColor
+    }
+  }
 
-const Image = Styles.styled(NativeImage)(
-  props =>
-    props.style && props.style.width !== undefined
-      ? {
-          width: props.style.width,
-        }
-      : null,
-  props =>
-    props.style && props.style.height !== undefined
-      ? {
-          height: props.style.height,
-        }
-      : null,
-  props =>
-    props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
-)
+  return <Kb.NativeImage style={[style, p.style]} source={p.source} resizeMode="contain" />
+})
 
 class Icon extends React.PureComponent<Props> {
   static defaultProps = {
@@ -94,7 +101,6 @@ class Icon extends React.PureComponent<Props> {
     const props = this.props
     // Only apply props.style to icon if there is no onClick
     const hasContainer = props.onClick && props.style
-    let iconStyle = hasContainer ? null : props.style
     let iconType = Shared.typeToIconMapper(props.type)
 
     if (!iconType) {
@@ -110,35 +116,29 @@ class Icon extends React.PureComponent<Props> {
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
+      let color
       if (props.colorOverride || props.color) {
-        iconStyle = Styles.collapseStyles([iconStyle, {color: props.colorOverride || props.color}])
-      }
-
-      // explicit
-      let fontSize
-      if (this.props.fontSize) {
-        fontSize = this.props.fontSize
-      } else {
-        fontSize = Shared.typeToFontSize(this.props.sizeType)
+        color = props.colorOverride || props.color
       }
 
       icon = (
         <Text
-          allowFontScaling={false}
-          style={iconStyle}
+          style={hasContainer ? null : props.style}
+          color={color}
           type={props.type}
-          fontSize={fontSize}
-          onPress={props.onClick}
+          fontSize={this.props.fontSize}
+          sizeType={this.props.sizeType}
+          onClick={props.onClick}
         >
           {code}
         </Text>
       )
     } else {
-      icon = <Image source={iconMeta[iconType].require} style={iconStyle} resizeMode="contain" />
+      icon = <Image source={iconMeta[iconType].require} style={hasContainer ? null : props.style} />
     }
 
     return !props.noContainer && props.onClick ? (
-      <ClickableBox
+      <Kb.ClickableBox
         activeOpacity={0.8}
         underlayColor={props.underlayColor || Styles.globalColors.white}
         onClick={props.onClick}
@@ -148,7 +148,7 @@ class Icon extends React.PureComponent<Props> {
         ])}
       >
         {icon}
-      </ClickableBox>
+      </Kb.ClickableBox>
     ) : (
       icon
     )
@@ -194,5 +194,13 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
 export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
+
+const styles = Styles.styleSheetCreate({
+  text: {
+    color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
+    fontFamily: 'kb',
+    fontWeight: 'normal', // MUST set this or it can be inherited from outside text
+  },
+})
 
 export default Icon
