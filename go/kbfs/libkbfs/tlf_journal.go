@@ -1465,6 +1465,11 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 		// Remember to make the info file again if more data comes
 		// into this journal.
 		j.needInfoFile = true
+
+		err = j.blockJournal.s.clear()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
