@@ -4,6 +4,11 @@
     {
       "path": "passphrase_common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -81,7 +86,7 @@
         }
       ],
       "response": null,
-      "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then we'll\n    try to force a passphrase change."
+      "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then\n    we'll try to force a passphrase change."
     },
     "passphrasePrompt": {
       "request": [
@@ -179,6 +184,43 @@
         {
           "name": "email",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "enterResetPipeline": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "usernameOrEmail",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "Start reset process for the user based on their username or email.  If\n    neither are known the user will be prompted for their passphrase to start\n    the process."
+    },
+    "cancelReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Aborts the reset process"
+    },
+    "timeTravelReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "duration",
+          "type": "gregor1.DurationSec"
         }
       ],
       "response": null

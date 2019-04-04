@@ -55,27 +55,7 @@ if defined badbuildnumber (
 
 call %GOPATH%\src\github.com\keybase\client\packaging\windows\build_prerelease.cmd || goto:build_error || EXIT /B 1
 
-
-::RunQuiet Utility
-pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
-del rq.hash
-del old.hash
-powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/runquiet/runquiet.hash -OutFile old.hash"
-git log -1 -- runquiet.go > rq.hash
-fc rq.hash old.hash
-if %ERRORLEVEL% EQU 0 (
-    echo "downloading keybaserq"
-    powershell -command "wget https://s3.amazonaws.com/prerelease.keybase.io/windows-support/runquiet/keybaserq.exe -OutFile keybaserq.exe"
-) else (
-    echo "--- runquiet hashes differ, building keybaserq. Server hash: ---"
-    type old.hash
-    echo "--- Current hash: ---"
-    type rq.hash
-    call ..\..\..\packaging\windows\buildrq.bat || goto:build_error || EXIT /B 1
-)
-popd
-
-call %GOPATH%\src\github.com\keybase\client\packaging\windows\buildui.bat || goto:build_error || EXIT /B 1
+call %GOPATH%\src\github.com\keybase\client\packaging\windows\buildui.cmd || goto:build_error || EXIT /B 1
 
 ::Build Installer
 call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cmd || goto:build_error || EXIT /B 1

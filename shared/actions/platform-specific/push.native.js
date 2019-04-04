@@ -35,44 +35,25 @@ const updateAppBadge = (_, action) => {
 }
 
 // Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
-// If we're killed it all works. clicking on the notification launches us and we get the onNotify callback and it all works
-// If we're backgrounded we get the silent or the silent and real. To work around this we:
-// 1. Plumb through the intent from the java side if we relaunch due to push
-// 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
-let lastPushForAndroid = null
+// The notification is first passed through native code for e.g. plaintext processing.
+// If we were killed, then launching from the notification will go through the
+//   `getStartupDetailsFromInitialPush` flow, via
+//   actions/platfrom-specific/index.native->loadStartupDetails.
+//   * This flow queries the native code's Intent, which contains the original
+//     notification, and then the JS routes us to the right place.
+// If we're backgrounded, then we receive an `androidIntentNotification` event,
+// and execute the listener code below, causing an action that routes us correctly.
 const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   // If android launched due to push
-  RNEmitter.addListener('androidIntentNotification', () => {
-    logger.info('[PushAndroidIntent]', lastPushForAndroid && lastPushForAndroid.type)
-    if (!lastPushForAndroid) {
+  RNEmitter.addListener('androidIntentNotification', (evt) => {
+    logger.info('[PushAndroidIntent]', evt && evt.type)
+    const notification = evt && Constants.normalizePush(evt)
+    if (!notification) {
       return
     }
 
-    switch (lastPushForAndroid.type) {
-      // treat this like a loud message
-      case 'chat.newmessageSilent_2':
-        lastPushForAndroid = {
-          conversationIDKey: lastPushForAndroid.conversationIDKey,
-          membersType: lastPushForAndroid.membersType,
-          type: 'chat.newmessage',
-          unboxPayload: lastPushForAndroid.unboxPayload,
-          userInteraction: true,
-        }
-        break
-      case 'chat.newmessage':
-        lastPushForAndroid.userInteraction = true
-        break
-      case 'follow':
-        lastPushForAndroid.userInteraction = true
-        break
-      default:
-        lastPushForAndroid = null
-        return
-    }
-
-    emitter(PushGen.createNotification({notification: lastPushForAndroid}))
-    lastPushForAndroid = null
+    emitter(PushGen.createNotification({notification}))
   })
 
   // TODO: move this out of this file.
@@ -96,12 +77,11 @@ const listenForPushNotificationsFromJS = emitter => {
   }
 
   const onNotification = n => {
+    logger.info('[onNotification]: ', n)
     const notification = Constants.normalizePush(n)
     if (!notification) {
       return
     }
-    // bookkeep for android special handling
-    lastPushForAndroid = notification
     emitter(PushGen.createNotification({notification}))
   }
 
@@ -176,7 +156,7 @@ function* handlePush(_, action) {
         }
         break
       case 'chat.newmessageSilent_2':
-        // entirely handled by go on ios and not being sent on android. TODO eventually make android like ios and plumb this through native land
+        // entirely handled by go on ios and in onNotification on Android
         break
       case 'chat.newmessage':
         yield* handleLoudMessage(notification)

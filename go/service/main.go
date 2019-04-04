@@ -149,7 +149,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 			libkb.RPCCancelerReasonAll),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
-		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
 		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d)),
 			libkb.RPCCancelerReasonLogout),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
@@ -161,6 +160,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 	}
+	appStateHandler := newAppStateHandler(xp, g)
+	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
+	shutdowners = append(shutdowners, appStateHandler)
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
 		libkb.RPCCancelerReasonLogout))
@@ -322,7 +324,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
-	ephemeral.ServiceInit(d.G())
+	ephemeral.ServiceInit(d.MetaContext(context.TODO()))
 	avatars.ServiceInit(d.G(), d.avatarLoader)
 	return nil
 }
@@ -386,7 +388,7 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 		g.InboxSource.Start(context.Background(), uid)
-		g.Indexer.Start(chat.Context(context.Background(), g,
+		g.Indexer.Start(globals.ChatCtx(context.Background(), g,
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
 		g.CoinFlipManager.Start(context.Background(), uid)
 	}
@@ -412,6 +414,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
+	g.CtxFactory = chat.NewCtxFactory(g)
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
@@ -459,7 +462,6 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
-	chatSyncer.RegisterOfflinable(g.ConvSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
 
@@ -608,7 +610,7 @@ func (d *Service) startupGregor() {
 
 func (d *Service) addGlobalHooks() {
 	d.G().AddLoginHook(d)
-	d.G().AddLogoutHook(d)
+	d.G().AddLogoutHook(d, "service/Service")
 }
 
 func (d *Service) StartLoopbackServer() error {
@@ -848,7 +850,7 @@ func (d *Service) runBackgroundWalletUpkeep() {
 	})
 }
 
-func (d *Service) OnLogin() error {
+func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	d.rekeyMaster.Login()
 	if err := d.gregordConnect(); err != nil {
 		return err

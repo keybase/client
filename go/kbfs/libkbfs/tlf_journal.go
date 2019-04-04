@@ -6,7 +6,9 @@ package libkbfs
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -280,6 +282,13 @@ type tlfJournal struct {
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
+
+	// Needs to be taken for reading when putting block data, and for
+	// writing when clearing block data, to ensure that we don't put a
+	// block (in parallel with other blocks), then clear out the whole
+	// block journal before appending the block's entry to the block
+	// journal.  Should be taken before `journalLock`.
+	blockPutFlushLock sync.RWMutex
 
 	// Protects all operations on blockJournal and mdJournal, and all
 	// the fields until the next blank line.
@@ -1391,6 +1400,9 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 			removedFiles)
 	}
 
+	j.blockPutFlushLock.Lock()
+	defer j.blockPutFlushLock.Unlock()
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1962,7 +1974,7 @@ func (j *tlfJournal) enable() error {
 // successful MD flush).  This is safe because the journal doesn't
 // support removing references for anything other than a flush (see
 // the comment in tlfJournal.removeBlockReferences).
-func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
+func (j *tlfJournal) getBlockData(ctx context.Context, id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1970,17 +1982,18 @@ func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	return j.blockJournal.getData(id)
+	return j.blockJournal.getData(ctx, id)
 }
 
-func (j *tlfJournal) getBlockSize(id kbfsblock.ID) (uint32, error) {
+func (j *tlfJournal) getBlockSize(
+	ctx context.Context, id kbfsblock.ID) (uint32, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return 0, err
 	}
 
-	size, err := j.blockJournal.getDataSize(id)
+	size, err := j.blockJournal.getDataSize(ctx, id)
 	if err != nil {
 		return 0, err
 	}
@@ -2069,6 +2082,17 @@ func (j *tlfJournal) putBlockData(
 			filesPerBlockMax, putData, j.chargedTo)
 	}()
 
+	j.blockPutFlushLock.RLock()
+	defer j.blockPutFlushLock.RUnlock()
+
+	// Put the block data before taking the lock, so block puts can
+	// run in parallel.
+	putData, err = j.blockJournal.putBlockData(
+		ctx, id, blockCtx, buf, serverHalf)
+	if err != nil {
+		return err
+	}
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2081,8 +2105,12 @@ func (j *tlfJournal) putBlockData(
 
 	storedBytesBefore := j.blockJournal.getStoredBytes()
 
-	putData, err = j.blockJournal.putData(
-		ctx, id, blockCtx, buf, serverHalf)
+	bufLenToAdd := bufLen
+	if !putData {
+		bufLenToAdd = 0
+	}
+
+	err = j.blockJournal.appendBlock(ctx, id, blockCtx, bufLenToAdd)
 	if err != nil {
 		return err
 	}
@@ -2181,7 +2209,8 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
-func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
+func (j *tlfJournal) isBlockUnflushed(
+	ctx context.Context, id kbfsblock.ID) (bool, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2195,7 +2224,7 @@ func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
 		return true, nil
 	}
 
-	return j.blockJournal.isUnflushed(id)
+	return j.blockJournal.isUnflushed(ctx, id)
 }
 
 func (j *tlfJournal) markFlushingBlockIDs(entries blockEntriesToFlush) error {
@@ -2475,6 +2504,58 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// block data files before the flush gets to them.
 
 	return irmd, false, nil
+}
+
+func (j *tlfJournal) moveAway(ctx context.Context) error {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	// j.dir is X/y-z. Current timestamp is T. Move directory X/y-z to X/z-T.bak
+	// and then rebuild it.
+	restDir, lastDir := filepath.Split(j.dir)
+	idParts := strings.Split(lastDir, "-")
+	newDirName := fmt.Sprintf("%s-%d.bak", idParts[len(idParts)-1],
+		j.config.Clock().Now().UnixNano())
+	fullDirName := filepath.Join(restDir, newDirName)
+
+	err := os.Rename(j.dir, fullDirName)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(j.dir, 0700)
+	if err != nil {
+		return err
+	}
+
+	// Copy over the info.json file
+	infoData, err := ioutil.ReadFile(getTLFJournalInfoFilePath(fullDirName))
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(getTLFJournalInfoFilePath(j.dir), infoData, 0600)
+	if err != nil {
+		return err
+	}
+
+	// Make new block and MD journals
+	blockJournal, err := makeBlockJournal(ctx, j.config.Codec(), j.dir, j.log)
+	if err != nil {
+		return err
+	}
+
+	mdJournal, err := makeMDJournal(ctx, j.uid, j.key, j.config.Codec(),
+		j.config.Crypto(), j.config.Clock(), j.config.teamMembershipChecker(),
+		j.config, j.tlfID, j.config.MetadataVersion(), j.dir, j.log)
+	if err != nil {
+		return err
+	}
+
+	j.blockJournal = blockJournal
+	j.mdJournal = mdJournal
+
+	j.resume(journalPauseConflict)
+	j.signalWork()
+	return nil
 }
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,

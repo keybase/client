@@ -4,6 +4,7 @@ import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamBuildingConstants from '../../constants/team-building'
+import {clamp} from 'lodash-es'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
@@ -25,6 +26,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
+  containsLatestMessageMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -35,6 +37,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,
+  messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -51,6 +54,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  threadSearchInfoMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
@@ -77,8 +81,19 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
   deletableByDeleteHistory: I.Set(),
 })
 
+export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.Record({
+  hits: I.List(),
+  status: 'initial',
+  visible: false,
+})
+
+export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
+  state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
+
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet())
+export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
@@ -157,8 +172,12 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   return meta.teamname === teamname
 }
 export const isInfoPanelOpen = (state: TypedState) => {
-  const routePath = getPath(state.routeTree.routeState, [chatTab])
-  return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
+  if (flags.useNewRouter) {
+    return Router2.getVisibleScreen()?.routeName === 'chatInfoPanel'
+  } else {
+    const routePath = getPath(state.routeTree.routeState, [chatTab])
+    return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
+  }
 }
 
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -178,6 +197,8 @@ export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey)
 export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
+export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
@@ -262,6 +283,17 @@ export const flipPhaseToString = (phase: number) => {
       return 'loading'
   }
 }
+
+export const clampImageSize = (width: number, height: number, maxSize: number) =>
+  height > width
+    ? {
+        height: clamp(height || 0, 0, maxSize),
+        width: (clamp(height || 0, 0, maxSize) * width) / (height || 1),
+      }
+    : {
+        height: (clamp(width || 0, 0, maxSize) * height) / (width || 1),
+        width: clamp(width || 0, 0, maxSize),
+      }
 
 export {
   getChannelForTeam,

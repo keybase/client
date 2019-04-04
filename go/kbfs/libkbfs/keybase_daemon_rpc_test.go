@@ -347,7 +347,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
-	config1.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config1.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 
 	clock, first := newTestClockAndTimeNow()
 	config1.SetClock(clock)

@@ -131,6 +131,7 @@ export const constantsStatusCode = {
   scexists: 230,
   sccanceled: 237,
   scinputcanceled: 239,
+  scbadusername: 243,
   scoffline: 267,
   screloginrequired: 274,
   scresolutionfailed: 275,
@@ -318,6 +319,7 @@ export const constantsStatusCode = {
   scnistbadclock: 3219,
   scnistsigbadctime: 3220,
   scbadsignupusernamedeleted: 3221,
+  scnopaperkeys: 3605,
 }
 
 export const ctlDbType = {

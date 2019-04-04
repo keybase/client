@@ -1,6 +1,7 @@
 // @flow
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-export type Props = {
+export type Props = {|
   previews: ?Array<RPCChatTypes.GiphySearchResult>,
+  galleryURL: string,
   onClick: string => void,
-}
+|}

@@ -109,7 +109,7 @@ func Create(in Input) (res Output, err error) {
 	if err != nil {
 		return res, err
 	}
-	enc, err := encrypt(stellar1.RelayContents{
+	enc, err := Encrypt(stellar1.RelayContents{
 		StellarID: stellar1.TransactionID(sig.TxHash),
 		Sk:        stellar1.SecretKey(relayKp.Seed()),
 		Note:      in.Note,
@@ -128,7 +128,7 @@ func Create(in Input) (res Output, err error) {
 	}, nil
 }
 
-func encrypt(relay stellar1.RelayContents, encryptFor keybase1.TeamApplicationKey) (res stellar1.EncryptedRelaySecret, err error) {
+func Encrypt(relay stellar1.RelayContents, encryptFor keybase1.TeamApplicationKey) (res stellar1.EncryptedRelaySecret, err error) {
 	if encryptFor.Key.IsBlank() {
 		return res, errors.New("attempt to use blank team application key")
 	}

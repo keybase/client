@@ -151,7 +151,9 @@
       ],
       "messages": "Array<Types.Message>",
       // true if these should be the only messages we know about
-      "shouldClearOthers?": "boolean"
+      "shouldClearOthers?": "boolean",
+      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID}>",
+      "forceContainsLatestCalc?": "boolean"
     },
     // Got an error sending a message
     "messageErrored": {
@@ -235,6 +237,13 @@
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadNewerMessagesDueToScroll": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "loadMessagesFromSearchHit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     },
     // Show a desktop notification
     "desktopNotification": {
@@ -413,6 +422,13 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
     },
+    // Hide a conversation until future activity
+    "hideConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "unhideConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     // Conversation was loaded and is offline
     "setConversationOffline": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -522,12 +538,13 @@
     "giphyGotSearchResult": {
       "_description": "Giphy search results obtained",
       "conversationIDKey": "Types.ConversationIDKey",
-      "results": "Array<RPCChatTypes.GiphySearchResult>"
+      "results": "RPCChatTypes.GiphySearchResults"
     },
     "giphyToggleWindow": {
       "_description": "Toggle Giphy search preview window",
       "conversationIDKey": "Types.ConversationIDKey",
-      "show": "boolean"
+      "show": "boolean",
+      "clearInput": "boolean"
     },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"
@@ -573,6 +590,34 @@
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "usernames": "Array<string>"
+    },
+    "jumpToRecent": {
+      "_description": "Jump to most recent messages in a conversation",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setContainsLastMessage": {
+      "_description": "Explicitly set whether a thread is loaded to the most recent message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "contains": "boolean"
+    },
+    "threadSearch": {
+      "_description": "Perform a search in a thread",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "HiddenString"
+    },
+    "threadSearchResult": {
+      "_description": "Record a new thread search result",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "message": "Types.Message"
+    },
+    "setThreadSearchStatus": {
+      "_description": "Set the status of a thread search",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "status": "Types.ThreadSearchStatus"
+    },
+    "toggleThreadSearch": {
+      "_description": "Toggle the display of the thread search window",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

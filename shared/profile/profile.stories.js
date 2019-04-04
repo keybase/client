@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as TrackerConstants from '../constants/tracker2'
-import proofsList from './user/proofs/index.stories'
+import proofsList from './generic/proofs-list/index.stories'
 import {BioTeamProofs} from './user/index'
 
 const provider = (cfProps =>
@@ -71,7 +71,6 @@ const bioProps = {
   onAddIdentity: Sb.action('onAddIdentity'),
   onEditAvatar: Sb.action('onEditAvatarClick'),
   reason: 'storybook',
-  showOtherIdentities: true,
   suggestionKeys: [],
   username: 'Chris',
 }

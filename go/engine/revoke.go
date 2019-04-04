@@ -240,11 +240,11 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 			return err
 		}
 		newPukSeqno = me.GetSigChainLastKnownSeqno()
-		sigsList = append(sigsList, sig1)
+		sigsList = append(sigsList, sig1.Payload)
 	}
 
 	// Push the revoke sig
-	sig2, err := e.makeRevokeSig(m, me, sigKey, kidsToRevoke, deviceID, merkleRoot)
+	sig2, lastSeqno, lastLinkID, err := e.makeRevokeSig(m, me, sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -262,7 +262,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	var newUserEKMetadata *keybase1.UserEkMetadata
 	ekLib := e.G().GetEKLib()
 	if !e.skipUserEKForTesting && addingNewPUK && ekLib != nil {
-		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m.Ctx(), *merkleRoot, *newPukSeed)
+		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m, *merkleRoot, *newPukSeed)
 		if err != nil {
 			return err
 		}
@@ -299,6 +299,9 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
+	if err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), lastSeqno, lastLinkID); err != nil {
+		return err
+	}
 
 	if addingNewPUK {
 		err = pukring.AddKey(m, newPukGeneration, newPukSeqno, *newPukSeed)
@@ -309,13 +312,13 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 
 	// Add the new userEK box to local storage, if it was created above.
 	if myUserEKBox != nil {
-		err = e.G().GetUserEKBoxStorage().Put(m.Ctx(), newUserEKMetadata.Generation, *myUserEKBox)
+		err = e.G().GetUserEKBoxStorage().Put(m, newUserEKMetadata.Generation, *myUserEKBox)
 		if err != nil {
 			m.Warning("error while saving userEK box: %s", err)
 		}
 	}
 
-	e.G().UserChanged(me.GetUID())
+	e.G().UserChanged(m.Ctx(), me.GetUID())
 
 	return nil
 }
@@ -351,22 +354,22 @@ func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, me *libkb.User) 
 }
 
 func (e *RevokeEngine) makeRevokeSig(m libkb.MetaContext, me *libkb.User, sigKey libkb.GenericKey,
-	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID, merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, error) {
-
+	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID,
+	merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, keybase1.Seqno, libkb.LinkID, error) {
 	proof, err := me.RevokeKeysProof(m, sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
-	sig, _, _, err := libkb.SignJSON(proof, sigKey)
+	sig, _, linkID, err := libkb.SignJSON(proof.J, sigKey)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 
 	sig1 := make(libkb.JSONPayload)
 	sig1["sig"] = sig
 	sig1["signing_kid"] = sigKey.GetKID().String()
 	sig1["type"] = libkb.LinkTypeRevoke
-	return sig1, nil
+	return sig1, proof.Seqno, linkID, nil
 }
 
 // Get the receivers of the new per-user-key boxes.

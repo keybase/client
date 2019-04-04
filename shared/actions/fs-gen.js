@@ -35,6 +35,8 @@ export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
+export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
+export const initSendLinkToChat = 'fs:initSendLinkToChat'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonStatusChanged = 'fs:kbfsDaemonStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
@@ -57,8 +59,11 @@ export const placeholderAction = 'fs:placeholderAction'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
+export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
+export const sentLinkToChat = 'fs:sentLinkToChat'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDriverStatus = 'fs:setDriverStatus'
+export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
@@ -70,10 +75,9 @@ export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const shareNative = 'fs:shareNative'
 export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
-export const showSendAttachmentToChat = 'fs:showSendAttachmentToChat'
-export const showSendLinkToChat = 'fs:showSendLinkToChat'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
+export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
 export const uploadStarted = 'fs:uploadStarted'
@@ -108,6 +112,8 @@ type _FolderListLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.R
 type _FolderListLoadedPayload = $ReadOnly<{|path: Types.Path, pathItems: I.Map<Types.Path, Types.PathItem>|}>
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
 type _HideSystemFileManagerIntegrationBannerPayload = void
+type _InitSendAttachmentToChatPayload = $ReadOnly<{|path: Types.Path|}>
+type _InitSendLinkToChatPayload = $ReadOnly<{|path: Types.Path|}>
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
 type _KbfsDaemonStatusChangedPayload = $ReadOnly<{|kbfsDaemonStatus: Types.KbfsDaemonStatus|}>
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
@@ -130,8 +136,11 @@ type _PlaceholderActionPayload = void
 type _RefreshDriverStatusPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = $ReadOnly<{|path: Types.Path, key: string|}>
+type _SentAttachmentToChatPayload = void
+type _SentLinkToChatPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
 type _SetDestinationPickerParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetDriverStatusPayload = $ReadOnly<{|driverStatus: Types.DriverStatus|}>
+type _SetFolderViewFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetIncomingShareLocalPathPayload = $ReadOnly<{|localPath: Types.LocalPath|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _SetPathItemActionMenuDownloadKeyPayload = $ReadOnly<{|key: ?string|}>
@@ -143,10 +152,9 @@ type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.Conversatio
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
-type _ShowSendAttachmentToChatPayload = $ReadOnly<{|path: Types.Path, routePath?: ?I.List<string>|}>
-type _ShowSendLinkToChatPayload = $ReadOnly<{|path: Types.Path, routePath?: ?I.List<string>|}>
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
+type _TriggerSendLinkToChatPayload = void
 type _UninstallKBFSConfirmPayload = void
 type _UploadPayload = $ReadOnly<{|parentPath: Types.Path, localPath: string|}>
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
@@ -181,6 +189,8 @@ export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({paylo
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({payload, type: folderListLoaded})
 export const createFsError = (payload: _FsErrorPayload) => ({payload, type: fsError})
 export const createHideSystemFileManagerIntegrationBanner = (payload: _HideSystemFileManagerIntegrationBannerPayload) => ({payload, type: hideSystemFileManagerIntegrationBanner})
+export const createInitSendAttachmentToChat = (payload: _InitSendAttachmentToChatPayload) => ({payload, type: initSendAttachmentToChat})
+export const createInitSendLinkToChat = (payload: _InitSendLinkToChatPayload) => ({payload, type: initSendLinkToChat})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
 export const createKbfsDaemonStatusChanged = (payload: _KbfsDaemonStatusChangedPayload) => ({payload, type: kbfsDaemonStatusChanged})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({payload, type: letResetUserBackIn})
@@ -203,8 +213,11 @@ export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => (
 export const createRefreshDriverStatus = (payload: _RefreshDriverStatusPayload) => ({payload, type: refreshDriverStatus})
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({payload, type: refreshLocalHTTPServerInfo})
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: saveMedia})
+export const createSentAttachmentToChat = (payload: _SentAttachmentToChatPayload) => ({payload, type: sentAttachmentToChat})
+export const createSentLinkToChat = (payload: _SentLinkToChatPayload) => ({payload, type: sentLinkToChat})
 export const createSetDestinationPickerParentPath = (payload: _SetDestinationPickerParentPathPayload) => ({payload, type: setDestinationPickerParentPath})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload) => ({payload, type: setDriverStatus})
+export const createSetFolderViewFilter = (payload: _SetFolderViewFilterPayload) => ({payload, type: setFolderViewFilter})
 export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({payload, type: setIncomingShareLocalPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
@@ -216,10 +229,9 @@ export const createSetSendLinkToChatConvID = (payload: _SetSendLinkToChatConvIDP
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
 export const createShowIncomingShare = (payload: _ShowIncomingSharePayload) => ({payload, type: showIncomingShare})
 export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
-export const createShowSendAttachmentToChat = (payload: _ShowSendAttachmentToChatPayload) => ({payload, type: showSendAttachmentToChat})
-export const createShowSendLinkToChat = (payload: _ShowSendLinkToChatPayload) => ({payload, type: showSendLinkToChat})
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
+export const createTriggerSendLinkToChat = (payload: _TriggerSendLinkToChatPayload) => ({payload, type: triggerSendLinkToChat})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({payload, type: uninstallKBFSConfirm})
 export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
 export const createUploadStarted = (payload: _UploadStartedPayload) => ({payload, type: uploadStarted})
@@ -254,6 +266,8 @@ export type FolderListLoadPayload = {|+payload: _FolderListLoadPayload, +type: '
 export type FolderListLoadedPayload = {|+payload: _FolderListLoadedPayload, +type: 'fs:folderListLoaded'|}
 export type FsErrorPayload = {|+payload: _FsErrorPayload, +type: 'fs:fsError'|}
 export type HideSystemFileManagerIntegrationBannerPayload = {|+payload: _HideSystemFileManagerIntegrationBannerPayload, +type: 'fs:hideSystemFileManagerIntegrationBanner'|}
+export type InitSendAttachmentToChatPayload = {|+payload: _InitSendAttachmentToChatPayload, +type: 'fs:initSendAttachmentToChat'|}
+export type InitSendLinkToChatPayload = {|+payload: _InitSendLinkToChatPayload, +type: 'fs:initSendLinkToChat'|}
 export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
 export type KbfsDaemonStatusChangedPayload = {|+payload: _KbfsDaemonStatusChangedPayload, +type: 'fs:kbfsDaemonStatusChanged'|}
 export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, +type: 'fs:letResetUserBackIn'|}
@@ -276,8 +290,11 @@ export type PlaceholderActionPayload = {|+payload: _PlaceholderActionPayload, +t
 export type RefreshDriverStatusPayload = {|+payload: _RefreshDriverStatusPayload, +type: 'fs:refreshDriverStatus'|}
 export type RefreshLocalHTTPServerInfoPayload = {|+payload: _RefreshLocalHTTPServerInfoPayload, +type: 'fs:refreshLocalHTTPServerInfo'|}
 export type SaveMediaPayload = {|+payload: _SaveMediaPayload, +type: 'fs:saveMedia'|}
+export type SentAttachmentToChatPayload = {|+payload: _SentAttachmentToChatPayload, +type: 'fs:sentAttachmentToChat'|}
+export type SentLinkToChatPayload = {|+payload: _SentLinkToChatPayload, +type: 'fs:sentLinkToChat'|}
 export type SetDestinationPickerParentPathPayload = {|+payload: _SetDestinationPickerParentPathPayload, +type: 'fs:setDestinationPickerParentPath'|}
 export type SetDriverStatusPayload = {|+payload: _SetDriverStatusPayload, +type: 'fs:setDriverStatus'|}
+export type SetFolderViewFilterPayload = {|+payload: _SetFolderViewFilterPayload, +type: 'fs:setFolderViewFilter'|}
 export type SetIncomingShareLocalPathPayload = {|+payload: _SetIncomingShareLocalPathPayload, +type: 'fs:setIncomingShareLocalPath'|}
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
 export type SetPathItemActionMenuDownloadKeyPayload = {|+payload: _SetPathItemActionMenuDownloadKeyPayload, +type: 'fs:setPathItemActionMenuDownloadKey'|}
@@ -289,10 +306,9 @@ export type SetSendLinkToChatConvIDPayload = {|+payload: _SetSendLinkToChatConvI
 export type ShareNativePayload = {|+payload: _ShareNativePayload, +type: 'fs:shareNative'|}
 export type ShowIncomingSharePayload = {|+payload: _ShowIncomingSharePayload, +type: 'fs:showIncomingShare'|}
 export type ShowMoveOrCopyPayload = {|+payload: _ShowMoveOrCopyPayload, +type: 'fs:showMoveOrCopy'|}
-export type ShowSendAttachmentToChatPayload = {|+payload: _ShowSendAttachmentToChatPayload, +type: 'fs:showSendAttachmentToChat'|}
-export type ShowSendLinkToChatPayload = {|+payload: _ShowSendLinkToChatPayload, +type: 'fs:showSendLinkToChat'|}
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
 export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
+export type TriggerSendLinkToChatPayload = {|+payload: _TriggerSendLinkToChatPayload, +type: 'fs:triggerSendLinkToChat'|}
 export type UninstallKBFSConfirmPayload = {|+payload: _UninstallKBFSConfirmPayload, +type: 'fs:uninstallKBFSConfirm'|}
 export type UploadPayload = {|+payload: _UploadPayload, +type: 'fs:upload'|}
 export type UploadStartedPayload = {|+payload: _UploadStartedPayload, +type: 'fs:uploadStarted'|}
@@ -329,6 +345,8 @@ export type Actions =
   | FolderListLoadedPayload
   | FsErrorPayload
   | HideSystemFileManagerIntegrationBannerPayload
+  | InitSendAttachmentToChatPayload
+  | InitSendLinkToChatPayload
   | JournalUpdatePayload
   | KbfsDaemonStatusChangedPayload
   | LetResetUserBackInPayload
@@ -351,8 +369,11 @@ export type Actions =
   | RefreshDriverStatusPayload
   | RefreshLocalHTTPServerInfoPayload
   | SaveMediaPayload
+  | SentAttachmentToChatPayload
+  | SentLinkToChatPayload
   | SetDestinationPickerParentPathPayload
   | SetDriverStatusPayload
+  | SetFolderViewFilterPayload
   | SetIncomingShareLocalPathPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
@@ -364,10 +385,9 @@ export type Actions =
   | ShareNativePayload
   | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload
-  | ShowSendAttachmentToChatPayload
-  | ShowSendLinkToChatPayload
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
+  | TriggerSendLinkToChatPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload
   | UploadStartedPayload

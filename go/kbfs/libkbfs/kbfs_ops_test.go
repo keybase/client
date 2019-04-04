@@ -216,7 +216,7 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 	config := MakeTestConfigOrBust(t, users...)
 	// Turn off tlf edit history because it messes with the FBO state
 	// asynchronously.
-	config.mode = modeNoHistory{config.Mode()}
+	config.SetMode(modeNoHistory{config.Mode()})
 	config.SetRekeyWithPromptWaitTime(individualTestTimeout)
 
 	timeoutCtx, cancel := context.WithTimeout(
@@ -3245,7 +3245,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config1, ctx, cancel)
 	// Turn off tlf edit history because it messes with the FBO state
 	// asynchronously.
-	config1.mode = modeNoHistory{config1.Mode()}
+	config1.SetMode(modeNoHistory{config1.Mode()})
 
 	// Create alice's TLF.
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, "alice", tlf.Private)
@@ -3260,7 +3260,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 
 	// Create mallory's fake TLF using the same TLF ID as alice's.
 	config2 := ConfigAsUser(config1, "mallory")
-	config2.mode = modeNoHistory{config2.Mode()}
+	config2.SetMode(modeNoHistory{config2.Mode()})
 	crypto2 := cryptoFixedTlf{config2.Crypto(), fb1.Tlf}
 	config2.SetCrypto(crypto2)
 	mdserver2, err := NewMDServerMemory(mdServerLocalConfigAdapter{config2})
@@ -4101,7 +4101,7 @@ func (b bserverPutToDiskCache) Put(
 
 func enableDiskCacheForTest(
 	t *testing.T, config *ConfigLocal, tempdir string) *diskBlockCacheWrapped {
-	dbc, err := newDiskBlockCacheWrapped(config, "")
+	dbc, err := newDiskBlockCacheWrapped(config, "", config.Mode())
 	require.NoError(t, err)
 	config.diskBlockCache = dbc
 	err = dbc.workingSetCache.WaitUntilStarted()
@@ -4591,7 +4591,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
-	config.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 	config.vdebugSetting = "vlog2"
 
 	name := "u1"
@@ -4608,7 +4608,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	// config2 is the writer.
 	config2 := ConfigAsUser(config, u1)
 	defer CheckConfigAndShutdown(ctx, t, config2)
-	config2.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config2.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 	kbfsOps2 := config2.KBFSOps()
 
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})

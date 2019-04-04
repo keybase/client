@@ -48,7 +48,7 @@ const makeRow = (options: MakeRowOptions) => {
   } else {
     switch (options.type) {
       case 'bigHeader':
-        return <BigTeamHeader key={options.teamname} teamname={options.teamname} />
+        return <BigTeamHeader key={options.teamname} teamname={options.teamname} conversationIDKey={options.conversationIDKey} />
       case 'big':
         return (
           <BigTeamChannel

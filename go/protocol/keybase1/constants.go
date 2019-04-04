@@ -24,6 +24,7 @@ const (
 	StatusCode_SCExists                                    StatusCode = 230
 	StatusCode_SCCanceled                                  StatusCode = 237
 	StatusCode_SCInputCanceled                             StatusCode = 239
+	StatusCode_SCBadUsername                               StatusCode = 243
 	StatusCode_SCOffline                                   StatusCode = 267
 	StatusCode_SCReloginRequired                           StatusCode = 274
 	StatusCode_SCResolutionFailed                          StatusCode = 275
@@ -211,6 +212,7 @@ const (
 	StatusCode_SCNISTBadClock                              StatusCode = 3219
 	StatusCode_SCNISTSigBadCtime                           StatusCode = 3220
 	StatusCode_SCBadSignupUsernameDeleted                  StatusCode = 3221
+	StatusCode_SCNoPaperKeys                               StatusCode = 3605
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -230,6 +232,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCExists":                                    230,
 	"SCCanceled":                                  237,
 	"SCInputCanceled":                             239,
+	"SCBadUsername":                               243,
 	"SCOffline":                                   267,
 	"SCReloginRequired":                           274,
 	"SCResolutionFailed":                          275,
@@ -417,6 +420,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNISTBadClock":                              3219,
 	"SCNISTSigBadCtime":                           3220,
 	"SCBadSignupUsernameDeleted":                  3221,
+	"SCNoPaperKeys":                               3605,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -434,6 +438,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	230:  "SCExists",
 	237:  "SCCanceled",
 	239:  "SCInputCanceled",
+	243:  "SCBadUsername",
 	267:  "SCOffline",
 	274:  "SCReloginRequired",
 	275:  "SCResolutionFailed",
@@ -621,6 +626,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3219: "SCNISTBadClock",
 	3220: "SCNISTSigBadCtime",
 	3221: "SCBadSignupUsernameDeleted",
+	3605: "SCNoPaperKeys",
 }
 
 func (e StatusCode) String() string {

@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import ChooseView from './choose-view'
@@ -33,18 +34,24 @@ type Props = {|
 |}
 
 const IconClickable = props => (
-  <Kb.Icon
-    type="iconfont-ellipsis"
-    color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
-    hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
-    style={Kb.iconCastPlatformStyles(styles.actionIcon)}
-    fontSize={props.actionIconFontSize}
-    onClick={props.onClick}
-    ref={props.setRef}
-  />
+  <Kb.WithTooltip text="More actions">
+    <Kb.Icon
+      type="iconfont-ellipsis"
+      color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
+      hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
+      padding="tiny"
+      fontSize={props.actionIconFontSize}
+      onClick={props.onClick}
+      ref={props.setRef}
+    />
+  </Kb.WithTooltip>
 )
 
 const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
+  if (props.path === Constants.defaultPath) {
+    return null
+  }
+
   const hideMenuOnce = (() => {
     let hideMenuCalled = false
     return () => {
@@ -92,9 +99,6 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
 })
 
 const styles = Styles.styleSheetCreate({
-  actionIcon: {
-    padding: Styles.globalMargins.tiny,
-  },
   floatingContainer: Styles.platformStyles({
     common: {
       overflow: 'visible',

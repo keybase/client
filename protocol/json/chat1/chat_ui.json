@@ -650,6 +650,10 @@
         },
         {
           "type": "string",
+          "name": "bodySummary"
+        },
+        {
+          "type": "string",
           "name": "senderUsername"
         },
         {
@@ -1020,6 +1024,23 @@
         {
           "type": "boolean",
           "name": "previewIsVideo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GiphySearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "GiphySearchResult"
+          },
+          "name": "results"
+        },
+        {
+          "type": "string",
+          "name": "galleryUrl"
         }
       ]
     },
@@ -1573,10 +1594,7 @@
         },
         {
           "name": "results",
-          "type": {
-            "type": "array",
-            "items": "GiphySearchResult"
-          }
+          "type": "GiphySearchResults"
         }
       ],
       "response": null
@@ -1593,6 +1611,10 @@
         },
         {
           "name": "show",
+          "type": "boolean"
+        },
+        {
+          "name": "clearInput",
           "type": "boolean"
         }
       ],

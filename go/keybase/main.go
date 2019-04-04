@@ -42,6 +42,7 @@ func handleQuickVersion() bool {
 }
 
 func keybaseExit(exitCode int) {
+	logger.Shutdown()
 	logger.RestoreConsoleMode()
 	os.Exit(exitCode)
 }
@@ -248,6 +249,12 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	if !cl.IsService() && !cl.SkipOutOfDateCheck() {
 		// Errors that come up in printing this warning are logged but ignored.
 		client.PrintOutOfDateWarnings(g)
+	}
+
+	// Warn the user if there is an account reset in progress
+	if !cl.IsService() && !cl.SkipAccountResetCheck() {
+		// Errors that come up in printing this warning are logged but ignored.
+		client.PrintAccountResetWarning(g)
 	}
 	return err
 }

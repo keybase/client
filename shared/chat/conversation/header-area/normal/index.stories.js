@@ -14,6 +14,7 @@ const defaultProps = {
   onOpenFolder: Sb.action('onOpenFolder'),
   onShowProfile: Sb.action('onShowProfile'),
   onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
+  onToggleThreadSearch: Sb.action('onToggleThreadSearch'),
   participants: ['joshblum', 'ayoubd'],
   smallTeam: true,
   teamName: 'keybase',

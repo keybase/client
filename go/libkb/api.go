@@ -226,7 +226,7 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 		return nil
 	}
 
-	nist, err := m.ActiveDevice().NIST(m.Ctx())
+	nist, err := m.NIST()
 	if nist == nil {
 		m.Debug("active device couldn't generate a NIST")
 		return nil

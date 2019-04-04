@@ -21,11 +21,19 @@ import OutOfDate from '../app/out-of-date'
 useScreens()
 
 // Options used by default on all navigators
+// For info on what is passed to what see here: https://github.com/react-navigation/react-navigation-stack/blob/master/src/views/Header/Header.js
 const defaultNavigationOptions = {
   header: null,
-  headerLeft: hp => (
-    <LeftAction badgeNumber={0} leftAction="back" onLeftAction={hp.onPress} disabled={hp.scene.index === 0} />
-  ),
+  headerLeft: hp => {
+    return (
+      <LeftAction
+        badgeNumber={0}
+        leftAction="back"
+        onLeftAction={hp.onPress}
+        disabled={hp.scene.index === 0}
+      />
+    )
+  },
   headerTitle: hp => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
       {hp.children}
@@ -109,6 +117,14 @@ class RNApp extends React.PureComponent<any, any> {
     }
 
     this._persistRoute()
+  }
+
+  dispatch = (a: any) => {
+    const nav = this._nav
+    if (!nav) {
+      throw new Error('Missing nav?')
+    }
+    nav.dispatch(a)
   }
 
   // debounce this so we don't persist a route that can crash and then keep them in some crash loop

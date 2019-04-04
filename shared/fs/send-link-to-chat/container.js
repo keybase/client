@@ -7,7 +7,6 @@ import * as ChatConstants from '../../constants/chat2'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as ChatGen from '../../actions/chat2-gen'
-import HiddenString from '../../util/hidden-string'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import flags from '../../util/feature-flags'
 import SendLinkToChat from '.'
@@ -22,10 +21,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _selectChannel: (convID: ChatTypes.ConversationIDKey) =>
-    dispatch(FsGen.createSetSendLinkToChatConvID({convID})),
-  _send: (conversationIDKey: ChatTypes.ConversationIDKey, text: string) => {
-    dispatch(ChatGen.createMessageSend({conversationIDKey, text: new HiddenString(text)}))
+  _onSent: (conversationIDKey: ChatTypes.ConversationIDKey) => {
     dispatch(
       flags.useNewRouter
         ? RouteTreeGen.createClearModals()
@@ -42,6 +38,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     )
     dispatch(ChatGen.createNavigateToThread())
   },
+  _selectChannel: (convID: ChatTypes.ConversationIDKey) =>
+    dispatch(FsGen.createSetSendLinkToChatConvID({convID})),
+  _send: (conversationIDKey: ChatTypes.ConversationIDKey, text: string) =>
+    dispatch(FsGen.createTriggerSendLinkToChat()),
   onCancel: () =>
     dispatch(
       flags.useNewRouter
@@ -53,8 +53,11 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     ),
 })
 
-const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => {
+const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownProps) => {
   const pathTextToCopy = `${Constants.escapePath(stateProps._sendLinkToChat.path)} ` // append space
+  const send = () => _send(stateProps._sendLinkToChat.convID, pathTextToCopy)
+  const onSent = () => _onSent(stateProps._sendLinkToChat.convID)
+  const sendLinkToChatState = stateProps._sendLinkToChat.state
 
   const elems = Types.getPathElements(stateProps._sendLinkToChat.path)
   if (elems.length < 3 || elems[1] === 'public') {
@@ -63,14 +66,12 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
     return {
       conversation: {type: 'none'},
       onCancel,
+      onSent,
       pathTextToCopy,
-      send: null,
+      send,
+      sendLinkToChatState,
     }
   }
-
-  const send = ChatConstants.isValidConversationIDKey(stateProps._sendLinkToChat.convID)
-    ? () => _send(stateProps._sendLinkToChat.convID, pathTextToCopy)
-    : null
 
   if (elems[1] !== 'team') {
     // private/public TLF. Treat it as 1:1 or group chat.
@@ -90,8 +91,10 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
               type: 'group',
             },
       onCancel,
+      onSent,
       pathTextToCopy,
       send,
+      sendLinkToChatState,
     }
   }
 
@@ -103,8 +106,10 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
         type: 'small-team',
       },
       onCancel,
+      onSent,
       pathTextToCopy,
       send,
+      sendLinkToChatState,
     }
   }
 
@@ -126,20 +131,21 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
       channels,
       name: elems[2],
       selectChannel: convID => _selectChannel(convID),
-      selectedChannel:
-        stateProps._sendLinkToChat.convID === ChatConstants.noConversationIDKey
-          ? null
-          : {
-              channelname: (
-                channels.find(({convID}) => convID === stateProps._sendLinkToChat.convID) || {channelname: ''}
-              ).channelname,
-              convID: stateProps._sendLinkToChat.convID,
-            },
+      selectedChannel: ChatConstants.isValidConversationIDKey(stateProps._sendLinkToChat.convID)
+        ? {
+            channelname: (
+              channels.find(({convID}) => convID === stateProps._sendLinkToChat.convID) || {channelname: ''}
+            ).channelname,
+            convID: stateProps._sendLinkToChat.convID,
+          }
+        : null,
       type: 'big-team',
     },
     onCancel,
+    onSent,
     pathTextToCopy,
     send,
+    sendLinkToChatState,
   }
 }
 

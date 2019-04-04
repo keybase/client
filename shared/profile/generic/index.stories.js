@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Success from './success'
 import enterUsername from './enter-username/index.stories'
-import {MastadonIcon, ProofSuccessIcon} from './shared'
 
 const load = () => {
   // Sub-component stories
@@ -15,8 +14,7 @@ const load = () => {
     return (
       <Kb.Box style={styles.container}>
         <Success
-          serviceIcon={MastadonIcon}
-          iconBadge={ProofSuccessIcon}
+          serviceIcon={[]}
           proofUsername={'cecileboucheron@boardgames.social'}
           onClose={Sb.action('onClose')}
         />

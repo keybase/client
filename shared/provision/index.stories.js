@@ -3,7 +3,7 @@ import codePage from './code-page/index.stories'
 import error from './error/index.stories'
 import gpgSign from './gpg-sign/index.stories'
 import paperKey from './paper-key/index.stories'
-import passphrase from './passphrase/index.stories'
+import password from './password/index.stories'
 import selectOtherDevice from './select-other-device/index.stories'
 import setPublicName from './set-public-name/index.stories'
 import forgotUsername from './forgot-username/index.stories'
@@ -17,7 +17,7 @@ const load = () => {
     forgotUsername,
     gpgSign,
     paperKey,
-    passphrase,
+    password,
     selectOtherDevice,
     setPublicName,
     // success,

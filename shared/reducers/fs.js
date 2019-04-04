@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
+import * as ChatConstants from '../constants/chat2'
 import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
 
@@ -121,6 +122,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           team: action.payload.team,
         })
       )
+    case FsGen.setFolderViewFilter:
+      return state.set('folderViewFilter', action.payload.filter)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
@@ -284,16 +287,66 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('destinationPicker', dp =>
         dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
       )
-    case FsGen.showSendAttachmentToChat:
+    case FsGen.initSendAttachmentToChat:
       return state.set(
         'sendAttachmentToChat',
-        Constants.makeSendAttachmentToChat({path: action.payload.path})
+        Constants.makeSendAttachmentToChat({
+          path: action.payload.path,
+          state: 'pending-select-conversation',
+        })
       )
-    case FsGen.showSendLinkToChat:
-      return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
+    case FsGen.setSendAttachmentToChatConvID:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat
+          .set('convID', action.payload.convID)
+          .set(
+            'state',
+            ChatConstants.isValidConversationIDKey(action.payload.convID)
+              ? 'ready-to-send'
+              : 'pending-select-conversation'
+          )
+      )
+    case FsGen.setSendAttachmentToChatFilter:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('filter', action.payload.filter)
+      )
+    case FsGen.sentAttachmentToChat:
+      return state.update('sendAttachmentToChat', sendLinkToChat => sendLinkToChat.set('state', 'sent'))
+    case FsGen.initSendLinkToChat:
+      return state.set(
+        'sendLinkToChat',
+        Constants.makeSendLinkToChat({
+          path: action.payload.path,
+          state: 'locating-conversation',
+        })
+      )
     case FsGen.setSendLinkToChatConvID:
       return state.update('sendLinkToChat', sendLinkToChat =>
-        sendLinkToChat.set('convID', action.payload.convID)
+        sendLinkToChat
+          .set('convID', action.payload.convID)
+          // Notably missing check on if convID is noConversationIDKey,
+          // because it's possible we need to create such conversation. So
+          // always treat this action as a transition to 'ready-to-send'.
+          .set('state', 'ready-to-send')
+      )
+    case FsGen.setSendLinkToChatChannels:
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        sendLinkToChat
+          .set('channels', action.payload.channels)
+          .set(
+            'state',
+            ChatConstants.isValidConversationIDKey(sendLinkToChat.convID)
+              ? 'ready-to-send'
+              : 'pending-select-conversation'
+          )
+      )
+    case FsGen.triggerSendLinkToChat:
+      return state.update('sendLinkToChat', sendLinkToChat => sendLinkToChat.set('state', 'sending'))
+    case FsGen.sentLinkToChat:
+      return state.update('sendLinkToChat', sendLinkToChat =>
+        // We need to set convID here so component can navigate to the
+        // conversation thread correctly.
+        sendLinkToChat.set('state', 'sent').set('convID', action.payload.convID)
       )
     case FsGen.setPathItemActionMenuView:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
@@ -332,18 +385,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         sfmi.update('driverStatus', driverStatus =>
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', true) : driverStatus
         )
-      )
-    case FsGen.setSendLinkToChatChannels:
-      return state.update('sendLinkToChat', sendLinkToChat =>
-        sendLinkToChat.set('channels', action.payload.channels)
-      )
-    case FsGen.setSendAttachmentToChatConvID:
-      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
-        sendAttachmentToChat.set('convID', action.payload.convID)
-      )
-    case FsGen.setSendAttachmentToChatFilter:
-      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
-        sendAttachmentToChat.set('filter', action.payload.filter)
       )
 
     case FsGen.folderListLoad:

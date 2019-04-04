@@ -2625,6 +2625,13 @@
           "name": "conversations"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "uiConversations"
+        },
+        {
           "type": "boolean",
           "name": "offline"
         },
@@ -3908,6 +3915,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
           "name": "text",
           "type": "string"
         }
@@ -4187,6 +4198,10 @@
         }
       ],
       "response": "SearchInboxRes"
+    },
+    "cancelActiveSearch": {
+      "request": [],
+      "response": null
     },
     "profileChatSearch": {
       "request": [

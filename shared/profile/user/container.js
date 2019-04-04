@@ -6,12 +6,14 @@ import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters'
 import Profile2 from '.'
 import {memoize} from '../../util/memoize'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
 import ProfileSearch from '../search/bar'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()
@@ -59,7 +61,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       dispatch(Tracker2Gen.createGetProofSuggestions())
     }
   },
-  onAddIdentity: () => {}, // TODO
+  onAddIdentity: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']})),
   onBack: () => dispatch(ownProps.navigateUp()),
   onSearch: () => {
     dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
@@ -71,32 +73,45 @@ const followToArray = memoize((followers, following) => ({
   following: following.toArray(),
 }))
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  assertionKeys: stateProps._assertions
-    ? stateProps._assertions
-        .sort((a, b) => a.priority - b.priority)
-        .keySeq()
-        .toArray()
-    : null,
-  backgroundColorType: stateProps.backgroundColorType,
-  followThem: stateProps.followThem,
-  followersCount: stateProps.followersCount,
-  followingCount: stateProps.followingCount,
-  onAddIdentity: dispatchProps.onAddIdentity,
-  onBack: dispatchProps.onBack,
-  onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
-  onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
-  onSearch: dispatchProps.onSearch,
-  reason: stateProps.reason,
-  showOtherIdentities: stateProps.userIsYou, // TODO: gate on available providers
-  state: stateProps.state,
-  suggestionKeys: stateProps._suggestionKeys
-    ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
-    : null,
-  userIsYou: stateProps.userIsYou,
-  username: stateProps.username,
-  ...followToArray(stateProps.followers, stateProps.following),
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  let onAddIdentity = null
+  if (
+    stateProps.userIsYou &&
+    flags.proofProviders &&
+    stateProps._suggestionKeys &&
+    stateProps._suggestionKeys.some(s => s.belowFold)
+  ) {
+    onAddIdentity = dispatchProps.onAddIdentity
+  }
+  return {
+    assertionKeys: stateProps._assertions
+      ? stateProps._assertions
+          .sort((a, b) => a.priority - b.priority)
+          .keySeq()
+          .toArray()
+      : null,
+    backgroundColorType: stateProps.backgroundColorType,
+    followThem: stateProps.followThem,
+    followersCount: stateProps.followersCount,
+    followingCount: stateProps.followingCount,
+    onAddIdentity,
+    onBack: dispatchProps.onBack,
+    onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
+    onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
+    onSearch: dispatchProps.onSearch,
+    reason: stateProps.reason,
+    state: stateProps.state,
+    suggestionKeys: stateProps._suggestionKeys
+      ? stateProps._suggestionKeys
+          .filter(s => !s.belowFold)
+          .map(s => s.assertionKey)
+          .toArray()
+      : null,
+    userIsYou: stateProps.userIsYou,
+    username: stateProps.username,
+    ...followToArray(stateProps.followers, stateProps.following),
+  }
+}
 
 const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,

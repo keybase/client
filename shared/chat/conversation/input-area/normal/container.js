@@ -11,7 +11,9 @@ import Input, {type Props} from '.'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
+  jumpToRecent: () => void,
   onRequestScrollDown: () => void,
+  onRequestScrollToBottom: () => void,
   onRequestScrollUp: () => void,
 }
 
@@ -40,7 +42,9 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
+  const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   return {
+    _containsLatestMessage,
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
     _you,
@@ -54,6 +58,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
     showGiphySearch,
+    showTypingStatus:
+      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
@@ -133,6 +139,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     } else {
       dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
     }
+    if (stateProps._containsLatestMessage) {
+      ownProps.onRequestScrollToBottom()
+    } else {
+      ownProps.jumpToRecent()
+    }
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
@@ -153,6 +164,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   showCommandMarkdown: stateProps.showCommandMarkdown,
   showGiphySearch: stateProps.showGiphySearch,
+  showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,

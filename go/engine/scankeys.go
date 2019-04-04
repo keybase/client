@@ -198,9 +198,17 @@ func (s *ScanKeys) KeyOwnerByEntity(entity *openpgp.Entity) *libkb.User {
 func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFile, synced *libkb.SKB) (err error) {
 	defer m.Trace("ScanKeys#coalesceBlocks", func() error { return err })()
 
-	if synced != nil {
-		s.skbs = append(s.skbs, synced)
-	}
+	// We want keys in this order: first local keyring keys that are LKSec, and
+	// then server synced keys that are triplesec. In ScanKeys.KeysById, this
+	// allows us to prompt for passphrase once and get both passphrase stream
+	// cache and triplesec cache the moment first LKSec key is processed by
+	// SKB.UnlockSecretKey.
+
+	// If they were in different order and we got triplesec bundle first, we
+	// would prompt for passphrase to get triplesec stream, and then prompt
+	// again to get passphrase stream to unlock LKSec bundle, prompting twice
+	// in total (assuming someone has both a server-synced bundle and local
+	// one).
 
 	for _, b := range ring.Blocks {
 		if !libkb.IsPGPAlgo(b.Type) {
@@ -209,6 +217,10 @@ func (s *ScanKeys) coalesceBlocks(m libkb.MetaContext, ring *libkb.SKBKeyringFil
 		// make sure uid set on each block:
 		b.SetUID(s.me.GetUID())
 		s.skbs = append(s.skbs, b)
+	}
+
+	if synced != nil {
+		s.skbs = append(s.skbs, synced)
 	}
 
 	return nil

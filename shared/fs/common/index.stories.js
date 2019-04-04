@@ -22,7 +22,7 @@ const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
   childrenFolders: 0,
   loadFolderList: Sb.action('loadFolderList'),
-  loadMimeType: Sb.action('loadMimeType'),
+  loadPathMetadata: Sb.action('loadPathMetadata'),
   path: props.path,
   size: 0,
   type: 'folder',
@@ -64,9 +64,21 @@ export const commonProvider = {
     enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
+  FolderViewFilter: (props: any) => ({
+    filter: '',
+    onUpdate: Sb.action('onUpdate'),
+    ...props,
+  }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
     loadPathMetadata: Sb.action('loadPathMetadata'),
     path,
+  }),
+  NewFolder: ({path}: {path: Types.Path}) => ({
+    canCreateNewFolder: Types.getPathLevel(path) > 2,
+    onNewFolder: Sb.action('onNewFolder'),
+  }),
+  OpenChat: ({path}: {path: Types.Path}) => ({
+    onChat: Constants.canChat(path) ? Sb.action('onChat') : null,
   }),
   PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
@@ -85,7 +97,7 @@ export const commonProvider = {
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
   }),
-  SendInAppAction: () => ({onClick: Sb.action('onClick')}),
+  SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
     reset: ['foo', 'bar', 'cue'],
@@ -95,6 +107,11 @@ export const commonProvider = {
     driverStatus: Constants.makeDriverStatusEnabled(),
     onEnabled: Sb.action('onEnabled'),
     refreshDriverStatus: Sb.action('refreshDriverStatus'),
+  }),
+  UploadButton: ({path}: {path: Types.Path}) => ({
+    canUpload: Types.getPathLevel(path) > 2,
+    openAndUpload: Sb.action('openAndUpload'),
+    pickAndUpload: Sb.action('pickAndUpload'),
   }),
 }
 

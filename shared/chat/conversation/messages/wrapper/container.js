@@ -28,9 +28,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     message.type === 'text'
       ? state.chat2.unfurlPromptMap.getIn([message.conversationIDKey, message.id])
       : null
+  const centeredOrdinal =
+    state.chat2.messageCenterOrdinals.get(message.conversationIDKey, 0) === ownProps.ordinal
 
   return {
     _you: state.config.username,
+    centeredOrdinal,
     conversationIDKey: ownProps.conversationIDKey,
     hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
     isLastInThread:
@@ -144,6 +147,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     authorIsAdmin: false,
     authorIsOwner: false,
+    centeredOrdinal: stateProps.centeredOrdinal,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,

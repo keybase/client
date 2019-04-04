@@ -578,6 +578,9 @@ type KBFSOps interface {
 	NewNotificationChannel(
 		ctx context.Context, handle *tlfhandle.Handle,
 		convID chat1.ConversationID, channelName string)
+	// ClearConflictView moves the conflict view of the given TLF out of the
+	// way and resets the state of the TLF.
+	ClearConflictView(ctx context.Context, tlfID tlf.ID) error
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
 	// `handle` has the new TLF ID.
@@ -2076,6 +2079,10 @@ type InitMode interface {
 	// the block archive/delete background process, and whether we
 	// should be re-embedding block change blocks in MDs.
 	BlockManagementEnabled() bool
+	// MaxBlockPtrsToManageAtOnce indicates how many block pointers
+	// the block manager should try to hold in memory at once. -1
+	// indicates that there is no limit.
+	MaxBlockPtrsToManageAtOnce() int
 	// QuotaReclamationEnabled indicates whether we should be running
 	// the quota reclamation background process.
 	QuotaReclamationEnabled() bool
@@ -2170,6 +2177,7 @@ type Config interface {
 	diskLimiterGetter
 	syncedTlfGetterSetter
 	initModeGetter
+	SetMode(mode InitMode)
 	Tracer
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)

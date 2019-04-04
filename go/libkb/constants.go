@@ -231,6 +231,7 @@ const (
 	SCAlreadyLoggedIn                           = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled                                  = int(keybase1.StatusCode_SCCanceled)
 	SCInputCanceled                             = int(keybase1.StatusCode_SCInputCanceled)
+	SCBadUsername                               = int(keybase1.StatusCode_SCBadUsername)
 	SCOffline                                   = int(keybase1.StatusCode_SCOffline)
 	SCExists                                    = int(keybase1.StatusCode_SCExists)
 	SCInvalidAddress                            = int(keybase1.StatusCode_SCInvalidAddress)
@@ -352,6 +353,7 @@ const (
 	SCStellarMobileOnlyPurgatory                = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
 	SCStellarIncompatibleVersion                = int(keybase1.StatusCode_SCStellarIncompatibleVersion)
 	SCStellarMissingAccount                     = int(keybase1.StatusCode_SCStellarMissingAccount)
+	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
 )
 
 const (
@@ -460,7 +462,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
-// TODO Remove with CORE-9923
+// remove when ShouldUseParameterizedProofs is removed
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,

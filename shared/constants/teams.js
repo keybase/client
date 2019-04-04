@@ -4,10 +4,12 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
+import flags from '../util/feature-flags'
 
 import type {Service} from './types/search'
 import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
@@ -291,6 +293,15 @@ const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?R
   state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
 
 const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
+  if (flags.useNewRouter) {
+    const path = getFullRoute()
+    return path.reduce((names, curr) => {
+      if (curr.routeName === 'team' && curr.params?.teamname) {
+        names.push(curr.params.teamname)
+      }
+      return names
+    }, [])
+  }
   const pathProps = getPathProps(state.routeTree.routeState, [teamsTab])
   return pathProps.reduce((res, val) => {
     const teamname = val.props.get('teamname')

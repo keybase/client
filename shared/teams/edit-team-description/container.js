@@ -1,20 +1,14 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EditTeamDescription from '.'
-import {
-  connect,
-  compose,
-  withHandlers,
-  withProps,
-  withStateHandlers,
-  type RouteProps,
-} from '../../util/container'
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 
-type OwnProps = RouteProps<{teamname: string}, {}>
+type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
+const mapStateToProps = (state, ownProps) => {
+  const teamname = Container.getRouteProps(ownProps, 'teamname')
   if (!teamname) {
     throw new Error('There was a problem loading the description page, please report this error.')
   }
@@ -25,12 +19,17 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   _onSetDescription: (description: string) => {
-    dispatch(TeamsGen.createEditTeamDescription({description, teamname: routeProps.get('teamname')}))
-    dispatch(navigateUp())
+    dispatch(
+      TeamsGen.createEditTeamDescription({
+        description,
+        teamname: Container.getRouteProps(ownProps, 'teamname'),
+      })
+    )
+    dispatch(RouteTreeGen.createNavigateUp())
   },
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -38,19 +37,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...dispatchProps,
 })
 
-const ConnectedEditTeamDescription = compose(
-  connect<OwnProps, _, _, _, _>(
+const ConnectedEditTeamDescription = Container.compose(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  withStateHandlers(({origDescription}) => ({description: origDescription}), {
+  Container.withStateHandlers(({origDescription}) => ({description: origDescription}), {
     onChangeDescription: () => description => ({description}),
   }),
-  withHandlers({
+  Container.withHandlers({
     onSetDescription: ({description, _onSetDescription}) => () => _onSetDescription(description),
   }),
-  withProps(({teamname}) => ({
+  Container.withProps(({teamname}) => ({
     waitingKey: Constants.teamWaitingKey(teamname),
   }))
 )(EditTeamDescription)

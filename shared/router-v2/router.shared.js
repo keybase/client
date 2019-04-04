@@ -58,6 +58,10 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         }
       }
 
+      if (action.payload.replace) {
+        return [StackActions.replace({params, routeName})]
+      }
+
       return [StackActions.push({params, routeName})]
     }
     case RouteTreeGen.switchRouteDef: {

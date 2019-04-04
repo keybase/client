@@ -140,7 +140,7 @@ const TeamConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
-      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.teamsTab], path: ['showNewTeamDialog']}))
+      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.teamsTab], path: ['teamNewTeamDialog']}))
       dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.teamsTab]}))
     },
     onDismiss: onSkipTodo('team', dispatch),

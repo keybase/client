@@ -13,7 +13,7 @@ import {
   type SortableRowItem,
 } from './sort'
 import Rows from './rows'
-import {asRows as sortBarAsRows} from '../sortbar/container'
+import {asRows as topBarAsRow} from '../top-bar'
 
 type OwnProps = {|
   path: Types.Path, // path to the parent folder containering the rows
@@ -171,8 +171,13 @@ const getNormalRowItemsFromStateProps = (stateProps, path) => {
   }
 }
 
+const filterable = new Set(['tlf-type', 'tlf', 'still'])
+const filterRowItems = (rows, filter) =>
+  filter ? rows.filter(row => !filterable.has(row.rowType) || row.name.includes(filter)) : rows
+
 const mapStateToProps = (state, {path}) => ({
   _edits: state.fs.edits,
+  _filter: state.fs.folderViewFilter,
   _pathItems: state.fs.pathItems,
   _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
   _tlfs: state.fs.tlfs,
@@ -183,7 +188,7 @@ const mapStateToProps = (state, {path}) => ({
 const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (s, d, o: OwnProps) => {
-  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path)
+  const normalRowItems = filterRowItems(getNormalRowItemsFromStateProps(s, o.path), s._filter)
   const isEmpty = !normalRowItems.length
   return {
     destinationPickerIndex: o.destinationPickerIndex,
@@ -191,7 +196,7 @@ const mergeProps = (s, d, o: OwnProps) => {
     // $FlowIssue
     items: [
       ...(o.headerRows || []),
-      ...(isEmpty ? [] : sortBarAsRows(o.path)), // don't show sort bar in empty folders
+      ...(isEmpty ? [] : topBarAsRow(o.path)), // don't show sort bar in empty folders
       ...normalRowItems,
       // If we are in the destination picker, inject two empty rows so when
       // user scrolls to the bottom nothing is blocked by the

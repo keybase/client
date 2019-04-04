@@ -705,6 +705,10 @@ func (b MessageBody) SearchableText() string {
 		return b.Requestpayment().Note
 	case MessageType_ATTACHMENT:
 		return b.Attachment().GetTitle()
+	case MessageType_FLIP:
+		return b.Flip().Text
+	case MessageType_UNFURL:
+		return b.Unfurl().SearchableText()
 	default:
 		return ""
 	}
@@ -1086,7 +1090,7 @@ func (p *Pagination) String() string {
 
 // FirstPage returns true if the pagination object is not pointing in any direction
 func (p *Pagination) FirstPage() bool {
-	return p == nil || (len(p.Next) == 0 && len(p.Previous) == 0)
+	return p == nil || p.ForceFirstPage || (len(p.Next) == 0 && len(p.Previous) == 0)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
@@ -2060,6 +2064,23 @@ func (a MessageAttachment) GetTitle() string {
 		title = filepath.Base(a.Object.Filename)
 	}
 	return title
+}
+
+func (u MessageUnfurl) SearchableText() string {
+	typ, err := u.Unfurl.Unfurl.UnfurlType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case UnfurlType_GENERIC:
+		generic := u.Unfurl.Unfurl.Generic()
+		res := generic.Title
+		if generic.Description != nil {
+			res += " " + *generic.Description
+		}
+		return res
+	}
+	return ""
 }
 
 func (h *ChatSearchInboxHit) Size() int {

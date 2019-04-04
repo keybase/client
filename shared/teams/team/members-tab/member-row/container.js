@@ -65,7 +65,8 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
     ownProps.username &&
       dispatch(Chat2Gen.createPreviewConversation({participants: [ownProps.username], reason: 'teamMember'}))
   },
-  onClick: () => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: ownProps, selected: 'member'}]})),
+  onClick: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: ownProps, selected: 'teamMember'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {

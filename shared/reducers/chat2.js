@@ -430,6 +430,7 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
       })
     case Chat2Gen.updateUnreadline:
@@ -463,9 +464,13 @@ const rootReducer = (
         : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
     case Chat2Gen.giphyToggleWindow: {
-      let nextState = state.setIn(['giphyWindowMap', action.payload.conversationIDKey], action.payload.show)
+      const conversationIDKey = action.payload.conversationIDKey
+      let nextState = state.setIn(['giphyWindowMap', conversationIDKey], action.payload.show)
       if (!action.payload.show) {
-        nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], null)
+        nextState = nextState.setIn(['giphyResultMap', conversationIDKey], null)
+      }
+      if (action.payload.clearInput) {
+        nextState = nextState.setIn(['unsentTextMap', conversationIDKey], new HiddenString(''))
       }
       return nextState
     }
@@ -740,8 +745,52 @@ const rootReducer = (
         }
       )
 
+      let containsLatestMessageMap = state.containsLatestMessageMap.withMutations(map => {
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          if (!action.payload.forceContainsLatestCalc && map.get(conversationIDKey, false)) {
+            return
+          }
+          const meta = state.metaMap.get(conversationIDKey, null)
+          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
+          let maxMsgID = 0
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map())
+          for (let i = ordinals.length - 1; i >= 0; i--) {
+            const ordinal = ordinals[i]
+            const message = convMsgMap.get(ordinal)
+            if (message && message.id > 0) {
+              maxMsgID = message.id
+              break
+            }
+          }
+          if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+            map.set(conversationIDKey, true)
+          } else if (action.payload.forceContainsLatestCalc) {
+            map.set(conversationIDKey, false)
+          }
+        })
+      })
+
+      let messageCenterOrdinals = state.messageCenterOrdinals
+      let centeredMessageIDs = action.payload.centeredMessageIDs || []
+      centeredMessageIDs.forEach(cm => {
+        let ordinal = messageIDToOrdinal(
+          state.messageMap,
+          state.pendingOutboxToOrdinal,
+          cm.conversationIDKey,
+          cm.messageID
+        )
+        if (!ordinal) {
+          ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
+        }
+        messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, ordinal)
+      })
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
+        if (centeredMessageIDs.length > 0) {
+          s.set('messageCenterOrdinals', messageCenterOrdinals)
+        }
+        s.set('containsLatestMessageMap', containsLatestMessageMap)
         // only if different
         if (!state.messageOrdinals.equals(messageOrdinals)) {
           s.set('messageOrdinals', messageOrdinals)
@@ -749,6 +798,13 @@ const rootReducer = (
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
+    case Chat2Gen.jumpToRecent:
+      return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.setContainsLastMessage:
+      return state.setIn(
+        ['containsLatestMessageMap', action.payload.conversationIDKey],
+        action.payload.contains
+      )
     case Chat2Gen.messageRetry: {
       const {conversationIDKey, outboxID} = action.payload
       const ordinal = state.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
@@ -960,6 +1016,37 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
+    case Chat2Gen.threadSearchResult:
+      return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
+        info.set('hits', info.hits.push(action.payload.message))
+      )
+    case Chat2Gen.setThreadSearchStatus:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('status', action.payload.status)
+        }
+      )
+    case Chat2Gen.toggleThreadSearch:
+      return state
+        .updateIn(
+          ['threadSearchInfoMap', action.payload.conversationIDKey],
+          (old = Constants.makeThreadSearchInfo()) => {
+            return old.merge({
+              hits: I.List(),
+              status: 'initial',
+              visible: !old.visible,
+            })
+          }
+        )
+        .deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+    case Chat2Gen.threadSearch:
+      return state.updateIn(
+        ['threadSearchInfoMap', action.payload.conversationIDKey],
+        (info = Constants.makeThreadSearchInfo()) => {
+          return info.set('hits', I.List())
+        }
+      )
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -1059,6 +1146,7 @@ const rootReducer = (
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
+    case Chat2Gen.loadNewerMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
@@ -1077,6 +1165,8 @@ const rootReducer = (
     case Chat2Gen.messageAttachmentNativeSave:
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
+    case Chat2Gen.hideConversation:
+    case Chat2Gen.unhideConversation:
     case Chat2Gen.previewConversation:
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.toggleMessageReaction:
@@ -1090,6 +1180,7 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
+    case Chat2Gen.loadMessagesFromSearchHit:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -6,6 +6,7 @@ import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
+import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type Props = {
   backgroundColor: ?string,
@@ -28,6 +29,7 @@ export type Props = {
   snippetDecoration: string,
   subColor: string,
   teamname: string,
+  conversationIDKey: ChatTypes.ConversationIDKey,
   timestamp: string,
   usernameColor: string,
   youAreReset: boolean,
@@ -117,6 +119,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 timestamp={props.timestamp}
                 usernameColor={props.usernameColor}
                 teamname={props.teamname}
+                conversationIDKey={props.conversationIDKey}
                 {...(props.channelname ? {channelname: props.channelname} : {})}
               />
             </Kb.Box>

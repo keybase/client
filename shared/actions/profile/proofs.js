@@ -5,13 +5,16 @@ import type {RPCError} from '../../util/errors'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import {peopleTab} from '../../constants/tabs'
 import flags from '../../util/feature-flags'
+import openURL from '../../util/open-url'
 
 const checkProof = (state, action) => {
   const sigID = state.profile.sigID
+  const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
     return
   }
@@ -26,8 +29,19 @@ const checkProof = (state, action) => {
         })
       } else {
         return [
+          ProfileGen.createUpdateErrorText({
+            errorCode: null,
+            errorText: '',
+          }),
           ProfileGen.createUpdateProofStatus({found, status}),
-          RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
+          ...(isGeneric
+            ? []
+            : [
+                RouteTreeGen.createNavigateAppend({
+                  parentPath: [peopleTab],
+                  path: ['profileConfirmOrPending'],
+                }),
+              ]),
         ]
       }
     })
@@ -47,20 +61,17 @@ const recheckProof = (state, action) =>
 
 // only let one of these happen at a time
 let addProofInProgress = false
-function* addProof(_, action) {
-  const service = action.payload.platform
+function* addProof(state, action) {
+  const service = More.isPlatformsExpandedType(action.payload.platform)
+  const genericService = service ? null : action.payload.platform
   // Special cases
-  switch (action.payload.platform) {
+  switch (service) {
     case 'dnsOrGenericWebSite':
       yield Saga.put(
         RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
       )
       return
-    case 'zcash':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-      )
-      return
+    case 'zcash': //  fallthrough
     case 'btc':
       yield Saga.put(
         RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
@@ -134,7 +145,9 @@ function* addProof(_, action) {
     }
   })
 
-  const promptUsername = ({prevError}, response) => {
+  const promptUsername = (args, response) => {
+    const {parameters, prevError} = args
+    // TODO get parameters from this
     if (canceled) {
       cancelResponse(response)
       return
@@ -147,9 +160,18 @@ function* addProof(_, action) {
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
       )
     }
-    actions.push(
-      Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']}))
-    )
+    if (service) {
+      actions.push(
+        Saga.put(
+          RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
+        )
+      )
+    } else if (genericService && parameters) {
+      actions.push(
+        Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
+      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']})))
+    }
     return actions
   }
 
@@ -174,11 +196,22 @@ function* addProof(_, action) {
       }
     }
 
-    actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-    actions.push(
-      Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
-    )
+    if (service) {
+      actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
+      actions.push(
+        Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
+      )
+    } else if (proof) {
+      actions.push(Saga.put(ProfileGen.createUpdatePlatformGenericURL({url: proof})))
+      openURL(proof)
+      actions.push(Saga.put(ProfileGen.createCheckProof()))
+    }
     return actions
+  }
+
+  const checking = (_, response) => {
+    response.result()
+    return [Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: true}))]
   }
 
   const responseYes = (_, response) => response.result(true)
@@ -186,6 +219,7 @@ function* addProof(_, action) {
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
       customResponseIncomingCallMap: {
+        'keybase.1.proveUi.checking': checking,
         'keybase.1.proveUi.okToCheck': responseYes,
         'keybase.1.proveUi.outputInstructions': outputInstructions,
         'keybase.1.proveUi.preProofWarning': responseYes,
@@ -199,8 +233,8 @@ function* addProof(_, action) {
       params: {
         auto: false,
         force: true,
-        promptPosted: false,
-        service,
+        promptPosted: !!genericService, // proof protocol extended slightly for generic proofs
+        service: action.payload.platform,
         username: '',
       },
       waitingKey: Constants.waitingKey,
@@ -208,9 +242,15 @@ function* addProof(_, action) {
     yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
     logger.info('Start Proof done: ', sigID)
     yield Saga.put(ProfileGen.createCheckProof())
+    if (genericService) {
+      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+    }
   } catch (error) {
     logger.warn('Error making proof')
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+    if (genericService) {
+      yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
+    }
   }
   cancelTask.cancel()
   checkProofTask.cancel()

@@ -3,32 +3,32 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
-import {UpdatePassphrase} from '../../settings/passphrase'
+import {UpdatePassword} from '../../settings/password'
 
 export type Props = {|
-  checkPassphraseIsCorrect: ?boolean,
+  checkPasswordIsCorrect: ?boolean,
   hasRandomPW: ?boolean,
   onCancel: () => void,
-  onCheckPassphrase: (passphrase: string) => void,
+  onCheckPassword: (password: string) => void,
   onLogout: () => void,
-  onSavePassphrase: (passphrase: string, passphraseConfirm: string) => void,
+  onSavePassword: (password: string, passwordConfirm: string) => void,
   waitingForResponse: boolean,
 |}
 
 type TestProps = {|
-  checkPassphraseIsCorrect: ?boolean,
-  onCheckPassphrase: (passphrase: string) => void,
+  checkPasswordIsCorrect: ?boolean,
+  onCheckPassword: (password: string) => void,
   onLogout: () => void,
 |}
 
 type State = {|
-  passphrase: string,
+  password: string,
   showTyping: boolean,
 |}
 
-class OfferToCheckPassphrase extends React.Component<TestProps, State> {
+class OfferToCheckPassword extends React.Component<TestProps, State> {
   state = {
-    passphrase: '',
+    password: '',
     showTyping: false,
   }
 
@@ -39,14 +39,14 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.offer}>
           <Kb.Input
             errorText={
-              this.props.checkPassphraseIsCorrect === false
-                ? 'Your passphrase was incorrect, please try again.'
+              this.props.checkPasswordIsCorrect === false
+                ? 'Your password was incorrect, please try again.'
                 : ''
             }
-            hintText="Enter your passphrase"
+            hintText="Enter your password"
             type={inputType}
-            value={this.state.passphrase}
-            onChangeText={passphrase => this.setState({passphrase})}
+            value={this.state.password}
+            onChangeText={password => this.setState({password})}
             uncontrolled={false}
             style={styles.input}
           />
@@ -55,7 +55,7 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
             onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping}
           />
-          {this.props.checkPassphraseIsCorrect && (
+          {this.props.checkPasswordIsCorrect && (
             <Kb.Box2 direction="horizontal" gap="xtiny">
               <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
               <Kb.Text style={{color: Styles.globalColors.green}} type="BodySmall">
@@ -67,20 +67,20 @@ class OfferToCheckPassphrase extends React.Component<TestProps, State> {
         <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonbar}>
           <Kb.Button
             fullWidth={true}
-            label={this.props.checkPassphraseIsCorrect ? 'Safely sign out' : 'Just sign out'}
+            label={this.props.checkPasswordIsCorrect ? 'Safely sign out' : 'Just sign out'}
             onClick={this.props.onLogout}
-            type={this.props.checkPassphraseIsCorrect ? 'PrimaryGreen' : 'Danger'}
+            type={this.props.checkPasswordIsCorrect ? 'PrimaryGreen' : 'Danger'}
           />
 
-          {!this.props.checkPassphraseIsCorrect && (
+          {!this.props.checkPasswordIsCorrect && (
             <Kb.WaitingButton
               fullWidth={true}
-              waitingKey={Constants.checkPassphraseWaitingKey}
-              type={this.props.checkPassphraseIsCorrect ? 'PrimaryGreen' : 'Primary'}
-              disabled={!!this.props.checkPassphraseIsCorrect}
+              waitingKey={Constants.checkPasswordWaitingKey}
+              type={this.props.checkPasswordIsCorrect ? 'PrimaryGreen' : 'Primary'}
+              disabled={!!this.props.checkPasswordIsCorrect}
               label="Test password"
               onClick={() => {
-                this.props.onCheckPassphrase(this.state.passphrase)
+                this.props.onCheckPassword(this.state.password)
               }}
             />
           )}
@@ -95,26 +95,26 @@ export default (props: Props) => (
     {props.hasRandomPW ? (
       <Kb.Box2 centerChildren={true} direction="vertical">
         <Kb.Text type="Body">
-          You don't have a passphrase set -- you should set one before signing out, so that you can sign in
+          You don't have a password set -- you should set one before signing out, so that you can sign in
           again later.
         </Kb.Text>
-        <UpdatePassphrase
-          onSave={props.onSavePassphrase}
-          saveLabel="Create passphrase and sign out"
+        <UpdatePassword
+          onSave={props.onSavePassword}
+          saveLabel="Create password and sign out"
           waitingForResponse={props.waitingForResponse}
         />
       </Kb.Box2>
     ) : (
       <Kb.Box2 centerChildren={true} direction="vertical">
         <Kb.Text style={styles.bodyText} type="Body">
-          Would you like to make sure that you know your passphrase before signing out?
+          Would you like to make sure that you know your password before signing out?
         </Kb.Text>
         <Kb.Text style={styles.bodyText} type="Body">
           You'll need it to sign back in.
         </Kb.Text>
-        <OfferToCheckPassphrase
-          checkPassphraseIsCorrect={props.checkPassphraseIsCorrect}
-          onCheckPassphrase={props.onCheckPassphrase}
+        <OfferToCheckPassword
+          checkPasswordIsCorrect={props.checkPasswordIsCorrect}
+          onCheckPassword={props.onCheckPassword}
           onLogout={props.onLogout}
         />
       </Kb.Box2>

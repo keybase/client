@@ -340,7 +340,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 func ConfigAsUser(config *ConfigLocal,
 	loggedInUser kbname.NormalizedUsername) *ConfigLocal {
 	c := ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
-	c.mode = config.mode // preserve any unusual test mode wrappers
+	c.SetMode(config.mode) // preserve any unusual test mode wrappers
 	return c
 }
 
@@ -773,6 +773,20 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 		ops.cr.Resolve(baseCtx, ops.getCurrMDRevision(lState),
 			kbfsmd.RevisionUninitialized)
 	}
+	return nil
+}
+
+// SetCRFailureForTesting sets whether CR should always fail on the folder
+// branch.
+func SetCRFailureForTesting(ctx context.Context, config Config,
+	folderBranch FolderBranch, fail failModeForTest) error {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return errors.New("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOpsNoAdd(ctx, folderBranch)
+	ops.cr.failModeForTest = fail
 	return nil
 }
 

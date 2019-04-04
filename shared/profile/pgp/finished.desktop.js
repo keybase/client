@@ -41,7 +41,7 @@ class Finished extends React.Component<Props, State> {
             />
             <Kb.Text type="BodySmall">
               Allows you to download & import your key to other devices. You might need to enter your Keybase
-              passphrase.{' '}
+              password.{' '}
             </Kb.Text>
           </Kb.Box2>
           <Kb.Button

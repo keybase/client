@@ -63,7 +63,10 @@ const showUserProfile = (state, action) => {
   )
 
   if (flags.useNewRouter) {
-    return RouteTreeGen.createNavigateTo({path: [{props: {username}, selected: 'profile'}]})
+    return [
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateTo({path: [{props: {username}, selected: 'profile'}]}),
+    ]
   }
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])

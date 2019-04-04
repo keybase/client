@@ -3,6 +3,7 @@ package chat
 import (
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -148,10 +149,10 @@ func TestTopicNameRace(t *testing.T) {
 		retCh := make(chan ncRes, attempts)
 		for i := 0; i < attempts; i++ {
 			go func() {
-				ctx = CtxAddLogTags(ctx, tc.Context())
+				ctx = globals.CtxAddLogTags(ctx, tc.Context())
 				conv, err := NewConversation(ctx, tc.Context(), uid, first.TlfName, &topicName,
 					chat1.TopicType_DEV, mt, keybase1.TLFVisibility_PRIVATE,
-					func() chat1.RemoteInterface { return ri })
+					func() chat1.RemoteInterface { return ri }, NewConvFindExistingNormal)
 				retCh <- ncRes{convID: conv.GetConvID(), err: err}
 			}()
 		}

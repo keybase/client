@@ -63,7 +63,7 @@ func (r *ekHandler) newTeamEK(ctx context.Context, cli gregor1.IncomingInterface
 	}
 	r.G().Log.CDebugf(ctx, "ephemeral.new_team_ek unmarshaled: %+v", msg)
 
-	if err := ephemeral.HandleNewTeamEK(ctx, r.G(), msg.Id, msg.Generation); err != nil {
+	if err := ephemeral.HandleNewTeamEK(r.MetaContext(ctx), msg.Id, msg.Generation); err != nil {
 		return err
 	}
 

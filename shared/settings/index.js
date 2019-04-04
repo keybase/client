@@ -14,7 +14,7 @@ type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
 const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
   badgeNotifications: !state.push.hasPermissions,
-  hasRandomPW: state.settings.passphrase.randomPW,
+  hasRandomPW: state.settings.password.randomPW,
   isModal: routeLeafTags.modal,
   logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
   selectedTab: ((routeSelected: any): Types.Tab),

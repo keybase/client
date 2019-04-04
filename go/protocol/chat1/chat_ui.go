@@ -547,6 +547,7 @@ type UIMessageValid struct {
 	OutboxID              *string                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	MessageBody           MessageBody            `codec:"messageBody" json:"messageBody"`
 	DecoratedTextBody     *string                `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
+	BodySummary           string                 `codec:"bodySummary" json:"bodySummary"`
 	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
@@ -592,6 +593,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.DecoratedTextBody),
+		BodySummary:      o.BodySummary,
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
@@ -1139,6 +1141,28 @@ func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 		PreviewWidth:   o.PreviewWidth,
 		PreviewHeight:  o.PreviewHeight,
 		PreviewIsVideo: o.PreviewIsVideo,
+	}
+}
+
+type GiphySearchResults struct {
+	Results    []GiphySearchResult `codec:"results" json:"results"`
+	GalleryUrl string              `codec:"galleryUrl" json:"galleryUrl"`
+}
+
+func (o GiphySearchResults) DeepCopy() GiphySearchResults {
+	return GiphySearchResults{
+		Results: (func(x []GiphySearchResult) []GiphySearchResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]GiphySearchResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Results),
+		GalleryUrl: o.GalleryUrl,
 	}
 }
 
@@ -1893,15 +1917,16 @@ type ChatStellarDoneArg struct {
 }
 
 type ChatGiphySearchResultsArg struct {
-	SessionID int                 `codec:"sessionID" json:"sessionID"`
-	ConvID    string              `codec:"convID" json:"convID"`
-	Results   []GiphySearchResult `codec:"results" json:"results"`
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	ConvID    string             `codec:"convID" json:"convID"`
+	Results   GiphySearchResults `codec:"results" json:"results"`
 }
 
 type ChatGiphyToggleResultWindowArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	ConvID    string `codec:"convID" json:"convID"`
-	Show      bool   `codec:"show" json:"show"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	ConvID     string `codec:"convID" json:"convID"`
+	Show       bool   `codec:"show" json:"show"`
+	ClearInput bool   `codec:"clearInput" json:"clearInput"`
 }
 
 type ChatShowManageChannelsArg struct {

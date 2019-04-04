@@ -1,11 +1,12 @@
 // @flow strict
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
-import type {Email, Time} from './rpc-gen'
+import * as I from 'immutable'
+import * as RPCTypes from './rpc-gen'
 
 type InviteBase = {
   id: string,
-  created: Time,
+  created: RPCTypes.Time,
 }
 
 export type PendingInvite = {
@@ -15,85 +16,99 @@ export type PendingInvite = {
 
 export type AcceptedInvite = {
   username: string,
-  fullname: string,
-  currentlyFollowing: boolean,
 } & InviteBase
 
 export type Invitation = {
   created: number,
-  email: string,
+  email: ?string,
   id: string,
   type: string,
-  username?: string,
+  username: string,
   uid?: string,
   url: string,
 }
 
-export type InvitesState = {|
-  pendingInvites: Array<PendingInvite>,
-  acceptedInvites: Array<AcceptedInvite>,
+export type _InvitesState = {|
+  pendingInvites: I.List<PendingInvite>,
+  acceptedInvites: I.List<AcceptedInvite>,
   error: ?Error,
 |}
+export type InvitesState = I.RecordOf<_InvitesState>
 
-export type NotificationsSettingsState = {
+export type _NotificationsSettingsState = {
   name: string,
   subscribed: boolean,
   description: string,
 }
+export type NotificationsSettingsState = I.RecordOf<_NotificationsSettingsState>
 
-export type NotificationsGroupState = {
-  settings: ?Array<NotificationsSettingsState>,
+export type _NotificationsGroupState = {
+  settings: I.List<NotificationsSettingsState>,
   unsubscribedFromAll: boolean,
 }
+export type NotificationsGroupState = I.RecordOf<_NotificationsGroupState>
 
-export type NotificationGroups = 'email' | 'app_push' | 'sms'
+export type NotificationSettingsStateGroups = I.Map<string, NotificationsGroupState>
 
-export type NotificationsState = {
+export type _NotificationsState = {
   allowEdit: boolean,
-  groups: {
-    email?: NotificationsGroupState,
-    app_push?: NotificationsGroupState,
-    sms?: NotificationsGroupState,
-  },
+  groups: I.Map<string, NotificationsGroupState>,
 }
 
-export type PassphraseState = {
-  newPassphrase: HiddenString,
-  newPassphraseConfirm: HiddenString,
+export type NotificationsState = I.RecordOf<_NotificationsState>
+
+export type _PasswordState = {
+  newPassword: HiddenString,
+  newPasswordConfirm: HiddenString,
   error: ?Error,
-  newPassphraseError: ?HiddenString,
-  newPassphraseConfirmError: ?HiddenString,
+  newPasswordError: ?HiddenString,
+  newPasswordConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
-  rememberPassphrase: boolean,
+  rememberPassword: boolean,
   randomPW: ?boolean,
 }
+export type PasswordState = I.RecordOf<_PasswordState>
 
-export type EmailState = {
-  emails: ?Array<Email>,
+// Record types don't play well with $ReadOnly types, which
+// RPCTypes.TeamSettings is, so we want to extract the underlying
+// writeable type. Just spreading doesn't give us what we want, as
+// that makes all keys optional (see
+// https://github.com/facebook/flow/issues/3534 ), so use $Exact to
+// fix that.
+export type _EmailRow = {...$Exact<RPCTypes.Email>}
+export type EmailRow = I.RecordOf<_EmailRow>
+
+export type _EmailState = {
+  emails: ?I.List<EmailRow>,
   newEmail: string,
   error: ?Error,
 }
+export type EmailState = I.RecordOf<_EmailState>
 
-export type ChatUnfurlState = {
+export type _ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode,
-  unfurlWhitelist?: Array<string>,
+  unfurlWhitelist?: I.List<string>,
   unfurlError?: string,
 }
-export type ChatState = {
+export type ChatUnfurlState = I.RecordOf<_ChatUnfurlState>
+
+export type _ChatState = {
   unfurl: ChatUnfurlState,
 }
+export type ChatState = I.RecordOf<_ChatState>
 
-export type State = {
+export type _State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
   invites: InvitesState,
   notifications: NotificationsState,
   email: EmailState,
-  passphrase: PassphraseState,
+  password: PasswordState,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
-  checkPassphraseIsCorrect: ?boolean,
+  checkPasswordIsCorrect: ?boolean,
 }
+export type State = I.RecordOf<_State>
 
 type AboutTab = 'settingsTabs.aboutTab'
 type AdvancedTab = 'settingsTabs.advancedTab'
@@ -107,7 +122,7 @@ type GitTab = 'settingsTabs.gitTab'
 type InvitationsTab = 'settingsTabs.invitationsTab'
 type LandingTab = 'settingsTabs.landingTab'
 type NotificationsTab = 'settingsTabs.notificationsTab'
-type PassphraseTab = 'settingsTabs.passphrase'
+type PasswordTab = 'settingsTabs.password'
 type ScreenprotectorTab = 'settingsTabs.screenprotector'
 type LogOutTab = 'settingsTabs.logOutTab'
 type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
@@ -128,7 +143,7 @@ export type Tab =
   | FsTab
   | LogOutTab
   | ScreenprotectorTab
-  | PassphraseTab
+  | PasswordTab
   | WalletsTab
   | ChatTab
 

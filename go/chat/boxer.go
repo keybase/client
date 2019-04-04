@@ -295,7 +295,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	if info == nil {
 		info = new(types.BoxerEncryptionInfo)
 		keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
-		encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
+		encryptionKey, err := globals.CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 			tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
 			conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 		if err != nil {
@@ -310,8 +310,8 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		// If the message is exploding, load the ephemeral key.
 		var ephemeralSeed *keybase1.TeamEk
 		if boxed.IsEphemeral() {
-			ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
-				ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
+			ek, err := globals.CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
+				b.G().MetaContext(ctx), tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
 				boxed.ClientHeader.TlfPublic, boxed.EphemeralMetadata().Generation,
 				&boxed.ServerHeader.Ctime)
 			if err != nil {
@@ -1115,7 +1115,7 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 }
 
 func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	nun, devName, devType, err := CtxUPAKFinder(ctx, b.G()).LookupUsernameAndDevice(ctx, uid, deviceID)
+	nun, devName, devType, err := globals.CtxUPAKFinder(ctx, b.G()).LookupUsernameAndDevice(ctx, uid, deviceID)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -1159,6 +1159,10 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
+	if topicType != chat1.TopicType_CHAT {
+		// only care about chat conversations for these mentions
+		return atMentions, atMentionUsernames, chanMention, channelNameMentions
+	}
 	chanMention = chat1.ChannelMention_NONE
 	typ, err := body.MessageType()
 	if err != nil {
@@ -1294,7 +1298,7 @@ func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlainte
 	if err != nil {
 		return res, err
 	}
-	encryptionKey, nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
+	encryptionKey, nameInfo, err := globals.CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
 	if err != nil {
@@ -1308,8 +1312,8 @@ func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlainte
 	var ephemeralSeed *keybase1.TeamEk
 	var pairwiseMACRecipients []keybase1.KID
 	if msg.IsEphemeral() {
-		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForEncryption(
-			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
+		ek, err := globals.CtxKeyFinder(ctx, b.G()).EphemeralKeyForEncryption(
+			b.G().MetaContext(ctx), tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 		if err != nil {
 			return res, NewBoxingCryptKeysError(err)
 		}
@@ -1337,7 +1341,7 @@ func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlainte
 		//   - It leaves us more flexibility in the future. If say we
 		//     introduce a best-effort rekey mechanism for ephmeral keys,
 		//     existing pairwise MACs will Just Work™ after a rekey.
-		shouldPairwiseMAC, recipients, err := CtxKeyFinder(ctx, b.G()).ShouldPairwiseMAC(
+		shouldPairwiseMAC, recipients, err := globals.CtxKeyFinder(ctx, b.G()).ShouldPairwiseMAC(
 			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 		if err != nil {
 			return res, err
@@ -1910,7 +1914,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := CtxUPAKFinder(ctx, b.G())
+	cachedUserLoader := globals.CtxUPAKFinder(ctx, b.G())
 	if cachedUserLoader == nil {
 		return false, false, nil, NewTransientUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}

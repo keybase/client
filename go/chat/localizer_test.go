@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -104,7 +105,7 @@ func TestLocalizerPipeline(t *testing.T) {
 	pipeline.resume(ctx)
 
 	t.Logf("suspend (cancelable)")
-	ctx = makeLocalizerCancelableContext(ctx)
+	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	localizeCh = runLocalize()
 	job = getJob()
 	noRes(localizeCh)
@@ -117,7 +118,7 @@ func TestLocalizerPipeline(t *testing.T) {
 	resClosed(localizeCh)
 
 	t.Logf("suspend multiple")
-	ctx = makeLocalizerCancelableContext(ctx)
+	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	localizeCh = runLocalize()
 	job = getJob()
 	noRes(localizeCh)

@@ -756,6 +756,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return NewFeatureFlagError(s.Desc, feature)
+	case SCNoPaperKeys:
+		return NoPaperKeysError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2409,4 +2411,18 @@ func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
 	ret.Desc = e.msg
 	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
 	return ret
+}
+
+func (e BadUsernameError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCBadUsername
+	ret.Name = "BAD_USERNAME"
+	ret.Desc = e.Error()
+	return ret
+}
+
+func (e NoPaperKeysError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCNoPaperKeys
+	ret.Name = "NO_PAPER_KEYS"
+	ret.Desc = e.Error()
+	return
 }

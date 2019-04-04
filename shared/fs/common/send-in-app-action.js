@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import * as FsGen from '../../actions/fs-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {namedConnect} from '../../util/container'
@@ -20,8 +19,10 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
-  onClickAttachment: () => dispatch(FsGen.createShowSendAttachmentToChat({path, routePath})),
-  onClickLink: () => dispatch(FsGen.createShowSendLinkToChat({path, routePath})),
+  onClickAttachment: () =>
+    Constants.makeActionsForShowSendAttachmentToChat(path, routePath).forEach(action => dispatch(action)),
+  onClickLink: () =>
+    Constants.makeActionsForShowSendLinkToChat(path, routePath).forEach(action => dispatch(action)),
 })
 
 const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
@@ -39,7 +40,7 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
           onClick={props.toggleShowingMenu}
           color={Styles.globalColors.black_50}
           hoverColor={Styles.globalColors.black}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
+          padding="tiny"
           ref={props.setAttachmentRef}
         />
       </Kb.WithTooltip>
@@ -58,12 +59,6 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
       )}
     </>
   )
-})
-
-const styles = Styles.styleSheetCreate({
-  icon: {
-    padding: Styles.globalMargins.tiny,
-  },
 })
 
 export default (!isMobile

@@ -447,13 +447,12 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return nil
 	}
 	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := chat.Context(context.Background(), gc,
+	ctx := globals.ChatCtx(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 
 	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
 		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
-		func() error { return err })()
-	defer func() { err = flattenError(err) }()
+		func() error { return flattenError(err) })()
 
 	// Unbox
 	if !kbCtx.ActiveDevice.HaveKeys() {
@@ -483,7 +482,7 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		return err
 	}
 	age := time.Since(time.Unix(int64(unixTime), 0))
-	if age >= 15*time.Second {
+	if age >= 2*time.Minute {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}

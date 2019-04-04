@@ -2135,6 +2135,10 @@
             "type": "array",
             "items": "BatchPaymentArg"
           }
+        },
+        {
+          "name": "useMulti",
+          "type": "boolean"
         }
       ],
       "response": "BatchResultLocal"

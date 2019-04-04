@@ -37,9 +37,13 @@ export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
+export const hideConversation = 'chat2:hideConversation'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
+export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
+export const loadMessagesFromSearchHit = 'chat2:loadMessagesFromSearchHit'
+export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -83,6 +87,7 @@ export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
+export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
@@ -94,17 +99,22 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingStatus = 'chat2:setPendingStatus'
+export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const threadSearch = 'chat2:threadSearch'
+export const threadSearchResult = 'chat2:threadSearchResult'
 export const toggleInfoPanel = 'chat2:toggleInfoPanel'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
+export const toggleThreadSearch = 'chat2:toggleThreadSearch'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
+export const unhideConversation = 'chat2:unhideConversation'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
@@ -138,13 +148,17 @@ type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = $ReadOnly<{|accept: boolean|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
 type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, author: string, body: string|}>
-type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, results: Array<RPCChatTypes.GiphySearchResult>|}>
+type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, results: RPCChatTypes.GiphySearchResults|}>
 type _GiphySendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, url: HiddenString|}>
-type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, show: boolean|}>
+type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, show: boolean, clearInput: boolean|}>
 type _HandleSeeingWalletsPayload = void
+type _HideConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
+type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
+type _LoadMessagesFromSearchHitPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
+type _LoadNewerMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LoadOlderMessagesDueToScrollPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _MarkConversationsStalePayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>, updateType: RPCChatTypes.StaleUpdateType|}>
 type _MarkInitiallyLoadedThreadAsReadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -161,7 +175,7 @@ type _MessageSendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKe
 type _MessageSetEditingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: ?Types.Ordinal, editLastUser?: string|}>
 type _MessageSetQuotingPayload = $ReadOnly<{|sourceConversationIDKey: Types.ConversationIDKey, targetConversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}>
 type _MessageWasEditedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: RPCChatTypes.MessageID, text: HiddenString, mentionsAt: I.Set<string>, mentionsChannel: 'none' | 'all' | 'here', mentionsChannelName: I.Map<string, Types.ConversationIDKey>|}>
-type _MessagesAddPayload = $ReadOnly<{|context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}, messages: Array<Types.Message>, shouldClearOthers?: boolean|}>
+type _MessagesAddPayload = $ReadOnly<{|context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}, messages: Array<Types.Message>, shouldClearOthers?: boolean, centeredMessageIDs?: Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID}>, forceContainsLatestCalc?: boolean|}>
 type _MessagesExplodedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageIDs: Array<RPCChatTypes.MessageID>, explodedBy?: string|}>
 type _MessagesWereDeletedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageIDs?: Array<RPCChatTypes.MessageID>, upToMessageID?: RPCChatTypes.MessageID, deletableMessageTypes?: I.Set<Types.MessageType>, ordinals?: Array<Types.Ordinal>|}>
 type _MetaDeletePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, selectSomethingElse: boolean|}>
@@ -191,6 +205,7 @@ type _SelectConversationPayload = $ReadOnly<{|
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
 type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, md: ?RPCChatTypes.UICommandMarkdown|}>
+type _SetContainsLastMessagePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, contains: boolean|}>
 type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
@@ -203,17 +218,22 @@ type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conve
 type _SetPendingConversationUsersPayload = $ReadOnly<{|users: Array<string>, fromSearch: boolean|}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode, noneDestination?: 'inbox' | 'thread'|}>
 type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
+type _SetThreadSearchStatusPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, status: Types.ThreadSearchStatus|}>
 type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: ?HiddenString|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
+type _ThreadSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
+type _ThreadSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, message: Types.Message|}>
 type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
 type _ToggleMessageCollapsePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, collapse: boolean|}>
 type _ToggleMessageReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, ordinal: Types.Ordinal|}>
 type _ToggleSmallTeamsExpandedPayload = void
+type _ToggleThreadSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _UnfurlResolvePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult|}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, show: boolean|}>
+type _UnhideConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _UnsentTextChangedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
 type _UpdateCoinFlipStatusPayload = $ReadOnly<{|statuses: Array<RPCChatTypes.UICoinFlipStatus>|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
@@ -251,6 +271,10 @@ export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPol
  */
 export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({payload, type: updateTeamRetentionPolicy})
 /**
+ * Explicitly set whether a thread is loaded to the most recent message
+ */
+export const createSetContainsLastMessage = (payload: _SetContainsLastMessagePayload) => ({payload, type: setContainsLastMessage})
+/**
  * Exploding messages expired or were manually detonated.
  */
 export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({payload, type: messagesExploded})
@@ -263,9 +287,21 @@ export const createGiphyGotSearchResult = (payload: _GiphyGotSearchResultPayload
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({payload, type: updateConvExplodingModes})
 /**
+ * Jump to most recent messages in a conversation
+ */
+export const createJumpToRecent = (payload: _JumpToRecentPayload) => ({payload, type: jumpToRecent})
+/**
+ * Perform a search in a thread
+ */
+export const createThreadSearch = (payload: _ThreadSearchPayload) => ({payload, type: threadSearch})
+/**
  * Prime data to fulfill this message's request and navigate to the send form.
  */
 export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({payload, type: prepareFulfillRequestForm})
+/**
+ * Record a new thread search result
+ */
+export const createThreadSearchResult = (payload: _ThreadSearchResultPayload) => ({payload, type: threadSearchResult})
 /**
  * Remove an unfurl
  */
@@ -304,6 +340,10 @@ export const createSetPaymentConfirmInfoError = (payload: _SetPaymentConfirmInfo
  */
 export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({payload, type: setConvExplodingMode})
 /**
+ * Set the status of a thread search
+ */
+export const createSetThreadSearchStatus = (payload: _SetThreadSearchStatusPayload) => ({payload, type: setThreadSearchStatus})
+/**
  * Set unsent text for a conversation
  */
 export const createSetUnsentText = (payload: _SetUnsentTextPayload) => ({payload, type: setUnsentText})
@@ -335,6 +375,10 @@ export const createGiphyToggleWindow = (payload: _GiphyToggleWindowPayload) => (
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({payload, type: toggleLocalReaction})
+/**
+ * Toggle the display of the thread search window
+ */
+export const createToggleThreadSearch = (payload: _ToggleThreadSearchPayload) => ({payload, type: toggleThreadSearch})
 /**
  * Unsent text changed
  */
@@ -395,9 +439,12 @@ export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => (
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({payload, type: badgesUpdated})
 export const createBlockConversation = (payload: _BlockConversationPayload) => ({payload, type: blockConversation})
 export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({payload, type: desktopNotification})
+export const createHideConversation = (payload: _HideConversationPayload) => ({payload, type: hideConversation})
 export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({payload, type: inboxRefresh})
 export const createJoinConversation = (payload: _JoinConversationPayload) => ({payload, type: joinConversation})
 export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({payload, type: leaveConversation})
+export const createLoadMessagesFromSearchHit = (payload: _LoadMessagesFromSearchHitPayload) => ({payload, type: loadMessagesFromSearchHit})
+export const createLoadNewerMessagesDueToScroll = (payload: _LoadNewerMessagesDueToScrollPayload) => ({payload, type: loadNewerMessagesDueToScroll})
 export const createLoadOlderMessagesDueToScroll = (payload: _LoadOlderMessagesDueToScrollPayload) => ({payload, type: loadOlderMessagesDueToScroll})
 export const createMarkConversationsStale = (payload: _MarkConversationsStalePayload) => ({payload, type: markConversationsStale})
 export const createMarkInitiallyLoadedThreadAsRead = (payload: _MarkInitiallyLoadedThreadAsReadPayload) => ({payload, type: markInitiallyLoadedThreadAsRead})
@@ -442,6 +489,7 @@ export const createSetPendingMode = (payload: _SetPendingModePayload) => ({paylo
 export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({payload, type: setPendingStatus})
 export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload) => ({payload, type: toggleInfoPanel})
 export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({payload, type: toggleSmallTeamsExpanded})
+export const createUnhideConversation = (payload: _UnhideConversationPayload) => ({payload, type: unhideConversation})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
 
@@ -471,9 +519,13 @@ export type GiphyGotSearchResultPayload = {|+payload: _GiphyGotSearchResultPaylo
 export type GiphySendPayload = {|+payload: _GiphySendPayload, +type: 'chat2:giphySend'|}
 export type GiphyToggleWindowPayload = {|+payload: _GiphyToggleWindowPayload, +type: 'chat2:giphyToggleWindow'|}
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
+export type HideConversationPayload = {|+payload: _HideConversationPayload, +type: 'chat2:hideConversation'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
+export type JumpToRecentPayload = {|+payload: _JumpToRecentPayload, +type: 'chat2:jumpToRecent'|}
 export type LeaveConversationPayload = {|+payload: _LeaveConversationPayload, +type: 'chat2:leaveConversation'|}
+export type LoadMessagesFromSearchHitPayload = {|+payload: _LoadMessagesFromSearchHitPayload, +type: 'chat2:loadMessagesFromSearchHit'|}
+export type LoadNewerMessagesDueToScrollPayload = {|+payload: _LoadNewerMessagesDueToScrollPayload, +type: 'chat2:loadNewerMessagesDueToScroll'|}
 export type LoadOlderMessagesDueToScrollPayload = {|+payload: _LoadOlderMessagesDueToScrollPayload, +type: 'chat2:loadOlderMessagesDueToScroll'|}
 export type MarkConversationsStalePayload = {|+payload: _MarkConversationsStalePayload, +type: 'chat2:markConversationsStale'|}
 export type MarkInitiallyLoadedThreadAsReadPayload = {|+payload: _MarkInitiallyLoadedThreadAsReadPayload, +type: 'chat2:markInitiallyLoadedThreadAsRead'|}
@@ -517,6 +569,7 @@ export type SaveMinWriterRolePayload = {|+payload: _SaveMinWriterRolePayload, +t
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
 export type SetCommandMarkdownPayload = {|+payload: _SetCommandMarkdownPayload, +type: 'chat2:setCommandMarkdown'|}
+export type SetContainsLastMessagePayload = {|+payload: _SetContainsLastMessagePayload, +type: 'chat2:setContainsLastMessage'|}
 export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePayload, +type: 'chat2:setConvExplodingMode'|}
 export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyPayload, +type: 'chat2:setConvRetentionPolicy'|}
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
@@ -529,17 +582,22 @@ export type SetPendingConversationExistingConversationIDKeyPayload = {|+payload:
 export type SetPendingConversationUsersPayload = {|+payload: _SetPendingConversationUsersPayload, +type: 'chat2:setPendingConversationUsers'|}
 export type SetPendingModePayload = {|+payload: _SetPendingModePayload, +type: 'chat2:setPendingMode'|}
 export type SetPendingStatusPayload = {|+payload: _SetPendingStatusPayload, +type: 'chat2:setPendingStatus'|}
+export type SetThreadSearchStatusPayload = {|+payload: _SetThreadSearchStatusPayload, +type: 'chat2:setThreadSearchStatus'|}
 export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
 export type StaticConfigLoadedPayload = {|+payload: _StaticConfigLoadedPayload, +type: 'chat2:staticConfigLoaded'|}
+export type ThreadSearchPayload = {|+payload: _ThreadSearchPayload, +type: 'chat2:threadSearch'|}
+export type ThreadSearchResultPayload = {|+payload: _ThreadSearchResultPayload, +type: 'chat2:threadSearchResult'|}
 export type ToggleInfoPanelPayload = {|+payload: _ToggleInfoPanelPayload, +type: 'chat2:toggleInfoPanel'|}
 export type ToggleLocalReactionPayload = {|+payload: _ToggleLocalReactionPayload, +type: 'chat2:toggleLocalReaction'|}
 export type ToggleMessageCollapsePayload = {|+payload: _ToggleMessageCollapsePayload, +type: 'chat2:toggleMessageCollapse'|}
 export type ToggleMessageReactionPayload = {|+payload: _ToggleMessageReactionPayload, +type: 'chat2:toggleMessageReaction'|}
 export type ToggleSmallTeamsExpandedPayload = {|+payload: _ToggleSmallTeamsExpandedPayload, +type: 'chat2:toggleSmallTeamsExpanded'|}
+export type ToggleThreadSearchPayload = {|+payload: _ToggleThreadSearchPayload, +type: 'chat2:toggleThreadSearch'|}
 export type UnfurlRemovePayload = {|+payload: _UnfurlRemovePayload, +type: 'chat2:unfurlRemove'|}
 export type UnfurlResolvePromptPayload = {|+payload: _UnfurlResolvePromptPayload, +type: 'chat2:unfurlResolvePrompt'|}
 export type UnfurlTogglePromptPayload = {|+payload: _UnfurlTogglePromptPayload, +type: 'chat2:unfurlTogglePrompt'|}
+export type UnhideConversationPayload = {|+payload: _UnhideConversationPayload, +type: 'chat2:unhideConversation'|}
 export type UnsentTextChangedPayload = {|+payload: _UnsentTextChangedPayload, +type: 'chat2:unsentTextChanged'|}
 export type UpdateCoinFlipStatusPayload = {|+payload: _UpdateCoinFlipStatusPayload, +type: 'chat2:updateCoinFlipStatus'|}
 export type UpdateConvExplodingModesPayload = {|+payload: _UpdateConvExplodingModesPayload, +type: 'chat2:updateConvExplodingModes'|}
@@ -579,9 +637,13 @@ export type Actions =
   | GiphySendPayload
   | GiphyToggleWindowPayload
   | HandleSeeingWalletsPayload
+  | HideConversationPayload
   | InboxRefreshPayload
   | JoinConversationPayload
+  | JumpToRecentPayload
   | LeaveConversationPayload
+  | LoadMessagesFromSearchHitPayload
+  | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
@@ -625,6 +687,7 @@ export type Actions =
   | SelectConversationPayload
   | SendTypingPayload
   | SetCommandMarkdownPayload
+  | SetContainsLastMessagePayload
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
@@ -637,17 +700,22 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetPendingStatusPayload
+  | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
+  | ThreadSearchPayload
+  | ThreadSearchResultPayload
   | ToggleInfoPanelPayload
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
   | ToggleSmallTeamsExpandedPayload
+  | ToggleThreadSearchPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
+  | UnhideConversationPayload
   | UnsentTextChangedPayload
   | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload

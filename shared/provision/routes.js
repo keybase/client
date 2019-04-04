@@ -2,7 +2,7 @@
 import {makeLeafTags} from '../route-tree'
 import Username from './username-or-email/container'
 import SelectOtherDevice from './select-other-device/container'
-import Passphrase from './passphrase/container'
+import Password from './password/container'
 import PaperKey from './paper-key/container'
 import CodePage from './code-page/container'
 import SetPublicName from './set-public-name/container'
@@ -25,7 +25,7 @@ const children = {
   forgotUsername: addTags(ForgotUsername),
   gpgSign: addTags(GPGSign),
   paperkey: addTags(PaperKey),
-  passphrase: addTags(Passphrase),
+  password: addTags(Password),
   selectOtherDevice: addTags(SelectOtherDevice),
   setPublicName: addTags(SetPublicName),
   username: addTags(Username),
@@ -34,14 +34,14 @@ const children = {
 export default children
 
 export const newRoutes = {
-  codePage: {getScreen: () => CodePage},
-  error: {getScreen: () => RegisterError},
+  codePage: {getScreen: () => CodePage, upgraded: true},
+  error: {getScreen: () => RegisterError, upgraded: true},
   forgotUsername: {getScreen: () => ForgotUsername},
-  gpgSign: {getScreen: () => GPGSign},
-  paperkey: {getScreen: () => PaperKey},
-  passphrase: {getScreen: () => Passphrase},
-  selectOtherDevice: {getScreen: () => SelectOtherDevice},
-  setPublicName: {getScreen: () => SetPublicName},
-  username: {getScreen: () => Username},
+  gpgSign: {getScreen: () => GPGSign, upgraded: true},
+  paperkey: {getScreen: () => PaperKey, upgraded: true},
+  password: {getScreen: () => Password, upgraded: true},
+  selectOtherDevice: {getScreen: () => SelectOtherDevice, upgraded: true},
+  setPublicName: {getScreen: () => SetPublicName, upgraded: true},
+  username: {getScreen: () => Username, upgraded: true},
 }
 export const newModalRoutes = {}

@@ -1,16 +1,16 @@
 // @flow
-import {globalColors, isMobile} from '../styles'
+import * as Styles from '../styles'
 import type {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants'
 
 export function defaultColor(type: IconType): ?string {
   switch (type) {
     case 'iconfont-proof-broken':
-      return globalColors.red
+      return Styles.globalColors.red
     case 'iconfont-proof-pending':
-      return globalColors.black_50
+      return Styles.globalColors.black_50
     case 'iconfont-close':
-      return globalColors.black_20
+      return Styles.globalColors.black_20
     default:
       return null
   }
@@ -22,7 +22,7 @@ export function defaultHoverColor(type: IconType): ?string {
     case 'iconfont-proof-pending':
       return defaultColor(type)
     case 'iconfont-close':
-      return globalColors.black_50
+      return Styles.globalColors.black_50
     default:
       return null
   }
@@ -76,13 +76,13 @@ export function fontSize(type: IconType): ?Object {
 export function typeToFontSize(sizeType: SizeType) {
   switch (sizeType) {
     case 'Big':
-      return isMobile ? 32 : 24
+      return Styles.isMobile ? 32 : 24
     case 'Default':
-      return isMobile ? 22 : 16
+      return Styles.isMobile ? 22 : 16
     case 'Small':
-      return isMobile ? 16 : 12
+      return Styles.isMobile ? 16 : 12
     case 'Tiny':
-      return isMobile ? 10 : 8
+      return Styles.isMobile ? 10 : 8
   }
 }
 
@@ -140,3 +140,20 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
 export function castPlatformStyles(styles: any) {
   return styles
 }
+
+const makePaddingStyles = () =>
+  Object.keys(Styles.globalMargins).reduce(
+    (styles, paddingName) => ({
+      ...styles,
+      [paddingName]: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins[paddingName],
+        },
+      }),
+    }),
+    {}
+  )
+
+export const paddingStyles: {
+  [$Keys<typeof Styles.globalMargins>]: Styles.StylesCrossPlatform,
+} = makePaddingStyles()

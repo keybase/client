@@ -2,54 +2,75 @@
 import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
 import type {TypedState} from './reducer'
+import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 
-const initialState: Types.State = {
+export const makeNotificationsGroup: I.RecordFactory<Types._NotificationsGroupState> = I.Record({
+  settings: I.List(),
+  unsubscribedFromAll: false,
+})
+
+export const makeNotifications: I.RecordFactory<Types._NotificationsState> = I.Record({
+  allowEdit: false,
+  groups: I.Map(),
+})
+
+export const makeUnfurl: I.RecordFactory<Types._ChatUnfurlState> = I.Record({
+  unfurlError: undefined,
+  unfurlMode: null,
+  unfurlWhitelist: I.List(),
+})
+
+export const makeChat: I.RecordFactory<Types._ChatState> = I.Record({
+  unfurl: makeUnfurl(),
+})
+
+export const makeEmail: I.RecordFactory<Types._EmailState> = I.Record({
+  emails: null,
+  error: null,
+  newEmail: '',
+})
+
+export const makeEmailRow: I.RecordFactory<Types._EmailRow> = I.Record({
+  email: '',
+  isPrimary: false,
+  isVerified: false,
+  visibility: 0,
+})
+
+export const makeInvites: I.RecordFactory<Types._InvitesState> = I.Record({
+  acceptedInvites: I.List(),
+  error: null,
+  pendingInvites: I.List(),
+})
+
+export const makePassword: I.RecordFactory<Types._PasswordState> = I.Record({
+  error: null,
+  hasPGPKeyOnServer: null,
+  newPassword: new HiddenString(''),
+  newPasswordConfirm: new HiddenString(''),
+  newPasswordConfirmError: null,
+  newPasswordError: null,
+  randomPW: null,
+  rememberPassword: true,
+})
+
+export const makeState: I.RecordFactory<Types._State> = I.Record({
   allowDeleteAccount: false,
-  chat: {
-    unfurl: {},
-  },
-  checkPassphraseIsCorrect: null,
-  email: {
-    emails: null,
-    error: null,
-    newEmail: '',
-  },
-  invites: {
-    acceptedInvites: [],
-    error: null,
-    pendingInvites: [],
-  },
+  chat: makeChat(),
+  checkPasswordIsCorrect: null,
+  email: makeEmail(),
+  invites: makeInvites(),
   lockdownModeEnabled: null,
-  notifications: {
-    allowEdit: false,
-    groups: {
-      email: {
-        settings: null,
-        unsubscribedFromAll: false,
-      },
-    },
-  },
-  passphrase: {
-    error: null,
-    hasPGPKeyOnServer: null,
-    newPassphrase: new HiddenString(''),
-    newPassphraseConfirm: new HiddenString(''),
-    newPassphraseConfirmError: null,
-    newPassphraseError: null,
-    randomPW: null,
-    rememberPassphrase: true,
-  },
+  notifications: makeNotifications(),
+  password: makePassword(),
   waitingForResponse: false,
-}
+})
 
-const traceInProgressKey = 'traceInProgress'
-
-const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
-
-const processorProfileInProgressKey = 'processorProfileInProgress'
-
-const processorProfileInProgress = (state: TypedState) =>
+export const traceInProgressKey = 'settings:traceInProgress'
+export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
+export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
+export const processorProfileInProgress = (state: TypedState) =>
   WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
 
 export const aboutTab = 'settingsTabs.aboutTab'
@@ -65,7 +86,7 @@ export const invitationsTab = 'settingsTabs.invitationsTab'
 export const landingTab = 'settingsTabs.landingTab'
 export const logOutTab = 'settingsTabs.logOutTab'
 export const notificationsTab = 'settingsTabs.notificationsTab'
-export const passphraseTab = 'settingsTabs.passphrase'
+export const passwordTab = 'settingsTabs.password'
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const screenprotectorTab = 'settingsTabs.screenprotector'
 export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
@@ -75,12 +96,5 @@ export const walletsTab = 'settingsTabs.walletsTab'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
-export const checkPassphraseWaitingKey = 'settings:checkPassphrase'
+export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
-export {
-  initialState,
-  traceInProgressKey,
-  traceInProgress,
-  processorProfileInProgressKey,
-  processorProfileInProgress,
-}

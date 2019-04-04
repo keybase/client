@@ -20,7 +20,10 @@ class NativeVirtualizedList extends React.Component<React.ElementProps<Virtualiz
   }
 
   render() {
-    return <VirtualizedList {...this.props} onViewableItemsChanged={this._onViewableItemsChanged} />
+    const {forwardedRef, ...rest} = this.props
+    return (
+      <VirtualizedList {...rest} ref={forwardedRef} onViewableItemsChanged={this._onViewableItemsChanged} />
+    )
   }
 }
 
