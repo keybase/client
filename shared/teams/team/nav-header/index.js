@@ -10,10 +10,11 @@ import {pluralize} from '../../../util/string'
 const _AddPeopleButton = (props: {teamname: string} & Kb.OverlayParentProps) => (
   <>
     <Kb.Button
-      ref={props.setAttachmentRef}
-      type="Secondary"
       label="Add people..."
       onClick={props.toggleShowingMenu}
+      ref={props.setAttachmentRef}
+      small={true}
+      type="Secondary"
     />
     <AddPeopleHow
       attachTo={props.getAttachmentRef}
@@ -38,7 +39,7 @@ type Props = {|
 
 const _HeaderRightActions = (props: Props) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-    {props.canChat && <Kb.Button onClick={props.onChat} type="Primary" label="Chat" />}
+    {props.canChat && <Kb.Button label="Chat" onClick={props.onChat} small={true} type="Primary" />}
     {props.canAddPeople && <AddPeopleButton teamname={props.teamname} />}
     {!Styles.isMobile && props.canViewFolder && (
       <Kb.Icon onClick={props.onOpenFolder} type="iconfont-folder-private" />
