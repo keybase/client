@@ -5150,6 +5150,7 @@ type UpdateTypingArg struct {
 
 type UpdateUnsentTextArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	TlfName        string         `codec:"tlfName" json:"tlfName"`
 	Text           string         `codec:"text" json:"text"`
 }
 

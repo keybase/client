@@ -409,8 +409,8 @@ type ChatUI interface {
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
 	ChatStellarDone(context.Context, bool) error
 	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-		results []chat1.GiphySearchResult) error
-	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error
+		results chat1.GiphySearchResults) error
+	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show, clearInput bool) error
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error

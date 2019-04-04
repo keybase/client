@@ -888,7 +888,7 @@ protocol local {
 
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing); // throttled
-  void updateUnsentText(ConversationID conversationID, string text); // debounced
+  void updateUnsentText(ConversationID conversationID, string tlfName, string text); // debounced
 
   // Channel management
   record JoinLeaveConversationLocalRes {

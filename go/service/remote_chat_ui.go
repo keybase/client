@@ -103,7 +103,7 @@ func (r *RemoteChatUI) ChatStellarDone(ctx context.Context, canceled bool) error
 }
 
 func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-	results []chat1.GiphySearchResult) error {
+	results chat1.GiphySearchResults) error {
 	return r.cli.ChatGiphySearchResults(ctx, chat1.ChatGiphySearchResultsArg{
 		SessionID: r.sessionID,
 		ConvID:    convID.String(),
@@ -112,11 +112,12 @@ func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.
 }
 
 func (r *RemoteChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID,
-	show bool) error {
+	show, clearInput bool) error {
 	return r.cli.ChatGiphyToggleResultWindow(ctx, chat1.ChatGiphyToggleResultWindowArg{
-		SessionID: r.sessionID,
-		ConvID:    convID.String(),
-		Show:      show,
+		SessionID:  r.sessionID,
+		ConvID:     convID.String(),
+		Show:       show,
+		ClearInput: clearInput,
 	})
 }
 
