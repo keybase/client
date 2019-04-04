@@ -81,23 +81,16 @@ const sendMapDispatchToProps = dispatch => ({
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createSelectAccount({accountID, reason: 'from-chat'}))
     if (flags.useNewRouter) {
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          path: [WalletConstants.rootWalletTab],
-        })
-      )
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          path: ['wallet'],
-          replace: true,
-        })
-      )
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
-          replace: true,
-        })
-      )
+      const path = WalletConstants.walletPath
+      for (var i = 0; i < path.length; ++i) {
+        const replace = i > 0
+        dispatch(
+          RouteTreeGen.createNavigateTo({
+            path: [path[i]],
+            replace,
+          })
+        )
+      }
     } else {
       dispatch(
         RouteTreeGen.createNavigateTo({
