@@ -145,6 +145,8 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		}
 	}
 
+	log.CDebugf(ctx, "Entering mount wait")
 	mi.Wait()
+	log.CDebugf(ctx, "Filesystem unmounted - mount wait returned - exiting")
 	return nil
 }

@@ -130,14 +130,14 @@ func Asset(ctx context.Context, sourceURL string) (res io.ReadCloser, length int
 	return resp.Body, resp.ContentLength, nil
 }
 
-func Search(mctx libkb.MetaContext, query *string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
+func Search(mctx libkb.MetaContext, query *string, limit int, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
 	var endpoint string
 	if query == nil {
 		// grab trending with no query
-		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s", giphyProxy, apiKey)
+		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s&limit=%d", giphyProxy, apiKey, limit)
 	} else {
-		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s", giphyProxy, apiKey,
-			url.QueryEscape(*query))
+		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s&limit=%d", giphyProxy, apiKey,
+			url.QueryEscape(*query), limit)
 	}
 	return runAPICall(mctx, endpoint, srv)
 }

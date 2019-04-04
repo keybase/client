@@ -1779,7 +1779,7 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 
 	// Preview any slash commands in the text
 	go h.G().CommandsSource.PreviewBuiltinCommand(globals.BackgroundChatCtx(ctx, h.G()), uid,
-		arg.ConversationID, arg.Text)
+		arg.ConversationID, arg.TlfName, arg.Text)
 
 	return nil
 }

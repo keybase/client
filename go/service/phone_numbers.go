@@ -33,14 +33,23 @@ var _ keybase1.PhoneNumbersInterface = (*PhoneNumbersHandler)(nil)
 func (h *PhoneNumbersHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
 	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 
 func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.EditPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
-	err = phonenumbers.DeletePhoneNumber(mctx, arg.OldPhoneNumber)
-	if err != nil {
+	if err = libkb.IsPossiblePhoneNumber(arg.OldPhoneNumber); err != nil {
+		return err
+	}
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
+	if err = phonenumbers.DeletePhoneNumber(mctx, arg.OldPhoneNumber); err != nil {
 		return err
 	}
 	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
@@ -49,6 +58,10 @@ func (h *PhoneNumbersHandler) EditPhoneNumber(ctx context.Context, arg keybase1.
 func (h *PhoneNumbersHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("PhoneNumbersHandler#VerifyPhoneNumber", func() error { return err })()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
 	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
 }
 
@@ -61,12 +74,20 @@ func (h *PhoneNumbersHandler) GetPhoneNumbers(ctx context.Context, sessionID int
 func (h *PhoneNumbersHandler) DeletePhoneNumber(ctx context.Context, arg keybase1.DeletePhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("PhoneNumbersHandler#DeletePhoneNumber", func() error { return err })()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
 	return phonenumbers.DeletePhoneNumber(mctx, arg.PhoneNumber)
 }
 
 func (h *PhoneNumbersHandler) SetVisibilityPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("PhoneNumbersHandler#SetVisibilityPhoneNumber", func() error { return err })()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
 	return phonenumbers.SetVisibilityPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
 }
 

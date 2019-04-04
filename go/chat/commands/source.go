@@ -165,7 +165,7 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 }
 
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	text string) {
+	tlfName, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
 	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
@@ -174,7 +174,7 @@ func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	typ := s.GetBuiltinCommandType(ctx, conv)
 	for _, cmd := range s.builtins[typ] {
 		// Run preview on everything as long as it is a slash command
-		cmd.Preview(ctx, uid, convID, text)
+		cmd.Preview(ctx, uid, convID, tlfName, text)
 	}
 }
 

@@ -582,7 +582,7 @@ func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, 
 }
 
 func (a AssertionPhoneNumber) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
-	if !IsPossiblePhoneNumber(a.Value) {
+	if !IsPossiblePhoneNumberAssertion(a.Value) {
 		return nil, NewAssertionCheckError("Invalid phone number: %s", a.Value)
 	}
 	return a, nil
