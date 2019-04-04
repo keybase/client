@@ -198,6 +198,9 @@ func (h *AccountHandler) RecoverUsernameWithEmail(ctx context.Context, arg keyba
 func (h *AccountHandler) RecoverUsernameWithPhone(ctx context.Context, arg keybase1.RecoverUsernameWithPhoneArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("RecoverUsernameWithPhone(%q)", arg.Phone), func() error { return err })()
+	if err = libkb.IsPossiblePhoneNumber(arg.Phone); err != nil {
+		return err
+	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/recover_username",
 		SessionType: libkb.APISessionTypeNONE,
