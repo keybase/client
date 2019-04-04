@@ -15,10 +15,6 @@ const Kb = {
   NativeText,
 }
 
-// 1. remove emotion
-// 2. make defaults ahead of time
-//
-
 const Text = React.memo(p => {
   const style = {}
 
@@ -28,6 +24,9 @@ const Text = React.memo(p => {
     (p.style && p.style.color) ||
     Shared.defaultColor(p.type) ||
     (p.opacity && Styles.globalColors.lightGrey)
+  if (color) {
+    style.color = color
+  }
 
   if (p.style) {
     if (p.style.width !== undefined) {
@@ -38,9 +37,6 @@ const Text = React.memo(p => {
     }
   }
 
-  if (color) {
-    style.color = color
-  }
   if (p.textAlign !== undefined) {
     style.textAlign = p.textAlign
   }
@@ -93,67 +89,59 @@ const Image = React.memo(p => {
   return <Kb.NativeImage style={[style, p.style]} source={p.source} resizeMode="contain" />
 })
 
-class Icon extends React.PureComponent<Props> {
-  static defaultProps = {
-    sizeType: 'Default',
+const Icon = React.memo(p => {
+  const sizeType = p.sizeType || 'Default'
+  // Only apply props.style to icon if there is no onClick
+  const hasContainer = p.onClick && p.style
+  let iconType = Shared.typeToIconMapper(p.type)
+
+  if (!iconType) {
+    logger.warn('Null iconType passed')
+    return null
   }
-  render() {
-    const props = this.props
-    // Only apply props.style to icon if there is no onClick
-    const hasContainer = props.onClick && props.style
-    let iconType = Shared.typeToIconMapper(props.type)
+  if (!iconMeta[iconType]) {
+    logger.warn(`Invalid icon type passed in: ${iconType}`)
+    return null
+  }
 
-    if (!iconType) {
-      logger.warn('Null iconType passed')
-      return null
-    }
-    if (!iconMeta[iconType]) {
-      logger.warn(`Invalid icon type passed in: ${iconType}`)
-      return null
-    }
+  let icon
 
-    let icon
-
-    if (iconMeta[iconType].isFont) {
-      const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      let color
-      if (props.colorOverride || props.color) {
-        color = props.colorOverride || props.color
-      }
-
-      icon = (
-        <Text
-          style={hasContainer ? null : props.style}
-          color={color}
-          type={props.type}
-          fontSize={this.props.fontSize}
-          sizeType={this.props.sizeType}
-          onClick={props.onClick}
-        >
-          {code}
-        </Text>
-      )
-    } else {
-      icon = <Image source={iconMeta[iconType].require} style={hasContainer ? null : props.style} />
+  if (iconMeta[iconType].isFont) {
+    const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
+    let color
+    if (p.colorOverride || p.color) {
+      color = p.colorOverride || p.color
     }
 
-    return !props.noContainer && props.onClick ? (
-      <Kb.ClickableBox
-        activeOpacity={0.8}
-        underlayColor={props.underlayColor || Styles.globalColors.white}
-        onClick={props.onClick}
-        style={Styles.collapseStyles([
-          props.style,
-          this.props.padding && Shared.paddingStyles[this.props.padding],
-        ])}
+    icon = (
+      <Text
+        style={hasContainer ? null : p.style}
+        color={color}
+        type={p.type}
+        fontSize={p.fontSize}
+        sizeType={sizeType}
+        onClick={p.onClick}
       >
-        {icon}
-      </Kb.ClickableBox>
-    ) : (
-      icon
+        {code}
+      </Text>
     )
+  } else {
+    icon = <Image source={iconMeta[iconType].require} style={hasContainer ? null : p.style} />
   }
-}
+
+  return !p.noContainer && p.onClick ? (
+    <Kb.ClickableBox
+      activeOpacity={0.8}
+      underlayColor={p.underlayColor || Styles.globalColors.white}
+      onClick={p.onClick}
+      style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
+    >
+      {icon}
+    </Kb.ClickableBox>
+  ) : (
+    icon
+  )
+})
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
