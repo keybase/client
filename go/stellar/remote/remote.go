@@ -43,48 +43,45 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreate
 	return apiRes.ShouldCreateResult, err
 }
 
-func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, deviceSigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
+func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, deviceSigKey libkb.GenericKey) (*libkb.JSONPayload, keybase1.Seqno, libkb.LinkID, error) {
 	err := b.CheckInvariants()
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 	if len(b.Accounts) < 1 {
-		return nil, errors.New("stellar bundle has no accounts")
+		return nil, 0, nil, errors.New("stellar bundle has no accounts")
 	}
 	// Find the new primary account for the chain link.
 	stellarAccount, err := b.PrimaryAccount()
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 	stellarAccountBundle, ok := b.AccountBundles[stellarAccount.AccountID]
 	if !ok {
-		return nil, errors.New("stellar primary account has no account bundle")
+		return nil, 0, nil, errors.New("stellar primary account has no account bundle")
 	}
 	if len(stellarAccountBundle.Signers) < 1 {
-		return nil, errors.New("stellar bundle has no signers")
+		return nil, 0, nil, errors.New("stellar bundle has no signers")
 	}
 	if !stellarAccount.IsPrimary {
-		return nil, errors.New("initial stellar account is not primary")
+		return nil, 0, nil, errors.New("initial stellar account is not primary")
 	}
 	m.Debug("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", b.Revision, stellarAccount.AccountID, pukGen)
 
 	boxed, err := bundle.BoxAndEncode(&b, pukGen, pukSeed)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 
 	m.Debug("Stellar.PostWithChainLink: make sigs")
 
 	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccountBundle.Signers[0], deviceSigKey)
 	if err != nil {
-		return nil, err
+		return nil, 0, nil, err
 	}
 
-	var sigsList []libkb.JSONPayload
-	sigsList = append(sigsList, sig)
-
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = sigsList
+	payload["sigs"] = []libkb.JSONPayload{sig.Payload}
 	section := make(libkb.JSONPayload)
 	section["encrypted_parent"] = boxed.EncParentB64
 	section["visible_parent"] = boxed.VisParentB64
@@ -92,7 +89,7 @@ func buildChainLinkPayload(m libkb.MetaContext, b stellar1.Bundle, me *libkb.Use
 	section["account_bundles"] = boxed.AcctBundles
 	payload["stellar"] = section
 
-	return &payload, nil
+	return &payload, sig.Seqno, sig.LinkID, nil
 }
 
 // Post a bundle to the server with a chainlink.
@@ -123,8 +120,7 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 		return err
 	}
 
-	var payload *libkb.JSONPayload
-	payload, err = buildChainLinkPayload(mctx, clearBundle, me, pukGen, pukSeed, deviceSigKey)
+	payload, seqno, linkID, err := buildChainLinkPayload(mctx, clearBundle, me, pukGen, pukSeed, deviceSigKey)
 	if err != nil {
 		return err
 	}
@@ -136,6 +132,9 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 		JSONPayload: *payload,
 	})
 	if err != nil {
+		return err
+	}
+	if err = libkb.MerkleCheckPostedUserSig(mctx, uid, seqno, linkID); err != nil {
 		return err
 	}
 

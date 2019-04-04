@@ -49,6 +49,6 @@ public class KBPushNotifier implements PushNotifier {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
-        notificationManager.notify(1, mBuilder.build());
+        notificationManager.notify(ident,1, mBuilder.build());
     }
 }

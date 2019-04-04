@@ -8,6 +8,7 @@ const common = {
   previewIsVideo: true,
 }
 const props = {
+  galleryURL: '',
   onClick: (url: string) => Sb.action('onClick')(url),
   previews: [
     {

@@ -91,7 +91,7 @@ export type _State = {
   unreadMap: ConversationCountMap, // how many unread messages there are
   unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>,
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>,
-  giphyResultMap: I.Map<Common.ConversationIDKey, ?Array<RPCChatTypes.GiphySearchResult>>,
+  giphyResultMap: I.Map<Common.ConversationIDKey, ?RPCChatTypes.GiphySearchResults>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation

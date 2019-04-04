@@ -502,6 +502,7 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs,
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 	}
+	// MerkleCheckPostedUserSig was not added here. Changing kex2 is risky and there's no obvious attack.
 
 	_, err := e.G().API.PostJSON(mctx, arg)
 	return err
