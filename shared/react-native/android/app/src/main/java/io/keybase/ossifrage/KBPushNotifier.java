@@ -30,7 +30,7 @@ public class KBPushNotifier implements PushNotifier {
         // https://github.com/keybase/client/blob/95959e12d76612f455ab4a90835debff489eacf4/shared/actions/platform-specific/push.native.js#L363-L381
         Bundle bundle = (Bundle)this.bundle.clone();
         bundle.putBoolean("userInteraction", true);
-        bundle.putString("type", "chat.newmessage");
+        bundle.putString("type", typ);
         bundle.putString("convID", convID);
 
         Intent open_activity_intent = new Intent(context, MainActivity.class);
@@ -47,8 +47,10 @@ public class KBPushNotifier implements PushNotifier {
             .setContentText(msg)
             .setContentIntent(pending_intent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setGroup(convID)
+            .setGroupSummary(true)
             .setAutoCancel(true);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
-        notificationManager.notify(ident,1, mBuilder.build());
+        notificationManager.notify(ident, Integer.parseInt(convID.substring(0, 7), 16), mBuilder.build());
     }
 }
