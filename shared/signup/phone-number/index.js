@@ -38,7 +38,6 @@ const EnterPhoneNumber = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
   input: Styles.platformStyles({
-    common: {},
     isElectron: {
       height: 38,
       width: 368,
