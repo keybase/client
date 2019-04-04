@@ -8,6 +8,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
+import * as Tracker2Constants from '../../constants/tracker2'
 import {peopleTab} from '../../constants/tabs'
 import {getPath} from '../../route-tree'
 import flags from '../../util/feature-flags'
@@ -147,9 +148,10 @@ function* addProof(state, action) {
   })
 
   const watchForNavUp = yield Saga._fork(function*() {
-    // TODO remove this when nav1 is removed
+    // TODO remove this when flags.useNewRouter is removed
     // nav2 should use navigationOptions.gesturesEnabled = false
     // to disable sidestepping custom behavior on back
+    // Check that those exist before removing this
     while (true) {
       yield Saga.take(RouteTreeGen.navigateUp)
       const state = yield Saga.selectState()
@@ -247,6 +249,12 @@ function* addProof(state, action) {
 
   const responseYes = (_, response) => response.result(true)
 
+  const loadAfter = Tracker2Gen.createLoad({
+    assertion: state.config.username,
+    guiID: Tracker2Constants.generateGUIID(),
+    inTracker: false,
+    reason: 'startProof finished',
+  })
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
       customResponseIncomingCallMap: {
@@ -273,12 +281,13 @@ function* addProof(state, action) {
     })
     yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
     logger.info('Start Proof done: ', sigID)
-    yield Saga.put(ProfileGen.createCheckProof())
+    yield Saga.put(loadAfter)
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
   } catch (error) {
     logger.warn('Error making proof')
+    yield Saga.put(loadAfter)
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
