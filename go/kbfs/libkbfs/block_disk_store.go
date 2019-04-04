@@ -767,10 +767,12 @@ func (s *blockDiskStore) addReference(
 	}
 	defer cleanup()
 
-	err = s.makeDir(id)
-	if err != nil {
-		return err
-	}
+	/*
+		err = s.makeDir(id)
+		if err != nil {
+			return err
+		}
+	*/
 
 	return s.addRefsExclusive(
 		id, []kbfsblock.Context{context}, liveBlockRef, tag)
@@ -785,10 +787,12 @@ func (s *blockDiskStore) archiveReference(
 	}
 	defer cleanup()
 
-	err = s.makeDir(id)
-	if err != nil {
-		return err
-	}
+	/*
+		err = s.makeDir(id)
+		if err != nil {
+			return err
+		}
+	*/
 
 	return s.addRefsExclusive(id, idContexts, archivedBlockRef, tag)
 }
@@ -907,6 +911,11 @@ func (s *blockDiskStore) close() error {
 
 func (s *blockDiskStore) clear() error {
 	err := s.close()
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.MkdirAll(s.dir, 0700)
 	if err != nil {
 		return err
 	}
