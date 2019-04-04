@@ -81,8 +81,12 @@ const sendMapDispatchToProps = dispatch => ({
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createSelectAccount({accountID, reason: 'from-chat'}))
     if (flags.useNewRouter) {
+      // Since the new wallet routes have nested stacks, we actually
+      // do want to navigate to each path component separately.
       const path = WalletConstants.walletPath
       for (var i = 0; i < path.length; ++i) {
+        // Set replace for all but the first navigate so that hitting
+        // back once takes us back to the chat.
         const replace = i > 0
         dispatch(
           RouteTreeGen.createNavigateTo({
