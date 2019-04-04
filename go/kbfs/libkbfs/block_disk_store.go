@@ -334,10 +334,10 @@ func (s *blockDiskStore) addRefsExclusive(
 func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	s.batchLock.RLock()
-	data, ok := s.currBlocks[id]
+	blockData, ok := s.currBlocks[id]
 	s.batchLock.RUnlock()
 	if ok {
-		return data.Buf, data.ServerHalf, nil
+		return blockData.Buf, blockData.ServerHalf, nil
 	}
 
 	buf, err := s.blockDb.Get(id.Bytes(), nil)
@@ -350,7 +350,7 @@ func (s *blockDiskStore) getDataExclusive(id kbfsblock.ID) (
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	var blockData blockJournalData
+	blockData = blockJournalData{}
 	err = s.codec.Decode(buf, &blockData)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
@@ -752,7 +752,8 @@ func (s *blockDiskStore) put(
 		}
 	} else {
 		var blockData blockJournalData
-		blockData.Buf = buf
+		blockData.Buf = make([]byte, len(buf))
+		copy(blockData.Buf, buf)
 		blockData.ServerHalf = serverHalf
 		encodedBuf, err := s.codec.Encode(blockData)
 		if err != nil {
@@ -809,7 +810,7 @@ func (s *blockDiskStore) flush(ctx context.Context) error {
 		}
 	}
 	if s.currInfoBatch != nil {
-		err := s.blockDb.Write(s.currInfoBatch, nil)
+		err := s.infoDb.Write(s.currInfoBatch, nil)
 		if err != nil {
 			return err
 		}
