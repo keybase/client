@@ -1,5 +1,7 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
+import * as SettingsGen from '../actions/settings-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as FsGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
@@ -43,6 +45,9 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
     // In case dump log doens't exit for us
     setTimeout(() => {
+      !__DEV__ &&
+        (isWindows || isDarwin) &&
+        dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
       executeActionsForContext('quitButton')
     }, 2000)
   },

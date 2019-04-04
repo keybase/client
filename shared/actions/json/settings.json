@@ -83,6 +83,9 @@
     "setAllowDeleteAccount": {
       "allow": "boolean"
     },
+    "stop": {
+      "exitCode": "number"
+    },
     "trace": {
       "durationSeconds": "number"
     },
