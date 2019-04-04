@@ -2,10 +2,13 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {isIOS} from '../../constants/platform'
 import {countryData, AsYouTypeFormatter} from '../../util/phone-numbers/'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
 const getPlaceholder = countryCode => 'Ex: ' + countryData[countryCode].example
+const isNumeric = char => /^[0-9]$/.test(char)
+const defaultCountry = 'US'
 
 type Props = {
   defaultCountry?: string, // TODO get this from core. ISO 3166-1 alpha-2 format (e.g. 'US')
@@ -16,26 +19,47 @@ type Props = {
 
 type State = {
   country: string,
+  formatted: string,
 }
 
 class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
-  state = {country: this.props.defaultCountry || 'FR'}
+  state = {country: this.props.defaultCountry || defaultCountry, formatted: ''}
+  _formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
+
+  _onKeyDown = evt => {
+    const {key} = evt
+    if (isNumeric(key)) {
+      const formatted = this._formatter.inputDigit(key)
+      this.setState({formatted})
+    }
+  }
 
   render() {
     return (
-      <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.container, this.props.style])}>
+      <Kb.Box2
+        alignItems="center"
+        direction="horizontal"
+        style={Styles.collapseStyles([styles.container, this.props.style])}
+      >
         <Kb.ClickableBox onClick={this.props.toggleShowingMenu}>
           <Kb.Box2
             direction="horizontal"
             style={styles.callingCodeContainer}
             alignItems="center"
             fullHeight={true}
+            gap="small"
           >
             <Kb.Text type="BodySemibold">{getCallingCode(this.state.country)}</Kb.Text>
             <Kb.Icon type="iconfont-caret-down" sizeType="Small" />
           </Kb.Box2>
         </Kb.ClickableBox>
-        <Kb.PlainInput style={styles.input} placeholder={getPlaceholder(this.state.country)} />
+        <Kb.PlainInput
+          style={styles.input}
+          keyboardType={isIOS ? 'number-pad' : 'numeric'}
+          placeholder={getPlaceholder(this.state.country)}
+          value={this.state.formatted}
+          onKeyDown={this._onKeyDown}
+        />
       </Kb.Box2>
     )
   }
@@ -49,7 +73,6 @@ const styles = Styles.styleSheetCreate({
     borderRightWidth: 1,
     borderStyle: 'solid',
     justifyContent: 'space-between',
-    minWidth: Styles.isMobile ? 83 : 78,
   },
   container: {
     backgroundColor: Styles.globalColors.white,
