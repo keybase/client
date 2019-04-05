@@ -161,12 +161,12 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
   }
 
   render() {
+    const noResults = this.props.status === 'done' && this.props.hits.length === 0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={this.props.style}>
         <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
           <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
-              <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} />
               <Kb.PlainInput
                 autoFocus={true}
                 flexable={true}
@@ -181,18 +181,18 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
               {this.props.hasResults() && (
                 <Kb.Box2 direction="horizontal" gap="tiny">
                   <Kb.Text type="BodySmall" style={styles.results}>
-                    {this.props.status === 'done' && this.props.hits.length === 0
+                    {noResults
                       ? 'No results'
                       : `${this.props.selectedIndex + 1} of ${this.props.hits.length}`}
                   </Kb.Text>
                   <Kb.Icon
-                    color={Styles.globalColors.black_50}
-                    onClick={this.props.onUp}
+                    color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
+                    onClick={!noResults ? this.props.onUp : null}
                     type="iconfont-arrow-up"
                   />
                   <Kb.Icon
-                    color={Styles.globalColors.black_50}
-                    onClick={this.props.onDown}
+                    color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
+                    onClick={!noResults ? this.props.onDown : null}
                     type="iconfont-arrow-down"
                   />
                 </Kb.Box2>
@@ -226,21 +226,13 @@ class ThreadSearchMobile extends React.Component<SearchProps & Props> {
     return (
       <Kb.Box2 direction="horizontal" style={this.props.style}>
         <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
-          <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Icon
-              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              onClick={this.props.onUp}
-              type="iconfont-arrow-up"
-            />
-            <Kb.Icon
-              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              onClick={this.props.onDown}
-              type="iconfont-arrow-down"
-            />
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
+            <Kb.Text type="BodySemibold" style={styles.done} onClick={this.props.onCancel}>
+              Cancel
+            </Kb.Text>
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
-              <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} />
               <Kb.PlainInput
                 autoFocus={true}
                 flexable={true}
@@ -263,10 +255,17 @@ class ThreadSearchMobile extends React.Component<SearchProps & Props> {
               )}
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
-            <Kb.Text type="BodySemibold" style={styles.done} onClick={this.props.onCancel}>
-              Done
-            </Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="tiny">
+            <Kb.Icon
+              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+              onClick={this.props.onUp}
+              type="iconfont-arrow-up"
+            />
+            <Kb.Icon
+              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+              onClick={this.props.onDown}
+              type="iconfont-arrow-down"
+            />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
