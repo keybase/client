@@ -1,6 +1,8 @@
 // @flow
+import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
@@ -8,7 +10,6 @@ import flags from '../../../util/feature-flags'
 import {InfoPanel} from '.'
 import {connect, getRouteProps, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
@@ -28,17 +29,17 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   let canSetRetention = false
   let canDeleteHistory = false
   if (meta.teamname) {
-    const yourOperations = getCanPerform(state, meta.teamname)
+    const yourOperations = TeamConstants.getCanPerform(state, meta.teamname)
     admin = yourOperations.manageMembers
     canEditChannel = yourOperations.editTeamDescription
     canSetMinWriterRole = yourOperations.setMinWriterRole
     canSetRetention = yourOperations.setRetentionPolicy
     canDeleteHistory = yourOperations.deleteChatHistory
   }
-
   return {
     _infoMap: state.users.infoMap,
     _participants: meta.participants,
+    _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
     admin,
     canDeleteHistory,
     canEditChannel,
@@ -129,8 +130,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   participants: stateProps._participants
     .map(p => ({
       fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
-      isAdmin: false,
-      isOwner: false,
+      isAdmin: stateProps.teamname
+        ? TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'admin')
+        : false,
+      isOwner: stateProps.teamname
+        ? TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'owner')
+        : false,
       username: p,
     }))
     .toArray(),

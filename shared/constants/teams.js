@@ -264,21 +264,25 @@ const userIsActiveInTeamHelper = (
   return member.status === 'active'
 }
 
+export const userIsRoleInTeamWithInfo = (
+  memberInfo: I.Map<string, Types.MemberInfo>,
+  username: string,
+  role: Types.TeamRoleType
+): boolean => {
+  const member = memberInfo.get(username)
+  if (!member) {
+    return false
+  }
+  return member.type === role
+}
+
 export const userIsRoleInTeam = (
   state: TypedState,
   teamname: Types.Teamname,
   username: string,
   role: Types.TeamRoleType
 ): boolean => {
-  const members = state.teams.teamNameToMembers.get(teamname)
-  if (!members) {
-    return false
-  }
-  const member = members.get(username)
-  if (!member) {
-    return false
-  }
-  return member.type === role
+  return userIsRoleInTeamWithInfo(state.teams.teamNameToMembers.get(teamname, I.Map()), username, role)
 }
 
 const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
