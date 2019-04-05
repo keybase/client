@@ -46,7 +46,7 @@ const load = () => {
         ['blue', 'green'].map(color =>
           [true, false, 'disabled'].map(i => {
             const initialEnabled = !!i
-            const label = `${align} aligned; ${initialEnabled ? 'enabled' : 'disabled'}; ${color}${
+            const label = `${align} aligned; ${initialEnabled ? 'on' : 'off'}; ${color}${
               i === 'disabled' ? '; disabled' : ''
             }`
             return (
