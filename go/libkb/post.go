@@ -146,32 +146,22 @@ func DeletePrimary(m MetaContext) (err error) {
 	return
 }
 
-func CheckPosted(m MetaContext, proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := m.G().API.Post(m, APIArg{
-		Endpoint:    "sig/posted",
-		SessionType: APISessionTypeREQUIRED,
-		Args: HTTPArgs{
-			"proof_id": S{proofID},
-		},
-	})
-	if e2 != nil {
-		err = e2
-		return
+func CheckPosted(mctx MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("CheckPosted(%v)", sigID), func() error { return err })()
+	found, status, state, err = checkPostedAPICall(mctx, sigID)
+	if err != nil {
+		return found, status, state, err
 	}
-	var (
-		rfound  bool
-		rstatus int
-		rstate  int
-		rerr    error
-	)
-	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
-	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
-	res.Body.AtPath("proof_res.state").GetIntVoid(&rstate, &rerr)
-	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
+	// Bust proof cache if it disagrees about success.
+	err = checkPostedMaybeBustProofCache(mctx, sigID, found, status, state)
+	if err != nil {
+		mctx.Debug("| CheckPosted error maybe busting proof cache: %v", err)
+	}
+	return found, status, state, nil
 }
 
-func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := m.G().API.Post(m, APIArg{
+func checkPostedAPICall(mctx MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := mctx.G().API.Post(mctx, APIArg{
 		Endpoint:    "sig/posted",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
@@ -193,6 +183,28 @@ func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, statu
 	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
 	res.Body.AtPath("proof_res.state").GetIntVoid(&rstate, &rerr)
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
+}
+
+func checkPostedMaybeBustProofCache(mctx MetaContext, sigID keybase1.SigID, found bool, status keybase1.ProofStatus, state keybase1.ProofState) error {
+	pvlSource := mctx.G().GetPvlSource()
+	if pvlSource == nil {
+		return fmt.Errorf("no pvl source")
+	}
+	pvlU, err := pvlSource.GetLatestEntry(mctx)
+	if err != nil {
+		return fmt.Errorf("error getting pvl: %v", err)
+	}
+	checkResult := mctx.G().ProofCache.Get(sigID, pvlU.Hash)
+	if checkResult == nil {
+		return nil
+	}
+	serverOk := found && state == keybase1.ProofState_OK
+	cacheOk := checkResult.Status == nil || checkResult.Status.GetProofStatus() == keybase1.ProofStatus_OK
+	if serverOk != cacheOk {
+		mctx.Debug("CheckPosted busting %v", sigID)
+		return mctx.G().ProofCache.Delete(sigID)
+	}
+	return nil
 }
 
 func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
