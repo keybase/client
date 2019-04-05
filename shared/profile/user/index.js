@@ -65,7 +65,7 @@ const Header = p => (
     {!flags.useNewRouter && (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1, paddingRight: Styles.isMobile ? 16 : 0}}>
         <Kb.Box2 direction="vertical" alignSelf="flex-end">
-          <PeopleSearch onSearch={p.onSearch} />
+          <PeopleSearch onSearch={p.onSearch} whiteText={true} />
         </Kb.Box2>
       </Kb.Box2>
     )}
