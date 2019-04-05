@@ -296,10 +296,9 @@ func (u *User) CheckBasicsFreshness(server int64) (current bool, reason string, 
 	if stored >= server {
 		u.G().Log.Debug("| Local basics version is up-to-date @ version %d", stored)
 		return true, "", nil
-	} else {
-		u.G().Log.Debug("| Local basics version is out-of-date: %d < %d", stored, server)
-		return false, fmt.Sprintf("idv %v < %v", stored, server), nil
 	}
+	u.G().Log.Debug("| Local basics version is out-of-date: %d < %d", stored, server)
+	return false, fmt.Sprintf("idv %v < %v", stored, server), nil
 }
 
 func (u *User) StoreSigChain(m MetaContext) error {
