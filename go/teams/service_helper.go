@@ -1550,7 +1550,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		} else if teamRole == keybase1.TeamRole_NONE {
 			return false, nil
 		}
-		showcase, err := GetTeamShowcase(ctx, g, teamname)
+		showcase, err := GetTeamShowcaseByID(ctx, g, team.ID)
 		if err != nil {
 			return false, err
 		}
