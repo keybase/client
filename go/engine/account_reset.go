@@ -15,6 +15,7 @@ type AccountReset struct {
 	libkb.Contextified
 	usernameOrEmail string
 	resetPending    bool
+	resetComplete   bool
 }
 
 // NewAccountReset creates a AccountReset engine.
@@ -233,6 +234,8 @@ func (e *AccountReset) resetPrompt(m libkb.MetaContext, eventType int, readyTime
 			return err
 		}
 		m.G().Log.Info("Your account has been reset.")
+
+		e.resetComplete = true
 
 		return nil
 	default:

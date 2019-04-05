@@ -31,7 +31,8 @@ type loginProvision struct {
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
 
-	resetPending bool
+	resetPending  bool
+	resetComplete bool
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -119,6 +120,10 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	}
 	if e.resetPending {
 		return nil
+	}
+	if e.resetComplete {
+		// Run again
+		return e.Run(m)
 	}
 
 	// e.route is point of no return. If it succeeds, it means that
@@ -737,6 +742,7 @@ existing devices you can reset your account and start fresh:`)
 		}
 
 		e.resetPending = eng.resetPending
+		e.resetComplete = eng.resetComplete
 		return nil
 	}
 
