@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"sort"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/go-codec/codec"
 
 	"golang.org/x/crypto/nacl/secretbox"
@@ -455,10 +457,17 @@ func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) err
 }
 
 func (t *Team) Rotate(ctx context.Context) (err error) {
-
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), 0)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("Got nil merkle root")
 	}
 
 	// load an empty member set (no membership changes)
@@ -506,7 +515,8 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		secretBoxes:   secretBoxes,
 		teamEKPayload: teamEKPayload,
 	}
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, nil, payloadArgs)
+
+	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, mr, payloadArgs)
 	if err != nil {
 		return err
 	}
@@ -599,7 +609,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 			return err
 		}
 		defer func() {
-			// We must cancel in the case of an error in postChangeItem, but it's safe to cancel
+			// We must cancel in the case of an error in postMulti, but it's safe to cancel
 			// if everything worked. So we always cancel the lease on the way out of this function.
 			// See CORE-6473 for a case in which this was needed. And also the test
 			// `TestOnlyOwnerLeaveThenUpgradeFriend`.
@@ -621,8 +631,24 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 		sigPayloadArgs.prePayload = libkb.JSONPayload{"permanent": true}
 	}
 
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs)
+	payload, latestSeqno, err := t.changeItemPayload(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs)
+	if err != nil {
+		return err
+	}
 
+	// check here
+	var group []keybase1.UserVersion
+	for uv := range memberSet.recipients {
+		group = append(group, uv)
+	}
+	newMemSet := newMemberSet()
+	_, err = newMemSet.loadGroup(ctx, t.G(), group, true, true)
+	if !reflect.DeepEqual(memberSet.recipients, newMemSet.recipients) {
+		spew.Dump("@@@", memberSet.recipients, newMemSet.recipients)
+		return fmt.Errorf("nawww")
+	}
+
+	err = t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 	if err != nil {
 		return err
 	}
@@ -1262,6 +1288,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
+
 	section.PerTeamKey = perTeamKeySection
 
 	err = addSummaryHash(&section, secretBoxes)
@@ -1283,22 +1310,29 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, implicitAdminBoxes, teamEKPayload, memSet, nil
 }
 
-func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (keybase1.Seqno, error) {
+func (t *Team) changeItemPayload(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
 	// create the change item
 	sigMultiItem, latestSeqno, err := t.sigTeamItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
-		return keybase1.Seqno(0), err
+		return nil, keybase1.Seqno(0), err
 	}
 
 	sigMulti := []libkb.SigMultiItem{sigMultiItem}
 	err = t.precheckLinksToPost(ctx, sigMulti)
 	if err != nil {
-		return keybase1.Seqno(0), err
+		return nil, keybase1.Seqno(0), err
 	}
 
 	// make the payload
 	payload := t.sigPayload(sigMulti, sigPayloadArgs)
+	return payload, latestSeqno, nil
+}
 
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (keybase1.Seqno, error) {
+	payload, latestSeqno, err := t.changeItemPayload(ctx, section, linkType, merkleRoot, sigPayloadArgs)
+	if err != nil {
+		return keybase1.Seqno(0), err
+	}
 	// send it to the server
 	err = t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 	if err != nil {
@@ -1727,6 +1761,14 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
+	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), 0)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("Got nil merkle root")
+	}
+
 	scSettings, err := CreateTeamSettings(settings.Open, settings.JoinAs)
 	if err != nil {
 		return err
@@ -1759,7 +1801,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		payloadArgs.teamEKPayload = teamEKPayload
 		maybeEKPayload = teamEKPayload // for storeTeamEKPayload, after post succeeds
 	}
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, payloadArgs)
+	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, mr, payloadArgs)
 	if err != nil {
 		return err
 	}
@@ -1770,6 +1812,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	} else {
 		t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
 	}
+
 	return nil
 }
 

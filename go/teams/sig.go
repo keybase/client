@@ -26,7 +26,7 @@ func metaContext(g *libkb.GlobalContext) libkb.MetaContext {
 	return libkb.NewMetaContextTODO(g)
 }
 
-func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection, merkleRoot libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
 		Eldest:      me.GetEldestKID(),
@@ -35,6 +35,7 @@ func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.G
 		Seqno:       1,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
+		MerkleRoot:  &merkleRoot,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -61,7 +62,7 @@ func NewImplicitTeamName() (res keybase1.TeamName, err error) {
 	return res, err
 }
 
-func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
+func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin, merkleRoot libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
 		return nil, err
@@ -75,6 +76,7 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 		SeqType:     seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
 		Seqno:       parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID:  prevLinkID,
+		MerkleRoot:  &merkleRoot,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
