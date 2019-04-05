@@ -18,16 +18,7 @@ func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	if team.IsImplicit() {
 		return ret, fmt.Errorf("cannot manage implicit team by name")
 	}
-
-	arg := apiArg("team/get")
-	arg.Args.Add("id", libkb.S{Val: team.ID.String()})
-
-	var rt rawTeam
-	mctx := libkb.NewMetaContext(ctx, g)
-	if err := mctx.G().API.GetDecode(mctx, arg, &rt); err != nil {
-		return ret, err
-	}
-	return rt.Showcase, nil
+	return GetTeamShowcaseByID(ctx, g, team.ID)
 }
 
 func GetTeamShowcaseByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (ret keybase1.TeamShowcase, err error) {
