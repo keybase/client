@@ -15,6 +15,23 @@ const pickerItems = memoize(countryData =>
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
     .map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
 )
+const menuItems = memoize((countryData, onClick) =>
+  Object.values(countryData)
+    .sort((a: any, b: any) => a.name.localeCompare(b.name))
+    .map((cd: any) => ({
+      onClick: () => onClick(cd.alpha2),
+      title: cd.pickerText,
+      view: <MenuItem text={cd.pickerText} />,
+    }))
+)
+
+const MenuItem = props => (
+  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.menuItem}>
+    <Kb.Text type="BodySemibold" center={true}>
+      {props.text}
+    </Kb.Text>
+  </Kb.Box2>
+)
 
 type Props = {
   defaultCountry?: string, // TODO get this from core. ISO 3166-1 alpha-2 format (e.g. 'US')
@@ -78,6 +95,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               alignItems="center"
               fullHeight={true}
               gap="small"
+              ref={this.props.setAttachmentRef}
             >
               <Kb.Text type="BodySemibold">{getCallingCode(this.state.country)}</Kb.Text>
               <Kb.Icon type="iconfont-caret-down" sizeType="Small" />
@@ -94,6 +112,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           />
         </Kb.Box2>
         <CountrySelector
+          attachTo={this.props.getAttachmentRef}
           onSelect={this._setCountry}
           onHidden={this.props.toggleShowingMenu}
           selected={this.state.country}
@@ -106,6 +125,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 
 type CountrySelectorProps = {|
+  attachTo: () => ?React.Component<any>,
   onSelect: string => void,
   onHidden: () => void,
   selected: string,
@@ -137,10 +157,22 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     this.props.onHidden()
   }
 
+  _onSelectMenu = selected => {
+    this.props.onSelect(selected)
+  }
+
   render() {
     if (!Styles.isMobile) {
-      // TODO
-      return null
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          containerStyle={{maxHeight: 160, width: 240}}
+          items={menuItems(countryData, this._onSelectMenu)}
+          onHidden={this.props.onHidden}
+          visible={this.props.visible}
+          attachTo={this.props.attachTo}
+        />
+      )
     }
     return (
       <Kb.FloatingPicker
@@ -179,6 +211,9 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(0, Styles.globalMargins.small),
     },
   }),
+  menuItem: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.medium),
+  },
 })
 
 export default PhoneInput
