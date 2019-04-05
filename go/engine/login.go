@@ -69,7 +69,6 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 		&LoginProvisionedDevice{},
 		&loginLoadUser{},
 		&loginProvision{},
-		&loginCheckAutoresetEngine{},
 	}
 }
 
@@ -126,8 +125,13 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		}
 	}()
 
-	if err := e.loginProvision(m); err != nil {
+	pending, err := e.loginProvision(m)
+	if err != nil {
 		return err
+	}
+	if pending {
+		// We've just started a reset process
+		return nil
 	}
 
 	e.perUserKeyUpgradeSoft(m)
@@ -137,18 +141,18 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *Login) loginProvision(m libkb.MetaContext) error {
+func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
 	m.Debug("loading login user for %q", e.username)
 	ueng := newLoginLoadUser(m.G(), e.username)
 	if err := RunEngine2(m, ueng); err != nil {
-		return err
+		return false, err
 	}
 
 	if ueng.User().HasCurrentDeviceInCurrentInstall() {
 		// Somehow after loading a user we discovered that we are already
 		// provisioned. This should not happen.
 		m.Debug("loginProvisionedDevice after loginLoadUser (and user had current deivce in current install), failed to login [unexpected]")
-		return libkb.DeviceAlreadyProvisionedError{}
+		return false, libkb.DeviceAlreadyProvisionedError{}
 	}
 
 	m.Debug("attempting device provisioning")
@@ -160,18 +164,18 @@ func (e *Login) loginProvision(m libkb.MetaContext) error {
 	}
 	deng := newLoginProvision(m.G(), darg)
 	if err := RunEngine2(m, deng); err != nil {
-		return err
+		return false, err
 	}
 
 	// Skip notifications if we haven't provisioned
 	if deng.resetPending {
-		return nil
+		return true, nil
 	}
 	if deng.resetComplete {
 		return e.loginProvision(m)
 	}
 
-	return nil
+	return false, nil
 }
 
 // notProvisionedErr will return true if err signifies that login

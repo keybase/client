@@ -95,8 +95,3 @@ func (d *DelegateUICtlHandler) RegisterRekeyUI(_ context.Context) error {
 	}
 	return nil
 }
-
-func (d *DelegateUICtlHandler) RegisterResetUI(_ context.Context) error {
-	d.G().UIRouter.SetUI(d.id, libkb.ResetUIKind)
-	return nil
-}

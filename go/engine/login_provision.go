@@ -733,6 +733,7 @@ existing devices you can reset your account and start fresh:`)
 
 		// go into the reset flow
 		eng := NewAccountReset(m.G(), e.arg.User.GetName())
+		eng.reuseLoginContext = true
 		if err := eng.Run(m); err != nil {
 			return err
 		}

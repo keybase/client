@@ -52,6 +52,16 @@ func (u *LoginUI) DisplayPrimaryPaperKey(ctx context.Context, arg keybase1.Displ
 	return u.cli.DisplayPrimaryPaperKey(ctx, arg)
 }
 
+func (u *LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.PromptResetAccount(ctx, arg)
+}
+
+func (u *LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.DisplayResetProgress(ctx, arg)
+}
+
 type SecretUI struct {
 	sessionID int
 	cli       *keybase1.SecretUiClient
@@ -122,10 +132,6 @@ func (h *BaseHandler) getChatUI(sessionID int) libkb.ChatUI {
 
 func (h *BaseHandler) getTeamsUI(sessionID int) keybase1.TeamsUiInterface {
 	return NewRemoteTeamsUI(sessionID, h.rpcClient())
-}
-
-func (h *BaseHandler) getResetUI(sessionID int) libkb.ResetUI {
-	return NewRemoteResetUI(sessionID, h.rpcClient())
 }
 
 func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {

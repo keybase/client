@@ -452,10 +452,6 @@ type DumbOutputUI interface {
 	PrintfUnescaped(fmt string, args ...interface{}) (int, error)
 }
 
-type ResetUI interface {
-	keybase1.ResetUIInterface
-}
-
 type UI interface {
 	GetIdentifyUI() IdentifyUI
 	GetIdentifyTrackUI() IdentifyUI
@@ -468,7 +464,6 @@ type UI interface {
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
 	GetPgpUI() PgpUI
-	GetResetUI() ResetUI
 	Configure() error
 	Shutdown() error
 }
@@ -487,7 +482,6 @@ type UIRouter interface {
 	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
-	GetResetUI() (ResetUI, error)
 
 	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()

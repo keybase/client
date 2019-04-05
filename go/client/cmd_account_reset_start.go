@@ -45,7 +45,7 @@ func (c *CmdAccountResetStart) ParseArgv(ctx *cli.Context) error {
 func (c *CmdAccountResetStart) Run() error {
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),
-		NewResetUIProtocol(c.G()),
+		NewLoginUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err

@@ -250,16 +250,3 @@ func (u *UIRouter) GetRekeyUINoSessionID() (ret keybase1.RekeyUIInterface, err e
 	defer u.G().Trace("UIRouter#GetRekeyUINoSessionID", func() error { return err })()
 	return u.getOrReuseRekeyUI(nil)
 }
-
-func (u *UIRouter) GetResetUI() (libkb.ResetUI, error) {
-	var err error
-	defer u.G().Trace(fmt.Sprintf("UIRouter#GetResetUI [%p]", u), func() error { return err })()
-
-	x, _ := u.getUI(libkb.ResetUIKind)
-	if x == nil {
-		u.G().Log.Debug("| getUI(libkb.ResetUIKind) returned nil")
-		return nil, nil
-	}
-	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
-	return NewRemoteResetUI(0, cli), nil
-}
