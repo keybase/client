@@ -147,18 +147,33 @@ func (e *PGPKeyImportEngine) checkPregenPrivate() error {
 	return libkb.NoSecretKeyError{}
 }
 
-func (e *PGPKeyImportEngine) checkExistingKey() {
+func (e *PGPKeyImportEngine) checkExistingKey(m libkb.MetaContext) error {
+	// Check if the secret key already exists
+	if _, err := m.G().Keyrings.GetSecretKeyLocked(m, libkb.SecretKeyArg{
+		Me:       e.me,
+		KeyType:  libkb.PGPKeyType,
+		KeyQuery: e.GetKID().String(),
+	}); err == nil {
+		// There's a secret key, so let the engine return an error later
+		return nil
+	}
+
+	// Check if we have a public key that matches
 	pgps := e.me.GetActivePGPKeys(false)
 	for _, key := range pgps {
-		if e.GetKID() == key.GetKID() && !key.HasSecretKey() {
-			e.G().Log.Info("Key %s already exists. Saving the private key.", e.GetKID())
-			e.arg.OnlySave = true
+		if e.GetKID() != key.GetKID() {
+			continue
 		}
+
+		e.G().Log.Info("Key %s already exists. Saving the private key.", e.GetKID())
+		e.arg.OnlySave = true
+		break
 	}
+
+	return nil
 }
 
 func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
-
 	defer m.Trace("PGPKeyImportEngine::Run", func() error { return err })()
 
 	if err = e.init(); err != nil {
@@ -187,9 +202,11 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.checkExistingKey()
-
 	if err = e.unlock(m); err != nil {
+		return err
+	}
+
+	if err := e.checkExistingKey(m); err != nil {
 		return err
 	}
 
@@ -323,7 +340,6 @@ func (e *PGPKeyImportEngine) saveKey(m libkb.MetaContext) (err error) {
 
 	m.Debug("| WriteKey (hasSecret = %v)", e.bundle.HasSecretKey())
 	if !e.arg.NoSave && e.bundle.HasSecretKey() {
-		e.G().Log.Info("Saving to LKS")
 		if err = e.saveLKS(m); err != nil {
 			return
 		}
