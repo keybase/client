@@ -724,6 +724,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "force-linux-keyring",
 			Usage: "Require the use of the OS keyring (Gnome Keyring or KWallet) and fail if not available rather than falling back to file-based secret store.",
 		},
+		cli.BoolFlag{
+			Name:  "extra-net-logging",
+			Usage: "Do additional debug logging during network requests.",
+		},
 	}
 	if extraFlags != nil {
 		app.Flags = append(app.Flags, extraFlags...)
