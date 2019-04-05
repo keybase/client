@@ -36,6 +36,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "username",
 				Usage: "Specify a username.",
 			},
+			cli.BoolFlag{
+				Name:  "set-password",
+				Usage: "Ask for password (optional by default).",
+			},
 		},
 	}
 
@@ -61,23 +65,24 @@ type CmdSignup struct {
 	fields   *PromptFields
 	prompter *Prompter
 
-	scli              keybase1.SignupClient
-	ccli              keybase1.ConfigClient
-	code              string
-	requestedInvite   bool
-	fullname          string
-	notes             string
-	passphrase        string
-	storeSecret       bool
-	defaultEmail      string
-	defaultUsername   string
-	defaultPassphrase string
-	randomPassphrase  bool
-	defaultDevice     string
-	doPrompt          bool
-	skipMail          bool
-	genPGP            bool
-	genPaper          bool
+	scli               keybase1.SignupClient
+	ccli               keybase1.ConfigClient
+	code               string
+	requestedInvite    bool
+	fullname           string
+	notes              string
+	passphrase         string
+	storeSecret        bool
+	defaultEmail       string
+	defaultUsername    string
+	defaultPassphrase  string
+	doPromptPassphrase bool
+	randomPassphrase   bool
+	defaultDevice      string
+	doPrompt           bool
+	skipMail           bool
+	genPGP             bool
+	genPaper           bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -113,6 +118,10 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	if s.defaultDevice == "" {
 		s.defaultDevice = "home computer"
 	}
+	// If using prompter mode (non-batch), we do not ask for password by
+	// default and user is signing up in no-passphrase mode - that is unless
+	// --set-password flag is used. Only then we are prompting for password.
+	s.doPromptPassphrase = ctx.Bool("set-password")
 
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
@@ -230,15 +239,19 @@ func (s *CmdSignup) prompt() (err error) {
 		return
 	}
 
-	f := s.fields.passphraseRetry
-	if f.Disabled || libkb.IsYes(f.GetValue()) {
-		var res keybase1.GetPassphraseRes
-		res, err = PromptPassphrase(s.G())
-		if err != nil {
-			return
+	if s.doPromptPassphrase {
+		f := s.fields.passphraseRetry
+		if f.Disabled || libkb.IsYes(f.GetValue()) {
+			var res keybase1.GetPassphraseRes
+			res, err = PromptPassphrase(s.G())
+			if err != nil {
+				return
+			}
+			s.passphrase = res.Passphrase
+			s.storeSecret = res.StoreSecret
 		}
-		s.passphrase = res.Passphrase
-		s.storeSecret = res.StoreSecret
+	} else {
+		s.randomPassphrase = true
 	}
 
 	return
