@@ -209,7 +209,7 @@ type deferredState struct {
 //     bytes can be cleaned up now.
 type folderBlockOps struct {
 	config       Config
-	log          logger.Logger
+	log          traceLogger //logger.Logger
 	folderBranch FolderBranch
 	observers    *observerList
 
@@ -2713,6 +2713,8 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 		return nil, nil, syncState, nil, err
 	}
 	dirtyDe = &de
+
+	fbo.log.LazyTrace(ctx, "Readied file %s (%d bytes)", file.tailName(), de.Size)
 
 	// Leave a copy of the syncOp in `unrefCache`, since it may be
 	// modified by future local writes while the syncOp in `md` should

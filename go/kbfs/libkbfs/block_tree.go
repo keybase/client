@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/pipeliner"
 )
 
 // maxBlockFetchWorkers specifies the number of parallel goroutines allowed
@@ -1015,34 +1016,42 @@ func (bt *blockTree) readyHelper(
 	oldPtrs := make(map[BlockInfo]BlockPointer)
 	newPtrs := make(map[BlockPointer]bool)
 
+	var lock sync.Mutex
+
 	// Starting from the leaf level, ready each block at each level,
 	// and put the new BlockInfo into the parent block at the level
 	// above.  At each level, only ready each block once. Don't ready
 	// the root block though; the folderUpdatePrepper code will do
 	// that.
 	for level := len(pathsFromRoot[0]) - 1; level > 0; level-- {
-		for i := 0; i < len(pathsFromRoot); i++ {
+		worker := func(i int) error {
 			// Ready the dirty block.
 			pb := pathsFromRoot[i][level]
 
+			lock.Lock()
 			parentPB := pathsFromRoot[i][level-1]
 			ptr := parentPB.childBlockPtr()
 			// If this is already a new pointer, skip it.
 			if newPtrs[ptr] {
-				continue
+				lock.Unlock()
+				return nil
 			}
+			lock.Unlock()
 
 			newInfo, _, readyBlockData, err := ReadyBlock(
 				ctx, bcache, bops, bt.crypto, bt.kmd, pb.pblock,
 				bt.chargedTo, bt.rootBlockPointer().GetBlockType())
 			if err != nil {
-				return nil, err
+				return err
 			}
+
+			lock.Lock()
+			defer lock.Unlock()
 
 			err = bcache.Put(
 				newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			// Only the leaf level need to be tracked by the dirty file.
@@ -1054,16 +1063,30 @@ func (bt *blockTree) readyHelper(
 			err = bps.addNewBlock(
 				ctx, newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			err = bps.saveOldPtr(ctx, ptr)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			parentPB.setChildBlockInfo(newInfo)
 			oldPtrs[newInfo] = ptr
 			newPtrs[newInfo.BlockPointer] = true
+			return nil
+		}
+
+		pipeliner := pipeliner.NewPipeliner(10)
+		for i := 0; i < len(pathsFromRoot); i++ {
+			err := pipeliner.WaitForRoom(ctx)
+			if err != nil {
+				return nil, err
+			}
+			go func(i int) { pipeliner.CompleteOne(worker(i)) }(i)
+		}
+		err := pipeliner.Flush(ctx)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return oldPtrs, nil

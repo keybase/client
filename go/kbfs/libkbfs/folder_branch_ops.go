@@ -467,7 +467,7 @@ func newFolderBranchOps(
 		syncLock:     syncLock,
 		blocks: folderBlockOps{
 			config:        config,
-			log:           log,
+			log:           traceLogger{log},
 			folderBranch:  fb,
 			observers:     observers,
 			forceSyncChan: forceSyncChan,
@@ -5328,7 +5328,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	ctx = fbo.config.MaybeStartTrace(ctx, "FBO.SyncAll",
 		fmt.Sprintf("%d files, %d dirs", len(dirtyFiles), len(dirtyDirs)))
-	defer func() { fbo.config.MaybeFinishTrace(ctx, err) }()
+	defer func() {
+		fbo.log.LazyTrace(ctx, "SyncAll done")
+		fbo.config.MaybeFinishTrace(ctx, err)
+	}()
 
 	// Verify we have permission to write.  We do this after the dirty
 	// check because otherwise readers who call syncAll would get an
@@ -5564,6 +5567,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		file := fbo.nodeCache.PathFromNode(node)
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
+		fbo.log.LazyTrace(ctx, "Syncing file %v (%s)", ref, file)
 
 		// Start the sync for this dirty file.
 		doSync, stillDirty, fblock, dirtyDe, newBps, syncState, cleanup, err :=
@@ -5588,6 +5592,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 			}
 			continue
 		}
+
+		fbo.log.LazyTrace(ctx, "Started syncing file %v (%s)", ref, file)
 
 		// Merge the per-file sync info into the batch sync info.
 		err = bps.mergeOtherBps(ctx, newBps)
