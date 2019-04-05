@@ -141,6 +141,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
+    pathItemType: stateProps._pathItem.type,
     saveMedia: layout.saveMedia ? getSaveMedia(stateProps, dispatchProps, c) : null,
     showInSystemFileManager:
       layout.showInSystemFileManager && stateProps._sfmiEnabled
