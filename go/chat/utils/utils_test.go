@@ -206,7 +206,7 @@ func TestDecorateMentions(t *testing.T) {
 			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$ fix something",
 		},
 		decorateMentionTest{
-			body:        "@mikem,@max please check out #general, also @here you should too",
+			body:        "@mikem,@max @mikem/@max please check out #general, also @here you should too",
 			atMentions:  []string{"mikem", "max"},
 			chanMention: chat1.ChannelMention_HERE,
 			channelNameMentions: []chat1.ChannelNameMention{chat1.ChannelNameMention{
@@ -215,9 +215,11 @@ func TestDecorateMentions(t *testing.T) {
 			}},
 			// {"typ":1,"atmention":"mikem"}
 			// {"typ":1,"atmention":"max"}
+			// {"typ":1,"atmention":"mikem"}
+			// {"typ":1,"atmention":"max"}
 			// {"typ":2,"channelnamemention":{"name":"general","convID":"01020304"}}
 			// {"typ":1,"atmention":"here"}
-			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$,$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ please check out $>kb$eyJ0eXAiOjIsImNoYW5uZWxuYW1lbWVudGlvbiI6eyJuYW1lIjoiZ2VuZXJhbCIsImNvbnZJRCI6IjAxMDIwMzA0In19$<kb$, also $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6ImhlcmUifQ==$<kb$ you should too",
+			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$,$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$/$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ please check out $>kb$eyJ0eXAiOjIsImNoYW5uZWxuYW1lbWVudGlvbiI6eyJuYW1lIjoiZ2VuZXJhbCIsImNvbnZJRCI6IjAxMDIwMzA0In19$<kb$, also $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6ImhlcmUifQ==$<kb$ you should too",
 		},
 		decorateMentionTest{
 			body:       "@mikem talk to @patrick",
@@ -233,14 +235,14 @@ func TestDecorateMentions(t *testing.T) {
 			result: "@here what are you doing!",
 		},
 		decorateMentionTest{
-			body:        `\@mikem,\@max please check out \#general, also \@here you should too`,
+			body:        `\@mikem,\@max \@mikem/\@max please check out \#general, also \@here you should too`,
 			atMentions:  []string{"mikem", "max"},
 			chanMention: chat1.ChannelMention_HERE,
 			channelNameMentions: []chat1.ChannelNameMention{chat1.ChannelNameMention{
 				ConvID:    convID,
 				TopicName: "general",
 			}},
-			result: `\@mikem,\@max please check out \#general, also \@here you should too`,
+			result: `\@mikem,\@max \@mikem/\@max please check out \#general, also \@here you should too`,
 		},
 	}
 	for _, c := range cases {
