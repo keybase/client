@@ -32,11 +32,22 @@ type RoleRowProps = {
 const RoleRow = (p: RoleRowProps) => (
   <Kb.Box2
     direction={'vertical'}
+    fullWidth={true}
+    alignItems={'flex-start'}
     style={Styles.collapseStyles([p.selected ? styles.selectedRow : undefined, styles.row])}
   >
-    <Kb.Box2 direction={'vertical'} style={p.disabledReason ? styles.disabledRow : undefined}>
+    <Kb.Box2
+      direction={'vertical'}
+      fullWidth={true}
+      style={p.disabledReason ? styles.disabledRow : {position: 'relative'}}
+    >
       {!!p.selected && (
-        <Kb.Icon type="iconfont-check" style={styles.checkIcon} color={Styles.globalColors.white} />
+        <Kb.Icon
+          type="iconfont-check"
+          sizeType={Styles.isMobile ? 'Small' : 'Default'}
+          style={styles.checkIcon}
+          color={Styles.globalColors.white}
+        />
       )}
       <Kb.Box2 alignSelf={'flex-start'} direction={'horizontal'}>
         {p.icon}
@@ -133,20 +144,26 @@ const footButtonsHelper = (onCancel, onLetIn) => (
 
 const RolePicker = (props: Props) => {
   return (
-    <Kb.Box2 direction="vertical" alignItems={'stretch'} style={styles.container}>
+    <Kb.Box2
+      direction="vertical"
+      alignItems={'stretch'}
+      fullHeight={Styles.isMobile}
+      fullWidth={Styles.isMobile}
+      style={styles.container}
+    >
       {headerTextHelper(props.headerText)}
       {map(
         roleElementHelper(props.selectedRole),
         // $FlowIssue, the library type for map is wrong
         ({role, ...nodeMap}: {[key: string]: React.Node, role: Role}): React.Node => (
           <Kb.ClickableBox
+            key={role}
             onClick={
               props.disabledRoles && props.disabledRoles[role] ? undefined : () => props.onSelectRole(role)
             }
           >
             <RoleRow
               selected={props.selectedRole === role}
-              key={role}
               title={nodeMap.title}
               body={nodeMap.body}
               icon={nodeMap.icon}
@@ -166,18 +183,20 @@ const RolePicker = (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   checkIcon: {
-    left: 8,
+    // Position absolute works a little differently on mobile. It takes into account the padding
+    left: Styles.isMobile ? -24 : 8,
     paddingTop: 2,
     position: 'absolute',
   },
   container: Styles.platformStyles({
     common: {
+      backgroundColor: Styles.globalColors.white,
+    },
+    isElectron: {
       borderColor: Styles.globalColors.blue,
       borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
-    },
-    isElectron: {
       boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20_on_white}`,
       width: 267,
     },

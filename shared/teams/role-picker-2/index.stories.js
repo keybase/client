@@ -32,7 +32,14 @@ class StateWrapper extends React.Component<any, any> {
 const load = () => {
   Sb.storiesOf('Teams/Role Picker', module)
     .addDecorator(storyFn => <StateWrapper storyFn={storyFn} />)
-    .add('Picker', () => state => <RolePicker {...rolePickerProps(state)} />)
+    .add('Picker', () => state => (
+      <RolePicker
+        {...rolePickerProps({
+          selectedRole: 'Owners',
+          ...state,
+        })}
+      />
+    ))
     .add('Picker - Disabled Owners', () => state => (
       <RolePicker
         {...rolePickerProps({
@@ -65,17 +72,25 @@ const load = () => {
     ))
     .add('Picker as popup dropdown from button', () => (state, setState) => (
       <Kb.Box2 direction="vertical" style={{height: 600, justifyContent: 'flex-end'}}>
-        <Kb.Button ref={ref => !state.ref && ref && setState({ref})} type="Primary" label="Add" />
-        <FloatingRolePicker
-          attachTo={state.ref ? () => state.ref : undefined}
-          position={'top center'}
-          {...rolePickerProps({
-            headerText: 'Add them as:',
-            onCancel: Sb.action('cancel'),
-            onLetIn: Sb.action('Let in'),
-            ...state,
-          })}
+        <Kb.Button
+          ref={ref => !state.ref && ref && setState({ref})}
+          onClick={() => setState({opened: true})}
+          disabled={state.opened}
+          type="Primary"
+          label="Add"
         />
+        {state.opened && (
+          <FloatingRolePicker
+            attachTo={state.ref ? () => state.ref : undefined}
+            position={'top center'}
+            {...rolePickerProps({
+              headerText: 'Add them as:',
+              onCancel: () => setState({opened: false}),
+              onLetIn: Sb.action('Let in'),
+              ...state,
+            })}
+          />
+        )}
       </Kb.Box2>
     ))
 }
