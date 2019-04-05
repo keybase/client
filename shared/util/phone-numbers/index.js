@@ -2,9 +2,11 @@
 import libphonenumber from 'google-libphonenumber'
 import countries from './countries.json'
 
+const PNF = libphonenumber.PhoneNumberFormat
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
 const supported = phoneUtil.getSupportedRegions()
 
+export const pickerTextToAlpha2 = {}
 export const countryData = countries.reduce((res, curr) => {
   if (
     curr.alpha2 &&
@@ -18,8 +20,9 @@ export const countryData = countries.reduce((res, curr) => {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
       emoji: curr.emoji,
-      example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2)),
+      example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
       name: curr.name,
+      pickerText: `${curr.emoji} ${curr.name} ${curr.countryCallingCodes[0]}`,
     }
   }
   return res
