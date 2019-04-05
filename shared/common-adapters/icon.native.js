@@ -24,7 +24,7 @@ type TextProps = {|
   type: IconType,
 |}
 
-let Text = (p, ref) => {
+let Text = (p: TextProps, ref) => {
   const style = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -95,7 +95,7 @@ type ImageProps = {|
   source: any,
 |}
 
-let Image = (p, ref) => {
+let Image = (p: ImageProps, ref) => {
   let style
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -121,7 +121,7 @@ let Image = (p, ref) => {
 Image = React.forwardRef(Image)
 Image.displayName = 'IconImage'
 
-let Icon = (p, ref) => {
+let Icon = (p: Props, ref: any) => {
   // let Icon = React.memo<Props>((p, forwardedRef: ?React.Ref<any>) => {
   const sizeType = p.sizeType || 'Default'
   // Only apply props.style to icon if there is no onClick
@@ -152,7 +152,7 @@ let Icon = (p, ref) => {
         style={hasContainer ? null : p.style}
         color={color}
         type={p.type}
-        ref={wrap ? null : ref}
+        ref={wrap ? undefined : ref}
         fontSize={p.fontSize}
         sizeType={sizeType}
         onClick={p.onClick}
@@ -165,7 +165,7 @@ let Icon = (p, ref) => {
       <Image
         source={iconMeta[iconType].require}
         style={hasContainer ? null : p.style}
-        ref={wrap ? null : ref}
+        ref={wrap ? undefined : ref}
       />
     )
   }
@@ -185,7 +185,8 @@ let Icon = (p, ref) => {
   )
 }
 
-Icon = React.memo(React.forwardRef(Icon))
+// $FlowIssue we use a js.flow file anyways but the typing of this is confusing. TODO fix this
+Icon = React.memo<Props>(React.forwardRef(Icon))
 Icon.displayName = 'Icon'
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
