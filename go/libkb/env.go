@@ -121,6 +121,7 @@ func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { re
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
 func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
+func (n NullConfiguration) GetForceSecretStoreFile() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -1769,6 +1770,7 @@ func (e *Env) ForceSecretStoreFile() bool {
 	// allow users to fall back to file-based store for testing and debugging.
 	return e.GetBool(false,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_SECRET_STORE_FILE") },
+		func() (bool, bool) { return e.GetConfig().GetForceSecretStoreFile() },
 	)
 }
 

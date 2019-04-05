@@ -417,6 +417,10 @@ func (p CommandLine) GetForceLinuxKeyring() (bool, bool) {
 	return p.GetBool("force-linux-keyring", true)
 }
 
+func (p CommandLine) GetForceSecretStoreFile() (bool, bool) {
+	return false, false // not configurable via command line flags
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {
