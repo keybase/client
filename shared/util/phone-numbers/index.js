@@ -1,6 +1,6 @@
 // @flow
 import libphonenumber from 'google-libphonenumber'
-import countries from './countries.json'
+import countries from './data/countries.json'
 
 const PNF = libphonenumber.PhoneNumberFormat
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
