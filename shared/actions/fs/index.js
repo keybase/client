@@ -696,7 +696,7 @@ const deleteFile = (state, action) => {
     path: Constants.pathToRPCPath(action.payload.path),
     recursive: true,
   })
-    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.deleteWaitingKey))
     .catch(makeRetriableErrorHandler(action))
 }
 
