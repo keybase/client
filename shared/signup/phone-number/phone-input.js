@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isIOS} from '../../constants/platform'
-import {countryData, AsYouTypeFormatter} from '../../util/phone-numbers/'
+import {countryData, AsYouTypeFormatter, validateNumber} from '../../util/phone-numbers/'
 import {memoize} from '../../util/memoize'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
@@ -37,6 +37,7 @@ type Props = {
   defaultCountry?: string, // TODO get this from core. ISO 3166-1 alpha-2 format (e.g. 'US')
   error: string,
   onChangeNumber: (number: string) => void, // E.164 format (e.g. '+18002667883').
+  onChangeValidity: boolean => void,
   style?: Styles.StylesCrossPlatform,
 }
 
@@ -49,6 +50,14 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   state = {country: this.props.defaultCountry || defaultCountry, formatted: ''}
   _formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
 
+  _setFormatted = formatted =>
+    this.setState(s => {
+      if (s.formatted === formatted) {
+        return null
+      }
+      return {formatted}
+    }, this._updateParent)
+
   // AsYouTypeFormatter doesn't support backspace
   // To get around this, on every text change:
   // 1. Clear the formatter
@@ -59,24 +68,27 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     this._formatter.clear()
     const newText = filterNumeric(_newText)
     if (newText.trim().length === 0) {
-      this.setState({formatted: ''})
-      this._updateParent()
+      this._setFormatted('')
       return
     }
     for (let i = 0; i < newText.length - 1; i++) {
       this._formatter.inputDigit(newText[i])
     }
     const formatted = this._formatter.inputDigit(newText[newText.length - 1])
-    this.setState({formatted})
-    this._updateParent()
+    this._setFormatted(formatted)
   }
 
-  _updateParent = () => {}
+  _updateParent = () => {
+    const validation = validateNumber(this.state.formatted, this.state.country)
+    this.props.onChangeNumber(validation.e164)
+    this.props.onChangeValidity(validation.valid)
+  }
 
   _setCountry = country => {
     if (this.state.country !== country) {
       this.setState({country})
       this._formatter = new AsYouTypeFormatter(country)
+      this._reformat('')
     }
   }
 
