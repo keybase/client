@@ -1014,7 +1014,7 @@ func (bt *blockTree) readyHelper(
 	bps blockPutState, pathsFromRoot [][]parentBlockAndChildIndex,
 	makeSync makeSyncFunc) (map[BlockInfo]BlockPointer, error) {
 	oldPtrs := make(map[BlockInfo]BlockPointer)
-	newPtrs := make(map[BlockPointer]bool)
+	donePtrs := make(map[BlockPointer]bool)
 
 	var lock sync.Mutex
 
@@ -1032,10 +1032,11 @@ func (bt *blockTree) readyHelper(
 			parentPB := pathsFromRoot[i][level-1]
 			ptr := parentPB.childBlockPtr()
 			// If this is already a new pointer, skip it.
-			if newPtrs[ptr] {
+			if donePtrs[ptr] {
 				lock.Unlock()
 				return nil
 			}
+			donePtrs[ptr] = true
 			lock.Unlock()
 
 			newInfo, _, readyBlockData, err := ReadyBlock(
@@ -1072,7 +1073,7 @@ func (bt *blockTree) readyHelper(
 
 			parentPB.setChildBlockInfo(newInfo)
 			oldPtrs[newInfo] = ptr
-			newPtrs[newInfo.BlockPointer] = true
+			donePtrs[newInfo.BlockPointer] = true
 			return nil
 		}
 
