@@ -6,6 +6,7 @@ import * as Types from '../../constants/types/fs'
 import * as RowTypes from '../row/types'
 import Loading from './loading'
 import Sort from './sort-container'
+import SyncToggle from './sync-toggle-container'
 
 type Props = {|
   path: Types.Path,
@@ -20,8 +21,9 @@ const TopBar = (props: Props) => (
     gapEnd={true}
     centerChildren={true}
   >
-    <Loading path={props.path} />
+    {Types.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
     <Kb.Box style={styles.flex} />
+    <Loading path={props.path} />
     <Sort path={props.path} />
   </Kb.Box2>
 )

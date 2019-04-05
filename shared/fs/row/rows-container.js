@@ -189,15 +189,14 @@ const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (s, d, o: OwnProps) => {
   const normalRowItems = filterRowItems(getNormalRowItemsFromStateProps(s, o.path), s._filter)
-  const isEmpty = !normalRowItems.length
   return {
     destinationPickerIndex: o.destinationPickerIndex,
-    isEmpty,
+    isEmpty: !normalRowItems.length,
     // $FlowIssue
     items: [
       ...(o.headerRows || []),
-      ...(isEmpty ? [] : topBarAsRow(o.path)), // don't show sort bar in empty folders
-      ...normalRowItems,
+      ...topBarAsRow(o.path),
+      ...filterRowItems(normalRowItems),
       // If we are in the destination picker, inject two empty rows so when
       // user scrolls to the bottom nothing is blocked by the
       // semi-transparent footer.

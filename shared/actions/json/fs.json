@@ -40,11 +40,11 @@
       "team": "I.Map<string, Types.TlfSyncConfig>"
     },
     "loadTlfSyncConfig": {
-      "path": "Types.Path",
+      "tlfPath": "Types.Path",
     },
     "setTlfSyncConfig": {
       "enabled": "boolean",
-      "path": "Types.Path"
+      "tlfPath": "Types.Path"
     },
     "pathItemLoaded": {
       "path": "Types.Path",
