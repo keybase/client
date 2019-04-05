@@ -264,6 +264,23 @@ const userIsActiveInTeamHelper = (
   return member.status === 'active'
 }
 
+export const userIsRoleInTeam = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  username: string,
+  role: Types.TeamRoleType
+): boolean => {
+  const members = state.teams.teamNameToMembers.get(teamname)
+  if (!members) {
+    return false
+  }
+  const member = members.get(username)
+  if (!member) {
+    return false
+  }
+  return member.type === role
+}
+
 const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
 const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>

@@ -177,6 +177,7 @@
   "keybase.1.teams.teamCreateSeitanTokenV2": {"promise": true},
   "keybase.1.teams.teamEditMember": {"promise": true},
   "keybase.1.teams.teamGet": {"promise": true},
+  "keybase.1.teams.teamGetMembers": {"promise": true},
   "keybase.1.teams.teamGetSubteams": {"promise": true},
   "keybase.1.teams.teamIgnoreRequest": {"promise": true},
   "keybase.1.teams.teamLeave": {"promise": true},

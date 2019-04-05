@@ -1336,11 +1336,11 @@ const deleteChannelConfirmed = (state, action) => {
 
 const getMembers = (state, action) => {
   const {teamname} = action.payload
-  return RPCTypes.teamsTeamGetRpcPromise({
+  return RPCTypes.teamsTeamGetMembersRpcPromise({
     name: teamname,
   })
     .then(res => {
-      const members = Constants.rpcDetailsToMemberInfos(res.members)
+      const members = Constants.rpcDetailsToMemberInfos(res)
       return TeamsGen.createSetMembers({members, teamname})
     })
     .catch(error => {

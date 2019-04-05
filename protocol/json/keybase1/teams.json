@@ -2474,6 +2474,19 @@
       ],
       "response": "TeamDetails"
     },
+    "teamGetMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamMembersDetails"
+    },
     "teamImplicitAdmins": {
       "request": [
         {
