@@ -479,8 +479,7 @@ const loadHasRandomPW = state =>
 // Mark that we are not randomPW anymore if we got a password change.
 const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
 
-// $FlowIssue
-const stop = (_, action) => RPCTypes.ctlStopRpcPromise(action.payload.exitCode)
+const stop = (_, action) => RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)

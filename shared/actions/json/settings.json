@@ -84,7 +84,7 @@
       "allow": "boolean"
     },
     "stop": {
-      "exitCode": "number"
+      "exitCode": "RPCTypes.ExitCode"
     },
     "trace": {
       "durationSeconds": "number"
