@@ -353,6 +353,7 @@ type ProveUI interface {
 	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
 	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
 	Checking(context.Context, keybase1.CheckingArg) error
+	ContinueChecking(context.Context, int) (bool, error)
 	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
@@ -409,8 +410,8 @@ type ChatUI interface {
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
 	ChatStellarDone(context.Context, bool) error
 	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-		results []chat1.GiphySearchResult) error
-	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error
+		results chat1.GiphySearchResults) error
+	ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show, clearInput bool) error
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
@@ -618,6 +619,7 @@ type ServiceType interface {
 	CanMakeNewProofs(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
+	IsNew(MetaContext) bool
 }
 
 type ExternalServicesCollector interface {

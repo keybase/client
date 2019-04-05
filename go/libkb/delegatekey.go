@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -40,8 +41,10 @@ type Delegator struct {
 	SigningUser UserBasic      // kex2 doesn't have a full user, but does have basic user info
 
 	// Internal fields
+	proof        *ProofMetadataRes
 	sig          string
 	sigID        keybase1.SigID
+	linkID       LinkID
 	merkleTriple MerkleTriple
 	postArg      APIArg
 }
@@ -161,7 +164,7 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 	defer m.Trace("Delegator#Run", func() error { return err })()
 
 	if err = d.CheckArgs(m); err != nil {
-		return
+		return err
 	}
 
 	d.MerkleRoot = m.G().MerkleClient.LastRoot()
@@ -188,32 +191,28 @@ func (d *Delegator) Run(m MetaContext) (err error) {
 		panic("should have a local DB")
 	}
 
-	if jw, err = KeyProof(m, *d); err != nil {
-		m.Debug("| Failure in KeyProof()")
-		return
-	}
-
-	return d.SignAndPost(m, jw)
-}
-
-func (d *Delegator) SignAndPost(m MetaContext, jw *jsonw.Wrapper) (err error) {
-
-	var linkid LinkID
-
-	if d.sig, d.sigID, linkid, err = SignJSON(jw, d.GetSigningKey()); err != nil {
-		m.Debug("| Failure in SignJson()")
+	proof, err := KeyProof2(m, *d)
+	if err != nil {
+		m.Debug("| Failure in KeyProof2()")
 		return err
 	}
 
+	return d.SignAndPost(m, proof)
+}
+
+func (d *Delegator) SignAndPost(m MetaContext, proof *ProofMetadataRes) (err error) {
+	d.proof = proof
+	if d.sig, d.sigID, d.linkID, err = SignJSON(proof.J, d.GetSigningKey()); err != nil {
+		m.Debug("| Failure in SignJson()")
+		return err
+	}
 	if err = d.post(m); err != nil {
 		m.Debug("| Failure in post()")
-		return
+		return err
 	}
-
-	if err = d.updateLocalState(linkid); err != nil {
-		return
+	if err = d.updateLocalState(d.linkID); err != nil {
+		return err
 	}
-
 	return nil
 }
 
@@ -223,9 +222,9 @@ func (d *Delegator) isHighDelegator() bool {
 		d.DelegationType == DelegationTypePGPUpdate
 }
 
-func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
-	d.Me.SigChainBump(linkid, d.sigID, d.isHighDelegator())
-	d.merkleTriple = MerkleTriple{LinkID: linkid, SigID: d.sigID}
+func (d *Delegator) updateLocalState(linkID LinkID) (err error) {
+	d.Me.SigChainBump(linkID, d.sigID, d.isHighDelegator())
+	d.merkleTriple = MerkleTriple{LinkID: linkID, SigID: d.sigID}
 	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest(), d.getMerkleHashMeta(), keybase1.Seqno(0))
 }
 
@@ -271,9 +270,18 @@ func (d *Delegator) post(m MetaContext) (err error) {
 	}
 	if d.Aggregated {
 		d.postArg = arg
+		// Don't post to the server. DelegatorAggregator will do that.
 		return nil
 	}
 	_, err = m.G().API.Post(m, arg)
-
-	return err
+	if err != nil {
+		return err
+	}
+	if d.Me == nil {
+		return fmt.Errorf("delegator missing 'me' info")
+	}
+	if d.proof == nil {
+		return fmt.Errorf("delegator missing proof seqno")
+	}
+	return MerkleCheckPostedUserSig(m, d.Me.GetUID(), d.proof.Seqno, d.linkID)
 }

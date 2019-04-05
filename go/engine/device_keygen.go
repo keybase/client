@@ -186,9 +186,13 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) (e
 			return errors.New("missing new per user key")
 		}
 
-		pukSigProducer = func() (libkb.JSONPayload, error) {
+		pukSigProducer = func() (libkb.JSONPayload, keybase1.Seqno, libkb.LinkID, error) {
 			gen := keybase1.PerUserKeyGeneration(1)
-			return libkb.PerUserKeyProofReverseSigned(m, e.args.Me, *e.perUserKeySeed, gen, encSigner)
+			rev, err := libkb.PerUserKeyProofReverseSigned(m, e.args.Me, *e.perUserKeySeed, gen, encSigner)
+			if err != nil {
+				return nil, 0, nil, err
+			}
+			return rev.Payload, rev.Seqno, rev.LinkID, nil
 		}
 	}
 

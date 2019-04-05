@@ -538,12 +538,13 @@
     "giphyGotSearchResult": {
       "_description": "Giphy search results obtained",
       "conversationIDKey": "Types.ConversationIDKey",
-      "results": "Array<RPCChatTypes.GiphySearchResult>"
+      "results": "RPCChatTypes.GiphySearchResults"
     },
     "giphyToggleWindow": {
       "_description": "Toggle Giphy search preview window",
       "conversationIDKey": "Types.ConversationIDKey",
-      "show": "boolean"
+      "show": "boolean",
+      "clearInput": "boolean"
     },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"

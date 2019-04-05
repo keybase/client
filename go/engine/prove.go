@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/externals"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
@@ -23,9 +22,10 @@ type Prove struct {
 	serviceType       libkb.ServiceType
 	serviceParameters *keybase1.ProveParameters
 	supersede         bool
-	proof             *jsonw.Wrapper
+	proof             *libkb.ProofMetadataRes
 	sig               string
 	sigID             keybase1.SigID
+	linkID            libkb.LinkID
 	postRes           *libkb.PostProofRes
 	signingKey        libkb.GenericKey
 	sigInner          []byte
@@ -199,11 +199,11 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if p.sigInner, err = p.proof.Marshal(); err != nil {
+	if p.sigInner, err = p.proof.J.Marshal(); err != nil {
 		return err
 	}
 
-	p.sig, p.sigID, _, err = libkb.MakeSig(
+	p.sig, p.sigID, p.linkID, err = libkb.MakeSig(
 		m,
 		p.signingKey,
 		libkb.LinkTypeWebServiceBinding,
@@ -220,10 +220,13 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 
 func (p *Prove) postProofToServer(m libkb.MetaContext) (err error) {
 	arg := libkb.PostProofArg{
+		UID:               p.me.GetUID(),
+		Seqno:             p.proof.Seqno,
 		Sig:               p.sig,
 		ProofType:         p.serviceType.GetProofType(),
 		RemoteServiceType: p.serviceType.GetTypeName(),
-		ID:                p.sigID,
+		SigID:             p.sigID,
+		LinkID:            p.linkID,
 		Supersede:         p.supersede,
 		RemoteUsername:    p.remoteNameNormalized,
 		RemoteKey:         p.serviceType.GetAPIArgKey(),
@@ -335,6 +338,12 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 		m.Warning("prove ui Checking call error: %s", uierr)
 	}
 	for i := 0; ; i++ {
+		if shouldContinue, uierr := m.UIs().ProveUI.ContinueChecking(m.Ctx(), 0); !shouldContinue || uierr != nil {
+			if uierr != nil {
+				m.Warning("prove ui ContinueChecking call error: %s", uierr)
+			}
+			return libkb.CanceledError{}
+		}
 		found, status, _, err := libkb.CheckPosted(m, p.postRes.ID)
 		if err != nil {
 			return err

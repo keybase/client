@@ -71,7 +71,7 @@
   "keybase.1.account.hasServerKeys": {"promise": true},
   "keybase.1.account.passphraseChange": {"promise": true},
   "keybase.1.account.passphraseCheck": {"promise": true},
-  "keybase.1.account.recoverUsername": {"promise": true},
+  "keybase.1.account.recoverUsernameWithEmail": {"promise": true},
   "keybase.1.account.setLockdownMode": {"promise": true},
   "keybase.1.apiserver.Delete": {"promise": true},
   "keybase.1.apiserver.Get": {"promise": true},

@@ -452,11 +452,16 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		if len(subtext) == 0 {
 			subtext = serviceType.PickerSubtext()
 		}
+		var metas []keybase1.Identify3RowMeta
+		if serviceType.IsNew(mctx) {
+			metas = []keybase1.Identify3RowMeta{{Label: "new", Color: keybase1.Identify3RowColor_BLUE}}
+		}
 		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           service,
 			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
 			PickerText:    serviceType.DisplayName(),
 			PickerSubtext: subtext,
+			Metas:         metas,
 		}})
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0

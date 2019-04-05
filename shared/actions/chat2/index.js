@@ -2729,9 +2729,11 @@ const toggleInfoPanel = (state, action) => {
 
 const unsentTextChanged = (state, action) => {
   const {conversationIDKey, text} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
   return RPCChatTypes.localUpdateUnsentTextRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     text: text.stringValue(),
+    tlfName: meta.tlfname,
   })
 }
 
@@ -2739,13 +2741,14 @@ const onGiphyResults = (state, action) => {
   const {convID, results} = action.payload.params
   return Chat2Gen.createGiphyGotSearchResult({
     conversationIDKey: Types.stringToConversationIDKey(convID),
-    results: results || [],
+    results,
   })
 }
 
 const onGiphyToggleWindow = (state, action) => {
-  const {convID, show} = action.payload.params
+  const {convID, show, clearInput} = action.payload.params
   return Chat2Gen.createGiphyToggleWindow({
+    clearInput,
     conversationIDKey: Types.stringToConversationIDKey(convID),
     show,
   })

@@ -6,6 +6,7 @@ import EnterUsername from '.'
 const props = {
   error: '',
   onBack: Sb.action('onBack'),
+  onCancel: Sb.action('onCancel'),
   onChangeUsername: Sb.action('onChangeUsername'),
   onContinue: Sb.action('onContinue'),
   onSubmit: Sb.action('onSubmit'),
