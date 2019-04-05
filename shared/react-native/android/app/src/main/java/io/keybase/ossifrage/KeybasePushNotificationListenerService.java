@@ -94,7 +94,7 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                     Integer messageId = Integer.parseInt(bundle.getString("msgID"));
                     Keybase.handleBackgroundNotification(convID, payload, membersType, false, messageId, "", 0, 0, "", notifier);
                     // FIXME: this seems to be sending phantom notifications...
-                    // super.onMessageReceived(message);
+                    super.onMessageReceived(message);
                 }
                 break;
                 case "chat.readmessage": {
