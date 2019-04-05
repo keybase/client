@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import RolePicker from './index'
+import * as Kb from '../../common-adapters'
+import RolePicker, {FloatingRolePicker} from './index'
 
 let rolePickerProps = toMerge => ({
   disabledRoles: {},
@@ -24,7 +25,7 @@ class StateWrapper extends React.Component<any, any> {
   }
 
   render() {
-    return this.props.storyFn()(this.state)
+    return this.props.storyFn()(this.state, s => this.setState(s))
   }
 }
 
@@ -61,6 +62,21 @@ const load = () => {
           ...state,
         })}
       />
+    ))
+    .add('Picker as popup dropdown from button', () => (state, setState) => (
+      <Kb.Box2 direction="vertical" style={{height: 600, justifyContent: 'flex-end'}}>
+        <Kb.Button ref={ref => !state.ref && ref && setState({ref})} type="Primary" label="Add" />
+        <FloatingRolePicker
+          attachTo={state.ref ? () => state.ref : undefined}
+          position={'top center'}
+          {...rolePickerProps({
+            headerText: 'Add them as:',
+            onCancel: Sb.action('cancel'),
+            onLetIn: Sb.action('Let in'),
+            ...state,
+          })}
+        />
+      </Kb.Box2>
     ))
 }
 

@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {map} from 'lodash-es'
+import type {Position} from '../../common-adapters/relative-popup-hoc.types'
 export type Role = 'Owners' | 'Admins' | 'Writers' | 'Readers'
 
 // Controls the ordering of the role picker
@@ -10,7 +11,7 @@ const orderedRoles = ['Owners', 'Admins', 'Writers', 'Readers']
 
 type DisabledReason = string
 
-export type Props = {
+export type Props = {|
   disabledRoles?: {[key: Role]: DisabledReason},
   headerText?: string,
   // If provided, a cancel button will appear
@@ -19,7 +20,7 @@ export type Props = {
   onLetIn?: () => void,
   onSelectRole: (role: Role) => void,
   selectedRole?: ?Role,
-}
+|}
 
 type RoleRowProps = {
   body: React.Node,
@@ -209,5 +210,20 @@ const styles = Styles.styleSheetCreate({
     textAlign: 'left',
   },
 })
+
+// Helper to use this as a floating box
+export const FloatingRolePicker = ({
+  attachTo,
+  position,
+  ...props
+}: {|
+  attachTo: ?() => ?React.ElementRef<any>,
+  position?: Position,
+  ...Props,
+|}) => (
+  <Kb.FloatingBox attachTo={attachTo} position={position || 'top center'}>
+    <RolePicker {...props} />
+  </Kb.FloatingBox>
+)
 
 export default RolePicker
