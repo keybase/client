@@ -568,7 +568,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 
 // Start at the beginng of the line, space, or some hand picked artisanal
 // characters
-const ServiceDecorationPrefix = `(?:^|[\s([{:;.,!?"'])`
+const ServiceDecorationPrefix = `(?:^|[\s([/{:;.,!?"'])`
 
 var chanNameMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix + `#([0-9a-zA-Z_-]+)`)
 
