@@ -1526,20 +1526,65 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-skull-64.png'),
   },
-  'icon-stellar-coins-flying-2-48': {
+  'icon-stellar-coins-receiving-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-flying-2-48.png'),
+    require: require('../images/icons/icon-stellar-coins-receiving-16.png'),
   },
-  'icon-stellar-coins-flying-48': {
+  'icon-stellar-coins-receiving-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-flying-48.png'),
+    require: require('../images/icons/icon-stellar-coins-receiving-32.png'),
+  },
+  'icon-stellar-coins-receiving-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-receiving-48.png'),
+  },
+  'icon-stellar-coins-receiving-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-receiving-64.png'),
+  },
+  'icon-stellar-coins-sending-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-16.png'),
+  },
+  'icon-stellar-coins-sending-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-32.png'),
+  },
+  'icon-stellar-coins-sending-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-48.png'),
+  },
+  'icon-stellar-coins-sending-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-sending-64.png'),
   },
   'icon-stellar-coins-stacked-16': {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-16.png'),
+  },
+  'icon-stellar-coins-stacked-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-32.png'),
+  },
+  'icon-stellar-coins-stacked-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-48.png'),
+  },
+  'icon-stellar-coins-stacked-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-64.png'),
   },
   'icon-stellar-coins-stacked-inflation-48': {
     extension: 'png',
@@ -1681,6 +1726,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-wallet-add-48.png'),
   },
+  'icon-wallet-add-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-wallet-add-64.png'),
+  },
   'icon-wallet-open-32': {
     extension: 'png',
     isFont: false,
@@ -1690,6 +1740,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-wallet-open-48.png'),
+  },
+  'icon-wallet-open-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-wallet-open-64.png'),
   },
   'icon-wallet-placeholder-add-32': {
     extension: 'png',
