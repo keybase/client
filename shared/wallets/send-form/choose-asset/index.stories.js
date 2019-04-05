@@ -16,6 +16,7 @@ const props = {
     {currencyCode: 'HNL', selected: false, symbol: 'L', type: 'display choice'},
     {currencyCode: 'KRW', selected: false, symbol: '₩', type: 'display choice'},
   ],
+  isRequest: false,
   onBack: action('onBack'),
   onChoose: action('onChoose'),
   onRefresh: action('onRefresh'),

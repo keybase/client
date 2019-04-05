@@ -7,6 +7,7 @@ import Header from './header'
 type Props = {|
   onClose: () => void,
   children: React.Node,
+  isRequest: boolean,
 |}
 
 const PoweredByStellar = () => (
@@ -32,7 +33,7 @@ const Root = (props: Props) => (
     >
       <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Header onBack={Styles.isMobile ? props.onClose : null} />
+        <Header isRequest={props.isRequest} onBack={Styles.isMobile ? props.onClose : null} />
         {props.children}
       </Kb.Box2>
       {!Styles.isMobile && <PoweredByStellar />}

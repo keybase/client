@@ -4,7 +4,11 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletBackButton} from '../common'
 
-type Props = {onBack?: ?() => void, whiteBackground?: boolean}
+type Props = {|
+  isRequest: boolean,
+  onBack?: ?() => void,
+  whiteBackground?: boolean,
+|}
 
 const Header = (props: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.headerContainer} fullWidth={true}>
@@ -14,7 +18,10 @@ const Header = (props: Props) => (
       fullWidth={true}
     >
       {props.onBack && <WalletBackButton onBack={props.onBack} isOnWhiteBackground={props.whiteBackground} />}
-      <Kb.Icon type={'icon-stellar-coins-sending-48'} style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon
+        type={props.isRequest ? 'icon-stellar-coins-receiving-48' : 'icon-stellar-coins-sending-48'}
+        style={Kb.iconCastPlatformStyles(styles.icon)}
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
