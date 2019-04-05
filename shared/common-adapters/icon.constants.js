@@ -2136,6 +2136,51 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-nav-2-chat': {
+    charCode: 0xe97d,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-devices': {
+    charCode: 0xe982,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-files': {
+    charCode: 0xe97e,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-git': {
+    charCode: 0xe981,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-more': {
+    charCode: 0xe984,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-people': {
+    charCode: 0xe97c,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-settings': {
+    charCode: 0xe983,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-teams': {
+    charCode: 0xe97f,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-wallets': {
+    charCode: 0xe980,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-nav-chat': {
     charCode: 0xe93c,
     gridSize: 24,
@@ -2383,6 +2428,11 @@ const iconMeta_ = {
   },
   'iconfont-usercard': {
     charCode: 0xe968,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-wallet-transfer': {
+    charCode: 0xe985,
     gridSize: 16,
     isFont: true,
   },
