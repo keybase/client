@@ -9,6 +9,7 @@ type Props = {|
   allowSearch: boolean,
   onChangeAllowSearch: boolean => void,
   onChangePhoneNumber: string => void,
+  onChangeValidity: boolean => void,
   onFinish: () => void,
   onSkip: () => void,
 |}
@@ -24,7 +25,12 @@ const EnterPhoneNumber = (props: Props) => (
     title="Your phone number"
   >
     <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile}>
-      <PhoneInput style={styles.input} onChangeNumber={props.onChangePhoneNumber} error="" />
+      <PhoneInput
+        style={styles.input}
+        onChangeNumber={props.onChangePhoneNumber}
+        onChangeValidity={props.onChangeValidity}
+        error=""
+      />
       <Kb.Checkbox
         label="Allow friends to find you by this phone number"
         checked={props.allowSearch}

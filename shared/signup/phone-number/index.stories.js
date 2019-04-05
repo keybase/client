@@ -8,6 +8,7 @@ const props = {
   allowSearch: false,
   onChangeAllowSearch: Sb.action('onChangeAllowSearch'),
   onChangePhoneNumber: Sb.action('onChangePhoneNumber'),
+  onChangeValidity: Sb.action('onChangeValidity'),
   onFinish: Sb.action('onFinish'),
   onSkip: Sb.action('onSkip'),
 }

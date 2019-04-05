@@ -3,7 +3,7 @@ import libphonenumber from 'google-libphonenumber'
 import countries from './countries.json'
 
 const PNF = libphonenumber.PhoneNumberFormat
-const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
+export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
 const supported = phoneUtil.getSupportedRegions()
 
 export const pickerTextToAlpha2 = {}
@@ -27,5 +27,18 @@ export const countryData = countries.reduce((res, curr) => {
   }
   return res
 }, {})
+
+export const validateNumber = (rawNumber: string, region: string) => {
+  try {
+    const number = phoneUtil.parse(rawNumber, region)
+    const valid = phoneUtil.isValidNumberForRegion(number, region)
+    return {
+      e164: phoneUtil.format(number, PNF.E164),
+      valid,
+    }
+  } catch (e) {
+    return {e164: '', valid: false}
+  }
+}
 
 export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter
