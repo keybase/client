@@ -103,7 +103,6 @@ func TestProofSuggestions(t *testing.T) {
 		require.Equal(t, a.ProfileText, b.ProfileText)
 		require.Equal(t, a.PickerText, b.PickerText)
 		require.Equal(t, a.PickerSubtext, b.PickerSubtext)
-		require.Nil(t, b.Metas)
 
 		if b.Key == "theqrl.org" {
 			// Skip checking for logos for this one.

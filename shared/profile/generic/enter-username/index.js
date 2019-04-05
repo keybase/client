@@ -123,6 +123,7 @@ const Unreachable = props => (
 type Props = {|
   error: string,
   onBack: () => void,
+  onCancel: () => void,
   onChangeUsername: string => void,
   onContinue: () => void,
   onSubmit: () => void,
