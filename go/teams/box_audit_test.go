@@ -681,38 +681,6 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 	require.NoError(t, bA.BoxAuditTeam(bM, *subteamID))
 }
 
-func TestBoxAuditSubteamAAA(t *testing.T) {
-	tc := SetupTest(t, "team", 1)
-	defer tc.Cleanup()
-
-	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
-	require.NoError(t, err)
-
-	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "tt")
-	require.NoError(t, err)
-	_, err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
-	require.NoError(t, err)
-
-	teamID, err := CreateSubteam(context.TODO(), tc.G, "subteam", parentTeamName, keybase1.TeamRole_NONE /* addSelfAs */)
-	require.NoError(t, err)
-	require.NotNil(t, teamID)
-
-	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		ID: *teamID,
-	})
-
-	t.Logf("Created team %s / %s", teamID, team.Name())
-
-	// have to hack box_audit.go ShouldAudit functionality for this to even be attempted because:
-	// - it's an open team
-	// - we are an implicit admin (we don't have an explicit role that's >WRITER).
-	auditor := tc.G.GetTeamBoxAuditor()
-	attempt := auditor.Attempt(libkb.NewMetaContextForTest(tc), team.ID, false /* rotateBeforeAudit */)
-	require.Nil(t, attempt.Error)
-	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
-
-}
-
 func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
