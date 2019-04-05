@@ -14,10 +14,7 @@ const Header = (props: Props) => (
       fullWidth={true}
     >
       {props.onBack && <WalletBackButton onBack={props.onBack} isOnWhiteBackground={props.whiteBackground} />}
-      <Kb.Icon
-        type={Styles.isMobile ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
-      />
+      <Kb.Icon type={'icon-stellar-coins-sending-48'} style={Kb.iconCastPlatformStyles(styles.icon)} />
     </Kb.Box2>
   </Kb.Box2>
 )

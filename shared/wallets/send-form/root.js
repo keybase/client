@@ -18,7 +18,7 @@ const PoweredByStellar = () => (
         onClickURL="https://stellar.org"
         style={styles.textColor}
       >
-        stellar
+        Stellar
       </Kb.Text>
     </Kb.Text>
   </Kb.Box2>
