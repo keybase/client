@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
 import logger from '../logger'
-import type {IconType, Props} from './icon'
+import type {IconType, Props, DisallowedStyles, SizeType} from './icon'
 import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
 import {iconMeta} from './icon.constants'
 
@@ -13,34 +13,51 @@ const Kb = {
   NativeTouchableOpacity,
 }
 
-const Text = React.memo(p => {
+type TextProps = {|
+  children: React.Node,
+  color?: Styles.Color,
+  fontSize?: number,
+  onClick?: ?(event: SyntheticEvent<Element>) => void,
+  opacity?: boolean,
+  sizeType: SizeType,
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  type: IconType,
+|}
+
+const Text = React.memo<TextProps>(p => {
   const style = {}
 
+  // we really should disallow reaching into style like this but this is what the old code does.
+  // TODO change this
+  // $FlowIssue
+  const pStyle: any = p.style
+
   const color =
-    p.colorOverride ||
     p.color ||
-    (p.style && p.style.color) ||
+    // $FlowIssue flow is correct but we do actually pass in this color sometimes. TODO remove this
+    (pStyle && p.style.color) ||
     Shared.defaultColor(p.type) ||
     (p.opacity && Styles.globalColors.lightGrey)
   if (color) {
     style.color = color
   }
 
-  if (p.style) {
-    if (p.style.width !== undefined) {
-      style.width = p.style.width
+  if (pStyle) {
+    if (pStyle.width !== undefined) {
+      style.width = pStyle.width
     }
-    if (p.style.backgroundColor) {
-      style.backgroundColor = p.style.backgroundColor
+    if (pStyle.backgroundColor) {
+      style.backgroundColor = pStyle.backgroundColor
     }
   }
 
+  // $FlowIssue isn't in the type, but keeping this for now. TODO remove this
   if (p.textAlign !== undefined) {
     style.textAlign = p.textAlign
   }
 
-  if (p.fontSize !== undefined || (p.style && p.style.width !== undefined)) {
-    style.fontSize = p.fontSize || p.style.width
+  if (p.fontSize !== undefined || (pStyle && pStyle.width !== undefined)) {
+    style.fontSize = p.fontSize || pStyle.width
   }
 
   const temp = Shared.fontSize(Shared.typeToIconMapper(p.type))
@@ -69,22 +86,33 @@ const Text = React.memo(p => {
   )
 })
 
-const Image = React.memo(p => {
+type ImageProps = {|
+  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
+  source: any,
+|}
+
+const Image = React.memo<ImageProps>(p => {
   let style
-  if (p.style) {
+
+  // we really should disallow reaching into style like this but this is what the old code does.
+  // TODO change this
+  // $FlowIssue
+  const pStyle: any = p.style
+
+  if (pStyle) {
     style = {}
-    if (p.style.width !== undefined) {
-      style.width = p.style.width
+    if (pStyle.width !== undefined) {
+      style.width = pStyle.width
     }
-    if (p.style.height !== undefined) {
-      style.height = p.style.height
+    if (pStyle.height !== undefined) {
+      style.height = pStyle.height
     }
-    if (p.style.backgroundColor) {
-      style.backgroundColor = p.style.backgroundColor
+    if (pStyle.backgroundColor) {
+      style.backgroundColor = pStyle.backgroundColor
     }
   }
 
-  return <Kb.NativeImage style={[style, p.style]} source={p.source} resizeMode="contain" />
+  return <Kb.NativeImage style={[style, pStyle]} source={p.source} resizeMode="contain" />
 })
 
 class Icon extends React.PureComponent<Props> {
