@@ -534,20 +534,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		// We may need to hit the server for secrets, even though there are no new links.
 		if arg.needAdmin {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedAdmin")
-			// Admins should always have up-to-date secrets
+			// Admins should always have up-to-date secrets. But not necessarily RKMs.
 			fetchLinksAndOrSecrets = true
 		}
-		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
+		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, ret); err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: KBFSNeedKeyGeneration: %v", err)
-			fetchLinksAndOrSecrets = true
-		}
-		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
-			arg.needApplicationsAtGenerationsWithKBFS, ret); err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerationsWithKBFS: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if arg.readSubteamID == nil {
@@ -557,9 +552,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			fetchLinksAndOrSecrets = true
 		}
 	}
-	// hasSyncedSecrets does not account for RKMs so we verify it separately.
-	if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
-		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+	// hasSyncedSecrets does not account for RKMs. So check RKM refreshers separeately.
+	if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
+		fetchLinksAndOrSecrets = true
+	}
+	if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
+		arg.needApplicationsAtGenerationsWithKBFS, ret); err != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerationsWithKBFS: %v", err)
 		fetchLinksAndOrSecrets = true
 	}
 
@@ -1281,6 +1281,7 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 }
 
 // Whether the teams secrets are synced to the same point as its sigchain
+// Does not check RKMs.
 func (l *TeamLoader) hasSyncedSecrets(state *keybase1.TeamData) bool {
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
 	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
