@@ -40,6 +40,8 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {|
+  authorIsAdmin: ?boolean,
+  authorIsOwner: ?boolean,
   centeredOrdinal: boolean,
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
@@ -113,6 +115,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
             />
+            {(this.props.authorIsOwner || this.props.authorIsAdmin) && (
+              <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
+                <Kb.Icon
+                  color={
+                    this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_50
+                  }
+                  sizeType="Small"
+                  type="iconfont-crown-owner"
+                />
+              </Kb.WithTooltip>
+            )}
             <Kb.Text type="BodyTiny" style={styles.timestamp}>
               {formatTimeForChat(this.props.message.timestamp)}
             </Kb.Text>

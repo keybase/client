@@ -956,6 +956,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|name: String|}>,
     outParam: TeamDetails,
   |},
+  'keybase.1.teams.teamGetMembers': {|
+    inParam: $ReadOnly<{|name: String|}>,
+    outParam: TeamMembersDetails,
+  |},
   'keybase.1.teams.teamGetSubteams': {|
     inParam: $ReadOnly<{|name: TeamName|}>,
     outParam: SubteamListResult,
@@ -3501,6 +3505,7 @@ declare export function teamsTeamAddMembersRpcPromise(params: $PropertyType<$Pro
 declare export function teamsTeamCreateRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreate'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreate'>, 'outParam'>>
 declare export function teamsTeamCreateSeitanTokenV2RpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreateSeitanTokenV2'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamCreateSeitanTokenV2'>, 'outParam'>>
 declare export function teamsTeamEditMemberRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamEditMember'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamEditMember'>, 'outParam'>>
+declare export function teamsTeamGetMembersRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGetMembers'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGetMembers'>, 'outParam'>>
 declare export function teamsTeamGetRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGet'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGet'>, 'outParam'>>
 declare export function teamsTeamGetSubteamsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGetSubteams'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamGetSubteams'>, 'outParam'>>
 declare export function teamsTeamIgnoreRequestRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamIgnoreRequest'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.teamIgnoreRequest'>, 'outParam'>>

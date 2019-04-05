@@ -1,6 +1,7 @@
 // @flow
 import WrapperMessage from '.'
 import * as Constants from '../../../../constants/chat2'
+import * as TeamConstants from '../../../../constants/teams'
 import * as MessageConstants from '../../../../constants/chat2/message'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
@@ -30,9 +31,18 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       : null
   const centeredOrdinal =
     state.chat2.messageCenterOrdinals.get(message.conversationIDKey, 0) === ownProps.ordinal
-
+  const meta = Constants.getMeta(state, message.conversationIDKey)
+  const teamname = meta.teamname
+  const authorIsAdmin = teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
+    : false
+  const authorIsOwner = teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
+    : false
   return {
     _you: state.config.username,
+    authorIsAdmin,
+    authorIsOwner,
     centeredOrdinal,
     conversationIDKey: ownProps.conversationIDKey,
     hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
@@ -145,6 +155,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const forceAsh = !!message.explodingUnreadable
 
   return {
+    authorIsAdmin: stateProps.authorIsAdmin,
+    authorIsOwner: stateProps.authorIsOwner,
     centeredOrdinal: stateProps.centeredOrdinal,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,

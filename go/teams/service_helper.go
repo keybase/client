@@ -48,7 +48,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keyb
 	}
 	res.KeyGeneration = t.Generation()
 	tracer.Stage("members")
-	res.Members, err = members(ctx, g, t)
+	res.Members, err = MembersDetails(ctx, g, t)
 	if err != nil {
 		return res, err
 	}
@@ -84,7 +84,7 @@ func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 	return userVersionsToDetails(ctx, g, uvs)
 }
 
-func members(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.TeamMembersDetails, error) {
+func MembersDetails(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.TeamMembersDetails, error) {
 	members, err := t.Members()
 	if err != nil {
 		return keybase1.TeamMembersDetails{}, err
