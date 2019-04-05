@@ -126,6 +126,18 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		}
 	}()
 
+	if err := e.loginProvision(m); err != nil {
+		return err
+	}
+
+	e.perUserKeyUpgradeSoft(m)
+
+	m.Debug("Login provisioning success, sending login notification")
+	e.sendNotification(m)
+	return nil
+}
+
+func (e *Login) loginProvision(m libkb.MetaContext) error {
 	m.Debug("loading login user for %q", e.username)
 	ueng := newLoginLoadUser(m.G(), e.username)
 	if err := RunEngine2(m, ueng); err != nil {
@@ -155,11 +167,10 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	if deng.resetPending {
 		return nil
 	}
+	if deng.resetComplete {
+		return e.loginProvision(m)
+	}
 
-	e.perUserKeyUpgradeSoft(m)
-
-	m.Debug("Login provisioning success, sending login notification")
-	e.sendNotification(m)
 	return nil
 }
 

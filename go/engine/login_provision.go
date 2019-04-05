@@ -118,12 +118,8 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 		return err
 	}
-	if e.resetPending {
+	if e.resetPending || e.resetComplete {
 		return nil
-	}
-	if e.resetComplete {
-		// Run again
-		return e.Run(m)
 	}
 
 	// e.route is point of no return. If it succeeds, it means that

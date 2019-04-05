@@ -13,9 +13,10 @@ import (
 // AccountReset is an engine.
 type AccountReset struct {
 	libkb.Contextified
-	usernameOrEmail string
-	resetPending    bool
-	resetComplete   bool
+	usernameOrEmail   string
+	reuseLoginContext bool
+	resetPending      bool
+	resetComplete     bool
 }
 
 // NewAccountReset creates a AccountReset engine.
@@ -82,7 +83,9 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 			},
 		},
 	}
-	m = m.WithNewProvisionalLoginContext()
+	if e.reuseLoginContext {
+		m = m.WithNewProvisionalLoginContext()
+	}
 	err = libkb.PassphraseLoginPromptWithArg(m, 3, arg)
 	switch err.(type) {
 	case nil:

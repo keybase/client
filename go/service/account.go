@@ -222,6 +222,7 @@ func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.En
 		LoginUI:   h.getLoginUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		LogUI:     h.getLogUI(arg.SessionID),
+		ResetUI:   h.getResetUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewAccountReset(h.G(), arg.UsernameOrEmail)
