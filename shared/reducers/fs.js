@@ -125,8 +125,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setFolderViewFilter:
       return state.set('folderViewFilter', action.payload.filter)
     case FsGen.sortSetting:
-      const {path, sortSetting} = action.payload
-      return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
+      return state.update('pathUserSettings', pathUserSettings =>
+        pathUserSettings.update(action.payload.path, setting =>
+          (setting || Constants.defaultPathUserSetting).set('sort', action.payload.sortSetting)
+        )
+      )
     case FsGen.downloadStarted: {
       const {key, path, localPath, intent, opID} = action.payload
       const entryType = action.payload.entryType || state.pathItems.get(path, Constants.unknownPathItem).type
