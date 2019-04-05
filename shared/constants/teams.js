@@ -56,6 +56,35 @@ export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
   username: '',
 })
 
+export const rpcDetailsToMemberInfos = (
+  allRoleMembers: RPCTypes.TeamMembersDetails
+): I.Map<string, Types.MemberInfo> => {
+  const infos = []
+  const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
+  const typeToKey: Types.TypeMap = {
+    admin: 'admins',
+    owner: 'owners',
+    reader: 'readers',
+    writer: 'writers',
+  }
+  types.forEach(type => {
+    const key = typeToKey[type]
+    const members: Array<RPCTypes.TeamMemberDetails> = allRoleMembers[key] || []
+    members.forEach(({fullName, status, username}) => {
+      infos.push([
+        username,
+        makeMemberInfo({
+          fullName,
+          status: rpcMemberStatusToStatus[status],
+          type,
+          username,
+        }),
+      ])
+    })
+  })
+  return I.Map(infos)
+}
+
 export const makeInviteInfo: I.RecordFactory<Types._InviteInfo> = I.Record({
   email: '',
   id: '',

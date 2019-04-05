@@ -51,6 +51,8 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         s.setIn(['teamNameToSubteams', action.payload.teamname], action.payload.subteams)
         s.mergeIn(['teamNameToRequests'], action.payload.requests)
       })
+    case TeamsGen.setMembers:
+      return state.setIn(['teamNameToMembers', action.payload.teamname], action.payload.members)
     case TeamsGen.setTeamCanPerform:
       return state.setIn(['teamNameToCanPerform', action.payload.teamname], action.payload.teamOperation)
     case TeamsGen.setTeamPublicitySettings:
@@ -145,6 +147,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getChannels:
     case TeamsGen.getDetails:
     case TeamsGen.getDetailsForAllTeams:
+    case TeamsGen.getMembers:
     case TeamsGen.getTeamOperations:
     case TeamsGen.getTeamProfileAddList:
     case TeamsGen.getTeamPublicity:
