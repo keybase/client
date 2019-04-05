@@ -103,13 +103,11 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      marginLeft: Styles.globalMargins.large,
+      marginLeft: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
     isElectron: {
-      borderBottomLeftRadius: 3,
-      borderTopLeftRadius: 3,
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,

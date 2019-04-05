@@ -66,7 +66,7 @@ const stylesTabBar = {
   justifyContent: 'flex-start',
   paddingBottom: globalMargins.tiny,
   paddingTop: globalMargins.small,
-  width: 80,
+  width: 20,
 }
 
 const stylesTabButton = {

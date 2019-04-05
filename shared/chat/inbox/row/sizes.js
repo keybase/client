@@ -3,17 +3,17 @@
 // in order for the list and the rows to ensure they're the same size we keep the sizes here
 import {isMobile} from '../../../styles'
 
-export const smallRowHeight = isMobile ? 64 : 56
-export const bigRowHeight = isMobile ? 40 : 24
-export const bigHeaderHeight = 32
+export const smallRowHeight = isMobile ? 64 : 40
+export const bigRowHeight = isMobile ? 40 : 20
+export const bigHeaderHeight = 20
 export const floatingDivider = isMobile ? 48 : 40
-export const inboxWidth = 260
+export const inboxWidth = 180
 
 export const dividerHeight = (showingButton: boolean) => {
   if (isMobile) {
-    return showingButton ? 68 : 44
+    return showingButton ? 40 : 44
   } else {
-    return showingButton ? 68 : 41
+    return showingButton ? 40 : 41
   }
 }
 

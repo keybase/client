@@ -1,7 +1,7 @@
 .tab-container {
   background-color: #3663ea;
   flex-shrink: 0;
-  width: 160px;
+  width: 80px;
 }
 .tab {
   height: 40px;

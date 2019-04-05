@@ -89,23 +89,6 @@ class SmallTeam extends React.PureComponent<Props, State> {
         ])}
       >
         <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
-          {props.teamname ? (
-            <TeamAvatar
-              teamname={props.teamname}
-              isMuted={props.isMuted}
-              isSelected={this.props.isSelected}
-              isHovered={this.state.isHovered}
-            />
-          ) : (
-            <Avatars
-              backgroundColor={this._backgroundColor()}
-              isHovered={this.state.isHovered}
-              isMuted={props.isMuted}
-              isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
-              isSelected={props.isSelected}
-              participants={props.participants}
-            />
-          )}
           <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
             <Kb.Box
               style={Styles.collapseStyles([

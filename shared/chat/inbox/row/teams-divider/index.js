@@ -57,7 +57,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       flexShrink: 0,
-      height: RowSizes.dividerHeight(true),
       justifyContent: 'center',
       width: '100%',
     },
@@ -69,7 +68,6 @@ const styles = Styles.styleSheetCreate({
   containerNoButton: {
     ...Styles.globalStyles.flexBoxColumn,
     flexShrink: 0,
-    height: RowSizes.dividerHeight(false),
     justifyContent: 'center',
     width: '100%',
   },
@@ -86,12 +84,7 @@ const styles = Styles.styleSheetCreate({
   },
   toggleButton: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.black_10,
       borderRadius: Styles.borderRadius,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginTop: Styles.globalMargins.xtiny,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
     },
     isElectron: {
       marginLeft: Styles.globalMargins.tiny,

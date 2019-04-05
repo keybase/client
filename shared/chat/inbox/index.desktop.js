@@ -195,7 +195,7 @@ class Inbox extends React.PureComponent<Props, State> {
                   onItemsRendered={this._onItemsRendered}
                   itemCount={this.props.rows.length}
                   itemSize={this._itemSizeGetter}
-                  estimatedItemSize={56}
+                  estimatedItemSize={20}
                 >
                   {({index, style}) => this._itemRenderer(index, style)}
                 </VariableSizeList>

@@ -27,7 +27,6 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           conversationIDKey={props.conversationIDKey}
           isSmallTeam={false}
         />
-        <Kb.Avatar onClick={props.onClick} teamname={props.teamname} size={32} />
         <Kb.BoxGrow style={styles.teamnameContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={{alignItems: 'center'}}>
             <Kb.Text
