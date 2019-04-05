@@ -32,6 +32,7 @@ import reload from './reload.stories'
 import saveIndicator from './save-indicator.stories'
 import sectionList from './section-list.stories'
 import standardScreen from './standard-screen.stories'
+import switchStories from './switch.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
 import video from './video.stories'
@@ -71,6 +72,7 @@ const load = () => {
     saveIndicator,
     sectionList,
     standardScreen,
+    switchStories,
     text,
     tooltip,
     video,
