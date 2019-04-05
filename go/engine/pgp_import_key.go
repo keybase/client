@@ -165,7 +165,7 @@ func (e *PGPKeyImportEngine) checkExistingKey(m libkb.MetaContext) error {
 			continue
 		}
 
-		e.G().Log.Info("Key %s already exists. Saving the private key.", e.GetKID())
+		e.G().Log.Info("Key %s already exists. Only importing the private key.", e.GetKID())
 		e.arg.OnlySave = true
 		break
 	}
