@@ -20,6 +20,9 @@ import {type TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
+export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
+export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
+export const deleteWaitingKey = 'fs:delete'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
