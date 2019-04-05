@@ -883,6 +883,10 @@ func (f *JSONConfigFile) GetExtraNetLogging() (bool, bool) {
 	return f.GetBoolAtPath("extra_net_logging")
 }
 
+func (f *JSONConfigFile) GetForceLinuxKeyring() (bool, bool) {
+	return f.GetBoolAtPath("force_linux_keyring")
+}
+
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s

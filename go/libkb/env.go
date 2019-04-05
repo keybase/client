@@ -120,6 +120,7 @@ func (n NullConfiguration) GetDisableSearchIndexer() (bool, bool)           { re
 func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
+func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -1811,4 +1812,10 @@ func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
 		MaxSize:      maxSize,
 		MaxKeepFiles: maxKeepFiles,
 	}
+}
+func (e *Env) GetForceLinuxKeyring() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetForceLinuxKeyring() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_FORCE_LINUX_KEYRING") },
+		func() (bool, bool) { return e.GetConfig().GetForceLinuxKeyring() })
 }

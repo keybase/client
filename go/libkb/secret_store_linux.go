@@ -10,6 +10,11 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	sfile := NewSecretStoreFile(g.Env.GetDataDir())
 	sfile.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(g, name) }
 	ssecretservice := NewSecretStoreSecretService()
+
+	if mctx.G().Env.GetForceLinuxKeyring() {
+		return ssecretservice
+	}
+
 	shouldUpgradeOpportunistically := func() bool {
 		return false
 	}
