@@ -24,7 +24,7 @@ type TextProps = {|
   type: IconType,
 |}
 
-const Text = React.memo<TextProps>(p => {
+let Text = (p, ref) => {
   const style = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -78,20 +78,24 @@ const Text = React.memo<TextProps>(p => {
       style={[styles.text, style, p.style]}
       allowFontScaling={false}
       type={p.type}
+      ref={ref}
       fontSize={fontSize}
       onPress={p.onClick}
     >
       {p.children}
     </Kb.NativeText>
   )
-})
+}
+
+Text = React.forwardRef(Text)
+Text.displayName = 'IconText'
 
 type ImageProps = {|
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
   source: any,
 |}
 
-const Image = React.memo<ImageProps>(p => {
+let Image = (p, ref) => {
   let style
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -112,68 +116,77 @@ const Image = React.memo<ImageProps>(p => {
     }
   }
 
-  return <Kb.NativeImage style={[style, pStyle]} source={p.source} resizeMode="contain" />
-})
+  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} resizeMode="contain" />
+}
+Image = React.forwardRef(Image)
+Image.displayName = 'IconImage'
 
-class Icon extends React.PureComponent<Props> {
-  static defaultProps = {
-    sizeType: 'Default',
+let Icon = (p, ref) => {
+  // let Icon = React.memo<Props>((p, forwardedRef: ?React.Ref<any>) => {
+  const sizeType = p.sizeType || 'Default'
+  // Only apply props.style to icon if there is no onClick
+  const hasContainer = p.onClick && p.style
+  let iconType = Shared.typeToIconMapper(p.type)
+
+  if (!iconType) {
+    logger.warn('Null iconType passed')
+    return null
   }
-  render() {
-    const p = this.props
-    const sizeType = p.sizeType
-    // Only apply props.style to icon if there is no onClick
-    const hasContainer = p.onClick && p.style
-    let iconType = Shared.typeToIconMapper(p.type)
+  if (!iconMeta[iconType]) {
+    logger.warn(`Invalid icon type passed in: ${iconType}`)
+    return null
+  }
 
-    if (!iconType) {
-      logger.warn('Null iconType passed')
-      return null
-    }
-    if (!iconMeta[iconType]) {
-      logger.warn(`Invalid icon type passed in: ${iconType}`)
-      return null
-    }
+  const wrap = !p.noContainer && p.onClick
+  let icon
 
-    let icon
-
-    if (iconMeta[iconType].isFont) {
-      const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      let color
-      if (p.colorOverride || p.color) {
-        color = p.colorOverride || p.color
-      }
-
-      icon = (
-        <Text
-          style={hasContainer ? null : p.style}
-          color={color}
-          type={p.type}
-          fontSize={p.fontSize}
-          sizeType={sizeType}
-          onClick={p.onClick}
-        >
-          {code}
-        </Text>
-      )
-    } else {
-      icon = <Image source={iconMeta[iconType].require} style={hasContainer ? null : p.style} />
+  if (iconMeta[iconType].isFont) {
+    const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
+    let color
+    if (p.colorOverride || p.color) {
+      color = p.colorOverride || p.color
     }
 
-    return !p.noContainer && p.onClick ? (
-      <Kb.NativeTouchableOpacity
-        onPress={p.onClick}
-        activeOpacity={0.8}
-        underlayColor={p.underlayColor || Styles.globalColors.white}
-        style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
+    icon = (
+      <Text
+        style={hasContainer ? null : p.style}
+        color={color}
+        type={p.type}
+        ref={wrap ? null : ref}
+        fontSize={p.fontSize}
+        sizeType={sizeType}
+        onClick={p.onClick}
       >
-        {icon}
-      </Kb.NativeTouchableOpacity>
-    ) : (
-      icon
+        {code}
+      </Text>
+    )
+  } else {
+    icon = (
+      <Image
+        source={iconMeta[iconType].require}
+        style={hasContainer ? null : p.style}
+        ref={wrap ? null : ref}
+      />
     )
   }
+
+  return wrap ? (
+    <Kb.NativeTouchableOpacity
+      onPress={p.onClick}
+      activeOpacity={0.8}
+      underlayColor={p.underlayColor || Styles.globalColors.white}
+      ref={ref}
+      style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
+    >
+      {icon}
+    </Kb.NativeTouchableOpacity>
+  ) : (
+    icon
+  )
 }
+
+Icon = React.memo(React.forwardRef(Icon))
+Icon.displayName = 'Icon'
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
