@@ -12,7 +12,7 @@ type Props = {
 }
 
 const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.ClickableBox key={username} onClick={() => onShowProfile(username)}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
