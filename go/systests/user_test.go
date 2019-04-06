@@ -89,6 +89,9 @@ func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase
 	}
 	n.G().Log.Debug("| GetPassphrase: %v -> %v", p, res)
 	n.parent.passphrasePrompts = append(n.parent.passphrasePrompts, p)
+	if len(n.parent.passphrasePrompts) > 100 {
+		err = fmt.Errorf("too many passphrase prompts, something is likely wrong")
+	}
 	return res, err
 }
 
@@ -107,6 +110,9 @@ func (n *signupTerminalUI) Prompt(pd libkb.PromptDescriptor, s string) (ret stri
 	}
 	n.G().Log.Debug("Terminal Prompt %d: %s -> %s (%v)\n", pd, s, ret, libkb.ErrToOk(err))
 	n.parent.terminalPrompts = append(n.parent.terminalPrompts, pd)
+	if len(n.parent.terminalPrompts) > 100 {
+		err = fmt.Errorf("too many prompts, something is likely wrong")
+	}
 	return ret, err
 }
 
