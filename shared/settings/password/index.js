@@ -64,7 +64,14 @@ export class UpdatePassword extends Component<Props, State> {
     const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
     return (
       <Kb.ScrollView contentContainerStyle={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Box2 centerChildren={true} direction="vertical">
+          <Kb.Text style={styles.headerText} type="Header">
+            Set a password
+          </Kb.Text>
+
+          <Kb.Text type="Body" style={styles.bodyText}>
+            A password allows you to sign out and sign back in, and use the keybase.io website.
+          </Kb.Text>
           <Kb.Input
             hintText="New password"
             type={inputType}
@@ -88,10 +95,10 @@ export class UpdatePassword extends Component<Props, State> {
             onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping || !!this.props.showTyping}
           />
-          <Kb.Text style={{marginBottom: Styles.globalMargins.medium}} type="BodySmall">
+          <Kb.Text style={{margin: Styles.globalMargins.small, textAlign: 'center'}} type="BodySmall">
             (Password must be at least 8 characters.)
           </Kb.Text>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonbar}>
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
             <Kb.Button
               fullWidth={true}
               type="Primary"
@@ -121,21 +128,30 @@ const UpdatePasswordWrapper = (props: Props) => {
         type: 'error',
       }
     : null
-  return (
-    <Kb.StandardScreen notification={notification} style={{alignItems: 'center', margin: 0}}>
-      <UpdatePassword {...props} />
-    </Kb.StandardScreen>
-  )
+  return <UpdatePassword {...props} />
 }
 const styles = Styles.styleSheetCreate({
-  buttonbar: {
-    padding: Styles.globalMargins.small,
+  bodyText: {
+    paddingBottom: Styles.globalMargins.tiny,
+    textAlign: 'center',
   },
   container: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
+    },
     isElectron: {
       width: 560,
     },
+    isMobile: {
+      width: '100%',
+    },
   }),
+  headerText: {
+    paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
+  },
 })
 
 export default UpdatePasswordWrapper
