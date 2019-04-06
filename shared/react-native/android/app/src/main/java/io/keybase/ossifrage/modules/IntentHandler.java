@@ -33,7 +33,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
     private static final String TAG = IntentHandler.class.getName();
     private final ReactApplicationContext reactContext;
-    private WritableMap shareData;
+    private Bundle shareData = new Bundle();
 
     protected void handleNotificationIntent(Intent intent) {
         if (!intent.getBooleanExtra("isNotification", false)) return;
@@ -85,15 +85,15 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
         if (reactContext == null) return;
 
-        WritableMap evt = Arguments.createMap();
-        evt.putString("path", filePath);
+        shareData = new Bundle();
+        shareData.putString("localPath", filePath);
+        WritableMap evt = Arguments.fromBundle(shareData);
 
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
         if (emitter != null) {
             emitter.emit("onShareData", evt);
         }
-        shareData = evt;
     }
 
     private void handleSendIntentMultipleStreams(Intent intent) {
@@ -109,14 +109,14 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
         if (reactContext == null) return;
 
-        WritableMap evt = Arguments.createMap();
-        evt.putString("text", sharedText);
+        shareData = new Bundle();
+        shareData.putString("text", sharedText);
+        WritableMap evt = Arguments.fromBundle(shareData);
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
         if (emitter != null) {
             emitter.emit("onShareText", evt);
         }
-        shareData = evt;
     }
 
     public void handleIntent(final Intent intent) {
@@ -167,9 +167,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getShareIntentData(String convID, String payload, Integer membersType,
-                                       Boolean displayPlaintext, Integer messageID, String pushID,
-                                       Integer badgeCount, Integer unixTime, String soundName, Promise promise) {
+    public void getShareLocalPath(Promise promise) {
         Activity activity = getCurrentActivity();
         if (activity == null) {
             String err = "activity not yet initialized";
@@ -177,6 +175,6 @@ public class IntentHandler extends ReactContextBaseJavaModule {
             promise.reject(new Exception(err));
             return;
         }
-        promise.resolve(shareData);
+        promise.resolve(Arguments.fromBundle(shareData));
     }
 }

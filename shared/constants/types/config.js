@@ -1,4 +1,4 @@
-// @flow strict
+// @flow
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
@@ -52,7 +52,7 @@ export type _State = {
   startupFollowUser: string,
   startupLink: string,
   startupTab: ?Tab,
-  startupSharePath?: LocalPath,
+  startupSharePath: ?LocalPath,
   uid: string,
   useNewRouter: boolean,
   userActive: boolean,
