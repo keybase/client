@@ -118,7 +118,7 @@ const Actions = (p: Props) => {
 
   return (
     <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
-      {buttons}
+      {p.state === 'checking' ? <Kb.ProgressIndicator type="Small" /> : buttons}
     </Kb.Box2>
   )
 }
