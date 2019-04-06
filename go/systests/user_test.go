@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -30,16 +32,21 @@ type signupUI struct {
 	baseNullUI
 	info *signupInfo
 	libkb.Contextified
+
+	passphrasePrompts []keybase1.GUIEntryArg
+	terminalPrompts   []libkb.PromptDescriptor
 }
 
 type signupTerminalUI struct {
 	info *signupInfo
 	libkb.Contextified
+	parent *signupUI
 }
 
 type signupSecretUI struct {
 	info *signupInfo
 	libkb.Contextified
+	parent *signupUI
 }
 
 type signupLoginUI struct {
@@ -54,6 +61,7 @@ func (n *signupUI) GetTerminalUI() libkb.TerminalUI {
 	return &signupTerminalUI{
 		info:         n.info,
 		Contextified: libkb.NewContextified(n.G()),
+		parent:       n,
 	}
 }
 
@@ -61,6 +69,7 @@ func (n *signupUI) GetSecretUI() libkb.SecretUI {
 	return &signupSecretUI{
 		info:         n.info,
 		Contextified: libkb.NewContextified(n.G()),
+		parent:       n,
 	}
 }
 
@@ -79,6 +88,7 @@ func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase
 		res.Passphrase = n.info.passphrase
 	}
 	n.G().Log.Debug("| GetPassphrase: %v -> %v", p, res)
+	n.parent.passphrasePrompts = append(n.parent.passphrasePrompts, p)
 	return res, err
 }
 
@@ -96,6 +106,7 @@ func (n *signupTerminalUI) Prompt(pd libkb.PromptDescriptor, s string) (ret stri
 		err = fmt.Errorf("unknown prompt %v", pd)
 	}
 	n.G().Log.Debug("Terminal Prompt %d: %s -> %s (%v)\n", pd, s, ret, libkb.ErrToOk(err))
+	n.parent.terminalPrompts = append(n.parent.terminalPrompts, pd)
 	return ret, err
 }
 
@@ -323,6 +334,15 @@ func TestSignupLogout(t *testing.T) {
 		}
 		tc.G.Log.Debug("Got notification of login for %q", u)
 	}
+
+	require.Len(t, sui.passphrasePrompts, 2)
+
+	expectedPrompts := []libkb.PromptDescriptor{
+		client.PromptDescriptorSignupEmail,
+		client.PromptDescriptorSignupUsername,
+		client.PromptDescriptorSignupDevice,
+	}
+	require.Equal(t, expectedPrompts, sui.terminalPrompts)
 
 	// signup calls logout, so clear that from the notification channel
 	select {

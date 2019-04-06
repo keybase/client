@@ -95,6 +95,7 @@ func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
 func (s *CmdSignup) SetTest() {
 	s.skipMail = true
 	s.genPaper = true
+	s.doPromptPassphrase = true // signup test users with passwords
 }
 
 func (s *CmdSignup) SetTestWithPaper(b bool) {
