@@ -124,11 +124,15 @@ const UpdatePasswordWrapper = (props: Props) => {
     : props.hasPGPKeyOnServer
     ? {
         message:
-          "Note: changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
+          "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
         type: 'error',
       }
     : null
-  return <UpdatePassword {...props} />
+  return (
+    <Kb.StandardScreen notification={notification} style={{alignItems: 'center', margin: 0}}>
+      <UpdatePassword {...props} />
+    </Kb.StandardScreen>
+  )
 }
 const styles = Styles.styleSheetCreate({
   bodyText: {
