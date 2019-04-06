@@ -126,7 +126,7 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// NOTE `uid` field currently unused. Drop if we don't find a use for it.
-	_, err = m.G().API.Post(m, libkb.APIArg{
+	res, err := m.G().API.Post(m, libkb.APIArg{
 		Endpoint:    "autoreset/enter",
 		SessionType: libkb.APISessionTypeOPTIONAL,
 		Args: libkb.HTTPArgs{
@@ -138,6 +138,7 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
+	m.G().Log.Debug("autoreset/enter result: %s", res.Body.MarshalToDebug())
 	m.G().Log.Info("Your account has been added to the reset pipeline.")
 	e.resetPending = true
 	return nil

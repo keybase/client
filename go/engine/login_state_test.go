@@ -122,6 +122,14 @@ func (m *GetUsernameMock) DisplayPrimaryPaperKey(_ context.Context, arg keybase1
 	return nil
 }
 
+func (m *GetUsernameMock) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+
+func (m *GetUsernameMock) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
+
 func (m *GetUsernameMock) CheckLastErr(t *testing.T) {
 	if m.LastErr != nil {
 		t.Fatal(m.LastErr)
