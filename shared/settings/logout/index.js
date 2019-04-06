@@ -17,6 +17,7 @@ export type Props = {|
 
 type TestProps = {|
   checkPasswordIsCorrect: ?boolean,
+  onCancel: () => void,
   onCheckPassword: (password: string) => void,
   onLogout: () => void,
 |}
@@ -59,7 +60,7 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
           )}
         </Kb.Box2>
         {!this.props.checkPasswordIsCorrect ? (
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonbar}>
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
             <Kb.Button onClick={this.props.onCancel} label="Cancel" fullWidth={true} type="Secondary" />
             <Kb.WaitingButton
               fullWidth={true}
@@ -96,7 +97,7 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
 }
 
 export default (props: Props) => (
-  <Kb.Box2>
+  <Kb.Box2 direction="vertical">
     {props.hasRandomPW ? (
       <UpdatePassword
         onSave={props.onSavePassword}
