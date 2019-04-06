@@ -54,6 +54,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     previous,
     shouldShowPopup: Constants.shouldShowPopup(state, message),
     showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
+    showCrowns: message.type !== 'systemAddedToTeam' && message.type !== 'systemInviteAccepted',
   }
 }
 
@@ -177,6 +178,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     previous: stateProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
     showCoinsIcon: stateProps.showCoinsIcon,
+    showCrowns: stateProps.showCrowns,
     showSendIndicator,
     showUsername,
   }

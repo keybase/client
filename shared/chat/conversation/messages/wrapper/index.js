@@ -63,6 +63,7 @@ export type Props = {|
   orangeLineAbove: boolean,
   previous: ?Types.Message,
   shouldShowPopup: boolean,
+  showCrowns: boolean,
   showSendIndicator: boolean,
 |}
 
@@ -115,7 +116,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
             />
-            {(this.props.authorIsOwner || this.props.authorIsAdmin) && (
+            {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
               <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                 <Kb.Icon
                   color={
