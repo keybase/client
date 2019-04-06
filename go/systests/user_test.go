@@ -274,6 +274,7 @@ func TestSignupLogout(t *testing.T) {
 	tc2.G.SetUI(&sui)
 	signup := client.NewCmdSignupRunner(tc2.G)
 	signup.SetTest()
+	signup.SetNoInvitationCodeBypass()
 
 	logout := client.NewCmdLogoutRunner(tc2.G)
 
@@ -339,6 +340,7 @@ func TestSignupLogout(t *testing.T) {
 
 	expectedPrompts := []libkb.PromptDescriptor{
 		client.PromptDescriptorSignupEmail,
+		client.PromptDescriptorSignupCode,
 		client.PromptDescriptorSignupUsername,
 		client.PromptDescriptorSignupDevice,
 	}

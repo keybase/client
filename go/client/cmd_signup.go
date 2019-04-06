@@ -83,6 +83,10 @@ type CmdSignup struct {
 	skipMail           bool
 	genPGP             bool
 	genPaper           bool
+
+	// Test option to not call to requestInvitationCode for bypassing
+	// invitation code.
+	noInvitationCodeBypass bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -95,12 +99,30 @@ func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
 func (s *CmdSignup) SetTest() {
 	s.skipMail = true
 	s.genPaper = true
-	s.doPromptPassphrase = true // signup test users with passwords
+	// Signup test users with passwords by default.
+	s.doPromptPassphrase = true
 }
 
 func (s *CmdSignup) SetTestWithPaper(b bool) {
 	s.skipMail = true
 	s.genPaper = b
+	// Signup test users with passwords by default.
+	s.doPromptPassphrase = true
+}
+
+func (s *CmdSignup) SetNoPassphrasePrompt() {
+	// Do not prompt for passphrase, for testing.
+	s.doPromptPassphrase = false
+}
+
+func (s *CmdSignup) SetNoInvitationCodeBypass() {
+	// This will result in deterministic invitation code prompt unless it's
+	// been provided via command argument or env var. Otherwise prompt is
+	// affected by whether API server allows us to skip invite code (see
+	// requestInvitationCode).
+
+	// Used in tests.
+	s.noInvitationCodeBypass = true
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
@@ -179,7 +201,7 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	if s.code == "" {
+	if s.code == "" && !s.noInvitationCodeBypass {
 		// Eat the error here - we prompt the user in that case
 		s.requestInvitationCode()
 	}
