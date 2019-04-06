@@ -180,8 +180,8 @@ const getStartupDetailsFromShare = (): Promise<null | {|localPath: FsTypes.Local
   NativeModules.IntentHandler.getShareLocalPath()
     .then(p => {
       if (!p) return null
-      if (p.path) {
-        return {localPath: FsTypes.stringToLocalPath(p.path)}
+      if (p.localPath) {
+        return {localPath: FsTypes.stringToLocalPath(p.localPath)}
       }
       if (p.text) {
         return {text: p.text}
