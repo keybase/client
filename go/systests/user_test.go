@@ -422,3 +422,62 @@ func TestLogoutMulti(t *testing.T) {
 	go user1.tc.G.Logout(context.TODO())
 	user1.tc.G.Logout(context.TODO())
 }
+
+func TestNoPasswordCliSignup(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	user := ctx.installKeybaseForUser("signup", 10)
+
+	userInfo := randomUser("sgnp")
+	user.userInfo = userInfo
+
+	dw := user.primaryDevice()
+	tctx := dw.popClone()
+
+	G := tctx.G
+	sui := signupUI{
+		info:         userInfo,
+		Contextified: libkb.NewContextified(G),
+	}
+	G.SetUI(&sui)
+	signup := client.NewCmdSignupRunner(G)
+	signup.SetTest()
+	signup.SetNoInvitationCodeBypass()
+	// Give us nopw signup without password prompt.
+	signup.SetNoPassphrasePrompt()
+
+	t.Logf("Running singup now")
+	err := signup.Run()
+	require.NoError(t, err)
+	t.Logf("after signup")
+
+	// Still same prompts for e-mail, username, and device name, but no
+	// password prompt.
+	require.Len(t, sui.passphrasePrompts, 0)
+	expectedPrompts := []libkb.PromptDescriptor{
+		client.PromptDescriptorSignupEmail,
+		client.PromptDescriptorSignupCode,
+		client.PromptDescriptorSignupUsername,
+		client.PromptDescriptorSignupDevice,
+	}
+	require.Equal(t, expectedPrompts, sui.terminalPrompts)
+
+	ucli := keybase1.UserClient{Cli: user.primaryDevice().rpcClient()}
+	res, err := ucli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.True(t, res)
+
+	G.ConfigureConfig()
+	logout := client.NewCmdLogoutRunner(G)
+	err = logout.Run()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Cannot logout")
+
+	logout = client.NewCmdLogoutRunner(G)
+	logout.Force = true
+	err = logout.Run()
+	require.NoError(t, err)
+}

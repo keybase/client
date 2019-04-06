@@ -121,7 +121,9 @@ func (s *CmdSignup) SetNoInvitationCodeBypass() {
 	// affected by whether API server allows us to skip invite code (see
 	// requestInvitationCode).
 
-	// Used in tests.
+	// Used in tests. If the test is checking prompts that occurred, it should
+	// use this to avoid invitation code bypass behaviour that may differ
+	// between testing environments.
 	s.noInvitationCodeBypass = true
 }
 
