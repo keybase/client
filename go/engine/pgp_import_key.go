@@ -196,6 +196,14 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		if err = e.testExisting(); err != nil {
 			return err
 		}
+
+		if err = e.loadDelegator(m); err != nil {
+			switch err.(type) {
+			case libkb.NoUsernameError:
+				err = libkb.LoginRequiredError{}
+			}
+			return err
+		}
 	}
 
 	if err = e.generate(m); err != nil {
@@ -215,14 +223,6 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if !e.arg.OnlySave {
-		if err = e.loadDelegator(m); err != nil {
-			switch err.(type) {
-			case libkb.NoUsernameError:
-				err = libkb.LoginRequiredError{}
-			}
-			return err
-		}
-
 		if err = e.push(m); err != nil {
 			return err
 		}
