@@ -130,34 +130,52 @@ func (t *basicSupersedesTransform) transformUnfurl(msg chat1.MessageUnboxed, sup
 	return &newMsg
 }
 
-func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.MessageUnboxed,
-	superMsgs []chat1.MessageUnboxed) *chat1.MessageUnboxed {
+func (t *basicSupersedesTransform) transform(ctx context.Context, newMsg *chat1.MessageUnboxed,
+	superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
+	switch superMsg.GetMessageType() {
+	case chat1.MessageType_DELETE:
+		newMsg = t.transformDelete(*newMsg, superMsg)
+	case chat1.MessageType_DELETEHISTORY:
+		return nil
+	case chat1.MessageType_EDIT:
+		newMsg = t.transformEdit(*newMsg, superMsg)
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		newMsg = t.transformAttachment(*newMsg, superMsg)
+	case chat1.MessageType_REACTION:
+		newMsg = t.transformReaction(*newMsg, superMsg)
+	case chat1.MessageType_UNFURL:
+		newMsg = t.transformUnfurl(*newMsg, superMsg)
+	}
+	t.Debug(ctx, "transformed: original:%v super:%v -> %v",
+		newMsg.DebugString(), superMsg.DebugString(), newMsg.DebugString())
+	return newMsg
+}
 
+func (t *basicSupersedesTransform) replyTo(ctx context.Context, newMsg *chat1.MessageUnboxed,
+	superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
+	mvalid := newMsg.Valid()
+	mvalid.ReplyTo = &superMsg
+	res := chat1.NewMessageUnboxedWithValid(mvalid)
+	return &res
+}
+
+func (t *basicSupersedesTransform) doSupersedes(ctx context.Context, msg chat1.MessageUnboxed,
+	superMsgs []supersedesMsg) *chat1.MessageUnboxed {
 	newMsg := &msg
 	for _, superMsg := range superMsgs {
-		if !superMsg.IsValidFull() {
+		if !superMsg.msg.IsValidFull() {
 			continue
 		} else if newMsg == nil {
 			return nil
 		}
-
-		switch superMsg.GetMessageType() {
-		case chat1.MessageType_DELETE:
-			newMsg = t.transformDelete(*newMsg, superMsg)
-		case chat1.MessageType_DELETEHISTORY:
-			return nil
-		case chat1.MessageType_EDIT:
-			newMsg = t.transformEdit(*newMsg, superMsg)
-		case chat1.MessageType_ATTACHMENTUPLOADED:
-			newMsg = t.transformAttachment(*newMsg, superMsg)
-		case chat1.MessageType_REACTION:
-			newMsg = t.transformReaction(*newMsg, superMsg)
-		case chat1.MessageType_UNFURL:
-			newMsg = t.transformUnfurl(*newMsg, superMsg)
+		switch superMsg.typ {
+		case transformSupersedes:
+			newMsg = t.transform(ctx, newMsg, superMsg.msg)
+		case replyToSupersedes:
+			newMsg = t.replyTo(ctx, newMsg, superMsg.msg)
+		default:
+			t.Debug(ctx, "doSupersedes: unknown supersedes type: %v", superMsg.typ)
 		}
-
-		t.Debug(ctx, "transformed: original:%v super:%v -> %v",
-			newMsg.DebugString(), superMsg.DebugString(), newMsg.DebugString())
 	}
 	return newMsg
 }
@@ -166,26 +184,72 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 	t.messagesFunc = f
 }
 
+type supersedesTyp int
+
+const (
+	transformSupersedes supersedesTyp = iota
+	replyToSupersedes
+)
+
+type supersedesMsg struct {
+	msg chat1.MessageUnboxed
+	typ supersedesTyp
+}
+
+type supersedesMsgID struct {
+	msgID chat1.MessageID
+	typ   supersedesTyp
+}
+
+type supersedesMsgIDs []supersedesMsgID
+
+func (sids supersedesMsgIDs) ids() (res []chat1.MessageID) {
+	for _, id := range sids {
+		res = append(res, id.msgID)
+	}
+	return res
+}
+
 func (t *basicSupersedesTransform) Run(ctx context.Context,
 	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Run(%s)", conv.GetConvID()))()
 
 	// MessageIDs that supersede
-	var superMsgIDs []chat1.MessageID
+	var superMsgIDs supersedesMsgIDs
 	// Map from a MessageID to the message that supersedes it It's possible
 	// that a message can be 'superseded' my multiple messages, by multiple
 	// reactions.
-	smap := make(map[chat1.MessageID][]chat1.MessageUnboxed)
+	smap := make(map[chat1.MessageID][]supersedesMsg)
 
 	// Collect all superseder messages for messages in the current thread view
 	for _, msg := range originalMsgs {
 		if msg.IsValid() {
 			supersededBy := msg.Valid().ServerHeader.SupersededBy
 			if supersededBy > 0 {
-				superMsgIDs = append(superMsgIDs, supersededBy)
+				superMsgIDs = append(superMsgIDs, supersedesMsgID{
+					msgID: supersededBy,
+					typ:   transformSupersedes,
+				})
 			}
-			superMsgIDs = append(superMsgIDs, msg.Valid().ServerHeader.ReactionIDs...)
-			superMsgIDs = append(superMsgIDs, msg.Valid().ServerHeader.UnfurlIDs...)
+			for _, msgID := range msg.Valid().ServerHeader.ReactionIDs {
+				superMsgIDs = append(superMsgIDs, supersedesMsgID{
+					msgID: msgID,
+					typ:   transformSupersedes,
+				})
+			}
+			for _, msgID := range msg.Valid().ServerHeader.UnfurlIDs {
+				superMsgIDs = append(superMsgIDs, supersedesMsgID{
+					msgID: msgID,
+					typ:   transformSupersedes,
+				})
+			}
+			if msg.Valid().MessageBody.IsType(chat1.MessageType_TEXT) &&
+				msg.Valid().MessageBody.Text().ReplyTo != nil {
+				superMsgIDs = append(superMsgIDs, supersedesMsgID{
+					msgID: *msg.Valid().MessageBody.Text().ReplyTo,
+					typ:   replyToSupersedes,
+				})
+			}
 		}
 	}
 
@@ -194,22 +258,26 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	// If there are no superseding messages we still need to run
 	// the bottom loop to filter out messages deleted by retention.
 	if len(superMsgIDs) > 0 {
-		msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs, nil)
+		msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs.ids(), nil)
 		if err != nil {
 			return nil, err
 		}
-		for _, m := range msgs {
+		for index, m := range msgs {
 			if m.IsValid() {
 				supersedes, err := utils.GetSupersedes(m)
 				if err != nil {
 					continue
 				}
+				superTyp := superMsgIDs[index].typ
 				for _, super := range supersedes {
 					supers, ok := smap[super]
 					if !ok {
-						supers = []chat1.MessageUnboxed{}
+						supers = []supersedesMsg{}
 					}
-					supers = append(supers, m)
+					supers = append(supers, supersedesMsg{
+						msg: m,
+						typ: superTyp,
+					})
 					smap[super] = supers
 				}
 
@@ -236,7 +304,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			newMsg := &originalMsgs[i]
 			// If the message is superseded, then transform it and add that
 			if superMsgs, ok := smap[msg.GetMessageID()]; ok {
-				newMsg = t.transform(ctx, msg, superMsgs)
+				newMsg = t.doSupersedes(ctx, msg, superMsgs)
 			}
 			if newMsg == nil {
 				// Transform might return nil in case of a delete.

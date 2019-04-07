@@ -137,7 +137,7 @@ func (o TextPayment) DeepCopy() TextPayment {
 type MessageText struct {
 	Body     string        `codec:"body" json:"body"`
 	Payments []TextPayment `codec:"payments" json:"payments"`
-	ReplyTo  MessageID     `codec:"replyTo" json:"replyTo"`
+	ReplyTo  *MessageID    `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -154,7 +154,13 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.Payments),
-		ReplyTo: o.ReplyTo.DeepCopy(),
+		ReplyTo: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 
@@ -2437,6 +2443,7 @@ type MessageUnboxedValid struct {
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
+	ReplyTo               *MessageUnboxed             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2522,6 +2529,13 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			}
 			return ret
 		})(o.Unfurls),
+		ReplyTo: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 

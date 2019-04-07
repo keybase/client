@@ -1460,7 +1460,7 @@ func (h *Server) handleReplyTo(ctx context.Context, body chat1.MessageBody, repl
 		return chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body:     body.Text().Body,
 			Payments: body.Text().Payments,
-			ReplyTo:  replyTo,
+			ReplyTo:  &replyTo,
 		})
 	}
 	return body

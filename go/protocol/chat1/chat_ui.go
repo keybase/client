@@ -572,6 +572,7 @@ type UIMessageValid struct {
 	FlipGameID            *string                `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	IsDeleteable          bool                   `codec:"isDeleteable" json:"isDeleteable"`
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
+	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -688,6 +689,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		})(o.FlipGameID),
 		IsDeleteable: o.IsDeleteable,
 		IsEditable:   o.IsEditable,
+		ReplyTo: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 

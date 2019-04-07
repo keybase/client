@@ -106,7 +106,10 @@
           "name": "payments"
         },
         {
-          "type": "MessageID",
+          "type": [
+            null,
+            "MessageID"
+          ],
           "name": "replyTo"
         }
       ]
@@ -1241,6 +1244,13 @@
             "keys": "MessageID"
           },
           "name": "unfurls"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "replyTo"
         }
       ]
     },

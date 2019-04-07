@@ -774,6 +774,13 @@
         {
           "type": "boolean",
           "name": "isEditable"
+        },
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
         }
       ]
     },
