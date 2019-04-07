@@ -104,6 +104,10 @@
             "items": "TextPayment"
           },
           "name": "payments"
+        },
+        {
+          "type": "MessageID",
+          "name": "replyTo"
         }
       ]
     },
@@ -3155,6 +3159,10 @@
           "type": "MessagePlaintext"
         },
         {
+          "name": "replyTo",
+          "type": "MessageID"
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -3191,6 +3199,10 @@
           ]
         },
         {
+          "name": "replyTo",
+          "type": "MessageID"
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -3221,6 +3233,10 @@
         },
         {
           "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "replyTo",
           "type": "MessageID"
         },
         {

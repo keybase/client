@@ -137,6 +137,7 @@ func (o TextPayment) DeepCopy() TextPayment {
 type MessageText struct {
 	Body     string        `codec:"body" json:"body"`
 	Payments []TextPayment `codec:"payments" json:"payments"`
+	ReplyTo  MessageID     `codec:"replyTo" json:"replyTo"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -153,6 +154,7 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.Payments),
+		ReplyTo: o.ReplyTo.DeepCopy(),
 	}
 }
 
@@ -4915,6 +4917,7 @@ type GetInboxNonblockLocalArg struct {
 type PostLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
+	ReplyTo          MessageID                    `codec:"replyTo" json:"replyTo"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4927,6 +4930,7 @@ type PostLocalNonblockArg struct {
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
 	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ReplyTo          MessageID                    `codec:"replyTo" json:"replyTo"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4937,6 +4941,7 @@ type PostTextNonblockArg struct {
 	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Body              string                       `codec:"body" json:"body"`
 	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	ReplyTo           MessageID                    `codec:"replyTo" json:"replyTo"`
 	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`

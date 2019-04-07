@@ -1174,6 +1174,9 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
+	// Handle replyTo param
+	arg.Msg.MessageBody = h.handleReplyTo(ctx, arg.Msg.MessageBody, arg.ReplyTo)
+
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil)
 	if err != nil {
@@ -1446,6 +1449,23 @@ func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err 
 	return storage.NewOutboxID()
 }
 
+func (h *Server) handleReplyTo(ctx context.Context, body chat1.MessageBody, replyTo chat1.MessageID) chat1.MessageBody {
+	typ, err := body.MessageType()
+	if err != nil {
+		h.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
+		return body
+	}
+	switch typ {
+	case chat1.MessageType_TEXT:
+		return chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body:     body.Text().Body,
+			Payments: body.Text().Payments,
+			ReplyTo:  replyTo,
+		})
+	}
+	return body
+}
+
 func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1476,6 +1496,9 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}
+
+	// Handle replyTo param
+	arg.Msg.MessageBody = h.handleReplyTo(ctx, arg.Msg.MessageBody, arg.ReplyTo)
 
 	// Create non block sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
