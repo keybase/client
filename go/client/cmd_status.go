@@ -32,13 +32,18 @@ func NewCmdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "j, json",
 				Usage: "Output status as JSON",
 			},
+			cli.BoolFlag{
+				Name:  "s, sesscheck",
+				Usage: "Force a session check with server",
+			},
 		},
 	}
 }
 
 type CmdStatus struct {
 	libkb.Contextified
-	json bool
+	json      bool
+	sesscheck bool
 }
 
 func (c *CmdStatus) ParseArgv(ctx *cli.Context) error {
@@ -46,6 +51,7 @@ func (c *CmdStatus) ParseArgv(ctx *cli.Context) error {
 		return UnexpectedArgsError("status")
 	}
 	c.json = ctx.Bool("json")
+	c.sesscheck = ctx.Bool("sesscheck")
 	return nil
 }
 
@@ -132,6 +138,17 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	var status fstatus
 
 	status.Client.Version = libkb.VersionString()
+
+	if c.sesscheck {
+		scli, err := GetSessionClient(c.G())
+		if err != nil {
+			return nil, err
+		}
+		_, err = scli.CurrentSession(context.Background(), 0)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	cli, err := GetConfigClient(c.G())
 	if err != nil {
