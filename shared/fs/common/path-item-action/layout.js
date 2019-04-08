@@ -36,7 +36,14 @@ const empty = {
   share: false,
 }
 
-const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
+const isMyOwn = (parsedPath: Types.ParsedPathGroupTlf, me: string) =>
+  !me
+    ? false
+    : (!parsedPath.readers || !parsedPath.readers.size) &&
+      parsedPath.writers.size === 1 &&
+      parsedPath.writers.get(0) === me
+
+const getRawLayout = (path: Types.Path, pathItem: Types.PathItem, me: string): Layout => {
   const parsedPath = Constants.parsePath(path)
   switch (parsedPath.kind) {
     case 'root':
@@ -53,7 +60,7 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
       return {
         ...empty,
         copyPath: true,
-        ignoreTlf: true,
+        ignoreTlf: parsedPath.kind === 'team-tlf' || !isMyOwn(parsedPath, me),
         sendLinkToChat: isMobile && Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
         showInSystemFileManager: !isMobile,
       }
@@ -101,11 +108,11 @@ const filterForOnlyShares = (layout: Layout): Layout => ({
   sendToOtherApp: layout.sendToOtherApp,
 })
 
-export const getRootLayout = (path: Types.Path, pathItem: Types.PathItem): Layout =>
-  consolidateShares(getRawLayout(path, pathItem))
+export const getRootLayout = (path: Types.Path, pathItem: Types.PathItem, me: string): Layout =>
+  consolidateShares(getRawLayout(path, pathItem, me))
 
-export const getShareLayout = (path: Types.Path, pathItem: Types.PathItem): Layout =>
-  filterForOnlyShares(getRawLayout(path, pathItem))
+export const getShareLayout = (path: Types.Path, pathItem: Types.PathItem, me: string): Layout =>
+  filterForOnlyShares(getRawLayout(path, pathItem, me))
 
 export const hasShare = (path: Types.Path, pathItem: Types.PathItem): boolean =>
-  totalShare(getRawLayout(path, pathItem)) > 0
+  totalShare(getRawLayout(path, pathItem, '' /* username doesn't matter for shared */)) > 0
