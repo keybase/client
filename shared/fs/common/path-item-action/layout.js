@@ -63,10 +63,10 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
       return {
         ...empty,
         copyPath: true,
-        delete: (pathItem.type === 'file') || flags.enableDeleteFolder,
+        delete: pathItem.type === 'file' || flags.enableDeleteFolder,
         download: pathItem.type === 'file' && !isIOS,
         moveOrCopy: true,
-        saveMedia: isMobile && pathItem.type === 'file' && Constants.isMedia(pathItem),
+        saveMedia: isMobile && pathItem.type === 'file' && Constants.canSaveMedia(pathItem),
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
