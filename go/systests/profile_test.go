@@ -112,13 +112,12 @@ func TestProofSuggestions(t *testing.T) {
 	var found int
 	var skipped int
 	for i, b := range res.Suggestions {
-		t.Logf("row %v %v", i, b.Key)
 		if found >= len(expected.Suggestions) {
-			t.Logf("skipping (done)")
-			skipped++
-			continue
+			t.Logf("done")
+			break
 		}
-		a := expected.Suggestions[found+skipped]
+		t.Logf("row %v %v", i, b.Key)
+		a := expected.Suggestions[found]
 		if a.Key != b.Key {
 			t.Logf("skipping %v (mismatch)", a.Key)
 			skipped++
