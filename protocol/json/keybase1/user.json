@@ -253,6 +253,10 @@
         {
           "type": "boolean",
           "name": "showMore"
+        },
+        {
+          "type": "boolean",
+          "name": "moreIsNew"
         }
       ]
     },

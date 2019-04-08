@@ -2563,7 +2563,7 @@ export type ProofStatus =
   | 308 // INVALID_PVL_308
 
 export type ProofSuggestion = $ReadOnly<{key: String, belowFold: Boolean, profileText: String, profileIcon?: ?Array<SizedImage>, pickerText: String, pickerSubtext: String, pickerIcon?: ?Array<SizedImage>, metas?: ?Array<Identify3RowMeta>}>
-export type ProofSuggestionsRes = $ReadOnly<{suggestions?: ?Array<ProofSuggestion>, showMore: Boolean}>
+export type ProofSuggestionsRes = $ReadOnly<{suggestions?: ?Array<ProofSuggestion>, showMore: Boolean, moreIsNew: Boolean}>
 export type ProofType =
   | 0 // NONE_0
   | 1 // KEYBASE_1

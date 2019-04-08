@@ -231,6 +231,7 @@ func (o InterestingPerson) DeepCopy() InterestingPerson {
 type ProofSuggestionsRes struct {
 	Suggestions []ProofSuggestion `codec:"suggestions" json:"suggestions"`
 	ShowMore    bool              `codec:"showMore" json:"showMore"`
+	MoreIsNew   bool              `codec:"moreIsNew" json:"moreIsNew"`
 }
 
 func (o ProofSuggestionsRes) DeepCopy() ProofSuggestionsRes {
@@ -246,7 +247,8 @@ func (o ProofSuggestionsRes) DeepCopy() ProofSuggestionsRes {
 			}
 			return ret
 		})(o.Suggestions),
-		ShowMore: o.ShowMore,
+		ShowMore:  o.ShowMore,
+		MoreIsNew: o.MoreIsNew,
 	}
 }
 

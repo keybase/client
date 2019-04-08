@@ -155,6 +155,7 @@ protocol user {
   record ProofSuggestionsRes{
     array<ProofSuggestion> suggestions;
     boolean showMore;
+    boolean moreIsNew;
   }
 
   // A proof the user doesn't have.

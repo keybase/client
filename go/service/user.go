@@ -382,6 +382,9 @@ func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret 
 		if foldPriority > 0 && suggestion.Priority >= foldPriority {
 			ret.ShowMore = true
 			suggestion.BelowFold = true
+			if !ret.MoreIsNew && len(suggestion.Metas) > 0 {
+				ret.MoreIsNew = true
+			}
 		}
 		ret.Suggestions = append(ret.Suggestions, suggestion.ProofSuggestion)
 	}
