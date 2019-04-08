@@ -1138,7 +1138,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	return
 }
 
-// maybeDiscardStubbedLinks will look at the sigchain links loaded fro the DB and will maybe throw
+// maybeDiscardStubbedLinks will look at the sigchain links loaded from the DB and will maybe throw
 // some away on the basis of (a) if we're in StubModeUnstubbed load mode (meaning we don't want any stubs);
 // and (b) there are some stubs found. But it won't totally throw the stubs away; instead, it will put them
 // in map to check that server eventually unstubs the right values (by mapping Seqno -> LinkID).
