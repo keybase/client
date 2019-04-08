@@ -202,6 +202,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           onClick={this.props.onAddIdentity}
           style={styles.addIdentityButton}
           type="Secondary"
+          childrenRight={true}
         >
           <Kb.Meta backgroundColor={Styles.globalColors.blue} title="NEW" style={styles.newMeta} />
         </Kb.Button>
