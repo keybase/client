@@ -18,19 +18,20 @@ const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Prop
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
           <Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />
           <Kb.Box2 direction="vertical" style={styles.wrapper}>
+            <Kb.ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
             <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
-              <Kb.ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
+              {fullname !== '' && <Kb.Text type="BodySmall">{fullname} • </Kb.Text>}
               {(isAdmin || isOwner) && (
-                <Kb.WithTooltip text={isOwner ? 'Owner' : 'Admin'}>
+                <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
                   <Kb.Icon
-                    color={isOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_50}
-                    sizeType="Small"
+                    color={isOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35}
+                    sizeType="Tiny"
                     type="iconfont-crown-owner"
                   />
-                </Kb.WithTooltip>
+                  <Kb.Text type="BodySmall">{isAdmin ? 'Admin' : 'Owner'}</Kb.Text>
+                </Kb.Box2>
               )}
             </Kb.Box2>
-            {fullname !== '' && <Kb.Text type="BodySmall">{fullname}</Kb.Text>}
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
