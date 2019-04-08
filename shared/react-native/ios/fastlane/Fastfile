@@ -28,7 +28,7 @@ platform :ios do
   version = get_version_number(xcodeproj: ENV['XCODEPROJ_NAME'], target: 'Keybase')
     increment_build_number({
       # build_number: latest_testflight_build_number(version: version) + 4
-      build_number: 65
+      build_number: 66
     })
 
     sigh(app_identifier: "keybase.ios")
