@@ -4,6 +4,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import openURL from '../../../util/open-url'
+import {flatten, partition, identity} from 'lodash-es'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -33,16 +34,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const promoteNew = (rows) => {
-  let news = []
-  let olds = []
-  rows.forEach((row) => {
-    if (row.new) {
-      news.push(row)
-    } else {
-      olds.push(row)
-    }
-  })
-  return news.concat(olds)
+  return flatten(partition(rows, (row) => row.new).map(identity))
 }
 
 export default namedConnect<OwnProps, _, _, _, _>(
