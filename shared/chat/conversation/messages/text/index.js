@@ -47,7 +47,7 @@ const MessageText = ({isEditing, message, reply, text, type}: Props) => {
     </Kb.Markdown>
   )
   const content = (
-    <Kb.Box2 direction="vertical" gap="tiny">
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       {!!reply && <Reply {...reply} />}
       {markdown}
     </Kb.Box2>
