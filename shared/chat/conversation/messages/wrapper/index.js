@@ -108,7 +108,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               onClick={this._onAuthorClick}
               style={styles.avatar}
             />
-            <Kb.Box2 direction="horizontal" gap="xtiny" centerChildren={true} style={styles.usernameCrown}>
+            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.usernameCrown}>
               <Kb.ConnectedUsernames
                 colorBroken={true}
                 colorFollowing={true}
@@ -657,9 +657,11 @@ const styles = Styles.styleSheetCreate({
     common: {paddingLeft: Styles.globalMargins.xtiny},
     isElectron: {lineHeight: 19},
   }),
-  usernameCrown: {
-    alignSelf: 'flex-start',
-  },
+  usernameCrown: Styles.platformStyles({
+    common: {alignSelf: 'flex-start'},
+    isElectron: {alignItems: 'baseline'},
+    isMobile: {alignItems: 'center'},
+  }),
 })
 
 export default WrapperMessage
