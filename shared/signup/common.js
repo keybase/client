@@ -42,7 +42,7 @@ type HeaderProps = {|
 
 // Only used on desktop
 export const Header = (props: HeaderProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={props.style}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
       <InfoIcon />
     </Kb.Box2>
@@ -62,7 +62,7 @@ export const Header = (props: HeaderProps) => (
           </Kb.Box2>
         </Kb.ClickableBox>
       )}
-      <Kb.Text type="Header">{props.title}</Kb.Text>
+      {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -78,11 +78,15 @@ type SignupScreenProps = {|
   buttons: Array<ButtonMeta>,
   children: React.Node,
   onBack?: () => void,
+  headerStyle?: Styles.StylesCrossPlatform, // mobile goes into HeaderHoc
+  containerStyle?: Styles.StylesCrossPlatform,
   title: string,
+  titleComponent?: React.Node,
 
   // HACK - HeaderHoc isn't typed to add props correctly (and we're only using it conditionally here)
   // add props from HeaderHoc as necessary
   // Mobile only
+  borderless?: boolean,
   rightActionLabel?: string,
   onRightAction?: ?() => void,
   leftAction?: 'back' | 'cancel',
@@ -92,8 +96,20 @@ type SignupScreenProps = {|
 // Screens with header + body bg color (i.e. all but join-or-login)
 const _SignupScreen = (props: SignupScreenProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
-    {!Styles.isMobile && <Header onBack={props.onBack} title={props.title} />}
-    <Kb.Box2 alignItems="center" direction="vertical" style={styles.blueBackground} fullWidth={true}>
+    {!Styles.isMobile && (
+      <Header
+        onBack={props.onBack}
+        title={props.title}
+        titleComponent={props.titleComponent}
+        style={props.headerStyle}
+      />
+    )}
+    <Kb.Box2
+      alignItems="center"
+      direction="vertical"
+      style={Styles.collapseStyles([styles.blueBackground, props.containerStyle])}
+      fullWidth={true}
+    >
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.body} fullWidth={true}>
         {props.children}
       </Kb.Box2>
