@@ -182,9 +182,10 @@ const load = () => {
     ))
 
   const reallyDeleteProps = {
-    name: 'Important Documents',
+    _deleting: false,
     onBack: Sb.action('onBack'),
-    onLeave: Sb.action('onDelete'),
+    onDelete: Sb.action('onDelete'),
+    path: Types.stringToPath('/keybase/private/alice/my_folder'),
     title: 'foo',
   }
   Sb.storiesOf('Files', module).add('Really Delete', () => <ReallyDelete {...reallyDeleteProps} />)

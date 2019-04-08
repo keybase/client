@@ -21,7 +21,7 @@ import flags from '../util/feature-flags'
 
 export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
 export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
-export const deleteFolderWaitingKey = (name: string) => `fs:deleteFolder:${name}`
+export const deleteWaitingKey = 'fs:delete'
 
 export const defaultPath = Types.stringToPath('/keybase')
 

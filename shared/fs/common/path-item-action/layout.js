@@ -70,7 +70,7 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem, me: string): L
       return {
         ...empty,
         copyPath: true,
-        delete: pathItem.type === 'file' || flags.enableDeleteFolder,
+        delete: true,
         download: pathItem.type === 'file' && !isIOS,
         moveOrCopy: true,
         saveMedia: isMobile && pathItem.type === 'file' && Constants.canSaveMedia(pathItem),
