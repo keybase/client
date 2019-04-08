@@ -690,6 +690,46 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return res, err
 }
 
+type nameContainsQueryRes int
+
+const (
+	nameContainsQueryExact nameContainsQueryRes = iota
+	nameContainsQuerySimilar
+	nameContainsQueryNone
+)
+
+func (s *HybridInboxSource) nameContainsQuery(baseName, query string) nameContainsQueryRes {
+	nextPerm := func(p []int) {
+		for i := len(p) - 1; i >= 0; i-- {
+			if i == 0 || p[i] < len(p)-i-1 {
+				p[i]++
+				return
+			}
+			p[i] = 0
+		}
+	}
+	getPerm := func(orig []string, p []int) []string {
+		result := append([]string{}, orig...)
+		for i, v := range p {
+			result[i], result[i+v] = result[i+v], result[i]
+		}
+		return result
+	}
+	toks := strings.Split(baseName, ",")
+	if len(toks) > 4 {
+		toks = toks[:4]
+	}
+	for p := make([]int, len(toks)); p[0] < len(p); nextPerm(p) {
+		name := strings.Join(getPerm(toks, p), ",")
+		if name == query {
+			return nameContainsQueryExact
+		} else if strings.Contains(name, query) {
+			return nameContainsQuerySimilar
+		}
+	}
+	return nameContainsQueryNone
+}
+
 func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Search")()
 	username := s.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
@@ -698,16 +738,21 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	if err != nil {
 		return res, err
 	}
+	query = strings.Replace(query, " ", "", -1)
 	var exactMatch *types.RemoteConversation
 	for _, conv := range convs {
 		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT {
 			continue
 		}
+		if conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_NEVER_JOINED) {
+			continue
+		}
 		tlfName := utils.SearchableRemoteConversationName(conv, username)
-		if tlfName == query {
+		switch s.nameContainsQuery(tlfName, query) {
+		case nameContainsQueryExact:
 			exactMatch = new(types.RemoteConversation)
 			*exactMatch = conv
-		} else if strings.Contains(tlfName, query) {
+		case nameContainsQuerySimilar:
 			res = append(res, conv)
 		}
 	}
