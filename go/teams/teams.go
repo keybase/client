@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-
 	"fmt"
 	"sort"
 	"time"
@@ -456,6 +455,7 @@ func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) err
 }
 
 func (t *Team) Rotate(ctx context.Context) (err error) {
+
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
@@ -514,7 +514,6 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		secretBoxes:   secretBoxes,
 		teamEKPayload: teamEKPayload,
 	}
-
 	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, mr, payloadArgs)
 	if err != nil {
 		return err
@@ -1762,9 +1761,6 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	if err != nil {
 		return err
 	}
-	if mr == nil {
-		return errors.New("Got nil merkle root")
-	}
 
 	scSettings, err := CreateTeamSettings(settings.Open, settings.JoinAs)
 	if err != nil {
@@ -1809,7 +1805,6 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 	} else {
 		t.notify(ctx, keybase1.TeamChangeSet{Misc: true}, latestSeqno)
 	}
-
 	return nil
 }
 
