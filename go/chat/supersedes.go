@@ -172,6 +172,7 @@ func (t *basicSupersedesTransform) doSupersedes(ctx context.Context, msg chat1.M
 		case transformSupersedes:
 			newMsg = t.transform(ctx, newMsg, superMsg.msg)
 		case replyToSupersedes:
+			t.Debug(ctx, "doSupersedes: xforming: %v with %v", newMsg.GetMessageID(), superMsg.msg.GetMessageID())
 			newMsg = t.replyTo(ctx, newMsg, superMsg.msg)
 		default:
 			t.Debug(ctx, "doSupersedes: unknown supersedes type: %v", superMsg.typ)
@@ -197,8 +198,9 @@ type supersedesMsg struct {
 }
 
 type supersedesMsgID struct {
-	msgID chat1.MessageID
-	typ   supersedesTyp
+	msgID       chat1.MessageID
+	targetMsgID chat1.MessageID
+	typ         supersedesTyp
 }
 
 type supersedesMsgIDs []supersedesMsgID
@@ -247,8 +249,9 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				msg.Valid().MessageBody.Text().ReplyTo != nil && *msg.Valid().MessageBody.Text().ReplyTo > 0 {
 				t.Debug(ctx, "Run: replyTo: %v", *msg.Valid().MessageBody.Text().ReplyTo)
 				superMsgIDs = append(superMsgIDs, supersedesMsgID{
-					msgID: *msg.Valid().MessageBody.Text().ReplyTo,
-					typ:   replyToSupersedes,
+					msgID:       *msg.Valid().MessageBody.Text().ReplyTo,
+					targetMsgID: msg.GetMessageID(),
+					typ:         replyToSupersedes,
 				})
 			}
 		}
@@ -265,11 +268,18 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 		}
 		for index, m := range msgs {
 			if m.IsValid() {
-				supersedes, err := utils.GetSupersedes(m)
-				if err != nil {
+				var supersedes []chat1.MessageID
+				superTyp := superMsgIDs[index].typ
+				switch superTyp {
+				case transformSupersedes:
+					if supersedes, err = utils.GetSupersedes(m); err != nil {
+						continue
+					}
+				case replyToSupersedes:
+					supersedes = []chat1.MessageID{superMsgIDs[index].targetMsgID}
+				default:
 					continue
 				}
-				superTyp := superMsgIDs[index].typ
 				for _, super := range supersedes {
 					supers, ok := smap[super]
 					if !ok {

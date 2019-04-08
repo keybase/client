@@ -195,6 +195,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
   reactions: I.Map(),
+  replyTo: null,
   submitState: null,
   text: new HiddenString(''),
   type: 'text',
@@ -659,6 +660,7 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
 }
 
 const validUIMessagetoMessage = (
+  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
   m: RPCChatTypes.UIMessageValid
@@ -710,6 +712,9 @@ const validUIMessagetoMessage = (
         default:
           rawText = ''
       }
+      if (m.replyTo) {
+        console.log('HIHIHI')
+      }
       return makeMessageText({
         ...common,
         ...explodable,
@@ -738,6 +743,7 @@ const validUIMessagetoMessage = (
         mentionsChannelName: I.Map(
           (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
         ),
+        replyTo: m.replyTo ? uiMessageToMessage(state, conversationIDKey, m.replyTo) : null,
         text: new HiddenString(rawText),
         unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
       })
@@ -989,7 +995,7 @@ export const uiMessageToMessage = (
   switch (uiMessage.state) {
     case RPCChatTypes.chatUiMessageUnboxedState.valid:
       if (uiMessage.valid) {
-        return validUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.valid)
+        return validUIMessagetoMessage(state, conversationIDKey, uiMessage, uiMessage.valid)
       }
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.error:
