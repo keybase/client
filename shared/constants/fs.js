@@ -530,7 +530,7 @@ export const canSaveMedia = (pathItem: Types.PathItem): boolean => {
   if (pathItem.type !== 'file' || !pathItem.mimeType) {
     return false
   }
-  const mime: Types.Mime = pathItem.mimeType
+  const mime = pathItem.mimeType
   return (
     viewTypeFromMimeType(mime) === 'image' ||
     // Can't rely on viewType === av here because audios can't be saved to
