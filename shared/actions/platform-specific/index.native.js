@@ -177,16 +177,18 @@ const updateChangedFocus = (_, action) => {
 }
 
 const getStartupDetailsFromShare = (): Promise<null | {|localPath: FsTypes.LocalPath|} | {|text: string|}> =>
-  NativeModules.IntentHandler.getShareLocalPath()
-    .then(p => {
-      if (!p) return null
-      if (p.localPath) {
-        return {localPath: FsTypes.stringToLocalPath(p.localPath)}
-      }
-      if (p.text) {
-        return {text: p.text}
-      }
-    })
+  isAndroid
+    ? NativeModules.IntentHandler.getShareLocalPath()
+        .then(p => {
+          if (!p) return null
+          if (p.localPath) {
+            return {localPath: FsTypes.stringToLocalPath(p.localPath)}
+          }
+          if (p.text) {
+            return {text: p.text}
+          }
+        })
+    : Promise.resolve(null)
 
 function* clearRouteState() {
   yield Saga.spawn(() =>
