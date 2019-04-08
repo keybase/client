@@ -2470,7 +2470,8 @@ func Statfs(path string, stat *Statfs_t) (err error) {
 	if err != nil {
 		return
 	}
-	_, _, e1 := syscall_syscall(funcPC(libc_statfs_trampoline), uintptr(unsafe.Pointer(_p0)), uintptr(unsafe.Pointer(stat)), 0)
+	_, _, e1 := Syscall(SYS_STATFS64, uintptr(unsafe.Pointer(_p0)), uintptr(unsafe.Pointer(stat)), 0)
+	//_, _, e1 := syscall_syscall(funcPC(libc_statfs_trampoline), uintptr(unsafe.Pointer(_p0)), uintptr(unsafe.Pointer(stat)), 0)
 	if e1 != 0 {
 		err = errnoErr(e1)
 	}
