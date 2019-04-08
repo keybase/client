@@ -26,7 +26,7 @@ const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Prop
                   <Kb.Text type="BodySmall">•</Kb.Text>
                   <Kb.Icon
                     color={isOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35}
-                    sizeType="Tiny"
+                    fontSize={10}
                     type="iconfont-crown-owner"
                   />
                   <Kb.Text type="BodySmall">{isAdmin ? 'Admin' : 'Owner'}</Kb.Text>

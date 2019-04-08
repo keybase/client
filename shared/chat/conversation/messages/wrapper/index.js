@@ -122,7 +122,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   color={
                     this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35
                   }
-                  sizeType="Tiny"
+                  fontSize={10}
                   type="iconfont-crown-owner"
                 />
               </Kb.WithTooltip>
