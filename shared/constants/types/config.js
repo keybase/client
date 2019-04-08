@@ -1,10 +1,9 @@
-// @flow
+// @flow strict
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
 import {type DeviceID} from './rpc-gen'
 import {RPCError} from '../../util/errors'
-import {type LocalPath} from '../../constants/types/fs'
 
 export type _OutOfDate = {
   critical: boolean,
@@ -52,7 +51,6 @@ export type _State = {
   startupFollowUser: string,
   startupLink: string,
   startupTab: ?Tab,
-  startupSharePath: ?LocalPath,
   uid: string,
   useNewRouter: boolean,
   userActive: boolean,

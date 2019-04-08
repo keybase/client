@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -33,7 +32,6 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
     private static final String TAG = IntentHandler.class.getName();
     private final ReactApplicationContext reactContext;
-    private Bundle shareData = new Bundle();
 
     protected void handleNotificationIntent(Intent intent) {
         if (!intent.getBooleanExtra("isNotification", false)) return;
@@ -85,9 +83,8 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
         if (reactContext == null) return;
 
-        shareData = new Bundle();
-        shareData.putString("localPath", filePath);
-        WritableMap evt = Arguments.fromBundle(shareData);
+        WritableMap evt = Arguments.createMap();
+        evt.putString("path", filePath);
 
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
@@ -109,9 +106,8 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
         if (reactContext == null) return;
 
-        shareData = new Bundle();
-        shareData.putString("text", sharedText);
-        WritableMap evt = Arguments.fromBundle(shareData);
+        WritableMap evt = Arguments.createMap();
+        evt.putString("text", sharedText);
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
         if (emitter != null) {
@@ -167,14 +163,15 @@ public class IntentHandler extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getShareLocalPath(Promise promise) {
-        Activity activity = getCurrentActivity();
-        if (activity == null) {
-            String err = "activity not yet initialized";
-            NativeLogger.warn(err);
-            promise.reject(new Exception(err));
-            return;
+    public void handlePushNotification(String convID, String payload, Integer membersType,
+                                       Boolean displayPlaintext, Integer messageID, String pushID,
+                                       Integer badgeCount, Integer unixTime, String soundName, Promise promise) {
+        try {
+            PushNotifier notifier = new KBPushNotifier(reactContext);
+            Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageID, pushID, badgeCount, unixTime, soundName, notifier);
+            promise.resolve(null);
+        } catch (Exception ex) {
+            promise.reject(ex);
         }
-        promise.resolve(Arguments.fromBundle(shareData));
     }
 }
