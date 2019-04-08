@@ -35,6 +35,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       backgroundColor: Styles.globalColors.grey,
       borderRadius: 8,
+      flexShrink: 0,
       height: 16,
       paddingLeft: disabledOffset,
       transition: 'all 100ms ease-in-out',

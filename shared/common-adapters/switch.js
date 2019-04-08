@@ -19,7 +19,8 @@ type Props = {|
   align?: ?('left' | 'right'), // default to 'left'
   color?: ?('blue' | 'green'), // default to 'blue'
   disabled?: ?boolean,
-  label: string,
+  label: string | React.Node,
+  labelSubtitle?: ?string, // only effective when label is a string
   on: boolean,
   onClick: () => void,
   style?: ?Styles.StylesCrossPlatform,
@@ -27,7 +28,7 @@ type Props = {|
 
 const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) => (
   <Kb.ClickableBox
-    onClick={props.onClick}
+    onClick={props.disabled ? undefined : props.onClick}
     style={Styles.collapseStyles([
       props.align !== 'right' ? Styles.globalStyles.flexBoxRow : Styles.globalStyles.flexBoxRowReverse,
       styles.container,
@@ -42,7 +43,14 @@ const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) => (
       style={Styles.collapseStyles([props.align !== 'right' && styles.switchLeft])}
     />
     {props.align === 'right' && <Kb.Box style={styles.gap} />}
-    <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
+    {typeof props.label === 'string' ? (
+      <Kb.Box2 direction="vertical" style={styles.labelContainer}>
+        <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
+        {!!props.labelSubtitle && <Kb.Text type="BodyTiny">{props.labelSubtitle}</Kb.Text>}
+      </Kb.Box2>
+    ) : (
+      props.label
+    )}
   </Kb.ClickableBox>
 ))
 
@@ -54,10 +62,10 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
     },
     isElectron: {
-      height: 24,
+      minHeight: 24,
     },
     isMobile: {
-      height: 32,
+      minHeight: 32,
     },
   }),
   disabled: {
@@ -65,6 +73,9 @@ const styles = Styles.styleSheetCreate({
   },
   gap: {
     flex: 1,
+  },
+  labelContainer: {
+    flexShrink: 1,
   },
   switchLeft: Styles.platformStyles({
     isElectron: {

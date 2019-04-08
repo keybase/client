@@ -13,9 +13,10 @@ class SwitchToggle extends React.PureComponent<Props, {||}> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.on !== this.props.on) {
-      this._animation && this._animation.stop()
+    if (prevProps.on === this.props.on) {
+      return
     }
+    this._animation && this._animation.stop()
     this._animation = NativeAnimated.timing(this._offset, {
       duration: 100,
       easing: NativeEasing.linear,
@@ -59,6 +60,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     borderRadius: 14,
+    flexShrink: 0,
     height: 28,
     width: 48,
   },
