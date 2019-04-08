@@ -173,11 +173,11 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	} else {
 		upak = u.getCachedUPAKFromDB(ctx, uid, stubMode)
 
-		// This is tricky: if the user would settled for stubbed, but it's loading for
-		// the currently-logged in user, then also try the unstubbed fallback.
+		// This is tricky: if the user could settle for stubbed, but it's loading for
+		// the currently-logged in user, then also try the unstubbed UPAK as a fallback.
 		// We could safely do this for every stubbed load (not just for the current user),
 		// but we don't want to turn every failure to load into a 2 missed DB loads (rather than one).
-		if upak == nil && stubMode == StubModeStubbed && uid.Equal(u.GetCurrentUID()) {
+		if upak == nil && (stubMode == StubModeStubbed) && uid.Equal(u.GetCurrentUID()) {
 			upak = u.getCachedUPAKFromDB(ctx, uid, StubModeUnstubbed)
 		}
 

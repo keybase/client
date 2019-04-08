@@ -517,11 +517,20 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 }
 
 func (sc *SigChain) checkUnstubs(low int, unstubs map[keybase1.Seqno]LinkID) error {
+	hits := make(map[keybase1.Seqno]bool)
 	for _, link := range sc.chainLinks[low:] {
-		if id, found := unstubs[link.GetSeqno()]; found && !id.Eq(link.id) {
+		q := link.GetSeqno()
+		if id, found := unstubs[q]; found && !id.Eq(link.id) {
 			return NewChainLinkBadUnstubError(fmt.Sprintf("Bad unstub for seqno %d: %s != %s", link.GetSeqno(), id, link.id))
 		}
+		hits[q] = true
 	}
+	for q := range unstubs {
+		if !hits[q] {
+			return NewChainLinkBadUnstubError(fmt.Sprintf("Expected seqno=%d to be unstubbed, but it wasn't", q))
+		}
+	}
+
 	return nil
 }
 
