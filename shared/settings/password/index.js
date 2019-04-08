@@ -68,8 +68,7 @@ export class UpdatePassword extends Component<Props, State> {
           <Kb.Text style={styles.headerText} type="Header">
             Set a password
           </Kb.Text>
-
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text type="Body" style={styles.bodyText} center={true}>
             A password allows you to sign out and sign back in, and use the keybase.io website.
           </Kb.Text>
           <Kb.Input
@@ -95,7 +94,7 @@ export class UpdatePassword extends Component<Props, State> {
             onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping || !!this.props.showTyping}
           />
-          <Kb.Text style={{margin: Styles.globalMargins.small, textAlign: 'center'}} type="BodySmall">
+          <Kb.Text style={styles.passwordFormat} type="BodySmall">
             (Password must be at least 8 characters.)
           </Kb.Text>
           <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
@@ -137,7 +136,6 @@ const UpdatePasswordWrapper = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   bodyText: {
     paddingBottom: Styles.globalMargins.tiny,
-    textAlign: 'center',
   },
   container: Styles.platformStyles({
     common: {
@@ -155,6 +153,10 @@ const styles = Styles.styleSheetCreate({
   headerText: {
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
+  },
+  passwordFormat: {
+    margin: Styles.globalMargins.small,
+    textAlign: 'center',
   },
 })
 

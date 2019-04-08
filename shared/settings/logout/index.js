@@ -82,8 +82,6 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
               type="PrimaryGreen"
             />
           </Kb.ButtonBar>
-        )}
-        {!this.props.checkPasswordIsCorrect && (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={{marginBottom: Styles.globalMargins.medium}}>
             <Kb.Icon type="iconfont-leave" sizeType="Small" color={Styles.globalColors.black_50} />
             <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onLogout}>
