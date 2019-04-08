@@ -3,8 +3,10 @@ package io.keybase.ossifrage.modules;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -53,16 +55,33 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         emitter.emit("androidIntentNotification", evt);
     }
 
-    private void handleSendIntentStream(Intent intent) {
-        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        if (uri == null) return;
+    // @return file path
+    private String readFileFromUri(Uri uri) {
+        if (uri == null) return null;
 
         String filePath = null;
         if (uri.getScheme().equals("content")) {
             ContentResolver resolver = reactContext.getContentResolver();
             String mimeType = resolver.getType(uri);
             String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+
+            // Load the filename from the resolver.
+            // Of course, Android makes this super clean and easy.
+            // Use a GUID default.
             String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
+            String[] nameProjection = {MediaStore.MediaColumns.DISPLAY_NAME};
+            Cursor cursor = resolver.query(uri, nameProjection, null, null, null);
+            if (cursor != null) {
+                try {
+                    if (cursor.moveToFirst()) {
+                        filename = cursor.getString(0);
+                    }
+                } finally {
+                    cursor.close();
+                }
+            }
+
+            // Now load the file itself.
             File file = new File(reactContext.getCacheDir(), filename);
             try {
                 InputStream istream = resolver.openInputStream(uri);
@@ -80,10 +99,15 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         } else {
             filePath = uri.getPath();
         }
+        return filePath;
+    }
 
+    private void handleSendIntentStream(Intent intent) {
+        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (uri == null) return;
+
+        String filePath = readFileFromUri(uri);
         if (filePath == null) return;
-
-        if (reactContext == null) return;
 
         shareData = new Bundle();
         shareData.putString("localPath", filePath);
