@@ -167,14 +167,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getShareLocalPath(Promise promise) {
-        Activity activity = getCurrentActivity();
-        if (activity == null) {
-            String err = "activity not yet initialized";
-            NativeLogger.warn(err);
-            promise.reject(new Exception(err));
-            return;
-        }
+    public void getShareData(Promise promise) {
         promise.resolve(Arguments.fromBundle(shareData));
     }
 }

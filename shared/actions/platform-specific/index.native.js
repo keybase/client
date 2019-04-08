@@ -178,7 +178,7 @@ const updateChangedFocus = (_, action) => {
 
 const getStartupDetailsFromShare = (): Promise<null | {|localPath: FsTypes.LocalPath|} | {|text: string|}> =>
   isAndroid
-    ? NativeModules.IntentHandler.getShareLocalPath()
+    ? NativeModules.IntentHandler.getShareData()
         .then(p => {
           if (!p) return null
           if (p.localPath) {
