@@ -8,17 +8,20 @@ package libkbfs
 
 import (
 	"math"
+	"syscall"
 
 	"github.com/pkg/errors"
-	"golang.org/x/sys/unix"
 )
 
 // getDiskLimits gets the disk limits for the logical disk containing
 // the given path.
 func getDiskLimits(path string) (
 	availableBytes, totalBytes, availableFiles, totalFiles uint64, err error) {
-	var stat unix.Statfs_t
-	err = unix.Statfs(path, &stat)
+	// Notably we are using syscall rather than golang.org/x/sys/unix here.
+	// The latter is broken on iOS and always gives us 0 as available
+	// storage space.
+	var stat syscall.Statfs_t
+	err = syscall.Statfs(path, &stat)
 	if err != nil {
 		return 0, 0, 0, 0, errors.WithStack(err)
 	}
