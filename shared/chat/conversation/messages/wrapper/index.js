@@ -100,7 +100,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (this.props.showUsername) {
       result = (
         <React.Fragment key="authorAndContent">
-          <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="xtiny">
+          <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
             <Kb.Avatar
               size={32}
               username={this.props.showUsername}
