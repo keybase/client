@@ -1908,7 +1908,7 @@ type ChatSearchIndexStatusArg struct {
 
 type ChatSearchConvHitsArg struct {
 	SessionID int                   `codec:"sessionID" json:"sessionID"`
-	ConvHit   []UIChatSearchConvHit `codec:"convHit" json:"convHit"`
+	Hits      []UIChatSearchConvHit `codec:"hits" json:"hits"`
 }
 
 type ChatConfirmChannelDeleteArg struct {

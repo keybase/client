@@ -352,6 +352,10 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	}, nil
 }
 
+func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string) (res []chat1.ConversationLocal, err error) {
+	return nil, errors.New("not implemented")
+}
+
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	conv chat1.Conversation) error {
 	return nil
@@ -683,6 +687,11 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	}
 
 	return res, err
+}
+
+func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string) (res []chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Search")()
+	return nil, errors.New("not implemented")
 }
 
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {

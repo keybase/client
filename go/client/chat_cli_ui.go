@@ -271,6 +271,10 @@ func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSea
 	return nil
 }
 
+func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
 	return nil
 }

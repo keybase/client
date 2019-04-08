@@ -157,7 +157,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.chatUi.chatSearchConvHits': {|
-    inParam: $ReadOnly<{|convHit?: ?Array<UIChatSearchConvHit>|}>,
+    inParam: $ReadOnly<{|hits?: ?Array<UIChatSearchConvHit>|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatSearchDone': {|

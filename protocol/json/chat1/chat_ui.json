@@ -1546,7 +1546,7 @@
           "type": "int"
         },
         {
-          "name": "convHit",
+          "name": "hits",
           "type": {
             "type": "array",
             "items": "UIChatSearchConvHit"
