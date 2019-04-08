@@ -221,7 +221,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           {this.props.onAddIdentity && (
             <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
               <Kb.Button
-                label="Add other identities"
+                label="Mastodon + other identities"
                 labelStyle={styles.label}
                 onClick={this.props.onAddIdentity}
                 style={styles.addIdentityButton}
@@ -253,7 +253,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
             {this.props.onAddIdentity && (
               <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
                 <Kb.Button
-                  label="Add other identities"
+                  label="Mastodon + other identities"
                   labelStyle={styles.label}
                   onClick={this.props.onAddIdentity}
                   style={styles.addIdentityButton}
