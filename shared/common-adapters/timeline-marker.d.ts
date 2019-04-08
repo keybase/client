@@ -1,0 +1,10 @@
+import * as React from 'react'
+
+export type Props = {
+  idx: number,
+  max: number,
+  type?: "open" | "closed",
+  style?: any
+};
+
+export default class extends React.Component<Props> {}

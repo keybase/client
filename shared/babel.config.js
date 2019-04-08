@@ -33,6 +33,23 @@ module.exports = function(api /*: Api */) {
         '@babel/plugin-proposal-class-properties',
       ],
       presets: ['@babel/preset-env', '@babel/preset-react'],
+      overrides: [
+        {
+          test: ['./**/*.ts', './**/*.tsx'],
+          presets: [
+            '@babel/preset-typescript',
+            [
+              '@babel/preset-env',
+              {
+                targets: {
+                  node: 'current',
+                },
+              },
+            ],
+            '@babel/preset-react',
+          ],
+        },
+      ],
     }
   } else if (isReactNative) {
     console.error('KB babel.config.js for ReactNative')

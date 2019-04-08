@@ -27,9 +27,26 @@ const config = (_, {mode}) => {
       loader: 'babel-loader',
       options: {
         cacheDirectory: true,
-        ignore: [/\.(native|ios|android)\.js$/],
+        ignore: [/\.(native|ios|android)\.(js|ts|tsx)$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
         presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.0.1'}}]],
+        overrides: [
+          {
+            test: ['./**/*.ts', './**/*.tsx'],
+            presets: [
+              '@babel/preset-typescript',
+              [
+                '@babel/preset-env',
+                {
+                  targets: {
+                    node: 'current',
+                  },
+                },
+              ],
+              '@babel/preset-react',
+            ],
+          },
+        ],
       },
     }
 

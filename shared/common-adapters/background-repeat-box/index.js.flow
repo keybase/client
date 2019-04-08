@@ -1,4 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './index.types'
-declare export default class BackgroundRepeatBox extends React.Component<Props> {}

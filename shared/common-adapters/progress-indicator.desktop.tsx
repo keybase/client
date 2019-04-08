@@ -1,0 +1,12 @@
+import Icon from './icon'
+import * as React from 'react'
+import { Props } from './progress-indicator';
+
+const ProgressIndicator = ({
+  white,
+  style
+}: Props) => (
+  <Icon style={style} type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'} />
+)
+
+export default ProgressIndicator

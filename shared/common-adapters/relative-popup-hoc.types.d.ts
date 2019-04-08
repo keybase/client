@@ -1,0 +1,1 @@
+export type Position = "top left" | "top right" | "bottom right" | "bottom left" | "right center" | "left center" | "top center" | "bottom center" | "center center";

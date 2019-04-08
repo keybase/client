@@ -1,0 +1,51 @@
+import * as React from 'react'
+import { StylesCrossPlatform } from '../styles';
+import {allTextTypes} from './text.shared'
+
+type Background = "Announcements" | "Documentation" | "HighRisk" | "Information" | "Normal" | "Success" | "Terminal";
+type TextType = keyof typeof allTextTypes;
+
+type Props = {
+  allowFontScaling?: boolean,
+  allowHighlightText?: boolean,
+  center?: boolean,
+  className?: string,
+  ellipsizeMode?: "head" | "middle" | "tail" | "clip",
+  lineClamp?: number | null,
+  negative?: boolean,
+  onClick?: (e: React.SyntheticEvent) => void | null,
+  onClickURL?: string | null,
+  onLongPress?: () => void,
+  onLongPressURL?: string | null,
+  onPress?: void,
+  plainText?: boolean,
+  selectable?: boolean,
+  style?: StylesCrossPlatform,
+  title?: string | null,
+  type: TextType,
+  underline?: boolean
+};
+
+type MetaType = {
+  fontSize: number,
+  colorForBackground: {
+    positive: string,
+    negative: string
+  },
+  isLink?: true,
+  styleOverride?: Object | null,
+  isTerminal?: true
+};
+
+declare class Text extends React.Component<Props> {}
+
+declare function getStyle(
+  type: TextType,
+  backgroundMode?: Background | null,
+  lineClamp?: number | null,
+  clickable?: boolean | null
+): Object
+
+export {getStyle, allTextTypes}
+export { Background, MetaType, Props, TextType };
+export default Text
