@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -572,7 +573,7 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 	m = m.WithLogTag("HASRPW")
 	defer m.TraceTimed(fmt.Sprintf("UserHandler#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
 
-	meUID := m.G().ActiveDevice.UID()
+	meUID := m.ActiveDevice().UID()
 	cacheKey := libkb.DbKey{
 		Typ: libkb.DBHasRandomPW,
 		Key: meUID.String(),
@@ -638,6 +639,29 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 	return ret.RandomPW, err
 }
 
+func isActiveDeviceRevoked(mctx libkb.MetaContext) (res bool, err error) {
+	if !mctx.ActiveDevice().Valid() {
+		return false, errors.New("ActiveDevice is not valid")
+	}
+	deviceID := mctx.ActiveDevice().DeviceID()
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx))
+	if err != nil {
+		return false, err
+	}
+	devices := me.GetComputedKeyFamily().GetAllActiveDevices()
+	if len(devices) == 0 {
+		return false, errors.New("GetAllActiveDevices returned empty list")
+	}
+	for _, device := range devices {
+		if device.ID.Eq(deviceID) {
+			// Device found in ActiveDevices list, we are not revoked.
+			return false, nil
+		}
+	}
+	// Current device not found, we are likely revoked.
+	return true, nil
+}
+
 func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {
 	if !h.G().ActiveDevice.Valid() {
 		h.G().Log.CDebugf(ctx, "CanLogout: looks like user is not logged in")
@@ -651,6 +675,15 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 	})
 
 	if err != nil {
+		isRevoked, err2 := isActiveDeviceRevoked(libkb.NewMetaContext(ctx, h.G()))
+		if err2 == nil && isRevoked {
+			// We are revoked, green-light logging out.
+			h.G().Log.CDebugf(ctx, "CanLogout: Current device is revoked, allowing logout")
+			return keybase1.CanLogoutRes{CanLogout: true}, nil
+		} else if err2 != nil {
+			h.G().Log.CDebugf(ctx, "CanLogout: cannot check if current device is revoked: %s", err2.Error())
+		}
+
 		return keybase1.CanLogoutRes{
 			CanLogout: false,
 			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
