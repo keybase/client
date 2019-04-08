@@ -115,4 +115,4 @@ export const getShareLayout = (path: Types.Path, pathItem: Types.PathItem, me: s
   filterForOnlyShares(getRawLayout(path, pathItem, me))
 
 export const hasShare = (path: Types.Path, pathItem: Types.PathItem): boolean =>
-  totalShare(getRawLayout(path, pathItem, '' /* username doesn't matter for shared */)) > 0
+  totalShare(getRawLayout(path, pathItem, '' /* username doesn't matter for shares */)) > 0
