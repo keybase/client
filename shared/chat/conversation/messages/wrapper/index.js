@@ -128,10 +128,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   />
                 </Kb.WithTooltip>
               )}
+              <Kb.Text type="BodyTiny" style={styles.timestamp}>
+                {formatTimeForChat(this.props.message.timestamp)}
+              </Kb.Text>
             </Kb.Box2>
-            <Kb.Text type="BodyTiny" style={styles.timestamp}>
-              {formatTimeForChat(this.props.message.timestamp)}
-            </Kb.Text>
           </Kb.Box2>
           <Kb.Box2
             key="content"
@@ -655,7 +655,6 @@ const styles = Styles.styleSheetCreate({
   }),
   timestamp: Styles.platformStyles({
     isElectron: {lineHeight: 18},
-    isMobile: {lineHeight: 20},
   }),
   usernameCrown: {
     alignSelf: 'flex-start',
