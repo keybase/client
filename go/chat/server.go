@@ -2315,7 +2315,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	}
 	ctx = h.getSearchContext(ctx)
 
-	arg = search.UpgradeRegexpArgFromQuery(arg)
+	arg = search.UpgradeRegexpArgFromQuery(arg, h.G().GetEnv().GetUsername().String())
 	var re *regexp.Regexp
 	if arg.IsRegex {
 		re, err = regexp.Compile(arg.Query)
