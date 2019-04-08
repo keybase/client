@@ -933,17 +933,17 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	// Does not force a repoll if we just need to fill in previous links
 	if len(arg.needSeqnos) > 0 {
 		if fromCache == nil {
-			reason = fmt.Sprintf("need seqnos and no cache")
+			reason = "need seqnos and no cache"
 			return false, true
 		}
 		if fromCache.Chain.LastSeqno < l.seqnosMax(arg.needSeqnos) {
-			reason = fmt.Sprintf("need seqnos")
+			reason = "need seqnos"
 			return false, true
 		}
 	}
 
 	if fromCache == nil {
-		reason = fmt.Sprintf("no cache")
+		reason = "no cache"
 		// We need a merkle leaf when starting from scratch.
 		return false, true
 	}
@@ -951,13 +951,13 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
-		reason = fmt.Sprintf("cacheIsOld")
+		reason = "cacheIsOld"
 		return false, true
 	}
 
 	// InForceRepoll needs to a acquire a lock, so avoid it by checking it last.
 	if l.InForceRepollMode(ctx) {
-		reason = fmt.Sprintf("InForceRepollMode")
+		reason = "InForceRepollMode"
 		return false, true
 	}
 
