@@ -81,6 +81,16 @@ func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w lib
 	return r.realAPI.GetDecode(mctx, arg, w)
 }
 
+func (r errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	if arg.Endpoint == "user/has_random_pw" {
+		r.callCount++
+		if r.shouldTimeout {
+			return nil, errors.New("timeout or something")
+		}
+	}
+	return r.realAPI.Get(mctx, arg)
+}
+
 func TestCanLogoutTimeout(t *testing.T) {
 	tc := libkb.SetupTest(t, "randompw", 3)
 	defer tc.Cleanup()
