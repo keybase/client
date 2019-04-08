@@ -1365,6 +1365,7 @@ function* threadSearch(state, action) {
           maxConvs: -1,
           maxHits: -1,
           maxMessages: -1,
+          maxNameConvs: 15,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',

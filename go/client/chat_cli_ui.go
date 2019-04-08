@@ -272,6 +272,12 @@ func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSea
 }
 
 func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
+	if c.noOutput {
+		return nil
+	}
+	for _, hit := range arg.Hits {
+		c.terminal.Output(fmt.Sprintf("Conversation: %s found with matching name\n", hit.Name))
+	}
 	return nil
 }
 

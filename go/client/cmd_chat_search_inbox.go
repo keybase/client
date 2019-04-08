@@ -23,9 +23,10 @@ import (
 
 type CmdChatSearchInbox struct {
 	libkb.Contextified
-	query  string
-	opts   chat1.SearchOpts
-	hasTTY bool
+	query     string
+	opts      chat1.SearchOpts
+	namesOnly bool
+	hasTTY    bool
 }
 
 func NewCmdChatSearchInboxRunner(g *libkb.GlobalContext) *CmdChatSearchInbox {
@@ -53,6 +54,10 @@ func newCmdChatSearchInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 				Name:  "max-convs",
 				Usage: fmt.Sprintf("Specify the maximum number conversations to find matches is. Default is all conversations."),
 			},
+			cli.BoolFlag{
+				Name:  "names-only",
+				Usage: "Search only the names of conversations",
+			},
 		),
 	}
 }
@@ -76,6 +81,7 @@ func (c *CmdChatSearchInbox) Run() (err error) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		Query:            c.query,
 		Opts:             c.opts,
+		NamesOnly:        c.namesOnly,
 	}
 	_, err = resolver.ChatClient.SearchInbox(ctx, arg)
 	return err
@@ -121,6 +127,9 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 		c.opts.BeforeContext = context
 		c.opts.AfterContext = context
 	}
+
+	c.namesOnly = ctx.Bool("names-only")
+	c.opts.MaxNameConvs = 10
 
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	return nil

@@ -1048,6 +1048,32 @@ func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []t
 	return res
 }
 
+func SearchableRemoteConversationName(conv types.RemoteConversation, username string) string {
+	name := conv.GetName()
+	// Check for self conv or big team conv
+	if name == username || strings.Contains(name, "#") {
+		return name
+	}
+	name = strings.Replace(name, fmt.Sprintf(",%s", username), "", -1)
+	name = strings.Replace(name, fmt.Sprintf("%s,", username), "", -1)
+	return name
+}
+
+func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, username string) chat1.UIChatSearchConvHit {
+	return chat1.UIChatSearchConvHit{
+		ConvID: conv.GetConvID().String(),
+		Name:   SearchableRemoteConversationName(conv, username),
+		Mtime:  conv.GetMtime(),
+	}
+}
+
+func PresentRemoteConversationsAsSearchHits(convs []types.RemoteConversation, username string) (res []chat1.UIChatSearchConvHit) {
+	for _, c := range convs {
+		res = append(res, PresentRemoteConversationAsSearchHit(c, username))
+	}
+	return res
+}
+
 func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
@@ -1056,25 +1082,6 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	})
 	res.Typ = rawConv.Typ
 	res.UnverifiedTLFName = rawConv.UnverifiedTLFName
-	return res
-}
-
-func PresentConversationLocalAsSearchHit(conv chat1.ConversationLocal) chat1.UIChatSearchConvHit {
-	name := conv.Info.TlfName
-	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
-		name += " #" + conv.GetTopicName()
-	}
-	return chat1.UIChatSearchConvHit{
-		ConvID: conv.GetConvID().String(),
-		Name:   name,
-		Mtime:  GetConvMtimeLocal(conv),
-	}
-}
-
-func PresentConversationLocalsAsSearchHits(convs []chat1.ConversationLocal) (res []chat1.UIChatSearchConvHit) {
-	for _, c := range convs {
-		res = append(res, PresentConversationLocalAsSearchHit(c))
-	}
 	return res
 }
 

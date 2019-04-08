@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -352,7 +353,7 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	}, nil
 }
 
-func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string) (res []chat1.ConversationLocal, err error) {
+func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -689,38 +690,34 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return res, err
 }
 
-func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string) (res []types.RemoteConversation, err error) {
+func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Search")()
-	type searchable struct {
-		conv types.RemoteConversation
-		term string
-	}
+	username := s.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	ib := s.createInbox()
 	_, convs, err := ib.ReadAll(ctx, uid, true)
 	if err != nil {
 		return res, err
 	}
-	var searchables []searchable
+	var exactMatch *types.RemoteConversation
 	for _, conv := range convs {
 		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT {
 			continue
 		}
-		var tlfName string
-		if conv.LocalMetadata == nil {
-			tlfName = conv.LocalMetadata.Name
-			if conv.GetTeamType() == chat1.TeamType_COMPLEX {
-				tlfName += " #" + conv.GetTopicName()
-			}
-		} else {
-			latest, err := utils.PickLatestMessageSummary(conv.Conv, nil)
-			if err != nil {
-				continue
-			} else {
-				tlfName = latest.TlfName
-			}
+		tlfName := utils.SearchableRemoteConversationName(conv, username)
+		if tlfName == query {
+			exactMatch = new(types.RemoteConversation)
+			*exactMatch = conv
+		} else if strings.Contains(tlfName, query) {
+			res = append(res, conv)
 		}
 	}
-	return nil, errors.New("not implemented")
+	if exactMatch != nil {
+		res = append([]types.RemoteConversation{*exactMatch}, res...)
+	}
+	if limit > 0 && limit < len(res) {
+		return res[:limit], nil
+	}
+	return res, nil
 }
 
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {
