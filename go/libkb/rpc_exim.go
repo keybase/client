@@ -1481,10 +1481,11 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status, nil)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
-	if u.IDTable() != nil {
-		for _, track := range u.IDTable().GetTrackList() {
+	if tab := u.IDTable(); tab != nil {
+		for _, track := range tab.GetTrackList() {
 			current.RemoteTracks[track.whomUID] = track.Export()
 		}
+		current.Unstubbed = !tab.HasStubs()
 	}
 	if accountID := u.StellarAccountID(); accountID != nil {
 		tmp := accountID.String()

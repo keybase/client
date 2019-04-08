@@ -954,7 +954,8 @@ func (e *Identify2WithUID) loadMe(m libkb.MetaContext, uid keybase1.UID) (err er
 	if e.testArgs != nil && e.testArgs.noMe {
 		return nil
 	}
-	e.me, err = loadIdentifyUser(m, e.loadUserOpts(libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid)), e.getCache())
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithSelf(true).WithStubMode(libkb.StubModeUnstubbed)
+	e.me, err = loadIdentifyUser(m, e.loadUserOpts(arg), e.getCache())
 	return err
 }
 

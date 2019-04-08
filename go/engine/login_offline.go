@@ -43,7 +43,7 @@ func (e *LoginOffline) Run(m libkb.MetaContext) error {
 	m.Debug("LoginOffline success, sending login notification")
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), string(e.G().Env.GetUsernameForUID(uid)))
 	m.Debug("LoginOffline success, calling login hooks")
-	m.G().CallLoginHooks()
+	m.G().CallLoginHooks(m)
 
 	return nil
 }

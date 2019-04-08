@@ -16,6 +16,8 @@ import (
 // UPAK Loader is a loader for UserPlusKeysV2AllIncarnations. It's a thin user object that is
 // almost as good for many purposes, but can be safely copied and serialized.
 type UPAKLoader interface {
+	LoginAs(u keybase1.UID) (err error)
+	OnLogout() (err error)
 	ClearMemory()
 	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
 	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
@@ -41,11 +43,13 @@ type UPAKLoader interface {
 // in memory and on disk.
 type CachedUPAKLoader struct {
 	Contextified
+	sync.Mutex
 	cache          *lru.Cache
 	locktab        LockTable
 	Freshness      time.Duration
 	noCache        bool
 	TestDeadlocker func()
+	currentUID     keybase1.UID
 }
 
 // NewCachedUPAKLoader constructs a new CachedUPAKLoader
@@ -62,6 +66,23 @@ func NewCachedUPAKLoader(g *GlobalContext, f time.Duration) *CachedUPAKLoader {
 	}
 }
 
+func (u *CachedUPAKLoader) LoginAs(uid keybase1.UID) (err error) {
+	u.Lock()
+	defer u.Unlock()
+	u.currentUID = uid
+	return nil
+}
+
+func (u *CachedUPAKLoader) GetCurrentUID() keybase1.UID {
+	u.Lock()
+	defer u.Unlock()
+	return u.currentUID
+}
+
+func (u *CachedUPAKLoader) OnLogout() (err error) {
+	return u.LoginAs(keybase1.UID(""))
+}
+
 // NewUncachedUPAKLoader creates a UPAK loader that doesn't do any caching.
 // It uses the implementation of CachedUPAKLoader but disables all caching.
 func NewUncachedUPAKLoader(g *GlobalContext) UPAKLoader {
@@ -76,15 +97,20 @@ func culDBKeyV1(uid keybase1.UID) DbKey {
 	return DbKeyUID(DBUserPlusAllKeysV1, uid)
 }
 
-func culDBKeyVersioned(version int, uid keybase1.UID) DbKey {
+func culDBKeyVersioned(version int, uid keybase1.UID, stubMode StubMode) DbKey {
+
+	typ := DBUserPlusKeysVersioned
+	if stubMode == StubModeUnstubbed {
+		typ = DBUserPlusKeysVersionedUnstubbed
+	}
 	return DbKey{
-		Typ: DBUserPlusKeysVersioned,
+		Typ: ObjType(typ),
 		Key: fmt.Sprintf("%d:%s", version, uid.String()),
 	}
 }
 
-func culDBKeyV2(uid keybase1.UID) DbKey {
-	return culDBKeyVersioned(2, uid)
+func culDBKeyV2(uid keybase1.UID, stubMode StubMode) DbKey {
+	return culDBKeyVersioned(2, uid, stubMode)
 }
 
 func (u *CachedUPAKLoader) ClearMemory() {
@@ -99,7 +125,31 @@ func (u *CachedUPAKLoader) ClearMemory() {
 // version 5 is still OK for non-reset accounts.
 const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V6
 
-func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
+func (u *CachedUPAKLoader) getCachedUPAKFromDB(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
+	var tmp keybase1.UserPlusKeysV2AllIncarnations
+	found, err := u.G().LocalDb.GetInto(&tmp, culDBKeyV2(uid, stubMode))
+
+	// As a nice load-saving hack, we can upgrade V5 minor versions to V6 on load if there are no resets.
+	// We just do this in memory.
+	if found && err == nil && tmp.MinorVersion == keybase1.UPK2MinorVersion_V5 && len(tmp.PastIncarnations) == 0 {
+		u.G().VDL.CLogf(ctx, VLog0, "| upgrade disk cache v%d without resets to v%d", keybase1.UPK2MinorVersion_V5, keybase1.UPK2MinorVersion_V6)
+		tmp.MinorVersion = keybase1.UPK2MinorVersion_V6
+	}
+
+	if err != nil {
+		u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
+	} else if !found {
+		u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
+	} else if tmp.MinorVersion == UPK2MinorVersionCurrent {
+		u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
+		ret = &tmp
+	} else {
+		u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+	}
+	return ret
+}
+
+func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, stubMode StubMode, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
 
 	if u.Freshness == time.Duration(0) || u.noCache {
 		u.G().VDL.CLogf(ctx, VLog0, "| cache miss since cache disabled")
@@ -107,6 +157,10 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	}
 
 	upak := u.getMemCache(ctx, uid)
+	if upak != nil && !upak.Current.Unstubbed && stubMode == StubModeUnstubbed {
+		u.G().VDL.CLogf(ctx, VLog0, "| hit mem cache, but throwing away, since want unstubbed, and it has stubs")
+		upak = nil
+	}
 
 	// Try loading from persistent storage if we missed memory cache.
 	if upak != nil {
@@ -117,35 +171,22 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 			info.InCache = true
 		}
 	} else {
-		var tmp keybase1.UserPlusKeysV2AllIncarnations
-		found, err := u.G().LocalDb.GetInto(&tmp, culDBKeyV2(uid))
+		upak = u.getCachedUPAKFromDB(ctx, uid, stubMode)
 
-		// As a nice load-saving hack, we can upgrade V5 minor versions to V6 on load if there are no resets.
-		// We just do this in memory.
-		if found && err == nil && tmp.MinorVersion == keybase1.UPK2MinorVersion_V5 && len(tmp.PastIncarnations) == 0 {
-			u.G().VDL.CLogf(ctx, VLog0, "| upgrade disk cache v%d without resets to v%d", keybase1.UPK2MinorVersion_V5, keybase1.UPK2MinorVersion_V6)
-			tmp.MinorVersion = keybase1.UPK2MinorVersion_V6
+		// This is tricky: if the user would settled for stubbed, but it's loading for
+		// the currently-logged in user, then also try the unstubbed fallback.
+		// We could safely do this for every stubbed load (not just for the current user),
+		// but we don't want to turn every failure to load into a 2 missed DB loads (rather than one).
+		if upak == nil && stubMode == StubModeStubbed && uid.Equal(u.GetCurrentUID()) {
+			upak = u.getCachedUPAKFromDB(ctx, uid, StubModeUnstubbed)
 		}
 
-		hit := false
-		if err != nil {
-			u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
-		} else if !found {
-			u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
-		} else if tmp.MinorVersion == UPK2MinorVersionCurrent {
-			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
-			hit = true
-		} else {
-			u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
-		}
-
-		if hit {
-			upak = &tmp
+		if upak != nil {
 			if info != nil {
 				info.InDiskCache = true
 			}
 			// Insert disk object into memory.
-			u.putMemCache(ctx, uid, tmp)
+			u.putMemCache(ctx, uid, *upak)
 		}
 	}
 
@@ -205,7 +246,7 @@ func (u *CachedUPAKLoader) extractDeviceKey(upak keybase1.UserPlusAllKeys, devic
 	return deviceKey, revoked, nil
 }
 
-func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.UserPlusKeysV2AllIncarnations) error {
+func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) error {
 
 	if u.noCache {
 		u.G().VDL.CLogf(ctx, VLog0, "| no cache enabled, so not putting UPAK")
@@ -215,24 +256,14 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	uid := obj.Current.Uid
 	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s", uid)
 
-	stale := false
 	existing := u.getMemCache(ctx, uid)
-	if existing != nil {
-		if obj.IsOlderThan(*existing) {
-			stale = true
-		} else {
-			u.putMemCache(ctx, uid, *obj)
-		}
-	} else {
-		u.putMemCache(ctx, uid, *obj)
-	}
-
-	if stale {
+	if !existing.ShouldReplaceWith(*obj) {
 		u.G().VDL.CLogf(ctx, VLog0, "| CachedUpakLoader#putUPAKToCache: Refusing to overwrite with stale object")
 		return errors.New("stale object rejected")
 	}
 
-	err := u.G().LocalDb.PutObj(culDBKeyV2(uid), nil, *obj)
+	u.putMemCache(ctx, uid, *obj)
+	err := u.G().LocalDb.PutObj(culDBKeyV2(uid, stubMode), nil, *obj)
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "Error in writing UPAK for %s: %s", uid, err)
 	}
@@ -248,7 +279,7 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 		return err
 	}
 	upak.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	err = u.putUPAKToCache(ctx, upak)
+	err = u.putUPAKToCache(ctx, upak, StubModeFromUnstubbedBool(upak.Current.Unstubbed))
 	return err
 }
 
@@ -340,7 +371,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	var fresh bool
 
 	if !arg.forceReload {
-		upak, fresh = u.getCachedUPAK(ctx, arg.uid, info)
+		upak, fresh = u.getCachedUPAK(ctx, arg.uid, arg.stubMode, info)
 	}
 	if arg.forcePoll {
 		g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.uid), fresh)
@@ -377,7 +408,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			// return to the caller.
 			u.removeMemCache(ctx, arg.uid)
 
-			err := u.G().LocalDb.Delete(culDBKeyV2(arg.uid))
+			err := u.G().LocalDb.Delete(culDBKeyV2(arg.uid, arg.stubMode))
 			if err != nil {
 				u.G().Log.Warning("Failed to remove %s from disk cache: %s", arg.uid, err)
 			}
@@ -388,7 +419,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			upak.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 			// This is only necessary to update the levelDB representation,
 			// since the previous line updates the in-memory cache satisfactorily.
-			if err := u.putUPAKToCache(ctx, upak); err != nil {
+			if err := u.putUPAKToCache(ctx, upak, arg.stubMode); err != nil {
 				u.G().Log.CDebugf(ctx, "continuing past error in putUPAKToCache: %s", err)
 			}
 
@@ -431,7 +462,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "LoadUser failed"}
 	}
 
-	if err := u.putUPAKToCache(ctx, ret); err != nil {
+	if err := u.putUPAKToCache(ctx, ret, arg.stubMode); err != nil {
 		m.Debug("continuing past error in putUPAKToCache: %s", err)
 	}
 
@@ -587,9 +618,11 @@ func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 
 	u.removeMemCache(ctx, uid)
 
-	err := u.G().LocalDb.Delete(culDBKeyV2(uid))
-	if err != nil {
-		u.G().Log.CWarningf(ctx, "Failed to remove %s from disk cache: %s", uid, err)
+	for _, sm := range []StubMode{StubModeStubbed, StubModeUnstubbed} {
+		err := u.G().LocalDb.Delete(culDBKeyV2(uid, sm))
+		if err != nil {
+			u.G().Log.CWarningf(ctx, "Failed to remove %s from disk cache: %s", uid, err)
+		}
 	}
 	u.deleteV1UPAK(uid)
 }

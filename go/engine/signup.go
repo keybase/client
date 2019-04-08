@@ -156,7 +156,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), s.arg.Username)
 
 	// For instance, setup gregor and friends...
-	m.G().CallLoginHooks()
+	m.G().CallLoginHooks(m)
 
 	m.G().GetStellar().CreateWalletSoft(m.Ctx())
 
