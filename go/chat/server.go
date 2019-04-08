@@ -1297,6 +1297,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
+	parg.ReplyTo = arg.ReplyTo
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_TEXT
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
@@ -1449,7 +1450,10 @@ func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err 
 	return storage.NewOutboxID()
 }
 
-func (h *Server) handleReplyTo(ctx context.Context, body chat1.MessageBody, replyTo chat1.MessageID) chat1.MessageBody {
+func (h *Server) handleReplyTo(ctx context.Context, body chat1.MessageBody, replyTo *chat1.MessageID) chat1.MessageBody {
+	if replyTo == nil {
+		return body
+	}
 	typ, err := body.MessageType()
 	if err != nil {
 		h.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
@@ -1460,7 +1464,7 @@ func (h *Server) handleReplyTo(ctx context.Context, body chat1.MessageBody, repl
 		return chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body:     body.Text().Body,
 			Payments: body.Text().Payments,
-			ReplyTo:  &replyTo,
+			ReplyTo:  replyTo,
 		})
 	}
 	return body

@@ -787,6 +787,7 @@ const triggerSendLinkToChat = (state, action) => {
         ephemeralLifetime: ChatConstants.getConversationExplodingMode(state, conversationIDKey) || undefined,
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
         outboxID: null,
+        replyTo: null,
         tlfName,
         tlfPublic: false,
       },

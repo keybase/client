@@ -1384,6 +1384,7 @@ function* messageSend(state, action) {
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const replyTo = Constants.getReplyTo(state, conversationIDKey)
 
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
@@ -1437,12 +1438,14 @@ function* messageSend(state, action) {
         conversationID: Types.keyToConversationID(conversationIDKey),
         identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
         outboxID: null,
+        replyTo,
         tlfName,
         tlfPublic: false,
       },
       waitingKey: Constants.waitingKeyPost,
     })
     logger.info('[MessageSend] success')
+    yield Saga.put(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
   } catch (e) {
     logger.info('[MessageSend] error')
   }

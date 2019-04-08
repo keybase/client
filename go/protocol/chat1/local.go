@@ -4931,7 +4931,7 @@ type GetInboxNonblockLocalArg struct {
 type PostLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
-	ReplyTo          MessageID                    `codec:"replyTo" json:"replyTo"`
+	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4944,7 +4944,7 @@ type PostLocalNonblockArg struct {
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
 	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	ReplyTo          MessageID                    `codec:"replyTo" json:"replyTo"`
+	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4955,7 +4955,7 @@ type PostTextNonblockArg struct {
 	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Body              string                       `codec:"body" json:"body"`
 	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	ReplyTo           MessageID                    `codec:"replyTo" json:"replyTo"`
+	ReplyTo           *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`

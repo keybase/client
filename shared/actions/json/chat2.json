@@ -618,6 +618,11 @@
     "toggleThreadSearch": {
       "_description": "Toggle the display of the thread search window",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "toggleReplyToMessage": {
+      "_description": "Reply to a message publicly",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID?": "Types.MessageID"
     }
   }
 }

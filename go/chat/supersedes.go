@@ -244,7 +244,8 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				})
 			}
 			if msg.Valid().MessageBody.IsType(chat1.MessageType_TEXT) &&
-				msg.Valid().MessageBody.Text().ReplyTo != nil {
+				msg.Valid().MessageBody.Text().ReplyTo != nil && *msg.Valid().MessageBody.Text().ReplyTo > 0 {
+				t.Debug(ctx, "Run: replyTo: %v", *msg.Valid().MessageBody.Text().ReplyTo)
 				superMsgIDs = append(superMsgIDs, supersedesMsgID{
 					msgID: *msg.Valid().MessageBody.Text().ReplyTo,
 					typ:   replyToSupersedes,

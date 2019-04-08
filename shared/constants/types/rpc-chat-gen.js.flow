@@ -345,7 +345,7 @@ export type MessageTypes = {|
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postTextNonblock': {|
-    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, replyTo: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec|}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, replyTo?: ?MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.previewConversationByIDLocal': {|

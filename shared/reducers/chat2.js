@@ -1016,6 +1016,10 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
+    case Chat2Gen.toggleReplyToMessage:
+      return action.payload.messageID
+        ? state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.messageID)
+        : state.deleteIn(['replyToMap', action.payload.conversationIDKey])
     case Chat2Gen.threadSearchResult:
       return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
         info.set('hits', info.hits.push(action.payload.message))

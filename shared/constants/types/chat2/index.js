@@ -103,6 +103,7 @@ export type _State = {
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>,
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>,
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
+  replyToMap: I.Map<Common.ConversationIDKey, Message.MessageID>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

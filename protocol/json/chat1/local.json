@@ -3170,7 +3170,10 @@
         },
         {
           "name": "replyTo",
-          "type": "MessageID"
+          "type": [
+            null,
+            "MessageID"
+          ]
         },
         {
           "name": "identifyBehavior",
@@ -3210,7 +3213,10 @@
         },
         {
           "name": "replyTo",
-          "type": "MessageID"
+          "type": [
+            null,
+            "MessageID"
+          ]
         },
         {
           "name": "identifyBehavior",
@@ -3247,7 +3253,10 @@
         },
         {
           "name": "replyTo",
-          "type": "MessageID"
+          "type": [
+            null,
+            "MessageID"
+          ]
         },
         {
           "name": "outboxID",

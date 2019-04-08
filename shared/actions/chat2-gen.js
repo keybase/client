@@ -109,6 +109,7 @@ export const toggleInfoPanel = 'chat2:toggleInfoPanel'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
+export const toggleReplyToMessage = 'chat2:toggleReplyToMessage'
 export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const toggleThreadSearch = 'chat2:toggleThreadSearch'
 export const unfurlRemove = 'chat2:unfurlRemove'
@@ -228,6 +229,7 @@ type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
 type _ToggleMessageCollapsePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, collapse: boolean|}>
 type _ToggleMessageReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, ordinal: Types.Ordinal|}>
+type _ToggleReplyToMessagePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID?: Types.MessageID|}>
 type _ToggleSmallTeamsExpandedPayload = void
 type _ToggleThreadSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
@@ -306,6 +308,10 @@ export const createThreadSearchResult = (payload: _ThreadSearchResultPayload) =>
  * Remove an unfurl
  */
 export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, type: unfurlRemove})
+/**
+ * Reply to a message publicly
+ */
+export const createToggleReplyToMessage = (payload: _ToggleReplyToMessagePayload) => ({payload, type: toggleReplyToMessage})
 /**
  * Response to an unfurl prompt
  */
@@ -592,6 +598,7 @@ export type ToggleInfoPanelPayload = {|+payload: _ToggleInfoPanelPayload, +type:
 export type ToggleLocalReactionPayload = {|+payload: _ToggleLocalReactionPayload, +type: 'chat2:toggleLocalReaction'|}
 export type ToggleMessageCollapsePayload = {|+payload: _ToggleMessageCollapsePayload, +type: 'chat2:toggleMessageCollapse'|}
 export type ToggleMessageReactionPayload = {|+payload: _ToggleMessageReactionPayload, +type: 'chat2:toggleMessageReaction'|}
+export type ToggleReplyToMessagePayload = {|+payload: _ToggleReplyToMessagePayload, +type: 'chat2:toggleReplyToMessage'|}
 export type ToggleSmallTeamsExpandedPayload = {|+payload: _ToggleSmallTeamsExpandedPayload, +type: 'chat2:toggleSmallTeamsExpanded'|}
 export type ToggleThreadSearchPayload = {|+payload: _ToggleThreadSearchPayload, +type: 'chat2:toggleThreadSearch'|}
 export type UnfurlRemovePayload = {|+payload: _UnfurlRemovePayload, +type: 'chat2:unfurlRemove'|}
@@ -710,6 +717,7 @@ export type Actions =
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
+  | ToggleReplyToMessagePayload
   | ToggleSmallTeamsExpandedPayload
   | ToggleThreadSearchPayload
   | UnfurlRemovePayload

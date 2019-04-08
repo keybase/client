@@ -1109,6 +1109,10 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   return clientPrev || 0
 }
 
+export const getReplyTo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  return state.chat2.replyToMap.get(conversationIDKey, null)
+}
+
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
