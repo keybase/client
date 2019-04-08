@@ -20,7 +20,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCancel: dispatchProps.onCancel,
   onClickLearn: () => openURL('https://keybase.io/docs/proof_integration_guide'),
   providerClicked: dispatchProps.providerClicked,
-  providers: stateProps._proofSuggestions
+  providers: promoteNew(stateProps._proofSuggestions
     .map(s => ({
       desc: s.pickerSubtext,
       icon: s.pickerIcon,
@@ -28,9 +28,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       name: s.pickerText,
       new: s.metas.some(({label}) => label === 'new'),
     }))
-    .toArray(),
+    .toArray()),
   title: 'Prove your...',
 })
+
+const promoteNew = (rows) => {
+  let news = []
+  let olds = []
+  rows.forEach((row) => {
+    if (row.new) {
+      news.push(row)
+    } else {
+      olds.push(row)
+    }
+  })
+  return news.concat(olds)
+}
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
