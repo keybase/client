@@ -654,7 +654,8 @@ const styles = Styles.styleSheetCreate({
     isMobile: {right: 0},
   }),
   timestamp: Styles.platformStyles({
-    isElectron: {lineHeight: 18},
+    common: {paddingLeft: Styles.globalMargins.xtiny},
+    isElectron: {lineHeight: 19},
   }),
   usernameCrown: {
     alignSelf: 'flex-start',
