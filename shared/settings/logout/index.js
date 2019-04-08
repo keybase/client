@@ -60,19 +60,27 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
           )}
         </Kb.Box2>
         {!this.props.checkPasswordIsCorrect ? (
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
-            <Kb.Button onClick={this.props.onCancel} label="Cancel" fullWidth={true} type="Secondary" />
-            <Kb.WaitingButton
-              fullWidth={true}
-              waitingKey={Constants.checkPasswordWaitingKey}
-              type="Primary"
-              disabled={!!this.props.checkPasswordIsCorrect}
-              label="Test password"
-              onClick={() => {
-                this.props.onCheckPassword(this.state.password)
-              }}
-            />
-          </Kb.ButtonBar>
+          <Kb.Box2 direction="vertical">
+            <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
+              <Kb.Button onClick={this.props.onCancel} label="Cancel" fullWidth={true} type="Secondary" />
+              <Kb.WaitingButton
+                fullWidth={true}
+                waitingKey={Constants.checkPasswordWaitingKey}
+                type="Primary"
+                disabled={!!this.props.checkPasswordIsCorrect}
+                label="Test password"
+                onClick={() => {
+                  this.props.onCheckPassword(this.state.password)
+                }}
+              />
+            </Kb.ButtonBar>
+            <Kb.Box2 direction="horizontal" gap="xtiny" style={{marginBottom: Styles.globalMargins.medium}}>
+              <Kb.Icon type="iconfont-leave" sizeType="Small" color={Styles.globalColors.black_50} />
+              <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onLogout}>
+                Just sign out
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
         ) : (
           <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
             <Kb.Button
@@ -82,12 +90,6 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
               type="PrimaryGreen"
             />
           </Kb.ButtonBar>
-          <Kb.Box2 direction="horizontal" gap="xtiny" style={{marginBottom: Styles.globalMargins.medium}}>
-            <Kb.Icon type="iconfont-leave" sizeType="Small" color={Styles.globalColors.black_50} />
-            <Kb.Text type="BodySmallSecondaryLink" onClick={this.props.onLogout}>
-              Just sign out
-            </Kb.Text>
-          </Kb.Box2>
         )}
       </>
     )
