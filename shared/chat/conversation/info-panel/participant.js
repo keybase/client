@@ -20,9 +20,10 @@ const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Prop
           <Kb.Box2 direction="vertical" style={styles.wrapper}>
             <Kb.ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
             <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
-              {fullname !== '' && <Kb.Text type="BodySmall">{fullname} • </Kb.Text>}
+              {fullname !== '' && <Kb.Text type="BodySmall">{fullname}</Kb.Text>}
               {(isAdmin || isOwner) && (
                 <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+                  <Kb.Text type="BodySmall">•</Kb.Text>
                   <Kb.Icon
                     color={isOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35}
                     sizeType="Tiny"
