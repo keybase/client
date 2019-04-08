@@ -100,7 +100,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (this.props.showUsername) {
       result = (
         <React.Fragment key="authorAndContent">
-          <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
+          <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="xtiny">
             <Kb.Avatar
               size={32}
               username={this.props.showUsername}
@@ -120,9 +120,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                 <Kb.Icon
                   color={
-                    this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_50
+                    this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35
                   }
-                  sizeType="Small"
+                  sizeType="Tiny"
                   type="iconfont-crown-owner"
                 />
               </Kb.WithTooltip>
