@@ -42,6 +42,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
+  const showReplyPreview = !!Constants.getReplyTo(state, conversationIDKey)
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   return {
     _containsLatestMessage,
@@ -58,6 +59,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
     showGiphySearch,
+    showReplyPreview,
     showTypingStatus:
       Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
@@ -164,6 +166,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   showCommandMarkdown: stateProps.showCommandMarkdown,
   showGiphySearch: stateProps.showGiphySearch,
+  showReplyPreview: stateProps.showReplyPreview,
   showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,

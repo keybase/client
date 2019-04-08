@@ -114,6 +114,7 @@ const InputContainer = (props: Props) => {
     setUnsentText: Sb.action('setUnsentText'),
     showCommandMarkdown: false,
     showGiphySearch: false,
+    showReplyPreview: false,
     showTypingStatus: false,
     showWalletsIcon: !props.isEditing,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),

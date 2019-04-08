@@ -1,0 +1,31 @@
+// @flow
+import * as Types from '../../../constants/types/chat2'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/chat2'
+import {namedConnect} from '../../../util/container'
+import ReplyPreview from '.'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
+
+const mapStateToProps = (state, {conversationIDKey}) => {
+  const messageID = Constants.getReplyTo(state, conversationIDKey)
+  const message = Constants.getMessage(state, conversationIDKey, Types.numberToOrdinal(messageID || 0))
+  const text = message && message.type === 'text' ? message.text.stringValue() : ''
+  return {
+    text,
+    username: message ? message.author : '',
+  }
+}
+
+const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
+  onCancel: () => dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey})),
+})
+
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d) => ({...s, ...d}),
+  'ReplyPreview'
+)(ReplyPreview)
