@@ -1059,6 +1059,25 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	return res
 }
 
+func PresentConversationLocalAsSearchHit(conv chat1.ConversationLocal) chat1.UIChatSearchConvHit {
+	name := conv.Info.TlfName
+	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
+		name += " #" + conv.GetTopicName()
+	}
+	return chat1.UIChatSearchConvHit{
+		ConvID: conv.GetConvID().String(),
+		Name:   name,
+		Mtime:  GetConvMtimeLocal(conv),
+	}
+}
+
+func PresentConversationLocalsAsSearchHits(convs []chat1.ConversationLocal) (res []chat1.UIChatSearchConvHit) {
+	for _, c := range convs {
+		res = append(res, PresentConversationLocalAsSearchHit(c))
+	}
+	return res
+}
+
 func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
 	var writerNames []string
 	fullNames := make(map[string]string)

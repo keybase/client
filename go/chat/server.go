@@ -2392,6 +2392,17 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		}
 		close(indexUIDone)
 	}()
+	// send up conversation name matches
+	convUIDone := make(chan struct{})
+	go func() {
+		convHits, err := h.G().InboxSource.Search(ctx, uid, arg.Query)
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
+		} else {
+			chatUI.ChatSearchConvHits(ctx, utils.PresentConversationLocalsAsSearchHits(convHits))
+		}
+		close(convUIDone)
+	}()
 
 	searchRes, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, hitUICh, indexUICh)
 	if err != nil {
@@ -2399,6 +2410,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	}
 	<-hitUIDone
 	<-indexUIDone
+	<-convUIDone
 
 	var doneRes chat1.ChatSearchInboxDone
 	if searchRes != nil {
