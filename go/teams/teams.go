@@ -465,9 +465,6 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	if mr == nil {
-		return errors.New("Got nil merkle root")
-	}
 
 	// load an empty member set (no membership changes)
 	memSet := newMemberSet()
