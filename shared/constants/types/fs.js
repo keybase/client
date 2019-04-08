@@ -16,7 +16,7 @@ import {memoize} from '../../util/memoize'
 export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
-export type ProgressType = 'favorite' | 'pending' | 'loaded'
+export type ProgressType = 'pending' | 'loaded'
 
 // not naming Error because it has meaning in js.
 export type _FsError = {
@@ -179,7 +179,7 @@ type _PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
-  lastWriter: RPCTypes.User,
+  lastWriter: string,
   writable: boolean,
   prefetchStatus: PrefetchStatus,
 }

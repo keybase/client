@@ -52,13 +52,11 @@ export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> 
 })
 
 const pathItemMetadataDefault = {
-  badgeCount: 0,
   lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
+  lastWriter: '',
   name: 'unknown',
   prefetchStatus: prefetchNotStarted,
   size: 0,
-  tlfMeta: undefined,
   writable: false,
 }
 

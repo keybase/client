@@ -9,18 +9,98 @@ import * as Types from '../constants/types/fs'
 
 const initialState = Constants.makeState()
 
-const coalesceFolderUpdate = (
-  original: Types.FolderPathItem,
-  updated: Types.FolderPathItem
-): Types.FolderPathItem =>
-  // We don't want to override a loaded folder into pending, because otherwise
-  // next time user goes into that folder we'd show placeholders. We also don't
-  // want to simply use the original PathItem, since it's possible some
-  // metadata has updated. So use the new item, but reuse children and
-  // progress.
-  original.progress === 'loaded' && updated.progress === 'pending'
-    ? updated.withMutations(u => u.set('children', original.children).set('progress', 'loaded'))
-    : updated
+const updatePathItem = (oldPathItem?: ?Types.PathItem, newPathItem: Types.PathItem): Types.PathItem => {
+  if (!oldPathItem || oldPathItem.type !== newPathItem.type) {
+    return newPathItem
+  }
+  switch (newPathItem.type) {
+    case 'unknown':
+      return newPathItem
+    case 'symlink':
+      // $FlowIssue
+      const oldSymlinkPathItem: Types.SymlinkPathItem = oldPathItem
+      const newSymlinkPathItem: Types.SymlinkPathItem = newPathItem
+      // This returns oldPathItem if oldPathItem.equals(newPathItem), which is
+      // what we want here.
+      return oldSymlinkPathItem.merge(newSymlinkPathItem)
+    case 'file':
+      // $FlowIssue
+      const oldFilePathItem: Types.FilePathItem = oldPathItem
+      const newFilePathItem: Types.FilePathItem = newPathItem
+      // There are two complications in this case:
+      // 1) Most of the fields in FilePathItem are primitive types, and would
+      //    work with merge fine. The only exception is `mimeType: ?Mime` which
+      //    is a record, so we need to compare it separately.
+      // 2) Additionally, we don't always get a oldFilePathItem with the
+      //    mimeType set. The most performant way is to never over a known
+      //    mimeType into null, but if the file content changes, mimeType can
+      //    change too. So instead we compare other fields as well in this
+      //    case.
+      if (oldFilePathItem.mimeType && !newFilePathItem.mimeType) {
+        // The new one doesn't have mimeType but the old one has it. So compare
+        // other fields, and return the old one if they all match, or new one
+        // (i.e. unset known mimeType) if anything has changed.
+        return oldFilePathItem.set('mimeType', newFilePathItem.mimeType).equals(newFilePathItem)
+          ? oldFilePathItem
+          : newFilePathItem
+      }
+      if (oldFilePathItem.mimeType && newFilePathItem.mimeType) {
+        // The new one comes with mimeType, and we already know one. So compare
+        // the mimeType from both first. If they are equal in value, make sure
+        // they have the same reference before calling merge, so we can reuse
+        // the old oldFilePathItem when possible.
+        return oldFilePathItem.mimeType.equals(newFilePathItem.mimeType)
+          ? oldFilePathItem.merge(newFilePathItem.set('mimeType', oldFilePathItem.mimeType))
+          : newFilePathItem
+      }
+      // Now there are two possibilities:
+      // 1) We have mimeType in the new one but not the old one. In this case
+      //    we simply want to take it from the new one.
+      // 2) We don't have it in either of them. In this case we'll want to get
+      //    other fields from the new one if they change.
+      // Either way, this can be done with a simple merge.
+      return oldFilePathItem.merge(newFilePathItem)
+    case 'folder':
+      // $FlowIssue
+      const oldFolderPathItem: Types.FolderPathItem = oldPathItem
+      const newFolderPathItem: Types.FolderPathItem = newPathItem
+      if (oldFolderPathItem.progress === 'pending' && newFolderPathItem.progress === 'loaded') {
+        // The new one has children loaded and the old one doesn't. There's no
+        // way to reuse the old one so just return newFolderPathItem.
+        return newFolderPathItem
+      }
+      if (oldFolderPathItem.progress === 'loaded' && newFolderPathItem.progress === 'pending') {
+        // The new one is doesn't have children, but the old one has. We don't
+        // want to override a loaded folder into pending, because otherwise
+        // next time user goes into that folder we'd show placeholders.  So
+        // first set the children in new one using what we already have, then
+        // merge it into the old one. We'll end up reusing the
+        // oldFolderPathItem if nothing (not considering children of course)
+        // has changed.
+        return oldFolderPathItem.merge(
+          newFolderPathItem.withMutations(p =>
+            p.set('children', oldFolderPathItem.children).set('progress', 'loaded')
+          )
+        )
+      }
+      if (oldFolderPathItem.progress === 'pending' && newFolderPathItem.progress === 'pending') {
+        // Neither one has children, so just do a simple merge like simple
+        // cases above for symlink/unknown types.
+        return oldFolderPathItem.merge(newFolderPathItem)
+      }
+      // Both of them have children loaded. So merge the children field
+      // separately before merging the whole thing. This reuses
+      // oldFolderPathItem when possible as well.
+      return oldFolderPathItem.merge(
+        newFolderPathItem.update('children', newChildren =>
+          newChildren.equals(oldFolderPathItem.children) ? oldFolderPathItem.children : newChildren
+        )
+      )
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(newPathItem.type)
+      return newPathItem
+  }
+}
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
@@ -73,36 +153,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return initialState
     case FsGen.pathItemLoaded:
       return state.update('pathItems', pathItems =>
-        pathItems.update(action.payload.path, original =>
-          original && original.type === 'folder' && action.payload.pathItem.type === 'folder'
-            ? coalesceFolderUpdate(original, action.payload.pathItem)
-            : action.payload.pathItem
-        )
+        pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
       )
     case FsGen.folderListLoaded: {
-      let toRemove = new Set()
-      const toMerge = action.payload.pathItems.map((item, path) => {
-        const original = state.pathItems.get(path, Constants.unknownPathItem)
+      const toRemove = new Set()
+      const toMerge = action.payload.pathItems.map((newPathItem, path) => {
+        const oldPathItem = state.pathItems.get(path, Constants.unknownPathItem)
+        const toSet =
+          oldPathItem === Constants.unknownPathItem ? newPathItem : updatePathItem(oldPathItem, newPathItem)
 
-        if (original.type === 'file' && item.type === 'file') {
-          return item.set('mimeType', original.mimeType)
-        }
+        oldPathItem.type === 'folder' &&
+          oldPathItem.children.forEach(
+            name =>
+              (toSet.type !== 'folder' || !toSet.children.includes(name)) &&
+              toRemove.add(Types.pathConcat(path, name))
+          )
 
-        if (item.type !== 'folder') return item
-        if (original.type !== 'folder') return item
-
-        // Make flow happy by referencing them with a new name that's
-        // explicitly typed.
-        const originalFolder: Types.FolderPathItem = original
-        let newItem: Types.FolderPathItem = item
-
-        newItem = coalesceFolderUpdate(originalFolder, newItem)
-
-        originalFolder.children.forEach(
-          name => !newItem.children.includes(name) && toRemove.add(Types.pathConcat(path, name))
-        )
-
-        return newItem
+        return toSet
       })
       return state.set(
         'pathItems',
