@@ -15,7 +15,6 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import appRouteTree from '../../app/routes-app'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
@@ -58,11 +57,10 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   })
 
   // TODO: move this out of this file.
-  // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
   RNEmitter.addListener('onShareData', evt => {
     logger.info('[ShareDataIntent]', evt)
-    emitter(RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, routeDef: appRouteTree}))
-    emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
+    emitter(RouteTreeGen.createNavigateTo({path: FsConstants.fsRootRouteForNav1}))
+    emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.path)}))
     emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   })
   RNEmitter.addListener('onShareText', evt => {
