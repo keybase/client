@@ -536,6 +536,12 @@ func IsOfflineError(err error) OfflineErrorKind {
 	case ErrDuplicateConnection:
 		return OfflineErrorKindOfflineBasic
 	}
+
+	switch err.Error() {
+	case "tls: use of closed connection",
+		"tls: protocol is shutdown":
+		return OfflineErrorKindOfflineReconnect
+	}
 	return OfflineErrorKindOnline
 }
 
