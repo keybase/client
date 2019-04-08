@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -30,16 +32,21 @@ type signupUI struct {
 	baseNullUI
 	info *signupInfo
 	libkb.Contextified
+
+	passphrasePrompts []keybase1.GUIEntryArg
+	terminalPrompts   []libkb.PromptDescriptor
 }
 
 type signupTerminalUI struct {
 	info *signupInfo
 	libkb.Contextified
+	parent *signupUI
 }
 
 type signupSecretUI struct {
 	info *signupInfo
 	libkb.Contextified
+	parent *signupUI
 }
 
 type signupLoginUI struct {
@@ -54,6 +61,7 @@ func (n *signupUI) GetTerminalUI() libkb.TerminalUI {
 	return &signupTerminalUI{
 		info:         n.info,
 		Contextified: libkb.NewContextified(n.G()),
+		parent:       n,
 	}
 }
 
@@ -61,6 +69,7 @@ func (n *signupUI) GetSecretUI() libkb.SecretUI {
 	return &signupSecretUI{
 		info:         n.info,
 		Contextified: libkb.NewContextified(n.G()),
+		parent:       n,
 	}
 }
 
@@ -79,6 +88,10 @@ func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase
 		res.Passphrase = n.info.passphrase
 	}
 	n.G().Log.Debug("| GetPassphrase: %v -> %v", p, res)
+	n.parent.passphrasePrompts = append(n.parent.passphrasePrompts, p)
+	if len(n.parent.passphrasePrompts) > 100 {
+		err = fmt.Errorf("too many passphrase prompts, something is likely wrong")
+	}
 	return res, err
 }
 
@@ -96,6 +109,10 @@ func (n *signupTerminalUI) Prompt(pd libkb.PromptDescriptor, s string) (ret stri
 		err = fmt.Errorf("unknown prompt %v", pd)
 	}
 	n.G().Log.Debug("Terminal Prompt %d: %s -> %s (%v)\n", pd, s, ret, libkb.ErrToOk(err))
+	n.parent.terminalPrompts = append(n.parent.terminalPrompts, pd)
+	if len(n.parent.terminalPrompts) > 100 {
+		err = fmt.Errorf("too many prompts, something is likely wrong")
+	}
 	return ret, err
 }
 
@@ -263,6 +280,7 @@ func TestSignupLogout(t *testing.T) {
 	tc2.G.SetUI(&sui)
 	signup := client.NewCmdSignupRunner(tc2.G)
 	signup.SetTest()
+	signup.SetNoInvitationCodeBypass()
 
 	logout := client.NewCmdLogoutRunner(tc2.G)
 
@@ -323,6 +341,16 @@ func TestSignupLogout(t *testing.T) {
 		}
 		tc.G.Log.Debug("Got notification of login for %q", u)
 	}
+
+	require.Len(t, sui.passphrasePrompts, 2)
+
+	expectedPrompts := []libkb.PromptDescriptor{
+		client.PromptDescriptorSignupEmail,
+		client.PromptDescriptorSignupCode,
+		client.PromptDescriptorSignupUsername,
+		client.PromptDescriptorSignupDevice,
+	}
+	require.Equal(t, expectedPrompts, sui.terminalPrompts)
 
 	// signup calls logout, so clear that from the notification channel
 	select {
@@ -399,4 +427,63 @@ func TestLogoutMulti(t *testing.T) {
 	go user1.tc.G.Logout(context.TODO())
 	go user1.tc.G.Logout(context.TODO())
 	user1.tc.G.Logout(context.TODO())
+}
+
+func TestNoPasswordCliSignup(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	user := ctx.installKeybaseForUser("signup", 10)
+
+	userInfo := randomUser("sgnp")
+	user.userInfo = userInfo
+
+	dw := user.primaryDevice()
+	tctx := dw.popClone()
+
+	G := tctx.G
+	sui := signupUI{
+		info:         userInfo,
+		Contextified: libkb.NewContextified(G),
+	}
+	G.SetUI(&sui)
+	signup := client.NewCmdSignupRunner(G)
+	signup.SetTest()
+	signup.SetNoInvitationCodeBypass()
+	// Give us nopw signup without password prompt.
+	signup.SetNoPassphrasePrompt()
+
+	t.Logf("Running singup now")
+	err := signup.Run()
+	require.NoError(t, err)
+	t.Logf("after signup")
+
+	// Still same prompts for e-mail, username, and device name, but no
+	// password prompt.
+	require.Len(t, sui.passphrasePrompts, 0)
+	expectedPrompts := []libkb.PromptDescriptor{
+		client.PromptDescriptorSignupEmail,
+		client.PromptDescriptorSignupCode,
+		client.PromptDescriptorSignupUsername,
+		client.PromptDescriptorSignupDevice,
+	}
+	require.Equal(t, expectedPrompts, sui.terminalPrompts)
+
+	ucli := keybase1.UserClient{Cli: user.primaryDevice().rpcClient()}
+	res, err := ucli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.True(t, res)
+
+	G.ConfigureConfig()
+	logout := client.NewCmdLogoutRunner(G)
+	err = logout.Run()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Cannot logout")
+
+	logout = client.NewCmdLogoutRunner(G)
+	logout.Force = true
+	err = logout.Run()
+	require.NoError(t, err)
 }
