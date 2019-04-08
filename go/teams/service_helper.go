@@ -271,7 +271,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 	}
 
-	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
@@ -352,7 +352,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, us
 		return nil, err
 	}
 
-	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		res = make([]AddMembersRes, len(users))
 		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
@@ -434,7 +434,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 		return err
 	}
 	uv := upak.Current.ToUserVersion()
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
@@ -505,7 +505,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 }
 
 func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
 			return err
@@ -519,7 +519,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	emailList := splitBulk(emails)
 	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(emailList))
 
-	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		var res keybase1.BulkRes
 
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
@@ -606,7 +606,7 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 		return err
 	}
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
 			return err
@@ -659,7 +659,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 		return keybase1.TeamRole_NONE, err
 	}
 
-	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 		if err != nil {
 			return err
@@ -695,7 +695,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		return Leave(ctx, g, teamname, false)
 	}
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
 			return err
@@ -726,7 +726,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string) error {
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
 			return err
@@ -741,7 +741,7 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 }
 
 func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID) error {
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
 			return err
@@ -758,7 +758,7 @@ func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname stri
 }
 
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 		if err != nil {
 			return err
@@ -778,7 +778,7 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {
 	// This retry can cause multiple confirmation popups for the user
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
 			return err
@@ -917,7 +917,7 @@ func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		// Don't needAdmin because we might be leaving, and this needs no information from stubbable links.
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 		if err != nil {
@@ -1287,7 +1287,7 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 	var rotateKey bool
 	var teamID keybase1.TeamID
 
-	err := RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	err := RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 		if err != nil {
 			return err
@@ -1464,7 +1464,7 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
 	ctx = libkb.WithLogTag(ctx, "CREATETLF")
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, false)
 		if err != nil {
 			return err
@@ -1626,7 +1626,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 
 func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%v)", teamID), func() error { return err })()
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, attempt int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
 			Public:      teamID.IsPublic(),

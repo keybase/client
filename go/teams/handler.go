@@ -61,7 +61,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		// and then bail out.
 	}
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		if needTeamReload {
 			team2, err := Load(ctx, g, loadTeamArg)
 			if err != nil {
@@ -155,7 +155,7 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 		}
 	}
 
-	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, attempt int) error {
+	err = RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
 		if attempt > 0 {
 			var err error
 			team, err = Load(ctx, g, keybase1.LoadTeamArg{
@@ -345,7 +345,7 @@ func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, untrustedInviteeFromGregor keybase1.TeamInvitee) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleSBSSingle(teamID: %v, invitee: %+v)", teamID, untrustedInviteeFromGregor), func() error { return err })()
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
 			Public:      teamID.IsPublic(),
@@ -473,7 +473,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          msg.TeamID,
 			Public:      msg.TeamID.IsPublic(),

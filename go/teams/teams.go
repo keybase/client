@@ -6,12 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+
 	"fmt"
-	"reflect"
 	"sort"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/go-codec/codec"
 
 	"golang.org/x/crypto/nacl/secretbox"
@@ -636,16 +635,14 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 		return err
 	}
 
-	// check here
 	var group []keybase1.UserVersion
 	for uv := range memberSet.recipients {
 		group = append(group, uv)
 	}
 	newMemSet := newMemberSet()
 	_, err = newMemSet.loadGroup(ctx, t.G(), group, true, true)
-	if !reflect.DeepEqual(memberSet.recipients, newMemSet.recipients) {
-		spew.Dump("@@@", memberSet.recipients, newMemSet.recipients)
-		return fmt.Errorf("nawww")
+	if !memberSet.recipients.Eq(newMemSet.recipients) {
+		return BoxRaceError{inner: fmt.Errorf("team box summary changed during sig creation; retry required")}
 	}
 
 	err = t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
@@ -1825,21 +1822,25 @@ func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.Si
 }
 
 // Try to run `post` (expected to post new team sigchain links).
-// Retry it several times if it fails due to being behind the latest team sigchain state.
+// Retry it several times if it fails due to being behind the latest team sigchain state or due to other retryable errors.
 // Passes the attempt number (initially 0) to `post`.
-func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
-	defer g.CTraceTimed(ctx, "RetryOnSigOldSeqnoError", func() error { return err })()
+func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
+	defer g.CTraceTimed(ctx, "RetryIfPossible", func() error { return err })()
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
-		g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError(%v)", i)
+		g.Log.CDebugf(ctx, "| RetryIfPossible(%v)", i)
 		err = post(ctx, i)
 		if isSigOldSeqnoError(err) {
-			// This error means retry
+			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError", i)
+			continue
+		}
+		if isStaleBoxError(err) {
+			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError", i)
 			continue
 		}
 		return err
 	}
-	g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError exhausted attempts")
+	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
 	if err == nil {
 		// Should never happen
 		return fmt.Errorf("failed retryable team operation")
