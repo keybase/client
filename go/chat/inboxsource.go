@@ -689,8 +689,37 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return res, err
 }
 
-func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string) (res []chat1.ConversationLocal, err error) {
+func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string) (res []types.RemoteConversation, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Search")()
+	type searchable struct {
+		conv types.RemoteConversation
+		term string
+	}
+	ib := s.createInbox()
+	_, convs, err := ib.ReadAll(ctx, uid, true)
+	if err != nil {
+		return res, err
+	}
+	var searchables []searchable
+	for _, conv := range convs {
+		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT {
+			continue
+		}
+		var tlfName string
+		if conv.LocalMetadata == nil {
+			tlfName = conv.LocalMetadata.Name
+			if conv.GetTeamType() == chat1.TeamType_COMPLEX {
+				tlfName += " #" + conv.GetTopicName()
+			}
+		} else {
+			latest, err := utils.PickLatestMessageSummary(conv.Conv, nil)
+			if err != nil {
+				continue
+			} else {
+				tlfName = latest.TlfName
+			}
+		}
+	}
 	return nil, errors.New("not implemented")
 }
 
