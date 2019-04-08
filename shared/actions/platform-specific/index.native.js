@@ -273,7 +273,6 @@ function* loadStartupDetails() {
   let startupFollowUser = ''
   let startupLink = ''
   let startupTab = null
-  let startupSharePath = null
 
   const routeStateTask = yield Saga._fork(() =>
     RPCTypes.configGetValueRpcPromise({path: flags.useNewRouter ? 'ui.routeState2' : 'ui.routeState'})
@@ -296,9 +295,6 @@ function* loadStartupDetails() {
   } else if (share) {
     // Third priority, share
     // TODO: handle share.localPath or share.text.
-    if (share.localPath) {
-      startupSharePath = share.localPath
-    }
   } else if (routeState) {
     // Last priority, saved from last session
     try {
@@ -329,7 +325,6 @@ function* loadStartupDetails() {
       startupConversation,
       startupFollowUser,
       startupLink,
-      startupSharePath,
       startupTab,
       startupWasFromPush,
     })
