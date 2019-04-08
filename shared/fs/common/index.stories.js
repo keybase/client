@@ -16,6 +16,7 @@ import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
+import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 import SyncStatus from '../sync-status'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
