@@ -151,6 +151,7 @@ type InboxSource interface {
 		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
+	Search(ctx context.Context, uid gregor1.UID, query string) ([]chat1.ConversationLocal, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error

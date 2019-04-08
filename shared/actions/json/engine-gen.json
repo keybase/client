@@ -47,6 +47,9 @@
         "chat1ChatUiChatSearchIndexStatus": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'outParam'>) => void}"
         },
+        "chat1ChatUiChatSearchConvHits": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'outParam'>) => void}"
+        },
         "chat1ChatUiChatConfirmChannelDelete": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'outParam'>) => void}"
         },
