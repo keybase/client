@@ -145,6 +145,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
             startupDetailsLoaded: true,
             startupFollowUser: action.payload.startupFollowUser,
             startupLink: action.payload.startupLink,
+            startupSharePath: action.payload.startupSharePath,
             startupTab: action.payload.startupTab,
             startupWasFromPush: action.payload.startupWasFromPush,
           })
