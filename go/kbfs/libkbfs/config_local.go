@@ -1189,8 +1189,9 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	params := makeDefaultBackpressureDiskLimiterParams(
 		configRoot, c.getQuotaUsage, c.diskBlockCacheFraction, c.syncBlockCacheFraction)
 	log := c.MakeLogger("")
-	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
-		params.byteLimit, params.fileLimit)
+	freeFiles, _, _ := params.freeBytesAndFilesFn()
+	log.Debug("Setting disk storage byte limit to %d and file limit to %d; journalFrac=%f, freeBytes=%d, storageRoot=%s",
+		params.byteLimit, params.fileLimit, params.journalFrac, freeFiles, configRoot)
 	os.MkdirAll(configRoot, 0700)
 
 	diskLimiter, err := newBackpressureDiskLimiter(log, params)
