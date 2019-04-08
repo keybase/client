@@ -108,25 +108,27 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               onClick={this._onAuthorClick}
               style={styles.avatar}
             />
-            <Kb.ConnectedUsernames
-              colorBroken={true}
-              colorFollowing={true}
-              colorYou={true}
-              type="BodySmallBold"
-              usernames={[this.props.showUsername]}
-              onUsernameClicked={this._onAuthorClick}
-            />
-            {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
-              <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
-                <Kb.Icon
-                  color={
-                    this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35
-                  }
-                  fontSize={10}
-                  type="iconfont-crown-owner"
-                />
-              </Kb.WithTooltip>
-            )}
+            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.usernameCrown}>
+              <Kb.ConnectedUsernames
+                colorBroken={true}
+                colorFollowing={true}
+                colorYou={true}
+                type="BodySmallBold"
+                usernames={[this.props.showUsername]}
+                onUsernameClicked={this._onAuthorClick}
+              />
+              {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
+                <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
+                  <Kb.Icon
+                    color={
+                      this.props.authorIsOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35
+                    }
+                    fontSize={10}
+                    type="iconfont-crown-owner"
+                  />
+                </Kb.WithTooltip>
+              )}
+            </Kb.Box2>
             <Kb.Text type="BodyTiny" style={styles.timestamp}>
               {formatTimeForChat(this.props.message.timestamp)}
             </Kb.Text>
@@ -655,6 +657,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {lineHeight: 18},
     isMobile: {lineHeight: 20},
   }),
+  usernameCrown: {
+    alignSelf: 'flex-start',
+  },
 })
 
 export default WrapperMessage
