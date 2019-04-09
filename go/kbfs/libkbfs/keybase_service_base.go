@@ -1158,7 +1158,6 @@ func (k *KeybaseServiceBase) DecryptFavorites(ctx context.Context, dataToEncrypt
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifyOnlineStatusChanged(ctx context.Context,
 	online bool) error {
-	fmt.Printf("SONGGAO onlienStatus %v\n", online)
 	k.log.CDebugf(ctx, "Sending notification for onlineStatus: online=%v", online)
 	return k.kbfsClient.FSOnlineStatusChangedEvent(ctx, online)
 }

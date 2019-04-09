@@ -19,6 +19,7 @@ import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import flags from '../../util/feature-flags'
 
 const loadFavorites = (state, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -62,7 +63,8 @@ const tlfListToGetSyncConfigPromise = (state, tlfType) =>
     }))
   )
 
-// TODO: make a SimpleFS RPC for this case where we are asking for all.
+// TODO (KBFS-4047): make a SimpleFS RPC for this case where we are asking for
+// all.
 const loadSyncConfigForAllTlfs = (state, action) =>
   Promise.all(
     // TODO: sometimes we get an error if a TLF is not backed by team.
@@ -932,9 +934,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
-  yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
-  yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-  yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
   yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
   yield* Saga.chainAction<FsGen.NotifyTlfUpdatePayload>(FsGen.notifyTlfUpdate, onTlfUpdate)
@@ -971,14 +970,19 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
     waitForKbfsDaemon
   )
-  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
-    FsGen.kbfsDaemonRpcStatusChanged,
-    getKbfsDaemonOnlineStatus
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
-    EngineGen.keybase1NotifyFSFSOnlineStatusChanged,
-    onFSOnlineStatusChanged
-  )
+  if (flags.kbfsOfflineMode) {
+    yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
+    yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
+    yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
+    yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
+      FsGen.kbfsDaemonRpcStatusChanged,
+      getKbfsDaemonOnlineStatus
+    )
+    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
+      EngineGen.keybase1NotifyFSFSOnlineStatusChanged,
+      onFSOnlineStatusChanged
+    )
+  }
 
   yield Saga.spawn(platformSpecificSaga)
 }
