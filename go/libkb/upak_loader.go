@@ -154,8 +154,6 @@ func (u *CachedUPAKLoader) getMemCacheMaybeTryBothSlots(ctx context.Context, uid
 
 func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
 
-	return getter(stubMode)
-
 	ret = getter(stubMode)
 	if stubMode == StubModeUnstubbed {
 		return ret
@@ -278,7 +276,6 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	err := u.G().LocalDb.PutObj(culDBKeyV2(uid, stubMode), nil, *obj)
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "Error in writing UPAK for %s %s: %s", uid, stubMode, err)
-		return err
 	}
 
 	u.deleteV1UPAK(uid)
