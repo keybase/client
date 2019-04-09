@@ -15,8 +15,10 @@ type AccountReset struct {
 	libkb.Contextified
 	usernameOrEmail   string
 	reuseLoginContext bool
-	resetPending      bool
-	resetComplete     bool
+	completeReset     bool
+
+	resetPending  bool
+	resetComplete bool
 }
 
 // NewAccountReset creates a AccountReset engine.
@@ -89,11 +91,6 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 	switch err.(type) {
 	case nil:
 		self = true
-		tokener, err := libkb.NewSessionTokener(m)
-		if err != nil {
-			return err
-		}
-		m = m.WithAPITokener(tokener)
 	case
 		// ignore these errors since we can verify the reset process from usernameOrEmail
 		libkb.NoUIError,
@@ -101,7 +98,7 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 		libkb.RetryExhaustedError,
 		libkb.InputCanceledError,
 		libkb.SkipSecretPromptError:
-		m.Debug("unable to make NewSessionTokener: %v, charging forward without it", err)
+		m.Debug("unable to create a session: %v, charging forward without it", err)
 		if len(e.usernameOrEmail) == 0 {
 			return libkb.NewResetMissingParamsError("Unable to start autoreset process, unable to establish session, no username or email provided")
 		}
@@ -181,8 +178,8 @@ func (e *AccountReset) checkStatus(m libkb.MetaContext) (int, time.Time, error) 
 }
 
 func (e *AccountReset) resetPrompt(m libkb.MetaContext, eventType int, readyTime time.Time) error {
-	// Ask the user if they'd like to reset
-	if eventType == libkb.AutoresetEventReady {
+	if eventType == libkb.AutoresetEventReady && !e.completeReset {
+		// Ask the user if they'd like to reset if we're in login + it's ready
 		shouldReset, err := m.UIs().LoginUI.PromptResetAccount(m.Ctx(), keybase1.PromptResetAccountArg{
 			Text: "Would you like to complete the reset of your account?",
 		})
@@ -215,12 +212,19 @@ func (e *AccountReset) resetPrompt(m libkb.MetaContext, eventType int, readyTime
 		return nil
 	}
 
-	// Notify the user how much time is left
-	if err := m.UIs().LoginUI.DisplayResetProgress(m.Ctx(), keybase1.DisplayResetProgressArg{
-		Text: fmt.Sprintf(
+	// Notify the user how much time is left / if they can already reset
+	var notificationText string
+	switch eventType {
+	case libkb.AutoresetEventReady:
+		notificationText = "Your account reset is ready! Log in to complete the process."
+	default:
+		notificationText = fmt.Sprintf(
 			"You will be able to reset your account in %s.",
 			humanize.Time(readyTime),
-		),
+		)
+	}
+	if err := m.UIs().LoginUI.DisplayResetProgress(m.Ctx(), keybase1.DisplayResetProgressArg{
+		Text: notificationText,
 	}); err != nil {
 		return err
 	}

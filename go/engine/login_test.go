@@ -634,7 +634,7 @@ func accelerateReset(tc libkb.TestContext) error {
 	mctx := libkb.NewMetaContextForTest(tc)
 	_, err := tc.G.API.Post(mctx, libkb.APIArg{
 		Endpoint:    "test/accelerate_autoresetd",
-		SessionType: libkb.APISessionTypeNONE,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	})
 	return err
 }
