@@ -135,18 +135,20 @@ type BlockCacheSimple interface {
 	// Get gets the block associated with the given block ID.
 	Get(ptr BlockPointer) (Block, error)
 	// Put stores the final (content-addressable) block associated
-	// with the given block ID. If lifetime is TransientEntry,
-	// then it is assumed that the block exists on the server and
-	// the entry may be evicted from the cache at any time. If
-	// lifetime is PermanentEntry, then it is assumed that the
-	// block doesn't exist on the server and must remain in the
-	// cache until explicitly removed. As an intermediary state,
-	// as when a block is being sent to the server, the block may
-	// be put into the cache both with TransientEntry and
-	// PermanentEntry -- these are two separate entries. This is
-	// fine, since the block should be the same.
+	// with the given block ID. If lifetime is TransientEntry, then it
+	// is assumed that the block exists on the server and the entry
+	// may be evicted from the cache at any time. If lifetime is
+	// PermanentEntry, then it is assumed that the block doesn't exist
+	// on the server and must remain in the cache until explicitly
+	// removed. As an intermediary state, as when a block is being
+	// sent to the server, the block may be put into the cache both
+	// with TransientEntry and PermanentEntry -- these are two
+	// separate entries. This is fine, since the block should be the
+	// same.  `hashBehavior` indicates whether the plaintext contents
+	// of transient, direct blocks should be hashed, in order to
+	// identify blocks that can be de-duped.
 	Put(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime) error
+		lifetime BlockCacheLifetime, hashBehavior BlockCacheHashBehavior) error
 }
 
 // BlockCache specifies the interface of BlockCacheSimple, and also more

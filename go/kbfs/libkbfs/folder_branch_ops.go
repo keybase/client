@@ -2347,6 +2347,13 @@ func ResetRootBlock(ctx context.Context, config Config,
 	return newDblock, info, readyBlockData, nil
 }
 
+func (fbo *folderBranchOps) cacheHashBehavior() data.BlockCacheHashBehavior {
+	if TLFJournalEnabled(fbo.config, fbo.id()) {
+		return data.SkipCacheHash
+	}
+	return data.DoCacheHash
+}
+
 func (fbo *folderBranchOps) initMDLocked(
 	ctx context.Context, lState *kbfssync.LockState, md *RootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -2441,7 +2448,8 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 	err = fbo.config.BlockCache().Put(
-		info.BlockPointer, fbo.id(), newDblock, data.TransientEntry)
+		info.BlockPointer, fbo.id(), newDblock, data.TransientEntry,
+		fbo.cacheHashBehavior())
 	if err != nil {
 		fbo.log.CDebugf(
 			ctx, "Error caching new block %v: %+v", info.BlockPointer, err)
@@ -3326,7 +3334,8 @@ func (fbo *folderBranchOps) finalizeBlocks(
 			fbo.log.CDebugf(ctx, "Error getting block for %v: %+v", newPtr, err)
 		}
 		if err := bcache.Put(
-			newPtr, fbo.id(), block, data.TransientEntry); err != nil {
+			newPtr, fbo.id(), block, data.TransientEntry,
+			fbo.cacheHashBehavior()); err != nil {
 			fbo.log.CDebugf(
 				ctx, "Error caching new block %v: %+v", newPtr, err)
 		}
@@ -8410,7 +8419,8 @@ func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
 
 	// Put the unencrypted block in the cache.
 	err = fbo.config.BlockCache().Put(
-		info.BlockPointer, fbo.id(), b, data.TransientEntry)
+		info.BlockPointer, fbo.id(), b, data.TransientEntry,
+		fbo.cacheHashBehavior())
 	if err != nil {
 		fbo.log.CDebugf(ctx,
 			"Error caching new block %v: %+v", info.BlockPointer, err)

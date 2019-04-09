@@ -24,7 +24,7 @@ func testBcachePutWithBlock(t *testing.T, id kbfsblock.ID, bcache BlockCache, li
 	tlf := tlf.FakeID(1, tlf.Private)
 
 	// put the block
-	err := bcache.Put(ptr, tlf, block, lifetime)
+	err := bcache.Put(ptr, tlf, block, lifetime, SkipCacheHash)
 	require.NoError(t, err)
 
 	// make sure we can get it successfully
@@ -79,7 +79,7 @@ func TestBlockCacheCheckPtrSuccess(t *testing.T) {
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, tlf.Private)
 
-	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	err := bcache.Put(ptr, tlf, block, TransientEntry, DoCacheHash)
 	require.NoError(t, err)
 
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
@@ -96,7 +96,7 @@ func TestBlockCacheCheckPtrPermanent(t *testing.T) {
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, tlf.Private)
 
-	err := bcache.Put(ptr, tlf, block, PermanentEntry)
+	err := bcache.Put(ptr, tlf, block, PermanentEntry, SkipCacheHash)
 	require.NoError(t, err)
 
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
@@ -113,7 +113,7 @@ func TestBlockCacheCheckPtrNotFound(t *testing.T) {
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, tlf.Private)
 
-	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	err := bcache.Put(ptr, tlf, block, TransientEntry, DoCacheHash)
 	require.NoError(t, err)
 
 	block2 := NewFileBlock().(*FileBlock)
@@ -132,7 +132,7 @@ func TestBlockCacheDeleteTransient(t *testing.T) {
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, tlf.Private)
 
-	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	err := bcache.Put(ptr, tlf, block, TransientEntry, DoCacheHash)
 	require.NoError(t, err)
 
 	err = bcache.DeleteTransient(ptr.ID, tlf)
@@ -175,7 +175,7 @@ func TestBlockCacheEmptyTransient(t *testing.T) {
 	// Make sure all the operations work even if the cache has no
 	// transient capacity.
 
-	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	err := bcache.Put(ptr, tlf, block, TransientEntry, DoCacheHash)
 	require.NoError(t, err)
 
 	_, err = bcache.Get(ptr)
@@ -200,7 +200,7 @@ func TestBlockCacheEvictOnBytes(t *testing.T) {
 		id := kbfsblock.FakeID(i)
 		ptr := BlockPointer{ID: id}
 
-		err := bcache.Put(ptr, tlf, block, TransientEntry)
+		err := bcache.Put(ptr, tlf, block, TransientEntry, SkipCacheHash)
 		require.NoError(t, err)
 	}
 
@@ -227,7 +227,7 @@ func TestBlockCacheEvictIncludesPermanentSize(t *testing.T) {
 	block := &FileBlock{
 		Contents: make([]byte, 2),
 	}
-	err := bcache.Put(ptr, tlf, block, PermanentEntry)
+	err := bcache.Put(ptr, tlf, block, PermanentEntry, SkipCacheHash)
 	require.NoError(t, err)
 
 	for i := byte(1); i < 8; i++ {
@@ -237,7 +237,7 @@ func TestBlockCacheEvictIncludesPermanentSize(t *testing.T) {
 		id := kbfsblock.FakeID(i)
 		ptr := BlockPointer{ID: id}
 
-		err := bcache.Put(ptr, tlf, block, TransientEntry)
+		err := bcache.Put(ptr, tlf, block, TransientEntry, SkipCacheHash)
 		require.NoError(t, err)
 	}
 
@@ -264,7 +264,7 @@ func TestBlockCacheEvictIncludesPermanentSize(t *testing.T) {
 	block.SetEncodedSize(7)
 	id := kbfsblock.FakeID(8)
 	ptr = BlockPointer{ID: id}
-	err = bcache.Put(ptr, tlf, block, TransientEntry)
+	err = bcache.Put(ptr, tlf, block, TransientEntry, SkipCacheHash)
 	require.EqualError(t, err, CachePutCacheFullError{ptr.ID}.Error())
 
 	// All transient blocks should be gone (including the new one)
@@ -284,7 +284,7 @@ func TestBlockCacheEvictIncludesPermanentSize(t *testing.T) {
 	block2 := &FileBlock{
 		Contents: make([]byte, 10),
 	}
-	err = bcache.Put(ptr2, tlf, block2, PermanentEntry)
+	err = bcache.Put(ptr2, tlf, block2, PermanentEntry, SkipCacheHash)
 	require.NoError(t, err)
 
 	_, err = bcache.Get(BlockPointer{ID: idPerm})
@@ -304,7 +304,7 @@ func TestBlockCachePutNoHashCalculation(t *testing.T) {
 	// into the cache
 	hash := &kbfshash.RawDefaultHash{}
 	block.hash = hash
-	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	err := bcache.Put(ptr, tlf, block, TransientEntry, DoCacheHash)
 	require.NoError(t, err)
 
 	// CheckForKnownPtr() calculates hash only if it's nil. If the block with
