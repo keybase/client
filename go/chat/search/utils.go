@@ -53,7 +53,7 @@ func prefixes(token string) (res []string) {
 	return res
 }
 
-type tokenMap map[string]map[string]struct{}
+type tokenMap map[string]map[string]chat1.EmptyStruct
 
 // getIndexTokens splits the content of the given message on whitespace and
 // special characters returning a map of tokens to aliases  normalized to lowercase.
@@ -72,7 +72,7 @@ func tokenize(msgText string) tokenMap {
 
 		token = strings.ToLower(token)
 		if _, ok := tokenMap[token]; !ok {
-			tokenMap[token] = map[string]struct{}{}
+			tokenMap[token] = map[string]chat1.EmptyStruct{}
 		}
 
 		// strip separators to raw tokens which we count as an alias to the
@@ -82,15 +82,15 @@ func tokenize(msgText string) tokenMap {
 			if s == "" {
 				continue
 			}
-			tokenMap[token][s] = struct{}{}
+			tokenMap[token][s] = chat1.EmptyStruct{}
 
 			// add the stem as an alias
 			stemmed := porterstemmer.StemWithoutLowerCasing([]rune(s))
-			tokenMap[token][string(stemmed)] = struct{}{}
+			tokenMap[token][string(stemmed)] = chat1.EmptyStruct{}
 
 			// calculate prefixes to alias to the token
 			for _, prefix := range prefixes(s) {
-				tokenMap[token][prefix] = struct{}{}
+				tokenMap[token][prefix] = chat1.EmptyStruct{}
 			}
 		}
 		// drop the original token from the set of aliases
