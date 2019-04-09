@@ -534,20 +534,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		// We may need to hit the server for secrets, even though there are no new links.
 		if arg.needAdmin {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedAdmin")
-			// Admins should always have up-to-date secrets
+			// Admins should always have up-to-date secrets. But not necessarily RKMs.
 			fetchLinksAndOrSecrets = true
 		}
-		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
+		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, ret); err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: KBFSNeedKeyGeneration: %v", err)
-			fetchLinksAndOrSecrets = true
-		}
-		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
-			arg.needApplicationsAtGenerationsWithKBFS, ret); err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerationsWithKBFS: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if arg.readSubteamID == nil {
@@ -557,9 +552,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			fetchLinksAndOrSecrets = true
 		}
 	}
-	// hasSyncedSecrets does not account for RKMs so we verify it separately.
-	if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
-		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+	// hasSyncedSecrets does not account for RKMs. So check RKM refreshers separeately.
+	if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
+		fetchLinksAndOrSecrets = true
+	}
+	if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
+		arg.needApplicationsAtGenerationsWithKBFS, ret); err != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerationsWithKBFS: %v", err)
 		fetchLinksAndOrSecrets = true
 	}
 
@@ -851,7 +851,8 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 
 // Decide whether to repoll merkle based on load arg.
 // Returns (discardCache, repoll)
-// If discardCache is true, the caller should throw out their cached copy and repoll.
+// discardCache - the caller should throw out their cached copy and repoll.
+// repoll - hit up merkle for the latest tail
 // Considers:
 // - NeedAdmin
 // - NeedKeyGeneration
@@ -863,58 +864,68 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // - JustUpdated
 // - If this user is in global "force repoll" mode, where it would be too spammy to
 //   push out individual team changed notifications, so all team loads need a repoll.
-func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromCache *keybase1.TeamData) (bool, bool) {
+func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromCache *keybase1.TeamData) (discardCache bool, repoll bool) {
+	var reason string
+	defer func() {
+		if discardCache || repoll || reason != "" {
+			l.G().Log.CDebugf(ctx, "load2DecideRepoll -> (discardCache:%v, repoll:%v) %v", discardCache, repoll, reason)
+		}
+	}()
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
 	if arg.needAdmin {
 		if !l.satisfiesNeedAdmin(ctx, arg.me, fromCache) {
 			// Start from scratch if we are newly admin
+			reason = "!satisfiesNeedAdmin"
 			return true, true
 		}
 	}
 
-	// Whether to hit up merkle for the latest tail.
-	// This starts out false and then there are many reasons for turning it true.
-	repoll := false
-
 	if arg.forceRepoll {
-		repoll = true
+		reason = "forceRepoll"
+		return false, true
 	}
 
 	// Repoll if the server has previously hinted that the team has new links.
 	if fromCache != nil && fromCache.Chain.LastSeqno < fromCache.LatestSeqnoHint {
-		repoll = true
+		reason = "behind seqno hint"
+		return false, true
 	}
 
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
-		if l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, fromCache) != nil {
-			repoll = true
+		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, fromCache); err != nil {
+			reason = fmt.Sprintf("satisfiesNeedKeyGeneration -> %v", err)
+			return false, true
 		}
 	}
 	// Repoll to get new applications at generations
 	if len(arg.needApplicationsAtGenerations) > 0 {
-		if l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, fromCache) != nil {
-			repoll = true
+		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, fromCache); err != nil {
+			reason = fmt.Sprintf("satisfiesNeedApplicationsAtGenerations -> %v", err)
+			return false, true
 		}
 	}
 	if arg.needKBFSKeyGeneration.Generation > 0 {
-		if l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, fromCache) != nil {
-			repoll = true
+		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, fromCache); err != nil {
+			reason = fmt.Sprintf("satisfiesNeedsKBFSKeyGeneration -> %v", err)
+			return false, true
 		}
 	}
 
 	if len(arg.needApplicationsAtGenerationsWithKBFS) > 0 {
-		if l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
-			arg.needApplicationsAtGenerationsWithKBFS, fromCache) != nil {
-			repoll = true
+		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
+			arg.needApplicationsAtGenerationsWithKBFS, fromCache); err != nil {
+			reason = fmt.Sprintf("satisfiesNeedApplicationsAtGenerationsWithKBFS -> %v", err)
+			return false, true
 		}
 	}
 
 	// Repoll because it might help get the wanted members
 	if len(arg.wantMembers) > 0 {
-		if l.satisfiesWantMembers(ctx, arg.wantMembers, arg.wantMembersRole, fromCache) != nil {
-			repoll = true
+		if err := l.satisfiesWantMembers(ctx, arg.wantMembers, arg.wantMembersRole, fromCache); err != nil {
+			reason = fmt.Sprintf("satisfiesWantMembers -> %v", err)
+			return false, true
 		}
 	}
 
@@ -922,32 +933,35 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	// Does not force a repoll if we just need to fill in previous links
 	if len(arg.needSeqnos) > 0 {
 		if fromCache == nil {
-			repoll = true
-		} else {
-			if fromCache.Chain.LastSeqno < l.seqnosMax(arg.needSeqnos) {
-				repoll = true
-			}
+			reason = "need seqnos and no cache"
+			return false, true
+		}
+		if fromCache.Chain.LastSeqno < l.seqnosMax(arg.needSeqnos) {
+			reason = "need seqnos"
+			return false, true
 		}
 	}
 
 	if fromCache == nil {
+		reason = "no cache"
 		// We need a merkle leaf when starting from scratch.
-		repoll = true
+		return false, true
 	}
 
 	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
-		repoll = true
+		reason = "cacheIsOld"
+		return false, true
 	}
 
-	// InForceRepoll needs to a acquire a lock, so avoid it if we can
-	// (i.e., if repoll is already set to true).
-	if !repoll && l.InForceRepollMode(ctx) {
-		repoll = true
+	// InForceRepoll needs to a acquire a lock, so avoid it by checking it last.
+	if l.InForceRepollMode(ctx) {
+		reason = "InForceRepollMode"
+		return false, true
 	}
 
-	return false, repoll
+	return false, false
 }
 
 // Check whether the load produced a snapshot that can be returned to the caller.
@@ -1267,6 +1281,7 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 }
 
 // Whether the teams secrets are synced to the same point as its sigchain
+// Does not check RKMs.
 func (l *TeamLoader) hasSyncedSecrets(state *keybase1.TeamData) bool {
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
 	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
