@@ -180,7 +180,7 @@ func (e *AccountReset) checkStatus(mctx libkb.MetaContext) (int, time.Time, erro
 }
 
 func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, eventType int, readyTime time.Time) error {
-	if eventType == libkb.AutoresetEventReady && !e.completeReset {
+	if eventType == libkb.AutoresetEventReady && e.completeReset {
 		// Ask the user if they'd like to reset if we're in login + it's ready
 		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
 			Text: "Would you like to complete the reset of your account?",

@@ -22,6 +22,7 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -600,7 +601,7 @@ func TestProvisionAutoreset(t *testing.T) {
 
 	// Travel 3 days into future + 60s to make sure that it all runs
 	require.Nil(t, accelerateReset(tcX))
-	require.Nil(t, timeTravelReset(tcX, 3*24*60*61))
+	require.Nil(t, timeTravelReset(tcX, time.Hour*72))
 	time.Sleep(time.Second)
 
 	// Second iteration on device Y should result in a reset + provision
@@ -618,13 +619,13 @@ func TestProvisionAutoreset(t *testing.T) {
 	require.Nil(t, AssertProvisioned(tcY), "should be provisioned on device y")
 }
 
-func timeTravelReset(tc libkb.TestContext, duration int) error {
+func timeTravelReset(tc libkb.TestContext, duration time.Duration) error {
 	mctx := libkb.NewMetaContextForTest(tc)
 	_, err := tc.G.API.Post(mctx, libkb.APIArg{
 		Endpoint:    "autoreset/timetravel",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"duration_sec": libkb.I{Val: duration},
+			"duration_sec": libkb.I{Val: int(gregor1.ToDurationSec(duration))},
 		},
 	})
 	return err
