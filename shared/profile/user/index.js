@@ -198,7 +198,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
       <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
         <Kb.Button onClick={this.props.onAddIdentity} style={styles.addIdentityButton} type="Secondary">
           <Kb.Text type="BodyBig" style={styles.label}>
-            Mastodon + others
+            Add more identities
           </Kb.Text>
           <Kb.Meta backgroundColor={Styles.globalColors.blue} title="NEW" style={styles.newMeta} />
         </Kb.Button>
