@@ -2036,11 +2036,6 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
-  'iconfont-heads': {
-    charCode: 0xe97a,
-    gridSize: 16,
-    isFont: true,
-  },
   'iconfont-heart': {
     charCode: 0xe978,
     gridSize: 16,
@@ -2263,6 +2258,11 @@ const iconMeta_ = {
   },
   'iconfont-refresh': {
     charCode: 0xe956,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-reload': {
+    charCode: 0xe97a,
     gridSize: 16,
     isFont: true,
   },
