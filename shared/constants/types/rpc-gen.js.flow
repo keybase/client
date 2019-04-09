@@ -2634,7 +2634,7 @@ export type RepoID = String
 export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, prev: ResetPrev, resetSeqno: Seqno, type: ResetType, uid: UID}>
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
 export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, lastSeqno: Seqno, reset: SHA512}>
-export type ResetState = $ReadOnly<{endTime: Time, msg: String}>
+export type ResetState = $ReadOnly<{endTime: Time, active: Boolean}>
 export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, eldestSeqno: Seqno, type: ResetType}>
 export type ResetType =
   | 0 // NONE_0
