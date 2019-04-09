@@ -2402,13 +2402,13 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	// send up conversation name matches
 	convUIDone := make(chan struct{})
 	go func() {
+		defer close(convUIDone)
 		convHits, err := h.G().InboxSource.Search(ctx, uid, arg.Query, arg.Opts.MaxNameConvs)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
 		} else {
 			chatUI.ChatSearchConvHits(ctx, utils.PresentRemoteConversationsAsSearchHits(convHits, username))
 		}
-		close(convUIDone)
 	}()
 
 	var searchRes *chat1.ChatSearchInboxResults

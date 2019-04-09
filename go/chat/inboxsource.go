@@ -750,11 +750,12 @@ func (s *HybridInboxSource) isConvSearchHit(conv types.RemoteConversation, query
 	var convToks []string
 	res.conv = conv
 	res.queryToks = queryToks
+	searchable := utils.SearchableRemoteConversationName(conv, username)
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		convToks = []string{utils.SearchableRemoteConversationName(conv, username)}
+		convToks = []string{searchable}
 	default:
-		convToks = strings.Split(utils.SearchableRemoteConversationName(conv, username), ",")
+		convToks = strings.Split(searchable, ",")
 	}
 	res.convToks = convToks
 	for _, queryTok := range queryToks {
@@ -762,6 +763,7 @@ func (s *HybridInboxSource) isConvSearchHit(conv types.RemoteConversation, query
 		for _, convTok := range convToks {
 			if nameContainsQueryExact > curHit && convTok == queryTok {
 				curHit = nameContainsQueryExact
+				break
 			} else if nameContainsQueryPrefix > curHit && strings.HasPrefix(convTok, queryTok) {
 				curHit = nameContainsQueryPrefix
 			} else if nameContainsQuerySimilar > curHit && strings.Contains(convTok, queryTok) {
