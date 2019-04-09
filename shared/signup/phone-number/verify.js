@@ -57,14 +57,19 @@ class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
             onChangeText={this._onChangeText}
             maxLength={5}
             textType="Header"
+            textContentType="oneTimeCode"
           >
             <Kb.Text type="Header" style={styles.inputText}>
               {this.state.value}
             </Kb.Text>
           </Kb.PlainInput>
           <Kb.ClickableBox onClick={this.props.onResend}>
-            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resend}>
-              <Kb.Icon type="iconfont-reload" color={Styles.globalColors.white} />
+            <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" style={styles.resend}>
+              <Kb.Icon
+                type="iconfont-reload"
+                color={Styles.globalColors.white}
+                style={styles.iconVerticalAlign}
+              />
               <Kb.Text type="BodySemibold" negative={true}>
                 Resend SMS
               </Kb.Text>
@@ -102,6 +107,12 @@ const styles = Styles.styleSheetCreate({
       right: 0,
     },
   }),
+  iconVerticalAlign: Styles.platformStyles({
+    isElectron: {
+      position: 'relative',
+      top: 1,
+    },
+  }),
   input: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.darkBlue2,
@@ -129,6 +140,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   resend: Styles.platformStyles({
+    common: {
+      position: 'relative',
+    },
     isElectron: {
       paddingTop: Styles.globalMargins.tiny,
     },
