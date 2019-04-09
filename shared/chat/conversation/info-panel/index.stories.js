@@ -74,14 +74,20 @@ const commonProps = {
   participants: [
     {
       fullname: 'Fred Akalin',
+      isAdmin: true,
+      isOwner: true,
       username: 'akalin',
     },
     {
       fullname: 'Jeremy Stribling',
+      isAdmin: true,
+      isOwner: false,
       username: 'strib',
     },
     {
       fullname: 'Max Krohn',
+      isAdmin: false,
+      isOwner: false,
       username: 'max',
     },
   ],
@@ -168,42 +174,46 @@ const bigTeamLotsaUsersCommonProps = {
   ...bigTeamNoPreviewProps,
   participants: new Array(100).fill(0).map((_, i) => ({
     fullname: `Agent ${i}`,
+    isAdmin: false,
+    isOwner: false,
     username: `agnt${i}`,
   })),
 }
 
-const hideSpinnerLayout = () => (<Box>
-  <CaptionedDangerIcon
-    key="hf"
-    caption="Hide this conversation"
-    noDanger={true}
-    onClick={Sb.action('hide')}
-    icon="iconfont-remove"
-    spinner={false}
-  />
-  <CaptionedDangerIcon
-    key="ht"
-    caption="Hide this conversation"
-    noDanger={true}
-    onClick={Sb.action('hide')}
-    icon="iconfont-remove"
-    spinner={true}
-  />
-  <CaptionedDangerIcon
-    key="uf"
-    caption="Unhide this conversation"
-    onClick={Sb.action('unhide')}
-    noDanger={true}
-    spinner={false}
-  />
-  <CaptionedDangerIcon
-    key="ut"
-    caption="Unhide this conversation"
-    onClick={Sb.action('unhide')}
-    noDanger={true}
-    spinner={true}
-  />
-</Box>)
+const hideSpinnerLayout = () => (
+  <Box>
+    <CaptionedDangerIcon
+      key="hf"
+      caption="Hide this conversation"
+      noDanger={true}
+      onClick={Sb.action('hide')}
+      icon="iconfont-remove"
+      spinner={false}
+    />
+    <CaptionedDangerIcon
+      key="ht"
+      caption="Hide this conversation"
+      noDanger={true}
+      onClick={Sb.action('hide')}
+      icon="iconfont-remove"
+      spinner={true}
+    />
+    <CaptionedDangerIcon
+      key="uf"
+      caption="Unhide this conversation"
+      onClick={Sb.action('unhide')}
+      noDanger={true}
+      spinner={false}
+    />
+    <CaptionedDangerIcon
+      key="ut"
+      caption="Unhide this conversation"
+      onClick={Sb.action('unhide')}
+      noDanger={true}
+      spinner={true}
+    />
+  </Box>
+)
 
 const load = () => {
   addToChannel()

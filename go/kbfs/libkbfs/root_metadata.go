@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -28,7 +29,7 @@ import (
 // directories
 type PrivateMetadata struct {
 	// directory entry for the root directory block
-	Dir DirEntry
+	Dir data.DirEntry
 
 	// m_f as described in § 4.1.1 of https://keybase.io/docs/crypto/kbfs.
 	TLFPrivateKey kbfscrypto.TLFPrivateKey
@@ -98,7 +99,7 @@ func (p PrivateMetadata) checkValid() error {
 }
 
 // ChangesBlockInfo returns the block info for any unembedded changes.
-func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
+func (p PrivateMetadata) ChangesBlockInfo() data.BlockInfo {
 	return p.cachedChanges.Info
 }
 
@@ -176,7 +177,7 @@ func (md *RootMetadata) Data() *PrivateMetadata {
 
 // GetRootDirEntry implements the KeyMetadataWithRootDirEntry
 // interface for RootMetadata.
-func (md *RootMetadata) GetRootDirEntry() DirEntry {
+func (md *RootMetadata) GetRootDirEntry() data.DirEntry {
 	return md.data.Dir
 }
 
@@ -362,14 +363,14 @@ func (md *RootMetadata) IsInitialized() bool {
 }
 
 // AddRefBlock adds the newly-referenced block to the add block change list.
-func (md *RootMetadata) AddRefBlock(info BlockInfo) {
+func (md *RootMetadata) AddRefBlock(info data.BlockInfo) {
 	md.AddRefBytes(uint64(info.EncodedSize))
 	md.AddDiskUsage(uint64(info.EncodedSize))
 	md.data.Changes.AddRefBlock(info.BlockPointer)
 }
 
 // AddUnrefBlock adds the newly-unreferenced block to the add block change list.
-func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
+func (md *RootMetadata) AddUnrefBlock(info data.BlockInfo) {
 	if info.EncodedSize > 0 {
 		md.AddUnrefBytes(uint64(info.EncodedSize))
 		md.SetDiskUsage(md.DiskUsage() - uint64(info.EncodedSize))
@@ -378,7 +379,7 @@ func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
 }
 
 // AddUpdate adds the newly-updated block to the add block change list.
-func (md *RootMetadata) AddUpdate(oldInfo BlockInfo, newInfo BlockInfo) {
+func (md *RootMetadata) AddUpdate(oldInfo data.BlockInfo, newInfo data.BlockInfo) {
 	md.AddUnrefBytes(uint64(oldInfo.EncodedSize))
 	md.AddRefBytes(uint64(newInfo.EncodedSize))
 	md.AddDiskUsage(uint64(newInfo.EncodedSize))
@@ -400,7 +401,7 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.SetUnrefBytes(0)
 	md.SetMDRefBytes(0)
 	md.data.Changes.sizeEstimate = 0
-	md.data.Changes.Info = BlockInfo{}
+	md.data.Changes.Info = data.BlockInfo{}
 	md.data.Changes.Ops = nil
 }
 
@@ -506,10 +507,10 @@ func (md *RootMetadata) loadCachedBlockChanges(
 
 	// Prepare a map of all FileBlocks for easy access by fileData
 	// below.
-	fileBlocks := make(map[BlockPointer]*FileBlock)
+	fileBlocks := make(map[data.BlockPointer]*data.FileBlock)
 	for _, ptr := range bps.ptrs() {
 		if block, err := bps.getBlock(ctx, ptr); err == nil {
-			if fblock, ok := block.(*FileBlock); ok {
+			if fblock, ok := block.(*data.FileBlock); ok {
 				fileBlocks[ptr] = fblock
 			}
 		}
@@ -518,16 +519,17 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	// uid, crypto and bsplitter aren't used for simply getting the
 	// indirect pointers, so set them to nil.
 	var id keybase1.UserOrTeamID
-	file := path{
-		FolderBranch{md.TlfID(), MasterBranch},
-		[]pathNode{{
-			md.data.cachedChanges.Info.BlockPointer,
-			fmt.Sprintf("<MD with revision %d>", md.Revision()),
+	file := data.Path{
+		FolderBranch: data.FolderBranch{
+			Tlf: md.TlfID(), Branch: data.MasterBranch},
+		Path: []data.PathNode{{
+			BlockPointer: md.data.cachedChanges.Info.BlockPointer,
+			Name:         fmt.Sprintf("<MD with revision %d>", md.Revision()),
 		}},
 	}
-	fd := newFileData(file, id, nil, nil, md.ReadOnly(),
-		func(_ context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
-			_ path, _ blockReqType) (*FileBlock, bool, error) {
+	fd := data.NewFileData(file, id, nil, md.ReadOnly(),
+		func(_ context.Context, _ libkey.KeyMetadata, ptr data.BlockPointer,
+			_ data.Path, _ data.BlockReqType) (*data.FileBlock, bool, error) {
 			fblock, ok := fileBlocks[ptr]
 			if !ok {
 				return nil, false, fmt.Errorf(
@@ -535,11 +537,11 @@ func (md *RootMetadata) loadCachedBlockChanges(
 			}
 			return fblock, false, nil
 		},
-		func(_ context.Context, ptr BlockPointer, block Block) error {
+		func(_ context.Context, ptr data.BlockPointer, block data.Block) error {
 			return nil
 		}, log)
 
-	infos, err := fd.getIndirectFileBlockInfos(ctx)
+	infos, err := fd.GetIndirectFileBlockInfos(ctx)
 	if err != nil {
 		panic(fmt.Sprintf(
 			"Couldn't find all unembedded change blocks for %v: %v",

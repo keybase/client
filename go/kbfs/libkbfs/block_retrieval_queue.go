@@ -14,6 +14,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 
 	"github.com/eapache/channels"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -37,7 +38,7 @@ const (
 )
 
 type blockRetrievalPartialConfig interface {
-	dataVersioner
+	data.Versioner
 	logMaker
 	blockCacher
 	diskBlockCacheGetter
@@ -62,7 +63,7 @@ func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
 
 // blockRetrievalRequest represents one consumer's request for a block.
 type blockRetrievalRequest struct {
-	block  Block
+	block  data.Block
 	doneCh chan error
 }
 
@@ -71,7 +72,7 @@ type blockRetrievalRequest struct {
 type blockRetrieval struct {
 	//// Retrieval Metadata
 	// the block pointer to retrieve
-	blockPtr BlockPointer
+	blockPtr data.BlockPointer
 	// the key metadata for the request
 	kmd libkey.KeyMetadata
 	// the context encapsulating all request contexts
@@ -85,7 +86,7 @@ type blockRetrieval struct {
 	// once the block is returned
 	requests []*blockRetrievalRequest
 	// the cache lifetime for the retrieval
-	cacheLifetime BlockCacheLifetime
+	cacheLifetime data.BlockCacheLifetime
 	// the follow-on action to take once the block is fetched
 	action BlockRequestAction
 
@@ -105,7 +106,7 @@ type blockRetrieval struct {
 // cause a retrieval, but branching on type allows us to avoid special casing
 // the code.
 type blockPtrLookup struct {
-	bp BlockPointer
+	bp data.BlockPointer
 	t  reflect.Type
 }
 
@@ -325,12 +326,12 @@ func (brq *blockRetrievalQueue) setPrefetchStatus(
 // PutInCaches implements the BlockRetriever interface for
 // BlockRetrievalQueue.
 func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
-	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
+	ptr data.BlockPointer, tlfID tlf.ID, block data.Block, lifetime data.BlockCacheLifetime,
 	prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) (err error) {
 	err = brq.config.BlockCache().Put(ptr, tlfID, block, lifetime)
 	switch err.(type) {
 	case nil:
-	case cachePutCacheFullError:
+	case data.CachePutCacheFullError:
 		// Ignore cache full errors and send to the disk cache anyway.
 	default:
 		return err
@@ -342,7 +343,7 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	err = dbc.UpdateMetadata(ctx, tlfID, ptr.ID, prefetchStatus, cacheType)
 	switch errors.Cause(err).(type) {
 	case nil:
-	case NoSuchBlockError:
+	case data.NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
 		// need the serverHalf.
 		brq.vlog.CLogf(ctx, libkb.VLog1,
@@ -356,7 +357,7 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 
 // checkCaches copies a block into `block` if it's in one of our caches.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
-	kmd libkey.KeyMetadata, ptr BlockPointer, block Block, action BlockRequestAction) (
+	kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block, action BlockRequestAction) (
 	PrefetchStatus, error) {
 	dbc := brq.config.DiskBlockCache()
 	preferredCacheType := action.CacheType()
@@ -387,7 +388,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		return NoPrefetch, err
 	}
 	if len(blockBuf) == 0 {
-		return NoPrefetch, NoSuchBlockError{ptr.ID}
+		return NoPrefetch, data.NoSuchBlockError{ID: ptr.ID}
 	}
 
 	// Assemble the block from the encrypted block buffer.
@@ -396,15 +397,15 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	if err == nil {
 		// Cache the block in memory.
 		brq.config.BlockCache().Put(
-			ptr, kmd.TlfID(), block, TransientEntry)
+			ptr, kmd.TlfID(), block, data.TransientEntry)
 	}
 	return prefetchStatus, err
 }
 
 // request retrieves blocks asynchronously.
 func (brq *blockRetrievalQueue) request(ctx context.Context,
-	priority int, kmd libkey.KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
+	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
+	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	brq.vlog.CLogf(ctx, libkb.VLog1,
 		"Request of %v, action=%s, priority=%d", ptr, action, priority)
 
@@ -441,7 +442,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		ch <- nil
 		return ch
 	}
-	err = checkDataVersion(brq.config, path{}, ptr)
+	err = checkDataVersion(brq.config, data.Path{}, ptr)
 	if err != nil {
 		if action.PrefetchTracked() {
 			brq.Prefetcher().CancelPrefetch(ptr)
@@ -539,8 +540,8 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 
 // Request implements the BlockRetriever interface for blockRetrievalQueue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
-	priority int, kmd libkey.KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
+	priority int, kmd libkey.KeyMetadata, ptr data.BlockPointer, block data.Block,
+	lifetime data.BlockCacheLifetime, action BlockRequestAction) <-chan error {
 	if brq.config.IsSyncedTlf(kmd.TlfID()) {
 		action = action.AddSync()
 	}
@@ -552,7 +553,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 // preventing more requests from mutating the retrieval, then notifies all
 // subscribed requests.
 func (brq *blockRetrievalQueue) FinalizeRequest(
-	retrieval *blockRetrieval, block Block, cacheType DiskBlockCacheType,
+	retrieval *blockRetrieval, block data.Block, cacheType DiskBlockCacheType,
 	err error) {
 	brq.mtx.Lock()
 	// This might have already been removed if the context has been canceled.

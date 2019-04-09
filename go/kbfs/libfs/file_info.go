@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -23,7 +24,7 @@ var ErrUnknownPrefetchStatus = errors.New(
 // os.FileInfo interface.
 type FileInfo struct {
 	fs   *FS
-	ei   libkbfs.EntryInfo
+	ei   data.EntryInfo
 	node libkbfs.Node
 	name string
 }
@@ -54,11 +55,11 @@ func (fi *FileInfo) Mode() os.FileMode {
 
 	mode |= 0400
 	switch fi.ei.Type {
-	case libkbfs.Dir:
+	case data.Dir:
 		mode |= os.ModeDir | 0100
-	case libkbfs.Sym:
+	case data.Sym:
 		mode |= os.ModeSymlink
-	case libkbfs.Exec:
+	case data.Exec:
 		mode |= 0100
 	}
 	return mode
@@ -71,7 +72,7 @@ func (fi *FileInfo) ModTime() time.Time {
 
 // IsDir implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) IsDir() bool {
-	return fi.ei.Type == libkbfs.Dir
+	return fi.ei.Type == data.Dir
 }
 
 // KBFSMetadataForSimpleFS contains the KBFS metadata needed to answer a
@@ -91,7 +92,7 @@ type KBFSMetadataForSimpleFSGetter interface {
 // PrevRevisionsGetter is an interface for something that can return
 // the previous revisions of an entry.
 type PrevRevisionsGetter interface {
-	PrevRevisions() libkbfs.PrevRevisions
+	PrevRevisions() data.PrevRevisions
 }
 
 type fileInfoSys struct {
@@ -158,11 +159,11 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
 
 var _ PrevRevisionsGetter = fileInfoSys{}
 
-func (fis fileInfoSys) PrevRevisions() (revs libkbfs.PrevRevisions) {
+func (fis fileInfoSys) PrevRevisions() (revs data.PrevRevisions) {
 	return fis.fi.ei.PrevRevisions
 }
 
-func (fis fileInfoSys) EntryInfo() libkbfs.EntryInfo {
+func (fis fileInfoSys) EntryInfo() data.EntryInfo {
 	return fis.fi.ei
 }
 
@@ -175,7 +176,7 @@ func (fi *FileInfo) Sys() interface{} {
 // LastWriterUnverified. This allows us to avoid doing a Lookup on the entry,
 // which makes a big difference in ReadDir.
 type FileInfoFast struct {
-	ei   libkbfs.EntryInfo
+	ei   data.EntryInfo
 	name string
 }
 
@@ -194,11 +195,11 @@ func (fif *FileInfoFast) Size() int64 {
 func (fif *FileInfoFast) Mode() os.FileMode {
 	mode := os.FileMode(0400)
 	switch fif.ei.Type {
-	case libkbfs.Dir:
+	case data.Dir:
 		mode |= os.ModeDir | 0100
-	case libkbfs.Sym:
+	case data.Sym:
 		mode |= os.ModeSymlink
-	case libkbfs.Exec:
+	case data.Exec:
 		mode |= 0100
 	}
 	return mode
@@ -211,7 +212,7 @@ func (fif *FileInfoFast) ModTime() time.Time {
 
 // IsDir implements the os.FileInfo interface.
 func (fif *FileInfoFast) IsDir() bool {
-	return fif.ei.Type == libkbfs.Dir
+	return fif.ei.Type == data.Dir
 }
 
 // Sys implements the os.FileInfo interface.

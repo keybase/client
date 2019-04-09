@@ -276,7 +276,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   localHTTPServerInfo: makeLocalHTTPServer(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), defaultPathUserSetting]]),
+  pathUserSettings: I.Map(),
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
@@ -556,8 +556,18 @@ export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
   return 'default'
 }
 
-export const isMedia = (pathItem: Types.PathItem): boolean =>
-  pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
+export const canSaveMedia = (pathItem: Types.PathItem): boolean => {
+  if (pathItem.type !== 'file' || !pathItem.mimeType) {
+    return false
+  }
+  const mime = pathItem.mimeType
+  return (
+    viewTypeFromMimeType(mime) === 'image' ||
+    // Can't rely on viewType === av here because audios can't be saved to
+    // the camera roll.
+    mime.mimeType.startsWith('video/')
+  )
+}
 
 const encodePathForURL = (path: Types.Path) =>
   encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength))

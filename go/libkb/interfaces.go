@@ -107,6 +107,7 @@ type configGetter interface {
 	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
 	GetExtraNetLogging() (bool, bool)
+	GetForceLinuxKeyring() (bool, bool)
 }
 
 type CommandLine interface {
@@ -405,6 +406,7 @@ type ChatUI interface {
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
+	ChatSearchConvHits(context.Context, []chat1.UIChatSearchConvHit) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)

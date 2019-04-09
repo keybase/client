@@ -552,6 +552,8 @@
     // only used by in inbox search
     boolean forceReindex;
     int maxConvs;
+    // only used by conversation name search
+    int maxNameConvs;
   }
 
   record ConversationIndexMetadata {

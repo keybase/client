@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import {TouchableOpacity, SafeAreaView} from 'react-native'
-import Box from '../../box'
+import Box, {Box2} from '../../box'
 import Text from '../../text'
 import Meta from '../../meta'
 import Divider from '../../divider'
@@ -26,15 +26,22 @@ const MenuRow = (props: MenuRowProps) => (
       props.onHidden && props.onHidden() // auto hide after a selection
       props.onClick && props.onClick()
     }}
-    style={styles.row}
+    style={styles.itemContainer}
   >
     {props.view || (
       <>
-        <Text center={true} type="BodyBig" style={styleRowText(props)}>
-          {props.title}
-        </Text>
-        {props.newTag && (
-          <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+        <Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          <Text center={true} type="BodyBig" style={styleRowText(props)}>
+            {props.title}
+          </Text>
+          {props.newTag && (
+            <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+          )}
+        </Box2>
+        {!!props.subTitle && (
+          <Text center={true} type="BodyTiny">
+            {props.subTitle}
+          </Text>
         )}
       </>
     )}
@@ -110,6 +117,17 @@ const styles = Styles.styleSheetCreate({
   flexGrow: {
     flexGrow: 1,
   },
+  itemContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.white,
+    justifyContent: 'center',
+    minHeight: 56,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.tiny,
+  },
   menuBox: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
@@ -121,17 +139,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     justifyContent: 'flex-end',
-  },
-  row: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    justifyContent: 'center',
-    minHeight: 56,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.tiny,
   },
   safeArea: {
     backgroundColor: Styles.globalColors.white,

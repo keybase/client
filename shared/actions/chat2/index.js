@@ -1365,6 +1365,7 @@ function* threadSearch(state, action) {
           maxConvs: -1,
           maxHits: -1,
           maxMessages: -1,
+          maxNameConvs: 15,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
@@ -2080,6 +2081,16 @@ const loadCanUserPerform = (state, action) => {
   if (!TeamsConstants.hasCanPerform(state, teamname)) {
     return TeamsGen.createGetTeamOperations({teamname})
   }
+}
+
+const loadTeamForConv = (state, action) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const teamname = meta.teamname
+  if (!teamname) {
+    return
+  }
+  return TeamsGen.createGetMembers({teamname})
 }
 
 // Get the full channel names/descs for a team if we don't already have them.
@@ -2995,6 +3006,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     clearInboxFilter
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadTeamForConv)
 
   // Giphy
   yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, unsentTextChanged)

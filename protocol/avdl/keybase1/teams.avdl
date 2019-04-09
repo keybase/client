@@ -911,6 +911,9 @@ protocol teams {
   // the team or an admin of any of its ancestors.
   TeamDetails teamGet(int sessionID, string name);
 
+  // Get the members of the team
+  TeamMembersDetails teamGetMembers(int sessionID, string name);
+
   // List all the admins of ancestor teams.
   // Includes admins of the specified team only if they are also admins of ancestor teams.
   array<TeamMemberDetails> teamImplicitAdmins(int sessionID, string teamName);

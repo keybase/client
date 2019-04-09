@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -36,7 +37,7 @@ type KBFSOpsStandard struct {
 	config          Config
 	log             logger.Logger
 	deferLog        logger.Logger
-	ops             map[FolderBranch]*folderBranchOps
+	ops             map[data.FolderBranch]*folderBranchOps
 	opsByFav        map[favorites.Folder]*folderBranchOps
 	opsLock         sync.RWMutex
 	// reIdentifyControlChan controls reidentification.
@@ -69,7 +70,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		config:                config,
 		log:                   log,
 		deferLog:              log.CloneWithAddedDepth(1),
-		ops:                   make(map[FolderBranch]*folderBranchOps),
+		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		favs:       NewFavorites(config),
@@ -369,8 +370,8 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 }
 
 func (fs *KBFSOpsStandard) getOpsNoAdd(
-	ctx context.Context, fb FolderBranch) *folderBranchOps {
-	if fb == (FolderBranch{}) {
+	ctx context.Context, fb data.FolderBranch) *folderBranchOps {
+	if fb == (data.FolderBranch{}) {
 		panic("zero FolderBranch in getOps")
 	}
 
@@ -408,8 +409,8 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 }
 
 func (fs *KBFSOpsStandard) getOpsIfExists(
-	ctx context.Context, fb FolderBranch) *folderBranchOps {
-	if fb == (FolderBranch{}) {
+	ctx context.Context, fb data.FolderBranch) *folderBranchOps {
+	if fb == (data.FolderBranch{}) {
 		panic("zero FolderBranch in getOps")
 	}
 
@@ -419,7 +420,7 @@ func (fs *KBFSOpsStandard) getOpsIfExists(
 }
 
 func (fs *KBFSOpsStandard) getOps(ctx context.Context,
-	fb FolderBranch, fop FavoritesOp) *folderBranchOps {
+	fb data.FolderBranch, fop FavoritesOp) *folderBranchOps {
 	ops := fs.getOpsNoAdd(ctx, fb)
 	if err := ops.doFavoritesOp(ctx, fs.favs, fop, nil); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
@@ -435,7 +436,7 @@ func (fs *KBFSOpsStandard) getOpsByNode(ctx context.Context,
 }
 
 func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
-	handle *tlfhandle.Handle, fb FolderBranch, fop FavoritesOp) *folderBranchOps {
+	handle *tlfhandle.Handle, fb data.FolderBranch, fop FavoritesOp) *folderBranchOps {
 	ops := fs.getOpsNoAdd(ctx, fb)
 	if err := ops.doFavoritesOp(ctx, fs.favs, fop, handle); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
@@ -535,7 +536,7 @@ func (fs *KBFSOpsStandard) transformReadError(
 }
 
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
-	mdops MDOps, h *tlfhandle.Handle, fb FolderBranch, create bool, fop FavoritesOp) (
+	mdops MDOps, h *tlfhandle.Handle, fb data.FolderBranch, create bool, fop FavoritesOp) (
 	initialized bool, md ImmutableRootMetadata, id tlf.ID, err error) {
 	defer func() {
 		err = fs.transformReadError(ctx, h, err)
@@ -645,7 +646,7 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		}
 	}
 
-	fb := FolderBranch{Tlf: tlfHandle.TlfID(), Branch: MasterBranch}
+	fb := data.FolderBranch{Tlf: tlfHandle.TlfID(), Branch: data.MasterBranch}
 	if rmd == (ImmutableRootMetadata{}) {
 		if fop == FavoritesOpAdd {
 			_, rmd, _, err = fs.getOrInitializeNewMDMaster(
@@ -719,8 +720,8 @@ func (fs *KBFSOpsStandard) GetTLFHandle(ctx context.Context, node Node) (
 
 // getMaybeCreateRootNode is called for GetOrCreateRootNode and GetRootNode.
 func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
-	ctx context.Context, h *tlfhandle.Handle, branch BranchName, create bool) (
-	node Node, ei EntryInfo, err error) {
+	ctx context.Context, h *tlfhandle.Handle, branch data.BranchName, create bool) (
+	node Node, ei data.EntryInfo, err error) {
 	fs.log.CDebugf(ctx, "getMaybeCreateRootNode(%s, %v, %v)",
 		h.GetCanonicalPath(), branch, create)
 	defer func() {
@@ -728,24 +729,24 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		fs.deferLog.CDebugf(ctx, "Done: %#v", err)
 	}()
 
-	if branch != MasterBranch && create {
-		return nil, EntryInfo{}, errors.Errorf(
+	if branch != data.MasterBranch && create {
+		return nil, data.EntryInfo{}, errors.Errorf(
 			"Can't create a root node for branch %s", branch)
 	}
 
 	err = fs.createAndStoreTlfIDIfNeeded(ctx, h)
 	if err != nil {
-		return nil, EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
 	// Check if we already have the MD cached, before contacting any
 	// servers.
 	if h.TlfID() == tlf.NullID {
-		return nil, EntryInfo{},
+		return nil, data.EntryInfo{},
 			errors.Errorf("Handle for %s doesn't have a TLF ID set",
 				h.GetCanonicalPath())
 	}
-	fb := FolderBranch{Tlf: h.TlfID(), Branch: branch}
+	fb := data.FolderBranch{Tlf: h.TlfID(), Branch: branch}
 	fops := fs.getOpsIfExists(ctx, fb)
 	if fops != nil {
 		// If a folderBranchOps has already been initialized for this TLF,
@@ -755,12 +756,12 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		lState := makeFBOLockState()
 		md, err := fops.getMDForReadNeedIdentifyOnMaybeFirstAccess(ctx, lState)
 		if err != nil {
-			return nil, EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 		if md != (ImmutableRootMetadata{}) && md.IsReadable() {
 			node, ei, _, err := fops.getRootNode(ctx)
 			if err != nil {
-				return nil, EntryInfo{}, err
+				return nil, data.EntryInfo{}, err
 			}
 			if node != nil {
 				return node, ei, nil
@@ -774,7 +775,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	if fs.config.Mode().UnmergedTLFsEnabled() {
 		md, err = mdops.GetUnmergedForTLF(ctx, h.TlfID(), kbfsmd.NullBranchID)
 		if err != nil {
-			return nil, EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 	}
 
@@ -784,15 +785,15 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		initialized, md, id, err = fs.getOrInitializeNewMDMaster(
 			ctx, mdops, h, fb, create, FavoritesOpAdd)
 		if err != nil {
-			return nil, EntryInfo{}, err
+			return nil, data.EntryInfo{}, err
 		}
 		if initialized {
-			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
+			fb := data.FolderBranch{Tlf: id, Branch: data.MasterBranch}
 			fops := fs.getOpsByHandle(ctx, h, fb, FavoritesOpAddNewlyCreated)
 
 			node, ei, _, err = fops.getRootNode(ctx)
 			if err != nil {
-				return nil, EntryInfo{}, err
+				return nil, data.EntryInfo{}, err
 			}
 
 			return node, ei, nil
@@ -801,11 +802,11 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 			kbpki := fs.config.KBPKI()
 			err := tlfhandle.IdentifyHandle(ctx, kbpki, kbpki, fs.config, h)
 			if err != nil {
-				return nil, EntryInfo{}, err
+				return nil, data.EntryInfo{}, err
 			}
-			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
+			fb := data.FolderBranch{Tlf: id, Branch: data.MasterBranch}
 			fs.getOpsByHandle(ctx, h, fb, FavoritesOpAdd)
-			return nil, EntryInfo{}, nil
+			return nil, data.EntryInfo{}, nil
 		}
 	}
 
@@ -821,19 +822,19 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 				"access due to unreadable MD for %s", h.GetCanonicalPath())
 			ops.rekeyFSM.Event(NewRekeyRequestWithPaperPromptEvent())
 		}
-		return nil, EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
 	ops := fs.getOpsByHandle(ctx, h, fb, FavoritesOpAdd)
 
 	err = ops.SetInitialHeadFromServer(ctx, md)
 	if err != nil {
-		return nil, EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
 	node, ei, _, err = ops.getRootNode(ctx)
 	if err != nil {
-		return nil, EntryInfo{}, err
+		return nil, data.EntryInfo{}, err
 	}
 
 	if err := ops.doFavoritesOp(ctx, fs.favs, FavoritesOpAdd, h); err != nil {
@@ -847,8 +848,8 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 // GetOrCreateRootNode implements the KBFSOps interface for
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootNode(
-	ctx context.Context, h *tlfhandle.Handle, branch BranchName) (
-	node Node, ei EntryInfo, err error) {
+	ctx context.Context, h *tlfhandle.Handle, branch data.BranchName) (
+	node Node, ei data.EntryInfo, err error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -859,8 +860,8 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 // KBFSOpsStandard. Returns a nil Node and nil error
 // if the tlf does not exist but there is no error present.
 func (fs *KBFSOpsStandard) GetRootNode(
-	ctx context.Context, h *tlfhandle.Handle, branch BranchName) (
-	node Node, ei EntryInfo, err error) {
+	ctx context.Context, h *tlfhandle.Handle, branch data.BranchName) (
+	node Node, ei data.EntryInfo, err error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -869,7 +870,7 @@ func (fs *KBFSOpsStandard) GetRootNode(
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetDirChildren(ctx context.Context, dir Node) (
-	map[string]EntryInfo, error) {
+	map[string]data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -879,7 +880,7 @@ func (fs *KBFSOpsStandard) GetDirChildren(ctx context.Context, dir Node) (
 
 // Lookup implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Lookup(ctx context.Context, dir Node, name string) (
-	Node, EntryInfo, error) {
+	Node, data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -889,7 +890,7 @@ func (fs *KBFSOpsStandard) Lookup(ctx context.Context, dir Node, name string) (
 
 // Stat implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Stat(ctx context.Context, node Node) (
-	EntryInfo, error) {
+	data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -899,7 +900,7 @@ func (fs *KBFSOpsStandard) Stat(ctx context.Context, node Node) (
 
 // CreateDir implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateDir(
-	ctx context.Context, dir Node, name string) (Node, EntryInfo, error) {
+	ctx context.Context, dir Node, name string) (Node, data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -910,7 +911,7 @@ func (fs *KBFSOpsStandard) CreateDir(
 // CreateFile implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateFile(
 	ctx context.Context, dir Node, name string, isExec bool, excl Excl) (
-	Node, EntryInfo, error) {
+	Node, data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -921,7 +922,7 @@ func (fs *KBFSOpsStandard) CreateFile(
 // CreateLink implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateLink(
 	ctx context.Context, dir Node, fromName string, toPath string) (
-	EntryInfo, error) {
+	data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1021,7 +1022,7 @@ func (fs *KBFSOpsStandard) SetMtime(
 
 // SyncAll implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SyncAll(
-	ctx context.Context, folderBranch FolderBranch) error {
+	ctx context.Context, folderBranch data.FolderBranch) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1031,7 +1032,7 @@ func (fs *KBFSOpsStandard) SyncAll(
 
 // FolderStatus implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) FolderStatus(
-	ctx context.Context, folderBranch FolderBranch) (
+	ctx context.Context, folderBranch data.FolderBranch) (
 	FolderBranchStatus, <-chan StatusUpdate, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
@@ -1121,7 +1122,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 // UnstageForTesting implements the KBFSOps interface for KBFSOpsStandard
 // TODO: remove once we have automatic conflict resolution
 func (fs *KBFSOpsStandard) UnstageForTesting(
-	ctx context.Context, folderBranch FolderBranch) error {
+	ctx context.Context, folderBranch data.FolderBranch) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1136,13 +1137,13 @@ func (fs *KBFSOpsStandard) RequestRekey(ctx context.Context, id tlf.ID) {
 
 	// We currently only support rekeys of master branches.
 	ops := fs.getOps(ctx,
-		FolderBranch{Tlf: id, Branch: MasterBranch}, FavoritesOpNoChange)
+		data.FolderBranch{Tlf: id, Branch: data.MasterBranch}, FavoritesOpNoChange)
 	ops.RequestRekey(ctx, id)
 }
 
 // SyncFromServer implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SyncFromServer(ctx context.Context,
-	folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error {
+	folderBranch data.FolderBranch, lockBeforeGet *keybase1.LockID) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1152,7 +1153,7 @@ func (fs *KBFSOpsStandard) SyncFromServer(ctx context.Context,
 
 // GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
-	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {
+	folderBranch data.FolderBranch) (history TLFUpdateHistory, err error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1162,7 +1163,7 @@ func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
 
 // GetEditHistory implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetEditHistory(
-	ctx context.Context, folderBranch FolderBranch) (
+	ctx context.Context, folderBranch data.FolderBranch) (
 	tlfHistory keybase1.FSFolderEditHistory, err error) {
 	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
 	return ops.GetEditHistory(ctx, folderBranch)
@@ -1183,7 +1184,7 @@ func (fs *KBFSOpsStandard) findTeamByID(
 	fs.opsLock.Lock()
 	// Copy the ops list so we don't have to hold opsLock when calling
 	// `getRootNode()` (which can lead to deadlocks).
-	ops := make(map[FolderBranch]*folderBranchOps)
+	ops := make(map[data.FolderBranch]*folderBranchOps)
 	for fb, fbo := range fs.ops {
 		ops[fb] = fbo
 	}
@@ -1247,7 +1248,7 @@ func (fs *KBFSOpsStandard) MigrateToImplicitTeam(
 
 	// We currently only migrate on the master branch of a TLF.
 	ops := fs.getOps(ctx,
-		FolderBranch{Tlf: id, Branch: MasterBranch}, FavoritesOpNoChange)
+		data.FolderBranch{Tlf: id, Branch: data.MasterBranch}, FavoritesOpNoChange)
 	return ops.MigrateToImplicitTeam(ctx, id)
 }
 
@@ -1268,7 +1269,7 @@ func (fs *KBFSOpsStandard) initTLFWithoutIdentifyPopups(
 		return err
 	}
 
-	_, _, err = fs.getMaybeCreateRootNode(ctx, handle, MasterBranch, false)
+	_, _, err = fs.getMaybeCreateRootNode(ctx, handle, data.MasterBranch, false)
 	if err != nil {
 		return err
 	}
@@ -1349,7 +1350,7 @@ func (fs *KBFSOpsStandard) Reset(
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	fs.log.CDebugf(ctx, "Reset %s", handle.GetCanonicalPath())
-	fb := FolderBranch{handle.TlfID(), MasterBranch}
+	fb := data.FolderBranch{Tlf: handle.TlfID(), Branch: data.MasterBranch}
 	ops, ok := fs.ops[fb]
 	if ok {
 		err := ops.Reset(ctx, handle)
@@ -1375,7 +1376,10 @@ func (fs *KBFSOpsStandard) Reset(
 // -conflicting state.
 func (fs *KBFSOpsStandard) ClearConflictView(ctx context.Context,
 	tlfID tlf.ID) error {
-	fbo := fs.getOpsNoAdd(ctx, FolderBranch{tlfID, MasterBranch})
+	fbo := fs.getOpsNoAdd(ctx, data.FolderBranch{
+		Tlf:    tlfID,
+		Branch: data.MasterBranch,
+	})
 	return fbo.clearConflictView(ctx)
 }
 
@@ -1386,7 +1390,7 @@ func (fs *KBFSOpsStandard) GetSyncConfig(
 	defer timeTrackerDone()
 
 	ops := fs.getOps(ctx,
-		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
+		data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}, FavoritesOpNoChange)
 	return ops.GetSyncConfig(ctx, tlfID)
 }
 
@@ -1398,7 +1402,7 @@ func (fs *KBFSOpsStandard) SetSyncConfig(
 	defer timeTrackerDone()
 
 	ops := fs.getOps(ctx,
-		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
+		data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}, FavoritesOpNoChange)
 	return ops.SetSyncConfig(ctx, tlfID, config)
 }
 
@@ -1421,7 +1425,7 @@ var _ Notifier = (*KBFSOpsStandard)(nil)
 
 // RegisterForChanges implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RegisterForChanges(
-	folderBranches []FolderBranch, obs Observer) error {
+	folderBranches []data.FolderBranch, obs Observer) error {
 	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
 		ops := fs.getOps(context.Background(), fb, FavoritesOpNoChange)
@@ -1432,7 +1436,7 @@ func (fs *KBFSOpsStandard) RegisterForChanges(
 
 // UnregisterFromChanges implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) UnregisterFromChanges(
-	folderBranches []FolderBranch, obs Observer) error {
+	folderBranches []data.FolderBranch, obs Observer) error {
 	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
 		ops := fs.getOps(context.Background(), fb, FavoritesOpNoChange)
@@ -1443,14 +1447,14 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 
 func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID tlf.ID, newBID kbfsmd.BranchID) {
 	ops := fs.getOps(context.Background(),
-		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
+		data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}, FavoritesOpNoChange)
 	ops.onTLFBranchChange(newBID) // folderBranchOps makes a goroutine
 }
 
 func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 	rev kbfsmd.Revision) {
 	ops := fs.getOps(context.Background(),
-		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
+		data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}, FavoritesOpNoChange)
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
 }
 

@@ -31,6 +31,7 @@ export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
+export const getMembers = 'teams:getMembers'
 export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamPublicity = 'teams:getTeamPublicity'
@@ -51,6 +52,7 @@ export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setMemberPublicity = 'teams:setMemberPublicity'
+export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
@@ -97,6 +99,7 @@ type _GetChannelInfoPayload = $ReadOnly<{|conversationIDKey: ChatTypes.Conversat
 type _GetChannelsPayload = $ReadOnly<{|teamname: string|}>
 type _GetDetailsForAllTeamsPayload = void
 type _GetDetailsPayload = $ReadOnly<{|teamname: string|}>
+type _GetMembersPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamOperationsPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamProfileAddListPayload = $ReadOnly<{|username: string|}>
 type _GetTeamPublicityPayload = $ReadOnly<{|teamname: string|}>
@@ -117,6 +120,7 @@ type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|error: boolean, results: str
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
 type _SetEmailInviteErrorPayload = $ReadOnly<{|message: string, malformed: Array<string>|}>
 type _SetMemberPublicityPayload = $ReadOnly<{|teamname: string, showcase: boolean|}>
+type _SetMembersPayload = $ReadOnly<{|teamname: string, members: I.Map<string, Types.MemberInfo>|}>
 type _SetNewTeamInfoPayload = $ReadOnly<{|newTeams: I.Set<string>, newTeamRequests: I.List<string>, teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>|}>
 type _SetPublicityPayload = $ReadOnly<{|teamname: string, settings: Types.PublicitySettings|}>
 type _SetTeamAccessRequestsPendingPayload = $ReadOnly<{|accessRequestsPending: I.Set<Types.Teamname>|}>
@@ -181,6 +185,7 @@ export const createEditMembership = (payload: _EditMembershipPayload) => ({paylo
 export const createEditTeamDescription = (payload: _EditTeamDescriptionPayload) => ({payload, type: editTeamDescription})
 export const createGetDetails = (payload: _GetDetailsPayload) => ({payload, type: getDetails})
 export const createGetDetailsForAllTeams = (payload: _GetDetailsForAllTeamsPayload) => ({payload, type: getDetailsForAllTeams})
+export const createGetMembers = (payload: _GetMembersPayload) => ({payload, type: getMembers})
 export const createGetTeamOperations = (payload: _GetTeamOperationsPayload) => ({payload, type: getTeamOperations})
 export const createGetTeamProfileAddList = (payload: _GetTeamProfileAddListPayload) => ({payload, type: getTeamProfileAddList})
 export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload) => ({payload, type: getTeamPublicity})
@@ -198,6 +203,7 @@ export const createSetAddUserToTeamsResults = (payload: _SetAddUserToTeamsResult
 export const createSetChannelCreationError = (payload: _SetChannelCreationErrorPayload) => ({payload, type: setChannelCreationError})
 export const createSetEmailInviteError = (payload: _SetEmailInviteErrorPayload) => ({payload, type: setEmailInviteError})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload) => ({payload, type: setMemberPublicity})
+export const createSetMembers = (payload: _SetMembersPayload) => ({payload, type: setMembers})
 export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({payload, type: setNewTeamInfo})
 export const createSetPublicity = (payload: _SetPublicityPayload) => ({payload, type: setPublicity})
 export const createSetTeamAccessRequestsPending = (payload: _SetTeamAccessRequestsPendingPayload) => ({payload, type: setTeamAccessRequestsPending})
@@ -244,6 +250,7 @@ export type GetChannelInfoPayload = {|+payload: _GetChannelInfoPayload, +type: '
 export type GetChannelsPayload = {|+payload: _GetChannelsPayload, +type: 'teams:getChannels'|}
 export type GetDetailsForAllTeamsPayload = {|+payload: _GetDetailsForAllTeamsPayload, +type: 'teams:getDetailsForAllTeams'|}
 export type GetDetailsPayload = {|+payload: _GetDetailsPayload, +type: 'teams:getDetails'|}
+export type GetMembersPayload = {|+payload: _GetMembersPayload, +type: 'teams:getMembers'|}
 export type GetTeamOperationsPayload = {|+payload: _GetTeamOperationsPayload, +type: 'teams:getTeamOperations'|}
 export type GetTeamProfileAddListPayload = {|+payload: _GetTeamProfileAddListPayload, +type: 'teams:getTeamProfileAddList'|}
 export type GetTeamPublicityPayload = {|+payload: _GetTeamPublicityPayload, +type: 'teams:getTeamPublicity'|}
@@ -264,6 +271,7 @@ export type SetAddUserToTeamsResultsPayload = {|+payload: _SetAddUserToTeamsResu
 export type SetChannelCreationErrorPayload = {|+payload: _SetChannelCreationErrorPayload, +type: 'teams:setChannelCreationError'|}
 export type SetEmailInviteErrorPayload = {|+payload: _SetEmailInviteErrorPayload, +type: 'teams:setEmailInviteError'|}
 export type SetMemberPublicityPayload = {|+payload: _SetMemberPublicityPayload, +type: 'teams:setMemberPublicity'|}
+export type SetMembersPayload = {|+payload: _SetMembersPayload, +type: 'teams:setMembers'|}
 export type SetNewTeamInfoPayload = {|+payload: _SetNewTeamInfoPayload, +type: 'teams:setNewTeamInfo'|}
 export type SetPublicityPayload = {|+payload: _SetPublicityPayload, +type: 'teams:setPublicity'|}
 export type SetTeamAccessRequestsPendingPayload = {|+payload: _SetTeamAccessRequestsPendingPayload, +type: 'teams:setTeamAccessRequestsPending'|}
@@ -312,6 +320,7 @@ export type Actions =
   | GetChannelsPayload
   | GetDetailsForAllTeamsPayload
   | GetDetailsPayload
+  | GetMembersPayload
   | GetTeamOperationsPayload
   | GetTeamProfileAddListPayload
   | GetTeamPublicityPayload
@@ -332,6 +341,7 @@ export type Actions =
   | SetChannelCreationErrorPayload
   | SetEmailInviteErrorPayload
   | SetMemberPublicityPayload
+  | SetMembersPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload
   | SetTeamAccessRequestsPendingPayload

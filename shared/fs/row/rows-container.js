@@ -179,7 +179,7 @@ const mapStateToProps = (state, {path}) => ({
   _edits: state.fs.edits,
   _filter: state.fs.folderViewFilter,
   _pathItems: state.fs.pathItems,
-  _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
+  _sortSetting: state.fs.pathUserSettings.get(path, Constants.defaultPathUserSetting).sort,
   _tlfs: state.fs.tlfs,
   _uploads: state.fs.uploads,
   _username: state.config.username,

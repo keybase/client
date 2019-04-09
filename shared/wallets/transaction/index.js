@@ -17,6 +17,7 @@ import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/tim
 import {MarkdownMemo} from '../common'
 
 type CounterpartyIconProps = {|
+  detailView?: boolean,
   large: boolean,
   onShowProfile: string => void,
   counterparty: string,
@@ -37,7 +38,20 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
     case 'otherAccount':
-      return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
+      return (
+        <Box2
+          alignSelf="flex-start"
+          direction="horizontal"
+          style={collapseStyles([styles.transferIconContainer, {width: size}])}
+        >
+          <Icon
+            color={globalColors.purple2}
+            sizeType={props.detailView ? 'Bigger' : 'Big'}
+            style={collapseStyles([!props.detailView && styles.transferIcon])}
+            type="iconfont-wallet-transfer"
+          />
+        </Box2>
+      )
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       return null
@@ -392,6 +406,7 @@ export const Transaction = (props: Props) => {
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
+            detailView={props.detailView}
             large={large}
             onShowProfile={props.onShowProfile}
           />
@@ -480,6 +495,13 @@ const styles = styleSheetCreate({
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,
+  },
+  transferIcon: {
+    position: 'relative',
+    top: globalMargins.xtiny,
+  },
+  transferIconContainer: {
+    justifyContent: 'center',
   },
 })
 

@@ -38,6 +38,8 @@ type InfoPanelProps = {|
   participants: Array<{
     username: string,
     fullname: string,
+    isAdmin: boolean,
+    isOwner: boolean,
   }>,
   isPreview: boolean,
   teamname: ?string,
@@ -90,6 +92,8 @@ type ParticipantRow = {|
   key: string,
   username: string,
   fullname: string,
+  isAdmin: boolean,
+  isOwner: boolean,
   onShowProfile: string => void,
 |}
 
@@ -444,6 +448,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const props = this.props
     const participants: Array<ParticipantRow> = props.participants.map(p => ({
       fullname: p.fullname,
+      isAdmin: p.isAdmin,
+      isOwner: p.isOwner,
       key: p.username,
       onShowProfile: props.onShowProfile,
       type: 'participant',

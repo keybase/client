@@ -284,10 +284,8 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
       }}
     >
       <Text type="Body">
-        No e-mail set. You should{' '}
-        <Text type="BodyPrimaryLink" onClick={onChangeEmail}>
-          add an e-mail address.
-        </Text>
+        Email address:
+        <Button label="Add an email address" type="Secondary" small={true} onClick={onChangeEmail} />
       </Text>
     </Box>
   )
@@ -315,13 +313,7 @@ function AccountFirstPassword({onChangePassword}: {onChangePassword: () => void}
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
         Password:
       </Text>
-      <Text type="Body">
-        Not set! You should{' '}
-        <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassword}>
-          set a password
-        </Text>
-        .
-      </Text>
+      <Button label="Set a password" type="Secondary" small={true} onClick={onChangePassword} />
     </Box>
   )
 }

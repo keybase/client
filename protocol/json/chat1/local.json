@@ -4193,6 +4193,10 @@
           "type": "SearchOpts"
         },
         {
+          "name": "namesOnly",
+          "type": "boolean"
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }

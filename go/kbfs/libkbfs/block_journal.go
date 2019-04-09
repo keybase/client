@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -697,7 +698,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 			continue
 		}
 
-		var data []byte
+		var blockData []byte
 		var serverHalf kbfscrypto.BlockCryptKeyServerHalf
 
 		switch entry.Op {
@@ -708,17 +709,20 @@ func (j *blockJournal) getNextEntriesToFlush(
 					kbfsmd.RevisionUninitialized, err
 			}
 
-			data, serverHalf, err = j.s.getData(ctx, id)
+			blockData, serverHalf, err = j.s.getData(ctx, id)
 			if err != nil {
 				return blockEntriesToFlush{}, 0,
 					kbfsmd.RevisionUninitialized, err
 			}
-			bytesToFlush += int64(len(data))
+			bytesToFlush += int64(len(blockData))
 
-			err = entries.puts.addNewBlock(
-				ctx, BlockPointer{ID: id, Context: bctx},
+			err = entries.puts.AddNewBlock(
+				ctx, data.BlockPointer{ID: id, Context: bctx},
 				nil, /* only used by folderBranchOps */
-				ReadyBlockData{data, serverHalf}, nil)
+				data.ReadyBlockData{
+					Buf:        blockData,
+					ServerHalf: serverHalf,
+				}, nil)
 			if err != nil {
 				return blockEntriesToFlush{}, 0,
 					kbfsmd.RevisionUninitialized, err
@@ -731,10 +735,10 @@ func (j *blockJournal) getNextEntriesToFlush(
 					kbfsmd.RevisionUninitialized, err
 			}
 
-			err = entries.adds.addNewBlock(
-				ctx, BlockPointer{ID: id, Context: bctx},
+			err = entries.adds.AddNewBlock(
+				ctx, data.BlockPointer{ID: id, Context: bctx},
 				nil, /* only used by folderBranchOps */
-				ReadyBlockData{}, nil)
+				data.ReadyBlockData{}, nil)
 			if err != nil {
 				return blockEntriesToFlush{}, 0,
 					kbfsmd.RevisionUninitialized, err
@@ -798,7 +802,7 @@ func flushNonBPSBlockJournalEntry(
 }
 
 func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
-	bserver BlockServer, bcache BlockCache, reporter Reporter, tlfID tlf.ID,
+	bserver BlockServer, bcache data.BlockCache, reporter Reporter, tlfID tlf.ID,
 	tlfName tlf.CanonicalName, entries blockEntriesToFlush,
 	cacheType DiskBlockCacheType) error {
 	if !entries.flushNeeded() {

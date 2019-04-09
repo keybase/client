@@ -974,40 +974,42 @@ type NonblockSearchResult struct {
 }
 
 type ChatUI struct {
-	InboxCb            chan NonblockInboxResult
-	ThreadCb           chan NonblockThreadResult
-	SearchHitCb        chan chat1.ChatSearchHitArg
-	SearchDoneCb       chan chat1.ChatSearchDoneArg
-	InboxSearchHitCb   chan chat1.ChatSearchInboxHitArg
-	InboxSearchDoneCb  chan chat1.ChatSearchInboxDoneArg
-	StellarShowConfirm chan struct{}
-	StellarDataConfirm chan chat1.UIChatPaymentSummary
-	StellarDataError   chan keybase1.Status
-	StellarDone        chan struct{}
-	ShowManageChannels chan string
-	GiphyResults       chan chat1.GiphySearchResults
-	GiphyWindow        chan bool
-	CoinFlipUpdates    chan []chat1.UICoinFlipStatus
-	CommandMarkdown    chan *chat1.UICommandMarkdown
+	InboxCb               chan NonblockInboxResult
+	ThreadCb              chan NonblockThreadResult
+	SearchHitCb           chan chat1.ChatSearchHitArg
+	SearchDoneCb          chan chat1.ChatSearchDoneArg
+	InboxSearchHitCb      chan chat1.ChatSearchInboxHitArg
+	InboxSearchDoneCb     chan chat1.ChatSearchInboxDoneArg
+	InboxSearchConvHitsCb chan []chat1.UIChatSearchConvHit
+	StellarShowConfirm    chan struct{}
+	StellarDataConfirm    chan chat1.UIChatPaymentSummary
+	StellarDataError      chan keybase1.Status
+	StellarDone           chan struct{}
+	ShowManageChannels    chan string
+	GiphyResults          chan chat1.GiphySearchResults
+	GiphyWindow           chan bool
+	CoinFlipUpdates       chan []chat1.UICoinFlipStatus
+	CommandMarkdown       chan *chat1.UICommandMarkdown
 }
 
 func NewChatUI() *ChatUI {
 	return &ChatUI{
-		InboxCb:            make(chan NonblockInboxResult, 50),
-		ThreadCb:           make(chan NonblockThreadResult, 50),
-		SearchHitCb:        make(chan chat1.ChatSearchHitArg, 50),
-		SearchDoneCb:       make(chan chat1.ChatSearchDoneArg, 50),
-		InboxSearchHitCb:   make(chan chat1.ChatSearchInboxHitArg, 50),
-		InboxSearchDoneCb:  make(chan chat1.ChatSearchInboxDoneArg, 50),
-		StellarShowConfirm: make(chan struct{}, 10),
-		StellarDataConfirm: make(chan chat1.UIChatPaymentSummary, 10),
-		StellarDataError:   make(chan keybase1.Status, 10),
-		StellarDone:        make(chan struct{}, 10),
-		ShowManageChannels: make(chan string, 10),
-		GiphyResults:       make(chan chat1.GiphySearchResults, 10),
-		GiphyWindow:        make(chan bool, 10),
-		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 100),
-		CommandMarkdown:    make(chan *chat1.UICommandMarkdown, 10),
+		InboxCb:               make(chan NonblockInboxResult, 50),
+		ThreadCb:              make(chan NonblockThreadResult, 50),
+		SearchHitCb:           make(chan chat1.ChatSearchHitArg, 50),
+		SearchDoneCb:          make(chan chat1.ChatSearchDoneArg, 50),
+		InboxSearchHitCb:      make(chan chat1.ChatSearchInboxHitArg, 50),
+		InboxSearchDoneCb:     make(chan chat1.ChatSearchInboxDoneArg, 50),
+		InboxSearchConvHitsCb: make(chan []chat1.UIChatSearchConvHit, 50),
+		StellarShowConfirm:    make(chan struct{}, 10),
+		StellarDataConfirm:    make(chan chat1.UIChatPaymentSummary, 10),
+		StellarDataError:      make(chan keybase1.Status, 10),
+		StellarDone:           make(chan struct{}, 10),
+		ShowManageChannels:    make(chan string, 10),
+		GiphyResults:          make(chan chat1.GiphySearchResults, 10),
+		GiphyWindow:           make(chan bool, 10),
+		CoinFlipUpdates:       make(chan []chat1.UICoinFlipStatus, 100),
+		CommandMarkdown:       make(chan *chat1.UICommandMarkdown, 10),
 	}
 }
 
@@ -1100,6 +1102,11 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 
 func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	c.InboxSearchHitCb <- arg
+	return nil
+}
+
+func (c *ChatUI) ChatSearchConvHits(ctx context.Context, hits []chat1.UIChatSearchConvHit) error {
+	c.InboxSearchConvHitsCb <- hits
 	return nil
 }
 

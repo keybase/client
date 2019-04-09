@@ -8,6 +8,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlf"
 )
 
@@ -27,7 +28,7 @@ func checkReportedErrors(t *testing.T, expected []error,
 }
 
 func TestReporterSimpleMaxLimited(t *testing.T) {
-	r := NewReporterSimple(wallClock{}, 3)
+	r := NewReporterSimple(data.WallClock{}, 3)
 	err1 := errors.New("1")
 	r.ReportErr(nil, "", tlf.Private, ReadMode, err1)
 	checkReportedErrors(t, []error{err1}, r.AllKnownErrors())
@@ -47,7 +48,7 @@ func TestReporterSimpleMaxLimited(t *testing.T) {
 }
 
 func TestReporterSimpleUnlimited(t *testing.T) {
-	r := NewReporterSimple(wallClock{}, 0)
+	r := NewReporterSimple(data.WallClock{}, 0)
 	err1 := errors.New("1")
 	r.ReportErr(nil, "", tlf.Private, ReadMode, err1)
 	checkReportedErrors(t, []error{err1}, r.AllKnownErrors())

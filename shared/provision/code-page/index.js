@@ -125,15 +125,14 @@ class CodePage2 extends React.Component<Props, State> {
               }
             />
           </Kb.Box2>
-          {!flags.useNewRouter ||
-            (Styles.isMobile && (
-              <Kb.BackButton
-                onClick={this.props.onBack}
-                iconColor={Styles.globalColors.white}
-                style={styles.backButton}
-                textStyle={styles.backButtonText}
-              />
-            ))}
+          {(!flags.useNewRouter || Styles.isMobile) && (
+            <Kb.BackButton
+              onClick={this.props.onBack}
+              iconColor={Styles.globalColors.white}
+              style={styles.backButton}
+              textStyle={styles.backButtonText}
+            />
+          )}
           {!!this.props.error && <ErrorBanner error={this.props.error} />}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
             <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>

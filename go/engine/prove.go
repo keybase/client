@@ -302,7 +302,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 		if !retry || err != nil {
 			break
 		}
-		found, status, _, err = libkb.CheckPosted(m, p.postRes.ID)
+		found, status, _, err = libkb.CheckPosted(m, p.sigID)
 		if found || err != nil {
 			break
 		}
@@ -344,7 +344,7 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 			}
 			return libkb.CanceledError{}
 		}
-		found, status, _, err := libkb.CheckPosted(m, p.postRes.ID)
+		found, status, _, err := libkb.CheckPosted(m, p.sigID)
 		if err != nil {
 			return err
 		}
