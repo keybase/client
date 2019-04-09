@@ -166,7 +166,7 @@ func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2
 		return stubbed
 	}
 	if stubbed == nil {
-		return nil
+		return unstubbed
 	}
 	if unstubbed.IsOlderThan(*stubbed) {
 		return stubbed
@@ -272,6 +272,7 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 		u.G().VDL.CLogf(ctx, VLog0, "| CachedUpakLoader#putUPAKToCache: Refusing to overwrite with stale object")
 		return errors.New("stale object rejected")
 	}
+	u.putMemCache(ctx, uid, stubMode, *obj)
 
 	err := u.G().LocalDb.PutObj(culDBKeyV2(uid, stubMode), nil, *obj)
 	if err != nil {
