@@ -1489,6 +1489,20 @@
           "jsonkey": "i"
         },
         {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "boolean",
+              "keys": "string"
+            },
+            "keys": "string"
+          },
+          "name": "alias",
+          "mpackkey": "a",
+          "jsonkey": "a"
+        },
+        {
           "type": "ConversationIndexMetadata",
           "name": "metadata",
           "mpackkey": "m",

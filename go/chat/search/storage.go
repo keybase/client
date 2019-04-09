@@ -24,7 +24,7 @@ type store struct {
 // store keeps an encrypted index of chat messages for all conversations to
 // enable full inbox search locally.
 // Data is stored in an encrypted leveldb in the form:
-// (convID) -> {
+// (uid,convID) -> {
 //                token: { msgID,...},
 //                ...
 //             },
@@ -50,7 +50,7 @@ func newStore(g *globals.Context) *store {
 func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx:%s:%s", convID, uid),
+		Key: fmt.Sprintf("idx:%s:%s", uid, convID),
 	}
 }
 
@@ -60,6 +60,7 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 		if err == nil && ret == nil {
 			ret = &chat1.ConversationIndex{}
 			ret.Index = map[string]map[chat1.MessageID]bool{}
+			ret.Alias = map[string]map[string]bool{}
 			ret.Metadata.SeenIDs = map[chat1.MessageID]bool{}
 		}
 		if err != nil {
@@ -105,14 +106,22 @@ func (s *store) getConvIndex(ctx context.Context, convID chat1.ConversationID, u
 // addTokensLocked add the given tokens to the index under the given message
 // id, when ingesting EDIT messages the msgID is of the superseded msg but the
 // tokens are from the EDIT itself.
-func (s *store) addTokensLocked(entry *chat1.ConversationIndex, tokens []string, msgID chat1.MessageID) {
-	for _, token := range tokens {
+func (s *store) addTokensLocked(entry *chat1.ConversationIndex, tokens tokenMap, msgID chat1.MessageID) {
+	for token, aliases := range tokens {
 		msgIDs, ok := entry.Index[token]
 		if !ok {
 			msgIDs = map[chat1.MessageID]bool{}
 		}
 		msgIDs[msgID] = true
 		entry.Index[token] = msgIDs
+		for alias := range aliases {
+			atoken, ok := entry.Alias[alias]
+			if !ok {
+				atoken = map[string]bool{}
+			}
+			atoken[token] = true
+			entry.Alias[alias] = atoken
+		}
 	}
 }
 
@@ -122,8 +131,6 @@ func (s *store) addMsgLocked(entry *chat1.ConversationIndex, msg chat1.MessageUn
 }
 
 func (s *store) removeMsgLocked(entry *chat1.ConversationIndex, msg chat1.MessageUnboxed) {
-	tokens := tokensFromMsg(msg)
-
 	// find the msgID that the index stores
 	var msgID chat1.MessageID
 	switch msg.GetMessageType() {
@@ -136,14 +143,23 @@ func (s *store) removeMsgLocked(entry *chat1.ConversationIndex, msg chat1.Messag
 	default:
 		msgID = msg.GetMessageID()
 	}
-	for _, token := range tokens {
-		msgIDs, ok := entry.Index[token]
-		if !ok {
-			continue
-		}
+
+	for token, aliases := range tokensFromMsg(msg) {
+		msgIDs := entry.Index[token]
 		delete(msgIDs, msgID)
 		if len(msgIDs) == 0 {
 			delete(entry.Index, token)
+		}
+		for alias := range aliases {
+			for atoken := range entry.Alias[alias] {
+				_, ok := entry.Index[atoken]
+				if !ok {
+					delete(entry.Alias[alias], atoken)
+				}
+			}
+			if len(entry.Alias[alias]) == 0 {
+				delete(entry.Alias, alias)
+			}
 		}
 	}
 }

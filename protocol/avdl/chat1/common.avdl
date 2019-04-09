@@ -565,6 +565,9 @@
     // search token -> msgID
     @mpackkey("i") @jsonkey("i")
     map<string, map<MessageID, boolean>> index;
+    // token alias -> token
+    @mpackkey("a") @jsonkey("a")
+    map<string, map<string, boolean>> alias;
     @mpackkey("m") @jsonkey("m")
     ConversationIndexMetadata metadata;
   }

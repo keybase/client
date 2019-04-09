@@ -1958,6 +1958,7 @@ func (o ConversationIndexMetadata) DeepCopy() ConversationIndexMetadata {
 
 type ConversationIndex struct {
 	Index    map[string]map[MessageID]bool `codec:"i" json:"i"`
+	Alias    map[string]map[string]bool    `codec:"a" json:"a"`
 	Metadata ConversationIndexMetadata     `codec:"m" json:"m"`
 }
 
@@ -1986,6 +1987,29 @@ func (o ConversationIndex) DeepCopy() ConversationIndex {
 			}
 			return ret
 		})(o.Index),
+		Alias: (func(x map[string]map[string]bool) map[string]map[string]bool {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]map[string]bool, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := (func(x map[string]bool) map[string]bool {
+					if x == nil {
+						return nil
+					}
+					ret := make(map[string]bool, len(x))
+					for k, v := range x {
+						kCopy := k
+						vCopy := v
+						ret[kCopy] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Alias),
 		Metadata: o.Metadata.DeepCopy(),
 	}
 }

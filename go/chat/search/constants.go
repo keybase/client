@@ -24,4 +24,4 @@ const (
 
 // Bumped whenever there are tokenization or structural changes to building the
 // index
-const IndexVersion = 3
+const IndexVersion = 4
