@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
@@ -19,7 +20,7 @@ import (
 // BranchNameFromArchiveRefDir returns a branch name and true if the
 // given directory name is specifying an archived revision with a
 // revision number.
-func BranchNameFromArchiveRefDir(dir string) (libkbfs.BranchName, bool) {
+func BranchNameFromArchiveRefDir(dir string) (data.BranchName, bool) {
 	if !strings.HasPrefix(dir, ArchivedRevDirPrefix) {
 		return "", false
 	}
@@ -29,7 +30,7 @@ func BranchNameFromArchiveRefDir(dir string) (libkbfs.BranchName, bool) {
 		return "", false
 	}
 
-	return libkbfs.MakeRevBranchName(kbfsmd.Revision(rev)), true
+	return data.MakeRevBranchName(kbfsmd.Revision(rev)), true
 }
 
 // RevFromTimeString converts a time string (in any supported golang

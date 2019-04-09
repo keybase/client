@@ -50,7 +50,8 @@ const profileRoute = () => {
 
   return makeRouteDefNode({
     children: {
-      addToTeam: {
+      profile: profileRoute,
+      profileAddToTeam: {
         children: {
           teamControlledRolePicker: {
             children: {},
@@ -61,7 +62,6 @@ const profileRoute = () => {
         component: AddToTeam,
         tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
       },
-      profile: profileRoute,
       profileEdit: {
         component: EditProfile,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),

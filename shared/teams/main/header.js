@@ -72,8 +72,8 @@ const HeaderRightActions = (props: Props) => (
       isElectron: {...desktopStyles.windowDraggingClickable},
     })}
   >
-    <Button type="Primary" onClick={props.onCreateTeam} label="Create a team" />
-    <Button type="Secondary" onClick={props.onJoinTeam} label="Join a team" />
+    <Button label="Create a team" onClick={props.onCreateTeam} small={true} type="Primary" />
+    <Button label="Join a team" onClick={props.onJoinTeam} small={true} type="Secondary" />
   </Box2>
 )
 

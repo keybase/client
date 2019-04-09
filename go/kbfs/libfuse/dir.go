@@ -17,6 +17,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -38,7 +39,7 @@ type Folder struct {
 	hPreferredName tlf.PreferredName
 
 	folderBranchMu sync.Mutex
-	folderBranch   libkbfs.FolderBranch
+	folderBranch   data.FolderBranch
 
 	// Protects the nodes map.
 	nodesMu sync.Mutex
@@ -97,13 +98,13 @@ func (f *Folder) processError(ctx context.Context,
 	return filterError(err)
 }
 
-func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
+func (f *Folder) setFolderBranch(folderBranch data.FolderBranch) error {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
 
 	// TODO unregister all at unmount
 	err := f.list.fs.config.Notifier().RegisterForChanges(
-		[]libkbfs.FolderBranch{folderBranch}, f)
+		[]data.FolderBranch{folderBranch}, f)
 	if err != nil {
 		return err
 	}
@@ -114,20 +115,20 @@ func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
 func (f *Folder) unsetFolderBranch(ctx context.Context) {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
-	if f.folderBranch == (libkbfs.FolderBranch{}) {
+	if f.folderBranch == (data.FolderBranch{}) {
 		// Wasn't set.
 		return
 	}
 
-	err := f.list.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f)
+	err := f.list.fs.config.Notifier().UnregisterFromChanges([]data.FolderBranch{f.folderBranch}, f)
 	if err != nil {
 		f.fs.log.Info("cannot unregister change notifier for folder %q: %v",
 			f.name(), err)
 	}
-	f.folderBranch = libkbfs.FolderBranch{}
+	f.folderBranch = data.FolderBranch{}
 }
 
-func (f *Folder) getFolderBranch() libkbfs.FolderBranch {
+func (f *Folder) getFolderBranch() data.FolderBranch {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
 	return f.folderBranch
@@ -370,7 +371,7 @@ func (f *Folder) writePermMode(ctx context.Context,
 // pops in correct UID and write permissions. It only handles fields common to
 // all entryinfo types.
 func (f *Folder) fillAttrWithUIDAndWritePerm(
-	ctx context.Context, node libkbfs.Node, ei *libkbfs.EntryInfo,
+	ctx context.Context, node libkbfs.Node, ei *data.EntryInfo,
 	a *fuse.Attr) (err error) {
 	a.Valid = 1 * time.Minute
 
@@ -588,17 +589,17 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	default:
 		return nil, fmt.Errorf("unhandled entry type: %v", de.Type)
 
-	case libkbfs.File, libkbfs.Exec:
+	case data.File, data.Exec:
 		child := d.makeFile(newNode)
 		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
-	case libkbfs.Dir:
+	case data.Dir:
 		child := newDir(d.folder, newNode)
 		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
-	case libkbfs.Sym:
+	case data.Sym:
 		// Give each symlink instance a unique inode.  We don't get
 		// enough information about remote renames of syminks to be
 		// able to attach a constant inode to a given symlink.
@@ -824,11 +825,11 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			// it anywhere, so it's safe.
 		}
 		switch ei.Type {
-		case libkbfs.File, libkbfs.Exec:
+		case data.File, data.Exec:
 			fde.Type = fuse.DT_File
-		case libkbfs.Dir:
+		case data.Dir:
 			fde.Type = fuse.DT_Dir
-		case libkbfs.Sym:
+		case data.Sym:
 			fde.Type = fuse.DT_Link
 		}
 		res = append(res, fde)

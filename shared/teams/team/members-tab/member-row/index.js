@@ -55,8 +55,8 @@ export const TeamMemberRow = (props: Props) => {
         style={{
           marginRight: globalMargins.xtiny,
         }}
+        fontSize={10}
         color={roleIconColorMap[props.roleType]}
-        fontSize={isMobile ? 16 : 12}
       />
     )
   }

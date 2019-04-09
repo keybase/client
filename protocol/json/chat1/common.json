@@ -1445,6 +1445,10 @@
         {
           "type": "int",
           "name": "maxConvs"
+        },
+        {
+          "type": "int",
+          "name": "maxNameConvs"
         }
       ]
     },

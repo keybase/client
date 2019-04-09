@@ -19,6 +19,7 @@ type Identify3Session struct {
 	outcome     *IdentifyOutcome
 	trackBroken bool
 	needUpgrade bool
+	didExpire   bool // true if we ran an expire on this session (so we don't repeat)
 }
 
 func NewIdentify3GUIID() (keybase1.Identify3GUIID, error) {
@@ -213,7 +214,18 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, ch <-chan struct{}) {
 	}
 }
 
-func (s *Identify3Session) expire(mctx MetaContext) {
+func (s *Identify3Session) doExpireSession(mctx MetaContext) {
+	defer mctx.Trace("Identify3Session#doExpireSession", func() error { return nil })()
+	s.Lock()
+	defer s.Unlock()
+	mctx.Debug("Identify3Session#doExpireSession(%s)", s.id)
+
+	if s.didExpire {
+		mctx.Warning("not repeating session expire for %s", s.id)
+		return
+	}
+	s.didExpire = true
+
 	cli, err := mctx.G().UIRouter.GetIdentify3UI(mctx)
 	if err != nil {
 		mctx.Warning("failed to get an electron UI to expire %s: %s", s.id, err)
@@ -230,37 +242,64 @@ func (s *Identify3Session) expire(mctx MetaContext) {
 }
 
 func (s *Identify3State) expireSessions(mctx MetaContext, now time.Time) time.Duration {
+	defer mctx.Trace("Identify3State#expireSessions", func() error { return nil })()
+
+	// getSesionsToExpire holds the Identify3State Mutex.
+	toExpire, diff := s.getSessionsToExpire(mctx, now)
+
+	// doExpireSessions does not hold the Identify3State Mutex, because it
+	// calls out to the front end via Identify3TrackedTimedOut.
+	s.doExpireSessions(mctx, toExpire)
+
+	return diff
+}
+
+func (s *Identify3State) doExpireSessions(mctx MetaContext, toExpire []*Identify3Session) {
+	for _, sess := range toExpire {
+		sess.doExpireSession(mctx)
+	}
+}
+
+func (s *Identify3State) getSessionsToExpire(mctx MetaContext, now time.Time) (ret []*Identify3Session, diff time.Duration) {
 	s.Lock()
 	defer s.Unlock()
 
 	for {
 		if len(s.expirationQueue) == 0 {
-			return s.defaultWaitTime
+			return ret, s.defaultWaitTime
 		}
-		diff := s.expireSession(mctx, s.expirationQueue[0], now)
+		var sess *Identify3Session
+		sess, diff = s.getSessionToExpire(mctx, now)
 		if diff > 0 {
-			return diff
+			return ret, diff
+		}
+		if sess != nil {
+			ret = append(ret, sess)
 		}
 	}
 }
 
-func (s *Identify3State) expireSession(mctx MetaContext, sess *Identify3Session, now time.Time) time.Duration {
+// getSessionToExpire should be called when holding the Identify3State Mutex. It looks in the
+// expiration queue and pops off those sessions that are ready to be marked expired.
+func (s *Identify3State) getSessionToExpire(mctx MetaContext, now time.Time) (*Identify3Session, time.Duration) {
+	sess := s.expirationQueue[0]
 	sess.Lock()
 	defer sess.Unlock()
 	expireAt := sess.created.Add(s.expireTime)
 	diff := expireAt.Sub(now)
 	if diff > 0 {
-		return diff
+		return nil, diff
 	}
 	s.expirationQueue = s.expirationQueue[1:]
 
 	// Only send the expiration if the session is still in the cache table.
 	// If not, that means it was already acted upon
-	if _, found := s.cache[sess.id]; found {
-		sess.expire(mctx)
-		s.removeFromTableLocked(sess.id)
+	if _, found := s.cache[sess.id]; !found {
+		return nil, diff
 	}
-	return diff
+	mctx.Debug("Identify3State#getSessionToExpire: removing %s", sess.id)
+	s.removeFromTableLocked(sess.id)
+	return sess, diff
 }
 
 // get an identify3Session out of the cache, as keyed by a Identify3GUIID. Return

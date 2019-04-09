@@ -91,6 +91,107 @@ func TestPGPImportAndExport(t *testing.T) {
 	return
 }
 
+// TestPGPImportPrivImport - import the same key twice, only importing the private key
+// the second time / on the second device (CORE-10562).
+func TestPGPImportPrivImport(t *testing.T) {
+	user, dev1, dev2, cleanup := SetupTwoDevices(t, "login")
+	defer cleanup()
+
+	secui := &libkb.TestSecretUI{Passphrase: user.Passphrase}
+	uis := libkb.UIs{LogUI: dev1.G.UI.GetLogUI(), SecretUI: secui}
+
+	// Import a private key into dev1
+	fp, _, key := armorKey(t, dev1, user.Email)
+	eng, err := NewPGPKeyImportEngineFromBytes(dev1.G, []byte(key), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := NewMetaContextForTest(dev1).WithUIs(uis)
+	if err = RunEngine2(m, eng); err != nil {
+		t.Fatal(err)
+	}
+
+	// Make sure that we've imported it successfully
+	xe := NewPGPKeyExportEngine(dev1.G, keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
+			Secret: true,
+			Query:  fp.String(),
+		},
+	})
+	if err := RunEngine2(m, xe); err != nil {
+		t.Fatal(err)
+	}
+	if len(xe.Results()) != 1 {
+		t.Fatalf("Expected 1 key back out")
+	}
+
+	// Make sure that we only have a public key on dev2
+	uis = libkb.UIs{LogUI: dev2.G.UI.GetLogUI(), SecretUI: secui}
+	m = NewMetaContextForTest(dev2).WithUIs(uis)
+
+	xe = NewPGPKeyExportEngine(dev2.G, keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
+			Secret: true,
+			Query:  fp.String(),
+		},
+	})
+	if err := RunEngine2(m, xe); err != nil {
+		t.Fatal(err)
+	}
+	if len(xe.Results()) != 0 {
+		t.Fatalf("Expected 0 keys back out")
+	}
+	xe = NewPGPKeyExportEngine(dev2.G, keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
+			Secret: false,
+			Query:  fp.String(),
+		},
+	})
+	if err := RunEngine2(m, xe); err != nil {
+		t.Fatal(err)
+	}
+	if len(xe.Results()) != 1 {
+		t.Fatalf("Expected 1 key back out")
+	}
+
+	// Run import on dev2
+	eng, err = NewPGPKeyImportEngineFromBytes(dev2.G, []byte(key), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = RunEngine2(m, eng); err != nil {
+		t.Fatal(err)
+	}
+
+	// Secret key should be present
+	xe = NewPGPKeyExportEngine(dev1.G, keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
+			Secret: true,
+			Query:  fp.String(),
+		},
+	})
+	if err := RunEngine2(m, xe); err != nil {
+		t.Fatal(err)
+	}
+	if len(xe.Results()) != 1 {
+		t.Fatalf("Expected 1 key back out")
+	}
+	xe = NewPGPKeyExportEngine(dev1.G, keybase1.PGPExportArg{
+		Options: keybase1.PGPQuery{
+			Secret: false,
+			Query:  fp.String(),
+		},
+	})
+	if err := RunEngine2(m, xe); err != nil {
+		t.Fatal(err)
+	}
+	if len(xe.Results()) != 1 {
+		t.Fatalf("Expected 1 key back out")
+	}
+
+	return
+}
+
 // Test for issue 325.
 func TestPGPImportPublicKey(t *testing.T) {
 	tc := SetupEngineTest(t, "pgpsave")

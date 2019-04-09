@@ -23,6 +23,7 @@ export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiCha
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
 export const chat1ChatUiChatInboxFailed = 'engine-gen:chat1ChatUiChatInboxFailed'
 export const chat1ChatUiChatInboxUnverified = 'engine-gen:chat1ChatUiChatInboxUnverified'
+export const chat1ChatUiChatSearchConvHits = 'engine-gen:chat1ChatUiChatSearchConvHits'
 export const chat1ChatUiChatSearchDone = 'engine-gen:chat1ChatUiChatSearchDone'
 export const chat1ChatUiChatSearchHit = 'engine-gen:chat1ChatUiChatSearchHit'
 export const chat1ChatUiChatSearchInboxDone = 'engine-gen:chat1ChatUiChatSearchInboxDone'
@@ -194,6 +195,7 @@ type _Chat1ChatUiChatGiphyToggleResultWindowPayload = $ReadOnly<{|params: $Exact
 type _Chat1ChatUiChatInboxConversationPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatInboxFailedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatInboxUnverifiedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'outParam'>) => void}|}>
+type _Chat1ChatUiChatSearchConvHitsPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatSearchDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatSearchHitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'outParam'>) => void}|}>
 type _Chat1ChatUiChatSearchInboxDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'outParam'>) => void}|}>
@@ -365,6 +367,7 @@ export const createChat1ChatUiChatGiphyToggleResultWindow = (payload: _Chat1Chat
 export const createChat1ChatUiChatInboxConversation = (payload: _Chat1ChatUiChatInboxConversationPayload) => ({payload, type: chat1ChatUiChatInboxConversation})
 export const createChat1ChatUiChatInboxFailed = (payload: _Chat1ChatUiChatInboxFailedPayload) => ({payload, type: chat1ChatUiChatInboxFailed})
 export const createChat1ChatUiChatInboxUnverified = (payload: _Chat1ChatUiChatInboxUnverifiedPayload) => ({payload, type: chat1ChatUiChatInboxUnverified})
+export const createChat1ChatUiChatSearchConvHits = (payload: _Chat1ChatUiChatSearchConvHitsPayload) => ({payload, type: chat1ChatUiChatSearchConvHits})
 export const createChat1ChatUiChatSearchDone = (payload: _Chat1ChatUiChatSearchDonePayload) => ({payload, type: chat1ChatUiChatSearchDone})
 export const createChat1ChatUiChatSearchHit = (payload: _Chat1ChatUiChatSearchHitPayload) => ({payload, type: chat1ChatUiChatSearchHit})
 export const createChat1ChatUiChatSearchInboxDone = (payload: _Chat1ChatUiChatSearchInboxDonePayload) => ({payload, type: chat1ChatUiChatSearchInboxDone})
@@ -536,6 +539,7 @@ export type Chat1ChatUiChatGiphyToggleResultWindowPayload = {|+payload: _Chat1Ch
 export type Chat1ChatUiChatInboxConversationPayload = {|+payload: _Chat1ChatUiChatInboxConversationPayload, +type: 'engine-gen:chat1ChatUiChatInboxConversation'|}
 export type Chat1ChatUiChatInboxFailedPayload = {|+payload: _Chat1ChatUiChatInboxFailedPayload, +type: 'engine-gen:chat1ChatUiChatInboxFailed'|}
 export type Chat1ChatUiChatInboxUnverifiedPayload = {|+payload: _Chat1ChatUiChatInboxUnverifiedPayload, +type: 'engine-gen:chat1ChatUiChatInboxUnverified'|}
+export type Chat1ChatUiChatSearchConvHitsPayload = {|+payload: _Chat1ChatUiChatSearchConvHitsPayload, +type: 'engine-gen:chat1ChatUiChatSearchConvHits'|}
 export type Chat1ChatUiChatSearchDonePayload = {|+payload: _Chat1ChatUiChatSearchDonePayload, +type: 'engine-gen:chat1ChatUiChatSearchDone'|}
 export type Chat1ChatUiChatSearchHitPayload = {|+payload: _Chat1ChatUiChatSearchHitPayload, +type: 'engine-gen:chat1ChatUiChatSearchHit'|}
 export type Chat1ChatUiChatSearchInboxDonePayload = {|+payload: _Chat1ChatUiChatSearchInboxDonePayload, +type: 'engine-gen:chat1ChatUiChatSearchInboxDone'|}
@@ -709,6 +713,7 @@ export type Actions =
   | Chat1ChatUiChatInboxConversationPayload
   | Chat1ChatUiChatInboxFailedPayload
   | Chat1ChatUiChatInboxUnverifiedPayload
+  | Chat1ChatUiChatSearchConvHitsPayload
   | Chat1ChatUiChatSearchDonePayload
   | Chat1ChatUiChatSearchHitPayload
   | Chat1ChatUiChatSearchInboxDonePayload

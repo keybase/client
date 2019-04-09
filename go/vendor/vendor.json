@@ -391,6 +391,12 @@
 			"revisionTime": "2015-06-08T14:53:52-07:00"
 		},
 		{
+			"checksumSHA1": "37mmUDpo8//7mhcLc9rnsD8OfrE=",
+			"path": "github.com/guelfey/go.dbus",
+			"revision": "f6a3a2366cc39b8479cadc499d3c735fb10fbdda",
+			"revisionTime": "2013-11-13T12:16:18Z"
+		},
+		{
 			"checksumSHA1": "degm0JimzEvQjOTMaHOO6QzXNMI=",
 			"path": "github.com/hashicorp/golang-lru",
 			"revision": "995efda3e073b6946b175ed93901d729ad47466a",
@@ -635,6 +641,12 @@
 			"path": "github.com/keybase/go-keychain",
 			"revision": "da9bb486ccd551aeb1929211500fc4a0bcb62a56",
 			"revisionTime": "2019-03-11T21:27:40Z"
+		},
+		{
+			"checksumSHA1": "0hiADJVMyRvRM3FpjwmkXUUCr5g=",
+			"path": "github.com/keybase/go-keychain/secretservice",
+			"revision": "6ca7174743ab8e24ed89c7ec29508cdef499a671",
+			"revisionTime": "2019-04-03T15:48:49Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
@@ -1269,6 +1281,12 @@
 			"path": "golang.org/x/crypto/ed25519/internal/edwards25519",
 			"revision": "cbc3d0884eac986df6e78a039b8792e869bff863",
 			"revisionTime": "2017-04-09T18:29:52Z"
+		},
+		{
+			"checksumSHA1": "4D8hxMIaSDEW5pCQk22Xj4DcDh4=",
+			"path": "golang.org/x/crypto/hkdf",
+			"revision": "614d502a4dac94afa3a6ce146bd1736da82514c6",
+			"revisionTime": "2018-07-28T08:01:47Z"
 		},
 		{
 			"checksumSHA1": "fhxj9uzosD3dQefNF5JuGJzGZwg=",

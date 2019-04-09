@@ -956,7 +956,7 @@ protocol local {
   }
 
   SearchInboxRes searchInbox(int sessionID, string query,
-    SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+    SearchOpts opts, boolean namesOnly, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   void cancelActiveSearch();
 

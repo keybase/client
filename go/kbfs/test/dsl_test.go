@@ -16,9 +16,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -54,7 +56,7 @@ type opt struct {
 	batchSize                int
 	bwKBps                   int
 	timeout                  time.Duration
-	clock                    *libkbfs.TestClock
+	clock                    *clocktest.TestClock
 	isParallel               bool
 	journal                  bool
 }
@@ -173,7 +175,7 @@ func (o *opt) close() {
 
 func (o *opt) runInitOnce() {
 	o.initOnce.Do(func() {
-		o.clock = &libkbfs.TestClock{}
+		o.clock = &clocktest.TestClock{}
 		o.clock.Set(time.Unix(1, 0))
 		o.users = o.engine.InitTest(o.ver, o.blockSize,
 			o.blockChangeSize, o.batchSize, o.bwKBps, o.timeout, o.usernames,
@@ -1273,7 +1275,7 @@ func (c *ctx) getNode(filepath string, create createType, sym symBehavior) (
 			switch {
 			case err == nil:
 				if create == createFileExcl {
-					return nil, false, libkbfs.NameExistsError{}
+					return nil, false, data.NameExistsError{}
 				}
 			case create == createFileExcl:
 				c.tb.Log("getNode: CreateFileExcl")

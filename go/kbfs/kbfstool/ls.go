@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/fsrpc"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -18,16 +19,16 @@ func printHeader(p fsrpc.Path) {
 	fmt.Printf("%s:\n", p)
 }
 
-func computeModeStr(entryType libkbfs.EntryType) string {
+func computeModeStr(entryType data.EntryType) string {
 	var typeStr string
 	switch entryType {
-	case libkbfs.File:
+	case data.File:
 		typeStr = "-"
-	case libkbfs.Exec:
+	case data.Exec:
 		typeStr = "-"
-	case libkbfs.Dir:
+	case data.Dir:
 		typeStr = "d"
-	case libkbfs.Sym:
+	case data.Sym:
 		typeStr = "l"
 	default:
 		typeStr = "?"
@@ -37,13 +38,13 @@ func computeModeStr(entryType libkbfs.EntryType) string {
 	// and omit w below if so.
 	var modeStr string
 	switch entryType {
-	case libkbfs.File:
+	case data.File:
 		modeStr = "rw-"
-	case libkbfs.Exec:
+	case data.Exec:
 		modeStr = "rwx"
-	case libkbfs.Dir:
+	case data.Dir:
 		modeStr = "rwx"
-	case libkbfs.Sym:
+	case data.Sym:
 		modeStr = "rwx"
 	default:
 		modeStr = "rw-"
@@ -53,16 +54,16 @@ func computeModeStr(entryType libkbfs.EntryType) string {
 	return fmt.Sprintf("%s%s%s%s", typeStr, modeStr, modeStr, "---")
 }
 
-func printEntry(ctx context.Context, config libkbfs.Config, dir fsrpc.Path, name string, entryType libkbfs.EntryType, longFormat, useSigil bool) {
+func printEntry(ctx context.Context, config libkbfs.Config, dir fsrpc.Path, name string, entryType data.EntryType, longFormat, useSigil bool) {
 	var sigil string
 	if useSigil {
 		switch entryType {
-		case libkbfs.File:
-		case libkbfs.Exec:
+		case data.File:
+		case data.Exec:
 			sigil = "*"
-		case libkbfs.Dir:
+		case data.Dir:
 			sigil = "/"
-		case libkbfs.Sym:
+		case data.Sym:
 			sigil = "@"
 		default:
 			sigil = "?"
@@ -81,7 +82,7 @@ func printEntry(ctx context.Context, config libkbfs.Config, dir fsrpc.Path, name
 		modeStr := computeModeStr(entryType)
 		mtimeStr := time.Unix(0, de.Mtime).Format("Jan 02 15:04")
 		var symPathStr string
-		if entryType == libkbfs.Sym {
+		if entryType == data.Sym {
 			symPathStr = fmt.Sprintf(" -> %s", de.SymPath)
 		}
 		fmt.Printf("%s\t%d\t%s\t%s%s%s\n", modeStr, de.Size, mtimeStr, name, sigil, symPathStr)
@@ -90,7 +91,7 @@ func printEntry(ctx context.Context, config libkbfs.Config, dir fsrpc.Path, name
 	}
 }
 
-func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMultiple bool, handleEntry func(string, libkbfs.EntryType)) error {
+func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMultiple bool, handleEntry func(string, data.EntryType)) error {
 	kbfsOps := config.KBFSOps()
 
 	switch p.PathType {
@@ -98,15 +99,15 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMulti
 		if hasMultiple {
 			printHeader(p)
 		}
-		handleEntry(topName, libkbfs.Dir)
+		handleEntry(topName, data.Dir)
 		return nil
 
 	case fsrpc.KeybasePathType:
 		if hasMultiple {
 			printHeader(p)
 		}
-		handleEntry(publicName, libkbfs.Dir)
-		handleEntry(privateName, libkbfs.Dir)
+		handleEntry(publicName, data.Dir)
+		handleEntry(privateName, data.Dir)
 		return nil
 
 	case fsrpc.KeybaseChildPathType:
@@ -120,7 +121,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMulti
 		}
 		for _, fav := range favs {
 			if p.TLFType == fav.Type {
-				handleEntry(fav.Name, libkbfs.Dir)
+				handleEntry(fav.Name, data.Dir)
 			}
 		}
 		return nil
@@ -131,7 +132,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMulti
 			return err
 		}
 
-		if de.Type == libkbfs.Dir {
+		if de.Type == data.Dir {
 			// GetDirChildren doesn't verify the dir-ness
 			// of the node correctly (since it ends up
 			// creating a new DirBlock if the node isn't
@@ -167,8 +168,8 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMulti
 
 func lsOne(ctx context.Context, config libkbfs.Config, p fsrpc.Path, longFormat, useSigil, recursive, hasMultiple bool, errorFn func(error)) {
 	var children []string
-	handleEntry := func(name string, entryType libkbfs.EntryType) {
-		if recursive && entryType == libkbfs.Dir {
+	handleEntry := func(name string, entryType data.EntryType) {
+		if recursive && entryType == data.Dir {
 			children = append(children, name)
 		}
 		printEntry(ctx, config, p, name, entryType, longFormat, useSigil)

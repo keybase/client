@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/fsrpc"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -60,7 +61,7 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPathStr string, cre
 			}
 
 			nextNode, err := createDir(ctx, kbfsOps, currNode, dirname, currP.String(), verbose)
-			if err == (libkbfs.NameExistsError{Name: dirname}) {
+			if err == (data.NameExistsError{Name: dirname}) {
 				nextNode, _, err = kbfsOps.Lookup(ctx, currNode, dirname)
 			}
 			if err != nil {
@@ -70,7 +71,7 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPathStr string, cre
 		}
 	} else {
 		if p.PathType != fsrpc.TLFPathType {
-			return libkbfs.NameExistsError{Name: p.String()}
+			return data.NameExistsError{Name: p.String()}
 		}
 
 		parentDir, dirname, err := p.DirAndBasename()

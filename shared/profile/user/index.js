@@ -194,6 +194,16 @@ export type BioTeamProofsProps = {|
 |}
 export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
+    const addIdentity = this.props.onAddIdentity ? (
+      <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
+        <Kb.Button onClick={this.props.onAddIdentity} style={styles.addIdentityButton} type="Secondary">
+          <Kb.Text type="BodyBig" style={styles.label}>
+            Add more identities
+          </Kb.Text>
+          <Kb.Meta backgroundColor={Styles.globalColors.blue} title="NEW" style={styles.newMeta} />
+        </Kb.Button>
+      </Kb.Box2>
+    ) : null
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
         <Kb.Text
@@ -218,17 +228,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
-          {this.props.onAddIdentity && (
-            <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
-              <Kb.Button
-                label="Add other identities"
-                labelStyle={styles.label}
-                onClick={this.props.onAddIdentity}
-                style={styles.addIdentityButton}
-                type="Secondary"
-              />
-            </Kb.Box2>
-          )}
+          {addIdentity}
           <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
@@ -250,17 +250,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
             </Kb.Text>
             <Teams username={this.props.username} />
             <Proofs {...this.props} />
-            {this.props.onAddIdentity && (
-              <Kb.Box2 direction="horizontal" style={styles.addIdentityContainer}>
-                <Kb.Button
-                  label="Add other identities"
-                  labelStyle={styles.label}
-                  onClick={this.props.onAddIdentity}
-                  style={styles.addIdentityButton}
-                  type="Secondary"
-                />
-              </Kb.Box2>
-            )}
+            {addIdentity}
             <Folders profileUsername={this.props.username} />
           </Kb.Box2>
         </Kb.Box2>
@@ -511,6 +501,16 @@ const styles = Styles.styleSheetCreate({
   label: {
     color: Styles.globalColors.black,
   },
+  newMeta: Styles.platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginLeft: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      position: 'relative',
+      top: -1,
+    },
+  }),
   noGrow: {flexGrow: 0},
   proofs: Styles.platformStyles({
     isElectron: {

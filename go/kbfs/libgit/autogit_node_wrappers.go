@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -136,7 +137,7 @@ var _ libkbfs.Node = (*repoDirNode)(nil)
 // repoDirNode.
 func (rdn *repoDirNode) ShouldCreateMissedLookup(
 	ctx context.Context, name string) (
-	bool, context.Context, libkbfs.EntryType, string) {
+	bool, context.Context, data.EntryType, string) {
 	switch {
 	case strings.HasPrefix(name, AutogitBranchPrefix):
 		branchName := strings.TrimPrefix(name, AutogitBranchPrefix)
@@ -146,7 +147,7 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 		// It's difficult to tell if a given name is a legitimate
 		// prefix for a branch name or not, so just accept everything.
 		// If it's not legit, trying to read the data will error out.
-		return true, ctx, libkbfs.FakeDir, ""
+		return true, ctx, data.FakeDir, ""
 	case strings.HasPrefix(name, AutogitCommitPrefix):
 		commit := strings.TrimPrefix(name, AutogitCommitPrefix)
 		if len(commit) == 0 {
@@ -155,7 +156,7 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 		// It's a bit involved to tell if a given name is a legitimate
 		// commit or not, so just accept everything.  If it's not
 		// legit, trying to read the data will error out.
-		return true, ctx, libkbfs.FakeFile, ""
+		return true, ctx, data.FakeFile, ""
 	default:
 		return rdn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
@@ -218,7 +219,7 @@ func (rdn *repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		}
 	}
 
-	if child.EntryType() == libkbfs.Dir {
+	if child.EntryType() == data.Dir {
 		return &repoDirNode{
 			Node:      child,
 			am:        rdn.am,
@@ -296,7 +297,7 @@ var _ libkbfs.Node = (*rootNode)(nil)
 // ShouldCreateMissedLookup implements the Node interface for
 // rootNode.
 func (rn *rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
-	bool, context.Context, libkbfs.EntryType, string) {
+	bool, context.Context, data.EntryType, string) {
 	if name != AutogitRoot {
 		return rn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
@@ -325,7 +326,7 @@ func (rn *rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 		}
 		rn.fs = fs
 	}
-	return true, ctx, libkbfs.FakeDir, ""
+	return true, ctx, data.FakeDir, ""
 }
 
 // WrapChild implements the Node interface for rootNode.

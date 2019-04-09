@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -118,7 +119,7 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	}
 
 	tlfFS, err := libfs.NewFS(ctx,
-		s.config, tlfHandle, libkbfs.MasterBranch, "", "",
+		s.config, tlfHandle, data.MasterBranch, "", "",
 		keybase1.MDPriorityNormal)
 	if err != nil {
 		return "", nil, err
