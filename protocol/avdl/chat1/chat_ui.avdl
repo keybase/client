@@ -254,9 +254,15 @@ protocol chatUi {
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
 
+  record UIChatSearchConvHit {
+    string convID;
+    string name;
+    gregor1.Time mtime;
+  }
   void chatSearchInboxHit(int sessionID, ChatSearchInboxHit searchHit);
   void chatSearchInboxDone(int sessionID, ChatSearchInboxDone res);
   void chatSearchIndexStatus(int sessionID, ChatSearchIndexStatus status);
+  void chatSearchConvHits(int sessionID, array<UIChatSearchConvHit> hits);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 

@@ -456,6 +456,11 @@ func TestChatSearchInbox(t *testing.T) {
 		}
 		verifySearchDone := func(numHits int) {
 			select {
+			case <-chatUI.InboxSearchConvHitsCb:
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no name hits")
+			}
+			select {
 			case searchDone := <-chatUI.InboxSearchDoneCb:
 				require.Equal(t, numHits, searchDone.Res.NumHits)
 				numConvs := 1
