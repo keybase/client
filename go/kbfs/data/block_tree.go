@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/pipeliner"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -1007,6 +1007,64 @@ func (bt *blockTree) markParentsDirty(
 
 type makeSyncFunc func(ptr BlockPointer) func() error
 
+func (bt *blockTree) readyWorker(
+	ctx context.Context, id tlf.ID, bcache BlockCache, rp ReadyProvider,
+	bps BlockPutState, pathsFromRoot [][]ParentBlockAndChildIndex,
+	makeSync makeSyncFunc, i int, level int, lock *sync.Mutex,
+	oldPtrs map[BlockInfo]BlockPointer, donePtrs map[BlockPointer]bool) error {
+	// Ready the dirty block.
+	pb := pathsFromRoot[i][level]
+
+	lock.Lock()
+	parentPB := pathsFromRoot[i][level-1]
+	ptr := parentPB.childBlockPtr()
+	// If this is already a new pointer, skip it.
+	if donePtrs[ptr] {
+		lock.Unlock()
+		return nil
+	}
+	donePtrs[ptr] = true
+	lock.Unlock()
+
+	newInfo, _, readyBlockData, err := ReadyBlock(
+		ctx, bcache, rp, bt.kmd, pb.pblock,
+		bt.chargedTo, bt.rootBlockPointer().GetBlockType())
+	if err != nil {
+		return err
+	}
+
+	lock.Lock()
+	defer lock.Unlock()
+
+	err = bcache.Put(
+		newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
+	if err != nil {
+		return err
+	}
+
+	// Only the leaf level need to be tracked by the dirty file.
+	var syncFunc func() error
+	if makeSync != nil && level == len(pathsFromRoot[0])-1 {
+		syncFunc = makeSync(ptr)
+	}
+
+	err = bps.AddNewBlock(
+		ctx, newInfo.BlockPointer, pb.pblock, readyBlockData,
+		syncFunc)
+	if err != nil {
+		return err
+	}
+	err = bps.SaveOldPtr(ctx, ptr)
+	if err != nil {
+		return err
+	}
+
+	parentPB.setChildBlockInfo(newInfo)
+	oldPtrs[newInfo] = ptr
+	donePtrs[newInfo.BlockPointer] = true
+	return nil
+}
+
 // readyHelper takes a set of paths from a root down to a child block,
 // and readies all the blocks represented in those paths.  If the
 // caller wants leaf blocks readied, then the last element of each
@@ -1023,6 +1081,8 @@ func (bt *blockTree) readyHelper(
 	oldPtrs := make(map[BlockInfo]BlockPointer)
 	donePtrs := make(map[BlockPointer]bool)
 
+	// lock protects `bps`, `oldPtrs`, and `donePtrs` while
+	// parallelizing block readies below.
 	var lock sync.Mutex
 
 	// Starting from the leaf level, ready each block at each level,
@@ -1031,68 +1091,33 @@ func (bt *blockTree) readyHelper(
 	// the root block though; the folderUpdatePrepper code will do
 	// that.
 	for level := len(pathsFromRoot[0]) - 1; level > 0; level-- {
-		worker := func(i int) error {
-			// Ready the dirty block.
-			pb := pathsFromRoot[i][level]
+		eg, groupCtx := errgroup.WithContext(ctx)
+		indices := make(chan int, len(pathsFromRoot))
+		numWorkers := len(pathsFromRoot)
+		if numWorkers > maxParallelReadies {
+			numWorkers = maxParallelReadies
+		}
 
-			lock.Lock()
-			parentPB := pathsFromRoot[i][level-1]
-			ptr := parentPB.childBlockPtr()
-			// If this is already a new pointer, skip it.
-			if donePtrs[ptr] {
-				lock.Unlock()
-				return nil
+		worker := func() error {
+			for i := range indices {
+				err := bt.readyWorker(
+					groupCtx, id, bcache, rp, bps, pathsFromRoot, makeSync,
+					i, level, &lock, oldPtrs, donePtrs)
+				if err != nil {
+					return err
+				}
 			}
-			donePtrs[ptr] = true
-			lock.Unlock()
-
-			newInfo, _, readyBlockData, err := ReadyBlock(
-				ctx, bcache, rp, bt.kmd, pb.pblock,
-				bt.chargedTo, bt.rootBlockPointer().GetBlockType())
-			if err != nil {
-				return err
-			}
-
-			lock.Lock()
-			defer lock.Unlock()
-
-			err = bcache.Put(
-				newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
-			if err != nil {
-				return err
-			}
-
-			// Only the leaf level need to be tracked by the dirty file.
-			var syncFunc func() error
-			if makeSync != nil && level == len(pathsFromRoot[0])-1 {
-				syncFunc = makeSync(ptr)
-			}
-
-			err = bps.AddNewBlock(
-				ctx, newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
-			if err != nil {
-				return err
-			}
-			err = bps.SaveOldPtr(ctx, ptr)
-			if err != nil {
-				return err
-			}
-
-			parentPB.setChildBlockInfo(newInfo)
-			oldPtrs[newInfo] = ptr
-			donePtrs[newInfo.BlockPointer] = true
 			return nil
 		}
-
-		pipeliner := pipeliner.NewPipeliner(maxParallelReadies)
-		for i := 0; i < len(pathsFromRoot); i++ {
-			err := pipeliner.WaitForRoom(ctx)
-			if err != nil {
-				return nil, err
-			}
-			go func(i int) { pipeliner.CompleteOne(worker(i)) }(i)
+		for i := 0; i < numWorkers; i++ {
+			eg.Go(worker)
 		}
-		err := pipeliner.Flush(ctx)
+
+		for i := 0; i < len(pathsFromRoot); i++ {
+			indices <- i
+		}
+		close(indices)
+		err := eg.Wait()
 		if err != nil {
 			return nil, err
 		}
