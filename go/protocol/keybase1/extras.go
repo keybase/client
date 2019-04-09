@@ -1592,19 +1592,6 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	return false
 }
 
-func (u *UserPlusKeysV2AllIncarnations) ShouldReplaceWith(v UserPlusKeysV2AllIncarnations) bool {
-	if u == nil {
-		return true
-	}
-	if v.IsOlderThan(*u) {
-		return false
-	}
-	if u.Current.Unstubbed && !v.Current.Unstubbed {
-		return false
-	}
-	return true
-}
-
 func (u UserPlusKeysV2AllIncarnations) AllDeviceNames() []string {
 	var names []string
 

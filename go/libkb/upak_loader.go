@@ -133,10 +133,45 @@ func (u *CachedUPAKLoader) getCachedUPAKFromDB(ctx context.Context, uid keybase1
 	} else if tmp.MinorVersion == UPK2MinorVersionCurrent {
 		u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
 		ret = &tmp
+		u.putMemCache(ctx, uid, stubMode, tmp)
 	} else {
 		u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
 	}
 	return ret
+}
+
+func (u *CachedUPAKLoader) getCachedUPAKFromDBMaybeTryBothSlots(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
+	return pickBetterFromCache(func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations {
+		return u.getCachedUPAKFromDB(ctx, uid, stubMode)
+	}, stubMode)
+}
+
+func (u *CachedUPAKLoader) getMemCacheMaybeTryBothSlots(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
+	return pickBetterFromCache(func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations {
+		return u.getMemCache(ctx, uid, stubMode)
+	}, stubMode)
+}
+
+func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
+
+	ret = getter(stubMode)
+	if stubMode == StubModeUnstubbed {
+		return ret
+	}
+
+	stubbed := ret
+	unstubbed := getter(StubModeUnstubbed)
+
+	if unstubbed == nil {
+		return stubbed
+	}
+	if stubbed == nil {
+		return nil
+	}
+	if unstubbed.IsOlderThan(*stubbed) {
+		return stubbed
+	}
+	return unstubbed
 }
 
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, stubMode StubMode, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
@@ -146,11 +181,7 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 		return nil, false
 	}
 
-	upak := u.getMemCache(ctx, uid)
-	if upak != nil && !upak.Current.Unstubbed && stubMode == StubModeUnstubbed {
-		u.G().VDL.CLogf(ctx, VLog0, "| hit mem cache, but throwing away, since want unstubbed, and it has stubs")
-		upak = nil
-	}
+	upak := u.getMemCacheMaybeTryBothSlots(ctx, uid, stubMode)
 
 	// Try loading from persistent storage if we missed memory cache.
 	if upak != nil {
@@ -161,22 +192,9 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 			info.InCache = true
 		}
 	} else {
-		upak = u.getCachedUPAKFromDB(ctx, uid, stubMode)
-
-		// This is tricky: if the user could settle for stubbed, but it's loading for
-		// the currently-logged in user, then also try the unstubbed UPAK as a fallback.
-		// We could safely do this for every stubbed load (not just for the current user),
-		// but we don't want to turn every failure to load into a 2 missed DB loads (rather than one).
-		if upak == nil && (stubMode == StubModeStubbed) && uid.Equal(u.GetCurrentUID()) {
-			upak = u.getCachedUPAKFromDB(ctx, uid, StubModeUnstubbed)
-		}
-
-		if upak != nil {
-			if info != nil {
-				info.InDiskCache = true
-			}
-			// Insert disk object into memory.
-			u.putMemCache(ctx, uid, *upak)
+		upak = u.getCachedUPAKFromDBMaybeTryBothSlots(ctx, uid, stubMode)
+		if upak != nil && info != nil {
+			info.InDiskCache = true
 		}
 	}
 
@@ -184,6 +202,7 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 		u.G().VDL.CLogf(ctx, VLog0, "| missed cache")
 		return nil, true
 	}
+
 	diff := u.G().Clock().Now().Sub(keybase1.FromTime(upak.Uvv.CachedAt))
 	fresh := (diff <= u.Freshness)
 	if fresh {
@@ -191,6 +210,7 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	} else {
 		u.G().VDL.CLogf(ctx, VLog0, "| cache hit was stale (by %s)", u.Freshness-diff)
 	}
+
 	return upak, fresh
 }
 
@@ -244,19 +264,21 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	}
 
 	uid := obj.Current.Uid
-	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s", uid)
+	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s %s", uid, stubMode)
 
-	existing := u.getMemCache(ctx, uid)
-	if !existing.ShouldReplaceWith(*obj) {
+	existing := u.getMemCache(ctx, uid, stubMode)
+
+	if existing != nil && obj.IsOlderThan(*existing) {
 		u.G().VDL.CLogf(ctx, VLog0, "| CachedUpakLoader#putUPAKToCache: Refusing to overwrite with stale object")
 		return errors.New("stale object rejected")
 	}
 
-	u.putMemCache(ctx, uid, *obj)
 	err := u.G().LocalDb.PutObj(culDBKeyV2(uid, stubMode), nil, *obj)
 	if err != nil {
-		u.G().Log.CWarningf(ctx, "Error in writing UPAK for %s: %s", uid, err)
+		u.G().Log.CWarningf(ctx, "Error in writing UPAK for %s %s: %s", uid, stubMode, err)
+		return err
 	}
+
 	u.deleteV1UPAK(uid)
 	return err
 }
@@ -396,7 +418,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			// current sigchain), remove from cache, and then fall
 			// through. LoadUser shall return an error, which we will
 			// return to the caller.
-			u.removeMemCache(ctx, arg.uid)
+			u.removeMemCache(ctx, arg.uid, arg.stubMode)
 
 			err := u.G().LocalDb.Delete(culDBKeyV2(arg.uid, arg.stubMode))
 			if err != nil {
@@ -606,7 +628,8 @@ func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 	lock := u.locktab.AcquireOnName(ctx, u.G(), uid.String())
 	defer lock.Release(ctx)
 
-	u.removeMemCache(ctx, uid)
+	u.removeMemCache(ctx, uid, StubModeUnstubbed)
+	u.removeMemCache(ctx, uid, StubModeStubbed)
 
 	for _, sm := range []StubMode{StubModeStubbed, StubModeUnstubbed} {
 		err := u.G().LocalDb.Delete(culDBKeyV2(uid, sm))
@@ -847,8 +870,12 @@ func (u *CachedUPAKLoader) deleteV1UPAK(uid keybase1.UID) {
 	}
 }
 
-func (u *CachedUPAKLoader) getMemCache(ctx context.Context, uid keybase1.UID) *keybase1.UserPlusKeysV2AllIncarnations {
-	val, ok := u.cache.Get(uid)
+func memCacheKey(u keybase1.UID, stubMode StubMode) string {
+	return fmt.Sprintf("%s-%s", u, stubMode)
+}
+
+func (u *CachedUPAKLoader) getMemCache(ctx context.Context, uid keybase1.UID, stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations {
+	val, ok := u.cache.Get(memCacheKey(uid, stubMode))
 	if !ok {
 		return nil
 	}
@@ -862,12 +889,12 @@ func (u *CachedUPAKLoader) getMemCache(ctx context.Context, uid keybase1.UID) *k
 	return &upak
 }
 
-func (u *CachedUPAKLoader) putMemCache(ctx context.Context, uid keybase1.UID, upak keybase1.UserPlusKeysV2AllIncarnations) {
-	u.cache.Add(uid, upak)
+func (u *CachedUPAKLoader) putMemCache(ctx context.Context, uid keybase1.UID, stubMode StubMode, upak keybase1.UserPlusKeysV2AllIncarnations) {
+	u.cache.Add(memCacheKey(uid, stubMode), upak)
 }
 
-func (u *CachedUPAKLoader) removeMemCache(ctx context.Context, uid keybase1.UID) {
-	u.cache.Remove(uid)
+func (u *CachedUPAKLoader) removeMemCache(ctx context.Context, uid keybase1.UID, stubMode StubMode) {
+	u.cache.Remove(memCacheKey(uid, stubMode))
 }
 
 func (u *CachedUPAKLoader) purgeMemCache() {
