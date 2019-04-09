@@ -3,8 +3,11 @@ import * as Tabs from '../../constants/tabs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 import * as TrackerConstants from '../../constants/tracker2'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import TabBar from '.'
 import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
@@ -30,6 +33,15 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
   onHelp: () => openURL('https://keybase.io/docs'),
+  onMinimizeToTray: () => {
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .hide()
+  },
+  onQuit: () => {
+    dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
+    dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+  },
   onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]})),
   onSignOut: () => dispatch(ConfigGen.createLogout()),
 })
@@ -41,7 +53,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   fullname: stateProps.fullname,
   isWalletsNew: stateProps.isWalletsNew,
   onHelp: dispatchProps.onHelp,
+  onMinimizeToTray: dispatchProps.onMinimizeToTray,
   onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
+  onQuit: dispatchProps.onQuit,
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab),

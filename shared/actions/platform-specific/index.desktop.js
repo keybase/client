@@ -245,7 +245,7 @@ const onConnected = () => {
       argv: process.argv,
       clientType: RPCTypes.commonClientType.guiMain,
       desc: 'Main Renderer',
-      pid: process.pid,
+      pid: SafeElectron.getRemote().process.pid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
   }).catch(_ => {})

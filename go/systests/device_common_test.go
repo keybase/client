@@ -223,7 +223,7 @@ func (s *testDeviceSet) cleanup() {
 	for _, od := range s.devices {
 		od.tctx.Cleanup()
 		if od.service != nil {
-			od.service.Stop(0)
+			od.service.Stop(libkb.NewMetaContextForTest(*od.tctx), 0)
 			od.stop()
 		}
 	}

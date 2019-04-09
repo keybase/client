@@ -26,9 +26,10 @@ func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlH
 }
 
 // Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
-func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
-	c.G().Log.Debug("Received stop(%d) RPC; shutting down", args.ExitCode)
-	go c.service.Stop(args.ExitCode)
+func (c *CtlHandler) Stop(ctx context.Context, args keybase1.StopArg) error {
+	mctx := libkb.NewMetaContext(ctx, c.G())
+	mctx.Debug("Received stop(%d) RPC; shutting down", args.ExitCode)
+	c.service.Stop(mctx, args.ExitCode)
 	return nil
 }
 

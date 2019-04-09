@@ -65,7 +65,7 @@ func (u *smuUser) cleanup() {
 	for _, d := range u.devices {
 		d.tctx.Cleanup()
 		if d.service != nil {
-			d.service.Stop(0)
+			d.service.Stop(libkb.NewMetaContextForTest(*d.tctx), 0)
 			d.stop()
 		}
 	}
