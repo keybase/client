@@ -120,21 +120,11 @@ func (u *CachedUPAKLoader) ClearMemory() {
 	u.purgeMemCache()
 }
 
-// NOTE(max) 2018.02.28
-// When bumping this next, please see the fussy logic surrounding the fact that minor
-// version 5 is still OK for non-reset accounts.
 const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V6
 
 func (u *CachedUPAKLoader) getCachedUPAKFromDB(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
 	var tmp keybase1.UserPlusKeysV2AllIncarnations
 	found, err := u.G().LocalDb.GetInto(&tmp, culDBKeyV2(uid, stubMode))
-
-	// As a nice load-saving hack, we can upgrade V5 minor versions to V6 on load if there are no resets.
-	// We just do this in memory.
-	if found && err == nil && tmp.MinorVersion == keybase1.UPK2MinorVersion_V5 && len(tmp.PastIncarnations) == 0 {
-		u.G().VDL.CLogf(ctx, VLog0, "| upgrade disk cache v%d without resets to v%d", keybase1.UPK2MinorVersion_V5, keybase1.UPK2MinorVersion_V6)
-		tmp.MinorVersion = keybase1.UPK2MinorVersion_V6
-	}
 
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)

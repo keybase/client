@@ -231,9 +231,10 @@ func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	}
 }
 
-func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID, stubMode StubMode) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID, stubMode StubMode, unstubs map[keybase1.Seqno]LinkID) (dirtyTail *MerkleTriple, err error) {
 	m, tbs := m.WithTimeBuckets()
 	low := sc.GetLastLoadedSeqno()
+	lenPrev := sc.Len()
 	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
 
 	m.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
@@ -269,7 +270,15 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 		return nil, err
 	}
 	recordFin()
-	return sc.LoadServerBody(m, body, low, t, selfUID)
+	dirtyTail, err = sc.LoadServerBody(m, body, low, t, selfUID)
+	if err != nil {
+		return nil, err
+	}
+	err = sc.checkUnstubs(lenPrev, unstubs)
+	if err != nil {
+		return nil, err
+	}
+	return dirtyTail, nil
 }
 
 func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
@@ -517,6 +526,11 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 }
 
 func (sc *SigChain) checkUnstubs(low int, unstubs map[keybase1.Seqno]LinkID) error {
+
+	if unstubs == nil {
+		return nil
+	}
+
 	hits := make(map[keybase1.Seqno]bool)
 	for _, link := range sc.chainLinks[low:] {
 		q := link.GetSeqno()
@@ -1322,19 +1336,11 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
 
-	low := l.chain.Len()
-
-	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID(), l.stubMode)
+	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID(), l.stubMode, l.unstubs)
 
 	if err != nil {
 		return err
 	}
-
-	err = l.chain.checkUnstubs(low, l.unstubs)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
