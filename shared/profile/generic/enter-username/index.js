@@ -139,9 +139,16 @@ type Props = {|
 |}
 
 class _EnterUsername extends React.Component<Props> {
+  _waitingButtonKey = 0
   componentDidUpdate(prevProps: Props) {
     if (!this.props.waiting && prevProps.waiting) {
       this.props.onContinue()
+    }
+    if (this.props.error && !prevProps.error) {
+      // We just tried an invalid username
+      // increment waiting button key so it
+      // remounts and we avoid a perma-spinner
+      this._waitingButtonKey++
     }
   }
   render() {
@@ -223,6 +230,7 @@ class _EnterUsername extends React.Component<Props> {
                 label={props.submitButtonLabel}
                 style={styles.buttonBig}
                 waitingKey={null}
+                key={this._waitingButtonKey}
               />
             )}
           </Kb.ButtonBar>
