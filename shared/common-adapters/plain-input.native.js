@@ -210,6 +210,7 @@ class PlainInput extends Component<InternalProps, State> {
       autoCapitalize: this.props.autoCapitalize || 'none',
       autoCorrect: !!this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
+      children: this.props.children,
       editable: !this.props.disabled,
       keyboardType: this.props.keyboardType,
       multiline: false,
