@@ -27,9 +27,7 @@ type Indexer struct {
 	stopCh   chan chan struct{}
 	started  bool
 
-	maxBoostConvs int
-	maxBoostMsgs  int
-	maxSyncConvs  int
+	maxSyncConvs int
 
 	// for testing
 	consumeCh chan chat1.ConversationID
@@ -48,12 +46,9 @@ func NewIndexer(g *globals.Context) *Indexer {
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
-		idx.SetMaxBoostConvs(maxBoostConvsMobile)
-		idx.SetMaxBoostMsgs(maxBoostMsgsMobile)
 		idx.SetMaxSyncConvs(maxSyncConvsMobile)
 	default:
-		idx.SetMaxBoostConvs(maxBoostConvsDesktop)
-		idx.SetMaxBoostMsgs(maxBoostMsgsDesktop)
+
 		idx.SetMaxSyncConvs(maxSyncConvsDesktop)
 	}
 	return idx
@@ -61,14 +56,6 @@ func NewIndexer(g *globals.Context) *Indexer {
 
 func (idx *Indexer) SetMaxSyncConvs(x int) {
 	idx.maxSyncConvs = x
-}
-
-func (idx *Indexer) SetMaxBoostConvs(x int) {
-	idx.maxBoostConvs = x
-}
-
-func (idx *Indexer) SetMaxBoostMsgs(x int) {
-	idx.maxBoostMsgs = x
 }
 
 func (idx *Indexer) SetPageSize(pageSize int) {
@@ -508,10 +495,6 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		idx.Debug(ctx, "Search indexer is disabled, results will be inaccurate.")
 	}
 
-	// NOTE opts.MaxMessages is only used by the regexp searcher for search
-	// boosting
-	opts.MaxMessages = idx.maxBoostMsgs
-
 	if opts.MaxHits > MaxAllowedSearchHits || opts.MaxHits < 0 {
 		opts.MaxHits = MaxAllowedSearchHits
 	}
@@ -574,7 +557,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		}
 	}
 
-	var numConvs, numBoostConvs int
+	var numConvs int
 	hits := []chat1.ChatSearchInboxHit{}
 	for convIDStr, conv := range convMap {
 		numConvs++
@@ -592,25 +575,6 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			idx.Debug(ctx, "search hit mismatch, found %d msgIDs in index, %d hits in conv: %v",
 				len(msgIDs), convHits.Size(), conv.GetName())
 		}
-
-		// If we don't have any hits, try to boost the search results with the
-		// conversation based search.
-		if convHits == nil && numBoostConvs < idx.maxBoostConvs {
-			numBoostConvs++
-			hits, err := idx.G().RegexpSearcher.Search(ctx, uid, convID, queryRe, nil /* uiCh */, opts)
-			if err != nil {
-				if utils.IsPermanentErr(err) {
-					return nil, err
-				}
-			} else if len(hits) > 0 {
-				convHits = &chat1.ChatSearchInboxHit{
-					ConvID:   convID,
-					ConvName: conv.GetName(),
-					Hits:     hits,
-				}
-			}
-		}
-
 		if convHits == nil {
 			continue
 		}
