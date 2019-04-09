@@ -41,7 +41,6 @@ export type Props = {|
   fullWidth?: boolean,
   backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black' | 'Purple',
   className?: string,
-  childrenRight?: boolean,
 |}
 
 const Progress = ({small, white}) => (
@@ -110,7 +109,7 @@ class Button extends React.Component<Props> {
             this.props.labelContainerStyle,
           ])}
         >
-          {!this.props.waiting && !this.props.childrenRight && this.props.children}
+          {!this.props.waiting && this.props.children}
           {!!this.props.label && (
             <Text
               type={this.props.small ? 'BodySemibold' : 'BodyBig'}
@@ -120,8 +119,6 @@ class Button extends React.Component<Props> {
             </Text>
           )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
-          {!this.props.waiting && this.props.childrenRight && <Box style={styles.labelSpacer} />}
-          {!this.props.waiting && this.props.childrenRight && this.props.children}
         </Box>
       </ClickableBox>
     )
@@ -166,11 +163,6 @@ const styles = styleSheetCreate({
     width: undefined,
   },
   labelContainer: {height: '100%', position: 'relative'},
-  labelSpacer: {
-    flexShrink: 0,
-    height: 4,
-    width: 4,
-  },
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
