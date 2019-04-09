@@ -6,13 +6,19 @@ import type {Props as ButtonProps} from '../common-adapters/button'
 import * as Styles from '../styles'
 
 type InfoIconProps = {|
+  invisible: boolean,
   onDocumentation: () => void,
   onFeedback: () => void,
 |}
 
 const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   <>
-    <Kb.Icon type="iconfont-question-mark" onClick={props.toggleShowingMenu} ref={props.setAttachmentRef} />
+    <Kb.Icon
+      type="iconfont-question-mark"
+      onClick={props.invisible ? undefined : props.toggleShowingMenu}
+      ref={props.setAttachmentRef}
+      style={props.invisible ? styles.opacityNone : undefined}
+    />
     <Kb.FloatingMenu
       items={[
         {onClick: props.onFeedback, title: 'Send feedback'},
@@ -26,7 +32,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   </>
 )
 export const InfoIcon = Container.compose(
-  Container.namedConnect<{}, _, _, _, _>(
+  Container.namedConnect<{invisible?: boolean}, _, _, _, _>(
     () => ({}),
     () => ({onDocumentation: () => {}, onFeedback: () => {}}),
     (s, d, o) => ({...o, ...s, ...d}),
@@ -35,16 +41,11 @@ export const InfoIcon = Container.compose(
   Kb.OverlayParentHOC
 )(_InfoIcon)
 
-type HeaderProps = {|
-  onBack?: () => void,
-  title: string,
-|}
-
 // Only used on desktop
-export const Header = (props: HeaderProps) => (
+const Header = props => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={props.style}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-      <InfoIcon />
+      <InfoIcon invisible={props.negative} />
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (
@@ -52,11 +53,15 @@ export const Header = (props: HeaderProps) => (
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             <Kb.Icon
               type="iconfont-arrow-left"
-              color={Styles.globalColors.black_50}
+              color={props.negative ? Styles.globalColors.white : Styles.globalColors.black_50}
               sizeType="Small"
               style={styles.fixIconAlignment}
             />
-            <Kb.Text type="Body" style={styles.backText}>
+            <Kb.Text
+              type="Body"
+              style={props.negative ? undefined : styles.backText}
+              negative={props.negative}
+            >
               Back
             </Kb.Text>
           </Kb.Box2>
@@ -77,16 +82,18 @@ type SignupScreenProps = {|
   banners?: React.Node,
   buttons: Array<ButtonMeta>,
   children: React.Node,
+  negativeHeader?: boolean, // desktop only
   onBack?: () => void,
+  skipMobileHeader?: boolean, // skip adding HeaderHoc
   headerStyle?: Styles.StylesCrossPlatform, // mobile goes into HeaderHoc
   containerStyle?: Styles.StylesCrossPlatform,
-  title: string,
+  title?: string,
   titleComponent?: React.Node,
 
   // HACK - HeaderHoc isn't typed to add props correctly (and we're only using it conditionally here)
   // add props from HeaderHoc as necessary
   // Mobile only
-  borderless?: boolean,
+  header?: React.Node,
   rightActionLabel?: string,
   onRightAction?: ?() => void,
   leftAction?: 'back' | 'cancel',
@@ -102,8 +109,10 @@ const _SignupScreen = (props: SignupScreenProps) => (
         title={props.title}
         titleComponent={props.titleComponent}
         style={props.headerStyle}
+        negative={props.negativeHeader}
       />
     )}
+    {Styles.isMobile && props.header}
     <Kb.Box2
       alignItems="center"
       direction="vertical"
@@ -123,7 +132,10 @@ const _SignupScreen = (props: SignupScreenProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
-export const SignupScreen = Styles.isMobile ? Kb.HeaderHoc(_SignupScreen) : _SignupScreen
+export const SignupScreen = (props: SignupScreenProps) => {
+  const Component = Styles.isMobile && !props.skipMobileHeader ? Kb.HeaderHoc(_SignupScreen) : _SignupScreen
+  return <Component {...props} />
+}
 SignupScreen.defaultProps = {
   leftAction: 'cancel',
   leftActionText: 'Back',
@@ -179,6 +191,9 @@ const styles = Styles.styleSheetCreate({
   infoIconContainer: {
     justifyContent: 'flex-end',
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
+  },
+  opacityNone: {
+    opacity: 0,
   },
   titleContainer: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
