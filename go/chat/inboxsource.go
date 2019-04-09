@@ -720,12 +720,8 @@ func (h convSearchHit) hitScore() (score int) {
 			score += 3
 		}
 	}
-	if len(h.queryToks) == len(h.convToks) &&
-	len(h.hits) == len(h.convToks) &&
-	exacts == len(h.hits)  {
-		if exacts == len(h.hits) {
-			return 1000000
-		}
+	if len(h.queryToks) == len(h.convToks) && len(h.hits) == len(h.convToks) && exacts == len(h.hits) {
+		return 1000000
 	}
 	return score
 }
