@@ -537,6 +537,9 @@ func IsOfflineError(err error) OfflineErrorKind {
 		return OfflineErrorKindOfflineBasic
 	}
 
+	// Unfortunately, Go throws these without a type and they can occasionally
+	// propagate up. The strings were copied from
+	// https://golang.org/src/crypto/tls/conn.go
 	switch err.Error() {
 	case "tls: use of closed connection",
 		"tls: protocol is shutdown":
