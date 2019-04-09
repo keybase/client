@@ -993,11 +993,11 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	eng3 := NewLogin(tc3.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m3 := NewMetaContextForTest(tc3).WithUIs(uis3)
 	err := RunEngine2(m3, eng3)
-	if err == nil {
+	if err == nil && !eng3.resetPending {
 		t.Fatal("Provision w/ gpg key successful on device 2 w/ PUK enabled")
 	}
-	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
-		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
+	if err != nil {
+		t.Errorf("Provision error: %T (%s), expected nil", err, err)
 	}
 }
 

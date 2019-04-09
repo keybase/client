@@ -24,6 +24,8 @@ type Login struct {
 	username     string
 	clientType   keybase1.ClientType
 	doUserSwitch bool
+
+	resetPending bool
 }
 
 // NewLogin creates a Login engine.  username is optional.
@@ -131,6 +133,7 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	}
 	if resetPending {
 		// We've just started a reset process
+		e.resetPending = true
 		return nil
 	}
 
