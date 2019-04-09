@@ -6,8 +6,8 @@ import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import TlfOrPathItemInfo from '../tlf-or-path-item-info'
 import PathItemIcon from '../path-item-icon-container'
-import StaticBreadcrumb from '../static-breadcrumb'
 import CommaSeparatedName from '../comma-separated-name'
+import StaticBreadcrumb from '../static-breadcrumb'
 
 type Props = {|
   size: number,
@@ -34,8 +34,8 @@ class Header extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
-        <PathItemIcon path={this.props.path} size={32} style={styles.pathItemIcon} />
-        <StaticBreadcrumb pathElements={Types.getPathElements(this.props.path)} />
+        <PathItemIcon path={this.props.path} size={48} style={styles.pathItemIcon} />
+        {Styles.isMobile && <StaticBreadcrumb pathElements={Types.getPathElements(this.props.path)} />}
         <Kb.Box2 direction="horizontal" style={styles.nameTextBox}>
           <CommaSeparatedName
             type="BodySmallSemibold"
@@ -61,7 +61,7 @@ class Header extends React.PureComponent<Props> {
               : undefined}
           </Kb.Text>
         )}
-        <TlfOrPathItemInfo path={this.props.path} mode="default" />
+        <TlfOrPathItemInfo path={this.props.path} mode="menu" />
       </Kb.Box2>
     )
   }
