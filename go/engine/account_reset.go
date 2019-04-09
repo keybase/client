@@ -53,12 +53,12 @@ func (e *AccountReset) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
-	m = m.WithLogTag("RST")
-	defer m.TraceTimed("Account#Run", func() error { return err })()
+func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
+	mctx = mctx.WithLogTag("RST")
+	defer mctx.TraceTimed("Account#Run", func() error { return err })()
 
 	// User's with active devices cannot reset at all
-	if m.ActiveDevice().Valid() {
+	if mctx.ActiveDevice().Valid() {
 		return libkb.ResetWithActiveDeviceError{}
 	}
 
@@ -85,9 +85,9 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 		},
 	}
 	if !e.reuseLoginContext {
-		m = m.WithNewProvisionalLoginContext()
+		mctx = mctx.WithNewProvisionalLoginContext()
 	}
-	err = libkb.PassphraseLoginPromptWithArg(m, 3, arg)
+	err = libkb.PassphraseLoginPromptWithArg(mctx, 3, arg)
 	switch err.(type) {
 	case nil:
 		self = true
@@ -98,7 +98,7 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 		libkb.RetryExhaustedError,
 		libkb.InputCanceledError,
 		libkb.SkipSecretPromptError:
-		m.Debug("unable to create a session: %v, charging forward without it", err)
+		mctx.Debug("unable to create a session: %v, charging forward without it", err)
 		if len(e.usernameOrEmail) == 0 {
 			return libkb.NewResetMissingParamsError("Unable to start autoreset process, unable to establish session, no username or email provided")
 		}
@@ -113,17 +113,17 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 	}
 
 	if self {
-		eventType, readyTime, err := e.checkStatus(m)
+		eventType, readyTime, err := e.checkStatus(mctx)
 		if err != nil {
 			return err
 		}
 		if eventType != 0 && err == nil {
-			return e.resetPrompt(m, eventType, readyTime)
+			return e.resetPrompt(mctx, eventType, readyTime)
 		}
 	}
 
 	// NOTE `uid` field currently unused. Drop if we don't find a use for it.
-	res, err := m.G().API.Post(m, libkb.APIArg{
+	res, err := mctx.G().API.Post(mctx, libkb.APIArg{
 		Endpoint:    "autoreset/enter",
 		SessionType: libkb.APISessionTypeOPTIONAL,
 		Args: libkb.HTTPArgs{
@@ -135,15 +135,15 @@ func (e *AccountReset) Run(m libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	m.G().Log.Debug("autoreset/enter result: %s", res.Body.MarshalToDebug())
-	m.G().Log.Info("Your account has been added to the reset pipeline.")
+	mctx.G().Log.Debug("autoreset/enter result: %s", res.Body.MarshalToDebug())
+	mctx.G().Log.Info("Your account has been added to the reset pipeline.")
 	e.resetPending = true
 	return nil
 }
 
-func (e *AccountReset) checkStatus(m libkb.MetaContext) (int, time.Time, error) {
+func (e *AccountReset) checkStatus(mctx libkb.MetaContext) (int, time.Time, error) {
 	// Check the status first
-	res, err := m.G().API.Get(m, libkb.APIArg{
+	res, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:    "autoreset/status",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	})
@@ -177,10 +177,10 @@ func (e *AccountReset) checkStatus(m libkb.MetaContext) (int, time.Time, error) 
 	return eventType, eventTime.Add(time.Second * time.Duration(delaySecs)), nil
 }
 
-func (e *AccountReset) resetPrompt(m libkb.MetaContext, eventType int, readyTime time.Time) error {
+func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, eventType int, readyTime time.Time) error {
 	if eventType == libkb.AutoresetEventReady && !e.completeReset {
 		// Ask the user if they'd like to reset if we're in login + it's ready
-		shouldReset, err := m.UIs().LoginUI.PromptResetAccount(m.Ctx(), keybase1.PromptResetAccountArg{
+		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
 			Text: "Would you like to complete the reset of your account?",
 		})
 		if err != nil {
@@ -197,10 +197,10 @@ func (e *AccountReset) resetPrompt(m libkb.MetaContext, eventType int, readyTime
 			"src": "app",
 		}
 		arg.JSONPayload = payload
-		if _, err := m.G().API.Post(m, arg); err != nil {
+		if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 			return err
 		}
-		m.G().Log.Info("Your account has been reset.")
+		mctx.G().Log.Info("Your account has been reset.")
 
 		e.resetComplete = true
 
@@ -223,7 +223,7 @@ func (e *AccountReset) resetPrompt(m libkb.MetaContext, eventType int, readyTime
 			humanize.Time(readyTime),
 		)
 	}
-	if err := m.UIs().LoginUI.DisplayResetProgress(m.Ctx(), keybase1.DisplayResetProgressArg{
+	if err := mctx.UIs().LoginUI.DisplayResetProgress(mctx.Ctx(), keybase1.DisplayResetProgressArg{
 		Text: notificationText,
 	}); err != nil {
 		return err
