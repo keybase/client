@@ -724,7 +724,6 @@ func (h convSearchHit) hitScore() (score int) {
 		if exacts == len(h.hits) {
 			return 1000000
 		}
-		score++
 	}
 	return score
 }
@@ -803,7 +802,6 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		if !hit.valid() {
 			continue
 		}
-		s.Debug(ctx, "Search: hit: %s score: %d", conv.GetName(), hit.hitScore())
 		hits = append(hits, hit)
 	}
 	sort.Slice(hits, func(i, j int) bool {
