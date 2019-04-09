@@ -447,3 +447,14 @@ const (
 	// explicitly removed from the cache.
 	PermanentEntry
 )
+
+// BlockCacheHashBehavior denotes whether the cache should hash the
+// plaintext of a new block or not.
+type BlockCacheHashBehavior int
+
+const (
+	// SkipCacheHash means that the plaintext of a block should not be hashed.
+	SkipCacheHash BlockCacheHashBehavior = iota
+	// DoCacheHash means that the plaintext of a block should be hashed.
+	DoCacheHash
+)

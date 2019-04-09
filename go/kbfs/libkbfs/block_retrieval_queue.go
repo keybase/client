@@ -328,7 +328,10 @@ func (brq *blockRetrievalQueue) setPrefetchStatus(
 func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	ptr data.BlockPointer, tlfID tlf.ID, block data.Block, lifetime data.BlockCacheLifetime,
 	prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) (err error) {
-	err = brq.config.BlockCache().Put(ptr, tlfID, block, lifetime)
+	// TODO: plumb through whether journaling is enabled for this TLF,
+	// to set the right cache behavior.
+	err = brq.config.BlockCache().Put(
+		ptr, tlfID, block, lifetime, data.DoCacheHash)
 	switch err.(type) {
 	case nil:
 	case data.CachePutCacheFullError:
@@ -395,9 +398,11 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block, blockBuf,
 		serverHalf)
 	if err == nil {
-		// Cache the block in memory.
+		// Cache the block in memory.  TODO: plumb through whether
+		// journaling is enabled for this TLF, to set the right cache
+		// behavior.
 		brq.config.BlockCache().Put(
-			ptr, kmd.TlfID(), block, data.TransientEntry)
+			ptr, kmd.TlfID(), block, data.TransientEntry, data.DoCacheHash)
 	}
 	return prefetchStatus, err
 }

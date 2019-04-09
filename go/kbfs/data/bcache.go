@@ -233,7 +233,7 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 // when it gets Put into the cache again.
 func (b *BlockCacheStandard) Put(
 	ptr BlockPointer, tlf tlf.ID, block Block,
-	lifetime BlockCacheLifetime) error {
+	lifetime BlockCacheLifetime, hashBehavior BlockCacheHashBehavior) error {
 	// We first check if the block shouldn't be cached, since CommonBlocks can
 	// take this path.
 	if lifetime == NoCacheEntry {
@@ -258,8 +258,7 @@ func (b *BlockCacheStandard) Put(
 	case TransientEntry:
 		// If it's the right type of block, store the hash -> ID mapping.
 		if fBlock, isFileBlock := block.(*FileBlock); b.ids != nil &&
-			isFileBlock && !fBlock.IsInd {
-
+			isFileBlock && !fBlock.IsInd && hashBehavior == DoCacheHash {
 			key := idCacheKey{tlf, fBlock.GetHash()}
 			// zero out the refnonce, it doesn't matter
 			ptr.RefNonce = kbfsblock.ZeroRefNonce
@@ -275,6 +274,9 @@ func (b *BlockCacheStandard) Put(
 		// Cache it later, once we know there's room
 
 	case PermanentEntry:
+		if hashBehavior != SkipCacheHash {
+			return errors.New("Must skip cache hash for permanent entries")
+		}
 		func() {
 			b.cleanLock.Lock()
 			defer b.cleanLock.Unlock()

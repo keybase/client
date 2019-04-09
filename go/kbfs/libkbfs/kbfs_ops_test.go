@@ -556,7 +556,8 @@ func expectBlock(config *ConfigMock, kmd libkey.KeyMetadata, blockPtr data.Block
 		Do(func(ctx context.Context, kmd libkey.KeyMetadata,
 			blockPtr data.BlockPointer, getBlock data.Block, lifetime data.BlockCacheLifetime) {
 			getBlock.Set(block)
-			config.BlockCache().Put(blockPtr, kmd.TlfID(), getBlock, lifetime)
+			config.BlockCache().Put(blockPtr, kmd.TlfID(), getBlock, lifetime,
+				data.DoCacheHash)
 		}).Return(err)
 }
 
@@ -757,7 +758,8 @@ func nodeFromPath(t *testing.T, ops *folderBranchOps, p data.Path) Node {
 func testPutBlockInCache(
 	t *testing.T, config *ConfigMock, ptr data.BlockPointer, id tlf.ID,
 	block data.Block) {
-	err := config.BlockCache().Put(ptr, id, block, data.TransientEntry)
+	err := config.BlockCache().Put(
+		ptr, id, block, data.TransientEntry, data.DoCacheHash)
 	require.NoError(t, err)
 	if config.mockBcache != nil {
 		config.mockBcache.EXPECT().Get(ptr).AnyTimes().Return(block, nil)

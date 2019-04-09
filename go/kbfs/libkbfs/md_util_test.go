@@ -31,7 +31,7 @@ func (c testBlockCache) Get(ptr data.BlockPointer) (data.Block, error) {
 }
 
 func (testBlockCache) Put(ptr data.BlockPointer, tlf tlf.ID, block data.Block,
-	lifetime data.BlockCacheLifetime) error {
+	lifetime data.BlockCacheLifetime, _ data.BlockCacheHashBehavior) error {
 	return errors.New("Shouldn't be called")
 }
 
@@ -74,7 +74,9 @@ func TestReembedBlockChanges(t *testing.T) {
 
 	// We make the cache always return a block, so we can pass in
 	// nil for bops and rmdWithKeys.
-	err = reembedBlockChanges(ctx, codec, bcache, nil, mode, tlfID, &pmd, nil, logger.NewTestLogger(t))
+	err = reembedBlockChanges(
+		ctx, codec, bcache, nil, mode, tlfID, &pmd, nil,
+		logger.NewTestLogger(t))
 	require.NoError(t, err)
 
 	// We expect to get changes back, except with the implicit ref
