@@ -21,6 +21,7 @@ class TestWrapper extends React.PureComponent<
     align: 'left' | 'right',
     color: 'blue' | 'green',
     disabled?: ?boolean,
+    gapInBetween?: ?boolean,
     initialEnabled: boolean,
     label: string | React.Node,
     labelSubtitle?: ?string,
@@ -35,6 +36,7 @@ class TestWrapper extends React.PureComponent<
         align={this.props.align}
         color={this.props.color}
         disabled={this.props.disabled}
+        gapInBetween={this.props.gapInBetween}
         label={this.props.label}
         labelSubtitle={this.props.labelSubtitle}
         on={this.state.on}
@@ -50,6 +52,28 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('Switch', () => (
       <Kb.Box2 direction="vertical" gap="large" gapStart={true} centerChildren={true} fullWidth={true}>
+        <TestWrapper
+          align="left"
+          key="left-align short text"
+          label="left-align short text"
+          color="blue"
+          initialEnabled={true}
+        />
+        <TestWrapper
+          align="right"
+          key="right-align short text"
+          label="right-align short text"
+          color="blue"
+          initialEnabled={true}
+        />
+        <TestWrapper
+          align="right"
+          key="right-align short text with gap"
+          label="right-align short text with gap"
+          gapInBetween={true}
+          color="blue"
+          initialEnabled={true}
+        />
         <TestWrapper
           align="left"
           key="long-text"
@@ -90,25 +114,21 @@ const load = () => {
           color="blue"
           initialEnabled={true}
         />
-        {['left', 'right'].map(align =>
-          ['blue', 'green'].map(color =>
-            [true, false, 'disabled'].map(i => {
-              const initialEnabled = !!i
-              const label = `${align} aligned; ${initialEnabled ? 'on' : 'off'}; ${color}${
-                i === 'disabled' ? '; disabled' : ''
-              }`
-              return (
-                <TestWrapper
-                  align={align}
-                  key={label}
-                  label={label}
-                  color={color}
-                  initialEnabled={initialEnabled}
-                  disabled={i === 'disabled'}
-                />
-              )
-            })
-          )
+        {['blue', 'green'].map(color =>
+          [true, false, 'disabled'].map(i => {
+            const initialEnabled = !!i
+            const label = `${initialEnabled ? 'on' : 'off'}; ${color}${i === 'disabled' ? '; disabled' : ''}`
+            return (
+              <TestWrapper
+                align="left"
+                key={label}
+                label={label}
+                color={color}
+                initialEnabled={initialEnabled}
+                disabled={i === 'disabled'}
+              />
+            )
+          })
         )}
       </Kb.Box2>
     ))

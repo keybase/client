@@ -19,6 +19,7 @@ type Props = {|
   align?: ?('left' | 'right'), // default to 'left'
   color?: ?('blue' | 'green'), // default to 'blue'
   disabled?: ?boolean,
+  gapInBetween?: ?boolean, // inserts flex:1 gap between toggle and text
   label: string | React.Node,
   labelSubtitle?: ?string, // only effective when label is a string
   on: boolean,
@@ -40,9 +41,12 @@ const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) => (
     <SwitchToggle
       on={props.on}
       color={props.color || 'blue'}
-      style={Styles.collapseStyles([props.align !== 'right' && styles.switchLeft])}
+      style={Styles.collapseStyles([
+        props.align === 'left' && styles.switchLeft,
+        props.align === 'right' && styles.switchRight,
+      ])}
     />
-    {props.align === 'right' && <Kb.Box style={styles.gap} />}
+    {!!props.gapInBetween && <Kb.Box style={styles.gap} />}
     {typeof props.label === 'string' ? (
       <Kb.Box2 direction="vertical" style={styles.labelContainer}>
         <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
@@ -83,6 +87,14 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       marginRight: 12,
+    },
+  }),
+  switchRight: Styles.platformStyles({
+    isElectron: {
+      marginLeft: 10,
+    },
+    isMobile: {
+      marginLeft: 12,
     },
   }),
 })
