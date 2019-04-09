@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import {anyWaiting} from '../../constants/waiting'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {|
   tlfPath: Types.Path,
@@ -26,9 +27,8 @@ const mergeProps = (stateProps, dispatchProps, {tlfPath}: OwnProps) => ({
   ...dispatchProps,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'SyncToggle'
-)(SyncToggle)
+export default (flags.kbfsOfflineMode
+  ? namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'SyncToggle')(
+      SyncToggle
+    )
+  : () => null)

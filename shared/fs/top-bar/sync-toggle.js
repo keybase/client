@@ -60,11 +60,11 @@ const SyncToggle = (props: Props) =>
   !!props.syncConfig && (
     <>
       <Kb.Switch
-        align="left"
+        align={Styles.isMobile ? 'right' : 'left'}
         onClick={props.syncConfig.mode === 'enabled' ? props.toggleShowingMenu : props.enableSync}
         on={props.syncConfig.mode === 'enabled'}
         color="green"
-        label={Styles.isMobile ? 'Sync' : 'Sync on this device'}
+        label={'Sync on this device'}
         ref={props.setAttachmentRef}
         disabled={props.waiting}
       />
@@ -120,10 +120,13 @@ const styles = Styles.styleSheetCreate({
       paddingBottom: Styles.globalMargins.small,
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.small,
     },
     isElectron: {
+      paddingTop: Styles.globalMargins.small,
       width: 235,
+    },
+    isMobile: {
+      paddingTop: Styles.globalMargins.large,
     },
   }),
 })
