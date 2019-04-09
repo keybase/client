@@ -59,9 +59,9 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 		// return a blank index
 		if err == nil && ret == nil {
 			ret = &chat1.ConversationIndex{}
-			ret.Index = map[string]map[chat1.MessageID]bool{}
-			ret.Alias = map[string]map[string]bool{}
-			ret.Metadata.SeenIDs = map[chat1.MessageID]bool{}
+			ret.Index = map[string]map[chat1.MessageID]chat1.EmptyStruct{}
+			ret.Alias = map[string]map[string]chat1.EmptyStruct{}
+			ret.Metadata.SeenIDs = map[chat1.MessageID]chat1.EmptyStruct{}
 		}
 		if err != nil {
 			if derr := s.deleteLocked(ctx, convID, uid); derr != nil {
@@ -110,16 +110,16 @@ func (s *store) addTokensLocked(entry *chat1.ConversationIndex, tokens tokenMap,
 	for token, aliases := range tokens {
 		msgIDs, ok := entry.Index[token]
 		if !ok {
-			msgIDs = map[chat1.MessageID]bool{}
+			msgIDs = map[chat1.MessageID]chat1.EmptyStruct{}
 		}
-		msgIDs[msgID] = true
+		msgIDs[msgID] = chat1.EmptyStruct{}
 		entry.Index[token] = msgIDs
 		for alias := range aliases {
 			atoken, ok := entry.Alias[alias]
 			if !ok {
-				atoken = map[string]bool{}
+				atoken = map[string]chat1.EmptyStruct{}
 			}
-			atoken[token] = true
+			atoken[token] = chat1.EmptyStruct{}
 			entry.Alias[alias] = atoken
 		}
 	}
@@ -197,7 +197,7 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 		if _, ok := seenIDs[msg.GetMessageID()]; ok {
 			continue
 		}
-		seenIDs[msg.GetMessageID()] = true
+		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
 		// NOTE DELETE and DELETEHISTORY are handled through calls to `remove`,
 		// other messages will be added if there is any content that can be
 		// indexed.
@@ -205,7 +205,7 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 		case chat1.MessageType_ATTACHMENTUPLOADED:
 			supersededMsgs := fetchSupersededMsgs(msg)
 			for _, sm := range supersededMsgs {
-				seenIDs[sm.GetMessageID()] = true
+				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
 				s.addMsgLocked(entry, sm)
 			}
 		case chat1.MessageType_EDIT:
@@ -214,7 +214,7 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 			// remove the original message text and replace it with the edited
 			// contents (using the original id in the index)
 			for _, sm := range supersededMsgs {
-				seenIDs[sm.GetMessageID()] = true
+				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
 				s.removeMsgLocked(entry, sm)
 				s.addTokensLocked(entry, tokens, sm.GetMessageID())
 			}
@@ -243,7 +243,7 @@ func (s *store) remove(ctx context.Context, convID chat1.ConversationID, uid gre
 		if _, ok := entry.Metadata.SeenIDs[msg.GetMessageID()]; !ok {
 			continue
 		}
-		seenIDs[msg.GetMessageID()] = true
+		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
 		s.removeMsgLocked(entry, msg)
 	}
 	err = s.putLocked(ctx, convID, uid, entry)

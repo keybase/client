@@ -529,26 +529,26 @@ func TestChatSearchInbox(t *testing.T) {
 			Body: msgBody,
 		}), u1)
 		expectedIndex := &chat1.ConversationIndex{
-			Index: map[string]map[chat1.MessageID]bool{
-				"hello": map[chat1.MessageID]bool{
-					msgID1: true,
+			Index: map[string]map[chat1.MessageID]chat1.EmptyStruct{
+				"hello": map[chat1.MessageID]chat1.EmptyStruct{
+					msgID1: chat1.EmptyStruct{},
 				},
-				"bye": map[chat1.MessageID]bool{
-					msgID1: true,
+				"bye": map[chat1.MessageID]chat1.EmptyStruct{
+					msgID1: chat1.EmptyStruct{},
 				},
 			},
-			Alias: map[string]map[string]bool{
-				"hel": map[string]bool{
-					"hello": true,
+			Alias: map[string]map[string]chat1.EmptyStruct{
+				"hel": map[string]chat1.EmptyStruct{
+					"hello": chat1.EmptyStruct{},
 				},
-				"hell": map[string]bool{
-					"hello": true,
+				"hell": map[string]chat1.EmptyStruct{
+					"hello": chat1.EmptyStruct{},
 				},
 			},
 			Metadata: chat1.ConversationIndexMetadata{
-				SeenIDs: map[chat1.MessageID]bool{
-					1:      true, // tlf name
-					msgID1: true,
+				SeenIDs: map[chat1.MessageID]chat1.EmptyStruct{
+					1:      chat1.EmptyStruct{}, // tlf name
+					msgID1: chat1.EmptyStruct{},
 				},
 				Version: search.IndexVersion,
 			},
@@ -600,9 +600,9 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID2 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index["hello"][msgID2] = true
-		expectedIndex.Index["bye"][msgID2] = true
-		expectedIndex.Metadata.SeenIDs[msgID2] = true
+		expectedIndex.Index["hello"][msgID2] = chat1.EmptyStruct{}
+		expectedIndex.Index["bye"][msgID2] = chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID2] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -626,9 +626,9 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID3 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index["hello"][msgID3] = true
-		expectedIndex.Index["bye"][msgID3] = true
-		expectedIndex.Metadata.SeenIDs[msgID3] = true
+		expectedIndex.Index["hello"][msgID3] = chat1.EmptyStruct{}
+		expectedIndex.Index["bye"][msgID3] = chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID3] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -655,8 +655,8 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID4 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u2)
-		expectedIndex.Index["hello"][msgID4] = true
-		expectedIndex.Metadata.SeenIDs[msgID4] = true
+		expectedIndex.Index["hello"][msgID4] = chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID4] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -723,11 +723,11 @@ func TestChatSearchInbox(t *testing.T) {
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_EDIT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_EDIT)
 		delete(expectedIndex.Index["hello"], msgID4)
-		expectedIndex.Index["edited"] = map[chat1.MessageID]bool{msgID4: true}
-		expectedIndex.Alias["edi"] = map[string]bool{"edited": true}
-		expectedIndex.Alias["edit"] = map[string]bool{"edited": true}
-		expectedIndex.Alias["edite"] = map[string]bool{"edited": true}
-		expectedIndex.Metadata.SeenIDs[msgID5] = true
+		expectedIndex.Index["edited"] = map[chat1.MessageID]chat1.EmptyStruct{msgID4: chat1.EmptyStruct{}}
+		expectedIndex.Alias["edi"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
+		expectedIndex.Alias["edit"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
+		expectedIndex.Alias["edite"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
+		expectedIndex.Metadata.SeenIDs[msgID5] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -747,7 +747,7 @@ func TestChatSearchInbox(t *testing.T) {
 		delete(expectedIndex.Alias, "edi")
 		delete(expectedIndex.Alias, "edit")
 		delete(expectedIndex.Alias, "edite")
-		expectedIndex.Metadata.SeenIDs[msgID6] = true
+		expectedIndex.Metadata.SeenIDs[msgID6] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -766,20 +766,20 @@ func TestChatSearchInbox(t *testing.T) {
 			RequestID: stellar1.KeybaseRequestID("dummy id"),
 			Note:      msgBody,
 		}), u1)
-		expectedIndex.Index["payment"] = map[chat1.MessageID]bool{msgID7: true}
-		expectedIndex.Alias["pay"] = map[string]bool{"payment": true}
-		expectedIndex.Alias["paym"] = map[string]bool{"payment": true}
-		expectedIndex.Alias["payme"] = map[string]bool{"payment": true}
-		expectedIndex.Alias["paymen"] = map[string]bool{"payment": true}
-		expectedIndex.Index[":moneybag:"] = map[chat1.MessageID]bool{msgID7: true}
-		expectedIndex.Alias[":mo"] = map[string]bool{":moneybag:": true}
-		expectedIndex.Alias[":mon"] = map[string]bool{":moneybag:": true}
-		expectedIndex.Alias[":mone"] = map[string]bool{":moneybag:": true}
-		expectedIndex.Alias[":money"] = map[string]bool{":moneybag:": true}
-		expectedIndex.Alias[":moneyb"] = map[string]bool{":moneybag:": true}
-		expectedIndex.Alias[":moneyba"] = map[string]bool{":moneybag:": true}
-		expectedIndex.Alias[":moneybag"] = map[string]bool{":moneybag:": true}
-		expectedIndex.Metadata.SeenIDs[msgID7] = true
+		expectedIndex.Index["payment"] = map[chat1.MessageID]chat1.EmptyStruct{msgID7: chat1.EmptyStruct{}}
+		expectedIndex.Alias["pay"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Alias["paym"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Alias["payme"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Alias["paymen"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Index[":moneybag:"] = map[chat1.MessageID]chat1.EmptyStruct{msgID7: chat1.EmptyStruct{}}
+		expectedIndex.Alias[":mo"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":mon"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":mone"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":money"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":moneyb"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":moneyba"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":moneybag"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Metadata.SeenIDs[msgID7] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -801,16 +801,15 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID8 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index[msgBody] = map[chat1.MessageID]bool{msgID8: true}
-		expectedIndex.Alias[`约`] = map[string]bool{msgBody: true}
-		expectedIndex.Alias[`约书`] = map[string]bool{msgBody: true}
-		expectedIndex.Alias[`约书亚`] = map[string]bool{msgBody: true}
-		expectedIndex.Alias[`约书亚和`] = map[string]bool{msgBody: true}
-		expectedIndex.Alias[`约书亚和约`] = map[string]bool{msgBody: true}
-		expectedIndex.Alias[`约书亚和约翰`] = map[string]bool{msgBody: true}
-		expectedIndex.Alias[`约书亚和约翰屌`] = map[string]bool{msgBody: true}
-		expectedIndex.Alias[`约书亚和约翰屌爆`] = map[string]bool{msgBody: true}
-		expectedIndex.Metadata.SeenIDs[msgID8] = true
+		expectedIndex.Index[msgBody] = map[chat1.MessageID]chat1.EmptyStruct{msgID8: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚和`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚和约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚和约翰`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		// NOTE other prefixes are cut off since they exceed the max length
+		expectedIndex.Metadata.SeenIDs[msgID8] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -869,9 +868,9 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID9 := mustDeleteHistory(tc2.startCtx, t, ctc, u2, conv, msgID8+1)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETEHISTORY)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETEHISTORY)
-		expectedIndex.Index = map[string]map[chat1.MessageID]bool{}
-		expectedIndex.Alias = map[string]map[string]bool{}
-		expectedIndex.Metadata.SeenIDs[msgID9] = true
+		expectedIndex.Index = map[string]map[chat1.MessageID]chat1.EmptyStruct{}
+		expectedIndex.Alias = map[string]map[string]chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID9] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 	})
 }

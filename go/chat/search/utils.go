@@ -40,9 +40,13 @@ func prefixes(token string) (res []string) {
 	if len(token) <= 2 {
 		return nil
 	}
-	for i, _ := range token {
+	for i := range token {
 		if i <= 2 {
 			continue
+		}
+		// Skip any prefixes longer than 20 to limit the index size.
+		if i >= 20 {
+			break
 		}
 		res = append(res, token[:i])
 	}
