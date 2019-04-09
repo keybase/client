@@ -921,11 +921,11 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 	eng2 := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	err := RunEngine2(m2, eng2)
-	if err == nil {
+	if err == nil && !eng2.resetPending {
 		t.Fatal("Provision w/ synced pgp key successful on device 2 w/ PUK enabled")
 	}
-	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
-		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
+	if err != nil {
+		t.Errorf("Provision error type: %T (%s), expected nil", err, err)
 	}
 }
 
