@@ -172,6 +172,7 @@ function* addProof(state, action) {
     }
   })
 
+  let navigatedToEnterUsername = false
   const promptUsername = (args, response) => {
     const {parameters, prevError} = args
     if (canceled) {
@@ -196,7 +197,10 @@ function* addProof(state, action) {
       actions.push(
         Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
       )
-      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']})))
+      if (!navigatedToEnterUsername) {
+        actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']})))
+        navigatedToEnterUsername = true
+      }
     }
     return actions
   }
