@@ -117,12 +117,16 @@ func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.Conversatio
 
 var fromRegex = regexp.MustCompile("^from:(@?[a-z0-9][a-z0-9_]+)")
 
-func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg) chat1.SearchRegexpArg {
+func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1.SearchRegexpArg {
 	query := arg.Query
 	// From
 	if match := fromRegex.FindStringSubmatch(query); match != nil && len(match) == 2 {
 		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
-		arg.Opts.SentBy = strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
+		sentBy := strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
+		if sentBy == "me" {
+			sentBy = username
+		}
+		arg.Opts.SentBy = sentBy
 		if len(query) == 0 {
 			query = "/.*/"
 		}

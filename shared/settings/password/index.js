@@ -64,7 +64,13 @@ export class UpdatePassword extends Component<Props, State> {
     const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
     return (
       <Kb.ScrollView contentContainerStyle={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Box2 centerChildren={true} direction="vertical">
+          <Kb.Text style={styles.headerText} type="Header">
+            Set a password
+          </Kb.Text>
+          <Kb.Text type="Body" style={styles.bodyText} center={true}>
+            A password allows you to sign out and sign back in, and use the keybase.io website.
+          </Kb.Text>
           <Kb.Input
             hintText="New password"
             type={inputType}
@@ -88,10 +94,10 @@ export class UpdatePassword extends Component<Props, State> {
             onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping || !!this.props.showTyping}
           />
-          <Kb.Text style={{marginBottom: Styles.globalMargins.medium}} type="BodySmall">
+          <Kb.Text style={styles.passwordFormat} type="BodySmall">
             (Password must be at least 8 characters.)
           </Kb.Text>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonbar}>
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
             <Kb.Button
               fullWidth={true}
               type="Primary"
@@ -117,7 +123,7 @@ const UpdatePasswordWrapper = (props: Props) => {
     : props.hasPGPKeyOnServer
     ? {
         message:
-          "Note: changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
+          "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
         type: 'error',
       }
     : null
@@ -128,14 +134,30 @@ const UpdatePasswordWrapper = (props: Props) => {
   )
 }
 const styles = Styles.styleSheetCreate({
-  buttonbar: {
-    padding: Styles.globalMargins.small,
+  bodyText: {
+    paddingBottom: Styles.globalMargins.tiny,
   },
   container: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
+    },
     isElectron: {
       width: 560,
     },
+    isMobile: {
+      width: '100%',
+    },
   }),
+  headerText: {
+    paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
+  },
+  passwordFormat: {
+    margin: Styles.globalMargins.small,
+    textAlign: 'center',
+  },
 })
 
 export default UpdatePasswordWrapper

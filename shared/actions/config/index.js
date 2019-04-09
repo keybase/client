@@ -8,6 +8,7 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
+import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
@@ -17,6 +18,8 @@ import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
+import * as FsTypes from '../../constants/types/fs'
+import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
@@ -310,6 +313,16 @@ const routeToInitialScreen = state => {
           conversationIDKey: state.config.startupConversation,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
         }),
+      ]
+    }
+
+    // A share
+    if (state.config.startupSharePath) {
+      return [
+        RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, routeDef: appRouteTree}),
+        // $FlowIssue thinks it's undefined
+        FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
+        FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
       ]
     }
 

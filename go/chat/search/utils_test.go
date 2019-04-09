@@ -96,11 +96,12 @@ func TestTokenize(t *testing.T) {
 }
 
 func TestUpgradeRegexpArg(t *testing.T) {
+	username := "mikem"
 	sentByCase := func(query, resQuery, resSentBy string) {
 		arg := chat1.SearchRegexpArg{
 			Query: query,
 		}
-		res := UpgradeRegexpArgFromQuery(arg)
+		res := UpgradeRegexpArgFromQuery(arg, username)
 		require.Equal(t, resQuery, res.Query)
 		require.Equal(t, resSentBy, res.Opts.SentBy)
 	}
@@ -109,12 +110,13 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	sentByCase("from:@karenm          hi mike          ", "hi mike", "karenm")
 	sentByCase("from: hi mike", "from: hi mike", "")
 	sentByCase("hi mike from:karenm", "hi mike from:karenm", "")
+	sentByCase("from:me hi mike", "hi mike", "mikem")
 
 	regexpCase := func(query, resQuery string, isRegex bool) {
 		arg := chat1.SearchRegexpArg{
 			Query: query,
 		}
-		res := UpgradeRegexpArgFromQuery(arg)
+		res := UpgradeRegexpArgFromQuery(arg, username)
 		require.Equal(t, resQuery, res.Query)
 		require.Equal(t, isRegex, res.IsRegex)
 	}
@@ -124,7 +126,7 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	arg := chat1.SearchRegexpArg{
 		Query: "from:karenm /Lisa.*something/",
 	}
-	res := UpgradeRegexpArgFromQuery(arg)
+	res := UpgradeRegexpArgFromQuery(arg, username)
 	require.Equal(t, "Lisa.*something", res.Query)
 	require.Equal(t, "karenm", res.Opts.SentBy)
 	require.True(t, res.IsRegex)
