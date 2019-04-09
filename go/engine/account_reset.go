@@ -13,9 +13,8 @@ import (
 // AccountReset is an engine.
 type AccountReset struct {
 	libkb.Contextified
-	usernameOrEmail   string
-	reuseLoginContext bool
-	completeReset     bool
+	usernameOrEmail string
+	completeReset   bool
 
 	resetPending  bool
 	resetComplete bool
@@ -84,7 +83,9 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 			},
 		},
 	}
-	if !e.reuseLoginContext {
+
+	// Reuse the existing login context whenever possible to prevent duplicate password prompts
+	if mctx.LoginContext() == nil {
 		mctx = mctx.WithNewProvisionalLoginContext()
 	}
 	err = libkb.PassphraseLoginPromptWithArg(mctx, 3, arg)
@@ -117,7 +118,7 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		if err != nil {
 			return err
 		}
-		if eventType != 0 && err == nil {
+		if eventType != libkb.AutoresetEventStart {
 			return e.resetPrompt(mctx, eventType, readyTime)
 		}
 	}
@@ -148,30 +149,31 @@ func (e *AccountReset) checkStatus(mctx libkb.MetaContext) (int, time.Time, erro
 		SessionType: libkb.APISessionTypeREQUIRED,
 	})
 	if err != nil {
-		return 0, time.Time{}, err
+		// Start is the same as not in pipeline
+		return libkb.AutoresetEventStart, time.Time{}, err
 	}
 
 	resetID := res.Body.AtKey("reset_id")
 	if resetID.IsNil() {
 		// There's no autoreset pending
-		return 0, time.Time{}, nil
+		return libkb.AutoresetEventStart, time.Time{}, nil
 	}
 
 	eventTimeStr, err := res.Body.AtKey("event_time").GetString()
 	if err != nil {
-		return 0, time.Time{}, err
+		return libkb.AutoresetEventStart, time.Time{}, err
 	}
 	eventTime, err := time.Parse(time.RFC3339, eventTimeStr)
 	if err != nil {
-		return 0, time.Time{}, err
+		return libkb.AutoresetEventStart, time.Time{}, err
 	}
 	delaySecs, err := res.Body.AtKey("delay_secs").GetInt()
 	if err != nil {
-		return 0, time.Time{}, err
+		return libkb.AutoresetEventStart, time.Time{}, err
 	}
 	eventType, err := res.Body.AtKey("event_type").GetInt()
 	if err != nil {
-		return 0, time.Time{}, err
+		return libkb.AutoresetEventStart, time.Time{}, err
 	}
 
 	return eventType, eventTime.Add(time.Second * time.Duration(delaySecs)), nil

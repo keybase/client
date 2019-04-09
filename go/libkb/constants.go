@@ -709,6 +709,10 @@ const DisableRootRedirectorConfigKey = "disable-root-redirector"
 
 // Also defined in lib_public/public_constants.iced
 const (
+	AutoresetEventStart  = 0
 	AutoresetEventVerify = 1
+	AutoresetEventCancel = 2
+	AutoresetEventNotify = 3
 	AutoresetEventReady  = 4
+	AutoresetEventReset  = 5
 )

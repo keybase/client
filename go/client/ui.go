@@ -819,7 +819,7 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 }
 
 func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return l.parent.PromptYesNo(PromptDescriptorResetAccount, arg.Text, libkb.PromptDefaultNeither)
+	return l.parent.PromptYesNo(PromptDescriptorResetAccount, arg.Text, libkb.PromptDefaultNo)
 }
 
 func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {

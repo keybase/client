@@ -125,11 +125,11 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		}
 	}()
 
-	pending, err := e.loginProvision(m)
+	resetPending, err := e.loginProvision(m)
 	if err != nil {
 		return err
 	}
-	if pending {
+	if resetPending {
 		// We've just started a reset process
 		return nil
 	}
