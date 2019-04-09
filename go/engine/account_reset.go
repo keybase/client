@@ -114,12 +114,12 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	}
 
 	if self {
-		eventType, readyTime, err := e.checkStatus(mctx)
+		status, err := e.loadResetStatus(mctx)
 		if err != nil {
 			return err
 		}
-		if eventType != libkb.AutoresetEventStart {
-			return e.resetPrompt(mctx, eventType, readyTime)
+		if status.ResetID != nil {
+			return e.resetPrompt(mctx, status)
 		}
 	}
 
@@ -142,45 +142,42 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *AccountReset) checkStatus(mctx libkb.MetaContext) (int, time.Time, error) {
+type accountResetStatusResponse struct {
+	ResetID   *string `json:"reset_id"`
+	EventTime string  `json:"event_time"`
+	DelaySecs int     `json:"delay_secs"`
+	EventType int     `json:"event_type"`
+}
+
+func (a *accountResetStatusResponse) ReadyTime() (time.Time, error) {
+	eventTime, err := time.Parse(time.RFC3339, a.EventTime)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return eventTime.Add(time.Second * time.Duration(a.DelaySecs)), nil
+}
+
+func (e *AccountReset) loadResetStatus(mctx libkb.MetaContext) (*accountResetStatusResponse, error) {
 	// Check the status first
 	res, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:    "autoreset/status",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	})
 	if err != nil {
-		// Start is the same as not in pipeline
-		return libkb.AutoresetEventStart, time.Time{}, err
+		return nil, err
 	}
 
-	resetID := res.Body.AtKey("reset_id")
-	if resetID.IsNil() {
-		// There's no autoreset pending
-		return libkb.AutoresetEventStart, time.Time{}, nil
+	parsedResponse := accountResetStatusResponse{}
+	if err := res.Body.UnmarshalAgain(&parsedResponse); err != nil {
+		return nil, err
 	}
 
-	eventTimeStr, err := res.Body.AtKey("event_time").GetString()
-	if err != nil {
-		return libkb.AutoresetEventStart, time.Time{}, err
-	}
-	eventTime, err := time.Parse(time.RFC3339, eventTimeStr)
-	if err != nil {
-		return libkb.AutoresetEventStart, time.Time{}, err
-	}
-	delaySecs, err := res.Body.AtKey("delay_secs").GetInt()
-	if err != nil {
-		return libkb.AutoresetEventStart, time.Time{}, err
-	}
-	eventType, err := res.Body.AtKey("event_type").GetInt()
-	if err != nil {
-		return libkb.AutoresetEventStart, time.Time{}, err
-	}
-
-	return eventType, eventTime.Add(time.Second * time.Duration(delaySecs)), nil
+	return &parsedResponse, nil
 }
 
-func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, eventType int, readyTime time.Time) error {
-	if eventType == libkb.AutoresetEventReady && e.completeReset {
+func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetStatusResponse) error {
+	if status.EventType == libkb.AutoresetEventReady && e.completeReset {
 		// Ask the user if they'd like to reset if we're in login + it's ready
 		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
 			Text: "Would you like to complete the reset of your account?",
@@ -205,20 +202,24 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, eventType int, readyT
 		mctx.G().Log.Info("Your account has been reset.")
 
 		e.resetComplete = true
-
 		return nil
 	}
 
-	if eventType != libkb.AutoresetEventVerify {
+	if status.EventType != libkb.AutoresetEventVerify {
 		// Race condition against autoresetd. We've probably just canceled or reset.
 		return nil
 	}
 
-	// Notify the user how much time is left / if they can already reset
+	readyTime, err := status.ReadyTime()
+	if err != nil {
+		return err
+	}
+
+	// Notify the user how much time is left / if they can reset
 	var notificationText string
-	switch eventType {
+	switch status.EventType {
 	case libkb.AutoresetEventReady:
-		notificationText = "Your account reset is ready! Log in to complete the process."
+		notificationText = "Please log in to finish resetting your account."
 	default:
 		notificationText = fmt.Sprintf(
 			"You will be able to reset your account in %s.",
