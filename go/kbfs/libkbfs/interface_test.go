@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -51,20 +52,20 @@ func (lm testLogMaker) MakeVLogger(_ string) *libkb.VDebugLog {
 }
 
 type testClockGetter struct {
-	clock *TestClock
+	clock *clocktest.TestClock
 }
 
 var _ clockGetter = (*testClockGetter)(nil)
 
 func newTestClockGetter() *testClockGetter {
-	return &testClockGetter{newTestClockNow()}
+	return &testClockGetter{clocktest.NewTestClockNow()}
 }
 
 func (cg *testClockGetter) Clock() Clock {
 	return cg.clock
 }
 
-func (cg *testClockGetter) TestClock() *TestClock {
+func (cg *testClockGetter) TestClock() *clocktest.TestClock {
 	return cg.clock
 }
 

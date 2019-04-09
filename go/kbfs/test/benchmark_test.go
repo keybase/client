@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/data"
 )
 
 // BenchmarkWriteSeq512 writes to a large file in 512 byte writes.
@@ -143,7 +143,7 @@ func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
 		}
 		for j := 0; j < numWritesPerFile; j++ {
 			// make each block unique
-			for k := 0; k < 1+len(buf)/libkbfs.MaxBlockSizeBytesDefault; k++ {
+			for k := 0; k < 1+len(buf)/data.MaxBlockSizeBytesDefault; k++ {
 				buf[k] = byte(i)
 				buf[k+1] = byte(j)
 				buf[k+2] = byte(k)

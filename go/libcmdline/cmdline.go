@@ -413,6 +413,10 @@ func (p CommandLine) GetExtraNetLogging() (bool, bool) {
 	return p.GetBool("extra-net-logging", true)
 }
 
+func (p CommandLine) GetForceLinuxKeyring() (bool, bool) {
+	return p.GetBool("force-linux-keyring", true)
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {
@@ -715,6 +719,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "enable-bot-lite-mode",
 			Usage: "Enable bot lite mode. Disables non-critical background services for bot performance.",
+		},
+		cli.BoolFlag{
+			Name:  "force-linux-keyring",
+			Usage: "Require the use of the OS keyring (Gnome Keyring or KWallet) and fail if not available rather than falling back to file-based secret store.",
 		},
 	}
 	if extraFlags != nil {

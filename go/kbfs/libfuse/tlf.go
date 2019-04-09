@@ -13,6 +13,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -65,7 +66,7 @@ func (tlf *TLF) log() logger.Logger {
 }
 
 func (tlf *TLF) loadDirHelper(
-	ctx context.Context, mode libkbfs.ErrorModeType, branch libkbfs.BranchName,
+	ctx context.Context, mode libkbfs.ErrorModeType, branch data.BranchName,
 	filterErr bool) (dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
@@ -127,7 +128,7 @@ func (tlf *TLF) loadDirHelper(
 
 func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 	dir, _, err := tlf.loadDirHelper(
-		ctx, libkbfs.WriteMode, libkbfs.MasterBranch, false)
+		ctx, libkbfs.WriteMode, data.MasterBranch, false)
 	return dir, err
 }
 
@@ -137,11 +138,11 @@ func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 	*Dir, bool, error) {
-	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, libkbfs.MasterBranch, true)
+	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, data.MasterBranch, true)
 }
 
 func (tlf *TLF) loadArchivedDir(
-	ctx context.Context, branch libkbfs.BranchName) (*Dir, bool, error) {
+	ctx context.Context, branch data.BranchName) (*Dir, bool, error) {
 	// Always filter errors for archive TLF directories, so that we
 	// don't try to initialize them.
 	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, branch, true)

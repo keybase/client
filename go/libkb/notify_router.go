@@ -382,7 +382,8 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg s
 // HandleUserChanged is called whenever we know that a given user has
 // changed (and must be cache-busted). It will broadcast the messages
 // to all curious listeners.
-func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
+func (n *NotifyRouter) HandleUserChanged(mctx MetaContext, uid keybase1.UID, reason string) {
+	mctx.Debug("Sending UserChanged notification %v '%v')", uid, reason)
 	if n == nil {
 		return
 	}
@@ -394,7 +395,7 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 			go func() {
 				// A send of a `UserChanged` RPC with the user's UID
 				(keybase1.NotifyUsersClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(mctx.G()), nil),
 				}).UserChanged(context.Background(), uid)
 			}()
 		}

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -31,7 +32,7 @@ type Folder struct {
 	hPreferredName tlf.PreferredName
 
 	folderBranchMu sync.Mutex
-	folderBranch   libkbfs.FolderBranch
+	folderBranch   data.FolderBranch
 
 	// Protects the nodes map.
 	mu sync.Mutex
@@ -75,13 +76,13 @@ func (f *Folder) name() tlf.CanonicalName {
 	return tlf.CanonicalName(f.hPreferredName)
 }
 
-func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
+func (f *Folder) setFolderBranch(folderBranch data.FolderBranch) error {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
 
 	// TODO unregister all at unmount
 	err := f.list.fs.config.Notifier().RegisterForChanges(
-		[]libkbfs.FolderBranch{folderBranch}, f)
+		[]data.FolderBranch{folderBranch}, f)
 	if err != nil {
 		return err
 	}
@@ -92,20 +93,20 @@ func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
 func (f *Folder) unsetFolderBranch(ctx context.Context) {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
-	if f.folderBranch == (libkbfs.FolderBranch{}) {
+	if f.folderBranch == (data.FolderBranch{}) {
 		// Wasn't set.
 		return
 	}
 
-	err := f.list.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f)
+	err := f.list.fs.config.Notifier().UnregisterFromChanges([]data.FolderBranch{f.folderBranch}, f)
 	if err != nil {
 		f.fs.log.Info("cannot unregister change notifier for folder %q: %v",
 			f.name(), err)
 	}
-	f.folderBranch = libkbfs.FolderBranch{}
+	f.folderBranch = data.FolderBranch{}
 }
 
-func (f *Folder) getFolderBranch() libkbfs.FolderBranch {
+func (f *Folder) getFolderBranch() data.FolderBranch {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
 	return f.folderBranch
@@ -378,7 +379,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		switch de.Type {
 		default:
 			return nil, 0, fmt.Errorf("unhandled entry type: %v", de.Type)
-		case libkbfs.File, libkbfs.Exec:
+		case data.File, data.Exec:
 			if err := oc.ReturningFileAllowed(); err != nil {
 				return nil, 0, err
 			}
@@ -388,12 +389,12 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 				d.folder.lockedAddNode(newNode, child)
 			}
 			return f, dokan.ExistingFile, err
-		case libkbfs.Dir:
+		case data.Dir:
 			child := newDir(d.folder, newNode, path[0], d.node)
 			d.folder.lockedAddNode(newNode, child)
 			d = child
 			path = path[1:]
-		case libkbfs.Sym:
+		case data.Sym:
 			return openSymlink(ctx, oc, d, rootDir, origPath, path, de.SymPath)
 		}
 	}
@@ -602,7 +603,7 @@ func asDir(ctx context.Context, f dokan.File) *Dir {
 	case *TLF:
 		branch := x.folder.getFolderBranch().Branch
 		filterErr := false
-		if branch != libkbfs.MasterBranch {
+		if branch != data.MasterBranch {
 			filterErr = true
 		}
 		d, _, _ := x.loadDirHelper(

@@ -122,7 +122,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err = s.registerDevice(m, s.arg.DeviceName); err != nil {
+	if err = s.registerDevice(m, s.arg.DeviceName, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
@@ -257,7 +257,7 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 	return nil
 }
 
-func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) error {
+func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, randomPw bool) error {
 	m.Debug("SignupEngine#registerDevice")
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
 	args := &DeviceWrapArgs{
@@ -297,7 +297,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 		m.Warning("error saving session file: %s", err)
 	}
 
-	s.storeSecret(m)
+	s.storeSecret(m, randomPw)
 
 	m.Debug("registered new device: %s", m.G().Env.GetDeviceID())
 	m.Debug("eldest kid: %s", s.me.GetEldestKID())
@@ -305,7 +305,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 	return nil
 }
 
-func (s *SignupEngine) storeSecret(m libkb.MetaContext) {
+func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
 	defer m.Trace("SignupEngine#storeSecret", func() error { return nil })()
 
 	// Create the secret store as late as possible here, as the username may
@@ -315,7 +315,7 @@ func (s *SignupEngine) storeSecret(m libkb.MetaContext) {
 		return
 	}
 
-	w := libkb.StoreSecretAfterLoginWithLKS(m, s.me.GetNormalizedName(), s.lks)
+	w := libkb.StoreSecretAfterLoginWithLKSWithOptions(m, s.me.GetNormalizedName(), s.lks, &libkb.SecretStoreOptions{RandomPw: randomPw})
 	if w != nil {
 		m.Warning("StoreSecret error: %s", w)
 	}

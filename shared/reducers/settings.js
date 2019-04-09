@@ -82,9 +82,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
     case SettingsGen.loadedRememberPassword:
     case SettingsGen.onChangeRememberPassword:
-      return state.update('password', password =>
-        password.merge({rememberPassword: action.payload.remember})
-      )
+      return state.update('password', password => password.merge({rememberPassword: action.payload.remember}))
     case SettingsGen.onChangeNewPassword:
       return state.update('password', password =>
         password.merge({error: null, newPassword: action.payload.password})
@@ -98,9 +96,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.checkPassword:
       return state.merge({checkPasswordIsCorrect: null})
     case SettingsGen.onUpdatedPGPSettings:
-      return state.update('password', password =>
-        password.merge({hasPGPKeyOnServer: action.payload.hasKeys})
-      )
+      return state.update('password', password => password.merge({hasPGPKeyOnServer: action.payload.hasKeys}))
     case SettingsGen.onUpdatePasswordError:
       return state.update('password', password => password.merge({error: action.payload.error}))
     case SettingsGen.onChangeNewEmail:
@@ -144,6 +140,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.onSubmitNewPassword:
     case SettingsGen.onUpdatePGPSettings:
     case SettingsGen.onChangeLockdownMode:
+    case SettingsGen.stop:
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:

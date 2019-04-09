@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkey"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -213,8 +214,7 @@ func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
 		rmd.data, kbfscrypto.TLFCryptKey{}).Return(
 		kbfscrypto.EncryptedPrivateMetadata{}, nil)
-	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
-		Return(true)
+	config.mockBsplit.EXPECT().ShouldEmbedData(gomock.Any()).Return(true)
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(),
 		nil, gomock.Any()).Return(nil)
 	config.mockMdcache.EXPECT().Replace(gomock.Any(), gomock.Any())
@@ -905,8 +905,7 @@ func testMDOpsPutFailEncode(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
 		rmd.data, kbfscrypto.TLFCryptKey{}).Return(
 		kbfscrypto.EncryptedPrivateMetadata{}, nil)
-	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
-		Return(true)
+	config.mockBsplit.EXPECT().ShouldEmbedData(gomock.Any()).Return(true)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -1235,7 +1234,7 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	config.SetMetadataVersion(ver)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)

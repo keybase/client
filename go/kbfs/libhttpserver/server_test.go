@@ -10,6 +10,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
@@ -47,7 +48,7 @@ func makeTestKBFSConfig(t *testing.T) (
 		ctx, cfg.KBPKI(), cfg.MDOps(), cfg, "alice,bob", tlf.Private)
 	require.NoError(t, err)
 
-	root, _, err := cfg.KBFSOps().GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
+	root, _, err := cfg.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	_, _, err = cfg.KBFSOps().CreateFile(ctx, root, "test.txt", false, false)
 	require.NoError(t, err)
