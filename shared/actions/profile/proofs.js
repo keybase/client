@@ -80,7 +80,7 @@ function* addProof(state, action) {
       )
       return
     case 'pgp':
-      yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePgp']}))
+      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profilePgp']}))
       return
   }
 
