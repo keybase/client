@@ -108,6 +108,7 @@ export const keybase1NotifyEmailAddressEmailAddressVerified = 'engine-gen:keybas
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
+export const keybase1NotifyFSFSOnlineStatusChanged = 'engine-gen:keybase1NotifyFSFSOnlineStatusChanged'
 export const keybase1NotifyFSFSPathUpdated = 'engine-gen:keybase1NotifyFSFSPathUpdated'
 export const keybase1NotifyFSFSSyncActivity = 'engine-gen:keybase1NotifyFSFSSyncActivity'
 export const keybase1NotifyFSFSSyncStatusResponse = 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'
@@ -278,6 +279,7 @@ type _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = $ReadOnly<{|params
 type _Keybase1NotifyEphemeralNewTeamEkPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSActivityPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSEditListResponsePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}|}>
+type _Keybase1NotifyFSFSOnlineStatusChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyFSFSPathUpdatedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSSyncActivityPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyFSFSSyncStatusResponsePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}|}>
@@ -448,6 +450,7 @@ export const createKeybase1NotifyEmailAddressEmailAddressVerified = (payload: _K
 export const createKeybase1NotifyEphemeralNewTeamEk = (payload: _Keybase1NotifyEphemeralNewTeamEkPayload) => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
 export const createKeybase1NotifyFSFSActivity = (payload: _Keybase1NotifyFSFSActivityPayload) => ({payload, type: keybase1NotifyFSFSActivity})
 export const createKeybase1NotifyFSFSEditListResponse = (payload: _Keybase1NotifyFSFSEditListResponsePayload) => ({payload, type: keybase1NotifyFSFSEditListResponse})
+export const createKeybase1NotifyFSFSOnlineStatusChanged = (payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload) => ({payload, type: keybase1NotifyFSFSOnlineStatusChanged})
 export const createKeybase1NotifyFSFSPathUpdated = (payload: _Keybase1NotifyFSFSPathUpdatedPayload) => ({payload, type: keybase1NotifyFSFSPathUpdated})
 export const createKeybase1NotifyFSFSSyncActivity = (payload: _Keybase1NotifyFSFSSyncActivityPayload) => ({payload, type: keybase1NotifyFSFSSyncActivity})
 export const createKeybase1NotifyFSFSSyncStatusResponse = (payload: _Keybase1NotifyFSFSSyncStatusResponsePayload) => ({payload, type: keybase1NotifyFSFSSyncStatusResponse})
@@ -618,6 +621,7 @@ export type Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = {|+payload: 
 export type Keybase1NotifyEphemeralNewTeamEkPayload = {|+payload: _Keybase1NotifyEphemeralNewTeamEkPayload, +type: 'engine-gen:keybase1NotifyEphemeralNewTeamEk'|}
 export type Keybase1NotifyFSFSActivityPayload = {|+payload: _Keybase1NotifyFSFSActivityPayload, +type: 'engine-gen:keybase1NotifyFSFSActivity'|}
 export type Keybase1NotifyFSFSEditListResponsePayload = {|+payload: _Keybase1NotifyFSFSEditListResponsePayload, +type: 'engine-gen:keybase1NotifyFSFSEditListResponse'|}
+export type Keybase1NotifyFSFSOnlineStatusChangedPayload = {|+payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload, +type: 'engine-gen:keybase1NotifyFSFSOnlineStatusChanged'|}
 export type Keybase1NotifyFSFSPathUpdatedPayload = {|+payload: _Keybase1NotifyFSFSPathUpdatedPayload, +type: 'engine-gen:keybase1NotifyFSFSPathUpdated'|}
 export type Keybase1NotifyFSFSSyncActivityPayload = {|+payload: _Keybase1NotifyFSFSSyncActivityPayload, +type: 'engine-gen:keybase1NotifyFSFSSyncActivity'|}
 export type Keybase1NotifyFSFSSyncStatusResponsePayload = {|+payload: _Keybase1NotifyFSFSSyncStatusResponsePayload, +type: 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'|}
@@ -790,6 +794,7 @@ export type Actions =
   | Keybase1NotifyEphemeralNewTeamEkPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
+  | Keybase1NotifyFSFSOnlineStatusChangedPayload
   | Keybase1NotifyFSFSPathUpdatedPayload
   | Keybase1NotifyFSFSSyncActivityPayload
   | Keybase1NotifyFSFSSyncStatusResponsePayload

@@ -87,6 +87,11 @@ func (r *ReporterSimple) AllKnownErrors() []ReportedError {
 	return errors
 }
 
+// OnlineStatusChanged implements the Reporter interface for ReporterSimple.
+func (r *ReporterSimple) OnlineStatusChanged(_ context.Context, online bool) {
+	// ignore notifications
+}
+
 // Notify implements the Reporter interface for ReporterSimple.
 func (r *ReporterSimple) Notify(_ context.Context, _ *keybase1.FSNotification) {
 	// ignore notifications

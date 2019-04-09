@@ -14,6 +14,7 @@ const ff: FeatureFlags = {
   enableDeleteFolder: false,
   folderViewFilter: false,
   foldersInProfileTab: false,
+  kbfsOfflineMode: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,

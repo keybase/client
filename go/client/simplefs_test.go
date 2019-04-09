@@ -248,9 +248,10 @@ func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
 	return nil
 }
 
-// SimpleFSPing implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSPing(_ context.Context) error {
-	return nil
+// SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSAreWeConnectedToMDServer(
+	_ context.Context) (bool, error) {
+	return true, nil
 }
 
 /*
