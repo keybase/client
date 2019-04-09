@@ -655,7 +655,8 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 		// revoked device. If so, green-light logout.
 		if checkUIDErr := libkb.CheckCurrentUIDDeviceID(libkb.NewMetaContext(ctx, h.G())); checkUIDErr != nil {
 			switch checkUIDErr.(type) {
-			case libkb.DeviceNotFoundError, libkb.UserNotFoundError, libkb.KeyRevokedError, libkb.NoDeviceError, libkb.NoUIDError:
+			case libkb.DeviceNotFoundError, libkb.UserNotFoundError,
+				libkb.KeyRevokedError, libkb.NoDeviceError, libkb.NoUIDError:
 				h.G().Log.CDebugf(ctx, "CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", checkUIDErr.Error())
 				return keybase1.CanLogoutRes{CanLogout: true}, nil
 			default:
