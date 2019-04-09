@@ -154,6 +154,8 @@ func (u *CachedUPAKLoader) getMemCacheMaybeTryBothSlots(ctx context.Context, uid
 
 func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
 
+	return getter(stubMode)
+
 	ret = getter(stubMode)
 	if stubMode == StubModeUnstubbed {
 		return ret
