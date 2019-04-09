@@ -107,6 +107,7 @@ type configGetter interface {
 	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
 	GetExtraNetLogging() (bool, bool)
+	GetForceLinuxKeyring() (bool, bool)
 }
 
 type CommandLine interface {
