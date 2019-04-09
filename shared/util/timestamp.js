@@ -128,6 +128,14 @@ export function formatTimeForAssertionPopup(time: number): string {
   return m.format('ddd MMM D, YYYY') // Wed Jan 5, 2018
 }
 
+export function formatTimeForDeviceTimeline(time: number): string {
+  return moment(time).format('MMM D, YYYY')
+}
+
+export function formatTimeRelativeToNow(time: number): string {
+  return moment(time).fromNow()
+}
+
 export function daysToLabel(days: number): string {
   let label = `${days} day`
   if (days !== 1) {
