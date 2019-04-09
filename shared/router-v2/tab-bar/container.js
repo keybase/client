@@ -7,11 +7,11 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as TrackerConstants from '../../constants/tracker2'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import TabBar from '.'
 import {connect} from '../../util/container'
 import {memoize} from '../../util/memoize'
 import openURL from '../../util/open-url'
+import closeWindow from '../../util/close-window'
 
 type OwnProps = {|
   selectedTab: Tabs.Tab,
@@ -33,11 +33,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
   onHelp: () => openURL('https://keybase.io/docs'),
-  onMinimizeToTray: () => {
-    SafeElectron.getRemote()
-      .getCurrentWindow()
-      .hide()
-  },
+  onMinimizeToTray: () => closeWindow(),
   onQuit: () => {
     dispatch(SettingsGen.createStop({exitCode: RPCTypes.ctlExitCode.ok}))
     dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
