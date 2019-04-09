@@ -577,11 +577,13 @@ func TestChatSearchInbox(t *testing.T) {
 			verifySearchDone(1)
 		}
 
-		// No match since highlighting fails
-		query := "hello bye"
+		// We get a hit but without any highlighting highlighting fails
+		query := "hell bye"
 		res := runSearch(query, opts, false /* expectedReindex */)
-		require.Equal(t, 0, len(res.Hits))
-		verifySearchDone(0)
+		require.Equal(t, 1, len(res.Hits))
+		convHit := res.Hits[0]
+		verifyHit(convID, nil, msgID1, nil, nil, convHit.Hits[0])
+		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
@@ -607,7 +609,7 @@ func TestChatSearchInbox(t *testing.T) {
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
-		convHit := res.Hits[0]
+		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
 		require.Equal(t, 1, len(convHit.Hits))
 		verifyHit(convID, []chat1.MessageID{msgID1}, msgID2, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])

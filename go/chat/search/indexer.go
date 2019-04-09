@@ -287,9 +287,6 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	for i, msg := range msgs {
 		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && opts.Matches(msg) {
 			matches := searchMatches(msg, queryRe)
-			if len(matches) == 0 {
-				continue
-			}
 			afterLimit := i - opts.AfterContext
 			if afterLimit < 0 {
 				afterLimit = 0
