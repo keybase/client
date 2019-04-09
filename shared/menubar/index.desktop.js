@@ -257,7 +257,7 @@ class MenubarRender extends React.Component<Props, State> {
       ...webLink,
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
-      {onClick: this.props.quit, title: 'Quit app'},
+      {onClick: this.props.quit, title: 'Quit Keybase'},
     ]
   }
 

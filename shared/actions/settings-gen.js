@@ -48,6 +48,7 @@ export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const stop = 'settings:stop'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
@@ -95,6 +96,7 @@ type _OnUpdatePasswordErrorPayload = $ReadOnly<{|error: Error|}>
 type _OnUpdatedPGPSettingsPayload = $ReadOnly<{|hasKeys: boolean|}>
 type _ProcessorProfilePayload = $ReadOnly<{|durationSeconds: number|}>
 type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
+type _StopPayload = $ReadOnly<{|exitCode: RPCTypes.ExitCode|}>
 type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
 type _UnfurlSettingsErrorPayload = $ReadOnly<{|error: string|}>
 type _UnfurlSettingsRefreshPayload = void
@@ -158,6 +160,7 @@ export const createOnUpdatePasswordError = (payload: _OnUpdatePasswordErrorPaylo
 export const createOnUpdatedPGPSettings = (payload: _OnUpdatedPGPSettingsPayload) => ({payload, type: onUpdatedPGPSettings})
 export const createProcessorProfile = (payload: _ProcessorProfilePayload) => ({payload, type: processorProfile})
 export const createSetAllowDeleteAccount = (payload: _SetAllowDeleteAccountPayload) => ({payload, type: setAllowDeleteAccount})
+export const createStop = (payload: _StopPayload) => ({payload, type: stop})
 export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({payload, type: waitingForResponse})
 
@@ -201,6 +204,7 @@ export type OnUpdatePasswordErrorPayload = {|+payload: _OnUpdatePasswordErrorPay
 export type OnUpdatedPGPSettingsPayload = {|+payload: _OnUpdatedPGPSettingsPayload, +type: 'settings:onUpdatedPGPSettings'|}
 export type ProcessorProfilePayload = {|+payload: _ProcessorProfilePayload, +type: 'settings:processorProfile'|}
 export type SetAllowDeleteAccountPayload = {|+payload: _SetAllowDeleteAccountPayload, +type: 'settings:setAllowDeleteAccount'|}
+export type StopPayload = {|+payload: _StopPayload, +type: 'settings:stop'|}
 export type TracePayload = {|+payload: _TracePayload, +type: 'settings:trace'|}
 export type UnfurlSettingsErrorPayload = {|+payload: _UnfurlSettingsErrorPayload, +type: 'settings:unfurlSettingsError'|}
 export type UnfurlSettingsRefreshPayload = {|+payload: _UnfurlSettingsRefreshPayload, +type: 'settings:unfurlSettingsRefresh'|}
@@ -250,6 +254,7 @@ export type Actions =
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
   | SetAllowDeleteAccountPayload
+  | StopPayload
   | TracePayload
   | UnfurlSettingsErrorPayload
   | UnfurlSettingsRefreshPayload

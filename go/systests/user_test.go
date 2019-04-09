@@ -391,7 +391,7 @@ func TestSignupLogout(t *testing.T) {
 
 	tc.G.Log.Debug("Waiting for tc2 Ctl service stop")
 
-	if err := client.CtlServiceStop(tc2.G); err != nil {
+	if err := CtlStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
