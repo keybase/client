@@ -19,6 +19,7 @@ const verifyProps = {
   onBack: Sb.action('onBack'),
   onChangeCode: Sb.action('onChangeCode'),
   onContinue: Sb.action('onContinue'),
+  onResend: Sb.action('onResend'),
   phoneNumber: '+33 6 76 38 86 97',
 }
 

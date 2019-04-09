@@ -9,6 +9,7 @@ type Props = {|
   onBack: () => void,
   onChangeCode: string => void,
   onContinue: () => void,
+  onResend: () => void,
   phoneNumber: string,
 |}
 
@@ -61,6 +62,14 @@ class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
               {this.state.value}
             </Kb.Text>
           </Kb.PlainInput>
+          <Kb.ClickableBox onClick={this.props.onResend}>
+            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resend}>
+              <Kb.Icon type="iconfont-reload" color={Styles.globalColors.white} />
+              <Kb.Text type="BodySemibold" negative={true}>
+                Resend SMS
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.ClickableBox>
         </Kb.Box2>
       </SignupScreen>
     )
@@ -117,6 +126,11 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.white,
       letterSpacing: 20,
       lineHeight: 28, // arrived at by fiddling - doesn't affect android
+    },
+  }),
+  resend: Styles.platformStyles({
+    isElectron: {
+      paddingTop: Styles.globalMargins.tiny,
     },
   }),
 })
