@@ -554,7 +554,12 @@ func (fb *FileBlock) Set(other Block) {
 	// Ensure that the Set is complete from Go's perspective by calculating the
 	// hash on the new FileBlock if the old one has been set. This is mainly so
 	// tests can blindly compare that blocks are equivalent.
-	if otherFb.hash != nil {
+	h := func() *kbfshash.RawDefaultHash {
+		otherFb.cacheMtx.RLock()
+		defer otherFb.cacheMtx.RUnlock()
+		return otherFb.hash
+	}()
+	if h != nil {
 		_ = fb.GetHash()
 	}
 }
