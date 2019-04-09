@@ -461,7 +461,7 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		return err
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServerByFreshness(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -1666,7 +1666,11 @@ func (t *Team) postMulti(mctx libkb.MetaContext, payload libkb.JSONPayload) erro
 // client wants to create a signature that refers to an adminship,
 // signature's merkle_root has to be more fresh than adminship's.
 func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
-	_, err := t.G().GetMerkleClient().LookupTeam(t.MetaContext(ctx), t.ID)
+	return ForceMerkleRootUpdateByTeamID(t.MetaContext(ctx), t.ID)
+}
+
+func ForceMerkleRootUpdateByTeamID(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
+	_, err := mctx.G().GetMerkleClient().LookupTeam(mctx, teamID)
 	return err
 }
 
@@ -1754,7 +1758,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServerByFreshness(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}

@@ -21,14 +21,14 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 	teamID := teamName.ToTeamID(impTeam.IsPublic)
 
-	perUserKeyUpgradeSoft(ctx, g, "create-implicit-team")
-
-	me, err := loadMeForSignatures(ctx, g)
+	merkleRoot, err := g.MerkleClient.FetchRootFromServerByFreshness(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return res, teamName, err
 	}
 
-	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	perUserKeyUpgradeSoft(ctx, g, "create-implicit-team")
+
+	me, err := loadMeForSignatures(ctx, g)
 	if err != nil {
 		return res, teamName, err
 	}
@@ -285,7 +285,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 		return nil, fmt.Errorf("cannot create root team with subteam name: %v", nameString)
 	}
 
-	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	merkleRoot, err := g.MerkleClient.FetchRootFromServerByFreshness(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -341,6 +341,15 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	public := false
 	subteamID := NewSubteamID(public)
 
+	err = ForceMerkleRootUpdateByTeamID(mctx, parentName.ToPrivateTeamID())
+	if err != nil {
+		return nil, err
+	}
+	merkleRoot, err := g.MerkleClient.FetchRootFromServerByFreshness(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return nil, err
+	}
+
 	perUserKeyUpgradeSoft(ctx, mctx.G(), "create-subteam")
 
 	me, err := loadMeForSignatures(ctx, mctx.G())
@@ -354,11 +363,6 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	}
 
 	parentTeam, err := GetForTeamManagementByStringName(ctx, g, parentName.String(), true)
-	if err != nil {
-		return nil, err
-	}
-
-	merkleRoot, err := g.MerkleClient.FetchRootFromServer(libkb.NewMetaContext(ctx, g), libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return nil, err
 	}
