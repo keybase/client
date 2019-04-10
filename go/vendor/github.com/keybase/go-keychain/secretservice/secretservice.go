@@ -181,13 +181,10 @@ func (s *SecretService) DeleteItem(item dbus.ObjectPath) (err error) {
 func (s *SecretService) GetAttributes(item dbus.ObjectPath) (attributes Attributes, err error) {
 	attributesV, err := s.Obj(item).GetProperty("org.freedesktop.Secret.Item.Attributes")
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get attributes for item")
+		return nil, errors.Wrap(err, "failed to get attributes")
 	}
-	attributes, ok := attributesV.Value().(Attributes)
-	if !ok {
-		return nil, errors.Wrap(err, "failed to coerce attributes variant")
-	}
-	return attributes, nil
+	attributesMap := attributesV.Value().(map[string]string)
+	return Attributes(attributesMap), nil
 }
 
 func (s *SecretService) GetSecret(item dbus.ObjectPath, session Session) (secretPlaintext []byte, err error) {

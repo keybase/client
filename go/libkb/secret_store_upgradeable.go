@@ -26,7 +26,7 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 		return secret, nil
 	}
 
-	mctx.Warning("Failed to find secret in system keyring (%s), falling back to file-based secret store.", err1)
+	mctx.Debug("Failed to find secret in system keyring (%s), falling back to file-based secret store.", err1)
 	secret, err2 := s.b.RetrieveSecret(mctx, username)
 	if !s.shouldUpgradeOpportunistically() {
 		return secret, err2
@@ -78,7 +78,7 @@ func (s *SecretStoreUpgradeable) ClearSecret(mctx MetaContext, username Normaliz
 	err2 := s.b.ClearSecret(mctx, username)
 	err = CombineErrors(err1, err2)
 	if err != nil {
-		mctx.Debug("Failed to clear secret in at least one store: %s", err2)
+		mctx.Debug("Failed to clear secret in at least one store: %s", err)
 	}
 	// Only return an error if both failed
 	if err1 != nil && err2 != nil {
@@ -108,7 +108,7 @@ func (s *SecretStoreUpgradeable) GetUsersWithStoredSecrets(mctx MetaContext) (us
 
 	err = CombineErrors(err1, err2)
 	if err != nil {
-		mctx.Debug("Failed to GetUsersWithStoredSecrets in at least one store: %s", err2)
+		mctx.Debug("Failed to GetUsersWithStoredSecrets in at least one store: %s", err)
 	}
 	// Only return an error if both failed
 	if err1 != nil && err2 != nil {

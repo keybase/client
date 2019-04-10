@@ -135,6 +135,9 @@ func unpadPKCS7(xs []byte, n int) ([]byte, error) {
 	}
 	lastByte := xs[len(xs)-1]
 	padStartIdx := len(xs) - int(lastByte)
+	if padStartIdx < 0 {
+		return nil, fmt.Errorf("invalid pkcs7 padding; pad byte larger than number of characters")
+	}
 	for i := padStartIdx; i < len(xs); i++ {
 		if xs[i] != lastByte {
 			return nil, fmt.Errorf("expected pad character %x, got %x", lastByte, xs[i])

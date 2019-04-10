@@ -643,10 +643,10 @@
 			"revisionTime": "2019-03-11T21:27:40Z"
 		},
 		{
-			"checksumSHA1": "0hiADJVMyRvRM3FpjwmkXUUCr5g=",
+			"checksumSHA1": "D+3Du70Z0eWR707oA1jt42xVAus=",
 			"path": "github.com/keybase/go-keychain/secretservice",
-			"revision": "6ca7174743ab8e24ed89c7ec29508cdef499a671",
-			"revisionTime": "2019-04-03T15:48:49Z"
+			"revision": "7ec3cf88c1a8e98dc40c3caa0e424c4dc9b630a4",
+			"revisionTime": "2019-04-10T14:18:19Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
