@@ -193,6 +193,7 @@ func (u *CachedUPAKLoader) getCachedUPAKTryMemThenDisk(ctx context.Context, uid 
 
 	upak = u.getCachedUPAKFromDBMaybeTryBothSlots(ctx, uid, stubMode)
 	if upak == nil {
+		u.G().VDL.CLogf(ctx, VLog0, "| missed cache")
 		return nil
 	}
 
@@ -214,7 +215,6 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	upak := u.getCachedUPAKTryMemThenDisk(ctx, uid, stubMode, info)
 
 	if upak == nil {
-		u.G().VDL.CLogf(ctx, VLog0, "| missed cache")
 		return nil, true
 	}
 
