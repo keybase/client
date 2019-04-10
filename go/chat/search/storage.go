@@ -21,18 +21,24 @@ type store struct {
 	encryptedDB *encrypteddb.EncryptedDB
 }
 
-// store keeps an encrypted index of chat messages for all conversations to
-// enable full inbox search locally.
-// Data is stored in an encrypted leveldb in the form:
+// store keeps an encrypted index of chat messages for all conversations
+// to enable full inbox search locally.  Index data for each conversation
+// is stored in an encrypted leveldb in the form:
 // (uid,convID) -> {
-//                token: { msgID,...},
-//                ...
-//             },
-//     ...       ->        ...
-// NOTE: as a performance optimization we may want to split the metadata from
-// the index itself so we can quickly operate on the metadata separately from
-// the index and have less bytes to encrypt/decrypt on reads (metadata only
-// contains only msg ids and no user content).
+//  Index: {
+//     token: { msgID,... },
+//     ...
+//  },
+//  Alias: {
+//    alias: { token,... },
+//    ...
+//  },
+//  Metadata: chat1.ConversationIndexMetadata
+//}
+// NOTE: as a performance optimization we may want to split the metadata
+// from the index itself so we can quickly operate on the metadata
+// separately from the index and have less bytes to encrypt/decrypt on
+// reads (metadata only contains only msg ids and no user content).
 func newStore(g *globals.Context) *store {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
