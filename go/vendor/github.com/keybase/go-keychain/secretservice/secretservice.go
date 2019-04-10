@@ -183,7 +183,10 @@ func (s *SecretService) GetAttributes(item dbus.ObjectPath) (attributes Attribut
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get attributes")
 	}
-	attributesMap := attributesV.Value().(map[string]string)
+	attributesMap, ok := attributesV.Value().(map[string]string)
+	if !ok {
+		return nil, errors.Errorf("failed to coerce item attributes")
+	}
 	return Attributes(attributesMap), nil
 }
 
