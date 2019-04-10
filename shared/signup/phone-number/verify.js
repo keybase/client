@@ -61,6 +61,7 @@ class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
             textContentType="oneTimeCode"
           >
             <Kb.Text type="Header" style={styles.inputText}>
+              {/* We put this child in Input because some text styles don't work on input itself - the one we need here is letterSpacing */}
               {this.state.value}
             </Kb.Text>
           </Kb.PlainInput>
