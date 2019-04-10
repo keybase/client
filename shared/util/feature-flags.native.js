@@ -21,7 +21,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   sendAttachmentToChat: false,
-  useNewRouter: false,
+  useNewRouter: true,
 }
 
 // load overrides
