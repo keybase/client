@@ -114,6 +114,7 @@ type ConfigLocal struct {
 	rootNodeWrappers   []func(Node) Node
 	tlfClearCancels    map[tlf.ID]context.CancelFunc
 	vdebugSetting      string
+	vlogs              []*libkb.VDebugLog
 
 	maxNameBytes           uint32
 	rekeyQueue             RekeyQueue
@@ -916,10 +917,11 @@ func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 
 // MakeVLogger implements the logMaker interface for ConfigLocal.
 func (c *ConfigLocal) MakeVLogger(module string) *libkb.VDebugLog {
-	// No need to lock since c.loggerFn is initialized once at
-	// construction. Also resetCachesWithoutShutdown would deadlock.
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	vlog := libkb.NewVDebugLog(c.loggerFn(module))
 	vlog.Configure(c.vdebugSetting)
+	c.vlogs = append(c.vlogs, vlog)
 	return vlog
 }
 
@@ -1631,4 +1633,14 @@ func (c *ConfigLocal) AddRootNodeWrapper(f func(Node) Node) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.rootNodeWrappers = append(c.rootNodeWrappers, f)
+}
+
+// SetVLogLevel implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetVLogLevel(levelString string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.vdebugSetting = levelString
+	for _, vlog := range c.vlogs {
+		vlog.Configure(levelString)
+	}
 }

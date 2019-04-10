@@ -2024,6 +2024,11 @@ type Config interface {
 	// to TLFs that are first accessed after `AddRootNodeWrapper` is
 	// called.
 	AddRootNodeWrapper(func(Node) Node)
+
+	// SetVLogLevel sets the vdebug level for all logs.  The possible
+	// strings are hard-coded in go/libkb/vdebug.go, but include
+	// "mobile", "vlog1", "vlog2", etc.
+	SetVLogLevel(levelString string)
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

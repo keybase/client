@@ -658,7 +658,7 @@ func doInit(
 			}
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
-	config.vdebugSetting = kbCtx.GetVDebugSetting()
+	config.SetVLogLevel(kbCtx.GetVDebugSetting())
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
