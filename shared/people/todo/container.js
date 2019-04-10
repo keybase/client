@@ -62,7 +62,6 @@ const BioConnector = connect<TodoOwnProps, _, _, _, _>(
     _onConfirm: (username: string) => {
       // make sure we have tracker state & profile is up to date
       dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
-      dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['profileEdit']}))
     },
     onDismiss: () => {},
   }),
