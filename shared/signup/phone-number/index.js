@@ -10,14 +10,14 @@ type Props = {|
   onChangeAllowSearch: boolean => void,
   onChangePhoneNumber: string => void,
   onChangeValidity: boolean => void,
-  onFinish: () => void,
+  onContinue: () => void,
   onSkip: () => void,
 |}
 
 const EnterPhoneNumber = (props: Props) => (
   <SignupScreen
     buttons={[
-      {label: 'Continue', onClick: props.onFinish, type: 'PrimaryGreen'},
+      {label: 'Continue', onClick: props.onContinue, type: 'PrimaryGreen'},
       ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Secondary'}]),
     ]}
     rightActionLabel="Skip"
