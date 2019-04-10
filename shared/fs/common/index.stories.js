@@ -17,7 +17,7 @@ import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
-import SyncStatus from '../sync-status'
+import SyncStatus from './sync-status'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -261,8 +261,6 @@ const load = () => {
       </Kb.Box2>
     ))
 
-  // awaiting-to-sync, awaiting-to-upload, online-only, synced, error,
-  // uploading, syncing
   Sb.storiesOf('Files/PathItemIcon', module)
     .add('tlf list', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
