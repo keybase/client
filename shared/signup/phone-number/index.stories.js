@@ -21,6 +21,7 @@ const verifyProps = {
   onContinue: Sb.action('onContinue'),
   onResend: Sb.action('onResend'),
   phoneNumber: '+33 6 76 38 86 97',
+  resendWaiting: false,
 }
 
 const load = () => {
@@ -29,7 +30,7 @@ const load = () => {
     .add('Enter phone number', () => <EnterPhoneNumber {...props} />)
     .add('Verify phone number', () => <VerifyPhoneNumber {...verifyProps} />)
     .add('Verify phone number - error', () => (
-      <VerifyPhoneNumber {...verifyProps} error="Incorrect code. Please try again." />
+      <VerifyPhoneNumber {...verifyProps} error="Incorrect code. Please try again." resendWaiting={true} />
     ))
 }
 

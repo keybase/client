@@ -11,6 +11,7 @@ type Props = {|
   onContinue: () => void,
   onResend: () => void,
   phoneNumber: string,
+  resendWaiting: boolean,
 |}
 
 class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
@@ -63,8 +64,13 @@ class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
               {this.state.value}
             </Kb.Text>
           </Kb.PlainInput>
-          <Kb.ClickableBox onClick={this.props.onResend}>
-            <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" style={styles.resend}>
+          <Kb.ClickableBox onClick={this.props.onResend} style={styles.positionRelative}>
+            <Kb.Box2
+              alignItems="center"
+              direction="horizontal"
+              gap="tiny"
+              style={Styles.collapseStyles([styles.resend, this.props.resendWaiting && styles.opacity30])}
+            >
               <Kb.Icon
                 type="iconfont-reload"
                 color={Styles.globalColors.white}
@@ -74,6 +80,11 @@ class VerifyPhoneNumber extends React.Component<Props, {value: string}> {
                 Resend SMS
               </Kb.Text>
             </Kb.Box2>
+            {this.props.resendWaiting && (
+              <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
+                <Kb.ProgressIndicator type="Small" white={true} />
+              </Kb.Box2>
+            )}
           </Kb.ClickableBox>
         </Kb.Box2>
       </SignupScreen>
@@ -139,10 +150,13 @@ const styles = Styles.styleSheetCreate({
       lineHeight: 28, // arrived at by fiddling - doesn't affect android
     },
   }),
+  opacity30: {opacity: 0.3},
+  positionRelative: {position: 'relative'},
+  progressContainer: Styles.platformStyles({
+    common: {...Styles.globalStyles.fillAbsolute},
+    isElectron: {paddingTop: Styles.globalMargins.tiny},
+  }),
   resend: Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
     isElectron: {
       paddingTop: Styles.globalMargins.tiny,
     },
