@@ -415,7 +415,6 @@ func TestBoxAuditRaces(t *testing.T) {
 	for err := range errCh {
 		require.NotNil(t, err)
 		boxErr := err.(NonfatalBoxAuditError)
-		// require.True(t, strings.Contains(boxErr.inner.Error(), "box summary hash mismatch"))
 		require.Regexp(t, regexp.MustCompile(`.*box summary hash mismatch.*`), boxErr.inner.Error())
 		// stop reading after 9 handled errors, otherwise the for loop goes
 		// forever since we don't close errCh
