@@ -59,9 +59,6 @@ class TabBar extends React.PureComponent<Props, State> {
   }
 }
 
-// TEMP to really know you're on this branch. Leave until we flip the feature flag
-const backgroundColor = 'pink' // Styles.globalColors.darkBlue2,
-
 const styles = Styles.styleSheetCreate({
   badge: {
     position: 'absolute',
@@ -70,7 +67,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     alignItems: 'center',
-    backgroundColor,
+    backgroundColor: Styles.globalColors.darkBlue2,
     height: Styles.isAndroid ? 56 : 48,
     justifyContent: 'space-around',
   },
@@ -84,7 +81,7 @@ const styles = Styles.styleSheetCreate({
     top: 0,
   },
   safe: {
-    backgroundColor,
+    backgroundColor: Styles.globalColors.darkBlue2,
     flexGrow: 0,
   },
   tab: {
