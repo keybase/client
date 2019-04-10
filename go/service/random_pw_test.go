@@ -175,3 +175,46 @@ func TestCanLogoutTimeout(t *testing.T) {
 	require.Contains(t, err.Error(), "timeout or something")
 	require.Equal(t, 1, fakeAPI.callCount)
 }
+
+func TestCanLogoutWhenRevoked(t *testing.T) {
+	tc := libkb.SetupTest(t, "randompw", 3)
+	defer tc.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUserRandomPW("rpw", tc.G)
+	require.NoError(t, err)
+
+	userHandler := NewUserHandler(nil, tc.G, nil, nil)
+	ret, err := userHandler.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.False(t, ret.CanLogout)
+
+	// Provision second device
+	tc2 := libkb.SetupTest(t, "randompw2", 3)
+	defer tc2.Cleanup()
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, user, libkb.DeviceTypeDesktop)
+
+	// Should still see "can't logout" on second device (also populate
+	// HasRandomPW cache).
+	userHandler2 := NewUserHandler(nil, tc2.G, nil, nil)
+	ret, err = userHandler2.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.False(t, ret.CanLogout)
+
+	// Revoke device 2
+	revokeEng := engine.NewRevokeDeviceEngine(tc.G, engine.RevokeDeviceEngineArgs{
+		ID: tc2.G.ActiveDevice.DeviceID(),
+	})
+	uis := libkb.UIs{
+		SecretUI: &libkb.TestSecretUI{},
+		LogUI:    tc.G.UI.GetLogUI(),
+	}
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, revokeEng)
+	require.NoError(t, err)
+
+	// Try CanLogout from device 2. Should detect that we are revoked and let
+	// us log out.
+	ret, err = userHandler2.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.True(t, ret.CanLogout)
+}
