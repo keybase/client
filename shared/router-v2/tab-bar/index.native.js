@@ -6,11 +6,11 @@ import * as Tabs from '../../constants/tabs'
 import type {Props} from '.'
 
 const icons = {
-  [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.teamsTab]: 'iconfont-nav-teams',
-  [Tabs.peopleTab]: 'iconfont-nav-people',
-  [Tabs.settingsTab]: 'iconfont-nav-more',
-  [Tabs.walletsTab]: 'iconfont-nav-wallets',
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.settingsTab]: 'iconfont-nav-2-more',
+  [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
 const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
