@@ -26,7 +26,7 @@ func metaContext(g *libkb.GlobalContext) libkb.MetaContext {
 	return libkb.NewMetaContextTODO(g)
 }
 
-func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection, merkleRoot libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
 		Eldest:      me.GetEldestKID(),
@@ -35,6 +35,7 @@ func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.G
 		Seqno:       1,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
+		MerkleRoot:  &merkleRoot,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 	return ret, nil
 }
 
-func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteamTeamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteamTeamSection SCTeamSection, merkleRoot libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
 		Eldest:      me.GetEldestKID(),
@@ -112,6 +113,7 @@ func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libk
 		Seqno:       1,
 		SigVersion:  libkb.KeybaseSignatureV2,
 		SeqType:     seqTypeForTeamPublicness(subteamTeamSection.Public),
+		MerkleRoot:  &merkleRoot,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err

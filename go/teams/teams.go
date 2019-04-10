@@ -461,6 +461,11 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		return err
 	}
 
+	mr, err := t.G().MerkleClient.FetchRootFromServerByFreshness(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+
 	// load an empty member set (no membership changes)
 	memSet := newMemberSet()
 
@@ -506,7 +511,7 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 		secretBoxes:   secretBoxes,
 		teamEKPayload: teamEKPayload,
 	}
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, nil, payloadArgs)
+	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, mr, payloadArgs)
 	if err != nil {
 		return err
 	}
@@ -599,7 +604,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 			return err
 		}
 		defer func() {
-			// We must cancel in the case of an error in postChangeItem, but it's safe to cancel
+			// We must cancel in the case of an error in postMulti, but it's safe to cancel
 			// if everything worked. So we always cancel the lease on the way out of this function.
 			// See CORE-6473 for a case in which this was needed. And also the test
 			// `TestOnlyOwnerLeaveThenUpgradeFriend`.
@@ -621,8 +626,22 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 		sigPayloadArgs.prePayload = libkb.JSONPayload{"permanent": true}
 	}
 
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs)
+	payload, latestSeqno, err := t.changeItemPayload(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs)
+	if err != nil {
+		return err
+	}
 
+	var group []keybase1.UserVersion
+	for uv := range memberSet.recipients {
+		group = append(group, uv)
+	}
+	newMemSet := newMemberSet()
+	_, err = newMemSet.loadGroup(ctx, t.G(), group, true, true)
+	if !memberSet.recipients.Eq(newMemSet.recipients) {
+		return BoxRaceError{inner: fmt.Errorf("team box summary changed during sig creation; retry required")}
+	}
+
+	err = t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 	if err != nil {
 		return err
 	}
@@ -1262,6 +1281,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
+
 	section.PerTeamKey = perTeamKeySection
 
 	err = addSummaryHash(&section, secretBoxes)
@@ -1283,22 +1303,29 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, implicitAdminBoxes, teamEKPayload, memSet, nil
 }
 
-func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (keybase1.Seqno, error) {
+func (t *Team) changeItemPayload(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
 	// create the change item
 	sigMultiItem, latestSeqno, err := t.sigTeamItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
-		return keybase1.Seqno(0), err
+		return nil, keybase1.Seqno(0), err
 	}
 
 	sigMulti := []libkb.SigMultiItem{sigMultiItem}
 	err = t.precheckLinksToPost(ctx, sigMulti)
 	if err != nil {
-		return keybase1.Seqno(0), err
+		return nil, keybase1.Seqno(0), err
 	}
 
 	// make the payload
 	payload := t.sigPayload(sigMulti, sigPayloadArgs)
+	return payload, latestSeqno, nil
+}
 
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (keybase1.Seqno, error) {
+	payload, latestSeqno, err := t.changeItemPayload(ctx, section, linkType, merkleRoot, sigPayloadArgs)
+	if err != nil {
+		return keybase1.Seqno(0), err
+	}
 	// send it to the server
 	err = t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 	if err != nil {
@@ -1639,7 +1666,11 @@ func (t *Team) postMulti(mctx libkb.MetaContext, payload libkb.JSONPayload) erro
 // client wants to create a signature that refers to an adminship,
 // signature's merkle_root has to be more fresh than adminship's.
 func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
-	_, err := t.G().GetMerkleClient().LookupTeam(t.MetaContext(ctx), t.ID)
+	return ForceMerkleRootUpdateByTeamID(t.MetaContext(ctx), t.ID)
+}
+
+func ForceMerkleRootUpdateByTeamID(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
+	_, err := mctx.G().GetMerkleClient().LookupTeam(mctx, teamID)
 	return err
 }
 
@@ -1727,6 +1758,11 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
+	mr, err := t.G().MerkleClient.FetchRootFromServerByFreshness(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+
 	scSettings, err := CreateTeamSettings(settings.Open, settings.JoinAs)
 	if err != nil {
 		return err
@@ -1759,7 +1795,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		payloadArgs.teamEKPayload = teamEKPayload
 		maybeEKPayload = teamEKPayload // for storeTeamEKPayload, after post succeeds
 	}
-	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, payloadArgs)
+	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeSettings, mr, payloadArgs)
 	if err != nil {
 		return err
 	}
@@ -1782,21 +1818,25 @@ func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.Si
 }
 
 // Try to run `post` (expected to post new team sigchain links).
-// Retry it several times if it fails due to being behind the latest team sigchain state.
+// Retry it several times if it fails due to being behind the latest team sigchain state or due to other retryable errors.
 // Passes the attempt number (initially 0) to `post`.
-func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
-	defer g.CTraceTimed(ctx, "RetryOnSigOldSeqnoError", func() error { return err })()
+func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
+	defer g.CTraceTimed(ctx, "RetryIfPossible", func() error { return err })()
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
-		g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError(%v)", i)
+		g.Log.CDebugf(ctx, "| RetryIfPossible(%v)", i)
 		err = post(ctx, i)
 		if isSigOldSeqnoError(err) {
-			// This error means retry
+			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError", i)
+			continue
+		}
+		if isStaleBoxError(err) {
+			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError", i)
 			continue
 		}
 		return err
 	}
-	g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError exhausted attempts")
+	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
 	if err == nil {
 		// Should never happen
 		return fmt.Errorf("failed retryable team operation")
