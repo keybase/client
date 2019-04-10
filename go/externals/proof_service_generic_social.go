@@ -100,6 +100,7 @@ func (c *GenericSocialProofConfig) profileURLWithValues(remoteUsername string) (
 }
 
 func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
+	remoteUsername = strings.ToLower(remoteUsername)
 	url := strings.Replace(c.PrefillUrl, kbUsernameKey, kbUsername, 1)
 	if !strings.Contains(url, kbUsername) {
 		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUsername: %s", url, kbUsername)
@@ -121,7 +122,7 @@ func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername, remoteUserna
 
 func (c *GenericSocialProofConfig) checkURLWithValues(remoteUsername string) (string, error) {
 	url := strings.Replace(c.CheckUrl, remoteUsernameKey, remoteUsername, 1)
-	if !strings.Contains(url, remoteUsername) {
+	if !strings.Contains(strings.ToLower(url), strings.ToLower(remoteUsername)) {
 		return "", fmt.Errorf("Invalid CheckUrl: %s, missing remoteUsername: %s", url, remoteUsername)
 	}
 	return url, nil
@@ -133,7 +134,7 @@ func (c *GenericSocialProofConfig) validateRemoteUsername(remoteUsername string)
 		return fmt.Errorf("username must be at least %d characters, was %d", c.UsernameConfig.Min, len(remoteUsername))
 	} else if len(remoteUsername) > uc.Max {
 		return fmt.Errorf("username can be at most %d characters, was %d", c.UsernameConfig.Max, len(remoteUsername))
-	} else if !c.usernameRe.MatchString(remoteUsername) {
+	} else if !c.usernameRe.MatchString(strings.ToLower(remoteUsername)) {
 		return libkb.NewBadUsernameError(remoteUsername)
 	}
 	return nil
