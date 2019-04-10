@@ -141,7 +141,16 @@ class TabBar extends React.PureComponent<Props, State> {
                   style={styles.tab}
                 >
                   <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-                  <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
+                  <Kb.Box2 style={styles.iconBox} direction="horizontal">
+                    <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
+                    {p.uploading && t === Tabs.fsTab && (
+                      <Kb.Icon
+                        type={'icon-addon-file-uploading'}
+                        sizeType={'Default'}
+                        style={styles.badgeIcon}
+                      />
+                    )}
+                  </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
                     {data[t].label}
                   </Kb.Text>
@@ -158,9 +167,18 @@ class TabBar extends React.PureComponent<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   avatar: {marginLeft: 14},
+  badgeIcon: {
+    bottom: -4,
+    position: 'absolute',
+    right: 8,
+  },
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
   header: {height: 80, marginBottom: 20},
+  iconBox: {
+    justifyContent: 'flex-end',
+    position: 'relative',
+  },
   menu: {marginLeft: Styles.globalMargins.tiny},
   nameContainer: {height: 24},
   osButtons: Styles.platformStyles({

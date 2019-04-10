@@ -18,6 +18,7 @@ const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.navBadges,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
+  uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
   username: state.config.username,
 })
 
@@ -46,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab),
   selectedTab: ownProps.selectedTab,
+  uploading: stateProps.uploading,
   username: stateProps.username,
 })
 

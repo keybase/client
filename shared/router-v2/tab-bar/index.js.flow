@@ -6,6 +6,7 @@ export type Props = {|
   badgeNumbers: {[key: string]: number},
   fullname: string,
   isWalletsNew?: boolean,
+  uploading: boolean,
   onHelp: () => void,
   onProfileClick: () => void,
   onSettings: () => void,
