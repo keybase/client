@@ -27,7 +27,7 @@ platform :ios do
   lane :beta do
   version = get_version_number(xcodeproj: ENV['XCODEPROJ_NAME'], target: 'Keybase')
     increment_build_number({
-      build_number: latest_testflight_build_number(version: version) + 4
+      build_number: latest_testflight_build_number(version: version, initial_build_number: "1") + 4
       # build_number: 1
     })
 
