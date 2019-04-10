@@ -155,7 +155,7 @@ func (s *SecretStoreSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (
 		}
 		username, ok := attributes["username"]
 		if !ok {
-			return nil, errors.New("secret does not have username key")
+			return nil, errors.Errorf("secret with attributes %+v does not have username key", attributes)
 		}
 		usernames = append(usernames, username)
 	}
