@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -15,9 +16,11 @@ import (
 // want spam and/or minutiae
 type VDebugLog struct {
 	log              logger.Logger
-	lev              VDebugLevel
 	dumpSiteLoadUser bool
 	dumpPayload      bool
+
+	lock sync.RWMutex
+	lev  VDebugLevel
 }
 
 type VDebugLevel int
@@ -34,8 +37,14 @@ const (
 	VLog3
 )
 
+func (v *VDebugLog) getLev() VDebugLevel {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
+	return v.lev
+}
+
 func (v *VDebugLog) Log(lev VDebugLevel, fs string, args ...interface{}) {
-	if lev <= v.lev {
+	if lev <= v.getLev() {
 		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
 		fs = prfx + fs
 		v.log.CloneWithAddedDepth(1).Debug(fs, args...)
@@ -43,7 +52,7 @@ func (v *VDebugLog) Log(lev VDebugLevel, fs string, args ...interface{}) {
 }
 
 func (v *VDebugLog) CLogf(ctx context.Context, lev VDebugLevel, fs string, args ...interface{}) {
-	if lev <= v.lev {
+	if lev <= v.getLev() {
 		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
 		fs = prfx + fs
 		v.log.CloneWithAddedDepth(1).CDebugf(ctx, fs, args...)
@@ -51,7 +60,7 @@ func (v *VDebugLog) CLogf(ctx context.Context, lev VDebugLevel, fs string, args 
 }
 
 func (v *VDebugLog) CLogfWithAddedDepth(ctx context.Context, lev VDebugLevel, d int, fs string, args ...interface{}) {
-	if lev <= v.lev {
+	if lev <= v.getLev() {
 		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
 		fs = prfx + fs
 		v.log.CloneWithAddedDepth(1+d).CDebugf(ctx, fs, args...)
@@ -67,6 +76,9 @@ func (v *VDebugLog) DumpPayload() bool {
 }
 
 func (v *VDebugLog) Configure(s string) {
+	v.lock.Lock()
+	defer v.lock.Unlock()
+
 	v.lev = VLog0
 	if len(s) == 0 {
 		return
