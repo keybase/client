@@ -2665,3 +2665,16 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	_, _, err = sender.Send(ctx, arg.ConvID, msg, 0, nil, &status)
 	return err
 }
+
+func (h *Server) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.ReacjiSkinTone) (res keybase1.UserReacjis, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetReacjiSkinTone")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	store := storage.NewReacjiStore(h.G())
+	store.PutSkinTone(ctx, uid, skinTone)
+	res = store.UserReacjis(ctx, uid)
+	return res, nil
+}
