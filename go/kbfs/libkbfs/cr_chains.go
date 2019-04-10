@@ -246,6 +246,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 	// is, so fall through and fetch the block unless we come across
 	// another op that can determine the type.
 	var parentDir data.BlockPointer
+	var lastSetAttr *setAttrOp
 	for _, op := range cc.ops {
 		switch realOp := op.(type) {
 		case *syncOp:
@@ -259,6 +260,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			// We can't tell the file type from an mtimeAttr, so we
 			// may have to actually fetch the block to figure it out.
 			parentDir = realOp.Dir.Ref
+			lastSetAttr = realOp
 		default:
 			return nil
 		}
@@ -279,7 +281,12 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			// we find the type or not.
 			return nil
 		}
-		return errors.WithStack(NoChainFoundError{parentDir})
+		fbo.log.CDebugf(ctx,
+			"Can't find parent dir chain, unref=%s/ref=%s, for op %s (file=%s)",
+			lastSetAttr.Dir.Unref, lastSetAttr.Dir.Ref,
+			lastSetAttr, lastSetAttr.File)
+		// Fall through and hope we can still look up the parent's
+		// block and find the entry.
 	}
 
 	// We have to find the current parent directory block.  If the
