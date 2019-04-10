@@ -316,6 +316,31 @@ func TestPGPImportGPGExport(t *testing.T) {
 	}
 }
 
+// TestPGPImportPushSecretWithoutPassword - the engine should prevent nopw
+// users from importing secret keys
+func TestPGPImportPushSecretWithoutPassword(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpnopw")
+	defer tc.Cleanup()
+
+	user, _ := NewFakeUser("login")
+	arg := MakeTestSignupEngineRunArg(user)
+	arg.StoreSecret = true
+	arg.GenerateRandomPassphrase = true
+	arg.Passphrase = ""
+	_, err := CreateAndSignupFakeUserSafeWithArg(tc.G, user, arg)
+	require.NoError(t, err)
+
+	secui := &libkb.TestSecretUI{}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+	_, _, key := armorKey(t, tc, user.Email)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
+	require.Nil(t, err, "engine initialization should succeed")
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
+	require.NotNil(t, err, "import should fail")
+	require.Contains(t, err.Error(), "A password is required to upload secret keys to the server.")
+}
+
 func numPrivateGPGKeys(g *libkb.GlobalContext) (int, error) {
 	gpg := g.GetGpgClient()
 	if err := gpg.Configure(); err != nil {

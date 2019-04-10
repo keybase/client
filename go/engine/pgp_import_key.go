@@ -188,6 +188,12 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	if e.arg.PushSecret {
+		if err = e.checkRandomPassword(m); err != nil {
+			return err
+		}
+	}
+
 	if err = e.checkPregenPrivate(); err != nil {
 		return err
 	}
@@ -231,6 +237,17 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
+	return nil
+}
+
+func (e *PGPKeyImportEngine) checkRandomPassword(mctx libkb.MetaContext) error {
+	random, err := libkb.LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{})
+	if err != nil {
+		return err
+	}
+	if random {
+		return libkb.NewPushSecretWithoutPasswordError("A password is required to upload secret keys to the server.")
+	}
 	return nil
 }
 

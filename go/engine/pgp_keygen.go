@@ -87,10 +87,17 @@ func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	// ask if we should push private key to api server
-	pushPrivate, err := m.UIs().PgpUI.ShouldPushPrivate(m.Ctx(), m.UIs().SessionID)
+	// ask if we should push private key to api server if user has a password
+	hasRandomPw, err := libkb.LoadHasRandomPw(m, keybase1.LoadHasRandomPwArg{})
 	if err != nil {
 		return err
+	}
+	pushPrivate := false
+	if !hasRandomPw {
+		pushPrivate, err = m.UIs().PgpUI.ShouldPushPrivate(m.Ctx(), m.UIs().SessionID)
+		if err != nil {
+			return err
+		}
 	}
 
 	m.Debug("push private generated pgp key to API server? %v", pushPrivate)
