@@ -2872,6 +2872,7 @@ const addUsersToChannel = (_, action) => {
   )
     .then(() => [
       Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      RouteTreeGen.createClearModals(),
       Chat2Gen.createNavigateToThread(),
     ])
     .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key

@@ -7,7 +7,6 @@ import * as WaitingGen from '../../../../actions/waiting-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {anyErrors} from '../../../../constants/waiting'
 import AddToChannel from '.'
-import flags from '../../../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
@@ -29,12 +28,8 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onSubmit: (conversationIDKey, usernames) => {
-    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames}))
-    if (flags.useNewRouter) {
-      dispatch(RouteTreeGen.createNavigateUp())
-    }
-  },
+  _onSubmit: (conversationIDKey, usernames) =>
+    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames})),
   onCancel: () => {
     dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKeyAddUsersToChannel}))
     dispatch(RouteTreeGen.createNavigateUp())
