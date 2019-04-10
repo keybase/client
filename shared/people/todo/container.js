@@ -12,6 +12,7 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import openURL from '../../util/open-url'
+import flags from '../../util/feature-flags'
 
 type TodoOwnProps = {|
   badged: boolean,
@@ -43,6 +44,10 @@ const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
     _onConfirm: username => {
+      if (flags.useNewRouter) {
+        dispatch(ProfileGen.createEditAvatar())
+        return
+      }
       // make sure we have tracker state & profile is up to date
       dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
       dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.profileTab, 'profileEditAvatar']}))
@@ -117,6 +122,15 @@ const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
+      if (flags.useNewRouter) {
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {highlight: ['paper key']}, selected: 'deviceAdd'}],
+          })
+        )
+        return
+      }
+
       if (!isMobile) {
         dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.devicesTab]}))
         dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.devicesTab], path: ['deviceAdd']}))
@@ -124,7 +138,7 @@ const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
         dispatch(
           RouteTreeGen.createNavigateTo({
             parentPath: [Tabs.settingsTab],
-            path: [SettingsTabs.devicesTab, 'addDevice'],
+            path: [SettingsTabs.devicesTab, 'deviceAdd'],
           })
         )
         dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.settingsTab]}))
