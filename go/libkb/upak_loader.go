@@ -128,16 +128,20 @@ func (u *CachedUPAKLoader) getCachedUPAKFromDB(ctx context.Context, uid keybase1
 
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
-	} else if !found {
-		u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
-	} else if tmp.MinorVersion == UPK2MinorVersionCurrent {
-		u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
-		ret = &tmp
-		u.putMemCache(ctx, uid, stubMode, tmp)
-	} else {
-		u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+		return nil
 	}
-	return ret
+	if !found {
+		u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
+		return nil
+	}
+	if tmp.MinorVersion != UPK2MinorVersionCurrent {
+		u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+		return nil
+	}
+
+	u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
+	u.putMemCache(ctx, uid, stubMode, tmp)
+	return &tmp
 }
 
 func (u *CachedUPAKLoader) getCachedUPAKFromDBMaybeTryBothSlots(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
@@ -174,16 +178,9 @@ func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2
 	return unstubbed
 }
 
-func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, stubMode StubMode, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
-
-	if u.Freshness == time.Duration(0) || u.noCache {
-		u.G().VDL.CLogf(ctx, VLog0, "| cache miss since cache disabled")
-		return nil, false
-	}
-
+func (u *CachedUPAKLoader) getCachedUPAKTryMemThenDisk(ctx context.Context, uid keybase1.UID, stubMode StubMode, info *CachedUserLoadInfo) *keybase1.UserPlusKeysV2AllIncarnations {
 	upak := u.getMemCacheMaybeTryBothSlots(ctx, uid, stubMode)
 
-	// Try loading from persistent storage if we missed memory cache.
 	if upak != nil {
 		// Note that below we check the minor version and then discard the cached object if it's
 		// stale. But no need in memory, since we'll never have the old version in memory.
@@ -191,12 +188,26 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 		if info != nil {
 			info.InCache = true
 		}
-	} else {
-		upak = u.getCachedUPAKFromDBMaybeTryBothSlots(ctx, uid, stubMode)
-		if upak != nil && info != nil {
-			info.InDiskCache = true
-		}
+		return upak
 	}
+
+	upak = u.getCachedUPAKFromDBMaybeTryBothSlots(ctx, uid, stubMode)
+	if upak != nil && info != nil {
+		u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache")
+		info.InDiskCache = true
+	}
+
+	return upak
+}
+
+func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, stubMode StubMode, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
+
+	if u.Freshness == time.Duration(0) || u.noCache {
+		u.G().VDL.CLogf(ctx, VLog0, "| cache miss since cache disabled")
+		return nil, false
+	}
+
+	upak := u.getCachedUPAKTryMemThenDisk(ctx, uid, stubMode, info)
 
 	if upak == nil {
 		u.G().VDL.CLogf(ctx, VLog0, "| missed cache")
