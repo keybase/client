@@ -117,7 +117,7 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 	m.Debug("LoginWithPaperkey success, sending login notification")
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), string(m.G().Env.GetUsername()))
 	m.Debug("LoginWithPaperkey success, calling login hooks")
-	m.G().CallLoginHooks()
+	m.G().CallLoginHooks(m)
 
 	return nil
 }

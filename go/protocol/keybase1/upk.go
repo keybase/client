@@ -309,6 +309,7 @@ type UserPlusKeysV2 struct {
 	StellarAccountID *string                       `codec:"stellarAccountID,omitempty" json:"stellarAccountID,omitempty"`
 	RemoteTracks     map[UID]RemoteTrack           `codec:"remoteTracks" json:"remoteTracks"`
 	Reset            *ResetSummary                 `codec:"reset,omitempty" json:"reset,omitempty"`
+	Unstubbed        bool                          `codec:"unstubbed" json:"unstubbed"`
 }
 
 func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
@@ -378,6 +379,7 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Reset),
+		Unstubbed: o.Unstubbed,
 	}
 }
 

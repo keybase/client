@@ -309,7 +309,7 @@ func (u *User) StoreSigChain(m MetaContext) error {
 	return err
 }
 
-func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool, full bool) (err error) {
+func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool, stubMode StubMode) (err error) {
 	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock().Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
@@ -318,7 +318,7 @@ func (u *User) LoadSigChains(m MetaContext, f *MerkleUserLeaf, self bool, full b
 		leaf:             f,
 		chainType:        PublicChain,
 		preload:          u.sigChain(),
-		full:             full,
+		stubMode:         stubMode,
 		MetaContextified: NewMetaContextified(m),
 	}
 

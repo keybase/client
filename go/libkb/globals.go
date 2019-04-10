@@ -354,6 +354,8 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 
 	g.Identify3State.OnLogout()
 
+	g.GetUPAKLoader().OnLogout()
+
 	return nil
 }
 
@@ -964,12 +966,13 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.loginHooks = append(g.loginHooks, hook)
 }
 
-func (g *GlobalContext) CallLoginHooks() {
-	mctx := NewMetaContextTODO(g)
-	g.Log.Debug("G#CallLoginHooks")
+func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
+	mctx.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
-	_, _ = g.GetPerUserKeyring(context.TODO())
+	_, _ = g.GetPerUserKeyring(mctx.Ctx())
+
+	g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin(mctx)
@@ -978,7 +981,7 @@ func (g *GlobalContext) CallLoginHooks() {
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
 		if err := h.OnLogin(mctx); err != nil {
-			g.Log.Warning("OnLogin hook error: %s", err)
+			mctx.Warning("OnLogin hook error: %s", err)
 		}
 	}
 

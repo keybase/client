@@ -231,9 +231,10 @@ func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	}
 }
 
-func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID, full bool) (dirtyTail *MerkleTriple, err error) {
+func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID, stubMode StubMode, unstubs map[keybase1.Seqno]LinkID) (dirtyTail *MerkleTriple, err error) {
 	m, tbs := m.WithTimeBuckets()
 	low := sc.GetLastLoadedSeqno()
+	lenPrev := sc.Len()
 	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
 
 	m.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
@@ -243,13 +244,15 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	// admin permissions to be honored on the server.
 	readDeleted := m.G().Env.GetReadDeletedSigChain()
 
+	v2Compressed := (stubMode == StubModeStubbed)
+
 	resp, finisher, err := sc.G().API.GetResp(m, APIArg{
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeOPTIONAL,
 		Args: HTTPArgs{
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
-			"v2_compressed": B{!full},
+			"v2_compressed": B{v2Compressed},
 			"read_deleted":  B{readDeleted},
 		},
 	})
@@ -267,7 +270,15 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 		return nil, err
 	}
 	recordFin()
-	return sc.LoadServerBody(m, body, low, t, selfUID)
+	dirtyTail, err = sc.LoadServerBody(m, body, low, t, selfUID)
+	if err != nil {
+		return nil, err
+	}
+	err = sc.checkUnstubs(lenPrev, unstubs)
+	if err != nil {
+		return nil, err
+	}
+	return dirtyTail, nil
 }
 
 func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
@@ -511,6 +522,29 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 		default:
 		}
 	}
+	return nil
+}
+
+func (sc *SigChain) checkUnstubs(low int, unstubs map[keybase1.Seqno]LinkID) error {
+
+	if unstubs == nil {
+		return nil
+	}
+
+	hits := make(map[keybase1.Seqno]bool)
+	for _, link := range sc.chainLinks[low:] {
+		q := link.GetSeqno()
+		if id, found := unstubs[q]; found && !id.Eq(link.id) {
+			return NewChainLinkBadUnstubError(fmt.Sprintf("Bad unstub for seqno %d: %s != %s", link.GetSeqno(), id, link.id))
+		}
+		hits[q] = true
+	}
+	for q := range unstubs {
+		if !hits[q] {
+			return NewChainLinkBadUnstubError(fmt.Sprintf("Expected seqno=%d to be unstubbed, but it wasn't", q))
+		}
+	}
+
 	return nil
 }
 
@@ -1009,11 +1043,14 @@ type SigChainLoader struct {
 	ckf                  ComputedKeyFamily
 	dirtyTail            *MerkleTriple
 	currentSubchainStart keybase1.Seqno
-	full                 bool
+	stubMode             StubMode
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
 	preload *SigChain
+
+	// links that arg getting unstubbed in this load need to match the given linkIDs
+	unstubs map[keybase1.Seqno]LinkID
 }
 
 //========================================================================
@@ -1113,7 +1150,51 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	reverse(links)
 	l.M().Debug("| Loaded %d links", len(links))
 
+	// Set the links field in the loader object. We're going to mutate this field just below,
+	// in the next step of loading.
 	l.links = links
+
+	// Now that we've set the links array above, we're going to potentially discard the stubbed links,
+	// and then set a mapping of (seqno -> linkID) so that the server doesn't lie on an unstubbing.
+	l.maybeDiscardStubbedLinks()
+
+	return
+}
+
+// maybeDiscardStubbedLinks will look at the sigchain links loaded from the DB and will maybe throw
+// some away on the basis of (a) if we're in StubModeUnstubbed load mode (meaning we don't want any stubs);
+// and (b) there are some stubs found. But it won't totally throw the stubs away; instead, it will put them
+// in map to check that server eventually unstubs the right values (by mapping Seqno -> LinkID).
+func (l *SigChainLoader) maybeDiscardStubbedLinks() {
+
+	if l.stubMode == StubModeStubbed {
+		return
+	}
+
+	firstStubbedLink := -1
+	for i, link := range l.links {
+		if link.IsStubbed() {
+			firstStubbedLink = i
+			l.M().Debug("| Breaking at first stub, which we'll overwrite: %s", link.id)
+			break
+		}
+	}
+
+	if firstStubbedLink < 0 {
+		l.M().Debug("| want an unstubbed load, but all links unstubbed, so nothing to do")
+		return
+	}
+
+	// Keep track of all links that we're going to unstub; we're going to require that
+	// the server sends down linkIDs as we previously wrote down to storage.
+	l.unstubs = make(map[keybase1.Seqno]LinkID)
+	for _, link := range l.links[firstStubbedLink:] {
+		l.unstubs[link.GetSeqno()] = link.id
+	}
+
+	// The only links we're leaving are the unstubbed links.
+	l.links = l.links[0:firstStubbedLink]
+
 	return
 }
 
@@ -1232,7 +1313,6 @@ func (sc *SigChain) HasStubs() bool {
 			return true
 		}
 	}
-
 	return len(sc.chainLinks) != 0
 }
 
@@ -1255,8 +1335,13 @@ func (l *SigChainLoader) selfUID() (uid keybase1.UID) {
 
 func (l *SigChainLoader) LoadFromServer() (err error) {
 	srv := l.GetMerkleTriple()
-	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID(), l.full)
-	return
+
+	l.dirtyTail, err = l.chain.LoadFromServer(l.M(), srv, l.selfUID(), l.stubMode, l.unstubs)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //========================================================================
@@ -1357,10 +1442,6 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	stage("CheckFreshness")
 	if current, err = l.CheckFreshness(); err != nil {
 		return nil, err
-	}
-	stage("CheckStubsIfFull")
-	if current && l.full {
-		current = l.HasStubs()
 	}
 	if !current {
 		stage("LoadFromServer")
