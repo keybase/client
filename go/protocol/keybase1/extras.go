@@ -2204,7 +2204,6 @@ func (u UserPlusKeysV2AllIncarnations) GetPerUserKeyAtSeqno(uv UserVersion, seqn
 			}
 			if len(incarnation.PerUserKeys) == 0 {
 				return nil, nil
-				// return nil, fmt.Errorf("no puks found for uv %v", uv)
 			}
 			for i := range incarnation.PerUserKeys {
 				perUserKey := incarnation.PerUserKeys[len(incarnation.PerUserKeys)-1-i]

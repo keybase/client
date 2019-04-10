@@ -723,10 +723,6 @@ func NewBoxAuditJail(version Version) *BoxAuditJail {
 }
 
 func (a *BoxAuditor) shouldAudit(mctx libkb.MetaContext, team Team) (bool, *keybase1.BoxAuditAttemptResult, error) {
-	// if team.IsSubteam() {
-	// 	res := keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_SUBTEAM
-	// 	return false, &res, nil
-	// }
 	if team.IsOpen() {
 		res := keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_OPENTEAM
 		return false, &res, nil
@@ -779,9 +775,10 @@ func loadTeamForBoxAuditInner(mctx libkb.MetaContext, teamID keybase1.TeamID, fo
 	return team, nil
 }
 
-type merkleCheckpoints map[keybase1.UserVersion]keybase1.Seqno
+type merkleSeqno = keybase1.Seqno
+type merkleCheckpoints map[keybase1.UserVersion]merkleSeqno
 
-func getAllPUKCheckpointsSinceMerkleSeqno(teamchain *TeamSigChainState, merkleSeqnoCheckpoint keybase1.Seqno) (merkleCheckpoints, error) {
+func getPUKCheckpoints(teamchain *TeamSigChainState, checkpoint merkleSeqno, fastforwardToAddition bool) (merkleCheckpoints, error) {
 	checkpoints := make(merkleCheckpoints)
 	// We only check users currently in the team, which means we skip over any
 	// users, who for example, have reset (and possibly have added a new PUK),
@@ -791,14 +788,20 @@ func getAllPUKCheckpointsSinceMerkleSeqno(teamchain *TeamSigChainState, merkleSe
 		if logPoint.Role == keybase1.TeamRole_NONE {
 			continue
 		}
-		merkleSeqno := logPoint.SigMeta.PrevMerkleRootSigned.Seqno
-		latest := merkleSeqno
-		if latest < merkleSeqnoCheckpoint {
-			latest = merkleSeqnoCheckpoint
+		latest := checkpoint
+		if fastforwardToAddition {
+			latest = max(latest, logPoint.SigMeta.PrevMerkleRootSigned.Seqno)
 		}
 		checkpoints[uv] = latest
 	}
 	return checkpoints, nil
+}
+
+func max(a, b merkleSeqno) merkleSeqno {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 // calculateCurrentSummary calculates the box summary as it is currently for
@@ -812,30 +815,24 @@ func calculateCurrentSummary(mctx libkb.MetaContext, team *Team) (summary *boxPu
 	if currentRoot.Seqno() == nil {
 		return nil, fmt.Errorf("got nil current merkle root")
 	}
-	return calculateSummaryAtMerkleSeqno(mctx, team, currentRoot.Seqno())
+	return calculateSummaryAtMerkleSeqno(mctx, team, *currentRoot.Seqno(), false)
 }
 
 // calculateChainSummary calculates the box summary as implied by the team sigchain and previous links,
 // using the last known rotation and subsequent additions as markers for PUK freshness.
 func calculateChainSummary(mctx libkb.MetaContext, team *Team) (summary *boxPublicSummary, err error) {
-	return calculateSummaryAtMerkleSeqno(mctx, team, nil)
+	merkleSeqno, err := merkleSeqnoAtGenerationInception(mctx, team.chain())
+	if err != nil {
+		return nil, err
+	}
+	return calculateSummaryAtMerkleSeqno(mctx, team, merkleSeqno, true)
 }
 
-// calculateSummaryAtMerkleSeqno calculates the summary at the merkleSeqno, and
-// if merkleSeqno is nil, it uses the merkle root at the beginning of the
-// team's (and its ancestors') generation.
-func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeqno *keybase1.Seqno) (summary *boxPublicSummary, err error) {
+// calculateSummaryAtMerkleSeqno calculates the summary at the given merkleSeqno.
+func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeqno merkleSeqno, fastforwardToAddition bool) (summary *boxPublicSummary, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("calculateSummaryAtMerkleSeqno(%s, %v)", team.ID, merkleSeqno), func() error { return err })()
 
-	if merkleSeqno == nil {
-		tmp, err := merkleSeqnoAtGenerationInception(mctx, team.chain())
-		if err != nil {
-			return nil, err
-		}
-		merkleSeqno = &tmp
-	}
-
-	checkpoints, err := getAllPUKCheckpointsSinceMerkleSeqno(team.chain(), *merkleSeqno)
+	checkpoints, err := getPUKCheckpoints(team.chain(), merkleSeqno, fastforwardToAddition)
 	if err != nil {
 		return nil, err
 	}
@@ -843,16 +840,7 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 	if team.IsSubteam() {
 		err = mctx.G().GetTeamLoader().MapTeamAncestors(mctx.Ctx(), func(t keybase1.TeamSigChainState) error {
 			chain := TeamSigChainState{inner: t}
-			var ancestorMerkleSeqno keybase1.Seqno
-			if merkleSeqno == nil {
-				ancestorMerkleSeqno, err = merkleSeqnoAtGenerationInception(mctx, team.chain())
-				if err != nil {
-					return err
-				}
-			} else {
-				ancestorMerkleSeqno = *merkleSeqno
-			}
-			ancestorCheckpoints, err := getAllPUKCheckpointsSinceMerkleSeqno(&chain, ancestorMerkleSeqno)
+			ancestorCheckpoints, err := getPUKCheckpoints(&chain, merkleSeqno, fastforwardToAddition)
 			if err != nil {
 				return err
 			}
@@ -890,6 +878,7 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 		uvs = append(uvs, uv)
 	}
 
+	// for UPAK Batcher API
 	getArg := func(idx int) *libkb.LoadUserArg {
 		if idx >= len(uvs) {
 			return nil
@@ -900,6 +889,7 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 
 	d := make(map[keybase1.UserVersion]keybase1.PerUserKey)
 	var processErr error
+	// for UPAK Batcher API
 	processResult := func(idx int, upak *keybase1.UserPlusKeysV2AllIncarnations) {
 		uv := uvs[idx]
 		checkpoint := checkpoints[uv]

@@ -978,7 +978,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
-				BoxSummaryHashes: make(map[keybase1.PerTeamKeyGeneration][]keybase1.BoxSummaryHash),
 				MerkleRoots:      make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 			}}
 
@@ -1341,19 +1340,18 @@ func (t *teamSigchainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:        1,
-				LastLinkID:       link.LinkID().Export(),
-				ParentID:         &parentID,
-				UserLog:          make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:       make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:      perTeamKeys,
-				PerTeamKeyCTime:  keybase1.UnixTime(payload.Ctime),
-				LinkIDs:          make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks:     make(map[keybase1.Seqno]bool),
-				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				BoxSummaryHashes: make(map[keybase1.PerTeamKeyGeneration][]keybase1.BoxSummaryHash),
-				MerkleRoots:      make(map[keybase1.Seqno]keybase1.MerkleRootV2),
+				LastSeqno:       1,
+				LastLinkID:      link.LinkID().Export(),
+				ParentID:        &parentID,
+				UserLog:         make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:      make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:     perTeamKeys,
+				PerTeamKeyCTime: keybase1.UnixTime(payload.Ctime),
+				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:    make(map[keybase1.Seqno]bool),
+				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				ObsoleteInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				MerkleRoots:     make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1641,12 +1639,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 		} else {
 			return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 		}
-	}
-
-	if team.BoxSummaryHash != nil && res.newState.inner.BoxSummaryHashes != nil {
-		g := res.newState.GetLatestGeneration()
-		batch := res.newState.inner.BoxSummaryHashes[g] // batch zero-value is nil, so we can append to it
-		res.newState.inner.BoxSummaryHashes[g] = append(batch, team.BoxSummaryHash.BoxSummaryHash())
 	}
 
 	if isHighLink {

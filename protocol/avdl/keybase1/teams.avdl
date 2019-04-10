@@ -475,11 +475,6 @@ protocol teams {
     // and if not, fetch the chainlink from the server and check against linksIDs[1].
     union { null, MerkleRootV2 } headMerkle;
 
-    // Each generation has n batches of per team key additions: one for the
-    // initial rotation of team member boxes and more for each link adding a
-    // member.
-    map<PerTeamKeyGeneration, array<BoxSummaryHash>> boxSummaryHashes;
-
     // Merkle roots at each seqno
     map<Seqno, MerkleRootV2> merkleRoots;
   }

@@ -1220,7 +1220,6 @@ type TeamSigChainState struct {
 	TlfIDs           []TLFID                                           `codec:"tlfIDs" json:"tlfIDs"`
 	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
 	HeadMerkle       *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
-	BoxSummaryHashes map[PerTeamKeyGeneration][]BoxSummaryHash         `codec:"boxSummaryHashes" json:"boxSummaryHashes"`
 	MerkleRoots      map[Seqno]MerkleRootV2                            `codec:"merkleRoots" json:"merkleRoots"`
 }
 
@@ -1391,28 +1390,6 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.HeadMerkle),
-		BoxSummaryHashes: (func(x map[PerTeamKeyGeneration][]BoxSummaryHash) map[PerTeamKeyGeneration][]BoxSummaryHash {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[PerTeamKeyGeneration][]BoxSummaryHash, len(x))
-			for k, v := range x {
-				kCopy := k.DeepCopy()
-				vCopy := (func(x []BoxSummaryHash) []BoxSummaryHash {
-					if x == nil {
-						return nil
-					}
-					ret := make([]BoxSummaryHash, len(x))
-					for i, v := range x {
-						vCopy := v.DeepCopy()
-						ret[i] = vCopy
-					}
-					return ret
-				})(v)
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.BoxSummaryHashes),
 		MerkleRoots: (func(x map[Seqno]MerkleRootV2) map[Seqno]MerkleRootV2 {
 			if x == nil {
 				return nil
