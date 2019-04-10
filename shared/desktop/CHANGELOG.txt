@@ -1,7 +1,3 @@
-• New toy: Cryptographic coin flips. Try /flip in chat
-• Giphy support! Try /giphy in chat
-• New font!
-• Easily add members to a channel
-• Faster profile loads
-• Better errors when uploading a profile photo
-• Improved device adding screens
+• You can now search inside Chat conversations!
+• Support for Mastodon social proofs.
+• You no longer need to choose a password when signing up.
