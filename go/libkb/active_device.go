@@ -33,7 +33,7 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	m.Debug("%sUsername (via env): %s", prefix, a.Username(m))
 	m.Debug("%sDeviceID: %s", prefix, a.deviceID)
 	m.Debug("%sDeviceName: %s", prefix, a.deviceName)
-	m.Debug("%sDeviceCtime: %s", prefix, a.deviceCtime)
+	m.Debug("%sDeviceCtime: %s", prefix, keybase1.FormatTime(a.deviceCtime))
 	if a.signingKey != nil {
 		m.Debug("%sSigKey: %s", prefix, a.signingKey.GetKID())
 	}
