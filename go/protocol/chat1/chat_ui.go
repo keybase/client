@@ -1073,16 +1073,18 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 }
 
 type UIChatSearchConvHit struct {
-	ConvID string       `codec:"convID" json:"convID"`
-	Name   string       `codec:"name" json:"name"`
-	Mtime  gregor1.Time `codec:"mtime" json:"mtime"`
+	ConvID   string       `codec:"convID" json:"convID"`
+	TeamType TeamType     `codec:"teamType" json:"teamType"`
+	Name     string       `codec:"name" json:"name"`
+	Mtime    gregor1.Time `codec:"mtime" json:"mtime"`
 }
 
 func (o UIChatSearchConvHit) DeepCopy() UIChatSearchConvHit {
 	return UIChatSearchConvHit{
-		ConvID: o.ConvID,
-		Name:   o.Name,
-		Mtime:  o.Mtime.DeepCopy(),
+		ConvID:   o.ConvID,
+		TeamType: o.TeamType.DeepCopy(),
+		Name:     o.Name,
+		Mtime:    o.Mtime.DeepCopy(),
 	}
 }
 

@@ -5,6 +5,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {isDarwin, isMobile} from '../../../../constants/platform'
 import {namedConnect, compose, withProps} from '../../../../util/container'
 import ConversationFilterInput from '../../../conversation-filter-input'
+import HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
   filterFocusCount: number,
@@ -38,7 +39,7 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onBlur: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: null})),
   onFocus: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: 'filter'})),
-  onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
+  onSetFilter: (filter: string) => dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

@@ -957,6 +957,10 @@
           "name": "convID"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": "string",
           "name": "name"
         },

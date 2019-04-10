@@ -1047,6 +1047,27 @@ const rootReducer = (
           return info.set('hits', I.List())
         }
       )
+    case Chat2Gen.toggleInboxSearch:
+      return state.inboxSearch
+        ? state.set('inboxSearch', null)
+        : stable.set('inboxSearch', Constants.makeInboxSearchInfo())
+    case Chat2Gen.inboxSearch:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          nameResults: I.List(),
+          nameStatus: 'inprogress',
+          selectedIndex: 0,
+          textResults: I.List(),
+          textStatus: 'inprogress',
+        })
+      })
+    case Chat2Gen.inboxSearchNameResults:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          nameResults: action.payload.results,
+          nameStatus: 'done',
+        })
+      })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {

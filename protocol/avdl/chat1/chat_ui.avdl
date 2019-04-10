@@ -256,6 +256,7 @@ protocol chatUi {
 
   record UIChatSearchConvHit {
     string convID;
+    TeamType teamType;
     string name;
     gregor1.Time mtime;
   }

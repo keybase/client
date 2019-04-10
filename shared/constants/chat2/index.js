@@ -88,12 +88,17 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
   visible: false,
 })
 
-export const makeInboxSearchInfo: I.RecordFactory<Types._InboxearchInfo> = I.Record({
+export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
   nameResults: I.List(),
   nameStatus: 'initial',
   selectedIndex: 0,
   textResults: I.List(),
   textStatus: 'initial',
+})
+
+export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  teamType: 'small',
 })
 
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>

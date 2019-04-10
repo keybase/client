@@ -618,6 +618,17 @@
     "toggleThreadSearch": {
       "_description": "Toggle the display of the thread search window",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "inboxSearch": {
+      "_description": "Perform an inbox search",
+      "query": "HiddenString"
+    },
+    "toggleInboxSearch": {
+      "_description": "Toggle inbox search view"
+    },
+    "inboxSearchNameResults": {
+      "_description": "Inbox search name results received",
+      "results": "I.List<Types.InboxSearchConvHit>"
     }
   }
 }

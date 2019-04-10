@@ -1379,6 +1379,51 @@ function* threadSearch(state, action) {
   }
 }
 
+function* inboxSearch(state, action) {
+  const {query} = action.payload
+  const onConvHits = resp => {
+    return Saga.put(
+      Chat2Gen.createInboxSearchNameResults({
+        results: resp.hits.reduce((l, h) => {
+          return l.set(
+            l.size,
+            Constants.makeInboxSearchConvHit({
+              conversationIDKey: Types.stringToConversationIDKey(h.convID),
+              teamType: h.teamType === RPCChatTypes.commonTeamType.complex ? 'big' : 'small',
+            })
+          )
+        }, I.List()),
+      })
+    )
+  }
+  try {
+    yield RPCChatTypes.localSearchInboxRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatSearchConvHits': onConvHits,
+      },
+      params: {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        namesOnly: true,
+        opts: {
+          afterContext: 0,
+          beforeContext: 0,
+          forceReindex: false,
+          maxConvs: -1,
+          maxHits: -1,
+          maxMessages: -1,
+          maxNameConvs: 15,
+          sentAfter: 0,
+          sentBefore: 0,
+          sentBy: '',
+        },
+        query: query.stringValue(),
+      },
+    })
+  } catch (e) {
+    logger.error('search failed: ' + e.message)
+  }
+}
+
 function* messageSend(state, action) {
   const {conversationIDKey, text} = action.payload
 
@@ -3250,6 +3295,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     onChatCommandMarkdown
   )
 
+  yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(
     Chat2Gen.toggleThreadSearch,
