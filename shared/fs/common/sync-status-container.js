@@ -1,9 +1,8 @@
 // @flow
-
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/typed-connect'
-import SyncStatus from './index'
+import SyncStatus from './sync-status'
 
 type OwnProps = {|
   path: Types.Path,
@@ -28,7 +27,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   )
   return {
     folder: stateProps._pathItem.type === 'folder',
-    status: status,
+    status,
   }
 }
 
