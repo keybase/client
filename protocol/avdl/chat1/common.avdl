@@ -556,9 +556,13 @@
     int maxNameConvs;
   }
 
+  // The search indexer uses the EmptyStruct to implement a set using a map
+  // with a zero sized value.
+  record EmptyStruct{}
+
   record ConversationIndexMetadata {
     @mpackkey("s") @jsonkey("s")
-    map<MessageID, boolean> seenIDs;
+    map<MessageID, EmptyStruct> seenIDs;
     @mpackkey("v") @jsonkey("v")
     int version;
   }
@@ -566,7 +570,10 @@
   record ConversationIndex {
     // search token -> msgID
     @mpackkey("i") @jsonkey("i")
-    map<string, map<MessageID, boolean>> index;
+    map<string, map<MessageID, EmptyStruct>> index;
+    // token alias -> token
+    @mpackkey("a") @jsonkey("a")
+    map<string, map<string, EmptyStruct>> alias;
     @mpackkey("m") @jsonkey("m")
     ConversationIndexMetadata metadata;
   }

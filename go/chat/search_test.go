@@ -529,39 +529,47 @@ func TestChatSearchInbox(t *testing.T) {
 		}
 
 		// Test basic equality match
-		msgBody := "hi, byE"
+		msgBody := "hello, byE"
 		msgID1 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
 		expectedIndex := &chat1.ConversationIndex{
-			Index: map[string]map[chat1.MessageID]bool{
-				"hi": map[chat1.MessageID]bool{
-					msgID1: true,
+			Index: map[string]map[chat1.MessageID]chat1.EmptyStruct{
+				"hello": map[chat1.MessageID]chat1.EmptyStruct{
+					msgID1: chat1.EmptyStruct{},
 				},
-				"bye": map[chat1.MessageID]bool{
-					msgID1: true,
+				"bye": map[chat1.MessageID]chat1.EmptyStruct{
+					msgID1: chat1.EmptyStruct{},
+				},
+			},
+			Alias: map[string]map[string]chat1.EmptyStruct{
+				"hel": map[string]chat1.EmptyStruct{
+					"hello": chat1.EmptyStruct{},
+				},
+				"hell": map[string]chat1.EmptyStruct{
+					"hello": chat1.EmptyStruct{},
 				},
 			},
 			Metadata: chat1.ConversationIndexMetadata{
-				SeenIDs: map[chat1.MessageID]bool{
-					1:      true, // tlf name
-					msgID1: true,
+				SeenIDs: map[chat1.MessageID]chat1.EmptyStruct{
+					1:      chat1.EmptyStruct{}, // tlf name
+					msgID1: chat1.EmptyStruct{},
 				},
 				Version: search.IndexVersion,
 			},
 		}
 		verifyIndex(expectedIndex)
-		queries := []string{"hi", "hi, ByE"}
+		queries := []string{"hello", "hello, ByE"}
 		matches := []chat1.ChatSearchMatch{
 			chat1.ChatSearchMatch{
 				StartIndex: 0,
-				EndIndex:   2,
-				Match:      "hi",
+				EndIndex:   5,
+				Match:      "hello",
 			},
 			chat1.ChatSearchMatch{
 				StartIndex: 0,
-				EndIndex:   7,
-				Match:      "hi, byE",
+				EndIndex:   10,
+				Match:      "hello, byE",
 			},
 		}
 		for i, query := range queries {
@@ -574,11 +582,13 @@ func TestChatSearchInbox(t *testing.T) {
 			verifySearchDone(1)
 		}
 
-		// No match since highlighting fails
-		query := "hi bye"
+		// We get a hit but without any highlighting highlighting fails
+		query := "hell bye"
 		res := runSearch(query, opts, false /* expectedReindex */)
-		require.Equal(t, 0, len(res.Hits))
-		verifySearchDone(0)
+		require.Equal(t, 1, len(res.Hits))
+		convHit := res.Hits[0]
+		verifyHit(convID, nil, msgID1, nil, nil, convHit.Hits[0])
+		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
@@ -588,7 +598,7 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// Test maxHits
 		opts.MaxHits = 1
-		query = "hi"
+		query = "hello"
 		searchMatch := chat1.ChatSearchMatch{
 			StartIndex: 0,
 			EndIndex:   len(query),
@@ -597,14 +607,14 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID2 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index["hi"][msgID2] = true
-		expectedIndex.Index["bye"][msgID2] = true
-		expectedIndex.Metadata.SeenIDs[msgID2] = true
+		expectedIndex.Index["hello"][msgID2] = chat1.EmptyStruct{}
+		expectedIndex.Index["bye"][msgID2] = chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID2] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
-		convHit := res.Hits[0]
+		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
 		require.Equal(t, 1, len(convHit.Hits))
 		verifyHit(convID, []chat1.MessageID{msgID1}, msgID2, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
@@ -623,9 +633,9 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID3 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index["hi"][msgID3] = true
-		expectedIndex.Index["bye"][msgID3] = true
-		expectedIndex.Metadata.SeenIDs[msgID3] = true
+		expectedIndex.Index["hello"][msgID3] = chat1.EmptyStruct{}
+		expectedIndex.Index["bye"][msgID3] = chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID3] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -647,13 +657,13 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// send from user2 and make sure we can filter
 		opts.SentBy = u2.Username
-		msgBody = "hi"
-		query = "hi"
+		msgBody = "hello"
+		query = "hello"
 		msgID4 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u2)
-		expectedIndex.Index["hi"][msgID4] = true
-		expectedIndex.Metadata.SeenIDs[msgID4] = true
+		expectedIndex.Index["hello"][msgID4] = chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID4] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -719,9 +729,13 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID5 := mustEditMsg(tc2.startCtx, t, ctc, u2, conv, msgID4)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_EDIT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_EDIT)
-		delete(expectedIndex.Index["hi"], msgID4)
-		expectedIndex.Index["edited"] = map[chat1.MessageID]bool{msgID4: true}
-		expectedIndex.Metadata.SeenIDs[msgID5] = true
+		delete(expectedIndex.Index["hello"], msgID4)
+		expectedIndex.Index["edited"] = map[chat1.MessageID]chat1.EmptyStruct{msgID4: chat1.EmptyStruct{}}
+		expectedIndex.Alias["edi"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
+		expectedIndex.Alias["edit"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
+		expectedIndex.Alias["edite"] = map[string]chat1.EmptyStruct{"edited": chat1.EmptyStruct{}}
+		expectedIndex.Metadata.SeenIDs[msgID5] = chat1.EmptyStruct{}
+		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -737,7 +751,10 @@ func TestChatSearchInbox(t *testing.T) {
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
 		delete(expectedIndex.Index["edited"], msgID4)
 		delete(expectedIndex.Index, "edited")
-		expectedIndex.Metadata.SeenIDs[msgID6] = true
+		delete(expectedIndex.Alias, "edi")
+		delete(expectedIndex.Alias, "edit")
+		delete(expectedIndex.Alias, "edite")
+		expectedIndex.Metadata.SeenIDs[msgID6] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -756,9 +773,20 @@ func TestChatSearchInbox(t *testing.T) {
 			RequestID: stellar1.KeybaseRequestID("dummy id"),
 			Note:      msgBody,
 		}), u1)
-		expectedIndex.Index["payment"] = map[chat1.MessageID]bool{msgID7: true}
-		expectedIndex.Index[":moneybag:"] = map[chat1.MessageID]bool{msgID7: true}
-		expectedIndex.Metadata.SeenIDs[msgID7] = true
+		expectedIndex.Index["payment"] = map[chat1.MessageID]chat1.EmptyStruct{msgID7: chat1.EmptyStruct{}}
+		expectedIndex.Alias["pay"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Alias["paym"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Alias["payme"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Alias["paymen"] = map[string]chat1.EmptyStruct{"payment": chat1.EmptyStruct{}}
+		expectedIndex.Index[":moneybag:"] = map[chat1.MessageID]chat1.EmptyStruct{msgID7: chat1.EmptyStruct{}}
+		expectedIndex.Alias[":mo"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":mon"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":mone"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":money"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":moneyb"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":moneyba"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Alias[":moneybag"] = map[string]chat1.EmptyStruct{":moneybag:": chat1.EmptyStruct{}}
+		expectedIndex.Metadata.SeenIDs[msgID7] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
@@ -780,8 +808,15 @@ func TestChatSearchInbox(t *testing.T) {
 		msgID8 := sendMessage(chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: msgBody,
 		}), u1)
-		expectedIndex.Index[msgBody] = map[chat1.MessageID]bool{msgID8: true}
-		expectedIndex.Metadata.SeenIDs[msgID8] = true
+		expectedIndex.Index[msgBody] = map[chat1.MessageID]chat1.EmptyStruct{msgID8: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚和`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚和约`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		expectedIndex.Alias[`约书亚和约翰`] = map[string]chat1.EmptyStruct{msgBody: chat1.EmptyStruct{}}
+		// NOTE other prefixes are cut off since they exceed the max length
+		expectedIndex.Metadata.SeenIDs[msgID8] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
@@ -821,12 +856,28 @@ func TestChatSearchInbox(t *testing.T) {
 		// since our index is full, we shouldn't fire off any calls to get messages
 		runSearch(query, opts, false /* expectedReindex*/)
 
+		// Test prefix searching
+		query = "pay"
+		searchMatch = chat1.ChatSearchMatch{
+			StartIndex: 0,
+			EndIndex:   3,
+			Match:      "pay",
+		}
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{msgID2, msgID3}, msgID7, []chat1.MessageID{msgID8}, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
+		verifySearchDone(1)
+
 		// Test deletehistory
 		msgID9 := mustDeleteHistory(tc2.startCtx, t, ctc, u2, conv, msgID8+1)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETEHISTORY)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETEHISTORY)
-		expectedIndex.Index = map[string]map[chat1.MessageID]bool{}
-		expectedIndex.Metadata.SeenIDs[msgID9] = true
+		expectedIndex.Index = map[string]map[chat1.MessageID]chat1.EmptyStruct{}
+		expectedIndex.Alias = map[string]map[string]chat1.EmptyStruct{}
+		expectedIndex.Metadata.SeenIDs[msgID9] = chat1.EmptyStruct{}
 		verifyIndex(expectedIndex)
 	})
 }

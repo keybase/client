@@ -177,26 +177,31 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 // searchConv finds all messages that match the given set of tokens and opts,
 // results are ordered desc by msg id.
 func (idx *Indexer) searchConv(ctx context.Context, convID chat1.ConversationID, convIdx *chat1.ConversationIndex,
-	uid gregor1.UID, tokens []string, opts chat1.SearchOpts) (msgIDs []chat1.MessageID, err error) {
+	uid gregor1.UID, tokens tokenMap, opts chat1.SearchOpts) (msgIDs []chat1.MessageID, err error) {
 	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("searchConv convID: %v", convID.String()))()
 	if convIdx == nil {
 		return nil, nil
 	}
 
 	var allMsgIDs mapset.Set
-	for i, token := range tokens {
-		msgIDs, ok := convIdx.Index[token]
-		if !ok {
-			// this conversation is missing a token, abort
-			return nil, nil
-		}
-
+	for token, aliases := range tokens {
 		matchedIDs := mapset.NewThreadUnsafeSet()
-		for msgID := range msgIDs {
+
+		// first gather the messages that directly match the token
+		for msgID := range convIdx.Index[token] {
 			matchedIDs.Add(msgID)
 		}
+		// now check any aliases for matches, including our token itself
+		aliases[token] = struct{}{}
+		for alias := range aliases {
+			for atoken := range convIdx.Alias[alias] {
+				for msgID := range convIdx.Index[atoken] {
+					matchedIDs.Add(msgID)
+				}
+			}
+		}
 
-		if i == 0 {
+		if allMsgIDs == nil {
 			allMsgIDs = matchedIDs
 		} else {
 			allMsgIDs = allMsgIDs.Intersect(matchedIDs)
@@ -282,9 +287,6 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	for i, msg := range msgs {
 		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && opts.Matches(msg) {
 			matches := searchMatches(msg, queryRe)
-			if len(matches) == 0 {
-				continue
-			}
 			afterLimit := i - opts.AfterContext
 			if afterLimit < 0 {
 				afterLimit = 0

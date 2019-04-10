@@ -36,35 +36,70 @@ var stripSeps = []string{
 }
 var stripExpr = regexp.MustCompile(strings.Join(stripSeps, "|"))
 
+func prefixes(token string) (res []string) {
+	if len(token) <= 2 {
+		return nil
+	}
+	for i := range token {
+		if i <= 2 {
+			continue
+		}
+		// Skip any prefixes longer than 20 to limit the index size.
+		if i >= 20 {
+			break
+		}
+		res = append(res, token[:i])
+	}
+	return res
+}
+
+type tokenMap map[string]map[string]chat1.EmptyStruct
+
 // getIndexTokens splits the content of the given message on whitespace and
-// special characters returning a set of tokens normalized to lowercase.
-func tokenize(msgText string) []string {
+// special characters returning a map of tokens to aliases  normalized to lowercase.
+func tokenize(msgText string) tokenMap {
 	if msgText == "" {
 		return nil
 	}
+
+	// split the message text up on basic punctuation/spaces
 	tokens := splitExpr.Split(msgText, -1)
-	tokenSet := mapset.NewThreadUnsafeSet()
+	tokenMap := tokenMap{}
 	for _, token := range tokens {
+		if token == "" {
+			continue
+		}
+
 		token = strings.ToLower(token)
-		tokenSet.Add(token)
+		if _, ok := tokenMap[token]; !ok {
+			tokenMap[token] = map[string]chat1.EmptyStruct{}
+		}
+
+		// strip separators to raw tokens which we count as an alias to the
+		// original token
 		stripped := stripExpr.Split(token, -1)
 		for _, s := range stripped {
-			tokenSet.Add(s)
+			if s == "" {
+				continue
+			}
+			tokenMap[token][s] = chat1.EmptyStruct{}
+
+			// add the stem as an alias
 			stemmed := porterstemmer.StemWithoutLowerCasing([]rune(s))
-			tokenSet.Add(string(stemmed))
+			tokenMap[token][string(stemmed)] = chat1.EmptyStruct{}
+
+			// calculate prefixes to alias to the token
+			for _, prefix := range prefixes(s) {
+				tokenMap[token][prefix] = chat1.EmptyStruct{}
+			}
 		}
+		// drop the original token from the set of aliases
+		delete(tokenMap[token], token)
 	}
-	strSlice := []string{}
-	for _, el := range tokenSet.ToSlice() {
-		str, ok := el.(string)
-		if ok && str != "" {
-			strSlice = append(strSlice, str)
-		}
-	}
-	return strSlice
+	return tokenMap
 }
 
-func tokensFromMsg(msg chat1.MessageUnboxed) []string {
+func tokensFromMsg(msg chat1.MessageUnboxed) tokenMap {
 	return tokenize(msg.SearchableText())
 }
 

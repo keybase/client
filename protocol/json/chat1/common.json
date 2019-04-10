@@ -1454,12 +1454,17 @@
     },
     {
       "type": "record",
+      "name": "EmptyStruct",
+      "fields": []
+    },
+    {
+      "type": "record",
       "name": "ConversationIndexMetadata",
       "fields": [
         {
           "type": {
             "type": "map",
-            "values": "boolean",
+            "values": "EmptyStruct",
             "keys": "MessageID"
           },
           "name": "seenIDs",
@@ -1483,7 +1488,7 @@
             "type": "map",
             "values": {
               "type": "map",
-              "values": "boolean",
+              "values": "EmptyStruct",
               "keys": "MessageID"
             },
             "keys": "string"
@@ -1491,6 +1496,20 @@
           "name": "index",
           "mpackkey": "i",
           "jsonkey": "i"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "EmptyStruct",
+              "keys": "string"
+            },
+            "keys": "string"
+          },
+          "name": "alias",
+          "mpackkey": "a",
+          "jsonkey": "a"
         },
         {
           "type": "ConversationIndexMetadata",
