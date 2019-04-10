@@ -217,4 +217,9 @@ func TestCanLogoutWhenRevoked(t *testing.T) {
 	ret, err = userHandler2.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.True(t, ret.CanLogout)
+
+	// Device 1 still can't logout.
+	ret, err = userHandler.CanLogout(context.Background(), 0)
+	require.NoError(t, err)
+	require.False(t, ret.CanLogout)
 }
