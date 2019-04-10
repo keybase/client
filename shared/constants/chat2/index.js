@@ -36,6 +36,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   giphyWindowMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
+  inboxSearch: null,
   isWalletsNew: true,
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
@@ -85,6 +86,14 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
   hits: I.List(),
   status: 'initial',
   visible: false,
+})
+
+export const makeInboxSearchInfo: I.RecordFactory<Types._InboxearchInfo> = I.Record({
+  nameResults: I.List(),
+  nameStatus: 'initial',
+  selectedIndex: 0,
+  textResults: I.List(),
+  textStatus: 'initial',
 })
 
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>

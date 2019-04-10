@@ -57,6 +57,33 @@ export type _ThreadSearchInfo = {
 
 export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
 
+export type InboxSearchStatus = 'initial' | 'inprogress' | 'done'
+
+export type _InboxSearchTextHit = {
+  conversationIDKey: Types.ConversationIDKey,
+  numHits: number,
+  teamType: 'big' | 'small',
+}
+
+export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>
+
+export type _InboxSearchConvHit = {
+  conversationIDKey: Types.ConversationIDKey,
+  teamType: 'big' | 'small',
+}
+
+export type InboxSearchConvHit = I.RecordOf<_InboxSearchConvHit>
+
+export type _InboxSearchInfo = {
+  nameResults: I.List<InboxSearchConvHit>,
+  nameStatus: InboxSearchStatus,
+  selectedIndex: number,
+  textResults: I.List<InboxSearchTextHit>,
+  textStatus: InboxSearchStatus,
+}
+
+export type InboxSearchInfo = I.RecordOf<_InboxSearchInfo>
+
 // Where focus should be going to.
 // Null represents the default chat input.
 // This is very simple for now, but we can make
@@ -73,6 +100,7 @@ export type _State = {
   focus: Focus,
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  inboxSearch: ?InboxSearchInfo,
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
