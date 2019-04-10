@@ -192,8 +192,12 @@ func (u *CachedUPAKLoader) getCachedUPAKTryMemThenDisk(ctx context.Context, uid 
 	}
 
 	upak = u.getCachedUPAKFromDBMaybeTryBothSlots(ctx, uid, stubMode)
-	if upak != nil && info != nil {
-		u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache")
+	if upak == nil {
+		return nil
+	}
+
+	u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache")
+	if info != nil {
 		info.InDiskCache = true
 	}
 
