@@ -887,6 +887,10 @@ func (f *JSONConfigFile) GetForceLinuxKeyring() (bool, bool) {
 	return f.GetBoolAtPath("force_linux_keyring")
 }
 
+func (f *JSONConfigFile) GetForceSecretStoreFile() (bool, bool) {
+	return f.GetBoolAtPath("force_less_safe_secret_store_file")
+}
+
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s

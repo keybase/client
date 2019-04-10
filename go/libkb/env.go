@@ -121,6 +121,7 @@ func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { re
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
 func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
+func (n NullConfiguration) GetForceSecretStoreFile() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -1764,9 +1765,13 @@ func (e *Env) ModelessWantsSystemd() bool {
 		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 
-func (e *Env) DarwinForceSecretStoreFile() bool {
-	return (e.GetRunMode() == DevelRunMode &&
-		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
+func (e *Env) ForceSecretStoreFile() bool {
+	// By default use system-provided secret store (like MacOS Keychain), but
+	// allow users to fall back to file-based store for testing and debugging.
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_SECRET_STORE_FILE") },
+		func() (bool, bool) { return e.GetConfig().GetForceSecretStoreFile() },
+	)
 }
 
 func (e *Env) RememberPassphrase() bool {

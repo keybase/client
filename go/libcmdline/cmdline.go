@@ -417,6 +417,10 @@ func (p CommandLine) GetForceLinuxKeyring() (bool, bool) {
 	return p.GetBool("force-linux-keyring", true)
 }
 
+func (p CommandLine) GetForceSecretStoreFile() (bool, bool) {
+	return false, false // not configurable via command line flags
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {
@@ -723,6 +727,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "force-linux-keyring",
 			Usage: "Require the use of the OS keyring (Gnome Keyring or KWallet) and fail if not available rather than falling back to file-based secret store.",
+		},
+		cli.BoolFlag{
+			Name:  "extra-net-logging",
+			Usage: "Do additional debug logging during network requests.",
 		},
 	}
 	if extraFlags != nil {

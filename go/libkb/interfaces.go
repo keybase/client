@@ -108,6 +108,7 @@ type configGetter interface {
 	GetEnableBotLiteMode() (bool, bool)
 	GetExtraNetLogging() (bool, bool)
 	GetForceLinuxKeyring() (bool, bool)
+	GetForceSecretStoreFile() (bool, bool)
 }
 
 type CommandLine interface {
