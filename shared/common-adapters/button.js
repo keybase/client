@@ -16,6 +16,14 @@ import {
   styleSheetCreate,
 } from '../styles'
 
+const Kb = {
+  Box,
+  ClickableBox,
+  Icon,
+  Text,
+}
+
+// Either type or backgroundColor must be set
 export type Props = {|
   children?: React.Node,
   onClick?: null | ((event: SyntheticEvent<>) => void),
@@ -25,34 +33,28 @@ export type Props = {|
   style?: StylesCrossPlatform,
   labelContainerStyle?: StylesCrossPlatform,
   labelStyle?: StylesCrossPlatform,
-  type:
-    | 'Primary'
-    | 'PrimaryPrivate'
-    | 'Secondary'
-    | 'Danger'
-    | 'Wallet'
-    | 'PrimaryGreen'
-    | 'PrimaryGreenActive'
-    | 'PrimaryColoredBackground'
-    | 'SecondaryColoredBackground',
+  type: 'Default' | 'Success' | 'Danger' | 'Wallet' | 'Dim',
+  backgroundColor?: 'blue' | 'red' | 'green' | 'purple' | 'black',
   disabled?: boolean,
   waiting?: boolean,
   small?: boolean,
   fullWidth?: boolean,
-  backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black' | 'Purple',
   className?: string,
 |}
 
 const Progress = ({small, white}) => (
-  <Box style={styles.progressContainer}>
-    <Icon
+  <Kb.Box style={styles.progressContainer}>
+    <Kb.Icon
       style={castPlatformStyles(small ? styles.progressSmall : styles.progressNormal)}
       type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
     />
-  </Box>
+  </Kb.Box>
 )
 
 class Button extends React.Component<Props> {
+  static defaultProps = {
+    type: 'Default',
+  }
   render() {
     const backgroundModeName = this.props.backgroundMode
       ? {
@@ -95,13 +97,13 @@ class Button extends React.Component<Props> {
     )
 
     return (
-      <ClickableBox
+      <Kb.ClickableBox
         style={containerStyle}
         onClick={onClick}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}
       >
-        <Box
+        <Kb.Box
           style={collapseStyles([
             globalStyles.flexBoxRow,
             globalStyles.flexBoxCenter,
@@ -111,16 +113,16 @@ class Button extends React.Component<Props> {
         >
           {!this.props.waiting && this.props.children}
           {!!this.props.label && (
-            <Text
+            <Kb.Text
               type={this.props.small ? 'BodySemibold' : 'BodyBig'}
               style={collapseStyles([labelStyle, this.props.labelStyle])}
             >
               {this.props.label}
-            </Text>
+            </Kb.Text>
           )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
-        </Box>
-      </ClickableBox>
+        </Kb.Box>
+      </Kb.ClickableBox>
     )
   }
 }
