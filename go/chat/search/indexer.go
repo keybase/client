@@ -184,20 +184,17 @@ func (idx *Indexer) searchConv(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	var allMsgIDs mapset.Set
-	for token, aliases := range tokens {
+	for token := range tokens {
 		matchedIDs := mapset.NewThreadUnsafeSet()
 
 		// first gather the messages that directly match the token
 		for msgID := range convIdx.Index[token] {
 			matchedIDs.Add(msgID)
 		}
-		// now check any aliases for matches, including our token itself
-		aliases[token] = struct{}{}
-		for alias := range aliases {
-			for atoken := range convIdx.Alias[alias] {
-				for msgID := range convIdx.Index[atoken] {
-					matchedIDs.Add(msgID)
-				}
+		// now check any aliases for matches
+		for atoken := range convIdx.Alias[token] {
+			for msgID := range convIdx.Index[atoken] {
+				matchedIDs.Add(msgID)
 			}
 		}
 
