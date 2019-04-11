@@ -66,15 +66,11 @@ func TestVerifyWithPayload(t *testing.T) {
 	require.NoError(t, err)
 	sig = base64.StdEncoding.EncodeToString(body)
 	_, _, _, err = NaclVerifyWithPayload(sig, msg)
-	require.Error(t, err)
-	require.IsType(t, VerificationError{}, err)
-	require.Nil(t, err.(VerificationError).Cause)
+	requireError(err, "verify failed")
 
 	// Get the same failure if we have the wrong sig and the wrong payload
 	_, _, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
-	require.Error(t, err)
-	require.IsType(t, VerificationError{}, err)
-	require.Nil(t, err.(VerificationError).Cause)
+	requireError(err, "verify failed")
 
 	// Fail with bad payload before the sig fails, if we have the right payload and it's doubled up
 	info.Payload = msg

@@ -42,6 +42,10 @@ type VerificationError struct {
 	Cause error
 }
 
+func newVerificationError(s string) VerificationError {
+	return VerificationError{errors.New(s)}
+}
+
 const (
 	SCSigCannotVerify = int(keybase1.StatusCode_SCSigCannotVerify)
 )
@@ -81,24 +85,24 @@ func (s NaclSigInfo) verifyWithPayload(payload []byte, checkPayloadEquality bool
 		return nil, BadKeyError{}
 	}
 	if payload == nil {
-		return nil, VerificationError{errors.New("nil payload")}
+		return nil, newVerificationError("nil payload")
 	}
 
 	if checkPayloadEquality && s.Payload != nil && !SecureByteArrayEq(payload, s.Payload) {
-		return nil, VerificationError{errors.New("payload mismatch")}
+		return nil, newVerificationError("payload mismatch")
 	}
 
 	switch s.Version {
 	case 0, 1:
 		if !key.Verify(payload, s.Sig) {
-			return nil, VerificationError{}
+			return nil, newVerificationError("verify failed")
 		}
 	case 2:
 		if !s.Prefix.IsWhitelisted() {
-			return nil, VerificationError{errors.New("unknown prefix")}
+			return nil, newVerificationError("unknown prefix")
 		}
 		if !key.Verify(s.Prefix.Prefix(payload), s.Sig) {
-			return nil, VerificationError{}
+			return nil, newVerificationError("verify failed")
 		}
 	default:
 		return nil, UnhandledSignatureError{s.Version}
