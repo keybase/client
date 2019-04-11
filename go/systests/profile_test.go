@@ -15,7 +15,6 @@ import (
 )
 
 func TestProofSuggestions(t *testing.T) {
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -51,11 +50,6 @@ func TestProofSuggestions(t *testing.T) {
 			ProfileText:   "Prove your Rooter",
 			PickerText:    "Rooter",
 			PickerSubtext: "",
-		}, {
-			Key:           "mastodon.social",
-			ProfileText:   "Prove your Local Mastodon Social",
-			PickerText:    "Local Mastodon Social",
-			PickerSubtext: "mastodon.social",
 		}, {
 			Key:           "gubble.social",
 			ProfileText:   "Prove your Gubble.social",
