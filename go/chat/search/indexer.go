@@ -490,6 +490,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			close(indexUICh)
 		}
 	}()
+	idx.Debug(ctx, "Search: opts: %+v", opts)
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		idx.Debug(ctx, "Search indexer is disabled, results will be inaccurate.")
 	}
@@ -533,11 +534,13 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		totalPercentIndexed += convIdx.PercentIndexed(conv.Conv)
 		convIdxMap[convID.String()] = convIdx
 	}
-	if opts.ForceReindex { // block on full reindexing and display progress as we go
+	switch opts.ReindexMode {
+	case chat1.ReIndexingMode_FORCE:
 		for convIDStr, conv := range convMap {
 			convIdx := convIdxMap[convIDStr]
 			percentIndexed := convIdx.PercentIndexed(conv.Conv)
-			_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: opts.ForceReindex})
+			_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx,
+				reindexOpts{forceReindex: true})
 			if err != nil {
 				idx.Debug(ctx, "Unable to reindexConv: %v, %v", conv.Conv.GetConvID(), err)
 				continue
@@ -588,10 +591,11 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	}
 	// kick this off in the background after we have our results so there is no
 	// lock contention during the search
-	if !opts.ForceReindex {
+	switch opts.ReindexMode {
+	case chat1.ReIndexingMode_AFTERSEARCH:
 		for convIDStr, conv := range convMap {
 			convIdx := convIdxMap[convIDStr]
-			_, _, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: opts.ForceReindex})
+			_, _, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: false})
 			if err != nil {
 				return nil, err
 			}

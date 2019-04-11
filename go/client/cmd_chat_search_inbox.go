@@ -91,8 +91,12 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
 		return errors.New("usage: keybase chat search <query>")
 	}
+	reindexMode := chat1.ReIndexingMode_AFTERSEARCH
+	if ctx.Bool("force-reindex") {
+		reindexMode = chat1.ReIndexingMode_FORCE
+	}
 	c.query = ctx.Args().Get(0)
-	c.opts.ForceReindex = ctx.Bool("force-reindex")
+	c.opts.ReindexMode = reindexMode
 	c.opts.SentBy = ctx.String("sent-by")
 	sentBeforeStr := ctx.String("sent-before")
 	sentAfterStr := ctx.String("sent-after")

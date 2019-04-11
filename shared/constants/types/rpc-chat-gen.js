@@ -153,6 +153,12 @@ export const commonNotificationKind = {
   atmention: 1,
 }
 
+export const commonReIndexingMode = {
+  none: 0,
+  force: 1,
+  aftersearch: 2,
+}
+
 export const commonRetentionPolicyType = {
   none: 0,
   retain: 1,

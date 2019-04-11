@@ -1907,17 +1907,47 @@ func (e GetThreadReason) String() string {
 	return ""
 }
 
+type ReIndexingMode int
+
+const (
+	ReIndexingMode_NONE        ReIndexingMode = 0
+	ReIndexingMode_FORCE       ReIndexingMode = 1
+	ReIndexingMode_AFTERSEARCH ReIndexingMode = 2
+)
+
+func (o ReIndexingMode) DeepCopy() ReIndexingMode { return o }
+
+var ReIndexingModeMap = map[string]ReIndexingMode{
+	"NONE":        0,
+	"FORCE":       1,
+	"AFTERSEARCH": 2,
+}
+
+var ReIndexingModeRevMap = map[ReIndexingMode]string{
+	0: "NONE",
+	1: "FORCE",
+	2: "AFTERSEARCH",
+}
+
+func (e ReIndexingMode) String() string {
+	if v, ok := ReIndexingModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type SearchOpts struct {
-	SentBy        string       `codec:"sentBy" json:"sentBy"`
-	SentBefore    gregor1.Time `codec:"sentBefore" json:"sentBefore"`
-	SentAfter     gregor1.Time `codec:"sentAfter" json:"sentAfter"`
-	MaxHits       int          `codec:"maxHits" json:"maxHits"`
-	MaxMessages   int          `codec:"maxMessages" json:"maxMessages"`
-	BeforeContext int          `codec:"beforeContext" json:"beforeContext"`
-	AfterContext  int          `codec:"afterContext" json:"afterContext"`
-	ForceReindex  bool         `codec:"forceReindex" json:"forceReindex"`
-	MaxConvs      int          `codec:"maxConvs" json:"maxConvs"`
-	MaxNameConvs  int          `codec:"maxNameConvs" json:"maxNameConvs"`
+	SentBy        string         `codec:"sentBy" json:"sentBy"`
+	SentBefore    gregor1.Time   `codec:"sentBefore" json:"sentBefore"`
+	SentAfter     gregor1.Time   `codec:"sentAfter" json:"sentAfter"`
+	MaxHits       int            `codec:"maxHits" json:"maxHits"`
+	MaxMessages   int            `codec:"maxMessages" json:"maxMessages"`
+	BeforeContext int            `codec:"beforeContext" json:"beforeContext"`
+	AfterContext  int            `codec:"afterContext" json:"afterContext"`
+	ReindexMode   ReIndexingMode `codec:"reindexMode" json:"reindexMode"`
+	MaxConvs      int            `codec:"maxConvs" json:"maxConvs"`
+	MaxConvHits   int            `codec:"maxConvHits" json:"maxConvHits"`
+	MaxNameConvs  int            `codec:"maxNameConvs" json:"maxNameConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
@@ -1929,8 +1959,9 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		MaxMessages:   o.MaxMessages,
 		BeforeContext: o.BeforeContext,
 		AfterContext:  o.AfterContext,
-		ForceReindex:  o.ForceReindex,
+		ReindexMode:   o.ReindexMode.DeepCopy(),
 		MaxConvs:      o.MaxConvs,
+		MaxConvHits:   o.MaxConvHits,
 		MaxNameConvs:  o.MaxNameConvs,
 	}
 }
