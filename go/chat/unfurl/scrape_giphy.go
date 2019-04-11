@@ -52,7 +52,7 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 	hdr.Add("Accept", "*/*")
 	hdr.Add("Connection", "keep-alive")
 	hdr.Add("upgrade-insecure-requests", "1")
-	hdr.Add("user-agent", "Mozilla/5.0 (compatible; Keybase; +https://keybase.io)")
+	hdr.Add("user-agent", userAgent)
 	if err := c.Request("GET", uri, nil, nil, hdr); err != nil {
 		return res, err
 	}
