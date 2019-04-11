@@ -707,42 +707,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	sort.Sort(devices)
 
 	if e.arg.PaperKey != "" {
-		// User has requested non-interactive provisioning - first parse their key
-		keys, prefix, err := getPaperKeyFromString(m, e.arg.PaperKey)
-		if err != nil {
-			return err
-		}
-
-		// ... then match it to the paper keys that can be used with this account
-		for _, d := range devices {
-			if d.Type != libkb.DeviceTypePaper {
-				continue
-			}
-			if prefix != *d.Description {
-				continue
-			}
-
-			// use the KID to find the uid, deviceID and deviceName
-			uid, err := keys.Populate(m)
-			if err != nil {
-				switch err := err.(type) {
-				case libkb.NotFoundError:
-					return paperKeyNotFound
-				case libkb.AppStatusError:
-					if err.Code == libkb.SCNotFound {
-						return paperKeyNotFound
-					}
-				}
-				return err
-			}
-			if uid.NotEqual(e.arg.User.GetUID()) {
-				return paperKeyNotFound
-			}
-
-			return e.paper(m, d, keys)
-		}
-
-		return libkb.NoPaperKeysError{}
+		return e.preloadedPaperKey(m, devices, e.arg.PaperKey)
 	}
 
 	expDevices := make([]keybase1.Device, len(devices))
@@ -804,6 +769,45 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	default:
 		return fmt.Errorf("unknown device type: %v", selected.Type)
 	}
+}
+
+func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []*libkb.Device, paperKey string) error {
+	// User has requested non-interactive provisioning - first parse their key
+	keys, prefix, err := getPaperKeyFromString(m, e.arg.PaperKey)
+	if err != nil {
+		return err
+	}
+
+	// ... then match it to the paper keys that can be used with this account
+	for _, d := range devices {
+		if d.Type != libkb.DeviceTypePaper {
+			continue
+		}
+		if prefix != *d.Description {
+			continue
+		}
+
+		// use the KID to find the uid, deviceID and deviceName
+		uid, err := keys.Populate(m)
+		if err != nil {
+			switch err := err.(type) {
+			case libkb.NotFoundError:
+				return paperKeyNotFound
+			case libkb.AppStatusError:
+				if err.Code == libkb.SCNotFound {
+					return paperKeyNotFound
+				}
+			}
+			return err
+		}
+		if uid.NotEqual(e.arg.User.GetUID()) {
+			return paperKeyNotFound
+		}
+
+		return e.paper(m, d, keys)
+	}
+
+	return libkb.NoPaperKeysError{}
 }
 
 func (e *loginProvision) tryPGP(m libkb.MetaContext) (err error) {
