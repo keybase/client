@@ -63,7 +63,7 @@ const Folder = (props: Props) => (
       {props.resetBannerType === 'self' ? (
         <SelfReset {...props} />
       ) : props.offline ? (
-        <OfflineFolder />
+        <OfflineFolder path={props.path} />
       ) : (
         <WithContent {...props} />
       )}
