@@ -557,8 +557,8 @@
     int afterContext;
     // only used by in inbox search
     ReIndexingMode reindexMode;
-    int maxConvs;
-    int maxConvHits;
+    int maxConvsSearched;
+    int maxConvsHit;
     // only used by conversation name search
     int maxNameConvs;
   }

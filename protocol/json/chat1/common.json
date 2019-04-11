@@ -1453,11 +1453,11 @@
         },
         {
           "type": "int",
-          "name": "maxConvs"
+          "name": "maxConvsSearched"
         },
         {
           "type": "int",
-          "name": "maxConvHits"
+          "name": "maxConvsHit"
         },
         {
           "type": "int",

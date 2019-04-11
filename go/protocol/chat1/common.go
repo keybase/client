@@ -1937,32 +1937,32 @@ func (e ReIndexingMode) String() string {
 }
 
 type SearchOpts struct {
-	SentBy        string         `codec:"sentBy" json:"sentBy"`
-	SentBefore    gregor1.Time   `codec:"sentBefore" json:"sentBefore"`
-	SentAfter     gregor1.Time   `codec:"sentAfter" json:"sentAfter"`
-	MaxHits       int            `codec:"maxHits" json:"maxHits"`
-	MaxMessages   int            `codec:"maxMessages" json:"maxMessages"`
-	BeforeContext int            `codec:"beforeContext" json:"beforeContext"`
-	AfterContext  int            `codec:"afterContext" json:"afterContext"`
-	ReindexMode   ReIndexingMode `codec:"reindexMode" json:"reindexMode"`
-	MaxConvs      int            `codec:"maxConvs" json:"maxConvs"`
-	MaxConvHits   int            `codec:"maxConvHits" json:"maxConvHits"`
-	MaxNameConvs  int            `codec:"maxNameConvs" json:"maxNameConvs"`
+	SentBy           string         `codec:"sentBy" json:"sentBy"`
+	SentBefore       gregor1.Time   `codec:"sentBefore" json:"sentBefore"`
+	SentAfter        gregor1.Time   `codec:"sentAfter" json:"sentAfter"`
+	MaxHits          int            `codec:"maxHits" json:"maxHits"`
+	MaxMessages      int            `codec:"maxMessages" json:"maxMessages"`
+	BeforeContext    int            `codec:"beforeContext" json:"beforeContext"`
+	AfterContext     int            `codec:"afterContext" json:"afterContext"`
+	ReindexMode      ReIndexingMode `codec:"reindexMode" json:"reindexMode"`
+	MaxConvsSearched int            `codec:"maxConvsSearched" json:"maxConvsSearched"`
+	MaxConvsHit      int            `codec:"maxConvsHit" json:"maxConvsHit"`
+	MaxNameConvs     int            `codec:"maxNameConvs" json:"maxNameConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
 	return SearchOpts{
-		SentBy:        o.SentBy,
-		SentBefore:    o.SentBefore.DeepCopy(),
-		SentAfter:     o.SentAfter.DeepCopy(),
-		MaxHits:       o.MaxHits,
-		MaxMessages:   o.MaxMessages,
-		BeforeContext: o.BeforeContext,
-		AfterContext:  o.AfterContext,
-		ReindexMode:   o.ReindexMode.DeepCopy(),
-		MaxConvs:      o.MaxConvs,
-		MaxConvHits:   o.MaxConvHits,
-		MaxNameConvs:  o.MaxNameConvs,
+		SentBy:           o.SentBy,
+		SentBefore:       o.SentBefore.DeepCopy(),
+		SentAfter:        o.SentAfter.DeepCopy(),
+		MaxHits:          o.MaxHits,
+		MaxMessages:      o.MaxMessages,
+		BeforeContext:    o.BeforeContext,
+		AfterContext:     o.AfterContext,
+		ReindexMode:      o.ReindexMode.DeepCopy(),
+		MaxConvsSearched: o.MaxConvsSearched,
+		MaxConvsHit:      o.MaxConvsHit,
+		MaxNameConvs:     o.MaxNameConvs,
 	}
 }
 

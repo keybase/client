@@ -10,6 +10,7 @@ import (
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -176,8 +177,8 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 
 // searchConv finds all messages that match the given set of tokens and opts,
 // results are ordered desc by msg id.
-func (idx *Indexer) searchConv(ctx context.Context, convID chat1.ConversationID, convIdx *chat1.ConversationIndex,
-	uid gregor1.UID, tokens tokenMap, opts chat1.SearchOpts) (msgIDs []chat1.MessageID, err error) {
+func (idx *Indexer) searchConv(ctx context.Context, convID chat1.ConversationID,
+	convIdx *chat1.ConversationIndex, uid gregor1.UID, tokens tokenMap, opts chat1.SearchOpts) (msgIDs []chat1.MessageID, err error) {
 	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("searchConv convID: %v", convID.String()))()
 	if convIdx == nil {
 		return nil, nil
@@ -477,6 +478,20 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 	return convMap, nil
 }
 
+func (idx *Indexer) flattenConvMap(ctx context.Context, uid gregor1.UID,
+	convMap map[string]types.RemoteConversation) (res []types.RemoteConversation) {
+	res = make([]types.RemoteConversation, len(convMap))
+	index := 0
+	for _, conv := range convMap {
+		res[index] = conv
+		index++
+	}
+	_, ib, err := storage.NewInbox(idx.G()).ReadAll(ctx, uid, true)
+	if err != nil {
+		idx.Debug(ctx, "flattenConvMap: failed to read inbox: %s", err)
+	}
+}
+
 // Search tokenizes the given query and finds the intersection of all matches
 // for each token, returning matches.
 func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
@@ -490,9 +505,8 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			close(indexUICh)
 		}
 	}()
-	idx.Debug(ctx, "Search: opts: %+v", opts)
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
-		idx.Debug(ctx, "Search indexer is disabled, results will be inaccurate.")
+		idx.Debug(ctx, "Search: Search indexer is disabled, results will be inaccurate.")
 	}
 
 	if opts.MaxHits > MaxAllowedSearchHits || opts.MaxHits < 0 {
@@ -542,7 +556,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx,
 				reindexOpts{forceReindex: true})
 			if err != nil {
-				idx.Debug(ctx, "Unable to reindexConv: %v, %v", conv.Conv.GetConvID(), err)
+				idx.Debug(ctx, "Search: Unable to reindexConv: %v, %v", conv.Conv.GetConvID(), err)
 				continue
 			}
 			convIdxMap[convIDStr] = convIdx
@@ -559,10 +573,10 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		}
 	}
 
-	var numConvs int
+	var numConvsSearched, numConvsHit int
 	hits := []chat1.ChatSearchInboxHit{}
 	for convIDStr, conv := range convMap {
-		numConvs++
+		numConvsSearched++
 		convIdx := convIdxMap[convIDStr]
 		convID := conv.GetConvID()
 		msgIDs, err := idx.searchConv(ctx, convID, convIdx, uid, tokens, opts)
@@ -574,18 +588,24 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			return nil, err
 		}
 		if len(msgIDs) != convHits.Size() {
-			idx.Debug(ctx, "search hit mismatch, found %d msgIDs in index, %d hits in conv: %v",
+			idx.Debug(ctx, "Search: hit mismatch, found %d msgIDs in index, %d hits in conv: %v",
 				len(msgIDs), convHits.Size(), conv.GetName())
 		}
 		if convHits == nil {
 			continue
 		}
+		numConvsHit++
 		if hitUICh != nil {
 			// Stream search hits back to the UI channel
 			hitUICh <- *convHits
 		}
 		hits = append(hits, *convHits)
-		if opts.MaxConvs > 0 && numConvs >= opts.MaxConvs {
+		if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
+			idx.Debug(ctx, "Search: max search convs reached, ending search")
+			break
+		}
+		if opts.MaxConvsSearched > 0 && numConvsHit >= opts.MaxConvsSearched {
+			idx.Debug(ctx, "Search: max hot convs reached, ending search")
 			break
 		}
 	}
