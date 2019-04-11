@@ -210,6 +210,7 @@ class PlainInput extends Component<InternalProps, State> {
       autoCapitalize: this.props.autoCapitalize || 'none',
       autoCorrect: !!this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
+      children: this.props.children,
       editable: !this.props.disabled,
       keyboardType: this.props.keyboardType,
       multiline: false,
@@ -226,6 +227,7 @@ class PlainInput extends Component<InternalProps, State> {
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
       style: this._getStyle(),
+      textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
     }
     if (this.props.multiline) {

@@ -19,7 +19,8 @@ const decoratorStyle = Styles.platformStyles({
 })
 
 const propProvider = Sb.createPropProviderWithCommon({
-  SignupInfoIcon: () => ({
+  SignupInfoIcon: p => ({
+    ...p,
     onDocumentation: Sb.action('onDocumentation'),
     onFeedback: Sb.action('onFeedback'),
   }),
