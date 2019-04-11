@@ -2,6 +2,7 @@
 import {namedConnect} from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
+import flags from '../../util/feature-flags'
 
 type BannerType = 'none' | 'offline'
 type Props = {|
@@ -16,7 +17,7 @@ const mapStateToProps = state => ({
 })
 
 const mergeProps = (s, d, o) => ({
-  bannerType: s.kbfsDaemonStatus.online ? 'none' : 'offline',
+  bannerType: flags.kbfsOfflineMode && !s.kbfsDaemonStatus.online ? 'offline' : 'none',
 })
 
 export default namedConnect<{||}, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'NavBannerDesktop')(

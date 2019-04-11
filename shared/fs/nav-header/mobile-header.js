@@ -7,6 +7,7 @@ import * as Types from '../../constants/types/fs'
 import {namedConnect} from '../../util/container'
 import Actions from './actions'
 import {isIPhoneX} from '../../constants/platform'
+import flags from '../../util/feature-flags'
 
 type BannerType = 'none' | 'offline'
 type Props = {|
@@ -69,7 +70,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 
 const mergeProps = (s, d, o) => ({
-  bannerType: s.kbfsDaemonStatus.online ? 'none' : 'offline',
+  bannerType: flags.kbfsOfflineMode && !s.kbfsDaemonStatus.online ? 'offline' : 'none',
   onBack: o.onBack,
   path: o.path,
 })
