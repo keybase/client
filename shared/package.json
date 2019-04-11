@@ -262,6 +262,7 @@
   "resolutions": {
     "**/lottie-react-web/**/minimatch": "3.0.4",
     "**/lottie-react-web/**/lodash": "4.17.11",
-    "babel-core": "7.0.0-bridge.0"
+    "babel-core": "7.0.0-bridge.0",
+    "**/node-gyp/tar": "4.4.8"
   }
 }
