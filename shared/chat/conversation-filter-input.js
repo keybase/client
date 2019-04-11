@@ -65,10 +65,10 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     if (!Styles.isMobile) {
       e.preventDefault()
       e.stopPropagation()
-      this.props.onSetFilter('')
+      this.props.onEnsureSelection()
+      this.props.onCancel()
       this._stopEditing()
       this._input && this._input.blur()
-      this.props.onEnsureSelection()
     }
   }
 
