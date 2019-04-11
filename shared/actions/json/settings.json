@@ -83,9 +83,6 @@
     "setAllowDeleteAccount": {
       "allow": "boolean"
     },
-    "stop": {
-      "exitCode": "RPCTypes.ExitCode"
-    },
     "trace": {
       "durationSeconds": "number"
     },
