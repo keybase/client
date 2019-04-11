@@ -600,6 +600,7 @@
 
   record ChatSearchInboxHit {
     ConversationID convID;
+    TeamType teamType;
     string convName;
     array<ChatSearchHit> hits;
   }

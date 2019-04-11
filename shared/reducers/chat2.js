@@ -1054,6 +1054,13 @@ const rootReducer = (
       }
       return nextState
     }
+    case Chat2Gen.inboxSearchTextResult:
+      return state.update('inboxSearch', info => {
+        const old = info || Constants.makeInboxSearchInfo()
+        return old.merge({
+          textResults: old.textResults.push(action.payload.result),
+        })
+      })
     case Chat2Gen.inboxSearch:
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({

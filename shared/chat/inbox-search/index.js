@@ -32,10 +32,10 @@ type State = {
   textCollapsed: boolean,
 }
 
-class InboxSearch extends React.Component<Props> {
+class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, textCollapsed: false}
   _renderNameHit = ({item, section, index}) => {
-    const onSelectConversation = () => this.props.onSelectConversation(r.conversationIDKey)
+    const onSelectConversation = () => this.props.onSelectConversation(item.conversationIDKey)
     return item.type === 'big' ? (
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
@@ -94,7 +94,7 @@ class InboxSearch extends React.Component<Props> {
               data: this._textResults(),
               isCollapsed: this.state.textCollapsed,
               onCollapse: this._toggleCollapseText,
-              renderItem: this._renderTextHit,
+              renderItem: this._renderNameHit,
               title: 'Message Text Matches',
             },
           ]}

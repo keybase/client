@@ -43,6 +43,7 @@ export const inboxSearch = 'chat2:inboxSearch'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
 export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
 export const inboxSearchSelect = 'chat2:inboxSearchSelect'
+export const inboxSearchTextResult = 'chat2:inboxSearchTextResult'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -162,6 +163,7 @@ type _InboxSearchMoveSelectedIndexPayload = $ReadOnly<{|increment: boolean|}>
 type _InboxSearchNameResultsPayload = $ReadOnly<{|results: I.List<Types.InboxSearchConvHit>|}>
 type _InboxSearchPayload = $ReadOnly<{|query: HiddenString|}>
 type _InboxSearchSelectPayload = void
+type _InboxSearchTextResultPayload = $ReadOnly<{|result: Types.InboxSearchTextHit|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
@@ -302,6 +304,10 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
  * Inbox search name results received
  */
 export const createInboxSearchNameResults = (payload: _InboxSearchNameResultsPayload) => ({payload, type: inboxSearchNameResults})
+/**
+ * Inbox text result has arrived
+ */
+export const createInboxSearchTextResult = (payload: _InboxSearchTextResultPayload) => ({payload, type: inboxSearchTextResult})
 /**
  * Jump to most recent messages in a conversation
  */
@@ -552,6 +558,7 @@ export type InboxSearchMoveSelectedIndexPayload = {|+payload: _InboxSearchMoveSe
 export type InboxSearchNameResultsPayload = {|+payload: _InboxSearchNameResultsPayload, +type: 'chat2:inboxSearchNameResults'|}
 export type InboxSearchPayload = {|+payload: _InboxSearchPayload, +type: 'chat2:inboxSearch'|}
 export type InboxSearchSelectPayload = {|+payload: _InboxSearchSelectPayload, +type: 'chat2:inboxSearchSelect'|}
+export type InboxSearchTextResultPayload = {|+payload: _InboxSearchTextResultPayload, +type: 'chat2:inboxSearchTextResult'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
 export type JumpToRecentPayload = {|+payload: _JumpToRecentPayload, +type: 'chat2:jumpToRecent'|}
 export type LeaveConversationPayload = {|+payload: _LeaveConversationPayload, +type: 'chat2:leaveConversation'|}
@@ -674,6 +681,7 @@ export type Actions =
   | InboxSearchNameResultsPayload
   | InboxSearchPayload
   | InboxSearchSelectPayload
+  | InboxSearchTextResultPayload
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload

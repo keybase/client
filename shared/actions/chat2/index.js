@@ -1347,10 +1347,12 @@ function* threadSearch(state, action) {
           afterContext: 0,
           beforeContext: 0,
           forceReindex: false,
-          maxConvs: -1,
+          maxConvsHit: 0,
+          maxConvsSearched: 0,
           maxHits: -1,
           maxMessages: -1,
           maxNameConvs: 15,
+          reindexMode: RPCChatTypes.commonReIndexingMode.none,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
@@ -1377,6 +1379,7 @@ const onInboxSearchSelect = (state, action) => {
 
 function* inboxSearch(state, action) {
   const {query} = action.payload
+  const teamType = t => (t === RPCChatTypes.commonTeamType.complex ? 'big' : 'small')
   const onConvHits = resp => {
     return Saga.put(
       Chat2Gen.createInboxSearchNameResults({
@@ -1385,10 +1388,22 @@ function* inboxSearch(state, action) {
             l.size,
             Constants.makeInboxSearchConvHit({
               conversationIDKey: Types.stringToConversationIDKey(h.convID),
-              teamType: h.teamType === RPCChatTypes.commonTeamType.complex ? 'big' : 'small',
+              teamType: teamType(h.teamType),
             })
           )
         }, I.List()),
+      })
+    )
+  }
+  const onTextHit = resp => {
+    const conversationIDKey = Types.conversationIDToKey(resp.searchHit.convID)
+    return Saga.put(
+      Chat2Gen.createInboxSearchTextResult({
+        result: Constants.makeInboxSearchTextHit({
+          conversationIDKey,
+          numHits: (resp.searchHit.hits || []).length,
+          teamType: teamType(resp.searchHit.teamType),
+        }),
       })
     )
   }
@@ -1396,15 +1411,18 @@ function* inboxSearch(state, action) {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
+        'chat.1.chatUi.chatSearchInboxHit': onTextHit,
       },
       params: {
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        namesOnly: false,
         opts: {
           afterContext: 0,
           beforeContext: 0,
-          maxConvs: 15,
+          maxConvsHit: 15,
+          maxConvsSearched: 0,
           maxHits: 10,
-          maxMessages: -1,
+          maxMessages: 0,
           maxNameConvs: 5,
           reindexMode: RPCChatTypes.commonReIndexingMode.none,
           sentAfter: 0,

@@ -628,6 +628,10 @@
       "_description": "Inbox search name results received",
       "results": "I.List<Types.InboxSearchConvHit>"
     },
+    "inboxSearchTextResult": {
+      "_description": "Inbox text result has arrived",
+      "result": "Types.InboxSearchTextHit"
+    },
     "inboxSearchMoveSelectedIndex": {
       "_description": "Change selected index of inbox search",
       "increment": "boolean"

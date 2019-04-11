@@ -317,6 +317,7 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	}
 	return &chat1.ChatSearchInboxHit{
 		ConvID:   convID,
+		TeamType: conv.GetTeamType(),
 		ConvName: conv.GetName(),
 		Hits:     hits,
 	}, nil
@@ -489,7 +490,18 @@ func (idx *Indexer) flattenConvMap(ctx context.Context, uid gregor1.UID,
 	_, ib, err := storage.NewInbox(idx.G()).ReadAll(ctx, uid, true)
 	if err != nil {
 		idx.Debug(ctx, "flattenConvMap: failed to read inbox: %s", err)
+		return res
 	}
+	sortMap := make(map[string]gregor1.Time)
+	for _, conv := range ib {
+		sortMap[conv.GetConvID().String()] = utils.GetConvMtime(conv.Conv)
+	}
+	sort.Slice(res, func(i, j int) bool {
+		imtime := sortMap[res[i].GetConvID().String()]
+		jmtime := sortMap[res[j].GetConvID().String()]
+		return imtime.After(jmtime)
+	})
+	return res
 }
 
 // Search tokenizes the given query and finds the intersection of all matches
@@ -575,10 +587,12 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 
 	var numConvsSearched, numConvsHit int
 	hits := []chat1.ChatSearchInboxHit{}
-	for convIDStr, conv := range convMap {
+	convList := idx.flattenConvMap(ctx, uid, convMap)
+	for _, conv := range convList {
+		convID := conv.GetConvID()
+		convIDStr := convID.String()
 		numConvsSearched++
 		convIdx := convIdxMap[convIDStr]
-		convID := conv.GetConvID()
 		msgIDs, err := idx.searchConv(ctx, convID, convIdx, uid, tokens, opts)
 		if err != nil {
 			return nil, err
@@ -604,8 +618,8 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			idx.Debug(ctx, "Search: max search convs reached, ending search")
 			break
 		}
-		if opts.MaxConvsSearched > 0 && numConvsHit >= opts.MaxConvsSearched {
-			idx.Debug(ctx, "Search: max hot convs reached, ending search")
+		if opts.MaxConvsHit > 0 && numConvsHit >= opts.MaxConvsHit {
+			idx.Debug(ctx, "Search: max hit convs reached, ending search")
 			break
 		}
 	}
@@ -613,7 +627,8 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	// lock contention during the search
 	switch opts.ReindexMode {
 	case chat1.ReIndexingMode_AFTERSEARCH:
-		for convIDStr, conv := range convMap {
+		for _, conv := range convList {
+			convIDStr := conv.GetConvID().String()
 			convIdx := convIdxMap[convIDStr]
 			_, _, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: false})
 			if err != nil {

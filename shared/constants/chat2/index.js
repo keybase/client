@@ -102,6 +102,12 @@ export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> 
   teamType: 'small',
 })
 
+export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  numHits: 0,
+  teamType: 'small',
+})
+
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
     return inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey
