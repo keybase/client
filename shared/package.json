@@ -82,7 +82,7 @@
       "<rootDir>/desktop/node_modules"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
+      "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|react-navigation|@react-navigation/.*).+\\.js"
     ],
     "setupFiles": [],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
