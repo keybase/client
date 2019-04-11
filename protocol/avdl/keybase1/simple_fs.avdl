@@ -487,4 +487,9 @@ protocol SimpleFS {
   void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
 
   boolean simpleFSAreWeConnectedToMDServer();
+
+  // simpleFSSetDebugLevel sets the vdebug log level.  Useful level strings
+  // are defined in libkb/vdebug.go.  Any unknown strings will have no effect
+  // on the level (but won't cause an error).
+  void simpleFSSetDebugLevel(string level);
 }

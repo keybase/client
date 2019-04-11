@@ -470,3 +470,15 @@ func (s *SimpleFSHandler) SimpleFSAreWeConnectedToMDServer(
 	}
 	return cli.SimpleFSAreWeConnectedToMDServer(ctx)
 }
+
+// SimpleFSSetDebugLevel implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSetDebugLevel(
+	ctx context.Context, level string) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSetDebugLevel(ctx, level)
+}

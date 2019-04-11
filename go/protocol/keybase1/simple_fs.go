@@ -1371,6 +1371,10 @@ type SimpleFSSetFolderSyncConfigArg struct {
 type SimpleFSAreWeConnectedToMDServerArg struct {
 }
 
+type SimpleFSSetDebugLevelArg struct {
+	Level string `codec:"level" json:"level"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1480,6 +1484,7 @@ type SimpleFSInterface interface {
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
+	SimpleFSSetDebugLevel(context.Context, string) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1986,6 +1991,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSSetDebugLevel": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSetDebugLevelArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSetDebugLevelArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSetDebugLevelArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSSetDebugLevel(ctx, typedArgs[0].Level)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2255,5 +2275,11 @@ func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg S
 
 func (c SimpleFSClient) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSetDebugLevel(ctx context.Context, level string) (err error) {
+	__arg := SimpleFSSetDebugLevelArg{Level: level}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetDebugLevel", []interface{}{__arg}, nil)
 	return
 }

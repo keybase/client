@@ -254,6 +254,11 @@ func (s SimpleFSMock) SimpleFSAreWeConnectedToMDServer(
 	return true, nil
 }
 
+// SimpleFSSetDebugLevel implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSetDebugLevel(_ context.Context, _ string) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file
