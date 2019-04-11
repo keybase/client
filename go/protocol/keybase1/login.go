@@ -31,7 +31,7 @@ type LoginArg struct {
 	ClientType   ClientType `codec:"clientType" json:"clientType"`
 	DoUserSwitch bool       `codec:"doUserSwitch" json:"doUserSwitch"`
 	PaperKey     string     `codec:"paperKey" json:"paperKey"`
-	MachineName  string     `codec:"machineName" json:"machineName"`
+	DeviceName   string     `codec:"deviceName" json:"deviceName"`
 }
 
 type LoginProvisionedDeviceArg struct {

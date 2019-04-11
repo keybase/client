@@ -126,7 +126,7 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewLoginWithUserSwitch(h.G(), arg.DeviceType, arg.Username, arg.ClientType, arg.DoUserSwitch)
 	eng.PaperKey = arg.PaperKey
-	eng.MachineName = arg.MachineName
+	eng.DeviceName = arg.DeviceName
 	return engine.RunEngine2(m, eng)
 }
 

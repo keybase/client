@@ -3746,7 +3746,7 @@ func TestProvisionAutomatedPaperKey(t *testing.T) {
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
 	eng.PaperKey = loginUI.PaperPhrase
-	eng.MachineName = "a different machine name"
+	eng.DeviceName = "a different device name"
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	if err := RunEngine2(m2, eng); err != nil {
 		t.Fatal(err)

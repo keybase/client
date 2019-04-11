@@ -45,8 +45,8 @@ type loginProvisionArg struct {
 	User       *libkb.User
 
 	// Used for non-interactive provisioning
-	PaperKey    string
-	MachineName string
+	PaperKey   string
+	DeviceName string
 }
 
 // newLoginProvision creates a loginProvision engine.
@@ -511,12 +511,12 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 	}
 
 	// Fully non-interactive flow
-	if e.arg.MachineName != "" {
-		if !libkb.CheckDeviceName.F(e.arg.MachineName) {
+	if e.arg.DeviceName != "" {
+		if !libkb.CheckDeviceName.F(e.arg.DeviceName) {
 			return "", libkb.DeviceBadNameError{}
 		}
 
-		devname := libkb.CheckDeviceName.Transform(e.arg.MachineName)
+		devname := libkb.CheckDeviceName.Transform(e.arg.DeviceName)
 		normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
 		for _, name := range names {
 			if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {

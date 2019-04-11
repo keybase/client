@@ -30,8 +30,8 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			Usage: "Automatically provision using a paper key provided in stdin",
 		},
 		cli.StringFlag{
-			Name:  "machine-name",
-			Usage: "Machine name used in automated provisioning",
+			Name:  "device-name",
+			Usage: "Device name used in automated provisioning",
 		},
 	}
 	cmd := cli.Command{
@@ -61,7 +61,7 @@ type CmdLogin struct {
 	doUserSwitch bool
 
 	paperkeyFromStdin bool
-	machineName       string
+	deviceName        string
 
 	clientType keybase1.ClientType
 	cancel     func()
@@ -118,8 +118,8 @@ func (c *CmdLogin) Run() error {
 			SessionID:    c.SessionID,
 			DoUserSwitch: c.doUserSwitch,
 
-			PaperKey:    paperKey,
-			MachineName: c.machineName,
+			PaperKey:   paperKey,
+			DeviceName: c.deviceName,
 		})
 	c.done <- struct{}{}
 
@@ -159,7 +159,7 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 	}
 	c.doUserSwitch = ctx.Bool("switch")
 	c.paperkeyFromStdin = ctx.Bool("paperkey-from-stdin")
-	c.machineName = ctx.String("machine-name")
+	c.deviceName = ctx.String("device-name")
 	return nil
 }
 

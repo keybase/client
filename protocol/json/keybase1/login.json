@@ -64,7 +64,7 @@
           "type": "string"
         },
         {
-          "name": "machineName",
+          "name": "deviceName",
           "type": "string"
         }
       ],

@@ -26,7 +26,7 @@ type Login struct {
 
 	doUserSwitch bool
 	PaperKey     string
-	MachineName  string
+	DeviceName   string
 }
 
 // NewLogin creates a Login engine.  username is optional.
@@ -148,8 +148,8 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		ClientType: e.clientType,
 		User:       ueng.User(),
 
-		PaperKey:    e.PaperKey,
-		MachineName: e.MachineName,
+		PaperKey:   e.PaperKey,
+		DeviceName: e.DeviceName,
 	}
 	deng := newLoginProvision(m.G(), darg)
 	if err := RunEngine2(m, deng); err != nil {

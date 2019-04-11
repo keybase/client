@@ -28,7 +28,7 @@ protocol login {
     ClientType clientType,
     boolean doUserSwitch=false,
     string paperKey,
-    string machineName
+    string deviceName
   );
 
   /**
