@@ -1,7 +1,149 @@
 // @flow
 import * as React from 'react'
-import {View} from 'react-native'
+import {Dimensions} from 'react-native'
+import FloatingBox from './floating-box'
+import hOCTimers, {type PropsWithTimer} from './hoc-timers'
+import Box from './box'
+import ClickableBox from './clickable-box'
+import Text from './text'
+import Animated from './animated'
+import * as Styles from '../styles'
 import {type Props} from './with-tooltip'
 
-// Tooltip is not supported on mobile.
-export default (props: Props) => <View style={props.containerStyle}>{props.children}</View>
+// This uses a similar mechanism to relative-popup-hoc.desktop.js. It's only
+// ever used for tooltips on mobile for now. If we end up needing relative
+// positioning in other places, we should probably make a
+// relative-popup-hoc.native.js. Also, this only supports "bottom center" and
+// "top center" for now.
+
+const Kb = {
+  Animated,
+  Box,
+  ClickableBox,
+  FloatingBox,
+  Text,
+}
+
+type State = {
+  left: number,
+  top: number,
+  visible: boolean,
+}
+
+const measureCb = resolve => (_1, _2, width, height, left, top) => resolve({height, left, top, width})
+
+class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
+  state = {
+    left: 0,
+    top: 0,
+    visible: false,
+  }
+  _clickableRef = React.createRef()
+  _tooltipRef = React.createRef()
+  _onClick = () => {
+    if (!this._clickableRef.current || !this._tooltipRef.current || this.state.visible) {
+      return
+    }
+
+    const screenWidth = Dimensions.get('window').width
+    const screenHeight = Dimensions.get('window').height
+
+    Promise.all([
+      new Promise(
+        resolve => this._clickableRef.current && this._clickableRef.current.measure(measureCb(resolve))
+      ),
+      new Promise(
+        resolve => this._tooltipRef.current && this._tooltipRef.current.measure(measureCb(resolve))
+      ),
+    ]).then(([c, t]) => {
+      if (!this._mounted) {
+        return
+      }
+
+      const constrainLeft = ideal => Math.max(0, Math.min(ideal, screenWidth - t.width))
+      const constrainTop = ideal => Math.max(0, Math.min(ideal, screenHeight - t.height))
+      this.props.position === 'bottom center'
+        ? this.setState({
+            left: constrainLeft(c.left + c.width / 2 - t.width / 2),
+            top: constrainTop(c.top + c.height),
+            visible: true,
+          })
+        : this.setState({
+            left: constrainLeft(c.left + c.width / 2 - t.width / 2),
+            top: constrainTop(c.top - t.height),
+            visible: true,
+          }) // default to top center
+
+      this.props.setTimeout(() => this.setState({visible: false}), 3000)
+    })
+  }
+
+  _mounted = false
+  componentDidMount() {
+    this._mounted = true
+  }
+  componentWillUnmount() {
+    this._mounted = false
+  }
+
+  render() {
+    if (!this.props.showOnPressMobile) {
+      return <Kb.Box style={this.props.containerStyle}>{this.props.children}</Kb.Box>
+    }
+
+    return (
+      <>
+        <Kb.ClickableBox onClick={this._onClick}>
+          <Kb.Box
+            style={this.props.containerStyle}
+            ref={
+              // $FlowIssue
+              this._clickableRef
+            }
+            className={this.props.className}
+          >
+            {this.props.children}
+          </Kb.Box>
+        </Kb.ClickableBox>
+        <Kb.Animated from={{}} to={{opacity: this.state.visible ? 1 : 0}}>
+          {animatedStyle => (
+            <Kb.FloatingBox>
+              <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top: this.state.top}])}>
+                <Kb.Box
+                  style={Styles.collapseStyles([animatedStyle, styles.container, {left: this.state.left}])}
+                  ref={
+                    // $FlowIssue
+                    this._tooltipRef
+                  }
+                >
+                  <Kb.Text
+                    center={!this.props.multiline}
+                    type="BodySmall"
+                    style={Styles.collapseStyles([styles.text, this.props.textStyle])}
+                    lineClamp={this.props.multiline ? undefined : 1}
+                  >
+                    {this.props.text}
+                  </Kb.Text>
+                </Kb.Box>
+              </Kb.Box>
+            </Kb.FloatingBox>
+          )}
+        </Kb.Animated>
+      </>
+    )
+  }
+}
+
+export default hOCTimers(WithTooltip)
+
+const styles = Styles.styleSheetCreate({
+  container: {
+    backgroundColor: Styles.globalColors.black_75,
+    borderRadius: Styles.borderRadius,
+    maxWidth: 280,
+    padding: Styles.globalMargins.xtiny,
+  },
+  text: {
+    color: Styles.globalColors.white,
+  },
+})

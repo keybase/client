@@ -11,7 +11,7 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('Tooltip', () => (
       <Box2 direction="horizontal" style={{flexWrap: 'wrap'}}>
-        <WithTooltip text="Here's a tooltip" containerStyle={styles.container}>
+        <WithTooltip text="Here's a tooltip" containerStyle={styles.container} showOnPressMobile={true}>
           <Box style={styles.box}>
             <Text type="Body">Hover me for a short tooltip</Text>
           </Box>
@@ -20,32 +20,58 @@ const load = () => {
           containerStyle={styles.container}
           text="Here's a multiline tooltip lalala blahblah wejoif jewiofj weoifjwof iwjeoif jweoifj weoifj woief"
           multiline={true}
+          showOnPressMobile={true}
         >
           <Box style={styles.box}>
             <Text type="Body">Hover me for a long tooltip</Text>
           </Box>
         </WithTooltip>
-        <WithTooltip containerStyle={styles.container} text="Here's a short tooltip" position="bottom center">
+        <WithTooltip
+          containerStyle={styles.container}
+          text="Here's a short tooltip"
+          position="bottom center"
+          showOnPressMobile={true}
+        >
           <Box style={styles.box}>
             <Text type="Body">Hover me for [bottom center]</Text>
           </Box>
         </WithTooltip>
-        <WithTooltip containerStyle={styles.container} text="Here's a short tooltip" position="top left">
+        <WithTooltip
+          containerStyle={styles.container}
+          text="Here's a short tooltip"
+          position="top left"
+          showOnPressMobile={true}
+        >
           <Box style={styles.box}>
             <Text type="Body">Hover me for [top left]</Text>
           </Box>
         </WithTooltip>
-        <WithTooltip containerStyle={styles.container} text="Here's a short tooltip" position="top right">
+        <WithTooltip
+          containerStyle={styles.container}
+          text="Here's a short tooltip"
+          position="top right"
+          showOnPressMobile={true}
+        >
           <Box style={styles.box}>
             <Text type="Body">Hover me for [top right]</Text>
           </Box>
         </WithTooltip>
-        <WithTooltip containerStyle={styles.container} text="Here's a short tooltip" position="bottom left">
+        <WithTooltip
+          containerStyle={styles.container}
+          text="Here's a short tooltip"
+          position="bottom left"
+          showOnPressMobile={true}
+        >
           <Box style={styles.box}>
             <Text type="Body">Hover me for [bottom left]</Text>
           </Box>
         </WithTooltip>
-        <WithTooltip containerStyle={styles.container} text="Here's a short tooltip" position="bottom right">
+        <WithTooltip
+          containerStyle={styles.container}
+          text="Here's a short tooltip"
+          position="bottom right"
+          showOnPressMobile={true}
+        >
           <Box style={styles.box}>
             <Text type="Body">Hover me for [bottom right]</Text>
           </Box>
