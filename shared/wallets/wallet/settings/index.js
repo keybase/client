@@ -6,6 +6,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
+import flags from '../../../util/feature-flags'
 
 export type SettingsProps = {|
   accountID: Types.AccountID,
@@ -80,7 +81,9 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
-              <Kb.Text type="BodySmallSemibold" style={styles.identity}>Identity</Kb.Text>
+              <Kb.Text type="BodySmallSemibold" style={styles.identity}>
+                Identity
+              </Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
                 {props.isDefault ? (
                   <Kb.Avatar size={Styles.isMobile ? 48 : 32} username={props.user} />
@@ -245,6 +248,7 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   header: {
+    ...(flags.useNewRouter && !Styles.isMobile ? {minHeight: 48} : {}),
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
