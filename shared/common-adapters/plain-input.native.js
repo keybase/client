@@ -175,6 +175,8 @@ class PlainInput extends Component<InternalProps, State> {
 
   _getCommonStyle = () => {
     const textStyle = getTextStyle(this.props.textType)
+    // RN TextInput plays better without this
+    delete textStyle.lineHeight
     return collapseStyles([styles.common, textStyle])
   }
 
