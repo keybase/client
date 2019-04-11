@@ -93,18 +93,16 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
 
     return (
       <>
-        <Kb.ClickableBox onClick={this._onClick}>
-          <Kb.Box
-            style={this.props.containerStyle}
-            ref={
-              // $FlowIssue
-              this._clickableRef
-            }
-            className={this.props.className}
-          >
-            {this.props.children}
-          </Kb.Box>
-        </Kb.ClickableBox>
+        <Kb.Box
+          style={this.props.containerStyle}
+          ref={
+            // $FlowIssue
+            this._clickableRef
+          }
+          className={this.props.className}
+        >
+          <Kb.ClickableBox onClick={this._onClick}>{this.props.children}</Kb.ClickableBox>
+        </Kb.Box>
         <Kb.Animated from={{}} to={{opacity: this.state.visible ? 1 : 0}}>
           {animatedStyle => (
             <Kb.FloatingBox>
@@ -133,7 +131,6 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
     )
   }
 }
-
 export default hOCTimers(WithTooltip)
 
 const styles = Styles.styleSheetCreate({
