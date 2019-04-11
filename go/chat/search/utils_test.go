@@ -201,4 +201,18 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	require.Equal(t, "Lisa.*something", res.Query)
 	require.Equal(t, "karenm", res.Opts.SentBy)
 	require.True(t, res.IsRegex)
+
+	arg = chat1.SearchRegexpArg{
+		Query: "/",
+	}
+	res = UpgradeRegexpArgFromQuery(arg, username)
+	require.Equal(t, "/", res.Query)
+	require.False(t, res.IsRegex)
+
+	arg = chat1.SearchRegexpArg{
+		Query: "//",
+	}
+	res = UpgradeRegexpArgFromQuery(arg, username)
+	require.Equal(t, "//", res.Query)
+	require.False(t, res.IsRegex)
 }
