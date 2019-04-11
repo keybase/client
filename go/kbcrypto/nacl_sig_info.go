@@ -72,21 +72,32 @@ func (e UnhandledSignatureError) Error() string {
 }
 
 func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
+	return s.verifyWithPayload(s.Payload, false)
+}
+
+func (s NaclSigInfo) verifyWithPayload(payload []byte, checkPayloadEquality bool) (*NaclSigningKeyPublic, error) {
 	key := KIDToNaclSigningKeyPublic(s.Kid)
 	if key == nil {
 		return nil, BadKeyError{}
 	}
+	if payload == nil {
+		return nil, VerificationError{errors.New("nil payload")}
+	}
+
+	if checkPayloadEquality && s.Payload != nil && !SecureByteArrayEq(payload, s.Payload) {
+		return nil, VerificationError{errors.New("payload mismatch")}
+	}
 
 	switch s.Version {
 	case 0, 1:
-		if !key.Verify(s.Payload, s.Sig) {
+		if !key.Verify(payload, s.Sig) {
 			return nil, VerificationError{}
 		}
 	case 2:
 		if !s.Prefix.IsWhitelisted() {
 			return nil, VerificationError{errors.New("unknown prefix")}
 		}
-		if !key.Verify(s.Prefix.Prefix(s.Payload), s.Sig) {
+		if !key.Verify(s.Prefix.Prefix(payload), s.Sig) {
 			return nil, VerificationError{}
 		}
 	default:
@@ -139,4 +150,24 @@ func NaclVerifyAndExtract(s string) (nk *NaclSigningKeyPublic, payload []byte, f
 
 	payload = naclSig.Payload
 	return nk, payload, fullBody, nil
+}
+
+func NaclVerifyWithPayload(sig string, payloadIn []byte) (nk *NaclSigningKeyPublic, payloadOut []byte, fullBody []byte, err error) {
+	fullBody, err = base64.StdEncoding.DecodeString(sig)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	nk, err = naclSig.verifyWithPayload(payloadIn, true)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	payloadOut = naclSig.Payload
+	return nk, payloadOut, fullBody, nil
 }
