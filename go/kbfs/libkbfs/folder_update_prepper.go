@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -29,6 +30,7 @@ type folderUpdatePrepper struct {
 	folderBranch data.FolderBranch
 	blocks       *folderBlockOps
 	log          logger.Logger
+	vlog         *libkb.VDebugLog
 
 	cacheLock   sync.Mutex
 	cachedInfos map[data.BlockPointer]data.BlockInfo
@@ -124,7 +126,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	df := data.NewDirtyFile(file, dirtyBcache)
 	fd := data.NewFileData(
 		file, chargedTo, fup.config.BlockSplitter(), md.ReadOnly(), getter,
-		cacher, fup.log)
+		cacher, fup.log, fup.vlog)
 
 	// Write all the data.
 	_, _, _, _, _, err = fd.Write(ctx, buf, 0, block, data.DirEntry{}, df)
@@ -152,7 +154,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 		md.AddMDRefBytes(uint64(info.EncodedSize))
 		md.AddMDDiskUsage(uint64(info.EncodedSize))
 	}
-	fup.log.CDebugf(ctx, "%d unembedded child blocks", len(infos))
+	fup.vlog.CLogf(ctx, libkb.VLog1, "%d unembedded child blocks", len(infos))
 
 	// Ready the top block.
 	info, _, err := fup.readyBlockMultiple(
@@ -591,7 +593,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
 		} else {
 			refPtrsToFetch = append(refPtrsToFetch, ptr)
 		}
-		fup.log.CDebugf(ctx, "Ref'ing block %v", ptr)
+		fup.vlog.CLogf(ctx, libkb.VLog1, "Ref'ing block %v", ptr)
 	}
 
 	// Look up the total sum of the ref blocks in parallel to get
@@ -609,7 +611,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
 	}
 	refSum += refSumFetched
 
-	fup.log.CDebugf(ctx, "Ref'ing a total of %d bytes", refSum)
+	fup.vlog.CLogf(ctx, libkb.VLog1, "Ref'ing a total of %d bytes", refSum)
 	md.AddRefBytes(refSum)
 	md.AddDiskUsage(refSum)
 
@@ -664,7 +666,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
 
 	// Subtract bytes for every unref'd block that wasn't created in
 	// the unmerged branch.
-	fup.log.CDebugf(ctx, "Unref'ing a total of %d bytes", unrefSum)
+	fup.vlog.CLogf(ctx, libkb.VLog1, "Unref'ing a total of %d bytes", unrefSum)
 	md.AddUnrefBytes(unrefSum)
 	md.SetDiskUsage(md.DiskUsage() - unrefSum)
 	return nil
@@ -719,7 +721,8 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 			// pointer.  Also, we shouldn't be referencing this
 			// anymore!
 			if unmergedChains.blockChangePointers[ptr] {
-				fup.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
+				fup.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring block change ptr %v", ptr)
 				op.DelRefBlock(ptr)
 			} else {
 				refs[ptr] = true
@@ -758,7 +761,8 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 				return nil, err
 			}
 			if !unmergedChains.isCreated(original) {
-				fup.log.CDebugf(ctx, "Unref'ing %v from old resOp", ptr)
+				fup.vlog.CLogf(
+					ctx, libkb.VLog1, "Unref'ing %v from old resOp", ptr)
 				unrefs[ptr] = true
 			}
 		}
@@ -796,7 +800,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 			}
 		}
 		for ptr := range resToRef {
-			fup.log.CDebugf(ctx, "Ref'ing %v from old resOp", ptr)
+			fup.vlog.CLogf(ctx, libkb.VLog1, "Ref'ing %v from old resOp", ptr)
 			refs[ptr] = true
 			md.data.Changes.Ops[0].AddRefBlock(ptr)
 		}
@@ -895,7 +899,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 		deletedRefs[ptr] = true
 		// Put the unrefs in a new resOp after the final operation, to
 		// cancel out any stray refs in earlier ops.
-		fup.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
+		fup.vlog.CLogf(ctx, libkb.VLog1, "Unreferencing dropped block %v", ptr)
 		md.data.Changes.Ops = addUnrefToFinalResOp(
 			md.data.Changes.Ops, ptr, unmergedChains.doNotUnrefPointers)
 	}
@@ -915,7 +919,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 				}
 			}
 			for _, ref := range toDelRef {
-				fup.log.CDebugf(ctx, "Scrubbing ref %v", ref)
+				fup.vlog.CLogf(ctx, libkb.VLog1, "Scrubbing ref %v", ref)
 				op.DelRefBlock(ref)
 			}
 			var toDelUnref []data.BlockPointer
@@ -925,14 +929,15 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 				}
 			}
 			for _, unref := range toDelUnref {
-				fup.log.CDebugf(ctx, "Scrubbing unref %v", unref)
+				fup.vlog.CLogf(ctx, libkb.VLog1, "Scrubbing unref %v", unref)
 				op.DelUnrefBlock(unref)
 			}
 		}
 		for _, resOp := range unmergedChains.resOps {
 			for _, unref := range resOp.Unrefs() {
 				if deletedUnrefs[unref] {
-					fup.log.CDebugf(ctx, "Scrubbing resOp unref %v", unref)
+					fup.vlog.CLogf(
+						ctx, libkb.VLog1, "Scrubbing resOp unref %v", unref)
 					resOp.DelUnrefBlock(unref)
 				}
 			}
@@ -971,8 +976,9 @@ func (fup *folderUpdatePrepper) setChildrenNodes(
 			continue
 		}
 
-		fup.log.CDebugf(ctx, "Creating child node for name %s for "+
-			"parent %v", name, pnode.BlockPointer)
+		fup.vlog.CLogf(
+			ctx, libkb.VLog1, "Creating child node for name %s for parent %v",
+			name, pnode.BlockPointer)
 		childPath := data.Path{
 			FolderBranch: p.FolderBranch,
 			Path:         make([]data.PathNode, indexInPath+2),
@@ -1001,7 +1007,8 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 		}
 	}()
 	for _, p := range resolvedPaths {
-		fup.log.CDebugf(ctx, "Creating tree from merged path: %v", p.Path)
+		fup.vlog.CLogf(
+			ctx, libkb.VLog1, "Creating tree from merged path: %v", p.Path)
 		var parent *pathTreeNode
 		for i, pnode := range p.Path {
 			var nextNode *pathTreeNode
@@ -1011,7 +1018,8 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 				nextNode = root
 			}
 			if nextNode == nil {
-				fup.log.CDebugf(ctx, "Creating node with pointer %v",
+				fup.vlog.CLogf(
+					ctx, libkb.VLog1, "Creating node with pointer %v",
 					pnode.BlockPointer)
 				nextNode = &pathTreeNode{
 					ptr:      pnode.BlockPointer,
@@ -1232,7 +1240,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 
 	// Create an update map, and fix up the gc ops.
 	for i, update := range resOp.Updates {
-		fup.log.CDebugf(ctx, "resOp update: %v -> %v", update.Unref, update.Ref)
+		fup.vlog.CLogf(
+			ctx, libkb.VLog1, "resOp update: %v -> %v", update.Unref,
+			update.Ref)
 		// The unref should represent the most recent merged pointer
 		// for the block.  However, the other ops will be using the
 		// original pointer as the unref, so use that as the key.
@@ -1255,8 +1265,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			if err != nil {
 				return nil, nil, err
 			}
-			fup.log.CDebugf(ctx, "Fixing resOp update from unmerged most "+
-				"recent %v to merged most recent %v",
+			fup.vlog.CLogf(
+				ctx, libkb.VLog1, "Fixing resOp update from unmerged most "+
+					"recent %v to merged most recent %v",
 				update.Unref, mergedMostRecent)
 			err = update.setUnref(mergedMostRecent)
 			if err != nil {
@@ -1277,7 +1288,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			continue
 		}
 		if _, ok := updates[so.File.Unref]; !ok {
-			fup.log.CDebugf(ctx, "Adding sync op update %v -> %v",
+			fup.vlog.CLogf(
+				ctx, libkb.VLog1, "Adding sync op update %v -> %v",
 				so.File.Unref, so.File.Ref)
 			updates[so.File.Unref] = so.File.Ref
 			resOp.AddUpdate(so.File.Unref, so.File.Ref)
@@ -1349,7 +1361,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			(unmergedChains.byOriginal[update.Unref] == nil ||
 				unmergedChains.isCreated(update.Unref)) &&
 			mergedChains.byMostRecent[update.Unref] == nil {
-			fup.log.CDebugf(ctx,
+			fup.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"Turning update from %v into just a ref for %v",
 				update.Unref, update.Ref)
 			resOp.AddRefBlock(update.Ref)
@@ -1430,8 +1443,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 				}
 				if newBlocks[update.Ref] ||
 					(isMostRecent && !isDeleted && !alreadyUpdated) {
-					fup.log.CDebugf(ctx, "Including update from old resOp: "+
-						"%v -> %v", update.Unref, update.Ref)
+					fup.vlog.CLogf(
+						ctx, libkb.VLog1, "Including update from old resOp: "+
+							"%v -> %v", update.Unref, update.Ref)
 					resOp.AddUpdate(update.Unref, update.Ref)
 
 					if update.Unref == currMDPtr && update.Ref == unmergedMDPtr {
@@ -1439,16 +1453,18 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 						// updated above, we may need to update it if
 						// we're pulling in an updated root pointer
 						// from a previous unmerged resolutionOp.
-						fup.log.CDebugf(ctx, "Setting root blockpointer from "+
-							"%v to %v based on unmerged update",
+						fup.vlog.CLogf(
+							ctx, libkb.VLog1, "Setting root blockpointer from "+
+								"%v to %v based on unmerged update",
 							currMDPtr, unmergedMDPtr)
 						md.data.Dir.BlockInfo =
 							unmergedChains.mostRecentChainMDInfo.
 								GetRootDirEntry().BlockInfo
 					}
 				} else if !isMostRecent {
-					fup.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
-						"%v (original=%v)", update.Ref, update.Unref)
+					fup.vlog.CLogf(
+						ctx, libkb.VLog1, "Unrefing an update from old resOp: "+
+							"%v (original=%v)", update.Ref, update.Unref)
 					newOps = addUnrefToFinalResOp(
 						newOps, update.Ref, unmergedChains.doNotUnrefPointers)
 				}
@@ -1459,12 +1475,14 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	newOps[0] = resOp // move the dummy ops to the front
 	md.data.Changes.Ops = newOps
 
-	// TODO: only perform this loop if debugging is enabled.
 	for _, op := range newOps {
-		fup.log.CDebugf(ctx, "remote op %s: refs: %v", op, op.Refs())
-		fup.log.CDebugf(ctx, "remote op %s: unrefs: %v", op, op.Unrefs())
+		fup.vlog.CLogf(
+			ctx, libkb.VLog1, "remote op %s: refs: %v", op, op.Refs())
+		fup.vlog.CLogf(
+			ctx, libkb.VLog1, "remote op %s: unrefs: %v", op, op.Unrefs())
 		for _, update := range op.allUpdates() {
-			fup.log.CDebugf(ctx, "remote op %s: update: %v -> %v", op,
+			fup.vlog.CLogf(
+				ctx, libkb.VLog1, "remote op %s: update: %v -> %v", op,
 				update.Unref, update.Ref)
 		}
 	}
@@ -1494,7 +1512,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 				ptr := unmergedResOp.Refs()[i]
 				if unmergedChains.blockChangePointers[ptr] &&
 					!toDeleteMap[ptr.ID] {
-					fup.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
+					fup.vlog.CLogf(
+						ctx, libkb.VLog1, "Ignoring block change ptr %v", ptr)
 					unmergedResOp.DelRefBlock(ptr)
 					md.data.Changes.Ops =
 						addUnrefToFinalResOp(md.data.Changes.Ops, ptr,
@@ -1502,7 +1521,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 				}
 			}
 			for _, ptr := range unmergedResOp.Unrefs() {
-				fup.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
+				fup.vlog.CLogf(
+					ctx, libkb.VLog1, "Unref pointer from old resOp: %v", ptr)
 				original, err := unmergedChains.originalFromMostRecentOrSame(
 					ptr)
 				if err != nil {

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -81,6 +82,7 @@ type ReporterKBPKI struct {
 	*ReporterSimple
 	config             Config
 	log                logger.Logger
+	vlog               *libkb.VDebugLog
 	notifyBuffer       chan *keybase1.FSNotification
 	onlineStatusBuffer chan bool
 	notifyPathBuffer   chan string
@@ -93,10 +95,12 @@ type ReporterKBPKI struct {
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
+	log := config.MakeLogger("")
 	r := &ReporterKBPKI{
 		ReporterSimple:     NewReporterSimple(config.Clock(), maxErrors),
 		config:             config,
-		log:                config.MakeLogger(""),
+		log:                log,
+		vlog:               config.MakeVLogger(log),
 		notifyBuffer:       make(chan *keybase1.FSNotification, bufSize),
 		onlineStatusBuffer: make(chan bool, bufSize),
 		notifyPathBuffer:   make(chan string, 1),
@@ -204,7 +208,8 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 	select {
 	case r.notifyBuffer <- notification:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify buffer full, dropping %+v",
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify buffer full, dropping %+v",
 			notification)
 	}
 }
@@ -234,13 +239,15 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 	case r.notifyPathBuffer <- path:
 	default:
 		if sameAsLast {
-			r.log.CDebugf(ctx,
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, dropping %s", path)
 		} else {
 			// This should be rare; it only happens when user switches from one
 			// TLF to another, and we happen to have an update from the old TLF
 			// in the buffer before switching subscribed TLF.
-			r.log.CDebugf(ctx,
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, but path is "+
 					"different from last one, so send in a goroutine %s", path)
 			go func() { r.notifyPathBuffer <- path }()
@@ -258,8 +265,9 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	select {
 	case r.notifySyncBuffer <- status:
 	default:
-		r.log.CDebugf(ctx, "ReporterKBPKI: notify sync buffer full, "+
-			"dropping %+v", status)
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify sync buffer full, "+
+				"dropping %+v", status)
 	}
 }
 

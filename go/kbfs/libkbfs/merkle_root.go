@@ -53,7 +53,8 @@ func NewEventuallyConsistentMerkleRoot(
 		getter: getter,
 	}
 	ecmr.fetcher = newFetchDecider(
-		ecmr.log, ecmr.getAndCache, ECMRCtxTagKey{}, ECMRID, ecmr.config)
+		ecmr.log, config.MakeVLogger(ecmr.log), ecmr.getAndCache,
+		ECMRCtxTagKey{}, ECMRID, ecmr.config)
 	return ecmr
 }
 
