@@ -355,6 +355,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 }
 
 func TestChatSearchInbox(t *testing.T) {
+	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
