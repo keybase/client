@@ -2296,3 +2296,10 @@ func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, 
 	}
 	return status.FailingServices[libkbfs.MDServiceName] == nil, nil
 }
+
+// SimpleFSSetDebugLevel implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSetDebugLevel(
+	_ context.Context, level string) error {
+	k.config.SetVLogLevel(level)
+	return nil
+}
