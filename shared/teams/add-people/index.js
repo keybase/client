@@ -6,6 +6,7 @@ import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 import * as Constants from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
+import flags from '../../util/feature-flags'
 
 const MaybePopup = Styles.isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -42,6 +43,7 @@ const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Kb.Box style={styles.outerBox}>
       <Kb.HeaderHocHeader
+        headerStyle={styles.header}
         onCancel={Styles.isMobile ? props.onClose : null}
         onRightAction={props.numberOfUsersSelected > 0 ? props.onOpenRolePicker : null}
         rightActionLabel={props.addButtonLabel}
@@ -111,6 +113,7 @@ const AddPeople = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  header: flags.useNewRouter ? {minHeight: 48} : {},
   outerBox: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,
