@@ -1,17 +1,16 @@
 // +build darwin
 
-package erasablekv
+package libkb
 
 import (
 	"path/filepath"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/xattr"
 )
 
 const noBackup = "com.apple.metadata:com_apple_backup_excludeItem com.apple.backupd"
 
-func SetDisableBackup(mctx libkb.MetaContext, name string) error {
+func SetDisableBackup(mctx MetaContext, name string) error {
 	path := filepath.Dir(name)
 	filename := filepath.Base(name)
 	// CrashPlan respects this metadata flag as does TimeMachine.

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -261,7 +260,7 @@ func (e *EKLib) newDeviceEKNeeded(mctx libkb.MetaContext, merkleRoot libkb.Merkl
 	defer mctx.TraceTimed("newDeviceEKNeeded", func() error { return err })()
 	defer func() {
 		switch err.(type) {
-		case erasablekv.UnboxError:
+		case libkb.UnboxError:
 			mctx.Debug("newDeviceEKNeeded: unable to fetch latest: %v, creating new deviceEK", err)
 			needed = true
 			err = nil
