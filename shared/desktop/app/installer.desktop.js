@@ -114,6 +114,8 @@ const darwinInstall = (callback: CB) => {
         `stdout=${zStdout.toString('base64')}`,
         `stderr=${zStderr.toString('base64')}`
       )
+    ).catch(err =>
+      logger.error('[Installer]: Error zipping up logs: ', err)
     )
 
   const handleResults = (err, attempted, stdout, stderr) => {
