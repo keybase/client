@@ -73,6 +73,7 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdExpand],
 		cmds[cmdFlip],
 		cmds[cmdGiphy],
+		cmds[cmdHeadline],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
@@ -83,12 +84,10 @@ func (s *Source) makeBuiltins() {
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
 	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAM] = append([]types.ConversationCommand{
-		cmds[cmdHeadline],
 		cmds[cmdJoin],
 		cmds[cmdLeave],
 	}, common...)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAMGENERAL] = append([]types.ConversationCommand{
-		cmds[cmdHeadline],
 		cmds[cmdJoin],
 	}, common...)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_SMALLTEAM] = append([]types.ConversationCommand{
