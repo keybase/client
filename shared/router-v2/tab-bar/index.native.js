@@ -4,16 +4,18 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import type {Props} from '.'
+import flags from '../../util/feature-flags'
 
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.fsTab]: 'iconfont-nav-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
   [Tabs.peopleTab]: 'iconfont-nav-2-people',
   [Tabs.settingsTab]: 'iconfont-nav-2-more',
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
-const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
+const tabs = [Tabs.peopleTab, Tabs.chatTab, flags.useNewRouter ? Tabs.fsTab : Tabs.teamsTab, Tabs.settingsTab]
 
 // Immediately draw selected and don't wait for the store
 type State = {|justSelected: ?string|}
