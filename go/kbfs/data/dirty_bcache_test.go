@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -55,17 +56,18 @@ func testExpectedMissingDirty(
 }
 
 func TestDirtyBcachePut(t *testing.T) {
+	log := logger.NewTestLogger(t)
 	dirtyBcache := NewDirtyBlockCacheStandard(
-		&WallClock{}, logger.NewTestLogger(t),
-		5<<20, 10<<20, 5<<20)
+		&WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(
 		t, context.Background(), kbfsblock.FakeID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
-		5<<20, 10<<20, 5<<20)
+	log := logger.NewTestLogger(t)
+	dirtyBcache := NewDirtyBlockCacheStandard(
+		&WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	id1 := kbfsblock.FakeID(1)
 
@@ -111,8 +113,9 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 }
 
 func TestDirtyBcacheDelete(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
-		5<<20, 10<<20, 5<<20)
+	log := logger.NewTestLogger(t)
+	dirtyBcache := NewDirtyBlockCacheStandard(
+		&WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 
 	id1 := kbfsblock.FakeID(1)
@@ -136,8 +139,9 @@ func TestDirtyBcacheDelete(t *testing.T) {
 
 func TestDirtyBcacheRequestPermission(t *testing.T) {
 	bufSize := int64(5)
-	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
-		bufSize, bufSize*2, bufSize)
+	log := logger.NewTestLogger(t)
+	dirtyBcache := NewDirtyBlockCacheStandard(
+		&WallClock{}, log, libkb.NewVDebugLog(log), bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	blockedChan := make(chan int64, 1)
 	dirtyBcache.blockedChanForTesting = blockedChan
@@ -222,8 +226,9 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	bufSize := int64(10)
 	clock, now := clocktest.NewTestClockAndTimeNow()
-	dirtyBcache := NewDirtyBlockCacheStandard(clock, logger.NewTestLogger(t),
-		bufSize, bufSize*2, bufSize)
+	log := logger.NewTestLogger(t)
+	dirtyBcache := NewDirtyBlockCacheStandard(
+		clock, log, libkb.NewVDebugLog(log), bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	// no backpressure yet
 	bp := dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
@@ -263,8 +268,9 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 
 func TestDirtyBcacheResetBufferCap(t *testing.T) {
 	bufSize := int64(5)
-	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
-		bufSize, bufSize*2, bufSize)
+	log := logger.NewTestLogger(t)
+	dirtyBcache := NewDirtyBlockCacheStandard(
+		&WallClock{}, log, libkb.NewVDebugLog(log), bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	dirtyBcache.resetBufferCapTime = 1 * time.Millisecond
 	blockedChan := make(chan int64, 1)

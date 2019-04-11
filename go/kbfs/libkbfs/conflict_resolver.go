@@ -120,8 +120,8 @@ func NewConflictResolver(
 		branchSuffix = " " + string(fbo.branch())
 	}
 	tlfStringFull := fbo.id().String()
-	log := config.MakeLogger(fmt.Sprintf("CR %s%s", tlfStringFull[:8],
-		branchSuffix))
+	log := config.MakeLogger(
+		fmt.Sprintf("CR %s%s", tlfStringFull[:8], branchSuffix))
 
 	cr := &ConflictResolver{
 		config: config,
@@ -131,6 +131,7 @@ func NewConflictResolver(
 			folderBranch: fbo.folderBranch,
 			blocks:       &fbo.blocks,
 			log:          log,
+			vlog:         config.MakeVLogger(log),
 		},
 		log:              traceLogger{log},
 		deferLog:         traceLogger{log.CloneWithAddedDepth(1)},

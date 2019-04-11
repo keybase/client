@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -63,6 +64,10 @@ func (tlf *TLF) clearStoredDir() {
 
 func (tlf *TLF) log() logger.Logger {
 	return tlf.folder.fs.log
+}
+
+func (tlf *TLF) vlog() *libkb.VDebugLog {
+	return tlf.folder.fs.vlog
 }
 
 func (tlf *TLF) loadDirHelper(
@@ -158,8 +163,8 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	dir := tlf.getStoredDir()
 	a.Inode = tlf.inode
 	if dir == nil {
-		tlf.log().CDebugf(
-			ctx, "Faking Attr for TLF %s", tlf.folder.name())
+		tlf.vlog().CLogf(
+			ctx, libkb.VLog1, "Faking Attr for TLF %s", tlf.folder.name())
 		// Have a low non-zero value for Valid to avoid being
 		// swamped with requests, while still not showing
 		// stale data for too long if we end up loading the
@@ -191,8 +196,8 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 	if tlfLoadAvoidingLookupNames[req.Name] {
 		dir := tlf.getStoredDir()
 		if dir == nil {
-			tlf.log().CDebugf(
-				ctx, "Avoiding TLF loading for name %s", req.Name)
+			tlf.vlog().CLogf(
+				ctx, libkb.VLog1, "Avoiding TLF loading for name %s", req.Name)
 			return nil, fuse.ENOENT
 		}
 		return dir.Lookup(ctx, req, resp)

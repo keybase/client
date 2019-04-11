@@ -172,7 +172,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
-		p.vlog = config.MakeVLogger("PRE")
+		p.vlog = config.MakeVLogger(p.log)
 	} else {
 		p.log = logger.NewNull()
 		p.vlog = libkb.NewVDebugLog(p.log)
@@ -454,7 +454,7 @@ func (p *blockPrefetcher) cancelQueuedPrefetch(ptr data.BlockPointer) {
 		delete(p.queuedPrefetchHandles, ptr)
 		p.log.Debug("cancelled queued prefetch for block %s", ptr)
 	} else {
-		p.vlog.Log(libkb.VLog1, "nothing to cancel for block %s", ptr)
+		p.vlog.Log(libkb.VLog2, "nothing to cancel for block %s", ptr)
 	}
 }
 
@@ -464,7 +464,7 @@ func (p *blockPrefetcher) markQueuedPrefetchDone(ptr data.BlockPointer) {
 	qp, present := p.queuedPrefetchHandles[ptr]
 	if !present {
 		p.vlog.CLogf(
-			context.Background(), libkb.VLog1, "queuedPrefetch not present in"+
+			context.Background(), libkb.VLog2, "queuedPrefetch not present in"+
 				" queuedPrefetchHandles: %s", ptr)
 		return
 	}
@@ -562,7 +562,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	}
 	parentPre, isParentWaiting := p.prefetches[parentPtr.ID]
 	if !isParentWaiting {
-		p.vlog.CLogf(pre.ctx, libkb.VLog1,
+		p.vlog.CLogf(pre.ctx, libkb.VLog2,
 			"prefetcher doesn't know about parent block "+
 				"%s for child block %s", parentPtr, ptr.ID)
 		panic("prefetcher doesn't know about parent block when trying to " +
@@ -582,7 +582,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		}
 		pre.parents[ptr.RefNonce][parentPtr] = parentPre.waitCh
 		if pre.subtreeBlockCount > 0 {
-			p.vlog.CLogf(ctx, libkb.VLog1,
+			p.vlog.CLogf(ctx, libkb.VLog2,
 				"Prefetching %v, action=%s, numBlocks=%d, isParentNew=%t",
 				ptr, action, pre.subtreeBlockCount, isParentNew)
 		}
@@ -787,7 +787,7 @@ func (p *blockPrefetcher) stopIfNeeded(
 
 	defer func() {
 		if doStop {
-			p.vlog.CLogf(ctx, libkb.VLog1,
+			p.vlog.CLogf(ctx, libkb.VLog2,
 				"stopping prefetch for block %s due to full cache (sync=%t)",
 				req.ptr.ID, req.action.Sync())
 		}
@@ -908,10 +908,10 @@ func (p *blockPrefetcher) run(
 			ptr := ptrInt.(data.BlockPointer)
 			pre, ok := p.prefetches[ptr.ID]
 			if !ok {
-				p.log.Debug("nothing to cancel for block %s", ptr)
+				p.vlog.Log(libkb.VLog2, "nothing to cancel for block %s", ptr)
 				continue
 			}
-			p.log.Debug("canceling prefetch for block %s", ptr)
+			p.vlog.Log(libkb.VLog2, "canceling prefetch for block %s", ptr)
 			// Walk up the block tree and delete every parent, but
 			// only ancestors of this given pointer with this
 			// refnonce.  Other references to the same ID might still
@@ -930,7 +930,7 @@ func (p *blockPrefetcher) run(
 			} else {
 				pre.req = req
 			}
-			p.vlog.CLogf(pre.ctx, libkb.VLog1,
+			p.vlog.CLogf(pre.ctx, libkb.VLog2,
 				"rescheduling top-block prefetch for block %s", blockID)
 			p.applyToParentsRecursive(p.rescheduleTopBlock, blockID, pre)
 		case reqInt := <-p.prefetchRequestCh.Out():
@@ -961,7 +961,7 @@ func (p *blockPrefetcher) run(
 			select {
 			case <-req.obseleted:
 				// This request was cancelled while it was waiting.
-				p.vlog.CLogf(context.Background(), libkb.VLog1,
+				p.vlog.CLogf(context.Background(), libkb.VLog2,
 					"Request not processing because it was canceled already"+
 						": id=%v action=%v", req.ptr.ID, req.action)
 				continue
@@ -973,7 +973,7 @@ func (p *blockPrefetcher) run(
 			if isPrefetchWaiting {
 				ctx = pre.ctx
 			}
-			p.vlog.CLogf(ctx, libkb.VLog1, "Handling request for %v, action=%s",
+			p.vlog.CLogf(ctx, libkb.VLog2, "Handling request for %v, action=%s",
 				req.ptr, req.action)
 
 			// Ensure the block is in the right cache.
@@ -1016,7 +1016,7 @@ func (p *blockPrefetcher) run(
 						p.completePrefetch(pre.subtreeBlockCount, numBytes),
 						req.ptr.ID, pre)
 				} else {
-					p.vlog.CLogf(ctx, libkb.VLog1,
+					p.vlog.CLogf(ctx, libkb.VLog2,
 						"skipping prefetch for finished block %s", req.ptr.ID)
 					if req.prefetchStatus != FinishedPrefetch {
 						// Mark this block as finished in the cache.
@@ -1024,7 +1024,7 @@ func (p *blockPrefetcher) run(
 							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
 							FinishedPrefetch, req.action.CacheType())
 						if err != nil {
-							p.vlog.CLogf(ctx, libkb.VLog1,
+							p.vlog.CLogf(ctx, libkb.VLog2,
 								"Couldn't put finished block %s in cache: %+v",
 								req.ptr, err)
 						}
@@ -1034,7 +1034,7 @@ func (p *blockPrefetcher) run(
 				continue
 			}
 			if !req.action.Prefetch(b) {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"skipping prefetch for block %s, action %s",
 					req.ptr.ID, req.action)
 				if isPrefetchWaiting && !pre.req.action.Prefetch(b) {
@@ -1052,7 +1052,7 @@ func (p *blockPrefetcher) run(
 				(isPrefetchWaiting &&
 					req.action.Sync() == pre.req.action.Sync() &&
 					req.action.StopIfFull() == pre.req.action.StopIfFull()) {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"prefetch already triggered for block ID %s", req.ptr.ID)
 				continue
 			}
@@ -1071,7 +1071,7 @@ func (p *blockPrefetcher) run(
 				newAction := pre.req.action.Combine(req.action)
 				if pre.subtreeTriggered {
 					p.vlog.CLogf(
-						ctx, libkb.VLog1, "prefetch subtree already triggered "+
+						ctx, libkb.VLog2, "prefetch subtree already triggered "+
 							"for block ID %s", req.ptr.ID)
 					// Redundant prefetch request.
 					// We've already seen _this_ block, and already triggered
@@ -1125,7 +1125,7 @@ func (p *blockPrefetcher) run(
 				pre = p.newPrefetch(0, 0, true, req)
 				p.prefetches[req.ptr.ID] = pre
 				ctx = pre.ctx
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"created new prefetch for block %s", req.ptr.ID)
 			}
 
@@ -1148,7 +1148,7 @@ func (p *blockPrefetcher) run(
 				continue
 			}
 			if isTail {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"completed prefetch for tail block %s ", req.ptr.ID)
 				// This is a tail block with no children.  Parent blocks are
 				// potentially waiting for this prefetch, so we percolate the
@@ -1170,7 +1170,7 @@ func (p *blockPrefetcher) run(
 			}
 			// This is not a tail block.
 			if numBlocks == 0 {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"no blocks to prefetch for block %s", req.ptr.ID)
 				// All the blocks to be triggered have already done so. Do
 				// nothing.  This is simply an optimization to avoid crawling
@@ -1178,7 +1178,7 @@ func (p *blockPrefetcher) run(
 				continue
 			}
 			if !isPrefetchWaiting {
-				p.vlog.CLogf(ctx, libkb.VLog1,
+				p.vlog.CLogf(ctx, libkb.VLog2,
 					"adding block %s to the prefetch tree", req.ptr.ID)
 				// This block doesn't appear in the prefetch tree, so it's the
 				// root of a new prefetch tree. Add it to the tree.
@@ -1189,7 +1189,7 @@ func (p *blockPrefetcher) run(
 				// shouldn't block anything above it in the tree from
 				// completing.
 			}
-			p.vlog.CLogf(ctx, libkb.VLog1,
+			p.vlog.CLogf(ctx, libkb.VLog2,
 				"prefetching %d block(s) with parent block %s "+
 					"[bytesFetched=%d, bytesTotal=%d]",
 				numBlocks, req.ptr.ID, numBytesFetched, numBytesTotal)
@@ -1269,7 +1269,7 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 		}
 
 		p.vlog.CLogf(
-			ctx, libkb.VLog1, "error prefetching block %s: %+v, canceling",
+			ctx, libkb.VLog2, "error prefetching block %s: %+v, canceling",
 			ptr.ID, err)
 		p.CancelPrefetch(ptr)
 	}
