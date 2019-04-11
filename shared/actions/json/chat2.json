@@ -634,6 +634,9 @@
     "inboxSearchMoveSelectedIndex": {
       "_description": "Change selected index of inbox search",
       "increment": "boolean"
+    },
+    "inboxSearchSelect": {
+      "_description": "Select an inbox search item"
     }
   }
 }

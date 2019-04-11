@@ -103,6 +103,16 @@ export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> 
   teamType: 'small',
 })
 
+export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
+  if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
+    return inboxSearch.nameResults.get(inboxSearch.selectedIndex).conversationIDKey
+  } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.size + inboxSearch.textResults.size) {
+    return inboxSearch.textResults.get(inboxSearch.nameResults.size + inboxSearch.selectedIndex)
+      .conversationIDKey
+  }
+  return null
+}
+
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
 

@@ -7,7 +7,6 @@ import ChatInboxHeader from '.'
 type OwnProps = {
   filterFocusCount: number,
   focusFilter: () => void,
-  onEnsureSelection: () => void,
   onNewChat: () => void,
 }
 
@@ -19,6 +18,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  onEnsureSelection: () => dispatch(Chat2Gen.createInboxSearchSelect()),
   onSelectDown: () => dispatch(Chat2Gen.createInboxSearchMoveSelectedIndex({increment: true})),
   onSelectUp: () => dispatch(Chat2Gen.createInboxSearchMoveSelectedIndex({increment: false})),
 })
@@ -26,7 +26,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   focusFilter: ownProps.focusFilter,
-  onEnsureSelection: ownProps.onEnsureSelection,
+  onEnsureSelection: dispatchProps.onEnsureSelection,
   onNewChat: ownProps.onNewChat,
   onSelectDown: dispatchProps.onSelectDown,
   onSelectUp: dispatchProps.onSelectUp,

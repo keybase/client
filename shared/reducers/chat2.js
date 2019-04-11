@@ -1078,11 +1078,11 @@ const rootReducer = (
       if (!state.inboxSearch) {
         return state
       }
-      const selectedIndex = state.inboxSearch.selectedIndex
+      let selectedIndex = state.inboxSearch.selectedIndex
       const totalResults = state.inboxSearch.nameResults.size + state.inboxSearch.textResults.size
-      if (increment && selectedIndex < totalResults - 1) {
+      if (action.payload.increment && selectedIndex < totalResults - 1) {
         selectedIndex++
-      } else if (!increment && selectedIndex > 0) {
+      } else if (!action.payload.increment && selectedIndex > 0) {
         selectedIndex--
       }
       return state.update('inboxSearch', info => {
@@ -1225,6 +1225,7 @@ const rootReducer = (
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
     case Chat2Gen.loadMessagesFromSearchHit:
+    case Chat2Gen.inboxSearchSelect:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

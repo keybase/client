@@ -1379,6 +1379,15 @@ function* threadSearch(state, action) {
   }
 }
 
+const onInboxSearchSelect = (state, action) => {
+  const inboxSearch = state.chat2.inboxSearch
+  if (!inboxSearch) {
+    return []
+  }
+  const conversationIDKey = Constants.getInboxSearchSelected(inboxSearch)
+  return conversationIDKey ? Chat2Gen.createSelectConversation({conversationIDKey}) : []
+}
+
 function* inboxSearch(state, action) {
   const {query} = action.payload
   const onConvHits = resp => {
@@ -3296,6 +3305,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
+  yield* Saga.chainAction<Chat2Gen.InboxSearchSelectPayload>(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)
   yield* Saga.chainAction<Chat2Gen.ToggleThreadSearchPayload>(
     Chat2Gen.toggleThreadSearch,

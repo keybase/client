@@ -27,26 +27,25 @@ type Props = {|
   textResults: Array<TextResult>,
 |}
 
-const renderNameResult = (r, onSelectConversation) => {
-  return r.type === 'big' ? (
-    <SelectableBigTeamChannel
-      conversationIDKey={r.conversationIDKey}
-      isSelected={false}
-      onSelectConversation={onSelectConversation}
-    />
-  ) : (
-    <SelectableSmallTeam
-      conversationIDKey={r.conversationIDKey}
-      isSelected={false}
-      onSelectConversation={onSelectConversation}
-    />
-  )
-}
-
 const InboxSearch = (props: Props) => {
-  const nameResults = props.nameResults.map(r =>
-    renderNameResult(r, () => props.onSelectConversation(r.conversationIDKey))
-  )
+  const nameResults = props.nameResults.map((r, index) => {
+    const onSelectConversation = () => props.onSelectConversation(r.conversationIDKey)
+    return r.type === 'big' ? (
+      <SelectableBigTeamChannel
+        conversationIDKey={r.conversationIDKey}
+        isSelected={props.selectedIndex === index}
+        key={index}
+        onSelectConversation={onSelectConversation}
+      />
+    ) : (
+      <SelectableSmallTeam
+        conversationIDKey={r.conversationIDKey}
+        isSelected={props.selectedIndex === index}
+        key={index}
+        onSelectConversation={onSelectConversation}
+      />
+    )
+  })
   return (
     <Kb.Box2 style={styles.container} direction="vertical">
       {nameResults}
