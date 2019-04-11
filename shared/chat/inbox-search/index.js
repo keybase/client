@@ -27,30 +27,81 @@ type Props = {|
   textResults: Array<TextResult>,
 |}
 
-const InboxSearch = (props: Props) => {
-  const nameResults = props.nameResults.map((r, index) => {
-    const onSelectConversation = () => props.onSelectConversation(r.conversationIDKey)
-    return r.type === 'big' ? (
+type State = {
+  nameCollapsed: boolean,
+  textCollapsed: boolean,
+}
+
+class InboxSearch extends React.Component<Props> {
+  state = {nameCollapsed: false, textCollapsed: false}
+  _renderNameHit = ({item, section, index}) => {
+    const onSelectConversation = () => this.props.onSelectConversation(r.conversationIDKey)
+    return item.type === 'big' ? (
       <SelectableBigTeamChannel
-        conversationIDKey={r.conversationIDKey}
-        isSelected={props.selectedIndex === index}
+        conversationIDKey={item.conversationIDKey}
+        isSelected={this.props.selectedIndex === index}
         key={index}
         onSelectConversation={onSelectConversation}
       />
     ) : (
       <SelectableSmallTeam
-        conversationIDKey={r.conversationIDKey}
-        isSelected={props.selectedIndex === index}
+        conversationIDKey={item.conversationIDKey}
+        isSelected={this.props.selectedIndex === index}
         key={index}
         onSelectConversation={onSelectConversation}
       />
     )
-  })
-  return (
-    <Kb.Box2 style={styles.container} direction="vertical">
-      {nameResults}
-    </Kb.Box2>
-  )
+  }
+  _toggleCollapseName = () => {
+    this.setState({nameCollapsed: !this.state.nameCollapsed})
+  }
+  _toggleCollapseText = () => {
+    this.setState({textCollapsed: !this.state.textCollapsed})
+  }
+  _renderSectionHeader = ({section}) => {
+    return (
+      <Kb.SectionDivider
+        collapsed={section.isCollapsed}
+        label={section.title}
+        onToggleCollapsed={section.onCollapse}
+      />
+    )
+  }
+  _keyExtractor = (item, index) => index
+  _nameResults = () => {
+    return this.state.nameCollapsed ? [] : this.props.nameResults
+  }
+  _textResults = () => {
+    return this.state.textCollapsed ? [] : this.props.textResults
+  }
+
+  render() {
+    return (
+      <Kb.Box2 style={styles.container} direction="vertical">
+        <Kb.SectionList
+          stickySectionHeadersEnabled={true}
+          renderSectionHeader={this._renderSectionHeader}
+          keyExtractor={this._keyExtractor}
+          sections={[
+            {
+              data: this._nameResults(),
+              isCollapsed: this.state.nameCollapsed,
+              onCollapse: this._toggleCollapseName,
+              renderItem: this._renderNameHit,
+              title: 'Conversation Name Matches',
+            },
+            {
+              data: this._textResults(),
+              isCollapsed: this.state.textCollapsed,
+              onCollapse: this._toggleCollapseText,
+              renderItem: this._renderTextHit,
+              title: 'Message Text Matches',
+            },
+          ]}
+        />
+      </Kb.Box2>
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({
