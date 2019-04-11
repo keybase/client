@@ -6,6 +6,7 @@ import Box, {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import SwitchToggle from './switch-toggle'
+import WithTooltip from './with-tooltip'
 
 const Kb = {
   Box,
@@ -13,6 +14,7 @@ const Kb = {
   ClickableBox,
   ProgressIndicator,
   Text,
+  WithTooltip,
 }
 
 type Props = {|
@@ -22,40 +24,53 @@ type Props = {|
   gapInBetween?: ?boolean, // inserts flex:1 gap between toggle and text
   label: string | React.Node,
   labelSubtitle?: ?string, // only effective when label is a string
+  labelTooltip?: ?string, // only effective when label is a string
   on: boolean,
   onClick: () => void,
   style?: ?Styles.StylesCrossPlatform,
 |}
 
+const LabelContainer = props =>
+  props.labelTooltip ? (
+    <Kb.WithTooltip
+      text={props.labelTooltip}
+      containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
+      showOnPressMobile={true}
+    >
+      {props.children}
+    </Kb.WithTooltip>
+  ) : (
+    <Kb.Box2 direction="vertical" style={styles.labelContainer}>
+      {props.children}
+    </Kb.Box2>
+  )
+
 const Switch = React.forwardRef<Props, Kb.ClickableBox>((props: Props, ref) => (
-  <Kb.ClickableBox
-    onClick={props.disabled ? undefined : props.onClick}
-    style={Styles.collapseStyles([
-      props.align !== 'right' ? Styles.globalStyles.flexBoxRow : Styles.globalStyles.flexBoxRowReverse,
-      styles.container,
-      props.disabled && styles.disabled,
-      props.style,
-    ])}
-    ref={ref}
+  <Kb.Box2
+    direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'}
+    alignItems="center"
+    style={Styles.collapseStyles([styles.container, props.disabled && styles.disabled, props.style])}
   >
-    <SwitchToggle
-      on={props.on}
-      color={props.color || 'blue'}
-      style={Styles.collapseStyles([
-        props.align === 'left' && styles.switchLeft,
-        props.align === 'right' && styles.switchRight,
-      ])}
-    />
+    <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref}>
+      <SwitchToggle
+        on={props.on}
+        color={props.color || 'blue'}
+        style={Styles.collapseStyles([
+          props.align === 'left' && styles.switchLeft,
+          props.align === 'right' && styles.switchRight,
+        ])}
+      />
+    </Kb.ClickableBox>
     {!!props.gapInBetween && <Kb.Box style={styles.gap} />}
     {typeof props.label === 'string' ? (
-      <Kb.Box2 direction="vertical" style={styles.labelContainer}>
+      <LabelContainer {...props}>
         <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
         {!!props.labelSubtitle && <Kb.Text type="BodyTiny">{props.labelSubtitle}</Kb.Text>}
-      </Kb.Box2>
+      </LabelContainer>
     ) : (
       props.label
     )}
-  </Kb.ClickableBox>
+  </Kb.Box2>
 ))
 
 export default Switch
