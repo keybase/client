@@ -3748,20 +3748,13 @@ func TestProvisionAutomatedPaperKey(t *testing.T) {
 	eng.PaperKey = loginUI.PaperPhrase
 	eng.DeviceName = "a different device name"
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
-	if err := RunEngine2(m2, eng); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, RunEngine2(m2, eng), "run login engine")
 
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
-	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
-	}
-	if provLoginUI.CalledGetEmailOrUsername != 0 {
-		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
-	}
-	if provUI.calledChooseDevice != 0 {
-		t.Errorf("expected 0 calls to ChooseDevice, got %d", provUI.calledChooseDevice)
-	}
+	require.NoError(t, AssertProvisioned(tc2), "provisioned")
+
+	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0, "expected no calls to GetEmailOrUsername")
+	require.Equal(t, provUI.calledChooseDevice, 0, "expected no calls to ChooseDevice")
 }
 
 type testProvisionUI struct {

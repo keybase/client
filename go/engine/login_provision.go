@@ -784,6 +784,7 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []*libkb
 	}
 
 	// ... then match it to the paper keys that can be used with this account
+	var matchedDevice *libkb.Device
 	for _, d := range devices {
 		if d.Type != libkb.DeviceTypePaper {
 			continue
@@ -792,27 +793,32 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []*libkb
 			continue
 		}
 
-		// use the KID to find the uid, deviceID and deviceName
-		uid, err := keys.Populate(m)
-		if err != nil {
-			switch err := err.(type) {
-			case libkb.NotFoundError:
-				return paperKeyNotFound
-			case libkb.AppStatusError:
-				if err.Code == libkb.SCNotFound {
-					return paperKeyNotFound
-				}
-			}
-			return err
-		}
-		if uid.NotEqual(e.arg.User.GetUID()) {
-			return paperKeyNotFound
-		}
-
-		return e.paper(m, d, keys)
+		matchedDevice = d
+		break
 	}
 
-	return libkb.NoPaperKeysError{}
+	if matchedDevice == nil {
+		return libkb.NoPaperKeysError{}
+	}
+
+	// use the KID to find the uid, deviceID and deviceName
+	uid, err := keys.Populate(m)
+	if err != nil {
+		switch err := err.(type) {
+		case libkb.NotFoundError:
+			return paperKeyNotFound
+		case libkb.AppStatusError:
+			if err.Code == libkb.SCNotFound {
+				return paperKeyNotFound
+			}
+		}
+		return err
+	}
+	if uid.NotEqual(e.arg.User.GetUID()) {
+		return paperKeyNotFound
+	}
+
+	return e.paper(m, matchedDevice, keys)
 }
 
 func (e *loginProvision) tryPGP(m libkb.MetaContext) (err error) {
