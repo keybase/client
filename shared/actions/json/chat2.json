@@ -93,10 +93,6 @@
         "'teamTypeChanged'"
       ]
     },
-    // Update the 'jump to conversation' filter
-    "setInboxFilter": {
-      "filter": "string"
-    },
     // We want to unbox an inbox row
     "metaNeedsUpdating": {
       "conversationIDKeys": "Array<Types.ConversationIDKey>",

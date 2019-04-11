@@ -340,10 +340,6 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
-  clearedFilterCount: 0,
-  focusFilter: () => {},
-  filter: '',
-  filterFocusCount: 0,
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
   onDeselectConversation: Sb.action('onDeselectConversation'),
@@ -447,25 +443,6 @@ const propsInboxExpanded = {
   ],
 }
 
-const propsInboxFilter = {
-  ...propsInboxCommon,
-  filter: ' ',
-  rows: [
-    // Small
-    makeRowItemSmall('smallFilterTeamA'),
-    makeRowItemSmall('smallFilterTeamB'),
-    makeRowItemSmall('smallFilterTeamC'),
-
-    // Big Team A
-    makeRowItemBigChannel('bigTeamFilterAChannel1', 'stripe', 'general'),
-    makeRowItemBigChannel('bigTeamFilterAChannel2', 'stripe', 'random'),
-
-    // Big Team B
-    makeRowItemBigChannel('bigTeamFilterBChannel1', 'stripe.usa', 'this-is-a-very-long-channel-name'),
-    makeRowItemBigChannel('bigTeamFilterCChannel1', 'this.is.a.very.long.team.name.situation', 'general'),
-  ],
-}
-
 /*
  * Prop Providers
  */
@@ -554,7 +531,6 @@ const load = () => {
     .add('Big Teams', () => <Inbox {...propsInboxTeam} />)
     .add('Divider', () => <Inbox {...propsInboxDivider} />)
     .add('Expanded teams', () => <Wrapper />)
-    .add('Filter', () => <Inbox {...propsInboxFilter} />)
 }
 
 export default load

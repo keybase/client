@@ -109,7 +109,7 @@ const mapDispatchToProps = dispatch => ({
   _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     conversationIDKey &&
     dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
-  clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
+  clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),

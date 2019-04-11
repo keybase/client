@@ -99,7 +99,6 @@ export type _State = {
   badgeMap: ConversationCountMap, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   focus: Focus,
-  inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
   inboxSearch: ?InboxSearchInfo,
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load

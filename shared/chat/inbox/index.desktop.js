@@ -9,7 +9,6 @@ import {VariableSizeList} from 'react-window'
 import {ErrorBoundary} from '../../common-adapters'
 import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
-import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
@@ -19,8 +18,6 @@ import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
 import {virtualListMarks} from '../../local-debug'
 import {inboxWidth, getRowHeight} from './row/sizes'
-import {Gateway} from 'react-gateway'
-import flags from '../../util/feature-flags'
 
 type State = {
   showFloating: boolean,
@@ -35,7 +32,6 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
-  _clearedFilterCount: number = 0
   _selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
@@ -47,14 +43,6 @@ class Inbox extends React.PureComponent<Props, State> {
     let listRowsResized = false
     if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       listRowsResized = true
-    }
-
-    // filter / not filter
-    if (!!prevProps.filter !== !!this.props.filter) {
-      listRowsResized = true
-    }
-    if (prevProps.filter !== this.props.filter && this._list) {
-      this._list.scrollTo(0)
     }
 
     // list changed
@@ -70,14 +58,6 @@ class Inbox extends React.PureComponent<Props, State> {
     if (!I.is(this.props.unreadIndices, prevProps.unreadIndices)) {
       this._calculateShowUnreadShortcut()
     }
-
-    if (this.props.filter && this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
-      const selectedIndex = this.props.rows.findIndex(
-        // $ForceType
-        r => r.conversationIDKey === this.props.selectedConversationIDKey
-      )
-      selectedIndex >= 0 && this._list && this._list.scrollToItem(selectedIndex)
-    }
   }
 
   componentDidMount() {
@@ -89,15 +69,12 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _itemSizeGetter = index => {
-    if (this.props.filter.length) {
-      return 56
-    }
     const row = this.props.rows[index]
     if (!row) {
       return 0
     }
 
-    return getRowHeight(row.type, !!this.props.filter.length, row.type === 'divider' && row.showButton)
+    return getRowHeight(row.type, false, row.type === 'divider' && row.showButton)
   }
 
   _itemRenderer = (index, style) => {
@@ -118,7 +95,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
-    const isHighlighted = index === 0 && !!this.props.filter && !this._selectedVisible
+    const isHighlighted = index === 0 && !this._selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
@@ -126,7 +103,6 @@ class Inbox extends React.PureComponent<Props, State> {
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
-          filtered: !!this.props.filter,
           teamname,
           type: row.type,
         })}
@@ -165,26 +141,14 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
     this._lastVisibleIdx = visibleStopIndex
-    if (this.props.filter.length) {
-      return
-    }
     this._calculateShowUnreadShortcut()
-    if (this.props.clearedFilterCount > this._clearedFilterCount) {
-      // just cleared out filter
-      // re-rendering normal inbox for the first time
-      // no new / potentially out of date rows here
-      this._clearedFilterCount = this.props.clearedFilterCount
-      return
-    }
     const toUnbox = this.props.rows.slice(visibleStartIndex, visibleStopIndex + 1).reduce((arr, r) => {
       if (r.type === 'small' && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
       }
       return arr
     }, [])
-
     this._calculateShowFloating()
-
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
@@ -213,12 +177,10 @@ class Inbox extends React.PureComponent<Props, State> {
   _onSelectDown = () => this.props.onSelectDown()
 
   render() {
-    this._selectedVisible =
-      !!this.props.filter &&
-      !!this.props.rows.find(
-        r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
-      )
-    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
+    this._selectedVisible = !!this.props.rows.find(
+      r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
+    )
+    const owl = !this.props.rows.length && <Owl />
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )

@@ -1149,21 +1149,6 @@ function* getUnreadline(state, action) {
   )
 }
 
-const clearInboxFilter = (state, action) => {
-  if (!state.chat2.inboxFilter) {
-    return
-  }
-
-  if (
-    action.type === Chat2Gen.selectConversation &&
-    (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
-  ) {
-    return
-  }
-
-  return Chat2Gen.createSetInboxFilter({filter: ''})
-}
-
 // Show a desktop notification
 function* desktopNotify(state, action) {
   const {conversationIDKey, author, body} = action.payload
@@ -3058,10 +3043,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     confirmScreenResponse
   )
 
-  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload | Chat2Gen.MessageSendPayload>(
-    [Chat2Gen.selectConversation, Chat2Gen.messageSend],
-    clearInboxFilter
-  )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadTeamForConv)
 

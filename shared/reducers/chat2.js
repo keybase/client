@@ -476,8 +476,6 @@ const rootReducer = (
     }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
-    case Chat2Gen.setInboxFilter:
-      return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
       return state.withMutations(_s => {
         const s = (_s: Types.State)
