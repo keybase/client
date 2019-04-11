@@ -355,7 +355,6 @@ func TestChatSearchConvRegexp(t *testing.T) {
 }
 
 func TestChatSearchInbox(t *testing.T) {
-	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
@@ -690,34 +689,27 @@ func TestChatSearchInbox(t *testing.T) {
 		opts.SentAfter = msg4.GetCtime() + 500
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Zero(t, len(res.Hits))
+		verifySearchDone(0)
 
 		opts.SentAfter = msg1.GetCtime()
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		require.Equal(t, 4, len(res.Hits[0].Hits))
+		verifySearchDone(4)
 
 		// nothing sent before msg1
 		opts.SentAfter = 0
 		opts.SentBefore = msg1.GetCtime() - 500
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Zero(t, len(res.Hits))
+		verifySearchDone(0)
 
 		opts.SentBefore = msg4.GetCtime()
 		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		require.Equal(t, 4, len(res.Hits[0].Hits))
+		verifySearchDone(4)
 		opts.SentBefore = 0
-
-		// drain the cbs, 8 hits and 4 dones
-		timeout := 20 * time.Second
-		for i := 0; i < 8+4; i++ {
-			select {
-			case <-chatUI.InboxSearchHitCb:
-			case <-chatUI.InboxSearchDoneCb:
-			case <-time.After(timeout):
-				require.Fail(t, "no search result received")
-			}
-		}
 
 		// Test edit
 		query = "edited"
@@ -739,6 +731,7 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyIndex(expectedIndex)
 
 		res = runSearch(query, opts, false /* expectedReindex*/)
+		t.Logf("%+v", res)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
