@@ -105,10 +105,10 @@ export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> 
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
-    return inboxSearch.nameResults.get(inboxSearch.selectedIndex).conversationIDKey
+    return inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey
   } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.size + inboxSearch.textResults.size) {
     return inboxSearch.textResults.get(inboxSearch.nameResults.size + inboxSearch.selectedIndex)
-      .conversationIDKey
+      ?.conversationIDKey
   }
   return null
 }

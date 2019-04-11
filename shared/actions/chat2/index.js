@@ -1385,7 +1385,9 @@ const onInboxSearchSelect = (state, action) => {
     return []
   }
   const conversationIDKey = Constants.getInboxSearchSelected(inboxSearch)
-  return conversationIDKey ? Chat2Gen.createSelectConversation({conversationIDKey}) : []
+  return conversationIDKey
+    ? Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})
+    : []
 }
 
 function* inboxSearch(state, action) {
@@ -1393,7 +1395,7 @@ function* inboxSearch(state, action) {
   const onConvHits = resp => {
     return Saga.put(
       Chat2Gen.createInboxSearchNameResults({
-        results: resp.hits.reduce((l, h) => {
+        results: (resp.hits || []).reduce((l, h) => {
           return l.set(
             l.size,
             Constants.makeInboxSearchConvHit({

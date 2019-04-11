@@ -1,6 +1,7 @@
 // @flow
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Constants from '../../constants/chat2'
+import * as Types from '../../constants/types/chat2'
 import {namedConnect} from '../../util/container'
 import InboxSearch from '.'
 
@@ -17,27 +18,25 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  nameStatus: stateProps._inboxSearch.nameStatus,
   nameResults: stateProps._inboxSearch.nameResults
     .map(r => ({
       conversationIDKey: r.conversationIDKey,
       type: r.teamType,
     }))
     .toArray(),
+  nameStatus: stateProps._inboxSearch.nameStatus,
   onSelectConversation: dispatchProps.onSelectConversation,
   selectedIndex: stateProps._inboxSearch.selectedIndex,
-  textStatus: stateProps._inboxSearch.textStatus,
   textResults: stateProps._inboxSearch.textResults
     .map(r => ({
       conversationIDKey: r.conversationIDKey,
+      numHits: r.numHits,
       type: r.teamType,
     }))
     .toArray(),
+  textStatus: stateProps._inboxSearch.textStatus,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'InboxSearch'
-)(InboxSearch)
+export default namedConnect<{}, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'InboxSearch')(
+  InboxSearch
+)

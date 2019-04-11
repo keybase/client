@@ -60,7 +60,7 @@ export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
 export type InboxSearchStatus = 'initial' | 'inprogress' | 'done'
 
 export type _InboxSearchTextHit = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Common.ConversationIDKey,
   numHits: number,
   teamType: 'big' | 'small',
 }
@@ -68,7 +68,7 @@ export type _InboxSearchTextHit = {
 export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>
 
 export type _InboxSearchConvHit = {
-  conversationIDKey: Types.ConversationIDKey,
+  conversationIDKey: Common.ConversationIDKey,
   teamType: 'big' | 'small',
 }
 

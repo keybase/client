@@ -4,8 +4,6 @@ import ChatFilterRow from '../chat-filter-row/container'
 import StartNewChat from '../start-new-chat'
 
 type Props = {
-  filterFocusCount: number,
-  focusFilter: () => void,
   onNewChat: () => void,
   showNewChat: boolean,
   onSelectUp: () => void,
@@ -13,18 +11,31 @@ type Props = {
   onEnsureSelection: () => void,
 }
 
-const ChatInboxHeader = (props: Props) =>
-  props.showNewChat ? (
-    <StartNewChat onNewChat={props.onNewChat} />
-  ) : (
-    <ChatFilterRow
-      onNewChat={props.onNewChat}
-      focusFilter={props.focusFilter}
-      filterFocusCount={props.filterFocusCount}
-      onSelectUp={props.onSelectUp}
-      onSelectDown={props.onSelectDown}
-      onEnsureSelection={props.onEnsureSelection}
-    />
-  )
+type State = {
+  filterFocusCount: number,
+}
+
+class ChatInboxHeader extends React.Component<Props, State> {
+  state = {
+    filterFocusCount: 0,
+  }
+  _focusFilter = () => {
+    this.setState(p => ({filterFocusCount: p.filterFocusCount + 1}))
+  }
+  render() {
+    return this.props.showNewChat ? (
+      <StartNewChat onNewChat={this.props.onNewChat} />
+    ) : (
+      <ChatFilterRow
+        onNewChat={this.props.onNewChat}
+        focusFilter={this._focusFilter}
+        filterFocusCount={this.state.filterFocusCount}
+        onSelectUp={this.props.onSelectUp}
+        onSelectDown={this.props.onSelectDown}
+        onEnsureSelection={this.props.onEnsureSelection}
+      />
+    )
+  }
+}
 
 export default ChatInboxHeader

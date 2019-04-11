@@ -5,8 +5,6 @@ import {namedConnect} from '../../../../util/container'
 import ChatInboxHeader from '.'
 
 type OwnProps = {
-  filterFocusCount: number,
-  focusFilter: () => void,
   onNewChat: () => void,
 }
 
@@ -24,8 +22,6 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  filterFocusCount: ownProps.filterFocusCount,
-  focusFilter: ownProps.focusFilter,
   onEnsureSelection: dispatchProps.onEnsureSelection,
   onNewChat: ownProps.onNewChat,
   onSelectDown: dispatchProps.onSelectDown,

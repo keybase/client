@@ -26,6 +26,7 @@
         "'inboxFilterChanged'", // inbox filter made first one selected
         "'inboxSmall'", // inbox row
         "'inboxNewConversation'", // new conversation row
+        "'inboxSearch'", // selected from inbox seaech
         "'jumpFromReset'", // from older reset convo
         "'jumpToReset'", // going to an older reset convo
         "'justCreated'", // just made it and select it
