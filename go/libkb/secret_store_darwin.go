@@ -129,7 +129,7 @@ func (k KeychainSecretStore) updateAccessibility(mctx MetaContext, account keych
 
 func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(mctx MetaContext, err error) {
 	mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: checking for mobile permission denied")
-	if !isIOS || mctx.G().IsMobileAppType() {
+	if !(isIOS && mctx.G().IsMobileAppType()) {
 		mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: not an iOS app")
 		return
 	}
