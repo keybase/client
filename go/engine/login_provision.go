@@ -512,20 +512,7 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 
 	// Fully non-interactive flow
 	if e.arg.DeviceName != "" {
-		if !libkb.CheckDeviceName.F(e.arg.DeviceName) {
-			return "", libkb.DeviceBadNameError{}
-		}
-
-		devname := libkb.CheckDeviceName.Transform(e.arg.DeviceName)
-		normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
-		for _, name := range names {
-			if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {
-				m.Debug("Device name reused: %q == %q", devname, name)
-				return "", libkb.DeviceNameInUseError{}
-			}
-		}
-
-		return devname, nil
+		return e.automatedDeviceName(m, names, e.arg.DeviceName)
 	}
 
 	arg := keybase1.PromptNewDeviceNameArg{
@@ -568,6 +555,23 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 		return devname, nil
 	}
 	return "", libkb.RetryExhaustedError{}
+}
+
+func (e *loginProvision) automatedDeviceName(m libkb.MetaContext, existing []string, devname string) (string, error) {
+	if !libkb.CheckDeviceName.F(devname) {
+		return "", libkb.DeviceBadNameError{}
+	}
+
+	devname = libkb.CheckDeviceName.Transform(devname)
+	normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
+	for _, name := range existing {
+		if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {
+			m.Debug("Device name reused: %q == %q", devname, name)
+			return "", libkb.DeviceNameInUseError{}
+		}
+	}
+
+	return devname, nil
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
@@ -706,6 +710,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	devices := partitionDeviceList(ckf.GetAllActiveDevices())
 	sort.Sort(devices)
 
+	// Fully non-interactive flow
 	if e.arg.PaperKey != "" {
 		return e.preloadedPaperKey(m, devices, e.arg.PaperKey)
 	}
