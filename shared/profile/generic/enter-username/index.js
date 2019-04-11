@@ -261,11 +261,11 @@ const styles = Styles.styleSheetCreate({
   },
   input: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.medium},
+    isAndroid: {
+      top: 1,
+    },
     isElectron: {
       marginTop: -1,
-    },
-    isMobile: {
-      top: 3,
     },
   }),
   inputBox: {
@@ -291,7 +291,9 @@ const styles = Styles.styleSheetCreate({
     top: 1,
   },
   invisible: {
-    opacity: 0,
+    // opacity doesn't work in nested Text on android
+    // see here: https://github.com/facebook/react-native/issues/18057
+    color: Styles.globalColors.transparent,
   },
   marginLeftAuto: {marginLeft: 'auto'},
   opacity40: {
