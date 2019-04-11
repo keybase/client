@@ -12,7 +12,7 @@ export type Props = {|
   isLoading: boolean,
   onBack: () => void,
   noShortcut: ?boolean,
-  onBlur: () => void,
+  onCancel: () => void,
   onEnsureSelection: () => void,
   onFocus: () => void,
   onNewChat?: () => void,
@@ -44,12 +44,11 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
 
   _stopEditing = () => {
     this.setState({isEditing: false})
-    this.props.onBlur()
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {
-      this.props.onSetFilter('')
+      this.props.onCancel()
       this._stopEditing()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -90,7 +89,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
 
   _setRef = r => (this._input = r)
   _onCancel = () => {
-    this.props.onSetFilter('')
+    this.props.onCancel()
     this._stopEditing()
   }
 
@@ -119,10 +118,9 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             hideUnderline={true}
             small={true}
             value={this.props.filter}
-            hintText="Jump to..."
+            hintText="Search..."
             onChangeText={this.props.onSetFilter}
             onFocus={this._startEditing}
-            onBlur={this._stopEditing}
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
             ref={this._setRef}
@@ -165,7 +163,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
                 fontSize={Styles.isMobile ? 20 : 16}
               />
               <Kb.Text type="BodySemibold" style={styles.text}>
-                Jump to...
+                Search...
               </Kb.Text>
               {!Styles.isMobile && !this.props.noShortcut && (
                 <Kb.Text type="BodySemibold" style={styles.textFaint}>

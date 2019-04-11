@@ -40,6 +40,7 @@ export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const hideConversation = 'chat2:hideConversation'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
+export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
 export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
@@ -157,6 +158,7 @@ type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.Conversati
 type _HandleSeeingWalletsPayload = void
 type _HideConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
+type _InboxSearchMoveSelectedIndexPayload = $ReadOnly<{|increment: boolean|}>
 type _InboxSearchNameResultsPayload = $ReadOnly<{|results: I.List<Types.InboxSearchConvHit>|}>
 type _InboxSearchPayload = $ReadOnly<{|query: HiddenString|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -229,7 +231,7 @@ type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ThreadSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
 type _ThreadSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, message: Types.Message|}>
-type _ToggleInboxSearchPayload = void
+type _ToggleInboxSearchPayload = $ReadOnly<{|enabled: boolean|}>
 type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
 type _ToggleMessageCollapsePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, collapse: boolean|}>
@@ -264,6 +266,10 @@ export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload) => (
  * Add an unfurl prompt to a message
  */
 export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({payload, type: unfurlTogglePrompt})
+/**
+ * Change selected index of inbox search
+ */
+export const createInboxSearchMoveSelectedIndex = (payload: _InboxSearchMoveSelectedIndexPayload) => ({payload, type: inboxSearchMoveSelectedIndex})
 /**
  * Clear data for payment confirm modal
  */
@@ -539,6 +545,7 @@ export type GiphyToggleWindowPayload = {|+payload: _GiphyToggleWindowPayload, +t
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
 export type HideConversationPayload = {|+payload: _HideConversationPayload, +type: 'chat2:hideConversation'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
+export type InboxSearchMoveSelectedIndexPayload = {|+payload: _InboxSearchMoveSelectedIndexPayload, +type: 'chat2:inboxSearchMoveSelectedIndex'|}
 export type InboxSearchNameResultsPayload = {|+payload: _InboxSearchNameResultsPayload, +type: 'chat2:inboxSearchNameResults'|}
 export type InboxSearchPayload = {|+payload: _InboxSearchPayload, +type: 'chat2:inboxSearch'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
@@ -660,6 +667,7 @@ export type Actions =
   | HandleSeeingWalletsPayload
   | HideConversationPayload
   | InboxRefreshPayload
+  | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
   | InboxSearchPayload
   | JoinConversationPayload

@@ -20,6 +20,7 @@ import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import flags from '../../util/feature-flags'
+import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
@@ -91,6 +92,7 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
 export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
   nameResults: I.List(),
   nameStatus: 'initial',
+  query: new HiddenString(''),
   selectedIndex: 0,
   textResults: I.List(),
   textStatus: 'initial',

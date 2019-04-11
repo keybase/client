@@ -17,7 +17,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const filter = state.chat2.inboxFilter
+  const filter = (state.chat2.inboxSearch || Constants.makeInboxSearchInfo()).query.stringValue()
   return {
     filter,
     isLoading: Constants.anyChatWaitingKeys(state),
@@ -37,8 +37,8 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
     }
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onBlur: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: null})),
-  onFocus: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: 'filter'})),
+  onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
+  onFocus: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)})),
 })
 
@@ -49,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
   onBack: dispatchProps.onBack,
-  onBlur: dispatchProps.onBlur,
+  onCancel: dispatchProps.onCancel,
   onEnsureSelection: ownProps.onEnsureSelection,
   onFocus: dispatchProps.onFocus,
   onNewChat: ownProps.onNewChat,

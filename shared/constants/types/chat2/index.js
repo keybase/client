@@ -77,6 +77,7 @@ export type InboxSearchConvHit = I.RecordOf<_InboxSearchConvHit>
 export type _InboxSearchInfo = {
   nameResults: I.List<InboxSearchConvHit>,
   nameStatus: InboxSearchStatus,
+  query: HiddenString,
   selectedIndex: number,
   textResults: I.List<InboxSearchTextHit>,
   textStatus: InboxSearchStatus,

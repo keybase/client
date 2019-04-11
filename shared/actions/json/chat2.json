@@ -624,11 +624,16 @@
       "query": "HiddenString"
     },
     "toggleInboxSearch": {
-      "_description": "Toggle inbox search view"
+      "_description": "Toggle inbox search view",
+      "enabled": "boolean"
     },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",
       "results": "I.List<Types.InboxSearchConvHit>"
+    },
+    "inboxSearchMoveSelectedIndex": {
+      "_description": "Change selected index of inbox search",
+      "increment": "boolean"
     }
   }
 }

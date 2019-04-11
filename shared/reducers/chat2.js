@@ -1047,15 +1047,21 @@ const rootReducer = (
           return info.set('hits', I.List())
         }
       )
-    case Chat2Gen.toggleInboxSearch:
-      return state.inboxSearch
-        ? state.set('inboxSearch', null)
-        : stable.set('inboxSearch', Constants.makeInboxSearchInfo())
+    case Chat2Gen.toggleInboxSearch: {
+      let nextState = state
+      if (action.payload.enabled && !state.inboxSearch) {
+        nextState = state.set('inboxSearch', Constants.makeInboxSearchInfo())
+      } else if (!action.payload.enabled && state.inboxSearch) {
+        nextState = state.set('inboxSearch', null)
+      }
+      return nextState
+    }
     case Chat2Gen.inboxSearch:
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           nameResults: I.List(),
           nameStatus: 'inprogress',
+          query: action.payload.query,
           selectedIndex: 0,
           textResults: I.List(),
           textStatus: 'inprogress',
@@ -1068,6 +1074,23 @@ const rootReducer = (
           nameStatus: 'done',
         })
       })
+    case Chat2Gen.inboxSearchMoveSelectedIndex: {
+      if (!state.inboxSearch) {
+        return state
+      }
+      const selectedIndex = state.inboxSearch.selectedIndex
+      const totalResults = state.inboxSearch.nameResults.size + state.inboxSearch.textResults.size
+      if (increment && selectedIndex < totalResults - 1) {
+        selectedIndex++
+      } else if (!increment && selectedIndex > 0) {
+        selectedIndex--
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex,
+        })
+      })
+    }
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {

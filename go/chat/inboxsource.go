@@ -792,10 +792,10 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	}
 	var hits []convSearchHit
 	for _, conv := range convs {
-		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT {
-			continue
-		}
-		if conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_NEVER_JOINED) {
+		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT ||
+			!(conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
+				conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) ||
+			utils.IsConvEmpty(conv.Conv) || conv.Conv.IsPublic() {
 			continue
 		}
 		hit := s.isConvSearchHit(conv, queryToks, username)
