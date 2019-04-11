@@ -6,7 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
@@ -25,12 +25,12 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			Name:  "s, switch",
 			Usage: "switch out the current user for another",
 		},
-		cli.BoolFlag{
-			Name:  "paperkey-from-stdin",
-			Usage: "Automatically provision using a paper key provided in stdin",
+		cli.StringFlag{
+			Name:  "paperkey",
+			Usage: "DANGEROUS: automatically provision using this paper key",
 		},
 		cli.StringFlag{
-			Name:  "device-name",
+			Name:  "devicename",
 			Usage: "Device name used in automated provisioning",
 		},
 	}
@@ -60,8 +60,8 @@ type CmdLogin struct {
 	Username     string
 	doUserSwitch bool
 
-	paperkeyFromStdin bool
-	deviceName        string
+	PaperKey   string
+	DeviceName string
 
 	clientType keybase1.ClientType
 	cancel     func()
@@ -103,8 +103,8 @@ func (c *CmdLogin) Run() error {
 	}()
 
 	var paperKey string
-	if c.paperkeyFromStdin {
-		paperKey, err = c.readPaperKeyFromStdin()
+	if c.DeviceName != "" {
+		paperKey, err = c.getPaperKey()
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func (c *CmdLogin) Run() error {
 			DoUserSwitch: c.doUserSwitch,
 
 			PaperKey:   paperKey,
-			DeviceName: c.deviceName,
+			DeviceName: c.DeviceName,
 		})
 	c.done <- struct{}{}
 
@@ -158,9 +158,24 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 		}
 	}
 	c.doUserSwitch = ctx.Bool("switch")
-	c.paperkeyFromStdin = ctx.Bool("paperkey-from-stdin")
-	c.deviceName = ctx.String("device-name")
+
+	c.PaperKey = c.getOption(ctx, "paperkey")
+	c.DeviceName = c.getOption(ctx, "devicename")
+
 	return nil
+}
+
+func (c *CmdLogin) getOption(ctx *cli.Context, s string) string {
+	v := ctx.String(s)
+	if len(v) > 0 {
+		return v
+	}
+	envVarName := fmt.Sprintf("KEYBASE_%s", strings.ToUpper(strings.Replace(s, "-", "_", -1)))
+	v = os.Getenv(envVarName)
+	if len(v) > 0 {
+		return v
+	}
+	return ""
 }
 
 func (c *CmdLogin) GetUsage() libkb.Usage {
@@ -191,17 +206,12 @@ func (c *CmdLogin) Cancel() error {
 	return nil
 }
 
-func (c *CmdLogin) readPaperKeyFromStdin() (string, error) {
-	src := &StdinSource{}
-	if err := src.Open(); err != nil {
-		return "", err
+func (c *CmdLogin) getPaperKey() (ret string, err error) {
+	if len(c.PaperKey) > 0 {
+		return c.PaperKey, nil
 	}
-	defer src.Close()
-	data, err := ioutil.ReadAll(src)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
+	ret, err = c.G().UI.GetTerminalUI().PromptPasswordMaybeScripted(PromptDescriptorPaperKey, "paper key: ")
+	return ret, err
 }
 
 func (c *CmdLogin) errNoSyncedKey() error {
