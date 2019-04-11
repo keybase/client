@@ -547,11 +547,17 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	if err != nil || len(convMap) == 0 {
 		return nil, err
 	}
+	idx.Debug(ctx, "Search: allConvs: %d", len(convMap))
 
 	// convID -> convIdx
 	convIdxMap := map[string]*chat1.ConversationIndex{}
 	totalPercentIndexed := 0
 	for _, conv := range convMap {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
 		convID := conv.GetConvID()
 		convIdx, err := idx.store.getConvIndex(ctx, convID, uid)
 		if err != nil {
@@ -560,6 +566,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		totalPercentIndexed += convIdx.PercentIndexed(conv.Conv)
 		convIdxMap[convID.String()] = convIdx
 	}
+	idx.Debug(ctx, "Search: convIdxMap: %d", len(convIdxMap))
 	switch opts.ReindexMode {
 	case chat1.ReIndexingMode_FORCE:
 		for convIDStr, conv := range convMap {
@@ -588,7 +595,13 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	var numConvsSearched, numConvsHit int
 	hits := []chat1.ChatSearchInboxHit{}
 	convList := idx.flattenConvMap(ctx, uid, convMap)
+	idx.Debug(ctx, "Search: beginning conv searches")
 	for _, conv := range convList {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
 		convID := conv.GetConvID()
 		convIDStr := convID.String()
 		numConvsSearched++

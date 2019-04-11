@@ -52,8 +52,10 @@ type Server struct {
 	convPageStatus    map[string]chat1.Pagination
 	cachedThreadDelay *time.Duration
 
-	searchMu       sync.Mutex
-	searchCancelFn context.CancelFunc
+	searchMu            sync.Mutex
+	searchInboxMu       sync.Mutex
+	searchCancelFn      context.CancelFunc
+	searchInboxCancelFn context.CancelFunc
 
 	// Only for testing
 	rc                chat1.RemoteInterface
@@ -2355,6 +2357,30 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	}, nil
 }
 
+func (h *Server) cancelActiveInboxSearchLocked() {
+	if h.searchInboxCancelFn != nil {
+		h.searchInboxCancelFn()
+		h.searchInboxCancelFn = nil
+	}
+}
+
+func (h *Server) getInboxSearchContext(ctx context.Context) context.Context {
+	// enforce a single search happening at a time
+	h.searchInboxMu.Lock()
+	h.cancelActiveInboxSearchLocked()
+	ctx, h.searchInboxCancelFn = context.WithCancel(ctx)
+	h.searchInboxMu.Unlock()
+	return ctx
+}
+
+func (h *Server) CancelActiveInboxSearch(ctx context.Context) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "CancelActiveInboxSearch")()
+	h.searchInboxMu.Lock()
+	h.cancelActiveInboxSearchLocked()
+	h.searchInboxMu.Unlock()
+	return nil
+}
+
 func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res chat1.SearchInboxRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -2365,6 +2391,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	if err != nil {
 		return res, err
 	}
+	ctx = h.getInboxSearchContext(ctx)
 
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	chatUI := h.getChatUI(arg.SessionID)
@@ -2379,10 +2406,15 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		}
 		for searchHit := range hitUICh {
 			numHits += len(searchHit.Hits)
-			chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
-				SessionID: arg.SessionID,
-				SearchHit: searchHit,
-			})
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
+					SessionID: arg.SessionID,
+					SearchHit: searchHit,
+				})
+			}
 		}
 	}()
 	// stream index status back to client UI
@@ -2394,10 +2426,15 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			return
 		}
 		for status := range indexUICh {
-			chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
-				SessionID: arg.SessionID,
-				Status:    status,
-			})
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
+					SessionID: arg.SessionID,
+					Status:    status,
+				})
+			}
 		}
 	}()
 	// send up conversation name matches
@@ -2408,7 +2445,13 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
 		} else {
-			chatUI.ChatSearchConvHits(ctx, utils.PresentRemoteConversationsAsSearchHits(convHits, username))
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				chatUI.ChatSearchConvHits(ctx, utils.PresentRemoteConversationsAsSearchHits(convHits,
+					username))
+			}
 		}
 	}()
 
@@ -2430,10 +2473,15 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			PercentIndexed: searchRes.PercentIndexed,
 		}
 	}
-	chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
-		SessionID: arg.SessionID,
-		Res:       doneRes,
-	})
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	default:
+		chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
+			SessionID: arg.SessionID,
+			Res:       doneRes,
+		})
+	}
 	return chat1.SearchInboxRes{
 		Res:              searchRes,
 		IdentifyFailures: identBreaks,
