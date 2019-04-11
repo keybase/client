@@ -20,10 +20,13 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType   string
-	username     string
-	clientType   keybase1.ClientType
+	deviceType string
+	username   string
+	clientType keybase1.ClientType
+
 	doUserSwitch bool
+	PaperKey     string
+	MachineName  string
 }
 
 // NewLogin creates a Login engine.  username is optional.
@@ -144,6 +147,9 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		DeviceType: e.deviceType,
 		ClientType: e.clientType,
 		User:       ueng.User(),
+
+		PaperKey:    e.PaperKey,
+		MachineName: e.MachineName,
 	}
 	deng := newLoginProvision(m.G(), darg)
 	if err := RunEngine2(m, deng); err != nil {

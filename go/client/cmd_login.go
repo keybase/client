@@ -6,6 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"time"
 
@@ -23,6 +24,14 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 		cli.BoolFlag{
 			Name:  "s, switch",
 			Usage: "switch out the current user for another",
+		},
+		cli.BoolFlag{
+			Name:  "paperkey-from-stdin",
+			Usage: "Automatically provision using a paper key provided in stdin",
+		},
+		cli.StringFlag{
+			Name:  "machine-name",
+			Usage: "Machine name used in automated provisioning",
 		},
 	}
 	cmd := cli.Command{
@@ -50,10 +59,14 @@ type CmdLogin struct {
 	libkb.Contextified
 	Username     string
 	doUserSwitch bool
-	clientType   keybase1.ClientType
-	cancel       func()
-	done         chan struct{}
-	SessionID    int
+
+	paperkeyFromStdin bool
+	machineName       string
+
+	clientType keybase1.ClientType
+	cancel     func()
+	done       chan struct{}
+	SessionID  int
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
@@ -89,6 +102,14 @@ func (c *CmdLogin) Run() error {
 		c.cancel = nil
 	}()
 
+	var paperKey string
+	if c.paperkeyFromStdin {
+		paperKey, err = c.readPaperKeyFromStdin()
+		if err != nil {
+			return err
+		}
+	}
+
 	err = client.Login(ctx,
 		keybase1.LoginArg{
 			Username:     c.Username,
@@ -96,6 +117,9 @@ func (c *CmdLogin) Run() error {
 			ClientType:   c.clientType,
 			SessionID:    c.SessionID,
 			DoUserSwitch: c.doUserSwitch,
+
+			PaperKey:    paperKey,
+			MachineName: c.machineName,
 		})
 	c.done <- struct{}{}
 
@@ -134,6 +158,8 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 		}
 	}
 	c.doUserSwitch = ctx.Bool("switch")
+	c.paperkeyFromStdin = ctx.Bool("paperkey-from-stdin")
+	c.machineName = ctx.String("machine-name")
 	return nil
 }
 
@@ -163,6 +189,19 @@ func (c *CmdLogin) Cancel() error {
 		}
 	}
 	return nil
+}
+
+func (c *CmdLogin) readPaperKeyFromStdin() (string, error) {
+	src := &StdinSource{}
+	if err := src.Open(); err != nil {
+		return "", err
+	}
+	defer src.Close()
+	data, err := ioutil.ReadAll(src)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 func (c *CmdLogin) errNoSyncedKey() error {

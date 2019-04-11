@@ -43,6 +43,10 @@ type loginProvisionArg struct {
 	DeviceType string // desktop or mobile
 	ClientType keybase1.ClientType
 	User       *libkb.User
+
+	// Used for non-interactive provisioning
+	PaperKey    string
+	MachineName string
 }
 
 // newLoginProvision creates a loginProvision engine.
@@ -286,19 +290,17 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 }
 
 // paper attempts to provision the device via a paper key.
-func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) (err error) {
+func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *libkb.DeviceWithKeys) (err error) {
 	defer m.Trace("loginProvision#paper", func() error { return err })()
 
-	// get the paper key from the user
-
-	expectedPrefix := device.Description
-	keys, err := e.getValidPaperKey(m, expectedPrefix)
-	if err != nil {
-		return err
+	// get the paper key from the user if we're in the interactive flow
+	if keys == nil {
+		expectedPrefix := device.Description
+		keys, err = e.getValidPaperKey(m, expectedPrefix)
+		if err != nil {
+			return err
+		}
 	}
-
-	m.Debug("paper signing key kid: %s", keys.SigningKey().GetKID())
-	m.Debug("paper encryption key kid: %s", keys.EncryptionKey().GetKID())
 
 	u := e.arg.User
 	uv := u.ToUserVersion()
@@ -508,6 +510,24 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 		names = upk.AllDeviceNames()
 	}
 
+	// Fully non-interactive flow
+	if e.arg.MachineName != "" {
+		if !libkb.CheckDeviceName.F(e.arg.MachineName) {
+			return "", libkb.DeviceBadNameError{}
+		}
+
+		devname := libkb.CheckDeviceName.Transform(e.arg.MachineName)
+		normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
+		for _, name := range names {
+			if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {
+				m.Debug("Device name reused: %q == %q", devname, name)
+				return "", libkb.DeviceNameInUseError{}
+			}
+		}
+
+		return devname, nil
+	}
+
 	arg := keybase1.PromptNewDeviceNameArg{
 		ExistingDevices: names,
 	}
@@ -686,6 +706,45 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	devices := partitionDeviceList(ckf.GetAllActiveDevices())
 	sort.Sort(devices)
 
+	if e.arg.PaperKey != "" {
+		// User has requested non-interactive provisioning - first parse their key
+		keys, prefix, err := getPaperKeyFromString(m, e.arg.PaperKey)
+		if err != nil {
+			return err
+		}
+
+		// ... then match it to the paper keys that can be used with this account
+		for _, d := range devices {
+			if d.Type != libkb.DeviceTypePaper {
+				continue
+			}
+			if prefix != *d.Description {
+				continue
+			}
+
+			// use the KID to find the uid, deviceID and deviceName
+			uid, err := keys.Populate(m)
+			if err != nil {
+				switch err := err.(type) {
+				case libkb.NotFoundError:
+					return paperKeyNotFound
+				case libkb.AppStatusError:
+					if err.Code == libkb.SCNotFound {
+						return paperKeyNotFound
+					}
+				}
+				return err
+			}
+			if uid.NotEqual(e.arg.User.GetUID()) {
+				return paperKeyNotFound
+			}
+
+			return e.paper(m, d, keys)
+		}
+
+		return libkb.NoPaperKeysError{}
+	}
+
 	expDevices := make([]keybase1.Device, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
 	for i, d := range devices {
@@ -737,7 +796,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
-		return e.paper(m, selected)
+		return e.paper(m, selected, nil)
 	case libkb.DeviceTypeDesktop:
 		return e.deviceWithType(m, keybase1.DeviceType_DESKTOP)
 	case libkb.DeviceTypeMobile:
@@ -1014,6 +1073,10 @@ func getPaperKey(m libkb.MetaContext, lastErr error, expectedPrefix *string) (ke
 		return nil, "", err
 	}
 
+	return getPaperKeyFromString(m, passphrase)
+}
+
+func getPaperKeyFromString(m libkb.MetaContext, passphrase string) (keys *libkb.DeviceWithKeys, prefix string, err error) {
 	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(m, passphrase)
 	if err != nil {
 		return nil, "", err
