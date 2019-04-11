@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
+import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
@@ -254,12 +254,15 @@ class PlainInput extends Component<InternalProps, State> {
 
 const styles = styleSheetCreate({
   common: {backgroundColor: globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
-  multiline: {
-    height: undefined,
-    // TODO: Maybe remove these paddings?
-    paddingBottom: 0,
-    paddingTop: 0,
-  },
+  multiline: platformStyles({
+    isMobile: {
+      height: undefined,
+      // TODO: Maybe remove these paddings?
+      paddingBottom: 0,
+      paddingTop: 0,
+      textAlignVertical: 'top', // android centers by default
+    },
+  }),
   singleline: {padding: 0},
 })
 
