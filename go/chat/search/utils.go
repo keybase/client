@@ -132,7 +132,7 @@ func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1
 		}
 	}
 	// Regex
-	if len(query) > 0 && query[0] == '/' && query[len(query)-1] == '/' {
+	if len(query) > 2 && query[0] == '/' && query[len(query)-1] == '/' {
 		query = query[1 : len(query)-1]
 		arg.IsRegex = true
 	}
