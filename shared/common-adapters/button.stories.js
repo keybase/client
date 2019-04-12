@@ -15,7 +15,6 @@ const commonProps = {
   onMouseEnter: Sb.action('onMouseEnter'),
   onMouseLeave: Sb.action('onMouseLeave'),
   small: false,
-  style: {alignSelf: undefined}, // button really shouldn't have this set
   waiting: false,
 }
 
@@ -64,9 +63,12 @@ const load = () => {
             gapEnd={true}
             style={{alignSelf: 'flex-start'}}
           >
+            <Text type="BodySemibold">Small</Text>
             {types.map(t => (
               <Wrapper key={t}>
                 <Button {...commonProps} type={t} label={t} small={true} />
+                <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} />
+                <Button {...commonProps} type={t} label={t} small={true} disabled={true} />
                 <Button {...commonProps} type={t} label={t} small={true} waiting={true} />
               </Wrapper>
             ))}
@@ -83,13 +85,13 @@ const load = () => {
               borderColor: 'black',
               borderStyle: 'solid',
               borderWidth: 1,
-              width: isMobile ? 220 : 400,
+              width: isMobile ? 280 : 450,
             }}
           >
+            <Text type="BodySemibold">Full width</Text>
             {types.map(t => (
               <Box2 direction="vertical" key={t} gap="small" fullWidth={true}>
                 <Button {...commonProps} type={t} label={t} fullWidth={true} />
-                <Button {...commonProps} type={t} label={t} fullWidth={true} waiting={true} />
               </Box2>
             ))}
           </Box2>
@@ -98,6 +100,7 @@ const load = () => {
           {backgroundColors.map(b => (
             <Box2
               direction="horizontal"
+              gap="tiny"
               key={b}
               style={{backgroundColor: bgToColor[b], padding: 20, width: '100%'}}
             >

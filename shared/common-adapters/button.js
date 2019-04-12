@@ -132,16 +132,21 @@ const common = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
-    alignSelf: 'center',
     borderRadius,
     height: regularHeight,
     justifyContent: 'center',
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
   },
   isElectron: {
     display: 'inline-block',
     lineHeight: 'inherit',
+    minWidth: '100px',
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+  },
+  isMobile: {
+    minWidth: 120,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
   },
 })
 
@@ -164,20 +169,20 @@ const styles = styleSheetCreate({
     alignSelf: undefined,
     flexGrow: 1,
     height: fullWidthHeight,
-    maxWidth: isMobile ? undefined : 400,
-    width: undefined,
+    width: '100%',
   },
   labelContainer: {height: '100%', position: 'relative'},
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
-  progressNormal: {height: isMobile ? 32 : 24},
-  progressSmall: {height: isMobile ? 28 : 20},
+  progressNormal: {height: isMobile ? 32 : 24, width: isMobile ? 32 : 24},
+  progressSmall: {height: isMobile ? 28 : 20, width: isMobile ? 28 : 20},
   small: {
     borderRadius,
     height: smallHeight,
-    paddingLeft: globalMargins.xsmall,
-    paddingRight: globalMargins.xsmall,
+    minWidth: undefined,
+    paddingLeft: isMobile ? globalMargins.small : globalMargins.xsmall,
+    paddingRight: isMobile ? globalMargins.small : globalMargins.xsmall,
   },
 })
 
