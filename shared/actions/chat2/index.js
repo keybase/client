@@ -1365,6 +1365,7 @@ function* threadSearch(state, action) {
           maxConvs: -1,
           maxHits: -1,
           maxMessages: -1,
+          maxNameConvs: 15,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
@@ -2082,6 +2083,16 @@ const loadCanUserPerform = (state, action) => {
   }
 }
 
+const loadTeamForConv = (state, action) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const teamname = meta.teamname
+  if (!teamname) {
+    return
+  }
+  return TeamsGen.createGetMembers({teamname})
+}
+
 // Get the full channel names/descs for a team if we don't already have them.
 function* loadChannelInfos(state, action) {
   const {conversationIDKey} = action.payload
@@ -2729,9 +2740,11 @@ const toggleInfoPanel = (state, action) => {
 
 const unsentTextChanged = (state, action) => {
   const {conversationIDKey, text} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
   return RPCChatTypes.localUpdateUnsentTextRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     text: text.stringValue(),
+    tlfName: meta.tlfname,
   })
 }
 
@@ -2739,13 +2752,14 @@ const onGiphyResults = (state, action) => {
   const {convID, results} = action.payload.params
   return Chat2Gen.createGiphyGotSearchResult({
     conversationIDKey: Types.stringToConversationIDKey(convID),
-    results: results || [],
+    results,
   })
 }
 
 const onGiphyToggleWindow = (state, action) => {
-  const {convID, show} = action.payload.params
+  const {convID, show, clearInput} = action.payload.params
   return Chat2Gen.createGiphyToggleWindow({
+    clearInput,
     conversationIDKey: Types.stringToConversationIDKey(convID),
     show,
   })
@@ -2858,6 +2872,7 @@ const addUsersToChannel = (_, action) => {
   )
     .then(() => [
       Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      RouteTreeGen.createClearModals(),
       Chat2Gen.createNavigateToThread(),
     ])
     .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
@@ -2992,6 +3007,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     clearInboxFilter
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadTeamForConv)
 
   // Giphy
   yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, unsentTextChanged)

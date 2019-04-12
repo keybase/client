@@ -18,16 +18,18 @@ gen github.com/keybase/client/go/kbfs/libkey libkey \
 KeyOps,\
 KeyServer
 
-gen github.com/keybase/client/go/kbfs/libkbfs libkbfs \
+gen github.com/keybase/client/go/kbfs/data data \
 BlockCache,\
-BlockOps,\
-BlockServer,\
 BlockSplitter,\
 BlockWithPtrs,\
+DirtyBlockCache
+
+gen github.com/keybase/client/go/kbfs/libkbfs libkbfs \
+BlockOps,\
+BlockServer,\
 Chat,\
 Clock,\
 Crypto,\
-DirtyBlockCache,\
 KBFSOps,\
 KBPKI,\
 KeybaseService,\

@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -97,7 +98,7 @@ func CleanOldDeletedRepos(
 	ctx context.Context, config libkbfs.Config,
 	tlfHandle *tlfhandle.Handle) (err error) {
 	fs, err := libfs.NewFS(
-		ctx, config, tlfHandle, libkbfs.MasterBranch,
+		ctx, config, tlfHandle, data.MasterBranch,
 		path.Join(kbfsRepoDir, kbfsDeletedReposDir),
 		"" /* uniq ID isn't used for removals */, keybase1.MDPriorityGit)
 	switch errors.Cause(err).(type) {
@@ -419,7 +420,7 @@ func getOrCreateRepoAndID(
 	}
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlfHandle, libkbfs.MasterBranch)
+		ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
 		return nil, NullID, err
 	}
@@ -454,7 +455,7 @@ func getOrCreateRepoAndID(
 	case nil:
 		// If the repo was renamed to something else, we should
 		// override it with a new repo if we're in create-only mode.
-		if op == createOnly && repoEI.Type == libkbfs.Sym {
+		if op == createOnly && repoEI.Type == data.Sym {
 			config.MakeLogger("").CDebugf(
 				ctx, "Overwriting symlink for repo %s with a new repo",
 				normalizedRepoName)
@@ -474,7 +475,7 @@ func getOrCreateRepoAndID(
 	repoExists = true
 
 	fs, err = libfs.NewFS(
-		ctx, config, tlfHandle, libkbfs.MasterBranch,
+		ctx, config, tlfHandle, data.MasterBranch,
 		path.Join(kbfsRepoDir, normalizedRepoName),
 		uniqID, keybase1.MDPriorityGit)
 	if err != nil {
@@ -601,7 +602,7 @@ func DeleteRepo(
 
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(
-		ctx, tlfHandle, libkbfs.MasterBranch)
+		ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
 		return err
 	}
@@ -684,7 +685,7 @@ func RenameRepo(
 
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(
-		ctx, tlfHandle, libkbfs.MasterBranch)
+		ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
 		return err
 	}
@@ -708,7 +709,7 @@ func RenameRepo(
 	}
 
 	fs, err := libfs.NewFS(
-		ctx, config, tlfHandle, libkbfs.MasterBranch, path.Join(kbfsRepoDir),
+		ctx, config, tlfHandle, data.MasterBranch, path.Join(kbfsRepoDir),
 		"", keybase1.MDPriorityGit)
 	if err != nil {
 		return err
@@ -752,7 +753,7 @@ func RenameRepo(
 	case idutil.NoSuchNameError:
 		// The happy path.
 	case nil:
-		if ei.Type == libkbfs.Sym {
+		if ei.Type == data.Sym {
 			config.MakeLogger("").CDebugf(
 				ctx, "Overwriting symlink for repo %s with a new repo",
 				normalizedNewRepoName)

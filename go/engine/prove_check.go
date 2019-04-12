@@ -53,7 +53,7 @@ func (e *ProveCheck) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *ProveCheck) Run(m libkb.MetaContext) error {
-	found, status, state, err := libkb.CheckPostedViaSigID(m, e.sigID)
+	found, status, state, err := libkb.CheckPosted(m, e.sigID)
 	if err != nil {
 		return err
 	}

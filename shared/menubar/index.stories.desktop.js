@@ -4,6 +4,7 @@ import * as Storybook from '../stories/storybook'
 import * as Kb from '../common-adapters'
 import * as ConfigConstants from '../constants/config'
 import * as Types from '../constants/types/fs'
+import * as Constants from '../constants/fs'
 import Menubar from './index.desktop'
 import OutOfDate from './out-of-date'
 import {FileUpdate} from './files.desktop'
@@ -29,7 +30,7 @@ const props = {
   fileName: null,
   files: 0,
   folderProps: null,
-  kbfsDaemonStatus: 'connected',
+  kbfsDaemonStatus: Constants.makeKbfsDaemonStatus({rpcStatus: 'connected'}),
   kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,

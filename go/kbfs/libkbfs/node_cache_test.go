@@ -8,20 +8,21 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 
-func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
+func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) (
 	ncs *nodeCacheStandard, parentNode Node, childNode1 Node, childNode2 Node,
-	childPath1 []pathNode, childPath2 []pathNode) {
-	ncs = newNodeCacheStandard(FolderBranch{id, branch})
+	childPath1 []data.PathNode, childPath2 []data.PathNode) {
+	ncs = newNodeCacheStandard(data.FolderBranch{Tlf: id, Branch: branch})
 
-	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
+	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentName := "parent"
 	var err error
-	parentNode, err = ncs.GetOrCreate(parentPtr, parentName, nil, Dir)
+	parentNode, err = ncs.GetOrCreate(parentPtr, parentName, nil, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
@@ -30,9 +31,9 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 	}
 
 	// now create a child node for that parent
-	childPtr1 := BlockPointer{ID: kbfsblock.FakeID(1)}
+	childPtr1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
 	childName1 := "child1"
-	childNode1, err = ncs.GetOrCreate(childPtr1, childName1, parentNode, Dir)
+	childNode1, err = ncs.GetOrCreate(childPtr1, childName1, parentNode, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create child node: %v", err)
 	}
@@ -45,9 +46,9 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 		parent2 = parentNode
 	}
 
-	childPtr2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+	childPtr2 := data.BlockPointer{ID: kbfsblock.FakeID(2)}
 	childName2 := "child2"
-	childNode2, err = ncs.GetOrCreate(childPtr2, childName2, parent2, Dir)
+	childNode2, err = ncs.GetOrCreate(childPtr2, childName2, parent2, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create second child node: %v", err)
 	}
@@ -55,7 +56,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 		t.Errorf("Expected basename %s, got %s", childName2, childNode2.GetBasename())
 	}
 
-	childPath1 = []pathNode{
+	childPath1 = []data.PathNode{
 		{
 			BlockPointer: parentPtr,
 			Name:         parentName,
@@ -66,7 +67,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 		},
 	}
 	if flat {
-		childPath2 = []pathNode{
+		childPath2 = []data.PathNode{
 			{
 				BlockPointer: parentPtr,
 				Name:         parentName,
@@ -77,7 +78,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 			},
 		}
 	} else {
-		childPath2 = []pathNode{
+		childPath2 = []data.PathNode{
 			{
 				BlockPointer: parentPtr,
 				Name:         parentName,
@@ -132,14 +133,14 @@ func simulateGC(ncs *nodeCacheStandard, liveList []Node) {
 // Tests for simple GetOrCreate successes (with and without a parent)
 func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 	ncs, parentNode, childNode1A, _, path1, path2 :=
-		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 	parentPtr := path1[0].BlockPointer
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
 
 	// make sure we get the same node back for the second call
 	childNode1B, err := ncs.GetOrCreate(
-		childPtr1, childNode1A.GetBasename(), parentNode, Dir)
+		childPtr1, childNode1A.GetBasename(), parentNode, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create child node: %v", err)
 	}
@@ -161,10 +162,13 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 
 // Tests that a child can't be created with an unknown parent.
 func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
-	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, tlf.Private), ""})
+	ncs := newNodeCacheStandard(data.FolderBranch{
+		Tlf:    tlf.FakeID(0, tlf.Private),
+		Branch: "",
+	})
 
-	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, Dir)
+	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
+	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
@@ -172,8 +176,8 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	simulateGC(ncs, []Node{})
 
 	// now try to create a child node for that parent
-	childPtr1 := BlockPointer{ID: kbfsblock.FakeID(1)}
-	_, err = ncs.GetOrCreate(childPtr1, "child", parentNode, Dir)
+	childPtr1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
+	_, err = ncs.GetOrCreate(childPtr1, "child", parentNode, data.Dir)
 	expectedErr := ParentNodeNotFoundError{parentPtr.Ref()}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when creating w/o parent: %v", err)
@@ -182,15 +186,18 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 
 // Tests that UpdatePointer works
 func TestNodeCacheUpdatePointer(t *testing.T) {
-	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, tlf.Private), ""})
+	ncs := newNodeCacheStandard(data.FolderBranch{
+		Tlf:    tlf.FakeID(0, tlf.Private),
+		Branch: "",
+	})
 
-	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, Dir)
+	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
+	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
 
-	newParentPtr := BlockPointer{ID: kbfsblock.FakeID(1)}
+	newParentPtr := data.BlockPointer{ID: kbfsblock.FakeID(1)}
 	ncs.UpdatePointer(parentPtr.Ref(), newParentPtr)
 
 	if parentNode.(*nodeStandard).core.pathNode.BlockPointer != newParentPtr {
@@ -201,7 +208,7 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 // Tests that Move works as expected
 func TestNodeCacheMoveSuccess(t *testing.T) {
 	ncs, parentNode, childNode1, childNode2, path1, path2 :=
-		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 	parentPtr := path1[0].BlockPointer
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
@@ -246,7 +253,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 // Tests that a child can't be updated with an unknown parent
 func TestNodeCacheMoveNoParent(t *testing.T) {
 	ncs, _, childNode1, childNode2, path1, path2 :=
-		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 	childPtr1 := path1[1].BlockPointer
 	childPtr2 := path2[1].BlockPointer
 
@@ -261,21 +268,21 @@ func TestNodeCacheMoveNoParent(t *testing.T) {
 	}
 }
 
-func checkNodeCachePath(t *testing.T, id tlf.ID, branch BranchName,
-	path path, expectedPath []pathNode) {
-	if len(path.path) != len(expectedPath) {
-		t.Errorf("Bad path length: %v vs %v", len(path.path), len(expectedPath))
+func checkNodeCachePath(t *testing.T, id tlf.ID, branch data.BranchName,
+	path data.Path, expectedPath []data.PathNode) {
+	if len(path.Path) != len(expectedPath) {
+		t.Errorf("Bad path length: %v vs %v", len(path.Path), len(expectedPath))
 	}
 
 	for i, n := range expectedPath {
-		if path.path[i] != n {
-			t.Errorf("Bad node on path, index %d: %v vs %v", i, path.path[i], n)
+		if path.Path[i] != n {
+			t.Errorf("Bad node on path, index %d: %v vs %v", i, path.Path[i], n)
 		}
 	}
 	if path.Tlf != id {
 		t.Errorf("Wrong top dir: %v vs %v", path.Tlf, id)
 	}
-	if path.Branch != BranchName(branch) {
+	if path.Branch != data.BranchName(branch) {
 		t.Errorf("Wrong branch: %s vs %s", path.Branch, branch)
 	}
 }
@@ -284,14 +291,14 @@ func checkNodeCachePath(t *testing.T, id tlf.ID, branch BranchName,
 // still have a path, but not a basename.
 func TestNodeCacheUnlink(t *testing.T) {
 	id := tlf.FakeID(42, tlf.Private)
-	branch := BranchName("testBranch")
+	branch := data.BranchName("testBranch")
 	ncs, _, _, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
 	undoFn := ncs.Unlink(
-		childPtr2.Ref(), ncs.PathFromNode(childNode2), DirEntry{})
+		childPtr2.Ref(), ncs.PathFromNode(childNode2), data.DirEntry{})
 	if undoFn == nil {
 		t.Fatalf("Couldn't unlink")
 	}
@@ -315,14 +322,14 @@ func TestNodeCacheUnlink(t *testing.T) {
 // parent, and the child still has a path and a basename.
 func TestNodeCacheUnlinkParent(t *testing.T) {
 	id := tlf.FakeID(42, tlf.Private)
-	branch := BranchName("testBranch")
+	branch := data.BranchName("testBranch")
 	ncs, _, childNode1, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
 	childPtr1 := path2[1].BlockPointer
 
 	// unlink node 2's parent
 	undoFn := ncs.Unlink(
-		childPtr1.Ref(), ncs.PathFromNode(childNode1), DirEntry{})
+		childPtr1.Ref(), ncs.PathFromNode(childNode1), data.DirEntry{})
 	if undoFn == nil {
 		t.Fatalf("Couldn't unlink")
 	}
@@ -340,23 +347,23 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 // node core.
 func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	id := tlf.FakeID(42, tlf.Private)
-	branch := BranchName("testBranch")
+	branch := data.BranchName("testBranch")
 	ncs, _, childNode1, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
 	undoFn := ncs.Unlink(
-		childPtr2.Ref(), ncs.PathFromNode(childNode2), DirEntry{})
+		childPtr2.Ref(), ncs.PathFromNode(childNode2), data.DirEntry{})
 	if undoFn == nil {
 		t.Fatalf("Couldn't unlink")
 	}
 
 	newChildName := "newChildName"
-	newChildPtr2 := BlockPointer{ID: kbfsblock.FakeID(22)}
+	newChildPtr2 := data.BlockPointer{ID: kbfsblock.FakeID(22)}
 	ncs.UpdatePointer(childPtr2.Ref(), newChildPtr2) // NO-OP
 	childNode2B, err := ncs.GetOrCreate(
-		newChildPtr2, newChildName, childNode1, Dir)
+		newChildPtr2, newChildName, childNode1, data.Dir)
 	if err != nil {
 		t.Fatalf("Couldn't relink node: %v", err)
 	}
@@ -385,7 +392,7 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 // Tests that PathFromNode works correctly
 func TestNodeCachePathFromNode(t *testing.T) {
 	id := tlf.FakeID(42, tlf.Private)
-	branch := BranchName("testBranch")
+	branch := data.BranchName("testBranch")
 	ncs, _, _, childNode2, _, path2 :=
 		setupNodeCache(t, id, branch, false)
 	path := ncs.PathFromNode(childNode2)
@@ -395,7 +402,7 @@ func TestNodeCachePathFromNode(t *testing.T) {
 // Make sure that (simulated) GC works as expected.
 func TestNodeCacheGCBasic(t *testing.T) {
 	ncs, parentNode, _, childNode2, _, _ :=
-		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 
 	if len(ncs.nodes) != 3 {
 		t.Errorf("Expected %d nodes, got %d", 3, len(ncs.nodes))
@@ -424,7 +431,7 @@ func TestNodeCacheGCBasic(t *testing.T) {
 // last reference to a parent.
 func TestNodeCacheGCParent(t *testing.T) {
 	ncs, _, _, childNode2, _, _ :=
-		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 
 	if len(ncs.nodes) != 3 {
 		t.Errorf("Expected %d nodes, got %d", 3, len(ncs.nodes))
@@ -455,7 +462,7 @@ func testNodeStandardFinalizer(n *nodeStandard) {
 // Make sure that that making a node unreachable runs the finalizer on GC.
 func TestNodeCacheGCReal(t *testing.T) {
 	ncs, _, childNode1, childNode2, _, _ :=
-		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, true)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, true)
 
 	if len(ncs.nodes) != 3 {
 		t.Errorf("Expected %d nodes, got %d", 3, len(ncs.nodes))
@@ -487,7 +494,10 @@ func (wtn *wrappedTestNode) WrapChild(child Node) Node {
 
 func TestNodeCacheWrapChild(t *testing.T) {
 	ncs := newNodeCacheStandard(
-		FolderBranch{tlf.FakeID(0, tlf.Private), MasterBranch})
+		data.FolderBranch{
+			Tlf:    tlf.FakeID(0, tlf.Private),
+			Branch: data.MasterBranch,
+		})
 	var wtn1, wtn2 *wrappedTestNode
 	rw1 := func(root Node) Node {
 		wtn1 = &wrappedTestNode{root, false}
@@ -500,14 +510,14 @@ func TestNodeCacheWrapChild(t *testing.T) {
 	ncs.AddRootWrapper(rw1)
 	ncs.AddRootWrapper(rw2)
 
-	rootPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
+	rootPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	rootName := "root"
-	rootNode, err := ncs.GetOrCreate(rootPtr, rootName, nil, Dir)
+	rootNode, err := ncs.GetOrCreate(rootPtr, rootName, nil, data.Dir)
 	require.NoError(t, err)
 
-	childPtr := BlockPointer{ID: kbfsblock.FakeID(1)}
+	childPtr := data.BlockPointer{ID: kbfsblock.FakeID(1)}
 	childName := "child1"
-	_, err = ncs.GetOrCreate(childPtr, childName, rootNode, Dir)
+	_, err = ncs.GetOrCreate(childPtr, childName, rootNode, data.Dir)
 	require.NoError(t, err)
 	require.True(t, wtn1.wrapChildCalled)
 	require.True(t, wtn2.wrapChildCalled)
@@ -515,7 +525,7 @@ func TestNodeCacheWrapChild(t *testing.T) {
 
 func TestNodeCacheAllNodeChildren(t *testing.T) {
 	ncs, parentNode, childNode1, childNode2, _, _ :=
-		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, false)
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), data.MasterBranch, false)
 
 	// Structure:
 	// parent:
@@ -524,14 +534,14 @@ func TestNodeCacheAllNodeChildren(t *testing.T) {
 	//      child3
 	//   child4
 
-	childPtr3 := BlockPointer{ID: kbfsblock.FakeID(3)}
+	childPtr3 := data.BlockPointer{ID: kbfsblock.FakeID(3)}
 	childName3 := "child3"
-	_, err := ncs.GetOrCreate(childPtr3, childName3, childNode1, Dir)
+	_, err := ncs.GetOrCreate(childPtr3, childName3, childNode1, data.Dir)
 	require.NoError(t, err)
 
-	childPtr4 := BlockPointer{ID: kbfsblock.FakeID(4)}
+	childPtr4 := data.BlockPointer{ID: kbfsblock.FakeID(4)}
 	childName4 := "child4"
-	_, err = ncs.GetOrCreate(childPtr4, childName4, parentNode, Dir)
+	_, err = ncs.GetOrCreate(childPtr4, childName4, parentNode, data.Dir)
 	require.NoError(t, err)
 
 	parentChildren := ncs.AllNodeChildren(parentNode)

@@ -200,6 +200,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	server *rpc.Server) (err error) {
 
 	defer func() {
+		md.config.Reporter().OnlineStatusChanged(ctx, err == nil)
 		if err == nil {
 			md.config.Reporter().Notify(ctx,
 				connectionNotification(connectionStatusConnected))
@@ -395,6 +396,7 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 	}
 
 	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+	md.config.Reporter().OnlineStatusChanged(context.Background(), false)
 }
 
 // OnDoCommandError implements the ConnectionHandler interface.
@@ -404,6 +406,7 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 	// Only push errors that should not be retried as connection status changes.
 	if !md.ShouldRetry("", err) {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+		md.config.Reporter().OnlineStatusChanged(context.Background(), false)
 	}
 }
 
@@ -414,6 +417,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 		md.log.CWarningf(ctx, "MDServerRemote is disconnected")
 		md.config.Reporter().Notify(ctx,
 			connectionNotification(connectionStatusDisconnected))
+		md.config.Reporter().OnlineStatusChanged(ctx, false)
 	}
 
 	func() {
@@ -438,6 +442,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 
 	if status == rpc.StartingNonFirstConnection {
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
+		md.config.Reporter().OnlineStatusChanged(ctx, false)
 	}
 }
 

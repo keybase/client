@@ -2,6 +2,7 @@ package io.keybase.ossifrage;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.NotificationManagerCompat;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService;
@@ -41,8 +42,6 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
 
     @Override
     public void onMessageReceived(RemoteMessage message) {
-        NativeLogger.info("KeybasePushNotificationListenerService onMessageReceived");
-
         final Bundle bundle = new Bundle();
         for (Map.Entry<String, String> entry : message.getData().entrySet()) {
             bundle.putString(entry.getKey(), entry.getValue());
@@ -67,6 +66,9 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                 ApplicationBadgeHelper.INSTANCE.setApplicationIconBadgeNumber(this, badge);
             }
         }
+
+        NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived: " + bundle);
+
         try {
             String type = bundle.getString("type");
             String payload = bundle.getString("m");
@@ -91,9 +93,16 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                     String convID = bundle.getString("convID");
                     Integer messageId = Integer.parseInt(bundle.getString("msgID"));
                     Keybase.handleBackgroundNotification(convID, payload, membersType, false, messageId, "", 0, 0, "", notifier);
+                    // FIXME: this seems to be sending phantom notifications...
                     super.onMessageReceived(message);
                 }
                 break;
+                case "chat.readmessage": {
+                    // Cancel any push notifications for this message ID.
+                    String convID = bundle.getString("c");
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                    notificationManager.cancel(Integer.parseInt(convID.substring(0, 7), 16));
+                }
                 default:
                     super.onMessageReceived(message);
             }

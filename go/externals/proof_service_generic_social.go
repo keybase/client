@@ -100,6 +100,7 @@ func (c *GenericSocialProofConfig) profileURLWithValues(remoteUsername string) (
 }
 
 func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
+	remoteUsername = strings.ToLower(remoteUsername)
 	url := strings.Replace(c.PrefillUrl, kbUsernameKey, kbUsername, 1)
 	if !strings.Contains(url, kbUsername) {
 		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUsername: %s", url, kbUsername)
@@ -121,7 +122,7 @@ func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername, remoteUserna
 
 func (c *GenericSocialProofConfig) checkURLWithValues(remoteUsername string) (string, error) {
 	url := strings.Replace(c.CheckUrl, remoteUsernameKey, remoteUsername, 1)
-	if !strings.Contains(url, remoteUsername) {
+	if !strings.Contains(strings.ToLower(url), strings.ToLower(remoteUsername)) {
 		return "", fmt.Errorf("Invalid CheckUrl: %s, missing remoteUsername: %s", url, remoteUsername)
 	}
 	return url, nil
@@ -133,7 +134,7 @@ func (c *GenericSocialProofConfig) validateRemoteUsername(remoteUsername string)
 		return fmt.Errorf("username must be at least %d characters, was %d", c.UsernameConfig.Min, len(remoteUsername))
 	} else if len(remoteUsername) > uc.Max {
 		return fmt.Errorf("username can be at most %d characters, was %d", c.UsernameConfig.Max, len(remoteUsername))
-	} else if !c.usernameRe.MatchString(remoteUsername) {
+	} else if !c.usernameRe.MatchString(strings.ToLower(remoteUsername)) {
 		return libkb.NewBadUsernameError(remoteUsername)
 	}
 	return nil
@@ -160,7 +161,9 @@ func NewGenericSocialProofChecker(proof libkb.RemoteProofChainLink, config *Gene
 func (rc *GenericSocialProofChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb.SigHint, _ libkb.ProofCheckerMode,
-	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	pvlU keybase1.MerkleStoreEntry) (_ *libkb.SigHint, retErr libkb.ProofError) {
+	mctx = mctx.WithLogTag("PCS")
+	defer mctx.TraceTimed("GenericSocialProofChecker.CheckStatus", func() error { return retErr })()
 
 	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {

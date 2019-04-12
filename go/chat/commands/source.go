@@ -73,6 +73,7 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdExpand],
 		cmds[cmdFlip],
 		cmds[cmdGiphy],
+		cmds[cmdHeadline],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
@@ -83,12 +84,10 @@ func (s *Source) makeBuiltins() {
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
 	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAM] = append([]types.ConversationCommand{
-		cmds[cmdHeadline],
 		cmds[cmdJoin],
 		cmds[cmdLeave],
 	}, common...)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAMGENERAL] = append([]types.ConversationCommand{
-		cmds[cmdHeadline],
 		cmds[cmdJoin],
 	}, common...)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_SMALLTEAM] = append([]types.ConversationCommand{
@@ -165,7 +164,7 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 }
 
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	text string) {
+	tlfName, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
 	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
@@ -174,7 +173,7 @@ func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	typ := s.GetBuiltinCommandType(ctx, conv)
 	for _, cmd := range s.builtins[typ] {
 		// Run preview on everything as long as it is a slash command
-		cmd.Preview(ctx, uid, convID, text)
+		cmd.Preview(ctx, uid, convID, tlfName, text)
 	}
 }
 

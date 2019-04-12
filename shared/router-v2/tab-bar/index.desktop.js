@@ -9,15 +9,15 @@ import type {Props} from '.'
 import './tab-bar.css'
 
 const data = {
-  [Tabs.chatTab]: {icon: 'iconfont-nav-chat', label: 'Chat'},
-  [Tabs.devicesTab]: {icon: 'iconfont-nav-devices', label: 'Devices'},
-  [Tabs.fsTab]: {icon: 'iconfont-nav-files', label: 'Files'},
-  [Tabs.gitTab]: {icon: 'iconfont-nav-git', label: 'Git'},
-  [Tabs.peopleTab]: {icon: 'iconfont-nav-people', label: 'People'},
-  [Tabs.profileTab]: {icon: 'iconfont-nav-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-settings', label: 'Settings'},
-  [Tabs.teamsTab]: {icon: 'iconfont-nav-teams', label: 'Teams'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-wallets', label: 'Wallet'},
+  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
+  [Tabs.devicesTab]: {icon: 'iconfont-nav-2-devices', label: 'Devices'},
+  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
+  [Tabs.gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
+  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [Tabs.profileTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
+  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
+  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
+  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 }
 
 const tabs = [

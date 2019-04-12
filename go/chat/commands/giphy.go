@@ -13,13 +13,14 @@ import (
 )
 
 type giphySearcher interface {
-	Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
+	Search(mctx libkb.MetaContext, query *string, limit int, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
 }
 
 type defaultGiphySearcher struct{}
 
-func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
-	return giphy.Search(mctx, query, urlsrv)
+func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, limit int,
+	urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+	return giphy.Search(mctx, query, limit, urlsrv)
 }
 
 type Giphy struct {
@@ -33,9 +34,6 @@ type Giphy struct {
 
 func NewGiphy(g *globals.Context) *Giphy {
 	usage := "Search for and post GIFs"
-	if g.GetAppType() == libkb.MobileAppType {
-		usage = "Post a random GIF"
-	}
 	return &Giphy{
 		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, true),
 		shownResults: make(map[string]*string),
@@ -55,13 +53,21 @@ func (s *Giphy) getQuery(text string) *string {
 	return query
 }
 
+func (s *Giphy) getLimit() int {
+	limit := 25
+	if s.G().IsMobileAppType() {
+		limit = 10
+	}
+	return limit
+}
+
 func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) (err error) {
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
 	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
-		s.G().AttachmentURLSrv)
+		s.getLimit(), s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
 		return err
@@ -76,20 +82,18 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 }
 
 func (n nullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-	results []chat1.GiphySearchResult) error {
+	results chat1.GiphySearchResults) error {
 	return nil
 }
 
-func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID, show bool) error {
+func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID,
+	show, clearInput bool) error {
 	return nil
 }
 
-func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
+func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	tlfName, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "Preview")()
-	if s.G().GetAppType() == libkb.MobileAppType {
-		// no preview on mobile yet
-		return
-	}
 	s.Lock()
 	if s.currentOpCancelFn != nil {
 		s.currentOpCancelFn()
@@ -108,7 +112,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if !s.Match(ctx, text) {
 		if _, ok := s.shownResults[convID.String()]; ok {
 			// tell UI to clear
-			s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false)
+			s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false, false)
 			delete(s.shownResults, convID.String())
 		}
 		return
@@ -118,13 +122,17 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Preview: same query given, skipping")
 		return
 	}
-	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true)
+	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true, false)
 	s.shownResults[convID.String()] = query
-	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query,
+
+	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query, s.getLimit(),
 		s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
 		return
 	}
-	s.getChatUI().ChatGiphySearchResults(ctx, convID, results)
+	s.getChatUI().ChatGiphySearchResults(ctx, convID, chat1.GiphySearchResults{
+		Results:    results,
+		GalleryUrl: s.G().AttachmentURLSrv.GetGiphyGalleryURL(ctx, convID, tlfName, results),
+	})
 }

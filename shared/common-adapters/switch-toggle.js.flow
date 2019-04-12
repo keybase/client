@@ -1,0 +1,11 @@
+// @flow
+import * as React from 'react'
+import * as Styles from '../styles'
+
+export type Props = {|
+  color: 'green' | 'blue',
+  on: boolean,
+  style?:?Styles.StylesCrossPlatform,
+|}
+
+declare export default class SwitchToggle extends React.PureComponent<Props> {}

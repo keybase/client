@@ -302,7 +302,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 		if !retry || err != nil {
 			break
 		}
-		found, status, _, err = libkb.CheckPosted(m, p.postRes.ID)
+		found, status, _, err = libkb.CheckPosted(m, p.sigID)
 		if found || err != nil {
 			break
 		}
@@ -338,7 +338,13 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 		m.Warning("prove ui Checking call error: %s", uierr)
 	}
 	for i := 0; ; i++ {
-		found, status, _, err := libkb.CheckPosted(m, p.postRes.ID)
+		if shouldContinue, uierr := m.UIs().ProveUI.ContinueChecking(m.Ctx(), 0); !shouldContinue || uierr != nil {
+			if uierr != nil {
+				m.Warning("prove ui ContinueChecking call error: %s", uierr)
+			}
+			return libkb.CanceledError{}
+		}
+		found, status, _, err := libkb.CheckPosted(m, p.sigID)
 		if err != nil {
 			return err
 		}

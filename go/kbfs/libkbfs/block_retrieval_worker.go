@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/eapache/channels"
+	"github.com/keybase/client/go/kbfs/data"
 )
 
 // blockRetrievalWorker processes blockRetrievalQueue requests
@@ -61,7 +62,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		return io.EOF
 	}
 
-	var block Block
+	var block data.Block
 	var cacheType DiskBlockCacheType
 	defer func() {
 		brw.queue.FinalizeRequest(retrieval, block, cacheType, err)

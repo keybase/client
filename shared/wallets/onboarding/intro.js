@@ -20,9 +20,7 @@ const Intro = (props: IntroProps) => {
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
       labelStyle={styles.labelStyle}
-    >
-      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
-    </Kb.Button>,
+    />,
   ]
   return (
     <WalletPopup

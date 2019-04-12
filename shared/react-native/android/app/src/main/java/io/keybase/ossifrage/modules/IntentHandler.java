@@ -3,7 +3,10 @@ package io.keybase.ossifrage.modules;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -32,6 +35,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
     private static final String TAG = IntentHandler.class.getName();
     private final ReactApplicationContext reactContext;
+    private Bundle shareData = new Bundle();
 
     protected void handleNotificationIntent(Intent intent) {
         if (!intent.getBooleanExtra("isNotification", false)) return;
@@ -51,16 +55,33 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         emitter.emit("androidIntentNotification", evt);
     }
 
-    private void handleSendIntentStream(Intent intent) {
-        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-        if (uri == null) return;
+    // @return file path
+    private String readFileFromUri(Uri uri) {
+        if (uri == null) return null;
 
         String filePath = null;
         if (uri.getScheme().equals("content")) {
             ContentResolver resolver = reactContext.getContentResolver();
             String mimeType = resolver.getType(uri);
             String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+
+            // Load the filename from the resolver.
+            // Of course, Android makes this super clean and easy.
+            // Use a GUID default.
             String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
+            String[] nameProjection = {MediaStore.MediaColumns.DISPLAY_NAME};
+            Cursor cursor = resolver.query(uri, nameProjection, null, null, null);
+            if (cursor != null) {
+                try {
+                    if (cursor.moveToFirst()) {
+                        filename = cursor.getString(0);
+                    }
+                } finally {
+                    cursor.close();
+                }
+            }
+
+            // Now load the file itself.
             File file = new File(reactContext.getCacheDir(), filename);
             try {
                 InputStream istream = resolver.openInputStream(uri);
@@ -78,13 +99,19 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         } else {
             filePath = uri.getPath();
         }
+        return filePath;
+    }
 
+    private void handleSendIntentStream(Intent intent) {
+        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (uri == null) return;
+
+        String filePath = readFileFromUri(uri);
         if (filePath == null) return;
 
-        if (reactContext == null) return;
-
-        WritableMap evt = Arguments.createMap();
-        evt.putString("path", filePath);
+        shareData = new Bundle();
+        shareData.putString("localPath", filePath);
+        WritableMap evt = Arguments.fromBundle(shareData);
 
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
@@ -106,8 +133,9 @@ public class IntentHandler extends ReactContextBaseJavaModule {
 
         if (reactContext == null) return;
 
-        WritableMap evt = Arguments.createMap();
-        evt.putString("text", sharedText);
+        shareData = new Bundle();
+        shareData.putString("text", sharedText);
+        WritableMap evt = Arguments.fromBundle(shareData);
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
         if (emitter != null) {
@@ -152,6 +180,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
         Activity activity = getCurrentActivity();
         if (activity == null) {
             NativeLogger.warn("activity not yet initialized");
+            return;
         }
         handleIntent(activity.getIntent());
     }
@@ -162,15 +191,7 @@ public class IntentHandler extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void handlePushNotification(String convID, String payload, Integer membersType,
-                                       Boolean displayPlaintext, Integer messageID, String pushID,
-                                       Integer badgeCount, Integer unixTime, String soundName, Promise promise) {
-        try {
-            PushNotifier notifier = new KBPushNotifier(reactContext);
-            Keybase.handleBackgroundNotification(convID, payload, membersType, displayPlaintext, messageID, pushID, badgeCount, unixTime, soundName, notifier);
-            promise.resolve(null);
-        } catch (Exception ex) {
-            promise.reject(ex);
-        }
+    public void getShareData(Promise promise) {
+        promise.resolve(Arguments.fromBundle(shareData));
     }
 }

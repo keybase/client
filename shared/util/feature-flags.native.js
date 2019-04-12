@@ -14,13 +14,14 @@ const ff: FeatureFlags = {
   enableDeleteFolder: false,
   folderViewFilter: false,
   foldersInProfileTab: false,
-  moveOrCopy: true,
+  kbfsOfflineMode: false,
+  moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sendAttachmentToChat: true,
-  useNewRouter: false,
+  sendAttachmentToChat: false,
+  useNewRouter: true,
 }
 
 // load overrides

@@ -54,6 +54,10 @@ func (p *ProveRooterUI) Checking(_ context.Context, _ keybase1.CheckingArg) erro
 	return nil
 }
 
+func (p *ProveRooterUI) ContinueChecking(_ context.Context, _ int) (bool, error) {
+	return true, nil
+}
+
 func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 	arg := keybase1.StartProofArg{
 		Service:  "rooter",

@@ -66,6 +66,10 @@ func (r DummyChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSe
 	return nil
 }
 
+func (r DummyChatUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatStellarDataConfirmArg) (bool, error) {
 	return true, nil
 }

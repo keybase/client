@@ -145,3 +145,13 @@ func TestStructUnknownFields(t require.TestingT,
 	require.NoError(t, err)
 	require.Equal(t, sFuture, sFuture3)
 }
+
+// TestStructUnknownFieldsMsgpack calls TestStructUnknownFields with
+// codecs with the msgpack codec.
+func TestStructUnknownFieldsMsgpack(t require.TestingT, sFuture FutureStruct) {
+	cFuture := NewMsgpack()
+	cCurrent := NewMsgpack()
+	cCurrentKnownOnly := NewMsgpackNoUnknownFields()
+
+	TestStructUnknownFields(t, cFuture, cCurrent, cCurrentKnownOnly, sFuture)
+}

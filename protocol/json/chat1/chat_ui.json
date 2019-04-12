@@ -950,6 +950,24 @@
     },
     {
       "type": "record",
+      "name": "UIChatSearchConvHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIChatPayment",
       "fields": [
         {
@@ -1024,6 +1042,23 @@
         {
           "type": "boolean",
           "name": "previewIsVideo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GiphySearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "GiphySearchResult"
+          },
+          "name": "results"
+        },
+        {
+          "type": "string",
+          "name": "galleryUrl"
         }
       ]
     },
@@ -1504,6 +1539,22 @@
       ],
       "response": null
     },
+    "chatSearchConvHits": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "hits",
+          "type": {
+            "type": "array",
+            "items": "UIChatSearchConvHit"
+          }
+        }
+      ],
+      "response": null
+    },
     "chatConfirmChannelDelete": {
       "request": [
         {
@@ -1577,10 +1628,7 @@
         },
         {
           "name": "results",
-          "type": {
-            "type": "array",
-            "items": "GiphySearchResult"
-          }
+          "type": "GiphySearchResults"
         }
       ],
       "response": null
@@ -1597,6 +1645,10 @@
         },
         {
           "name": "show",
+          "type": "boolean"
+        },
+        {
+          "name": "clearInput",
           "type": "boolean"
         }
       ],

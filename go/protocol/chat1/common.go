@@ -1917,6 +1917,7 @@ type SearchOpts struct {
 	AfterContext  int          `codec:"afterContext" json:"afterContext"`
 	ForceReindex  bool         `codec:"forceReindex" json:"forceReindex"`
 	MaxConvs      int          `codec:"maxConvs" json:"maxConvs"`
+	MaxNameConvs  int          `codec:"maxNameConvs" json:"maxNameConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
@@ -1930,24 +1931,32 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		AfterContext:  o.AfterContext,
 		ForceReindex:  o.ForceReindex,
 		MaxConvs:      o.MaxConvs,
+		MaxNameConvs:  o.MaxNameConvs,
 	}
 }
 
+type EmptyStruct struct {
+}
+
+func (o EmptyStruct) DeepCopy() EmptyStruct {
+	return EmptyStruct{}
+}
+
 type ConversationIndexMetadata struct {
-	SeenIDs map[MessageID]bool `codec:"s" json:"s"`
-	Version int                `codec:"v" json:"v"`
+	SeenIDs map[MessageID]EmptyStruct `codec:"s" json:"s"`
+	Version int                       `codec:"v" json:"v"`
 }
 
 func (o ConversationIndexMetadata) DeepCopy() ConversationIndexMetadata {
 	return ConversationIndexMetadata{
-		SeenIDs: (func(x map[MessageID]bool) map[MessageID]bool {
+		SeenIDs: (func(x map[MessageID]EmptyStruct) map[MessageID]EmptyStruct {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[MessageID]bool, len(x))
+			ret := make(map[MessageID]EmptyStruct, len(x))
 			for k, v := range x {
 				kCopy := k.DeepCopy()
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[kCopy] = vCopy
 			}
 			return ret
@@ -1957,27 +1966,28 @@ func (o ConversationIndexMetadata) DeepCopy() ConversationIndexMetadata {
 }
 
 type ConversationIndex struct {
-	Index    map[string]map[MessageID]bool `codec:"i" json:"i"`
-	Metadata ConversationIndexMetadata     `codec:"m" json:"m"`
+	Index    map[string]map[MessageID]EmptyStruct `codec:"i" json:"i"`
+	Alias    map[string]map[string]EmptyStruct    `codec:"a" json:"a"`
+	Metadata ConversationIndexMetadata            `codec:"m" json:"m"`
 }
 
 func (o ConversationIndex) DeepCopy() ConversationIndex {
 	return ConversationIndex{
-		Index: (func(x map[string]map[MessageID]bool) map[string]map[MessageID]bool {
+		Index: (func(x map[string]map[MessageID]EmptyStruct) map[string]map[MessageID]EmptyStruct {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string]map[MessageID]bool, len(x))
+			ret := make(map[string]map[MessageID]EmptyStruct, len(x))
 			for k, v := range x {
 				kCopy := k
-				vCopy := (func(x map[MessageID]bool) map[MessageID]bool {
+				vCopy := (func(x map[MessageID]EmptyStruct) map[MessageID]EmptyStruct {
 					if x == nil {
 						return nil
 					}
-					ret := make(map[MessageID]bool, len(x))
+					ret := make(map[MessageID]EmptyStruct, len(x))
 					for k, v := range x {
 						kCopy := k.DeepCopy()
-						vCopy := v
+						vCopy := v.DeepCopy()
 						ret[kCopy] = vCopy
 					}
 					return ret
@@ -1986,6 +1996,29 @@ func (o ConversationIndex) DeepCopy() ConversationIndex {
 			}
 			return ret
 		})(o.Index),
+		Alias: (func(x map[string]map[string]EmptyStruct) map[string]map[string]EmptyStruct {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]map[string]EmptyStruct, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := (func(x map[string]EmptyStruct) map[string]EmptyStruct {
+					if x == nil {
+						return nil
+					}
+					ret := make(map[string]EmptyStruct, len(x))
+					for k, v := range x {
+						kCopy := k
+						vCopy := v.DeepCopy()
+						ret[kCopy] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Alias),
 		Metadata: o.Metadata.DeepCopy(),
 	}
 }

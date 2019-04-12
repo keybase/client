@@ -389,6 +389,7 @@ type ServiceDisplayConfig struct {
 	Priority         int     `codec:"priority" json:"priority"`
 	Key              string  `codec:"key" json:"key"`
 	Group            *string `codec:"group,omitempty" json:"group,omitempty"`
+	New              bool    `codec:"new" json:"new"`
 }
 
 func (o ServiceDisplayConfig) DeepCopy() ServiceDisplayConfig {
@@ -403,6 +404,7 @@ func (o ServiceDisplayConfig) DeepCopy() ServiceDisplayConfig {
 			tmp := (*x)
 			return &tmp
 		})(o.Group),
+		New: o.New,
 	}
 }
 

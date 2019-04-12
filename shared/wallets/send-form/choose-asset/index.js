@@ -26,6 +26,7 @@ export type Props = {|
   onChoose: (item: DisplayItem | OtherItem) => void,
   onRefresh: () => void,
   otherChoices: Array<OtherItem>,
+  isRequest: boolean,
   selected: string,
 |}
 
@@ -155,7 +156,7 @@ class ChooseAsset extends React.Component<Props, State> {
     return (
       <Kb.MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
         <Kb.Box2 direction="vertical" style={styles.container}>
-          <Header onBack={this.props.onBack} whiteBackground={true} />
+          <Header isRequest={this.props.isRequest} onBack={this.props.onBack} whiteBackground={true} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <Kb.SectionList
               sections={sections}

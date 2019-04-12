@@ -18,11 +18,12 @@ const ff: FeatureFlags = {
   enableDeleteFolder: false,
   folderViewFilter: false,
   foldersInProfileTab: false,
+  kbfsOfflineMode: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
-  proofProviders: __DEV__,
+  proofProviders: true,
   sendAttachmentToChat: false,
   useNewRouter: false,
 }

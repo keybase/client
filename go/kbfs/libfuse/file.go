@@ -13,13 +13,14 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
 type eiCache struct {
-	ei    libkbfs.EntryInfo
+	ei    data.EntryInfo
 	reqID string
 }
 
@@ -37,7 +38,7 @@ func (c *eiCacheHolder) destroy() {
 	c.cache = nil
 }
 
-func (c *eiCacheHolder) getAndDestroyIfMatches(reqID string) (ei *libkbfs.EntryInfo) {
+func (c *eiCacheHolder) getAndDestroyIfMatches(reqID string) (ei *data.EntryInfo) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.cache != nil && c.cache.reqID == reqID {
@@ -47,7 +48,7 @@ func (c *eiCacheHolder) getAndDestroyIfMatches(reqID string) (ei *libkbfs.EntryI
 	return ei
 }
 
-func (c *eiCacheHolder) set(reqID string, ei libkbfs.EntryInfo) {
+func (c *eiCacheHolder) set(reqID string, ei data.EntryInfo) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.cache = &eiCache{
@@ -69,13 +70,13 @@ type File struct {
 var _ fs.Node = (*File)(nil)
 
 func (f *File) fillAttrWithMode(
-	ctx context.Context, ei *libkbfs.EntryInfo, a *fuse.Attr) (err error) {
+	ctx context.Context, ei *data.EntryInfo, a *fuse.Attr) (err error) {
 	if err = f.folder.fillAttrWithUIDAndWritePerm(
 		ctx, f.node, ei, a); err != nil {
 		return err
 	}
 	a.Mode |= 0400
-	if ei.Type == libkbfs.Exec {
+	if ei.Type == data.Exec {
 		a.Mode |= 0100
 	}
 
@@ -156,7 +157,7 @@ func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
 			}
 			return err
 		}
-		if ei.Type != libkbfs.Exec {
+		if ei.Type != data.Exec {
 			return fuse.EPERM
 		}
 	}

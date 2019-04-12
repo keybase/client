@@ -123,6 +123,7 @@ const Unreachable = props => (
 type Props = {|
   error: string,
   onBack: () => void,
+  onCancel: () => void,
   onChangeUsername: string => void,
   onContinue: () => void,
   onSubmit: () => void,
@@ -138,9 +139,16 @@ type Props = {|
 |}
 
 class _EnterUsername extends React.Component<Props> {
+  _waitingButtonKey = 0
   componentDidUpdate(prevProps: Props) {
     if (!this.props.waiting && prevProps.waiting) {
       this.props.onContinue()
+    }
+    if (this.props.error && !prevProps.error) {
+      // We just tried an invalid username
+      // increment waiting button key so it
+      // remounts and we avoid a perma-spinner
+      this._waitingButtonKey++
     }
   }
   render() {
@@ -222,6 +230,7 @@ class _EnterUsername extends React.Component<Props> {
                 label={props.submitButtonLabel}
                 style={styles.buttonBig}
                 waitingKey={null}
+                key={this._waitingButtonKey}
               />
             )}
           </Kb.ButtonBar>
@@ -252,11 +261,11 @@ const styles = Styles.styleSheetCreate({
   },
   input: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.medium},
+    isAndroid: {
+      top: 1,
+    },
     isElectron: {
       marginTop: -1,
-    },
-    isMobile: {
-      top: 3,
     },
   }),
   inputBox: {
@@ -282,7 +291,9 @@ const styles = Styles.styleSheetCreate({
     top: 1,
   },
   invisible: {
-    opacity: 0,
+    // opacity doesn't work in nested Text on android
+    // see here: https://github.com/facebook/react-native/issues/18057
+    color: Styles.globalColors.transparent,
   },
   marginLeftAuto: {marginLeft: 'auto'},
   opacity40: {

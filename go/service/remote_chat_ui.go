@@ -77,6 +77,13 @@ func (r *RemoteChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.Chat
 	return r.cli.ChatSearchIndexStatus(ctx, arg)
 }
 
+func (r *RemoteChatUI) ChatSearchConvHits(ctx context.Context, hits []chat1.UIChatSearchConvHit) error {
+	return r.cli.ChatSearchConvHits(ctx, chat1.ChatSearchConvHitsArg{
+		SessionID: r.sessionID,
+		Hits:      hits,
+	})
+}
+
 func (r *RemoteChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
 	return r.cli.ChatStellarDataConfirm(ctx, chat1.ChatStellarDataConfirmArg{
 		SessionID: r.sessionID,
@@ -103,7 +110,7 @@ func (r *RemoteChatUI) ChatStellarDone(ctx context.Context, canceled bool) error
 }
 
 func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-	results []chat1.GiphySearchResult) error {
+	results chat1.GiphySearchResults) error {
 	return r.cli.ChatGiphySearchResults(ctx, chat1.ChatGiphySearchResultsArg{
 		SessionID: r.sessionID,
 		ConvID:    convID.String(),
@@ -112,11 +119,12 @@ func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.
 }
 
 func (r *RemoteChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID,
-	show bool) error {
+	show, clearInput bool) error {
 	return r.cli.ChatGiphyToggleResultWindow(ctx, chat1.ChatGiphyToggleResultWindowArg{
-		SessionID: r.sessionID,
-		ConvID:    convID.String(),
-		Show:      show,
+		SessionID:  r.sessionID,
+		ConvID:     convID.String(),
+		Show:       show,
+		ClearInput: clearInput,
 	})
 }
 

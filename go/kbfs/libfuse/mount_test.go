@@ -29,6 +29,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
@@ -3464,7 +3465,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	}
 
 	now := time.Now()
-	var clock libkbfs.TestClock
+	var clock clocktest.TestClock
 	clock.Set(now)
 	config2.SetClock(&clock)
 
@@ -3665,7 +3666,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	}
 
 	now := time.Now()
-	var clock libkbfs.TestClock
+	var clock clocktest.TestClock
 	clock.Set(now)
 	config2.SetClock(&clock)
 

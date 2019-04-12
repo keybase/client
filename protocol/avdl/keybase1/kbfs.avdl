@@ -49,6 +49,11 @@ protocol kbfs {
   @lint("ignore")
   void FSSyncEvent(FSPathSyncStatus event);
 
+  /**
+    FSSyncEvent is called by KBFS when the online status changes.
+        */
+  @lint("ignore")
+  void FSOnlineStatusChangedEvent(boolean online);
 
   /**
     createTLF is called by KBFS to associate the tlfID with the given teamID,

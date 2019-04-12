@@ -76,6 +76,8 @@ type GlobalContext struct {
 	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	IDLocktab        LockTable
+	loadUserLockTab  LockTable
 	teamAuditor      TeamAuditor
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
@@ -351,6 +353,8 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	g.IdentifyDispatch.OnLogout()
 
 	g.Identify3State.OnLogout()
+
+	g.GetUPAKLoader().OnLogout()
 
 	return nil
 }
@@ -962,12 +966,13 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.loginHooks = append(g.loginHooks, hook)
 }
 
-func (g *GlobalContext) CallLoginHooks() {
-	mctx := NewMetaContextTODO(g)
-	g.Log.Debug("G#CallLoginHooks")
+func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
+	mctx.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
-	_, _ = g.GetPerUserKeyring(context.TODO())
+	_, _ = g.GetPerUserKeyring(mctx.Ctx())
+
+	g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin(mctx)
@@ -976,7 +981,7 @@ func (g *GlobalContext) CallLoginHooks() {
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
 		if err := h.OnLogin(mctx); err != nil {
-			g.Log.Warning("OnLogin hook error: %s", err)
+			mctx.Warning("OnLogin hook error: %s", err)
 		}
 	}
 
@@ -1187,7 +1192,7 @@ func (g *GlobalContext) KeyfamilyChanged(ctx context.Context, u keybase1.UID) {
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleKeyfamilyChanged(u)
 		// TODO: remove this when KBFS handles KeyfamilyChanged
-		g.NotifyRouter.HandleUserChanged(u)
+		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "KeyfamilyChanged")
 	}
 }
 
@@ -1199,7 +1204,7 @@ func (g *GlobalContext) UserChanged(ctx context.Context, u keybase1.UID) {
 
 	g.BustLocalUserCache(ctx, u)
 	if g.NotifyRouter != nil {
-		g.NotifyRouter.HandleUserChanged(u)
+		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "G.UserChanged")
 	}
 
 	g.uchMu.Lock()

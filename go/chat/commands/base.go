@@ -96,7 +96,7 @@ func (b *baseCommand) HasHelpText() bool {
 }
 
 func (b *baseCommand) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	text string) {
+	tlfName, text string) {
 }
 
 func (b *baseCommand) Export() chat1.ConversationCommand {

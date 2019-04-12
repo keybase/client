@@ -1,55 +1,76 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, ConnectedUsernames} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile, desktopStyles, platformStyles} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type Props = {
   fullname: string,
+  isAdmin: boolean,
+  isOwner: boolean,
   username: string,
   onShowProfile: (username: string) => void,
 }
 
-const Participant = ({fullname, username, onShowProfile}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
-    <ClickableBox key={username} onClick={() => onShowProfile(username)}>
-      <Box style={rowStyle}>
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-            flex: 1,
-            marginRight: globalMargins.tiny,
-          }}
-        >
-          <Avatar size={isMobile ? 48 : 32} username={username} />
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              marginLeft: isMobile ? globalMargins.small : globalMargins.tiny,
-            }}
-          >
-            <ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
-            {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
-          </Box>
-        </Box>
-      </Box>
-    </ClickableBox>
-  </Box>
+const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Props) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.ClickableBox key={username} onClick={() => onShowProfile(username)}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
+          <Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />
+          <Kb.Box2 direction="vertical" style={styles.wrapper}>
+            <Kb.ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
+            <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
+              {fullname !== '' && <Kb.Text type="BodySmall">{fullname}</Kb.Text>}
+              {(isAdmin || isOwner) && (
+                <Kb.Box2 direction="horizontal" alignItems="center" gap="xxtiny">
+                  <Kb.Text type="BodySmall">(</Kb.Text>
+                  <Kb.Icon
+                    color={isOwner ? Styles.globalColors.yellow2 : Styles.globalColors.black_35}
+                    fontSize={10}
+                    type="iconfont-crown-owner"
+                  />
+                  <Kb.Text type="BodySmall">{isAdmin ? 'Admin' : 'Owner'}</Kb.Text>
+                  <Kb.Text type="BodySmall">)</Kb.Text>
+                </Kb.Box2>
+              )}
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  </Kb.Box2>
 )
 
-const rowStyle = platformStyles({
-  common: {
-    ...globalStyles.flexBoxColumn,
-    minHeight: 48,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+const styles = Styles.styleSheetCreate({
+  container: {
+    paddingTop: Styles.globalMargins.tiny,
   },
-  isElectron: {
-    ...desktopStyles.clickable,
+  row: {
+    alignItems: 'center',
+    flex: 1,
+    marginRight: Styles.globalMargins.tiny,
   },
-  isMobile: {
-    minHeight: 56,
-  },
+  rowContainer: Styles.platformStyles({
+    common: {
+      minHeight: 48,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
+    },
+    isMobile: {
+      minHeight: 56,
+    },
+  }),
+  wrapper: Styles.platformStyles({
+    isElectron: {
+      marginLeft: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      marginLeft: Styles.globalMargins.small,
+    },
+  }),
 })
 
 export default Participant
