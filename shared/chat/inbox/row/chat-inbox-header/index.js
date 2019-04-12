@@ -27,6 +27,7 @@ class ChatInboxHeader extends React.Component<Props, State> {
       <StartNewChat onNewChat={this.props.onNewChat} />
     ) : (
       <ChatFilterRow
+        onCancel={this.props.onCancel}
         onNewChat={this.props.onNewChat}
         focusFilter={this._focusFilter}
         filterFocusCount={this.state.filterFocusCount}

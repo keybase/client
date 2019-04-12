@@ -8,6 +8,7 @@ import ConversationFilterInput from '../../../conversation-filter-input'
 import HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
+  onCancel: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
   onEnsureSelection: () => void,
@@ -37,7 +38,6 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
     }
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
   onFocus: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)})),
 })
@@ -49,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
   onBack: dispatchProps.onBack,
-  onCancel: dispatchProps.onCancel,
+  onCancel: ownProps.onCancel,
   onEnsureSelection: ownProps.onEnsureSelection,
   onFocus: dispatchProps.onFocus,
   onNewChat: ownProps.onNewChat,

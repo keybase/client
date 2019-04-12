@@ -13,6 +13,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
   onSelectConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})),
 })
@@ -25,6 +26,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     }))
     .toArray(),
   nameStatus: stateProps._inboxSearch.nameStatus,
+  onCancel: dispatchProps.onCancel,
   onSelectConversation: dispatchProps.onSelectConversation,
   selectedIndex: stateProps._inboxSearch.selectedIndex,
   textResults: stateProps._inboxSearch.textResults

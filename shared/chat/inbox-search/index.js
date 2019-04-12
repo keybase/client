@@ -21,6 +21,7 @@ type TextResult = {|
 type Props = {|
   nameStatus: Types.InboxSearchStatus,
   nameResults: Array<NameResult>,
+  onCancel: () => void,
   onSelectConversation: Types.ConversationIDKey => void,
   selectedIndex: number,
   textStatus: Types.InboxSearchStatus,
@@ -35,20 +36,25 @@ type State = {
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, textCollapsed: false}
   _renderNameHit = ({item, section, index}) => {
-    const onSelectConversation = () => this.props.onSelectConversation(item.conversationIDKey)
+    const onSelectConversation = doCancel => {
+      if (doCancel) {
+        this.props.onCancel()
+      }
+      this.props.onSelectConversation(item.conversationIDKey)
+    }
     return item.type === 'big' ? (
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
         isSelected={this.props.selectedIndex === index}
         key={index}
-        onSelectConversation={onSelectConversation}
+        onSelectConversation={() => onSelectConversation(true)}
       />
     ) : (
       <SelectableSmallTeam
         conversationIDKey={item.conversationIDKey}
         isSelected={this.props.selectedIndex === index}
         key={index}
-        onSelectConversation={onSelectConversation}
+        onSelectConversation={() => onSelectConversation(true)}
       />
     )
   }
