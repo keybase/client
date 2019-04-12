@@ -63,13 +63,15 @@ const load = () => {
             gapEnd={true}
             style={{alignSelf: 'flex-start'}}
           >
-            <Text type="BodySemibold">Small</Text>
+            <Text type="BodySemibold">Small + disabled + waiting</Text>
             {types.map(t => (
               <Wrapper key={t}>
                 <Button {...commonProps} type={t} label={t} small={true} />
                 <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} />
                 <Button {...commonProps} type={t} label={t} small={true} disabled={true} />
                 <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} disabled={true} />
+                <Button {...commonProps} type={t} label={t} small={true} waiting={true} />
+                <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} waiting={true} />
               </Wrapper>
             ))}
           </Box2>

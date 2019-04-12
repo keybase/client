@@ -110,11 +110,9 @@ class Button extends React.Component<Props> {
     containerStyle = collapseStyles([containerStyle, this.props.style])
 
     const onClick = (!unclickable && !this.props.waiting && this.props.onClick) || null
-    const whiteSpinner = !(
-      this.props.type === 'PrimaryGreenActive' ||
-      this.props.type === 'Secondary' ||
-      this.props.type === 'PrimaryColoredBackground'
-    )
+    const whiteSpinner =
+      (this.props.mode === 'Primary' && !(this.props.backgroundColor || this.props.type === 'Dim')) ||
+      (this.props.mode === 'Secondary' && !!this.props.backgroundColor)
 
     let ButtonBox = Kb.ClickableBox
     if (this.props.mode === 'Secondary' && !this.props.backgroundColor && !unclickable) {
