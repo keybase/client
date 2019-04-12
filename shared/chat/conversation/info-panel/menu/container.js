@@ -38,7 +38,7 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
 
 const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
   let convProps = null
-  if (conversationIDKey !== ChatConstants.noConversationIDKey) {
+  if (conversationIDKey !== ChatConstants.noConversationIDKey && conversationIDKey) {
     const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
     convProps = {
       ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,

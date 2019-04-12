@@ -39,6 +39,7 @@ export type Props = {
 
 type State = {
   isHovered: boolean,
+  showMenu: boolean,
 }
 
 const SmallTeamBox = Styles.isMobile
@@ -52,10 +53,12 @@ const SmallTeamBox = Styles.isMobile
 class SmallTeam extends React.PureComponent<Props, State> {
   state = {
     isHovered: false,
+    showMenu: false,
   }
 
   _onMouseLeave = () => this.setState({isHovered: false})
   _onMouseOver = () => this.setState({isHovered: true})
+  _onShowMenu = (showMenu: boolean) => this.setState({showMenu})
 
   _backgroundColor = () =>
     // props.backgroundColor should always override hover styles, otherwise, there's a
@@ -72,6 +75,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
     return (
       <SmallTeamBox
         onClick={props.onSelectConversation}
+        onLongPress={() => this._onShowMenu(true)}
         onMouseLeave={this._onMouseLeave}
         onMouseOver={this._onMouseOver}
         style={Styles.collapseStyles([
@@ -115,6 +119,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 participants={props.teamname ? [props.teamname] : props.participants}
                 showBold={props.showBold}
                 showGear={!Styles.isMobile && !props.isInWidget}
+                forceShowMenu={this.state.showMenu}
+                onForceHideMenu={() => this._onShowMenu(false)}
                 subColor={props.subColor}
                 timestamp={props.timestamp}
                 usernameColor={props.usernameColor}

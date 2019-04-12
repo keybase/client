@@ -168,18 +168,22 @@ class InfoPanelMenu extends React.Component<Props> {
       return null
     }
     const convProps = this.props.convProps
-    const title = `${convProps.muted ? 'Unmute' : 'Mute'} all notifications`
+    const title = `${convProps.muted ? 'Unmute' : 'Mute all'} notifications`
     return {
       onClick: () => this.props.onMuteConv(!convProps.muted),
-      style: {borderTopWidth: 0},
       title,
       view: (
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+        <Kb.Box style={Styles.globalStyles.flexBoxRow}>
           <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
             {title}
           </Kb.Text>
-          <Kb.Icon type="iconfont-shh" color={Styles.globalColors.black_20} />
-        </Kb.Box2>
+          <Kb.Icon
+            color={Styles.globalColors.black_20}
+            fontSize={Styles.isMobile ? 18 : undefined}
+            style={styles.icon}
+            type="iconfont-shh"
+          />
+        </Kb.Box>
       ),
     }
   }
@@ -219,6 +223,9 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {paddingBottom: 24, paddingTop: 40},
   }),
+  icon: {
+    marginLeft: Styles.globalMargins.tiny,
+  },
   noTopborder: {
     borderTopWidth: 0,
   },

@@ -10,8 +10,10 @@ type Props = {
   channelname?: string,
   teamname?: string,
   conversationIDKey: ChatTypes.ConversationIDKey,
+  forceShowMenu: boolean,
   hasUnread: boolean,
   iconHoverColor: string,
+  onForceHideMenu: () => void,
   participants: Array<string>,
   showBold: boolean,
   showGear: boolean,
@@ -37,16 +39,17 @@ class _SimpleTopLine extends React.Component<Props> {
     const boldStyle = this.props.showBold ? styles.bold : null
     return (
       <Kb.Box style={styles.container}>
-        {this.props.showGear && (
-          <TeamMenu
-            visible={this.props.showingMenu}
-            attachTo={this.props.getAttachmentRef}
-            onHidden={this.props.toggleShowingMenu}
-            isSmallTeam={true}
-            teamname={(this.props.participants.length && this.props.participants[0]) || ''}
-            conversationIDKey={this.props.conversationIDKey}
-          />
-        )}
+        <TeamMenu
+          visible={this.props.showingMenu || this.props.forceShowMenu}
+          attachTo={this.props.getAttachmentRef}
+          onHidden={() => {
+            this.props.setShowingMenu(false)
+            this.props.onForceHideMenu()
+          }}
+          isSmallTeam={true}
+          teamname={(this.props.participants.length && this.props.participants[0]) || ''}
+          conversationIDKey={this.props.conversationIDKey}
+        />
         <Kb.Box style={styles.insideContainer}>
           <Kb.Box style={styles.nameContainer}>
             {this.props.teamname && this.props.channelname ? (
