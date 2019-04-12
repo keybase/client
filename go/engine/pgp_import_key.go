@@ -246,7 +246,7 @@ func (e *PGPKeyImportEngine) checkRandomPassword(mctx libkb.MetaContext) error {
 		return err
 	}
 	if random {
-		return libkb.NewPushSecretWithoutPasswordError("A password is required to upload secret keys to the server.")
+		return libkb.NewPushSecretWithoutPasswordError("You need to set your password first before uploading secret keys")
 	}
 	return nil
 }
