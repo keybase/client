@@ -338,7 +338,7 @@ func TestPGPImportPushSecretWithoutPassword(t *testing.T) {
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NotNil(t, err, "import should fail")
-	require.Contains(t, err.Error(), "A password is required to upload secret keys to the server.")
+	require.Contains(t, err.Error(), "You need to set your password first before uploading secret keys")
 }
 
 func numPrivateGPGKeys(g *libkb.GlobalContext) (int, error) {
