@@ -559,7 +559,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 // subscribed requests.
 func (brq *blockRetrievalQueue) FinalizeRequest(
 	retrieval *blockRetrieval, block data.Block, cacheType DiskBlockCacheType,
-	err error) {
+	retrievalErr error) {
 	brq.mtx.Lock()
 	// This might have already been removed if the context has been canceled.
 	// That's okay, because this will then be a no-op.
@@ -597,7 +597,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 
 	// Cache the block and trigger prefetches if there is no error.
 	if retrieval.action.PrefetchTracked() {
-		if err == nil {
+		if retrievalErr == nil {
 			// We treat this request as not having been prefetched, because the
 			// only way to get here is if the request wasn't already cached.
 			// Need to call with context.Background() because the retrieval's
@@ -608,17 +608,16 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		} else {
 			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr)
 		}
-	} else {
+	} else if retrievalErr == nil {
 		// Even if the block is not being tracked by the prefetcher,
 		// we still want to put it in the block caches.
-		err = brq.PutInCaches(
+		err := brq.PutInCaches(
 			retrieval.ctx, retrieval.blockPtr, retrieval.kmd.TlfID(), block,
 			retrieval.cacheLifetime, NoPrefetch, retrieval.action.CacheType())
 		if err != nil {
 			brq.log.CDebugf(
 				retrieval.ctx, "Couldn't put block in cache: %+v", err)
 			// swallow the error if we were unable to put the block into caches.
-			err = nil
 		}
 	}
 
@@ -630,7 +629,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		}
 		// Since we created this channel with a buffer size of 1, this won't
 		// block.
-		req.doneCh <- err
+		req.doneCh <- retrievalErr
 	}
 	// Clearing references to the requested blocks seems to plug a
 	// leak, but not sure why yet.
