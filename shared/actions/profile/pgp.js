@@ -31,7 +31,7 @@ function* generatePgp(state) {
     }
   }
 
-  const onShouldPushPrivate = (_, response) => {
+  const onShouldPushPrivate = ({prompt}, response) => {
     return Saga.callUntyped(function*() {
       yield Saga.put(
         RouteTreeGen.createNavigateTo({
@@ -45,6 +45,7 @@ function* generatePgp(state) {
           ],
         })
       )
+      yield Saga.put(ProfileGen.createUpdatePromptForStore({promptForStore: prompt}))
       const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
       response.result(action.payload.shouldStoreKeyOnServer)
       yield navBack

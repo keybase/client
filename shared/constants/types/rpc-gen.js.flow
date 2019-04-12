@@ -717,7 +717,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.pgpUi.shouldPushPrivate': {|
-    inParam: void,
+    inParam: $ReadOnly<{|prompt: Boolean|}>,
     outParam: Boolean,
   |},
   'keybase.1.pprof.logProcessorProfile': {|

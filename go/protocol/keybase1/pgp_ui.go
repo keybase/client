@@ -28,7 +28,8 @@ type KeyGeneratedArg struct {
 }
 
 type ShouldPushPrivateArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Prompt    bool `codec:"prompt" json:"prompt"`
 }
 
 type FinishedArg struct {
@@ -39,7 +40,7 @@ type PGPUiInterface interface {
 	OutputSignatureSuccess(context.Context, OutputSignatureSuccessArg) error
 	OutputSignatureSuccessNonKeybase(context.Context, OutputSignatureSuccessNonKeybaseArg) error
 	KeyGenerated(context.Context, KeyGeneratedArg) error
-	ShouldPushPrivate(context.Context, int) (bool, error)
+	ShouldPushPrivate(context.Context, ShouldPushPrivateArg) (bool, error)
 	Finished(context.Context, int) error
 }
 
@@ -103,7 +104,7 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ShouldPushPrivateArg)(nil), args)
 						return
 					}
-					ret, err = i.ShouldPushPrivate(ctx, typedArgs[0].SessionID)
+					ret, err = i.ShouldPushPrivate(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -145,8 +146,7 @@ func (c PGPUiClient) KeyGenerated(ctx context.Context, __arg KeyGeneratedArg) (e
 	return
 }
 
-func (c PGPUiClient) ShouldPushPrivate(ctx context.Context, sessionID int) (res bool, err error) {
-	__arg := ShouldPushPrivateArg{SessionID: sessionID}
+func (c PGPUiClient) ShouldPushPrivate(ctx context.Context, __arg ShouldPushPrivateArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pgpUi.shouldPushPrivate", []interface{}{__arg}, &res)
 	return
 }
