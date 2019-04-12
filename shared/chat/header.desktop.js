@@ -40,7 +40,9 @@ const Header = (p: Props) => (
       <Kb.Box2 direction="vertical" style={styles.grow}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {p.channel ? (
-            <Kb.Text type="Header">{p.channel}</Kb.Text>
+            <Kb.Text selectable={true} type="Header">
+              {p.channel}
+            </Kb.Text>
           ) : p.participants ? (
             <Kb.ConnectedUsernames
               colorFollowing={true}
@@ -63,7 +65,11 @@ const Header = (p: Props) => (
             />
           )}
         </Kb.Box2>
-        {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
+        {!!p.desc && (
+          <Kb.Text selectable={true} type="BodyTiny">
+            {p.desc}
+          </Kb.Text>
+        )}
       </Kb.Box2>
       {p.showActions && (
         <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="flex-end">
