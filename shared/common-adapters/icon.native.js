@@ -66,20 +66,14 @@ let Text = (p: TextProps, ref) => {
   }
 
   // explicit
-  let fontSize
-  if (p.fontSize) {
-    fontSize = p.fontSize
-  } else {
-    fontSize = Shared.typeToFontSize(p.sizeType)
-  }
+  const fontSizeStyle = {fontSize: p.fontSize || Shared.typeToFontSize(p.sizeType)}
 
   return (
     <Kb.NativeText
-      style={[styles.text, style, p.style]}
+      style={[styles.text, style, fontSizeStyle, p.style]}
       allowFontScaling={false}
       type={p.type}
       ref={ref}
-      fontSize={fontSize}
       onPress={p.onClick}
     >
       {p.children}
