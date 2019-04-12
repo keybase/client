@@ -6,6 +6,7 @@ import {TeamAvatar} from './avatars'
 
 type Props = {|
   isSelected: boolean,
+  numSearchHits?: number,
   teamname: string,
   channelname: string,
   onSelectConversation: () => void,
@@ -45,32 +46,37 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
             isSelected={false}
             isHovered={this.state.isHovered}
           />
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.textContainer}>
-            <Kb.Text
-              type="BodySemibold"
-              style={Styles.collapseStyles([
-                styles.teamname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
-              ])}
-              title={this.props.teamname}
-              lineClamp={Styles.isMobile ? 1 : undefined}
-              ellipsizeMode="tail"
-            >
-              {this.props.teamname}
-            </Kb.Text>
-            <Kb.Text
-              type="Body"
-              style={Styles.collapseStyles([
-                styles.channelname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
-              ])}
-              title={`#${this.props.channelname}`}
-              lineClamp={Styles.isMobile ? 1 : undefined}
-              ellipsizeMode="tail"
-            >
-              &nbsp;#
-              {this.props.channelname}
-            </Kb.Text>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.Text
+                type="BodySemibold"
+                style={Styles.collapseStyles([
+                  styles.teamname,
+                  {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
+                ])}
+                title={this.props.teamname}
+                lineClamp={Styles.isMobile ? 1 : undefined}
+                ellipsizeMode="tail"
+              >
+                {this.props.teamname}
+              </Kb.Text>
+              <Kb.Text
+                type="Body"
+                style={Styles.collapseStyles([
+                  styles.channelname,
+                  {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
+                ])}
+                title={`#${this.props.channelname}`}
+                lineClamp={Styles.isMobile ? 1 : undefined}
+                ellipsizeMode="tail"
+              >
+                &nbsp;#
+                {this.props.channelname}
+              </Kb.Text>
+            </Kb.Box2>
+            {!!this.props.numSearchHits && (
+              <Kb.Text type="BodySmall">{this.props.numSearchHits} Message Hits</Kb.Text>
+            )}
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ClickableBox>

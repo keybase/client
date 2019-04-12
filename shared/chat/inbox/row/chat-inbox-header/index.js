@@ -4,6 +4,7 @@ import ChatFilterRow from '../chat-filter-row/container'
 import StartNewChat from '../start-new-chat'
 
 type Props = {
+  onCancel: () => void,
   onNewChat: () => void,
   showNewChat: boolean,
   onSelectUp: () => void,

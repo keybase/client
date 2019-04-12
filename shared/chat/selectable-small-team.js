@@ -11,6 +11,7 @@ type Props = {|
   isSelected: boolean,
   onSelectConversation: () => void,
   isLocked: boolean,
+  numSearchHits?: number,
   participants: Array<string>,
   showBold: boolean,
   teamname: string,
@@ -68,6 +69,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           )}
           <Kb.Box style={styles.conversationRow}>
             <FilteredTopLine
+              numSearchHits={props.numSearchHits}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
               usernameColor={props.usernameColor}

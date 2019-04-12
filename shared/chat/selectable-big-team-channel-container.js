@@ -7,6 +7,7 @@ import {namedConnect} from '../util/container'
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isSelected: boolean,
+  numSearchHits?: number,
   onSelectConversation: () => void,
 |}
 
@@ -20,6 +21,7 @@ const mapDispatchToProps = () => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps.channelname,
   isSelected: ownProps.isSelected,
+  numSearchHits: ownProps.numSearchHits,
   onSelectConversation: ownProps.onSelectConversation,
   teamname: stateProps.teamname,
 })

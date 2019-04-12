@@ -120,6 +120,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             value={this.props.filter}
             hintText="Search..."
             onChangeText={this.props.onSetFilter}
+            onBlur={this._stopEditing}
             onFocus={this._startEditing}
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}

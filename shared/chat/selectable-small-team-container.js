@@ -7,6 +7,7 @@ import {namedConnect} from '../util/container'
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   filter?: string,
+  numSearchHits?: number,
   isSelected: boolean,
   onSelectConversation: () => void,
 |}
@@ -55,6 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isLocked,
     isMuted: stateProps._meta.isMuted,
     isSelected: ownProps.isSelected,
+    numSearchHits: ownProps.numSearchHits,
     onSelectConversation: ownProps.onSelectConversation,
     participants,
     showBold: styles.showBold,

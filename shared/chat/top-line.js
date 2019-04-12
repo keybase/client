@@ -1,9 +1,10 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {PlaintextUsernames, Box} from '../common-adapters'
+import {PlaintextUsernames, Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles'
 
 type Props = {
+  numSearchHits?: number,
   participants: Array<string>,
   showBold: boolean,
   usernameColor: ?string,
@@ -25,9 +26,7 @@ class FilteredTopLine extends PureComponent<Props> {
       >
         <Box
           style={{
-            ...globalStyles.fillAbsolute,
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
+            ...globalStyles.flexBoxColumn,
           }}
         >
           <PlaintextUsernames
@@ -36,6 +35,9 @@ class FilteredTopLine extends PureComponent<Props> {
             users={participants.map(p => ({username: p}))}
             title={participants.join(', ')}
           />
+          {!!this.props.numSearchHits && (
+            <Text type="BodySmall">{this.props.numSearchHits} Message Hits</Text>
+          )}
         </Box>
       </Box>
     )

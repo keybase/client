@@ -35,26 +35,23 @@ type State = {
 
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, textCollapsed: false}
-  _renderNameHit = ({item, section, index}) => {
-    const onSelectConversation = doCancel => {
-      if (doCancel) {
-        this.props.onCancel()
-      }
-      this.props.onSelectConversation(item.conversationIDKey)
-    }
+  _renderHit = ({item, section, index}) => {
+    const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
-        isSelected={this.props.selectedIndex === index}
-        key={index}
-        onSelectConversation={() => onSelectConversation(true)}
+        isSelected={this.props.selectedIndex === realIndex}
+        key={realIndex}
+        numSearchHits={item?.numHits ?? undefined}
+        onSelectConversation={() => section.onSelect(item.conversationIDKey)}
       />
     ) : (
       <SelectableSmallTeam
         conversationIDKey={item.conversationIDKey}
-        isSelected={this.props.selectedIndex === index}
-        key={index}
-        onSelectConversation={() => onSelectConversation(true)}
+        isSelected={this.props.selectedIndex === realIndex}
+        numSearchHits={item?.numHits ?? undefined}
+        key={realIndex}
+        onSelectConversation={() => section.onSelect(item.conversationIDKey)}
       />
     )
   }
@@ -63,6 +60,13 @@ class InboxSearch extends React.Component<Props, State> {
   }
   _toggleCollapseText = () => {
     this.setState({textCollapsed: !this.state.textCollapsed})
+  }
+  _selectName = conversationIDKey => {
+    this.props.onCancel()
+    this.props.onSelectConversation(conversationIDKey)
+  }
+  _selectText = conversationIDKey => {
+    this.props.onSelectConversation(conversationIDKey)
   }
   _renderSectionHeader = ({section}) => {
     return (
@@ -91,16 +95,20 @@ class InboxSearch extends React.Component<Props, State> {
           sections={[
             {
               data: this._nameResults(),
+              indexOffset: 0,
               isCollapsed: this.state.nameCollapsed,
               onCollapse: this._toggleCollapseName,
-              renderItem: this._renderNameHit,
+              onSelect: this._selectName,
+              renderItem: this._renderHit,
               title: 'Conversation Name Matches',
             },
             {
               data: this._textResults(),
+              indexOffset: this._nameResults().length,
               isCollapsed: this.state.textCollapsed,
               onCollapse: this._toggleCollapseText,
-              renderItem: this._renderNameHit,
+              onSelect: this._selectText,
+              renderItem: this._renderHit,
               title: 'Message Text Matches',
             },
           ]}
