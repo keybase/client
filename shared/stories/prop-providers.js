@@ -71,6 +71,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
     canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,
     convProps: {
       ignored: false,
+      muted: false,
       teamType: ownProps.isSmallTeam ? 'small' : 'big',
     },
     hasCanPerform: true,
@@ -85,6 +86,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
     onInvite: action('onInvite'),
     onLeaveTeam: action('onLeaveTeam'),
     onManageChannels: action('onManageChannels'),
+    onMuteConv: action('onMuteConv'),
     onUnhideConv: action('onUnhideConv'),
     onViewTeam: action('onViewTeam'),
     teamname: ownProps.teamname,

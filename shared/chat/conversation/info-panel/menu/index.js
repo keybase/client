@@ -7,6 +7,7 @@ import * as ChatTypes from '../../../../constants/types/chat2'
 export type ConvProps = {
   teamType: ChatTypes.TeamType,
   ignored: boolean,
+  muted: boolean,
 }
 
 export type Props = {
@@ -27,6 +28,7 @@ export type Props = {
   onInvite: () => void,
   onLeaveTeam: () => void,
   onHideConv: () => void,
+  onMuteConv: (muted: boolean) => void,
   onUnhideConv: () => void,
   onManageChannels: () => void,
   onViewTeam: () => void,
@@ -88,6 +90,7 @@ class InfoPanelMenu extends React.Component<Props> {
       ...(props.canAddPeople ? addPeopleItems : []),
       {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
       this.hideItem(),
+      this.muteItem(),
       channelItem,
       {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
     ].filter(item => item !== null)
@@ -128,6 +131,26 @@ class InfoPanelMenu extends React.Component<Props> {
       }
     } else {
       return null
+    }
+  }
+
+  muteItem() {
+    if (this.props.convProps == null) {
+      return null
+    }
+    const convProps = this.props.convProps
+    return {
+      onClick: () => this.props.onMuteConv(!convProps.muted),
+      style: {borderTopWidth: 0},
+      title: `${convProps.muted ? 'Unmute' : 'Mute'} conversation`,
+      view: (
+        <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+          <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+            {this.props.manageChannelsTitle}
+          </Kb.Text>
+          {this.props.badgeSubscribe && <Kb.Box style={styles.badge} />}
+        </Kb.Box>
+      ),
     }
   }
 }
