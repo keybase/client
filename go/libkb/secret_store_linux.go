@@ -9,6 +9,12 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	g := mctx.G()
 	sfile := NewSecretStoreFile(g.Env.GetDataDir())
 	sfile.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(g, name) }
+
+	if true {
+		// disable keyring while we upgrade protocol to key splitting
+		return sfile
+	}
+
 	ssecretservice := NewSecretStoreSecretService()
 
 	if mctx.G().Env.GetForceLinuxKeyring() {
