@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-
+import SyncingFolders from './syncing-folders'
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
@@ -18,7 +18,13 @@ class Header extends React.PureComponent<Props> {
 
     let title = null
     if (typeof opt.headerTitle === 'string') {
-      title = <Kb.Box2 direction="horizontal" style={{flexGrow: 1, marginLeft: Styles.globalMargins.xsmall}}><Kb.Text style={{flexGrow: 1}} type="Header">{opt.headerTitle}</Kb.Text></Kb.Box2>
+      title = (
+        <Kb.Box2 direction="horizontal" style={{flexGrow: 1, marginLeft: Styles.globalMargins.xsmall}}>
+          <Kb.Text style={{flexGrow: 1}} type="Header">
+            {opt.headerTitle}
+          </Kb.Text>
+        </Kb.Box2>
+      )
     } else if (typeof opt.headerTitle === 'function') {
       const CustomTitle = opt.headerTitle
       title = <CustomTitle>{opt.title}</CustomTitle>
@@ -61,6 +67,7 @@ class Header extends React.PureComponent<Props> {
               color={this.props.allowBack ? Styles.globalColors.black_50 : Styles.globalColors.black_10}
               onClick={this.props.onPop}
             />
+            <SyncingFolders />
             {!title && rightActions}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bottom}>
@@ -91,6 +98,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       alignItems: 'center',
       height: 40,
+      justifyContent: 'space-between',
       padding: 12,
     },
   }),
