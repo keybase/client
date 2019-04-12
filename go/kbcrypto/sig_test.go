@@ -41,13 +41,15 @@ func TestVerifyWithPayload(t *testing.T) {
 
 	requireError := func(err error, s string) {
 		require.Error(t, err)
-		require.Equal(t, errors.New(s), err.(VerificationError).Cause, errors.New("nil payload"))
+		require.Equal(t, errors.New(s), err.(VerificationError).Cause)
 	}
 
 	_, _, _, err = NaclVerifyWithPayload(sig, msg)
 	require.NoError(t, err)
 	_, _, _, err = NaclVerifyWithPayload(sig, nil)
 	requireError(err, "nil payload")
+	_, _, _, err = NaclVerifyWithPayload(sig, []byte(""))
+	requireError(err, "empty payload")
 	_, _, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
 	requireError(err, "payload mismatch")
 

@@ -337,7 +337,7 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string
 func (k NaclSigningKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
 	var keyInSignature *kbcrypto.NaclSigningKeyPublic
 	var fullSigBody []byte
-	keyInSignature, msg, fullSigBody, err = kbcrypto.NaclVerifyWithPayload(sig, msg)
+	keyInSignature, fullSigBody, err = kbcrypto.NaclVerifyWithPayload(sig, msg)
 	if err != nil {
 		return id, err
 	}

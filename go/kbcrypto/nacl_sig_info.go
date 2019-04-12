@@ -79,6 +79,14 @@ func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 	return s.verifyWithPayload(s.Payload, false)
 }
 
+// verifyWithPayload verifies the NaclSigInfo s, with the payload payload. Note that
+// s may or may not have a payload already baked into it. If it does, and checkPayloadEquality
+// is true, then we assert that the "baked-in" payload is equal to the specified payload.
+// We'll only pass `false` for this flag from just above, to avoid checking that s.Payload == s.Payload,
+// which we know it does. We need this unfortunate complexity because some signatures the client
+// tries to verify are "attached," meaning the payload comes along with the sig info. And in other
+// cases, the signatures are "detached", meaning they are supplied out-of-band. This function
+// handles both cases.
 func (s NaclSigInfo) verifyWithPayload(payload []byte, checkPayloadEquality bool) (*NaclSigningKeyPublic, error) {
 	key := KIDToNaclSigningKeyPublic(s.Kid)
 	if key == nil {
@@ -86,6 +94,9 @@ func (s NaclSigInfo) verifyWithPayload(payload []byte, checkPayloadEquality bool
 	}
 	if payload == nil {
 		return nil, newVerificationError("nil payload")
+	}
+	if len(payload) == 0 {
+		return nil, newVerificationError("empty payload")
 	}
 
 	if checkPayloadEquality && s.Payload != nil && !SecureByteArrayEq(payload, s.Payload) {
@@ -156,22 +167,21 @@ func NaclVerifyAndExtract(s string) (nk *NaclSigningKeyPublic, payload []byte, f
 	return nk, payload, fullBody, nil
 }
 
-func NaclVerifyWithPayload(sig string, payloadIn []byte) (nk *NaclSigningKeyPublic, payloadOut []byte, fullBody []byte, err error) {
+func NaclVerifyWithPayload(sig string, payloadIn []byte) (nk *NaclSigningKeyPublic, fullBody []byte, err error) {
 	fullBody, err = base64.StdEncoding.DecodeString(sig)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	nk, err = naclSig.verifyWithPayload(payloadIn, true)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
-	payloadOut = naclSig.Payload
-	return nk, payloadOut, fullBody, nil
+	return nk, fullBody, nil
 }
