@@ -19,6 +19,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
+  indexPercent: stateProps._inboxSearch.indexPercent,
   nameResults: stateProps._inboxSearch.nameResults
     .map(r => ({
       conversationIDKey: r.conversationIDKey,

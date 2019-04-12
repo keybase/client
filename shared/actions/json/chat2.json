@@ -638,6 +638,14 @@
     },
     "inboxSearchSelect": {
       "_description": "Select an inbox search item"
+    },
+    "inboxSearchSetTextStatus": {
+      "_description": "Set the status of the inbox text search",
+      "status": "Types.InboxSearchStatus"
+    },
+    "inboxSearchSetIndexPercent": {
+      "_description": "Set index percent complete",
+      "percent": "number"
     }
   }
 }

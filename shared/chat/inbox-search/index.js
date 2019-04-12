@@ -19,6 +19,7 @@ type TextResult = {|
 |}
 
 type Props = {|
+  indexPercent: number,
   nameStatus: Types.InboxSearchStatus,
   nameResults: Array<NameResult>,
   onCancel: () => void,
@@ -35,6 +36,7 @@ type State = {
 
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, textCollapsed: false}
+
   _renderHit = ({item, section, index}) => {
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
@@ -68,14 +70,35 @@ class InboxSearch extends React.Component<Props, State> {
   _selectText = conversationIDKey => {
     this.props.onSelectConversation(conversationIDKey)
   }
-  _renderSectionHeader = ({section}) => {
+  _renderNameHeader = section => {
     return (
       <Kb.SectionDivider
         collapsed={section.isCollapsed}
         label={section.title}
         onToggleCollapsed={section.onCollapse}
+        showSpinner={section.status === 'inprogress'}
       />
     )
+  }
+  _renderTextHeader = section => {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
+        <Kb.SectionDivider
+          collapsed={section.isCollapsed}
+          label={section.title}
+          onToggleCollapsed={section.onCollapse}
+          showSpinner={section.status === 'inprogress'}
+        />
+        {this.props.indexPercent > 0 && (
+          <Kb.Text type="BodySmall" style={styles.indexPercent}>
+            Indexing {this.props.indexPercent}% complete...
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    )
+  }
+  _renderSectionHeader = ({section}) => {
+    return section.renderHeader(section)
   }
   _keyExtractor = (item, index) => index
   _nameResults = () => {
@@ -99,7 +122,9 @@ class InboxSearch extends React.Component<Props, State> {
               isCollapsed: this.state.nameCollapsed,
               onCollapse: this._toggleCollapseName,
               onSelect: this._selectName,
+              renderHeader: this._renderNameHeader,
               renderItem: this._renderHit,
+              status: this.props.nameStatus,
               title: 'Conversation Name Matches',
             },
             {
@@ -108,7 +133,9 @@ class InboxSearch extends React.Component<Props, State> {
               isCollapsed: this.state.textCollapsed,
               onCollapse: this._toggleCollapseText,
               onSelect: this._selectText,
+              renderHeader: this._renderTextHeader,
               renderItem: this._renderHit,
+              status: this.props.textStatus,
               title: 'Message Text Matches',
             },
           ]}
@@ -130,6 +157,12 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
+  indexPercent: {
+    paddingLeft: Styles.globalMargins.small,
+  },
+  textHeader: {
+    backgroundColor: Styles.globalColors.blue5,
+  },
 })
 
 export default InboxSearch

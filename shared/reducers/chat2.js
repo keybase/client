@@ -1045,6 +1045,18 @@ const rootReducer = (
           return info.set('hits', I.List())
         }
       )
+    case Chat2Gen.inboxSearchSetTextStatus:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          textStatus: action.payload.status,
+        })
+      })
+    case Chat2Gen.inboxSearchSetIndexPercent:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          indexPercent: action.payload.percent,
+        })
+      })
     case Chat2Gen.toggleInboxSearch: {
       let nextState = state
       if (action.payload.enabled && !state.inboxSearch) {

@@ -75,6 +75,7 @@ export type _InboxSearchConvHit = {
 export type InboxSearchConvHit = I.RecordOf<_InboxSearchConvHit>
 
 export type _InboxSearchInfo = {
+  indexPercent: number,
   nameResults: I.List<InboxSearchConvHit>,
   nameStatus: InboxSearchStatus,
   query: HiddenString,

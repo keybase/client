@@ -89,6 +89,7 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
 })
 
 export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
+  indexPercent: 0,
   nameResults: I.List(),
   nameStatus: 'initial',
   query: new HiddenString(''),

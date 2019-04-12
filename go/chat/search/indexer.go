@@ -566,7 +566,12 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		totalPercentIndexed += convIdx.PercentIndexed(conv.Conv)
 		convIdxMap[convID.String()] = convIdx
 	}
-	idx.Debug(ctx, "Search: convIdxMap: %d", len(convIdxMap))
+	if indexUICh != nil {
+		indexUICh <- chat1.ChatSearchIndexStatus{
+			PercentIndexed: totalPercentIndexed / len(convMap),
+		}
+	}
+	idx.Debug(ctx, "Search: convIdxMap: %d percent: %d", len(convIdxMap), totalPercentIndexed/len(convMap))
 	switch opts.ReindexMode {
 	case chat1.ReIndexingMode_FORCE:
 		for convIDStr, conv := range convMap {

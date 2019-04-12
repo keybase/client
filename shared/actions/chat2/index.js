@@ -1384,8 +1384,7 @@ function* inboxSearch(state, action) {
     return Saga.put(
       Chat2Gen.createInboxSearchNameResults({
         results: (resp.hits || []).reduce((l, h) => {
-          return l.set(
-            l.size,
+          return l.push(
             Constants.makeInboxSearchConvHit({
               conversationIDKey: Types.stringToConversationIDKey(h.convID),
               teamType: teamType(h.teamType),
@@ -1407,11 +1406,19 @@ function* inboxSearch(state, action) {
       })
     )
   }
+  const onDone = () => {
+    return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'done'}))
+  }
+  const onIndexStatus = resp => {
+    return Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
+  }
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
+        'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,
+        'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
       },
       params: {
         identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
