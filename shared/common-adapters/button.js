@@ -126,7 +126,11 @@ class Button extends React.Component<Props> {
     if (this.props.mode === 'Primary' && !unclickable) {
       underlay = (
         <PrimaryUnderlay
-          _backgroundColor={this.props.backgroundColor ? 'rgba(77, 142, 255, 0.05)' : globalColors.black_10}
+          _backgroundColor={
+            this.props.backgroundColor
+              ? bgColorToPrimaryHover[this.props.backgroundColor]
+              : globalColors.black_10
+          }
         />
       )
     } else if (this.props.mode === 'Secondary' && !unclickable && this.props.backgroundColor) {
@@ -165,6 +169,14 @@ class Button extends React.Component<Props> {
       </ButtonBox>
     )
   }
+}
+
+const bgColorToPrimaryHover = {
+  blue: 'rgba(76,142,255, 0.15)',
+  red: 'rgba(255,77,97, 0.15)',
+  green: 'rgba(55,189,153, 0.15)',
+  purple: 'rgba(112,78,186, 0.15)',
+  black: 'rgba(0, 0, 0, 0.15)',
 }
 
 const smallHeight = isMobile ? 32 : 28
