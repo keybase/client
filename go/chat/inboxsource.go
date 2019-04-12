@@ -746,6 +746,12 @@ func (s *HybridInboxSource) isConvSearchHit(conv types.RemoteConversation, query
 	var convToks []string
 	res.conv = conv
 	res.queryToks = queryToks
+	if len(queryToks) == 0 {
+		if conv.Conv.IsUnread() {
+			res.hits = []nameContainsQueryRes{nameContainsQueryExact}
+		}
+		return res
+	}
 	searchable := utils.SearchableRemoteConversationName(conv, username)
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:

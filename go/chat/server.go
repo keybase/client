@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -2399,9 +2400,11 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	hitUICh := make(chan chat1.ChatSearchInboxHit)
 	hitUIDone := make(chan struct{})
 	numHits := 0
+	query := strings.Trim(arg.Query, " ")
+	doIndexSearch := !arg.NamesOnly && len(query) > 0
 	go func() {
 		defer close(hitUIDone)
-		if arg.NamesOnly {
+		if !doIndexSearch {
 			return
 		}
 		for searchHit := range hitUICh {
@@ -2422,7 +2425,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	indexUIDone := make(chan struct{})
 	go func() {
 		defer close(indexUIDone)
-		if arg.NamesOnly {
+		if !doIndexSearch {
 			return
 		}
 		for status := range indexUICh {
@@ -2441,7 +2444,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	convUIDone := make(chan struct{})
 	go func() {
 		defer close(convUIDone)
-		convHits, err := h.G().InboxSource.Search(ctx, uid, arg.Query, arg.Opts.MaxNameConvs)
+		convHits, err := h.G().InboxSource.Search(ctx, uid, query, arg.Opts.MaxNameConvs)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
 		} else {
@@ -2456,8 +2459,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	}()
 
 	var searchRes *chat1.ChatSearchInboxResults
-	if !arg.NamesOnly {
-		if searchRes, err = h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, hitUICh, indexUICh); err != nil {
+	if doIndexSearch {
+		if searchRes, err = h.G().Indexer.Search(ctx, uid, query, arg.Opts, hitUICh, indexUICh); err != nil {
 			return res, err
 		}
 	}
