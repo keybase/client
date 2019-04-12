@@ -44,13 +44,13 @@ func TestVerifyWithPayload(t *testing.T) {
 		require.Equal(t, errors.New(s), err.(VerificationError).Cause)
 	}
 
-	_, _, _, err = NaclVerifyWithPayload(sig, msg)
+	_, _, err = NaclVerifyWithPayload(sig, msg)
 	require.NoError(t, err)
-	_, _, _, err = NaclVerifyWithPayload(sig, nil)
+	_, _, err = NaclVerifyWithPayload(sig, nil)
 	requireError(err, "nil payload")
-	_, _, _, err = NaclVerifyWithPayload(sig, []byte(""))
+	_, _, err = NaclVerifyWithPayload(sig, []byte(""))
 	requireError(err, "empty payload")
-	_, _, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
+	_, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
 	requireError(err, "payload mismatch")
 
 	info := kp.priv.SignInfoV0(msg, kp.pub)
@@ -59,7 +59,7 @@ func TestVerifyWithPayload(t *testing.T) {
 	require.NoError(t, err)
 	sig = base64.StdEncoding.EncodeToString(body)
 
-	_, _, _, err = NaclVerifyWithPayload(sig, msg)
+	_, _, err = NaclVerifyWithPayload(sig, msg)
 	require.NoError(t, err)
 
 	// Now corrupt and make sure we get the right answer
@@ -67,11 +67,11 @@ func TestVerifyWithPayload(t *testing.T) {
 	body, err = EncodePacketToBytes(&info)
 	require.NoError(t, err)
 	sig = base64.StdEncoding.EncodeToString(body)
-	_, _, _, err = NaclVerifyWithPayload(sig, msg)
+	_, _, err = NaclVerifyWithPayload(sig, msg)
 	requireError(err, "verify failed")
 
 	// Get the same failure if we have the wrong sig and the wrong payload
-	_, _, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
+	_, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
 	requireError(err, "verify failed")
 
 	// Fail with bad payload before the sig fails, if we have the right payload and it's doubled up
@@ -79,6 +79,6 @@ func TestVerifyWithPayload(t *testing.T) {
 	body, err = EncodePacketToBytes(&info)
 	require.NoError(t, err)
 	sig = base64.StdEncoding.EncodeToString(body)
-	_, _, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
+	_, _, err = NaclVerifyWithPayload(sig, []byte("yo"))
 	requireError(err, "payload mismatch")
 }
