@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import PieSlice from './pie-slice'
 
 type Props = {
   status: Types.SyncStatus,
@@ -23,7 +24,7 @@ function getIcon(props: Props): Kb.IconType {
     case 'sync-error':
       return 'iconfont-exclamation'
     default:
-      // TODO: handle icons for the pie timer thing
+      // This case should never be reached.
       return 'iconfont-question-mark'
   }
 }
@@ -41,9 +42,7 @@ function getColor(props: Props) {
     case 'sync-error':
       return Styles.globalColors.red
     default:
-      if (typeof props.status === 'number') {
-        return Styles.globalColors.blue
-      }
+      // This case should never be reached.
       return Styles.globalColors.red
   }
 }
@@ -73,7 +72,11 @@ function getTooltip(props: Props): string {
 // TODO: make syncing state actually animate
 const SyncStatus = (props: Props) => (
   <Kb.WithTooltip text={getTooltip(props)}>
-    <Kb.Icon type={getIcon(props)} sizeType={'Small'} color={getColor(props)} />
+    {typeof props.status === 'number' ? (
+      <PieSlice degrees={360 * props.status} animated={true} />
+    ) : (
+      <Kb.Icon type={getIcon(props)} sizeType={'Small'} color={getColor(props)} />
+    )}
   </Kb.WithTooltip>
 )
 
