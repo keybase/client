@@ -6,6 +6,7 @@ package externals
 import (
 	"context"
 	"encoding/json"
+	"sort"
 	"strings"
 	"sync"
 
@@ -72,17 +73,30 @@ func (p *proofServices) ListProofCheckers() []string {
 	return ret
 }
 
+type serviceAndPriority struct {
+	name     string
+	priority int
+}
+
 func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) []string {
 	p.Lock()
 	defer p.Unlock()
 	p.loadServiceConfigs()
-	var ret []string
+	var services []serviceAndPriority
 	for k, v := range p.externalServices {
 		if v.CanMakeNewProofs(mctx) {
-			ret = append(ret, k)
+			s := serviceAndPriority{name: k, priority: v.DisplayPriority()}
+			services = append(services, s)
 		}
 	}
-	return ret
+	sort.Slice(services[:], func(i, j int) bool {
+		return services[i].priority < services[j].priority
+	})
+	var serviceNames []string
+	for _, service := range services {
+		serviceNames = append(serviceNames, service.name)
+	}
+	return serviceNames
 }
 
 func (p *proofServices) ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig) {
