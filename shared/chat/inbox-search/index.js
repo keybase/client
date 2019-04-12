@@ -23,7 +23,7 @@ type Props = {|
   nameStatus: Types.InboxSearchStatus,
   nameResults: Array<NameResult>,
   onCancel: () => void,
-  onSelectConversation: Types.ConversationIDKey => void,
+  onSelectConversation: (Types.ConversationIDKey, boolean) => void,
   selectedIndex: number,
   textStatus: Types.InboxSearchStatus,
   textResults: Array<TextResult>,
@@ -65,10 +65,10 @@ class InboxSearch extends React.Component<Props, State> {
   }
   _selectName = conversationIDKey => {
     this.props.onCancel()
-    this.props.onSelectConversation(conversationIDKey)
+    this.props.onSelectConversation(conversationIDKey, false)
   }
   _selectText = conversationIDKey => {
-    this.props.onSelectConversation(conversationIDKey)
+    this.props.onSelectConversation(conversationIDKey, true)
   }
   _renderNameHeader = section => {
     return (

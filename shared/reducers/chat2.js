@@ -1045,6 +1045,8 @@ const rootReducer = (
           return info.set('hits', I.List())
         }
       )
+    case Chat2Gen.setThreadSearchQuery:
+      return state.setIn(['threadSearchQueryMap', action.payload.conversationIDKey], action.payload.query)
     case Chat2Gen.inboxSearchSetTextStatus:
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({

@@ -1372,10 +1372,20 @@ const onInboxSearchSelect = (state, action) => {
   if (!inboxSearch) {
     return []
   }
-  const conversationIDKey = Constants.getInboxSearchSelected(inboxSearch)
-  return conversationIDKey
-    ? Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})
-    : []
+  const conversationIDKey = action.payload.conversationIDKey
+    ? action.payload.conversationIDKey
+    : Constants.getInboxSearchSelected(inboxSearch)
+  if (!conversationIDKey) {
+    return []
+  }
+  const actions = [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})]
+  if (action.payload.query) {
+    const query = action.payload.query
+    actions.push(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query}))
+    actions.push(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
+    actions.push(Chat2Gen.createThreadSearch({conversationIDKey, query}))
+  }
+  return actions
 }
 
 const onToggleInboxSearch = (state, action) => {

@@ -105,6 +105,7 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingStatus = 'chat2:setPendingStatus'
+export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
@@ -164,7 +165,7 @@ type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoa
 type _InboxSearchMoveSelectedIndexPayload = $ReadOnly<{|increment: boolean|}>
 type _InboxSearchNameResultsPayload = $ReadOnly<{|results: I.List<Types.InboxSearchConvHit>|}>
 type _InboxSearchPayload = $ReadOnly<{|query: HiddenString|}>
-type _InboxSearchSelectPayload = void
+type _InboxSearchSelectPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey, query?: HiddenString|}>
 type _InboxSearchSetIndexPercentPayload = $ReadOnly<{|percent: number|}>
 type _InboxSearchSetTextStatusPayload = $ReadOnly<{|status: Types.InboxSearchStatus|}>
 type _InboxSearchTextResultPayload = $ReadOnly<{|result: Types.InboxSearchTextHit|}>
@@ -231,6 +232,7 @@ type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conve
 type _SetPendingConversationUsersPayload = $ReadOnly<{|users: Array<string>, fromSearch: boolean|}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode, noneDestination?: 'inbox' | 'thread'|}>
 type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
+type _SetThreadSearchQueryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
 type _SetThreadSearchStatusPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, status: Types.ThreadSearchStatus|}>
 type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: ?HiddenString|}>
 type _SetWalletsOldPayload = void
@@ -385,6 +387,10 @@ export const createSetThreadSearchStatus = (payload: _SetThreadSearchStatusPaylo
  * Set the status of the inbox text search
  */
 export const createInboxSearchSetTextStatus = (payload: _InboxSearchSetTextStatusPayload) => ({payload, type: inboxSearchSetTextStatus})
+/**
+ * Set thread search query (used from inbox search to initialize it)
+ */
+export const createSetThreadSearchQuery = (payload: _SetThreadSearchQueryPayload) => ({payload, type: setThreadSearchQuery})
 /**
  * Set unsent text for a conversation
  */
@@ -633,6 +639,7 @@ export type SetPendingConversationExistingConversationIDKeyPayload = {|+payload:
 export type SetPendingConversationUsersPayload = {|+payload: _SetPendingConversationUsersPayload, +type: 'chat2:setPendingConversationUsers'|}
 export type SetPendingModePayload = {|+payload: _SetPendingModePayload, +type: 'chat2:setPendingMode'|}
 export type SetPendingStatusPayload = {|+payload: _SetPendingStatusPayload, +type: 'chat2:setPendingStatus'|}
+export type SetThreadSearchQueryPayload = {|+payload: _SetThreadSearchQueryPayload, +type: 'chat2:setThreadSearchQuery'|}
 export type SetThreadSearchStatusPayload = {|+payload: _SetThreadSearchStatusPayload, +type: 'chat2:setThreadSearchStatus'|}
 export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
@@ -758,6 +765,7 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetPendingStatusPayload
+  | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload

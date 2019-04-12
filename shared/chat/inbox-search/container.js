@@ -1,7 +1,6 @@
 // @flow
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Constants from '../../constants/chat2'
-import * as Types from '../../constants/types/chat2'
 import {namedConnect} from '../../util/container'
 import InboxSearch from '.'
 
@@ -13,9 +12,9 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  _onSelectConversation: ({conversationIDKey, query}) =>
+    dispatch(Chat2Gen.createInboxSearchSelect({conversationIDKey, query})),
   onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
-  onSelectConversation: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
@@ -28,7 +27,11 @@ const mergeProps = (stateProps, dispatchProps) => ({
     .toArray(),
   nameStatus: stateProps._inboxSearch.nameStatus,
   onCancel: dispatchProps.onCancel,
-  onSelectConversation: dispatchProps.onSelectConversation,
+  onSelectConversation: (conversationIDKey, textHit) =>
+    dispatchProps._onSelectConversation({
+      conversationIDKey,
+      query: textHit ? stateProps._inboxSearch.query : undefined,
+    }),
   selectedIndex: stateProps._inboxSearch.selectedIndex,
   textResults: stateProps._inboxSearch.textResults
     .map(r => ({

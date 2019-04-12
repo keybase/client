@@ -5,6 +5,7 @@ import * as Sb from '../../../stories/storybook'
 import ThreadSearch from './index'
 
 const base = {
+  clearInitialText: Sb.action('clearInitialText'),
   loadSearchHit: Sb.action('loadSearchHit'),
   onCancel: Sb.action('onCancel'),
   onSearch: Sb.action('onSearch'),

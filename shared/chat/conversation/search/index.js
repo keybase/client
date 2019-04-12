@@ -14,7 +14,9 @@ type SearchHit = {|
   timestamp: number,
 |}
 export type Props = {
+  clearInitialText: () => void,
   hits: Array<SearchHit>,
+  initialText?: string,
   loadSearchHit: number => void,
   onCancel: () => void,
   onSearch: string => void,
@@ -25,18 +27,18 @@ export type Props = {
 
 type State = {|
   selectedIndex: number,
+  text: string,
 |}
 
 const ThreadSearch = ThreadSearcher => {
   return class extends React.Component<Props, State> {
-    state = {selectedIndex: 0}
-    _text: string
+    state = {selectedIndex: 0, text: ''}
     _lastSearch: string
 
     _submitSearch = () => {
-      this._lastSearch = this._text
+      this._lastSearch = this.state.text
       this.setState({selectedIndex: 0})
-      this.props.onSearch(this._text)
+      this.props.onSearch(this.state.text)
     }
 
     _selectResult = (index: number) => {
@@ -45,7 +47,7 @@ const ThreadSearch = ThreadSearcher => {
     }
 
     _onEnter = () => {
-      if (this._lastSearch === this._text) {
+      if (this._lastSearch === this.state.text) {
         this._onUp()
       } else {
         this._submitSearch()
@@ -69,7 +71,7 @@ const ThreadSearch = ThreadSearcher => {
     }
 
     _onChangedText = (text: string) => {
-      this._text = text
+      this.setState({text})
     }
 
     _inProgress = () => {
@@ -79,11 +81,22 @@ const ThreadSearch = ThreadSearcher => {
     _hasResults = () => {
       return this.props.status === 'done' || this.props.hits.length > 0
     }
+    _maybeSetInitialText = () => {
+      if (this.props.initialText) {
+        this.props.clearInitialText()
+        this.setState({text: this.props.initialText})
+      }
+    }
+
+    componentDidMount() {
+      this._maybeSetInitialText()
+    }
 
     componentDidUpdate(prevProps: Props) {
       if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
         this._selectResult(0)
       }
+      this._maybeSetInitialText()
     }
 
     render() {
@@ -99,6 +112,7 @@ const ThreadSearch = ThreadSearcher => {
           onChangedText={this._onChangedText}
           inProgress={this._inProgress}
           hasResults={this._hasResults}
+          text={this.state.text}
         />
       )
     }
@@ -114,7 +128,9 @@ type SearchProps = {
   onChangedText: string => void,
   inProgress: () => boolean,
   hasResults: () => boolean,
+  placeholder?: string,
   selectedIndex: number,
+  text: string,
 }
 
 class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
@@ -174,6 +190,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                 onEnterKeyDown={this.props.onEnter}
                 onKeyDown={this._onKeydown}
                 placeholder="Search..."
+                value={this.props.text}
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
@@ -240,6 +257,7 @@ class ThreadSearchMobile extends React.Component<SearchProps & Props> {
                 onEnterKeyDown={this.props.onEnter}
                 placeholder="Search..."
                 returnKeyType="search"
+                value={this.props.text}
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
