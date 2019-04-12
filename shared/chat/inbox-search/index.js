@@ -64,8 +64,8 @@ class InboxSearch extends React.Component<Props, State> {
     this.setState({textCollapsed: !this.state.textCollapsed})
   }
   _selectName = conversationIDKey => {
-    this.props.onCancel()
     this.props.onSelectConversation(conversationIDKey, false)
+    this.props.onCancel()
   }
   _selectText = conversationIDKey => {
     this.props.onSelectConversation(conversationIDKey, true)

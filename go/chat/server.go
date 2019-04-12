@@ -2392,10 +2392,16 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	if err != nil {
 		return res, err
 	}
+	chatUI := h.getChatUI(arg.SessionID)
 	ctx = h.getInboxSearchContext(ctx)
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	default:
+		chatUI.ChatSearchInboxStart(ctx)
+	}
 
 	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
-	chatUI := h.getChatUI(arg.SessionID)
 	// stream hits back to client UI
 	hitUICh := make(chan chat1.ChatSearchInboxHit)
 	hitUIDone := make(chan struct{})

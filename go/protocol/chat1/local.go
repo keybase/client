@@ -5244,6 +5244,9 @@ type SearchRegexpArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type CancelActiveInboxSearchArg struct {
+}
+
 type SearchInboxArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	Query            string                       `codec:"query" json:"query"`
@@ -5347,6 +5350,7 @@ type LocalInterface interface {
 	SetConvMinWriterRoleLocal(context.Context, SetConvMinWriterRoleLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	SearchRegexp(context.Context, SearchRegexpArg) (SearchRegexpRes, error)
+	CancelActiveInboxSearch(context.Context) error
 	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
 	CancelActiveSearch(context.Context) error
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
@@ -6222,6 +6226,16 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"cancelActiveInboxSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelActiveInboxSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.CancelActiveInboxSearch(ctx)
+					return
+				},
+			},
 			"searchInbox": {
 				MakeArg: func() interface{} {
 					var ret [1]SearchInboxArg
@@ -6646,6 +6660,11 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 
 func (c LocalClient) SearchRegexp(ctx context.Context, __arg SearchRegexpArg) (res SearchRegexpRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.searchRegexp", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) CancelActiveInboxSearch(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.cancelActiveInboxSearch", []interface{}{CancelActiveInboxSearchArg{}}, nil)
 	return
 }
 

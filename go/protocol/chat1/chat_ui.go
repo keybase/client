@@ -1893,6 +1893,10 @@ type ChatSearchDoneArg struct {
 	NumHits   int `codec:"numHits" json:"numHits"`
 }
 
+type ChatSearchInboxStartArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ChatSearchInboxHitArg struct {
 	SessionID int                `codec:"sessionID" json:"sessionID"`
 	SearchHit ChatSearchInboxHit `codec:"searchHit" json:"searchHit"`
@@ -1977,6 +1981,7 @@ type ChatUiInterface interface {
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
 	ChatSearchHit(context.Context, ChatSearchHitArg) error
 	ChatSearchDone(context.Context, ChatSearchDoneArg) error
+	ChatSearchInboxStart(context.Context, int) error
 	ChatSearchInboxHit(context.Context, ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
@@ -2144,6 +2149,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatSearchDone(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatSearchInboxStart": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSearchInboxStartArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSearchInboxStartArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSearchInboxStartArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchInboxStart(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -2414,6 +2434,12 @@ func (c ChatUiClient) ChatSearchHit(ctx context.Context, __arg ChatSearchHitArg)
 
 func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatSearchInboxStart(ctx context.Context, sessionID int) (err error) {
+	__arg := ChatSearchInboxStartArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxStart", []interface{}{__arg}, nil)
 	return
 }
 

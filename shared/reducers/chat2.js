@@ -1069,6 +1069,9 @@ const rootReducer = (
       return nextState
     }
     case Chat2Gen.inboxSearchTextResult:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
       return state.update('inboxSearch', info => {
         const old = info || Constants.makeInboxSearchInfo()
         return old.merge({
@@ -1076,6 +1079,12 @@ const rootReducer = (
         })
       })
     case Chat2Gen.inboxSearch:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          query: action.payload.query,
+        })
+      })
+    case Chat2Gen.inboxSearchStarted:
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           nameResults: I.List(),
@@ -1087,6 +1096,9 @@ const rootReducer = (
         })
       })
     case Chat2Gen.inboxSearchNameResults:
+      if (!state.inboxSearch || state.inboxSearch.nameStatus !== 'inprogress') {
+        return state
+      }
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           nameResults: action.payload.results,

@@ -1504,6 +1504,15 @@
       ],
       "response": null
     },
+    "chatSearchInboxStart": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "chatSearchInboxHit": {
       "request": [
         {

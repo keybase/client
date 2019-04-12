@@ -625,6 +625,10 @@
       "_description": "Perform an inbox search",
       "query": "HiddenString"
     },
+    "inboxSearchStarted": {
+      "_description": "Inbox search has started",
+      "query": "HiddenString"
+    },
     "toggleInboxSearch": {
       "_description": "Toggle inbox search view",
       "enabled": "boolean"

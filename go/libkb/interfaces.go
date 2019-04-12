@@ -405,6 +405,7 @@ type ChatUI interface {
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxStart(context.Context) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatSearchConvHits(context.Context, []chat1.UIChatSearchConvHit) error

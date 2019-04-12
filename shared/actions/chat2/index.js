@@ -1391,7 +1391,7 @@ const onInboxSearchSelect = (state, action) => {
 const onToggleInboxSearch = (state, action) => {
   const inboxSearch = state.chat2.inboxSearch
   if (!inboxSearch) {
-    return []
+    return RPCChatTypes.localCancelActiveInboxSearchRpcPromise()
   }
   return inboxSearch.nameStatus === 'initial' ? Chat2Gen.createInboxSearch({query: new HiddenString('')}) : []
 }
@@ -1425,6 +1425,9 @@ function* inboxSearch(state, action) {
       })
     )
   }
+  const onStart = () => {
+    return Saga.put(Chat2Gen.createInboxSearchStarted({query}))
+  }
   const onDone = () => {
     return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'done'}))
   }
@@ -1437,6 +1440,7 @@ function* inboxSearch(state, action) {
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,
+        'chat.1.chatUi.chatSearchInboxStart': onStart,
         'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
       },
       params: {
@@ -1445,11 +1449,11 @@ function* inboxSearch(state, action) {
         opts: {
           afterContext: 0,
           beforeContext: 0,
-          maxConvsHit: 15,
+          maxConvsHit: 30,
           maxConvsSearched: 0,
-          maxHits: 10,
+          maxHits: 100,
           maxMessages: 0,
-          maxNameConvs: 5,
+          maxNameConvs: 7,
           reindexMode: RPCChatTypes.commonReIndexingMode.none,
           sentAfter: 0,
           sentBefore: 0,

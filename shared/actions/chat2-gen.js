@@ -45,6 +45,7 @@ export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
 export const inboxSearchSelect = 'chat2:inboxSearchSelect'
 export const inboxSearchSetIndexPercent = 'chat2:inboxSearchSetIndexPercent'
 export const inboxSearchSetTextStatus = 'chat2:inboxSearchSetTextStatus'
+export const inboxSearchStarted = 'chat2:inboxSearchStarted'
 export const inboxSearchTextResult = 'chat2:inboxSearchTextResult'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
@@ -168,6 +169,7 @@ type _InboxSearchPayload = $ReadOnly<{|query: HiddenString|}>
 type _InboxSearchSelectPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey, query?: HiddenString|}>
 type _InboxSearchSetIndexPercentPayload = $ReadOnly<{|percent: number|}>
 type _InboxSearchSetTextStatusPayload = $ReadOnly<{|status: Types.InboxSearchStatus|}>
+type _InboxSearchStartedPayload = $ReadOnly<{|query: HiddenString|}>
 type _InboxSearchTextResultPayload = $ReadOnly<{|result: Types.InboxSearchTextHit|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -306,6 +308,10 @@ export const createGiphyGotSearchResult = (payload: _GiphyGotSearchResultPayload
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({payload, type: updateConvExplodingModes})
+/**
+ * Inbox search has started
+ */
+export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload) => ({payload, type: inboxSearchStarted})
 /**
  * Inbox search name results received
  */
@@ -578,6 +584,7 @@ export type InboxSearchPayload = {|+payload: _InboxSearchPayload, +type: 'chat2:
 export type InboxSearchSelectPayload = {|+payload: _InboxSearchSelectPayload, +type: 'chat2:inboxSearchSelect'|}
 export type InboxSearchSetIndexPercentPayload = {|+payload: _InboxSearchSetIndexPercentPayload, +type: 'chat2:inboxSearchSetIndexPercent'|}
 export type InboxSearchSetTextStatusPayload = {|+payload: _InboxSearchSetTextStatusPayload, +type: 'chat2:inboxSearchSetTextStatus'|}
+export type InboxSearchStartedPayload = {|+payload: _InboxSearchStartedPayload, +type: 'chat2:inboxSearchStarted'|}
 export type InboxSearchTextResultPayload = {|+payload: _InboxSearchTextResultPayload, +type: 'chat2:inboxSearchTextResult'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
 export type JumpToRecentPayload = {|+payload: _JumpToRecentPayload, +type: 'chat2:jumpToRecent'|}
@@ -704,6 +711,7 @@ export type Actions =
   | InboxSearchSelectPayload
   | InboxSearchSetIndexPercentPayload
   | InboxSearchSetTextStatusPayload
+  | InboxSearchStartedPayload
   | InboxSearchTextResultPayload
   | JoinConversationPayload
   | JumpToRecentPayload

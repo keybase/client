@@ -263,6 +263,10 @@ func (c *ChatCLIUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearc
 	return nil
 }
 
+func (c *ChatCLIUI) ChatSearchInboxStart(ctx context.Context, sessionID int) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
 	if c.noOutput {
 		return nil
