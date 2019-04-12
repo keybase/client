@@ -34,7 +34,7 @@ const Wrapper = ({children}) => (
 const types = ['Default', 'Success', 'Danger', 'Wallet', 'Dim']
 const backgroundColors = ['blue', 'red', 'green', 'purple', 'black']
 const bgToColor = {
-  black: globalColors.black,
+  black: globalColors.black_75,
   blue: globalColors.blue,
   green: globalColors.green,
   purple: globalColors.purple2,
@@ -69,7 +69,7 @@ const load = () => {
                 <Button {...commonProps} type={t} label={t} small={true} />
                 <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} />
                 <Button {...commonProps} type={t} label={t} small={true} disabled={true} />
-                <Button {...commonProps} type={t} label={t} small={true} waiting={true} />
+                <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} disabled={true} />
               </Wrapper>
             ))}
           </Box2>

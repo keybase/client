@@ -15,6 +15,7 @@ import {
   isMobile,
   platformStyles,
   styleSheetCreate,
+  styled,
 } from '../styles'
 
 const Kb = {
@@ -53,6 +54,27 @@ const Progress = ({small, white}) => (
   </Kb.Box>
 )
 
+const SecondaryWhiteBgButton = isMobile
+  ? Kb.ClickableBox
+  : styled(Kb.ClickableBox)({
+      backgroundColor: globalColors.white,
+      '&:hover': {
+        backgroundColor: 'rgba(77, 142, 255, 0.05)',
+        border: '1px solid rgba(77, 142, 255, 0.2)!important',
+      },
+    })
+
+const PrimaryUnderlay = isMobile
+  ? () => null
+  : styled(Kb.Box, {shouldForwardProp: prop => prop !== '_backgroundColor'})(props => ({
+      ...globalStyles.fillAbsolute,
+      borderRadius,
+      transition: 'background-color 0.2s ease-out',
+      '&:hover': {
+        backgroundColor: props._backgroundColor,
+      },
+    }))
+
 class Button extends React.Component<Props> {
   static defaultProps = {
     mode: 'Primary',
@@ -76,7 +98,8 @@ class Button extends React.Component<Props> {
       containerStyle = collapseStyles([containerStyle, styles.small])
     }
 
-    if (this.props.disabled || this.props.waiting) {
+    const unclickable = this.props.disabled || this.props.waiting
+    if (unclickable) {
       containerStyle = collapseStyles([containerStyle, styles.opacity30])
     }
 
@@ -86,20 +109,40 @@ class Button extends React.Component<Props> {
 
     containerStyle = collapseStyles([containerStyle, this.props.style])
 
-    const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
+    const onClick = (!unclickable && !this.props.waiting && this.props.onClick) || null
     const whiteSpinner = !(
       this.props.type === 'PrimaryGreenActive' ||
       this.props.type === 'Secondary' ||
       this.props.type === 'PrimaryColoredBackground'
     )
 
+    let ButtonBox = Kb.ClickableBox
+    if (this.props.mode === 'Secondary' && !this.props.backgroundColor && !unclickable) {
+      // Add hover styles
+      ButtonBox = SecondaryWhiteBgButton
+    }
+
+    let underlay = null
+    if (this.props.mode === 'Primary' && !unclickable) {
+      underlay = (
+        <PrimaryUnderlay
+          _backgroundColor={this.props.backgroundColor ? 'rgba(77, 142, 255, 0.05)' : globalColors.black_10}
+        />
+      )
+    } else if (this.props.mode === 'Secondary' && !unclickable && this.props.backgroundColor) {
+      // default 0.2 opacity + 0.15 here = 0.35 hover
+      underlay = <PrimaryUnderlay _backgroundColor="rgba(0, 0, 0, 0.15)" />
+    }
+
     return (
-      <Kb.ClickableBox
+      <ButtonBox
         style={containerStyle}
         onClick={onClick}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}
+        hoverColor={globalColors.transparent}
       >
+        {underlay}
         <Kb.Box
           style={collapseStyles([
             globalStyles.flexBoxRow,
@@ -119,7 +162,7 @@ class Button extends React.Component<Props> {
           )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Kb.Box>
-      </Kb.ClickableBox>
+      </ButtonBox>
     )
   }
 }
@@ -151,8 +194,11 @@ const common = platformStyles({
 })
 
 const commonSecondaryWhiteBg = platformStyles({
-  common: {...common, backgroundColor: globalColors.white},
-  isElectron: {border: `1px solid ${globalColors.black_20}`},
+  common,
+  isElectron: {
+    border: `1px solid ${globalColors.black_20}`,
+    transition: 'background-color 0.1s ease-out, border 0.3s ease-out',
+  },
   isMobile: {borderStyle: 'solid', borderWidth: 2},
 })
 
@@ -172,7 +218,10 @@ const styles = styleSheetCreate({
     height: fullWidthHeight,
     width: '100%',
   },
-  labelContainer: {height: '100%', position: 'relative'},
+  labelContainer: platformStyles({
+    common: {height: '100%', position: 'relative'},
+    isElectron: {pointerEvents: 'none'}, // need hover etc. to go through to underlay
+  }),
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
@@ -226,7 +275,10 @@ const labelStyles = styleSheetCreate({
 // With backgroundColor styles
 const backgroundColorContainerStyles = styleSheetCreate({
   Primary: {...common, backgroundColor: globalColors.white},
-  Secondary: {...common, backgroundColor: globalColors.black_20},
+  Secondary: platformStyles({
+    common: {...common, backgroundColor: globalColors.black_20},
+    isElectron: {transition: 'background-color 0.2s ease-out, border 0.2s ease-out'},
+  }),
 })
 
 const backgroundColorLabelStyles = styleSheetCreate({
