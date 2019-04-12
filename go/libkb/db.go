@@ -20,6 +20,8 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBBoxAuditorPermanent            = 0xbb
+	DBBoxAuditor                     = 0xbc
 	DBUserPlusKeysVersionedUnstubbed = 0xbd
 	DBOfflineRPC                     = 0xbe
 	DBChatCollapses                  = 0xbf
@@ -68,6 +70,14 @@ const (
 	DBTeamList                       = 0xff
 )
 
+// Note(maxtaco) 2018.10.08 --- Note a bug here, that we used the `libkb.DBChatInbox` type here.
+// That's a copy-paste bug, but we get away with it since we have a `tid:` prefix that
+// disambiguates these entries from true Chat entries. We're not going to fix it now
+// since it would kill the team cache, but sometime in the future we should fix it.
+const (
+	DBSlowTeamsAlias = DBChatInbox
+)
+
 const (
 	DBLookupUsername = 0x00
 	// was once used to store latest merkle root with Key:"HEAD"
@@ -96,7 +106,8 @@ func IsPermDbKey(typ ObjType) bool {
 		DBChatCollapses,
 		DBHasRandomPW,
 		DBChatReacji,
-		DBStellarDisclaimer:
+		DBStellarDisclaimer,
+		DBBoxAuditorPermanent:
 		return true
 	default:
 		return false
@@ -117,7 +128,7 @@ func tablePrefix(table string) []byte {
 }
 
 func (k DbKey) ToString(table string) string {
-	return fmt.Sprintf("%s:%02x:%s", table, k.Typ, k.Key)
+	return fmt.Sprintf("%s:%s", PrefixString(table, k.Typ), k.Key)
 }
 
 func (k DbKey) ToBytes(table string) []byte {
@@ -125,6 +136,10 @@ func (k DbKey) ToBytes(table string) []byte {
 		table = levelDbTablePerm
 	}
 	return []byte(k.ToString(table))
+}
+
+func PrefixString(table string, typ ObjType) string {
+	return fmt.Sprintf("%s:%02x", table, typ)
 }
 
 var fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)
@@ -226,6 +241,9 @@ func (j *JSONLocalDb) Close() error           { return j.engine.Close() }
 func (j *JSONLocalDb) Nuke() (string, error)  { return j.engine.Nuke() }
 func (j *JSONLocalDb) Clean(force bool) error { return j.engine.Clean(force) }
 func (j *JSONLocalDb) Stats() string          { return j.engine.Stats() }
+func (j *JSONLocalDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
+	return j.engine.KeysWithPrefixes(prefixes...)
+}
 
 func (j *JSONLocalDb) PutRaw(id DbKey, b []byte) error       { return j.engine.Put(id, nil, b) }
 func (j *JSONLocalDb) GetRaw(id DbKey) ([]byte, bool, error) { return j.engine.Get(id) }

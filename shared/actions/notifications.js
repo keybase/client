@@ -59,6 +59,11 @@ const receivedRootAuditError = (state, action) =>
     globalError: new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`),
   })
 
+const receivedBoxAuditError = (state, action) =>
+  ConfigGen.createGlobalError({
+    globalError: new Error(`Keybase had a problem auditing a team, please report this with \`keybase log send\`: ${action.payload.params.message}`),
+  })
+
 function* notificationsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
     NotificationsGen.receivedBadgeState,
@@ -67,6 +72,10 @@ function* notificationsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1NotifyAuditRootAuditErrorPayload>(
     EngineGen.keybase1NotifyAuditRootAuditError,
     receivedRootAuditError
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload>(
+    EngineGen.keybase1NotifyAuditBoxAuditError,
+    receivedBoxAuditError
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, setupNotifications)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyBadgesBadgeStatePayload>(

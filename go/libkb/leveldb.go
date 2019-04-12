@@ -14,6 +14,7 @@ import (
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 )
 
@@ -30,6 +31,10 @@ type levelDBOps interface {
 	Get(key []byte, ro *opt.ReadOptions) (value []byte, err error)
 	Put(key, value []byte, wo *opt.WriteOptions) error
 	Write(b *leveldb.Batch, wo *opt.WriteOptions) error
+}
+
+func LevelDbPrefix(typ ObjType) []byte {
+	return []byte(PrefixString(levelDbTableKv, typ))
 }
 
 func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbKey, value []byte) (err error) {
@@ -365,6 +370,33 @@ func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
 	}
 	ltr.cleaner = l.cleaner
 	return ltr, nil
+}
+
+func (l *LevelDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
+	m := make(map[DbKey]bool)
+
+	l.Lock()
+	defer l.Unlock()
+
+	opts := &opt.ReadOptions{DontFillCache: true}
+	for _, prefix := range prefixes {
+		iter := l.db.NewIterator(util.BytesPrefix(prefix), opts)
+		for iter.Next() {
+			_, dbKey, err := DbKeyParse(string(iter.Key()))
+			if err != nil {
+				iter.Release()
+				return m, err
+			}
+			m[dbKey] = true
+		}
+		iter.Release()
+		err := iter.Error()
+		if err != nil {
+			return nil, nil
+		}
+	}
+
+	return m, nil
 }
 
 type LevelDbTransaction struct {

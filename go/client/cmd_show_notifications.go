@@ -161,3 +161,7 @@ func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.Tr
 func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err error) {
 	return d.printf("Merkle root audit error: %s\n", msg)
 }
+
+func (d *notificationDisplay) BoxAuditError(_ context.Context, msg string) (err error) {
+	return d.printf("Box audit error (report with `keybase log send`): %s\n", msg)
+}
