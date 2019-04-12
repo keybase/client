@@ -72,6 +72,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
     convProps: {
       ignored: false,
       muted: false,
+      participants: [],
       teamType: ownProps.isSmallTeam ? 'small' : 'big',
     },
     hasCanPerform: true,

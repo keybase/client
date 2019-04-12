@@ -81,7 +81,7 @@ class _SimpleTopLine extends React.Component<Props> {
         <Kb.Text
           key="timestamp"
           type="BodyTiny"
-          className={Styles.classNames({'small-team-timestamp': this.props.showGear})}
+          className={Styles.classNames({'conversation-timestamp': this.props.showGear})}
           style={Styles.collapseStyles([
             boldStyle,
             styles.timestamp,
@@ -93,7 +93,7 @@ class _SimpleTopLine extends React.Component<Props> {
         {this.props.showGear && (
           <Kb.Icon
             type="iconfont-gear"
-            className="small-team-gear"
+            className="conversation-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}
             color={this.props.subColor}

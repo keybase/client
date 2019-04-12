@@ -44,9 +44,9 @@ type State = {
 const SmallTeamBox = Styles.isMobile
   ? Kb.ClickableBox
   : Styles.styled(Kb.Box)({
-      '& .small-team-gear': {display: 'none'},
-      ':hover .small-team-gear': {display: 'unset'},
-      ':hover .small-team-timestamp': {display: 'none'},
+      '& .conversation-gear': {display: 'none'},
+      ':hover .conversation-gear': {display: 'unset'},
+      ':hover .conversation-timestamp': {display: 'none'},
     })
 
 class SmallTeam extends React.PureComponent<Props, State> {

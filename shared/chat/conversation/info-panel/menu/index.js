@@ -3,11 +3,13 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import {Avatars} from '../../../avatars'
 
 export type ConvProps = {
   teamType: ChatTypes.TeamType,
   ignored: boolean,
   muted: boolean,
+  participants: Array<string>,
 }
 
 export type Props = {
@@ -34,7 +36,27 @@ export type Props = {
   onViewTeam: () => void,
 }
 
-const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
+const AdhocHeader = ({isMuted, participants}: {isMuted: boolean, participants: Array<string>}) => (
+  <Kb.Box style={styles.headerContainer}>
+    <Avatars
+      backgroundColor={Styles.globalColors.white}
+      isHovered={false}
+      isLocked={false}
+      isMuted={isMuted}
+      isSelected={false}
+      participants={participants}
+      size={Styles.isMobile ? 64 : 48}
+    />
+    <Kb.PlaintextUsernames
+      type="Body"
+      users={participants.map(p => ({
+        username: p,
+      }))}
+    />
+  </Kb.Box>
+)
+
+const TeamHeader = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
   <Kb.Box style={styles.headerContainer}>
     <Kb.Avatar
       size={Styles.isMobile ? 64 : 48}
@@ -86,7 +108,9 @@ class InfoPanelMenu extends React.Component<Props> {
           ),
         }
 
-    const items = [
+    const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
+    const adhocItems = [this.hideItem(), this.muteItem()]
+    const teamItems = [
       ...(props.canAddPeople ? addPeopleItems : []),
       {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
       this.hideItem(),
@@ -97,14 +121,19 @@ class InfoPanelMenu extends React.Component<Props> {
 
     const header = {
       title: 'header',
-      view: <Header teamname={props.teamname} memberCount={props.memberCount} />,
+      view:
+        isAdhoc && props.convProps ? (
+          <AdhocHeader isMuted={props.convProps.muted} participants={props.convProps.participants} />
+        ) : (
+          <TeamHeader teamname={props.teamname} memberCount={props.memberCount} />
+        ),
     }
 
     return (
       <Kb.FloatingMenu
         attachTo={props.attachTo}
         visible={props.visible}
-        items={items}
+        items={isAdhoc ? adhocItems : teamItems}
         header={header}
         onHidden={props.onHidden}
         position="bottom left"
@@ -139,17 +168,18 @@ class InfoPanelMenu extends React.Component<Props> {
       return null
     }
     const convProps = this.props.convProps
+    const title = `${convProps.muted ? 'Unmute' : 'Mute'} all notifications`
     return {
       onClick: () => this.props.onMuteConv(!convProps.muted),
       style: {borderTopWidth: 0},
-      title: `${convProps.muted ? 'Unmute' : 'Mute'} conversation`,
+      title,
       view: (
-        <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
           <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-            {this.props.manageChannelsTitle}
+            {title}
           </Kb.Text>
-          {this.props.badgeSubscribe && <Kb.Box style={styles.badge} />}
-        </Kb.Box>
+          <Kb.Icon type="iconfont-shh" color={Styles.globalColors.black_20} />
+        </Kb.Box2>
       ),
     }
   }

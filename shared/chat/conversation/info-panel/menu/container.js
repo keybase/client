@@ -43,6 +43,7 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
     convProps = {
       ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
       muted: meta.isMuted,
+      participants: ChatConstants.getRowParticipants(meta, state.config.username || '').toArray(),
       teamType: meta.teamType,
     }
   }
@@ -124,7 +125,7 @@ const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) =
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]}))
     dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
-  onMuteConv: (muted: boolean) => dispatch(ChatGen.createMuteConversation({conversationIDKey, muted: false})),
+  onMuteConv: (muted: boolean) => dispatch(ChatGen.createMuteConversation({conversationIDKey, muted})),
   onUnhideConv: () => dispatch(ChatGen.createUnhideConversation({conversationIDKey})),
   onViewTeam: () => {
     if (flags.useNewRouter) {
