@@ -1598,6 +1598,10 @@
           "name": "convName"
         },
         {
+          "type": "string",
+          "name": "query"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ChatSearchHit"

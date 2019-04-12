@@ -93,7 +93,6 @@ export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Re
   indexPercent: 0,
   nameResults: I.List(),
   nameStatus: 'initial',
-  query: new HiddenString(''),
   selectedIndex: 0,
   textResults: I.List(),
   textStatus: 'initial',
@@ -107,15 +106,27 @@ export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> 
 export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> = I.Record({
   conversationIDKey: noConversationIDKey,
   numHits: 0,
+  query: '',
   teamType: 'small',
 })
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
-    return inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey
+    const conversationIDKey = inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey
+    if (conversationIDKey) {
+      return {
+        conversationIDKey,
+        query: undefined,
+      }
+    }
   } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.size + inboxSearch.textResults.size) {
-    return inboxSearch.textResults.get(inboxSearch.nameResults.size + inboxSearch.selectedIndex)
-      ?.conversationIDKey
+    const result = inboxSearch.textResults.get(inboxSearch.selectedIndex - inboxSearch.nameResults.size)
+    if (result) {
+      return {
+        conversationIDKey: result.conversationIDKey,
+        query: new HiddenString(result.query),
+      }
+    }
   }
   return null
 }

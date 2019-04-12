@@ -16,6 +16,7 @@ type TextResult = {|
   conversationIDKey: Types.ConversationIDKey,
   type: 'big' | 'small',
   numHits: number,
+  query: string,
 |}
 
 type Props = {|
@@ -23,7 +24,7 @@ type Props = {|
   nameStatus: Types.InboxSearchStatus,
   nameResults: Array<NameResult>,
   onCancel: () => void,
-  onSelectConversation: (Types.ConversationIDKey, boolean) => void,
+  onSelectConversation: (Types.ConversationIDKey, string) => void,
   selectedIndex: number,
   textStatus: Types.InboxSearchStatus,
   textResults: Array<TextResult>,
@@ -45,7 +46,7 @@ class InboxSearch extends React.Component<Props, State> {
         isSelected={this.props.selectedIndex === realIndex}
         key={realIndex}
         numSearchHits={item?.numHits ?? undefined}
-        onSelectConversation={() => section.onSelect(item.conversationIDKey)}
+        onSelectConversation={() => section.onSelect(item)}
       />
     ) : (
       <SelectableSmallTeam
@@ -53,7 +54,7 @@ class InboxSearch extends React.Component<Props, State> {
         isSelected={this.props.selectedIndex === realIndex}
         numSearchHits={item?.numHits ?? undefined}
         key={realIndex}
-        onSelectConversation={() => section.onSelect(item.conversationIDKey)}
+        onSelectConversation={() => section.onSelect(item)}
       />
     )
   }
@@ -63,12 +64,12 @@ class InboxSearch extends React.Component<Props, State> {
   _toggleCollapseText = () => {
     this.setState({textCollapsed: !this.state.textCollapsed})
   }
-  _selectName = conversationIDKey => {
-    this.props.onSelectConversation(conversationIDKey, false)
+  _selectName = item => {
+    this.props.onSelectConversation(item.conversationIDKey, '')
     this.props.onCancel()
   }
-  _selectText = conversationIDKey => {
-    this.props.onSelectConversation(conversationIDKey, true)
+  _selectText = item => {
+    this.props.onSelectConversation(item.conversationIDKey, item.query)
   }
   _renderNameHeader = section => {
     return (

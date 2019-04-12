@@ -626,6 +626,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		if convHits == nil {
 			continue
 		}
+		convHits.Query = query
 		numConvsHit++
 		if hitUICh != nil {
 			// Stream search hits back to the UI channel

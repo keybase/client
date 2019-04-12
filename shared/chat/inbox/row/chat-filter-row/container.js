@@ -5,7 +5,6 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {isDarwin, isMobile} from '../../../../constants/platform'
 import {namedConnect, compose, withProps} from '../../../../util/container'
 import ConversationFilterInput from '../../../conversation-filter-input'
-import HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
   onCancel: () => void,
@@ -15,12 +14,13 @@ type OwnProps = {
   onNewChat: () => void,
   onSelectDown: () => void,
   onSelectUp: () => void,
+  onQueryChanged: string => void,
+  query: string,
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const filter = (state.chat2.inboxSearch || Constants.makeInboxSearchInfo()).query.stringValue()
   return {
-    filter,
+    filter: ownProps.query,
     isLoading: Constants.anyChatWaitingKeys(state),
   }
 }
@@ -39,7 +39,6 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onFocus: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
-  onSetFilter: (filter: string) => dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -55,7 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onNewChat: ownProps.onNewChat,
   onSelectDown: ownProps.onSelectDown,
   onSelectUp: ownProps.onSelectUp,
-  onSetFilter: dispatchProps.onSetFilter,
+  onSetFilter: ownProps.onQueryChanged,
 })
 
 const KeyHandler = isMobile ? c => c : require('../../../../util/key-handler.desktop').default

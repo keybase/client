@@ -62,6 +62,7 @@ export type InboxSearchStatus = 'initial' | 'inprogress' | 'done'
 export type _InboxSearchTextHit = {
   conversationIDKey: Common.ConversationIDKey,
   numHits: number,
+  query: string,
   teamType: 'big' | 'small',
 }
 
@@ -78,7 +79,6 @@ export type _InboxSearchInfo = {
   indexPercent: number,
   nameResults: I.List<InboxSearchConvHit>,
   nameStatus: InboxSearchStatus,
-  query: HiddenString,
   selectedIndex: number,
   textResults: I.List<InboxSearchTextHit>,
   textStatus: InboxSearchStatus,

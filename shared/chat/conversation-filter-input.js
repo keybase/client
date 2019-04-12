@@ -66,7 +66,6 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
       e.preventDefault()
       e.stopPropagation()
       this.props.onEnsureSelection()
-      this.props.onCancel()
       this._stopEditing()
       this._input && this._input.blur()
     }

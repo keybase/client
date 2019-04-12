@@ -1372,18 +1372,21 @@ const onInboxSearchSelect = (state, action) => {
   if (!inboxSearch) {
     return []
   }
+  const selected = Constants.getInboxSearchSelected(inboxSearch)
   const conversationIDKey = action.payload.conversationIDKey
     ? action.payload.conversationIDKey
-    : Constants.getInboxSearchSelected(inboxSearch)
+    : selected?.conversationIDKey
   if (!conversationIDKey) {
     return []
   }
+  const query = action.payload.query ? action.payload.query : selected?.query
   const actions = [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})]
-  if (action.payload.query) {
-    const query = action.payload.query
+  if (query) {
     actions.push(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query}))
     actions.push(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
     actions.push(Chat2Gen.createThreadSearch({conversationIDKey, query}))
+  } else {
+    actions.push(Chat2Gen.createToggleInboxSearch({enabled: false}))
   }
   return actions
 }
@@ -1420,13 +1423,14 @@ function* inboxSearch(state, action) {
         result: Constants.makeInboxSearchTextHit({
           conversationIDKey,
           numHits: (resp.searchHit.hits || []).length,
+          query: resp.searchHit.query,
           teamType: teamType(resp.searchHit.teamType),
         }),
       })
     )
   }
   const onStart = () => {
-    return Saga.put(Chat2Gen.createInboxSearchStarted({query}))
+    return Saga.put(Chat2Gen.createInboxSearchStarted())
   }
   const onDone = () => {
     return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'done'}))

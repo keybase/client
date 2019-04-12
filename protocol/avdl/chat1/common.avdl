@@ -602,6 +602,7 @@
     ConversationID convID;
     TeamType teamType;
     string convName;
+    string query;
     array<ChatSearchHit> hits;
   }
 

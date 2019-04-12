@@ -1078,18 +1078,11 @@ const rootReducer = (
           textResults: old.textResults.push(action.payload.result),
         })
       })
-    case Chat2Gen.inboxSearch:
-      return state.update('inboxSearch', info => {
-        return (info || Constants.makeInboxSearchInfo()).merge({
-          query: action.payload.query,
-        })
-      })
     case Chat2Gen.inboxSearchStarted:
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           nameResults: I.List(),
           nameStatus: 'inprogress',
-          query: action.payload.query,
           selectedIndex: 0,
           textResults: I.List(),
           textStatus: 'inprogress',
@@ -1257,6 +1250,7 @@ const rootReducer = (
     case Chat2Gen.addUsersToChannel:
     case Chat2Gen.loadMessagesFromSearchHit:
     case Chat2Gen.inboxSearchSelect:
+    case Chat2Gen.inboxSearch:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
