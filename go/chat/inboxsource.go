@@ -3,6 +3,8 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -352,6 +354,10 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	}, nil
 }
 
+func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
+	return nil, errors.New("not implemented")
+}
+
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	conv chat1.Conversation) error {
 	return nil
@@ -683,6 +689,132 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	}
 
 	return res, err
+}
+
+type nameContainsQueryRes int
+
+const (
+	nameContainsQueryNone nameContainsQueryRes = iota
+	nameContainsQuerySimilar
+	nameContainsQueryPrefix
+	nameContainsQueryExact
+)
+
+type convSearchHit struct {
+	conv      types.RemoteConversation
+	queryToks []string
+	convToks  []string
+	hits      []nameContainsQueryRes
+}
+
+func (h convSearchHit) hitScore() (score int) {
+	exacts := 0
+	for _, hit := range h.hits {
+		switch hit {
+		case nameContainsQueryExact:
+			score += 20
+			exacts++
+		case nameContainsQueryPrefix:
+			score += 10
+		case nameContainsQuerySimilar:
+			score += 3
+		}
+	}
+	if len(h.queryToks) == len(h.convToks) && len(h.hits) == len(h.convToks) && exacts == len(h.hits) {
+		return 1000000
+	}
+	return score
+}
+
+func (h convSearchHit) less(o convSearchHit) bool {
+	hScore := h.hitScore()
+	oScore := o.hitScore()
+	if hScore < oScore {
+		return true
+	} else if hScore > oScore {
+		return false
+	}
+	return h.conv.GetMtime().Before(o.conv.GetMtime())
+}
+
+func (h convSearchHit) valid() bool {
+	return len(h.hits) > 0
+}
+
+func (s *HybridInboxSource) isConvSearchHit(conv types.RemoteConversation, queryToks []string,
+	username string) (res convSearchHit) {
+	var convToks []string
+	res.conv = conv
+	res.queryToks = queryToks
+	searchable := utils.SearchableRemoteConversationName(conv, username)
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		convToks = []string{searchable}
+	default:
+		convToks = strings.Split(searchable, ",")
+	}
+	res.convToks = convToks
+	for _, queryTok := range queryToks {
+		curHit := nameContainsQueryNone
+		for _, convTok := range convToks {
+			if nameContainsQueryExact > curHit && convTok == queryTok {
+				curHit = nameContainsQueryExact
+				break
+			} else if nameContainsQueryPrefix > curHit && strings.HasPrefix(convTok, queryTok) {
+				curHit = nameContainsQueryPrefix
+			} else if nameContainsQuerySimilar > curHit && strings.Contains(convTok, queryTok) {
+				curHit = nameContainsQuerySimilar
+			}
+		}
+		if curHit > nameContainsQueryNone {
+			res.hits = append(res.hits, curHit)
+		}
+	}
+	return res
+}
+
+func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Search")()
+	username := s.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
+	ib := s.createInbox()
+	_, convs, err := ib.ReadAll(ctx, uid, true)
+	if err != nil {
+		return res, err
+	}
+	var queryToks []string
+	for _, t := range strings.FieldsFunc(query, func(r rune) bool {
+		return r == ',' || r == ' '
+	}) {
+		tok := strings.Trim(t, " ")
+		if len(tok) > 0 {
+			queryToks = append(queryToks, tok)
+		}
+	}
+	var hits []convSearchHit
+	for _, conv := range convs {
+		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT {
+			continue
+		}
+		if conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_NEVER_JOINED) {
+			continue
+		}
+		hit := s.isConvSearchHit(conv, queryToks, username)
+		if !hit.valid() {
+			continue
+		}
+		hits = append(hits, hit)
+	}
+	sort.Slice(hits, func(i, j int) bool {
+		return hits[j].less(hits[i])
+	})
+	res = make([]types.RemoteConversation, len(hits))
+	for i, hit := range hits {
+		res[i] = hit.conv
+	}
+	if limit > 0 && limit < len(res) {
+		return res[:limit], nil
+	}
+	return res, nil
 }
 
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {

@@ -8,7 +8,7 @@ export type MenuItem = {|
   onClick?: ?(evt?: SyntheticEvent<>) => void,
   onPress?: void,
   style?: Object,
-  subTitle?: string, // subTitle is not used on native
+  subTitle?: string,
   title: string, // Only used as ID if view is provided for Header
   view?: React.Node, // Required for header
 |}

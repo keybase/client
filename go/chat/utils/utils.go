@@ -568,7 +568,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 
 // Start at the beginng of the line, space, or some hand picked artisanal
 // characters
-const ServiceDecorationPrefix = `(?:^|[\s([{:;.,!?"'])`
+const ServiceDecorationPrefix = `(?:^|[\s([/{:;.,!?"'])`
 
 var chanNameMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix + `#([0-9a-zA-Z_-]+)`)
 
@@ -1044,6 +1044,32 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
 	for _, rc := range rcs {
 		res = append(res, PresentRemoteConversation(ctx, g, rc))
+	}
+	return res
+}
+
+func SearchableRemoteConversationName(conv types.RemoteConversation, username string) string {
+	name := conv.GetName()
+	// Check for self conv or big team conv
+	if name == username || strings.Contains(name, "#") {
+		return name
+	}
+	name = strings.Replace(name, fmt.Sprintf(",%s", username), "", -1)
+	name = strings.Replace(name, fmt.Sprintf("%s,", username), "", -1)
+	return name
+}
+
+func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, username string) chat1.UIChatSearchConvHit {
+	return chat1.UIChatSearchConvHit{
+		ConvID: conv.GetConvID().String(),
+		Name:   SearchableRemoteConversationName(conv, username),
+		Mtime:  conv.GetMtime(),
+	}
+}
+
+func PresentRemoteConversationsAsSearchHits(convs []types.RemoteConversation, username string) (res []chat1.UIChatSearchConvHit) {
+	for _, c := range convs {
+		res = append(res, PresentRemoteConversationAsSearchHit(c, username))
 	}
 	return res
 }

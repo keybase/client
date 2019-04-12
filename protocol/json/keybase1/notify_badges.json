@@ -64,8 +64,8 @@
           "jsonkey": "end_time"
         },
         {
-          "type": "string",
-          "name": "msg"
+          "type": "boolean",
+          "name": "active"
         }
       ]
     },

@@ -127,6 +127,10 @@ func (d *notificationDisplay) PasswordChanged(_ context.Context) error {
 	return d.printf("Password changed\n")
 }
 
+func (d *notificationDisplay) FSOnlineStatusChanged(_ context.Context, online bool) error {
+	return d.printf("KBFS online status changed: online=%+v\n", online)
+}
+
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
 }

@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as SearchConstants from '../../../constants/search'
 import {connect} from '../../../util/container'
+import {isMobile} from '../../../styles'
 import ConversationHeader from './normal/container'
 import Search from './search'
 import CreateTeamHeader from '../create-team-header/container'
@@ -44,7 +45,7 @@ const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
   const inputResults = SearchConstants.getUserInputItemIds(state, 'chatSearch')
   // for now this is just the info button always in the new routing scheme
-  const infoPanelOpen = flags.useNewRouter ? false : Constants.isInfoPanelOpen(state)
+  const infoPanelOpen = Constants.isInfoPanelOpen(state)
   return {
     infoPanelOpen,
     isPending,
@@ -53,8 +54,11 @@ const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   }
 }
 
-export default connect<OwnProps, _, _, _, _>(
+const Connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})
 )(HeaderArea)
+
+const Empty = () => null
+export default (flags.useNewRouter && !isMobile ? Empty : Connected)

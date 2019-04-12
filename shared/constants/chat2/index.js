@@ -172,8 +172,12 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   return meta.teamname === teamname
 }
 export const isInfoPanelOpen = (state: TypedState) => {
-  const routePath = getPath(state.routeTree.routeState, [chatTab])
-  return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
+  if (flags.useNewRouter) {
+    return Router2.getVisibleScreen()?.routeName === 'chatInfoPanel'
+  } else {
+    const routePath = getPath(state.routeTree.routeState, [chatTab])
+    return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
+  }
 }
 
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -193,6 +197,8 @@ export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey)
 export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
+export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))

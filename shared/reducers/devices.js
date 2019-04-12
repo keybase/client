@@ -5,6 +5,7 @@ import * as Types from '../constants/types/devices'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
 import * as Flow from '../util/flow'
+import flags from '../util/feature-flags'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -31,7 +32,11 @@ export default function(
         ? state.merge({justRevokedSelf: action.payload.deviceName})
         : state
     case DevicesGen.badgeAppForDevices:
-      return state.merge({isNew: I.Set(action.payload.ids)})
+      const newSet = I.Set(action.payload.ids)
+      // We show our badges until we clear with the clearBadges call.
+      return state.merge({isNew: flags.useNewRouter ? newSet.merge(state.isNew) : newSet})
+    case DevicesGen.clearBadges:
+      return state.merge({isNew: I.Set()})
     case ProvisionGen.startProvision:
       return state.merge({justRevokedSelf: ''})
     // Saga only actions

@@ -190,7 +190,6 @@ func (smc *smuContext) setupDeviceHelper(u *smuUser, puk bool) *smuDeviceWrapper
 	tctx := setupTest(smc.t, u.usernamePrefix)
 	tctx.Tp.DisableUpgradePerUserKey = !puk
 	tctx.G.SetClock(smc.fakeClock)
-	installInsecureTriplesec(tctx.G)
 	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
 	u.devices = append(u.devices, ret)
 	if u.primary == nil {

@@ -1361,6 +1361,7 @@ function* threadSearch(state, action, logger) {
           maxConvs: -1,
           maxHits: -1,
           maxMessages: -1,
+          maxNameConvs: 15,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
@@ -1481,10 +1482,10 @@ function* previewConversationAfterFindExisting(state, action, results, users) {
     action.type === Chat2Gen.previewConversation && (action.payload.teamname || action.payload.channelname)
   if (action.type === Chat2Gen.previewConversation && action.payload.conversationIDKey) {
     existingConversationIDKey = action.payload.conversationIDKey
-  } else if (results && results.conversations && results.conversations.length > 0) {
+  } else if (results.length > 0) {
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
-    existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+    existingConversationIDKey = results[0].conversationIDKey
 
     // If we get a conversationIDKey we don't know about (maybe an empty convo) lets treat it as not being found so we can go through the create flow
     // if it's a team avoid the flow and just preview & select the channel
@@ -1580,7 +1581,7 @@ function* previewConversationFindExisting(state, action) {
   )
 
   if (!conversationIDKey) {
-    const results = yield RPCChatTypes.localFindConversationsLocalRpcPromise({
+    const results = yield* Saga.callPromise(RPCChatTypes.localFindConversationsLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
       oneChatPerTLF: true,
@@ -1589,14 +1590,13 @@ function* previewConversationFindExisting(state, action) {
       visibility: RPCTypes.commonTLFVisibility.private,
       ...params,
     })
-    yield Saga.put(
-      Chat2Gen.createMetasReceived({
-        metas: (results.uiConversations || []).map(Constants.inboxUIItemToConversationMeta),
-      })
-    )
-    yield* previewConversationAfterFindExisting(state, action, results, users)
+    const resultMetas = (results.uiConversations || [])
+      .map(row => Constants.inboxUIItemToConversationMeta(row))
+      .filter(Boolean)
+    yield Saga.put(Chat2Gen.createMetasReceived({metas: resultMetas}))
+    yield* previewConversationAfterFindExisting(state, action, resultMetas, users)
   } else {
-    yield* previewConversationAfterFindExisting(state, action, undefined, [])
+    yield* previewConversationAfterFindExisting(state, action, [], [])
   }
 }
 
@@ -2079,6 +2079,16 @@ const loadCanUserPerform = (state, action) => {
   }
 }
 
+const loadTeamForConv = (state, action) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const teamname = meta.teamname
+  if (!teamname) {
+    return
+  }
+  return TeamsGen.createGetMembers({teamname})
+}
+
 // Get the full channel names/descs for a team if we don't already have them.
 function* loadChannelInfos(state, action) {
   const {conversationIDKey} = action.payload
@@ -2282,19 +2292,35 @@ function* hideConversation(_, action) {
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
   yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
-  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    status: RPCChatTypes.commonConversationStatus.ignored,
-  })
+  try {
+    yield* Saga.callPromise(
+      RPCChatTypes.localSetConversationStatusLocalRpcPromise,
+      {
+        conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        status: RPCChatTypes.commonConversationStatus.ignored,
+      },
+      Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey)
+    )
+  } catch (err) {
+    logger.error('Failed to hide conversation: ' + err)
+  }
 }
 
 function* unhideConversation(_, action) {
-  yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
-    conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    status: RPCChatTypes.commonConversationStatus.unfiled,
-  })
+  try {
+    yield* Saga.callPromise(
+      RPCChatTypes.localSetConversationStatusLocalRpcPromise,
+      {
+        conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        status: RPCChatTypes.commonConversationStatus.unfiled,
+      },
+      Constants.waitingKeyConvStatusChange(action.payload.conversationIDKey)
+    )
+  } catch (err) {
+    logger.error('Failed to unhide conversation: ' + err)
+  }
 }
 
 const setConvRetentionPolicy = (_, action, logger) => {
@@ -2710,9 +2736,11 @@ const toggleInfoPanel = (state, action) => {
 
 const unsentTextChanged = (state, action) => {
   const {conversationIDKey, text} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
   return RPCChatTypes.localUpdateUnsentTextRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     text: text.stringValue(),
+    tlfName: meta.tlfname,
   })
 }
 
@@ -2720,13 +2748,14 @@ const onGiphyResults = (state, action) => {
   const {convID, results} = action.payload.params
   return Chat2Gen.createGiphyGotSearchResult({
     conversationIDKey: Types.stringToConversationIDKey(convID),
-    results: results || [],
+    results,
   })
 }
 
 const onGiphyToggleWindow = (state, action) => {
-  const {convID, show} = action.payload.params
+  const {convID, show, clearInput} = action.payload.params
   return Chat2Gen.createGiphyToggleWindow({
+    clearInput,
     conversationIDKey: Types.stringToConversationIDKey(convID),
     show,
   })
@@ -2839,6 +2868,7 @@ const addUsersToChannel = (_, action, logger) => {
   )
     .then(() => [
       Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      RouteTreeGen.createClearModals(),
       Chat2Gen.createNavigateToThread(),
     ])
     .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
@@ -3014,6 +3044,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     Chat2Gen.selectConversation,
     loadCanUserPerform,
     'loadCanUserPerform'
+  )
+
+  yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(
+    Chat2Gen.selectConversation,
+    loadTeamForConv,
+    'loadTeamForConv'
   )
 
   // Giphy

@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/data"
 )
 
 // BenchmarkWriteSeq512 writes to a large file in 512 byte writes.
@@ -143,7 +143,7 @@ func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
 		}
 		for j := 0; j < numWritesPerFile; j++ {
 			// make each block unique
-			for k := 0; k < 1+len(buf)/libkbfs.MaxBlockSizeBytesDefault; k++ {
+			for k := 0; k < 1+len(buf)/data.MaxBlockSizeBytesDefault; k++ {
 				buf[k] = byte(i)
 				buf[k+1] = byte(j)
 				buf[k+2] = byte(k)
@@ -267,6 +267,7 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 
 func benchmarkMultiFileSync(
 	b *testing.B, numFiles, fileSize int, timeWrites, timeFlush bool) {
+	isolateStages := !timeWrites || !timeFlush
 	benchmark(b,
 		journal(),
 		users("alice"),
@@ -276,8 +277,13 @@ func benchmarkMultiFileSync(
 		),
 		as(alice,
 			enableJournal(),
-			pauseJournal(),
 			custom(func(cb func(fileOp) error) error {
+				if isolateStages {
+					// If we want to time one of the stages
+					// separately, pause the journal.
+					cb(pauseJournal())
+				}
+
 				var n int
 				cb(getBenchN(&n))
 				buf := make([]byte, numFiles*fileSize+fileSize)
@@ -316,9 +322,13 @@ func benchmarkMultiFileSync(
 					if !timeFlush {
 						cb(stopTimer())
 					}
-					cb(resumeJournal())
+					if isolateStages {
+						cb(resumeJournal())
+					}
 					cb(flushJournal())
-					cb(pauseJournal())
+					if isolateStages {
+						cb(pauseJournal())
+					}
 					if !timeFlush {
 						cb(startTimer())
 					}
@@ -343,4 +353,16 @@ func BenchmarkMultiFileSyncLargeFlush(b *testing.B) {
 
 func BenchmarkMultiFileSyncLarge(b *testing.B) {
 	benchmarkMultiFileSync(b, 1000, 5, true, true)
+}
+
+func BenchmarkMultiFileSyncBigFilesWrites(b *testing.B) {
+	benchmarkMultiFileSync(b, 5, 1*1024*1024, true, false)
+}
+
+func BenchmarkMultiFileSyncBigFilesFlush(b *testing.B) {
+	benchmarkMultiFileSync(b, 5, 1*1024*1024, false, true)
+}
+
+func BenchmarkMultiFileSyncBigFiles(b *testing.B) {
+	benchmarkMultiFileSync(b, 5, 1*1024*1024, true, true)
 }

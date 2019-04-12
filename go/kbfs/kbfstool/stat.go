@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/fsrpc"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -37,7 +38,7 @@ func statNode(ctx context.Context, config libkbfs.Config, nodePathStr string) er
 	}
 
 	var symPathStr string
-	if ei.Type == libkbfs.Sym {
+	if ei.Type == data.Sym {
 		symPathStr = fmt.Sprintf("SymPath: %s, ", ei.SymPath)
 	}
 

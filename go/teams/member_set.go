@@ -30,6 +30,24 @@ func newMemberSet() *memberSet {
 	return &memberSet{recipients: make(MemberMap)}
 }
 
+func (m MemberMap) Eq(n MemberMap) bool {
+	if m == nil && n == nil {
+		return true
+	}
+	if m == nil || n == nil {
+		return false
+	}
+	if len(m) != len(n) {
+		return false
+	}
+	for k, v := range m {
+		if n[k] != v {
+			return false
+		}
+	}
+	return true
+}
+
 func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
 	set := newMemberSet()
 	if err := set.loadMembers(ctx, g, req, true /* forcePoll*/); err != nil {

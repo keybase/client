@@ -1,6 +1,9 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {newRoutes as provisionNewRoutes} from '../provision/routes'
+import {modalizeRoute} from '../router-v2/modal-helper'
 import {isMobile} from '../constants/platform'
+import {mapValues} from 'lodash-es'
 
 const routeTree = () => {
   const CodePage = require('../provision/code-page/container').default
@@ -42,15 +45,16 @@ const routeTree = () => {
 }
 
 export const newRoutes = {
-  devicePage: {getScreen: () => require('./device-page/container').default},
-  devicePaperKey: {getScreen: () => require('./paper-key/container').default},
-  deviceRevoke: {getScreen: () => require('./device-revoke/container').default},
-  'settingsTabs.devicesTab': {getScreen: () => require('./container').default},
-  'tabs.devicesTab': {getScreen: () => require('./container').default},
+  devicePage: {getScreen: () => require('./device-page/container').default, upgrade: true},
+  deviceRevoke: {getScreen: () => require('./device-revoke/container').default, upgraded: true},
+  'settingsTabs.devicesTab': {getScreen: () => require('./container').default, upgraded: true},
+  'tabs.devicesTab': {getScreen: () => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {
-  deviceAdd: {getScreen: () => require('./add-device/container').default},
+  ...mapValues(provisionNewRoutes, v => modalizeRoute(v)),
+  deviceAdd: {getScreen: () => require('./add-device/container').default, upgraded: true},
+  devicePaperKey: modalizeRoute({getScreen: () => require('./paper-key/container').default, upgraded: true}),
 }
 
 export default routeTree

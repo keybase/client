@@ -20,7 +20,7 @@ protocol NotifyBadges {
   record ResetState {
     @jsonkey("end_time")
     Time endTime;
-    string msg;
+    boolean active;
   }
 
   record BadgeState {

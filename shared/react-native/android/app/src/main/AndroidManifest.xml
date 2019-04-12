@@ -42,7 +42,7 @@
           <data android:mimeType="image/*" />
           <data android:mimeType="video/*" />
           <data android:mimeType="audio/*" />
-          <data android:mimeType="application/pdf" />
+          <data android:mimeType="application/*" />
         </intent-filter>
         <!-- TODO: enable
         <intent-filter>
@@ -62,22 +62,23 @@
       </receiver>
       <service android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationRegistrationService"/>
       <service
-          android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService"
+          android:name="io.keybase.ossifrage.KeybasePushNotificationListenerService"
           android:exported="false" >
           <intent-filter>
               <action android:name="com.google.firebase.MESSAGING_EVENT" />
           </intent-filter>
       </service>
-        <service
-            android:name="com.evernote.android.job.gcm.PlatformGcmService"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
-            </intent-filter>
-        </service>
+      <service
+          android:name="com.evernote.android.job.gcm.PlatformGcmService"
+          android:enabled="true"
+          android:exported="true"
+          android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
+          tools:replace="android:enabled">
+          <intent-filter>
+              <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY"/>
+          </intent-filter>
+      </service>
+
       <provider
           android:name="io.keybase.ossifrage.util.SharedFileProvider"
           android:authorities="${applicationId}.fileprovider"

@@ -9,7 +9,9 @@ type Props = {|
 |}
 
 const SendRequestForm = (props: Props) => (
-  <Root onClose={props.onClose}>{props.isRequest ? <RequestBody /> : <SendBody />}</Root>
+  <Root isRequest={props.isRequest} onClose={props.onClose}>
+    {props.isRequest ? <RequestBody /> : <SendBody />}
+  </Root>
 )
 
 export default SendRequestForm

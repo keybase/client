@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"runtime/debug"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -16,6 +17,27 @@ import (
 
 type UIDer interface {
 	GetUID() keybase1.UID
+}
+
+type StubMode int
+
+const (
+	StubModeStubbed   StubMode = 0
+	StubModeUnstubbed StubMode = 1
+)
+
+func StubModeFromUnstubbedBool(unstubbed bool) StubMode {
+	if unstubbed {
+		return StubModeUnstubbed
+	}
+	return StubModeStubbed
+}
+
+func (s StubMode) String() string {
+	if s == StubModeUnstubbed {
+		return "unstubbed"
+	}
+	return "stubbed"
 }
 
 type LoadUserArg struct {
@@ -32,7 +54,8 @@ type LoadUserArg struct {
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 	upakLite                 bool
-	fullSigchain             bool
+	stubMode                 StubMode // by default, this is StubModeStubbed, meaning, stubbed links are OK
+
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
 	// the result of an earlier no-features load from cache. We shouldn't add
@@ -49,9 +72,13 @@ type LoadUserArg struct {
 }
 
 func (arg LoadUserArg) String() string {
-	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
+	leaf := "nil"
+	if arg.merkleLeaf != nil {
+		leaf = fmt.Sprintf("%v", arg.merkleLeaf.idVersion)
+	}
+	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v Leaf:%v %v}",
 		arg.uid, arg.name, arg.publicKeyOptional, arg.noCacheResult, arg.self, arg.forceReload,
-		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly)
+		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly, leaf, arg.stubMode)
 }
 
 func (arg LoadUserArg) MetaContext() MetaContext {
@@ -196,8 +223,8 @@ func (arg LoadUserArg) WithForceReload() LoadUserArg {
 	return arg
 }
 
-func (arg LoadUserArg) WithFullSigchain() LoadUserArg {
-	arg.fullSigchain = true
+func (arg LoadUserArg) WithStubMode(sm StubMode) LoadUserArg {
+	arg.stubMode = sm
 	return arg
 }
 
@@ -275,10 +302,7 @@ func LoadMeByMetaContextAndUID(m MetaContext, uid keybase1.UID) (*User, error) {
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
-
-	m := arg.MetaContext()
-
-	m = m.WithLogTag("LU")
+	m := arg.MetaContext().WithLogTag("LU")
 	defer m.TraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
 
 	var refresh bool
@@ -288,11 +312,12 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	// Whatever the reply is, pass along our desired global context
+	var refreshReason string
 	defer func() {
 		if ret != nil {
 			ret.SetGlobalContext(m.G())
 			if refresh {
-				m.G().NotifyRouter.HandleUserChanged(ret.GetUID())
+				m.G().NotifyRouter.HandleUserChanged(m, ret.GetUID(), fmt.Sprintf("libkb.LoadUser refresh '%v'", refreshReason))
 			}
 		}
 	}()
@@ -315,6 +340,15 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	m.Debug("| resolved to %s", arg.uid)
 
+	if arg.uid.Exists() {
+		lock, err := m.G().loadUserLockTab.AcquireOnNameWithContextAndTimeout(m.Ctx(), m.G(), arg.uid.String(), 30*time.Second)
+		if err != nil {
+			m.Debug("| error acquiring singleflight lock for %s: %v", arg.uid, err)
+			return nil, err
+		}
+		defer lock.Release(m.Ctx())
+	}
+
 	// We can get the user object's body from either the resolution result or
 	// if it was plumbed through as a parameter.
 	resolveBody := rres.body
@@ -333,7 +367,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	// load user from local, remote
-	ret, refresh, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf)
+	ret, refresh, refreshReason, err = loadUser(m, arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +381,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(m, &ret.leaf, arg.self, arg.fullSigchain); err != nil {
+	if err = ret.LoadSigChains(m, &ret.leaf, arg.self, arg.stubMode); err != nil {
 		return ret, err
 	}
 
@@ -388,9 +422,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	return ret, err
 }
 
-func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, error) {
+func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, string, error) {
 	local, err := LoadUserFromLocalStorage(m, uid)
 	var refresh bool
+	var refreshReason string
 	if err != nil {
 		m.Warning("Failed to load %s from storage: %s", uid, err)
 	}
@@ -398,7 +433,7 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 	if leaf == nil {
 		leaf, err = lookupMerkleLeaf(m, uid, (local != nil), sigHints)
 		if err != nil {
-			return nil, refresh, err
+			return nil, refresh, refreshReason, err
 		}
 	}
 
@@ -407,8 +442,8 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 	if local == nil {
 		m.Debug("| No local user stored for %s", uid)
 		loadRemote = true
-	} else if f1, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
-		return nil, refresh, err
+	} else if f1, refreshReason, err = local.CheckBasicsFreshness(leaf.idVersion); err != nil {
+		return nil, refresh, refreshReason, err
 	} else {
 		loadRemote = !f1
 		refresh = loadRemote
@@ -420,17 +455,17 @@ func loadUser(m MetaContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHi
 	if !loadRemote && !force {
 		ret = local
 	} else if ret, err = LoadUserFromServer(m, uid, resolveBody); err != nil {
-		return nil, refresh, err
+		return nil, refresh, refreshReason, err
 	}
 
 	if ret == nil {
-		return nil, refresh, nil
+		return nil, refresh, refreshReason, nil
 	}
 
 	if leaf != nil {
 		ret.leaf = *leaf
 	}
-	return ret, refresh, nil
+	return ret, refresh, refreshReason, nil
 }
 
 func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err error) {

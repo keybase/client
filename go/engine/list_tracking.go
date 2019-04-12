@@ -60,7 +60,7 @@ func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
 func (e *ListTrackingEngine) Run(m libkb.MetaContext) (err error) {
 
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithFullSigchain()
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithStubMode(libkb.StubModeUnstubbed)
 
 	if len(e.arg.ForAssertion) > 0 {
 		arg = arg.WithName(e.arg.ForAssertion)

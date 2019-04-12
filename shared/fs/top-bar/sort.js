@@ -16,16 +16,16 @@ export type SortBarProps = {|
 const getTextFromSortSetting = (sortSetting: Types.SortSetting) => {
   switch (sortSetting) {
     case 'name-asc':
-      return 'Name ascending'
+      return 'Name A to Z'
     case 'name-desc':
-      return 'Name descending'
+      return 'Name Z to A'
     case 'time-asc':
       return 'Recent first'
     case 'time-desc':
       return 'Older first'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(sortSetting)
-      return 'Name ascending'
+      return 'Name A to Z'
   }
 }
 

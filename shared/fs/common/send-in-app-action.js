@@ -29,12 +29,28 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
   const parsedPath = Constants.parsePath(props.path)
   const link = Constants.canSendLinkToChat(parsedPath)
   const attachment = flags.sendAttachmentToChat && props.isFile
+  const linkText = `Send link to ${Constants.isTeamPath(props.path) ? 'team' : 'group'} conversation`
+  const attachText = `Attach in other conversation`
   if (!link && !attachment) {
     return null
   }
+  if (!link !== !attachment) {
+    // Only one is enabled here.
+    return (
+      <Kb.WithTooltip text={link ? linkText : attachText}>
+        <Kb.Icon
+          type="iconfont-open-browser"
+          onClick={link ? props.onClickLink : props.onClickAttachment}
+          color={Styles.globalColors.black_50}
+          hoverColor={Styles.globalColors.black}
+          padding="tiny"
+        />
+      </Kb.WithTooltip>
+    )
+  }
   return (
     <>
-      <Kb.WithTooltip text="Send to chat">
+      <Kb.WithTooltip text="Share...">
         <Kb.Icon
           type="iconfont-open-browser"
           onClick={props.toggleShowingMenu}
@@ -52,8 +68,8 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(props => {
           onHidden={props.toggleShowingMenu}
           position="bottom right"
           items={[
-            ...(link ? [{onClick: props.onClickLink, title: 'Send link to chat'}] : []),
-            ...(attachment ? [{onClick: props.onClickAttachment, title: 'Send attachment to chat'}] : []),
+            ...(link ? [{onClick: props.onClickLink, title: linkText}] : []),
+            ...(attachment ? [{onClick: props.onClickAttachment, title: attachText}] : []),
           ]}
         />
       )}

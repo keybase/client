@@ -51,11 +51,6 @@ func TestProofSuggestions(t *testing.T) {
 			PickerText:    "Rooter",
 			PickerSubtext: "",
 		}, {
-			Key:           "mastodon.social",
-			ProfileText:   "Prove your Local Mastodon Social",
-			PickerText:    "Local Mastodon Social",
-			PickerSubtext: "mastodon.social",
-		}, {
 			Key:           "gubble.social",
 			ProfileText:   "Prove your Gubble.social",
 			PickerText:    "Gubble.social",
@@ -94,17 +89,8 @@ func TestProofSuggestions(t *testing.T) {
 			PickerSubtext: "theqrl.org",
 		}}}
 	require.Equal(t, expected.ShowMore, res.ShowMore)
-	require.Equal(t, len(expected.Suggestions), len(res.Suggestions))
-	for i, b := range res.Suggestions {
-		t.Logf("row %v %v", i, b.Key)
-		a := expected.Suggestions[i]
-		require.Equal(t, a.Key, b.Key)
-		require.Equal(t, a.BelowFold, b.BelowFold)
-		require.Equal(t, a.ProfileText, b.ProfileText)
-		require.Equal(t, a.PickerText, b.PickerText)
-		require.Equal(t, a.PickerSubtext, b.PickerSubtext)
-		require.Nil(t, b.Metas)
-
+	require.True(t, len(res.Suggestions) >= len(expected.Suggestions), "should be at least as many results as expected")
+	for _, b := range res.Suggestions {
 		if b.Key == "theqrl.org" {
 			// Skip checking for logos for this one.
 			continue
@@ -116,7 +102,29 @@ func TestProofSuggestions(t *testing.T) {
 		for _, icon := range b.PickerIcon {
 			checkIcon(t, icon)
 		}
+
 	}
+	var found int
+	for i, b := range res.Suggestions {
+		if found >= len(expected.Suggestions) {
+			t.Logf("done")
+			break
+		}
+		t.Logf("row %v %v", i, b.Key)
+		a := expected.Suggestions[found]
+		if a.Key != b.Key {
+			t.Logf("skipping %v (mismatch)", a.Key)
+			continue
+		}
+		found++
+		require.Equal(t, a.Key, b.Key)
+		require.Equal(t, a.BelowFold, b.BelowFold)
+		require.Equal(t, a.ProfileText, b.ProfileText)
+		require.Equal(t, a.PickerText, b.PickerText)
+		require.Equal(t, a.PickerSubtext, b.PickerSubtext)
+
+	}
+	require.Len(t, expected.Suggestions, found)
 }
 
 func checkIcon(t testing.TB, icon keybase1.SizedImage) {

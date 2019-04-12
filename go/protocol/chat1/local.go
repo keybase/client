@@ -5150,6 +5150,7 @@ type UpdateTypingArg struct {
 
 type UpdateUnsentTextArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	TlfName        string         `codec:"tlfName" json:"tlfName"`
 	Text           string         `codec:"text" json:"text"`
 }
 
@@ -5247,6 +5248,7 @@ type SearchInboxArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	Query            string                       `codec:"query" json:"query"`
 	Opts             SearchOpts                   `codec:"opts" json:"opts"`
+	NamesOnly        bool                         `codec:"namesOnly" json:"namesOnly"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 

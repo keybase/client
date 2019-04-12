@@ -3915,6 +3915,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
           "name": "text",
           "type": "string"
         }
@@ -4187,6 +4191,10 @@
         {
           "name": "opts",
           "type": "SearchOpts"
+        },
+        {
+          "name": "namesOnly",
+          "type": "boolean"
         },
         {
           "name": "identifyBehavior",

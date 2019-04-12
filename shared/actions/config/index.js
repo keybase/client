@@ -8,6 +8,7 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
+import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
@@ -17,6 +18,8 @@ import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
+import * as FsTypes from '../../constants/types/fs'
+import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
@@ -313,10 +316,20 @@ const routeToInitialScreen = state => {
       ]
     }
 
+    // A share
+    if (state.config.startupSharePath) {
+      return [
+        RouteTreeGen.createSwitchRouteDef({path: FsConstants.fsRootRouteForNav1, routeDef: appRouteTree}),
+        // $FlowIssue thinks it's undefined
+        FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
+        FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
+      ]
+    }
+
     // A follow
     if (state.config.startupFollowUser) {
       return [
-        RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+        RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -329,7 +342,7 @@ const routeToInitialScreen = state => {
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return [
-            RouteTreeGen.createSwitchRouteDef({path: [Tabs.profileTab], routeDef: appRouteTree}),
+            RouteTreeGen.createSwitchRouteDef({path: [Tabs.peopleTab], routeDef: appRouteTree}),
             ProfileGen.createShowUserProfile({username}),
           ]
         }
@@ -357,7 +370,7 @@ const handleAppLink = (_, action) => {
   const username = Constants.urlToUsername(url)
   if (username) {
     return [
-      RouteTreeGen.createSwitchTo({path: [Tabs.profileTab]}),
+      RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
       ProfileGen.createShowUserProfile({username}),
     ]
   }

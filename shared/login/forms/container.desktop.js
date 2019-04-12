@@ -2,13 +2,14 @@
 import * as React from 'react'
 import {BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
+import flags from '../../util/feature-flags'
 
 import type {Props} from './container'
 
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...stylesContainer, ...outerStyle}}>
-      {onBack && <BackButton style={stylesButton} onClick={onBack} />}
+      {!flags.useNewRouter && onBack && <BackButton style={stylesButton} onClick={onBack} />}
       <div style={{...stylesInnerContainer, ...style}}>{children}</div>
     </div>
   )

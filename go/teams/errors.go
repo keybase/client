@@ -490,3 +490,25 @@ func NewCompoundInviteError(s string) error {
 func (e CompoundInviteError) Error() string {
 	return fmt.Sprintf("cannot pair an invitation with a compound assertion (%s)", e.Assertion)
 }
+
+type StaleBoxError interface {
+	IsStaleBoxError()
+}
+
+type BoxRaceError struct {
+	inner error
+}
+
+func (e BoxRaceError) Error() string {
+	return e.inner.Error()
+}
+
+func (e BoxRaceError) IsStaleBoxError() {}
+
+func isStaleBoxError(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, ok := err.(StaleBoxError)
+	return ok
+}

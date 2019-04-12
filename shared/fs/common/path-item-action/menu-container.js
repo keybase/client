@@ -128,7 +128,7 @@ const getSaveMedia = (stateProps, dispatchProps, c) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const getLayout = stateProps._view === 'share' ? getShareLayout : getRootLayout
-  const layout = getLayout(ownProps.path, stateProps._pathItem)
+  const layout = getLayout(ownProps.path, stateProps._pathItem, stateProps._username)
   const c = action =>
     isMobile ? addCancelIfNeeded(action, dispatchProps._cancel, stateProps._downloadKey) : action
   return {
@@ -141,6 +141,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
+    pathItemType: stateProps._pathItem.type,
     saveMedia: layout.saveMedia ? getSaveMedia(stateProps, dispatchProps, c) : null,
     showInSystemFileManager:
       layout.showInSystemFileManager && stateProps._sfmiEnabled

@@ -2,6 +2,7 @@ package teams
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -10,13 +11,19 @@ import (
 )
 
 func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamShowcase, err error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{Name: teamname})
 	if err != nil {
-		return ret, err
+		return ret, fixupTeamGetError(ctx, g, err, teamname, false)
 	}
+	if team.IsImplicit() {
+		return ret, fmt.Errorf("cannot manage implicit team by name")
+	}
+	return GetTeamShowcaseByID(ctx, g, team.ID)
+}
 
+func GetTeamShowcaseByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (ret keybase1.TeamShowcase, err error) {
 	arg := apiArg("team/get")
-	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
+	arg.Args.Add("id", libkb.S{Val: teamID.String()})
 
 	var rt rawTeam
 	mctx := libkb.NewMetaContext(ctx, g)

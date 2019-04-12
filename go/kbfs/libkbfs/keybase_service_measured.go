@@ -280,6 +280,16 @@ func (k KeybaseServiceMeasured) DecryptFavorites(ctx context.Context,
 	return dataOut, err
 }
 
+// NotifyOnlineStatusChanged implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifyOnlineStatusChanged(
+	ctx context.Context, online bool) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.NotifyOnlineStatusChanged(ctx, online)
+	})
+	return err
+}
+
 // Notify implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Notify(ctx context.Context, notification *keybase1.FSNotification) (err error) {
 	k.notifyTimer.Time(func() {

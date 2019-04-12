@@ -3,6 +3,11 @@ import * as React from 'react'
 import {type StylesCrossPlatform} from '../styles'
 import {type TextType} from './text'
 
+/**
+ * DEPRECATED
+ * Use plain-input or new-input instead
+ */
+
 export type KeyboardType =
   | 'default'
   | 'email-address'
