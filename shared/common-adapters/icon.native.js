@@ -115,7 +115,7 @@ let Image = (p: ImageProps, ref) => {
 Image = React.forwardRef(Image)
 Image.displayName = 'IconImage'
 
-let Icon = (p: Props, ref: any) => {
+const _Icon = (p: Props, ref: any) => {
   // let Icon = React.memo<Props>((p, forwardedRef: ?React.Ref<any>) => {
   const sizeType = p.sizeType || 'Default'
   // Only apply props.style to icon if there is no onClick
@@ -180,7 +180,7 @@ let Icon = (p: Props, ref: any) => {
 }
 
 // $FlowIssue we use a js.flow file anyways but the typing of this is confusing. TODO fix this
-Icon = React.memo<Props>(React.forwardRef(Icon))
+const Icon = React.memo<Props>(React.forwardRef(_Icon))
 Icon.displayName = 'Icon'
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
