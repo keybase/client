@@ -162,6 +162,7 @@ const commonLabel = platformStyles({
     textAlign: 'center',
   },
   isElectron: {whiteSpace: 'pre'},
+  isMobile: {lineHeight: undefined},
 })
 
 const styles = styleSheetCreate({
