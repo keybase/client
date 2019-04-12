@@ -69,7 +69,7 @@ class Transitions extends React.Component<any, any> {
       <>
         <Qualify {...this.props} rows={this.state.rows} state={this.state.state} />
         <Kb.Button
-          type="Primary"
+          
           label={`state: ${this.state.machineState}`}
           onClick={this._next}
           style={{position: 'absolute', right: 0, zIndex: 99999}}

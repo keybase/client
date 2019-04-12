@@ -14,7 +14,7 @@ const _AddPeopleButton = (props: {teamname: string} & Kb.OverlayParentProps) => 
       onClick={props.toggleShowingMenu}
       ref={props.setAttachmentRef}
       small={true}
-      type="Secondary"
+      type="Dim"
     />
     <AddPeopleHow
       attachTo={props.getAttachmentRef}
@@ -39,7 +39,7 @@ type Props = {|
 
 const _HeaderRightActions = (props: Props) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-    {props.canChat && <Kb.Button label="Chat" onClick={props.onChat} small={true} type="Primary" />}
+    {props.canChat && <Kb.Button label="Chat" onClick={props.onChat} small={true}  />}
     {props.canAddPeople && <AddPeopleButton teamname={props.teamname} />}
     {!Styles.isMobile && props.canViewFolder && (
       <Kb.Icon onClick={props.onOpenFolder} type="iconfont-folder-private" />

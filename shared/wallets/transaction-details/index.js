@@ -96,7 +96,7 @@ const Counterparty = (props: CounterpartyProps) => {
             underline={true}
           />
           <Kb.Button
-            type="Secondary"
+            type="Dim"
             label="Chat"
             small={true}
             style={styles.chatButton}

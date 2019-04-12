@@ -43,7 +43,7 @@ const AccessDenied = ({openAppSettings}) => (
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
       <ButtonBar>
-        <Button type="Primary" label="Open settings" onClick={openAppSettings} />
+        <Button  label="Open settings" onClick={openAppSettings} />
       </ButtonBar>
     </Box>
   </Box>

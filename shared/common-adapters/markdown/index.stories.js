@@ -296,7 +296,7 @@ class ShowAST extends React.Component<{text: string, meta: ?MarkdownMeta}, {visi
         <Kb.Button
           onClick={() => this.setState({visible: !this.state.visible})}
           label={`${this.state.visible ? 'Hide' : 'Show'} AST`}
-          type="Primary"
+          
         />
         {this.state.visible && (
           <Markdown>
@@ -330,7 +330,7 @@ class ShowPreview extends React.Component<{text: string, meta: ?MarkdownMeta}, {
         <Kb.Button
           onClick={() => this.setState({visible: !this.state.visible})}
           label={`${this.state.visible ? 'Hide' : 'Show'} Preview`}
-          type="Primary"
+          
         />
         {this.state.visible && (
           <Markdown preview={true} meta={this.props.meta}>

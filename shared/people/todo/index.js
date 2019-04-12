@@ -22,7 +22,7 @@ export const Task = (props: Props) => (
     <Box style={actionContainerStyle}>
       <Button
         small={true}
-        type="Primary"
+        
         label={props.confirmLabel}
         onClick={props.onConfirm}
         style={{marginRight: Styles.globalMargins.small}}

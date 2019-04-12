@@ -148,7 +148,7 @@ class Developer extends React.Component<Props, State> {
         )}
         {flags.chatIndexProfilingEnabled && (
           <Kb.Button
-            type="Primary"
+            
             label={`Chat Index: ${this.state.indexTook}ms`}
             onClick={() => {
               this.setState({indexTook: -1})
@@ -161,7 +161,7 @@ class Developer extends React.Component<Props, State> {
         )}
         {flags.dbCleanEnabled && (
           <Kb.Button
-            type="Primary"
+            
             label={`DB clean: ${this.state.cleanTook}ms`}
             onClick={() => {
               this.setState({cleanTook: -1})

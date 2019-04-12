@@ -188,7 +188,7 @@ class Row extends React.Component<Props> {
                 gap="tiny"
               >
                 <Kb.Button
-                  type="Secondary"
+                  type="Dim"
                   small={true}
                   label="View files"
                   onClick={this.props.onBrowseGitRepo}

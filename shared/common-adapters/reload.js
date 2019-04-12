@@ -39,7 +39,7 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
           {this.state.expanded ? 'Hide details' : 'Show details'}
         </Text>
 
-        <Button type="Primary" label="Retry" onClick={this.props.onReload} />
+        <Button  label="Retry" onClick={this.props.onReload} />
       </Box2>
     )
   }

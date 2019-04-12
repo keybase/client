@@ -30,7 +30,7 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
         You are about to delete all the messages in this conversation. For everyone.
       </Text>
       <Box style={styleButtonBox}>
-        <Button type="Secondary" style={styleButton} onClick={onCancel} label="Cancel" fullWidth={isMobile} />
+        <Button type="Dim" style={styleButton} onClick={onCancel} label="Cancel" fullWidth={isMobile} />
         <Button
           type="Danger"
           style={styleButton}

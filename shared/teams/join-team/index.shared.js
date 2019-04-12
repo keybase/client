@@ -73,7 +73,7 @@ export const SuccessComponent = ({successTeamName, onBack}: Props) => (
         </Text>
       </Box>
       <ButtonBar>
-        <Button type="Primary" onClick={onBack} label="Close" />
+        <Button  onClick={onBack} label="Close" />
       </ButtonBar>
     </Box>
   </Box>

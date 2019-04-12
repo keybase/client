@@ -121,7 +121,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
               <Kb.WaitingButton
                 label="Invite"
                 onClick={this._onInvite}
-                type="Primary"
+                
                 waitingKey={props.waitingKey}
               />
             </Kb.ButtonBar>

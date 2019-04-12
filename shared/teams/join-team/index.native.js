@@ -41,7 +41,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
           </Text>
         )}
         <ButtonBar direction="column">
-          <Button type="Primary" style={styles.button} onClick={onSubmit} label="Continue" />
+          <Button  style={styles.button} onClick={onSubmit} label="Continue" />
         </ButtonBar>
         <InfoNote>
           <Text center={true} type="BodySmall" style={styles.info}>

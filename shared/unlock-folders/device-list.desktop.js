@@ -44,7 +44,7 @@ export default class DeviceList extends Component<Props> {
         </div>
         <div style={styles.buttonsContainer}>
           <Button
-            type="Secondary"
+            type="Dim"
             label="Enter a paper key instead"
             style={styles.enterPaperKey}
             onClick={this.props.toPaperKeyInput}

@@ -43,13 +43,13 @@ const NonUserRender = (props: Props) => (
             style={{marginTop: globalMargins.medium}}
             onClick={props.onStartChat}
             label="Start a chat"
-            type="Primary"
+            
           />
           <Button
             style={{marginTop: globalMargins.tiny}}
             onClick={props.onOpenPrivateFolder}
             label="Open private folder"
-            type="Secondary"
+            type="Dim"
           />
         </Box>
       </Box>

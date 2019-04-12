@@ -51,7 +51,7 @@ const Editing = (props: EditingProps) => (
         <Kb.Button
           key="create"
           style={styles.button}
-          type="Primary"
+          
           small={true}
           label={props.status === 'failed' ? 'Retry' : props.isCreate ? 'Create' : 'Save'}
           waiting={props.status === 'saving'}

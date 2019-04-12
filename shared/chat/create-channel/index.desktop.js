@@ -62,10 +62,10 @@ const CreateChannel = (props: Props) => (
         />
       </Kb.Box>
       <Kb.ButtonBar>
-        <Kb.Button type="Secondary" onClick={props.onClose} label="Cancel" />
+        <Kb.Button type="Dim" onClick={props.onClose} label="Cancel" />
         <Kb.WaitingButton
           waitingKey={Constants.createChannelWaitingKey(props.teamname)}
-          type="Primary"
+          
           onClick={props.onSubmit}
           label="Save"
         />

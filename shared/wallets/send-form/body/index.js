@@ -80,7 +80,7 @@ const Failure = ({onReviewPayments}: {onReviewPayments: () => void}) => (
         Please check your recent payments before trying again.
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Button type="Primary" label="Review payments" onClick={onReviewPayments} />
+    <Kb.Button  label="Review payments" onClick={onReviewPayments} />
   </Kb.Box2>
 )
 

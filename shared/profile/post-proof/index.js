@@ -176,17 +176,17 @@ class PostProof extends React.Component<Props, State> {
               </Kb.Text>
             )}
             <Kb.Box2 direction={Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
-              <Kb.Button type="Secondary" onClick={props.onCancel} label="Cancel" />
+              <Kb.Button type="Dim" onClick={props.onCancel} label="Cancel" />
               {this.state.showSubmit ? (
                 <Kb.WaitingButton
-                  type="Primary"
+                  
                   onClick={props.onSubmit}
                   label={onCompleteText || ''}
                   waitingKey={Constants.waitingKey}
                 />
               ) : (
                 <Kb.Button
-                  type="Primary"
+                  
                   onClick={() => {
                     this.setState({showSubmit: true})
                     props.url && openUrl(props.url)

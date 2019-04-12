@@ -120,7 +120,7 @@ class MenubarRender extends React.Component<Props, State> {
             You're logged out of Keybase!
           </Kb.Text>
           <Kb.ButtonBar direction="row">
-            <Kb.Button type="Primary" label="Log In" onClick={this.props.logIn} />
+            <Kb.Button  label="Log In" onClick={this.props.logIn} />
           </Kb.ButtonBar>
         </Kb.Box>
       </Kb.Box>

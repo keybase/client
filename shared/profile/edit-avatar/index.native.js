@@ -122,7 +122,7 @@ class AvatarUpload extends React.Component<Props> {
               label="Save"
               onClick={this._onSave}
               style={styles.button}
-              type="Primary"
+              
               waitingKey={this.props.waitingKey}
             />
           </ButtonBar>

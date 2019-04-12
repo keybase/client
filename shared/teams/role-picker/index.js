@@ -131,7 +131,7 @@ export const RoleOptions = ({
     <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
       <Button
         label={addButtonLabel || (controlled ? 'Select' : 'Continue')}
-        type="Primary"
+        
         onClick={() => setConfirm(true)}
         disabled={!selectedRole}
       />
@@ -219,10 +219,10 @@ export const RoleConfirm = ({
       )}
       {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
       <ButtonBar>
-        <Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
+        <Button type="Dim" label="Back" onClick={() => setConfirm(false)} />
         <Button
           label="Confirm"
-          type="Primary"
+          
           onClick={() => onComplete(selectedRole, sendNotification)}
           disabled={!selectedRole}
         />

@@ -41,7 +41,7 @@ export const ContinueButton = ({disabled, onClick}: {disabled?: boolean, onClick
   <ButtonBar fullWidth={true} style={styles.buttonBar}>
     <WaitingButton
       waitingKey={Constants.waitingKey}
-      type="Primary"
+      
       label="Continue"
       disabled={disabled}
       fullWidth={true}

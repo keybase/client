@@ -57,7 +57,7 @@ const TeamInfo = p => (
           </Kb.Text>
           {!p.inTeam && (
             <Kb.WaitingButton
-              type="Primary"
+              
               waitingKey={Constants.waitingKey}
               label="Request to join"
               onClick={() => p.onJoinTeam(p.name)}

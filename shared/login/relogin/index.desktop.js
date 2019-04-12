@@ -100,7 +100,7 @@ class Login extends React.Component<Props, State> {
             fullWidth={true}
             waitingKey={Constants.waitingKey}
             style={{marginTop: 0, width: '100%'}}
-            type="Primary"
+            
             label="Log in"
             onClick={() => this.props.onSubmit()}
           />

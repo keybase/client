@@ -214,18 +214,18 @@ class _EnterUsername extends React.Component<Props> {
           )}
           <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Styles.isMobile && !props.unreachable && (
-              <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
+              <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" style={styles.buttonSmall} />
             )}
             {props.unreachable ? (
               <Kb.Button
-                type="PrimaryGreen"
+                type="Success"
                 onClick={props.onSubmit}
                 label={props.submitButtonLabel}
                 style={styles.buttonBig}
               />
             ) : (
               <Kb.WaitingButton
-                type="PrimaryGreen"
+                type="Success"
                 onClick={props.onSubmit}
                 label={props.submitButtonLabel}
                 style={styles.buttonBig}

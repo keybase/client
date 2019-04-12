@@ -83,7 +83,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
           />
           <Kb.Button
             type="PrimaryColoredBackground"
-            backgroundMode="Red"
+            backgroundColor="red"
             label={'Let ' + p + ' back in'}
             onClick={onReAddToTeam(p)}
             style={styles.button}

@@ -16,7 +16,7 @@ const StartConversation = (props: Props) => (
     <Text center={true} type="BodySmall" style={styles.header}>
       You haven't chatted with {props.participants} yet.
     </Text>
-    <Button type="Primary" label="Start chatting" onClick={props.onStart} waiting={props.isLoading}>
+    <Button  label="Start chatting" onClick={props.onStart} waiting={props.isLoading}>
       <Icon
         type="iconfont-chat"
         style={{

@@ -31,7 +31,7 @@ const NonUserRender = (props: Props) => (
       style={{marginTop: globalMargins.medium}}
       onClick={props.onStartChat}
       label="Start a chat"
-      type="Primary"
+      
     />
     <Text center={true} type="BodySmall" style={styleDetails}>{`When ${
       props.username

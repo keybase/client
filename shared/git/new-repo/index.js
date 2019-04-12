@@ -169,7 +169,7 @@ class NewRepo extends React.Component<Props, State> {
           <Kb.Box style={{flex: 1}} />
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
             <Kb.WaitingButton
-              type="Secondary"
+              type="Dim"
               onClick={this.props.onClose}
               label="Cancel"
               style={{marginRight: Styles.globalMargins.tiny}}
@@ -177,7 +177,7 @@ class NewRepo extends React.Component<Props, State> {
               onlyDisable={true}
             />
             <Kb.WaitingButton
-              type="Primary"
+              
               onClick={this._onSubmit}
               label="Create"
               disabled={!this._canSubmit()}

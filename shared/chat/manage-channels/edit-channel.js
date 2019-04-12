@@ -115,9 +115,9 @@ class _EditChannel extends React.Component<Props, State> {
             />
           )}
           <ButtonBar>
-            <Button type="Secondary" label="Cancel" onClick={this.props.onCancel} />
+            <Button type="Dim" label="Cancel" onClick={this.props.onCancel} />
             <Button
-              type="Primary"
+              
               label="Save"
               disabled={
                 this.props.channelName === this.state.newChannelName &&

@@ -115,7 +115,7 @@ const ManageChannels = (props: Props) => (
       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
         <WaitingButton
           fullWidth={true}
-          type="Primary"
+          
           label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
           waitingKey={props.waitingKey}
           disabled={!props.unsavedSubscriptions}

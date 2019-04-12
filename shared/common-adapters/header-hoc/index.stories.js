@@ -40,7 +40,7 @@ const rightActions = (length: number = 3) =>
   ].slice(0, length)
 const title = 'This is a title'
 const longTitle = 'This is an obnoxiously, over the top, ridiculously long title'
-const titleComponent = <Kb.Button label={title} small={true} style={{width: '100%'}} type="Primary" />
+const titleComponent = <Kb.Button label={title} small={true} style={{width: '100%'}}  />
 
 const load = () => {
   Sb.storiesOf('Common/Header', module)

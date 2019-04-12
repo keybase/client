@@ -59,7 +59,7 @@ class TestInput extends React.Component<{maxBytes?: number, multiline: boolean},
           onChangeText={v => this.setState(s => (s.value === v ? null : {value: v}))}
         />
         <ButtonBar>
-          <Button type="Secondary" label="Insert 'foo' (Enter)" onClick={() => this._insertText('foo')} />
+          <Button type="Dim" label="Insert 'foo' (Enter)" onClick={() => this._insertText('foo')} />
         </ButtonBar>
       </Box2>
     )
@@ -132,12 +132,12 @@ class ControlledInputPlayground extends React.Component<
           />
           <ButtonBar>
             <Button
-              type="Secondary"
+              type="Dim"
               label="Set value"
               onClick={() => this.setState({changingValue: 'reset value!'})}
             />
-            <Button type="Secondary" label="Set selection" onClick={this._testChangingSelection} />
-            <Button type="Secondary" label="Run test" onClick={this._testCrossSelection} />
+            <Button type="Dim" label="Set selection" onClick={this._testChangingSelection} />
+            <Button type="Dim" label="Run test" onClick={this._testCrossSelection} />
           </ButtonBar>
         </Box2>
         <TestInput maxBytes={this.props.maxBytes} multiline={this.props.multiline} />

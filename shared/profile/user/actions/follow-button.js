@@ -43,7 +43,7 @@ class FollowButton extends React.Component<Props, State> {
     } else {
       return (
         <WaitingButton
-          type="PrimaryGreen"
+          type="Success"
           label="Follow"
           onClick={onFollow}
           waitingKey={waitingKey}

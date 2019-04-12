@@ -88,7 +88,7 @@ const Header = (props: Props) => {
             disabled={!props.walletName}
           />
         )}
-        <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
+        <Kb.Button type="Dim" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
         <DropdownButton
           onSettings={props.onSettings}
           onShowSecretKey={props.onShowSecretKey}
@@ -174,7 +174,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
           <Kb.Button
             onClick={null}
-            type="Secondary"
+            type="Dim"
             style={styles.dropdownButton}
             disabled={this.props.disabled}
           >

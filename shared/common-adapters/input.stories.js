@@ -68,7 +68,7 @@ class TestInput extends React.Component<TestInputProps> {
           uncontrolled={true}
           ref={this._setInput}
         />
-        <Button type="Primary" label='Insert "foo" (enter)' onClick={this._replaceFoo} />
+        <Button  label='Insert "foo" (enter)' onClick={this._replaceFoo} />
       </Box>
     )
   }

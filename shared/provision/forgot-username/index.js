@@ -38,7 +38,7 @@ class ForgotUsername extends React.Component<Props, State> {
                 ? 'Username reminder emailed!'
                 : 'Email a username reminder'
             }
-            type="Primary"
+            
             fullWidth={true}
             style={styles.button}
             onClick={() => this.props.onSubmit(this.state.email)}

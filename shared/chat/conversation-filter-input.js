@@ -176,7 +176,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           </Kb.Box2>
           {!!this.props.onNewChat && (
             <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
-              <Kb.Button small={true} type="Primary" onClick={this.props.onNewChat}>
+              <Kb.Button small={true} onClick={this.props.onNewChat}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
               </Kb.Button>
             </Kb.WithTooltip>

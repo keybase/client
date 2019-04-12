@@ -42,7 +42,7 @@ ruril globil cose"
           uncontrolled={true}
         />
         <Button
-          type="Primary"
+          
           label="Continue"
           style={continueStyle}
           waiting={this.props.waiting}

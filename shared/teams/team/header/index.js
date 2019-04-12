@@ -91,7 +91,7 @@ const _TeamHeader = (props: Props) => (
       {/* Actions */}
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {props.canChat && (
-          <Kb.Button type="Primary" label="Chat" onClick={props.onChat}>
+          <Kb.Button  label="Chat" onClick={props.onChat}>
             <Kb.Icon
               type="iconfont-chat"
               style={Kb.iconCastPlatformStyles(styles.chatIcon)}
@@ -102,7 +102,7 @@ const _TeamHeader = (props: Props) => (
         )}
         {props.canManageMembers && (
           <Kb.Button
-            type="Secondary"
+            type="Dim"
             label={'Add people...'}
             ref={Styles.isMobile ? undefined : props.setAttachmentRef}
             onClick={props.toggleShowingMenu}
