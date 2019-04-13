@@ -5,9 +5,9 @@ import {namedConnect} from '../../../../util/container'
 import ChatInboxHeader from '.'
 import HiddenString from '../../../../util/hidden-string'
 
-type OwnProps = {
+type OwnProps = {|
   onNewChat: () => void,
-}
+|}
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   isSearching: !!state.chat2.inboxSearch,

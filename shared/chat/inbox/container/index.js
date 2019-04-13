@@ -34,6 +34,7 @@ const mapStateToProps = state => {
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
+    isSearching: !!state.chat2.inboxSearch,
     neverLoaded,
     rows,
     smallTeamsExpanded,
@@ -99,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     _onInitialLoad: dispatchProps._onInitialLoad,
     _refreshInbox: dispatchProps._refreshInbox,
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
+    isSearching: stateProps.isSearching,
     neverLoaded: stateProps.neverLoaded,
     onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
     onEnsureSelection: () => {

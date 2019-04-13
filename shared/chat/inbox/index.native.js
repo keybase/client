@@ -13,7 +13,7 @@ import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
-
+import InboxSearch from '../inbox-search/container'
 import type {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
@@ -213,9 +213,6 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
-  _onEnsureSelection = () => this.props.onEnsureSelection()
-  _onSelectUp = () => this.props.onSelectUp()
-  _onSelectDown = () => this.props.onSelectDown()
   _onDidFocus = () => this.props.onDeselectConversation()
 
   render() {
@@ -233,30 +230,30 @@ class Inbox extends React.PureComponent<Props, State> {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
-    const HeadComponent = (
-      <ChatInboxHeader
-        onNewChat={this.props.onNewChat}
-        onEnsureSelection={this._onEnsureSelection}
-        onSelectUp={this._onSelectUp}
-        onSelectDown={this._onSelectDown}
-      />
-    )
+    const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
     return (
       <Kb.ErrorBoundary>
         <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
         <Kb.Box style={styles.container}>
-          <Kb.NativeFlatList
-            ListHeaderComponent={HeadComponent}
-            data={this.props.rows}
-            keyExtractor={this._keyExtractor}
-            renderItem={this._renderItem}
-            ref={this._setRef}
-            onViewableItemsChanged={this._onViewChanged}
-            windowSize={5}
-            keyboardShouldPersistTaps="handled"
-            getItemLayout={this._getItemLayout}
-            removeClippedSubviews={true}
-          />
+          {this.props.isSearching ? (
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              {HeadComponent}
+              <InboxSearch />
+            </Kb.Box2>
+          ) : (
+            <Kb.NativeFlatList
+              ListHeaderComponent={HeadComponent}
+              data={this.props.rows}
+              keyExtractor={this._keyExtractor}
+              renderItem={this._renderItem}
+              ref={this._setRef}
+              onViewableItemsChanged={this._onViewChanged}
+              windowSize={5}
+              keyboardShouldPersistTaps="handled"
+              getItemLayout={this._getItemLayout}
+              removeClippedSubviews={true}
+            />
+          )}
           {noChats}
           {owl}
           {floatingDivider || <BuildTeam />}

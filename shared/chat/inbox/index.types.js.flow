@@ -47,4 +47,5 @@ export type Props = {|
   smallTeamsExpanded: boolean,
   toggleSmallTeamsExpanded: () => void,
   unreadIndices: I.List<number>,
+  isSearching: boolean,
 |}
