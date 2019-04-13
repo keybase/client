@@ -39,18 +39,19 @@ class TabBar extends React.PureComponent<Props, State> {
         <Kb.NativeSafeAreaView style={styles.safe}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
             {tabs.map(t => (
-              <Kb.Box2 key={t} direction="vertical" style={styles.iconContainer}>
-                <Kb.Icon
-                  type={icons[t]}
-                  onClick={() => this._onTabClick(t)}
-                  fontSize={32}
-                  style={styles.tab}
-                  color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
-                />
-                {!!p.badgeNumbers[t] && (
-                  <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />
-                )}
-              </Kb.Box2>
+              <Kb.NativeTouchableWithoutFeedback key={t} onPressIn={() => this._onTabClick(t)}>
+                <Kb.NativeView style={styles.iconContainer}>
+                  <Kb.Icon
+                    type={icons[t]}
+                    fontSize={32}
+                    style={styles.tab}
+                    color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+                  />
+                  {!!p.badgeNumbers[t] && (
+                    <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />
+                  )}
+                </Kb.NativeView>
+              </Kb.NativeTouchableWithoutFeedback>
             ))}
           </Kb.Box2>
         </Kb.NativeSafeAreaView>
