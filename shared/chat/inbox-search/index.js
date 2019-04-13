@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
 import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
@@ -46,6 +47,7 @@ class InboxSearch extends React.Component<Props, State> {
         isSelected={this.props.selectedIndex === realIndex}
         key={realIndex}
         numSearchHits={item?.numHits ?? undefined}
+        maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item)}
       />
     ) : (
@@ -53,6 +55,7 @@ class InboxSearch extends React.Component<Props, State> {
         conversationIDKey={item.conversationIDKey}
         isSelected={this.props.selectedIndex === realIndex}
         numSearchHits={item?.numHits ?? undefined}
+        maxSearchHits={Constants.inboxSearchMaxTextMessages}
         key={realIndex}
         onSelectConversation={() => section.onSelect(item)}
       />

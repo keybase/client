@@ -1453,11 +1453,14 @@ function* inboxSearch(state, action) {
         opts: {
           afterContext: 0,
           beforeContext: 0,
-          maxConvsHit: 30,
+          maxConvsHit: Constants.inboxSearchMaxTextResults,
           maxConvsSearched: 0,
-          maxHits: 100,
+          maxHits: Constants.inboxSearchMaxTextMessages,
           maxMessages: 0,
-          maxNameConvs: 7,
+          maxNameConvs:
+            query.stringValue().length > 0
+              ? Constants.inboxSearchMaxNameResults
+              : Constants.inboxSearchMaxUnreadNameResults,
           reindexMode: RPCChatTypes.commonReIndexingMode.none,
           sentAfter: 0,
           sentBefore: 0,

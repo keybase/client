@@ -5,12 +5,24 @@ import {globalStyles} from '../styles'
 
 type Props = {
   numSearchHits?: number,
+  maxSearchHits?: number,
   participants: Array<string>,
   showBold: boolean,
   usernameColor: ?string,
 }
 
 class FilteredTopLine extends PureComponent<Props> {
+  _getSearchHits = () => {
+    if (!this.props.numSearchHits) {
+      return ''
+    }
+    if (this.props.maxSearchHits) {
+      return this.props.numSearchHits >= this.props.maxSearchHits
+        ? `${this.props.numSearchHits}+`
+        : `${this.props.numSearchHits}`
+    }
+    return `${this.props.numSearchHits}`
+  }
   render() {
     const {participants, showBold, usernameColor} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
@@ -35,9 +47,7 @@ class FilteredTopLine extends PureComponent<Props> {
             users={participants.map(p => ({username: p}))}
             title={participants.join(', ')}
           />
-          {!!this.props.numSearchHits && (
-            <Text type="BodySmall">{this.props.numSearchHits} Message Hits</Text>
-          )}
+          {!!this.props.numSearchHits && <Text type="BodySmall">{this._getSearchHits()} Message Hits</Text>}
         </Box>
       </Box>
     )

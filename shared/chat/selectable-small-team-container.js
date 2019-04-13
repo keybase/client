@@ -8,6 +8,7 @@ type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   filter?: string,
   numSearchHits?: number,
+  maxSearchHits?: number,
   isSelected: boolean,
   onSelectConversation: () => void,
 |}
@@ -56,6 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isLocked,
     isMuted: stateProps._meta.isMuted,
     isSelected: ownProps.isSelected,
+    maxSearchHits: ownProps.maxSearchHits,
     numSearchHits: ownProps.numSearchHits,
     onSelectConversation: ownProps.onSelectConversation,
     participants,

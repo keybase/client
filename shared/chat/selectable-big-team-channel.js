@@ -7,6 +7,7 @@ import {TeamAvatar} from './avatars'
 type Props = {|
   isSelected: boolean,
   numSearchHits?: number,
+  maxSearchHits?: number,
   teamname: string,
   channelname: string,
   onSelectConversation: () => void,
@@ -23,6 +24,17 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
 
   _onMouseLeave = () => this.setState({isHovered: false})
   _onMouseOver = () => this.setState({isHovered: true})
+  _getSearchHits = () => {
+    if (!this.props.numSearchHits) {
+      return ''
+    }
+    if (this.props.maxSearchHits) {
+      return this.props.numSearchHits >= this.props.maxSearchHits
+        ? `${this.props.numSearchHits}+`
+        : `${this.props.numSearchHits}`
+    }
+    return `${this.props.numSearchHits}`
+  }
 
   render() {
     return (
@@ -75,7 +87,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               </Kb.Text>
             </Kb.Box2>
             {!!this.props.numSearchHits && (
-              <Kb.Text type="BodySmall">{this.props.numSearchHits} Message Hits</Kb.Text>
+              <Kb.Text type="BodySmall">{this._getSearchHits()} Message Hits</Kb.Text>
             )}
           </Kb.Box2>
         </Kb.Box2>
