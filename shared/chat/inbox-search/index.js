@@ -21,6 +21,7 @@ type TextResult = {|
 |}
 
 type Props = {|
+  header?: React.Node,
   indexPercent: number,
   nameStatus: Types.InboxSearchStatus,
   nameResults: Array<NameResult>,
@@ -45,7 +46,6 @@ class InboxSearch extends React.Component<Props, State> {
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
         isSelected={this.props.selectedIndex === realIndex}
-        key={realIndex}
         numSearchHits={item?.numHits ?? undefined}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item)}
@@ -56,7 +56,6 @@ class InboxSearch extends React.Component<Props, State> {
         isSelected={this.props.selectedIndex === realIndex}
         numSearchHits={item?.numHits ?? undefined}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
-        key={realIndex}
         onSelectConversation={() => section.onSelect(item)}
       />
     )
@@ -116,9 +115,11 @@ class InboxSearch extends React.Component<Props, State> {
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         <Kb.SectionList
+          ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={this._renderSectionHeader}
           keyExtractor={this._keyExtractor}
+          keyboardShouldPersistTaps="handled"
           sections={[
             {
               data: this._nameResults(),

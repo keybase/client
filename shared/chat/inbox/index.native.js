@@ -237,8 +237,7 @@ class Inbox extends React.PureComponent<Props, State> {
         <Kb.Box style={styles.container}>
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              {HeadComponent}
-              <InboxSearch />
+              <InboxSearch header={HeadComponent} />
             </Kb.Box2>
           ) : (
             <Kb.NativeFlatList

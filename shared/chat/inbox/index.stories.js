@@ -75,6 +75,7 @@ const commonBigChannel = {
   hasUnread: false,
   isError: false,
   isMuted: false,
+  isSearching: false,
   isSelected: false,
   onSelectConversation: Sb.action('onSelectConversation'),
   showBold: false,
@@ -340,6 +341,7 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  isSearching: false,
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
   onDeselectConversation: Sb.action('onDeselectConversation'),

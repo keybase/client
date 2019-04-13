@@ -77,6 +77,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
             fontSize={Styles.isMobile ? 20 : 16}
           />
           <Kb.Input
+            autoFocus={Styles.isMobile}
             hideUnderline={true}
             small={true}
             value={this.props.filter}
