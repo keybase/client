@@ -119,7 +119,7 @@ const darwinInstall = (callback: CB) => {
     )
 
   const handleResults = (err, attempted, stdout, stderr) => {
-    logOutput(stdout, stderr)
+    const loggingPromise = logOutput(stdout, stderr)
     const errors = []
     const errorTypes = {
       cli: false,
@@ -149,13 +149,15 @@ const darwinInstall = (callback: CB) => {
       const buttons = errorTypes.fuse || errorTypes.kbnm ? ['Okay'] : ['Ignore', 'Quit']
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'
-      SafeElectron.getDialog().showMessageBox(null, {buttons, detail, message}, resp => {
-        if (resp === 1) {
-          quit()
-        } else {
-          callback(null)
-        }
-      })
+      loggingPromise.then(() =>
+        SafeElectron.getDialog().showMessageBox(null, {buttons, detail, message}, resp => {
+          if (resp === 1) {
+            quit()
+          } else {
+            callback(null)
+          }
+        })
+      )
       return
     }
 
