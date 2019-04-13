@@ -734,7 +734,9 @@ func (h convSearchHit) less(o convSearchHit) bool {
 	} else if hScore > oScore {
 		return false
 	}
-	return h.conv.GetMtime().Before(o.conv.GetMtime())
+	htime := utils.GetConvMtime(h.conv.Conv)
+	otime := utils.GetConvMtime(o.conv.Conv)
+	return htime.Before(otime)
 }
 
 func (h convSearchHit) valid() bool {

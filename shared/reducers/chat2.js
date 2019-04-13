@@ -1072,6 +1072,9 @@ const rootReducer = (
       if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
         return state
       }
+      if (!state.metaMap.get(action.payload.result.conversationIDKey)) {
+        return state
+      }
       return state.update('inboxSearch', info => {
         const old = info || Constants.makeInboxSearchInfo()
         return old.merge({
@@ -1088,16 +1091,23 @@ const rootReducer = (
           textStatus: 'inprogress',
         })
       })
-    case Chat2Gen.inboxSearchNameResults:
+    case Chat2Gen.inboxSearchNameResults: {
       if (!state.inboxSearch || state.inboxSearch.nameStatus !== 'inprogress') {
         return state
       }
+      const results = action.payload.results.reduce((l, r) => {
+        if (state.metaMap.get(r.conversationIDKey)) {
+          return l.push(r)
+        }
+        return l
+      }, I.List())
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
-          nameResults: action.payload.results,
+          nameResults: results,
           nameStatus: 'done',
         })
       })
+    }
     case Chat2Gen.inboxSearchMoveSelectedIndex: {
       if (!state.inboxSearch) {
         return state
