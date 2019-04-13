@@ -399,6 +399,8 @@ function* startProvisioning(state) {
         clientType: RPCTypes.commonClientType.guiMain,
         deviceType: isMobile ? 'mobile' : 'desktop',
         username: username,
+        deviceName: '',
+        paperKey: '',
       },
       waitingKey: Constants.waitingKey,
     })
