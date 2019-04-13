@@ -18,7 +18,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
   onEnsureSelection: () => dispatch(Chat2Gen.createInboxSearchSelect({})),
   onQueryChanged: query => dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(query)})),
   onSelectDown: () => dispatch(Chat2Gen.createInboxSearchMoveSelectedIndex({increment: true})),
@@ -27,7 +26,6 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isSearching: stateProps.isSearching,
-  onCancel: dispatchProps.onCancel,
   onEnsureSelection: dispatchProps.onEnsureSelection,
   onNewChat: ownProps.onNewChat,
   onQueryChanged: dispatchProps.onQueryChanged,

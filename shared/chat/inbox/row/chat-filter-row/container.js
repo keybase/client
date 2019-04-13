@@ -7,9 +7,6 @@ import {namedConnect, compose, withProps} from '../../../../util/container'
 import ConversationFilterInput from '../../../conversation-filter-input'
 
 type OwnProps = {
-  onCancel: () => void,
-  filterFocusCount: number,
-  focusFilter: () => void,
   onEnsureSelection: () => void,
   onNewChat: () => void,
   onSelectDown: () => void,
@@ -22,6 +19,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   return {
     filter: ownProps.query,
     isLoading: Constants.anyChatWaitingKeys(state),
+    isSearching: !!state.chat2.inboxSearch,
   }
 }
 
@@ -34,27 +32,28 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
         })
       )
     } else {
-      focusFilter()
+      dispatch(Chat2Gen.createToggleInboxSearch({enabled: true}))
     }
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onFocus: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
+  onStartSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
+  onStopSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _onHotkey: dispatchProps._onHotkey,
   filter: stateProps.filter,
-  filterFocusCount: ownProps.filterFocusCount,
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
+  isSearching: stateProps.isSearching,
   onBack: dispatchProps.onBack,
-  onCancel: ownProps.onCancel,
   onEnsureSelection: ownProps.onEnsureSelection,
-  onFocus: dispatchProps.onFocus,
   onNewChat: ownProps.onNewChat,
   onSelectDown: ownProps.onSelectDown,
   onSelectUp: ownProps.onSelectUp,
   onSetFilter: ownProps.onQueryChanged,
+  onStartSearch: dispatchProps.onStartSearch,
+  onStopSearch: dispatchProps.onStopSearch,
 })
 
 const KeyHandler = isMobile ? c => c : require('../../../../util/key-handler.desktop').default
