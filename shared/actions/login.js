@@ -77,10 +77,10 @@ function* login(state, action) {
         },
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
-          deviceType: isMobile ? 'mobile' : 'desktop',
-          username: action.payload.username,
           deviceName: '',
+          deviceType: isMobile ? 'mobile' : 'desktop',
           paperKey: '',
+          username: action.payload.username,
         },
         waitingKey: Constants.waitingKey,
       })

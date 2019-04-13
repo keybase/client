@@ -397,10 +397,10 @@ function* startProvisioning(state) {
       incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
       params: {
         clientType: RPCTypes.commonClientType.guiMain,
-        deviceType: isMobile ? 'mobile' : 'desktop',
-        username: username,
         deviceName: '',
+        deviceType: isMobile ? 'mobile' : 'desktop',
         paperKey: '',
+        username: username,
       },
       waitingKey: Constants.waitingKey,
     })
