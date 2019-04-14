@@ -65,7 +65,6 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               <Kb.Text
                 type="Body"
                 style={Styles.collapseStyles([
-                  boldOverride,
                   styles.teamname,
                   {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
                 ])}

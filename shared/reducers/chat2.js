@@ -1082,6 +1082,9 @@ const rootReducer = (
         })
       })
     case Chat2Gen.inboxSearchStarted:
+      if (!state.inboxSearch) {
+        return state
+      }
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
           nameStatus: 'inprogress',
@@ -1260,6 +1263,7 @@ const rootReducer = (
     case Chat2Gen.loadMessagesFromSearchHit:
     case Chat2Gen.inboxSearchSelect:
     case Chat2Gen.inboxSearch:
+    case Chat2Gen.inboxSearchCancel:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

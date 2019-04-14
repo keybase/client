@@ -656,6 +656,9 @@
     "inboxSearchSetIndexPercent": {
       "_description": "Set index percent complete",
       "percent": "number"
+    },
+    "inboxSearchCancel": {
+      "_description": "Cancel an outstanding inbox search"
     }
   }
 }
