@@ -1084,7 +1084,6 @@ const rootReducer = (
     case Chat2Gen.inboxSearchStarted:
       return state.update('inboxSearch', info => {
         return (info || Constants.makeInboxSearchInfo()).merge({
-          nameResults: I.List(),
           nameStatus: 'inprogress',
           selectedIndex: 0,
           textResults: I.List(),

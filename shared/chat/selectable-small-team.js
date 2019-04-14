@@ -14,6 +14,7 @@ type Props = {|
   numSearchHits?: number,
   maxSearchHits?: number,
   participants: Array<string>,
+  showBadge: boolean,
   showBold: boolean,
   teamname: string,
   usernameColor: string,
@@ -40,7 +41,6 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           direction="horizontal"
           fullWidth={true}
           fullHeight={true}
-          gap="tiny"
           className={Styles.classNames('hover_background_color_blueGrey2', {
             background_color_blue: props.isSelected,
           })}
@@ -77,6 +77,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               usernameColor={props.usernameColor}
             />
           </Kb.Box>
+          {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
         </Kb.Box2>
       </Kb.ClickableBox>
     )
@@ -86,6 +87,13 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
 export const rowHeight = Styles.isMobile ? 64 : 56
 
 const styles = Styles.styleSheetCreate({
+  badge: {
+    backgroundColor: Styles.globalColors.orange,
+    borderRadius: 6,
+    flexShrink: 0,
+    height: Styles.globalMargins.tiny,
+    width: Styles.globalMargins.tiny,
+  },
   container: {
     flexShrink: 0,
     height: rowHeight,
@@ -95,10 +103,12 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
-    paddingLeft: 0,
-    paddingRight: 8,
   },
   rowContainer: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.xtiny,
+      paddingRight: Styles.globalMargins.xtiny,
+    },
     isElectron: Styles.desktopStyles.clickable,
   }),
 })
