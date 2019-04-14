@@ -38,6 +38,14 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 		Name:         "login",
 		ArgumentHelp: "[username]",
 		Usage:        "Establish a session with the keybase server",
+		Description: `"keybase login" allows you to authenticate your local service against
+the keybase server. By default this runs an interactive flow, but
+you can automate this if your service has never been logged into
+a particular account before and the account has a paper key - in order
+to do so, pass the username as an argument, your desired unique device
+name as the "-devicename" flag and pass the paper key as the standard
+input. Alternatively, these parameters can be passed as "KEYBASE_PAPERKEY"
+and "KEYBASE_DEVICENAME" environment variables.`,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdLoginRunner(g), "login", c)
 		},
