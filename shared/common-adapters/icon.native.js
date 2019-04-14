@@ -75,6 +75,7 @@ let Text = (p: TextProps, ref) => {
       type={p.type}
       ref={ref}
       onPress={p.onClick}
+      suppressHighlighting={true}
     >
       {p.children}
     </Kb.NativeText>
