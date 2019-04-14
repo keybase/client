@@ -1602,6 +1602,10 @@
           "name": "query"
         },
         {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ChatSearchHit"

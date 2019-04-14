@@ -832,7 +832,7 @@ export type ChatActivityType =
 
 export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<ChatSearchMatch>}>
 export type ChatSearchInboxDone = $ReadOnly<{numHits: Int, numConvs: Int, percentIndexed: Int}>
-export type ChatSearchInboxHit = $ReadOnly<{convID: ConversationID, teamType: TeamType, convName: String, query: String, hits?: ?Array<ChatSearchHit>}>
+export type ChatSearchInboxHit = $ReadOnly<{convID: ConversationID, teamType: TeamType, convName: String, query: String, time: Gregor1.Time, hits?: ?Array<ChatSearchHit>}>
 export type ChatSearchInboxResults = $ReadOnly<{hits?: ?Array<ChatSearchInboxHit>, percentIndexed: Int}>
 export type ChatSearchIndexStatus = $ReadOnly<{percentIndexed: Int}>
 export type ChatSearchMatch = $ReadOnly<{startIndex: Int, endIndex: Int, match: String}>

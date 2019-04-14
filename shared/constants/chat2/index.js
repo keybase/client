@@ -113,6 +113,7 @@ export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> 
   numHits: 0,
   query: '',
   teamType: 'small',
+  time: 0,
 })
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {

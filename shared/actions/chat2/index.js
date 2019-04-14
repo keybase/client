@@ -1430,6 +1430,7 @@ function* inboxSearch(state, action) {
           numHits: (resp.searchHit.hits || []).length,
           query: resp.searchHit.query,
           teamType: teamType(resp.searchHit.teamType),
+          time: resp.searchHit.time,
         }),
       })
     )

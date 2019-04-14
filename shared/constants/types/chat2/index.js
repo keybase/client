@@ -64,6 +64,7 @@ export type _InboxSearchTextHit = {
   numHits: number,
   query: string,
   teamType: 'big' | 'small',
+  time: number,
 }
 
 export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>

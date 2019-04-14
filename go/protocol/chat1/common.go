@@ -2119,6 +2119,7 @@ type ChatSearchInboxHit struct {
 	TeamType TeamType        `codec:"teamType" json:"teamType"`
 	ConvName string          `codec:"convName" json:"convName"`
 	Query    string          `codec:"query" json:"query"`
+	Time     gregor1.Time    `codec:"time" json:"time"`
 	Hits     []ChatSearchHit `codec:"hits" json:"hits"`
 }
 
@@ -2128,6 +2129,7 @@ func (o ChatSearchInboxHit) DeepCopy() ChatSearchInboxHit {
 		TeamType: o.TeamType.DeepCopy(),
 		ConvName: o.ConvName,
 		Query:    o.Query,
+		Time:     o.Time.DeepCopy(),
 		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
 			if x == nil {
 				return nil

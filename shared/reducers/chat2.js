@@ -1077,8 +1077,13 @@ const rootReducer = (
       }
       return state.update('inboxSearch', info => {
         const old = info || Constants.makeInboxSearchInfo()
+        const textResults = old.textResults
+          .push(action.payload.result)
+          .sort((l: Types.InboxSearchTextHit, r: Types.InboxSearchTextHit) => {
+            return r.time - l.time
+          })
         return old.merge({
-          textResults: old.textResults.push(action.payload.result),
+          textResults,
         })
       })
     case Chat2Gen.inboxSearchStarted:

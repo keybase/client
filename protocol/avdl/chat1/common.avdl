@@ -603,6 +603,7 @@
     TeamType teamType;
     string convName;
     string query;
+    gregor1.Time time;
     array<ChatSearchHit> hits;
   }
 

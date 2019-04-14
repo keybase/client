@@ -320,6 +320,7 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 		TeamType: conv.GetTeamType(),
 		ConvName: conv.GetName(),
 		Hits:     hits,
+		Time:     hits[0].HitMessage.Valid().Ctime,
 	}, nil
 }
 
