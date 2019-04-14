@@ -10,7 +10,6 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {virtualListMarks} from '../../local-debug'
 import {debounce} from 'lodash-es'
-import {Owl} from './owl'
 import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
 import InboxSearch from '../inbox-search/container'
@@ -225,8 +224,9 @@ class Inbox extends React.PureComponent<Props, State> {
       return false
     })
 
-    const noChats = !this.props.neverLoaded && !this.props.rows.length && <NoChats />
-    const owl = !this.props.rows.length && <Owl />
+    const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
+      <NoChats />
+    )
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
@@ -254,7 +254,6 @@ class Inbox extends React.PureComponent<Props, State> {
             />
           )}
           {noChats}
-          {owl}
           {floatingDivider || <BuildTeam />}
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this._scrollToUnread} />
