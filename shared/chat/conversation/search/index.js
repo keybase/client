@@ -15,6 +15,7 @@ type SearchHit = {|
 |}
 export type Props = {
   clearInitialText: () => void,
+  conversationIDKey: Types.ConversationIDKey,
   hits: Array<SearchHit>,
   initialText?: string,
   loadSearchHit: number => void,
@@ -120,6 +121,7 @@ const ThreadSearch = ThreadSearcher => {
 }
 
 type SearchProps = {
+  conversationIDKey: Types.ConversationIDKey,
   submitSearch: () => void,
   selectResult: number => void,
   onEnter: () => void,
@@ -134,6 +136,7 @@ type SearchProps = {
 }
 
 class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
+  _inputRef = React.createRef()
   _onKeydown = e => {
     switch (e.key) {
       case 'Escape':
@@ -176,6 +179,14 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
     )
   }
 
+  componentDidUpdate(prevProps: SearchProps) {
+    if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
+      if (this._inputRef.current) {
+        this._inputRef.current.focus()
+      }
+    }
+  }
+
   render() {
     const noResults = this.props.status === 'done' && this.props.hits.length === 0
     return (
@@ -190,6 +201,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                 onEnterKeyDown={this.props.onEnter}
                 onKeyDown={this._onKeydown}
                 placeholder="Search..."
+                ref={this._inputRef}
                 value={this.props.text}
               />
             </Kb.Box2>

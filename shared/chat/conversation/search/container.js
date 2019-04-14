@@ -45,6 +45,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
 
 const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
   clearInitialText: dispatchProps.clearInitialText,
+  conversationIDKey,
   hits: stateProps._hits
     .map(h => ({
       author: h.author,

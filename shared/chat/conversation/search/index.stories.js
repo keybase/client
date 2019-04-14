@@ -2,10 +2,12 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Sb from '../../../stories/storybook'
+import * as Constants from '../../../constants/chat2'
 import ThreadSearch from './index'
 
 const base = {
   clearInitialText: Sb.action('clearInitialText'),
+  conversationIDKey: Constants.noConversationIDKey,
   loadSearchHit: Sb.action('loadSearchHit'),
   onCancel: Sb.action('onCancel'),
   onSearch: Sb.action('onSearch'),
