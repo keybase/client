@@ -79,12 +79,13 @@ var noErrorNames = map[string]bool{
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config           Config
-	log              logger.Logger
-	notifyBuffer     chan *keybase1.FSNotification
-	notifyPathBuffer chan string
-	notifySyncBuffer chan *keybase1.FSPathSyncStatus
-	canceler         func()
+	config             Config
+	log                logger.Logger
+	notifyBuffer       chan *keybase1.FSNotification
+	onlineStatusBuffer chan bool
+	notifyPathBuffer   chan string
+	notifySyncBuffer   chan *keybase1.FSPathSyncStatus
+	canceler           func()
 
 	lastNotifyPathLock sync.Mutex
 	lastNotifyPath     string
@@ -93,12 +94,13 @@ type ReporterKBPKI struct {
 // NewReporterKBPKI creates a new ReporterKBPKI.
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	r := &ReporterKBPKI{
-		ReporterSimple:   NewReporterSimple(config.Clock(), maxErrors),
-		config:           config,
-		log:              config.MakeLogger(""),
-		notifyBuffer:     make(chan *keybase1.FSNotification, bufSize),
-		notifyPathBuffer: make(chan string, 1),
-		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, 1),
+		ReporterSimple:     NewReporterSimple(config.Clock(), maxErrors),
+		config:             config,
+		log:                config.MakeLogger(""),
+		notifyBuffer:       make(chan *keybase1.FSNotification, bufSize),
+		onlineStatusBuffer: make(chan bool, bufSize),
+		notifyPathBuffer:   make(chan string, 1),
+		notifySyncBuffer:   make(chan *keybase1.FSPathSyncStatus, 1),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -207,6 +209,12 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 	}
 }
 
+// OnlineStatusChanged notifies the service (and eventually GUI) when we
+// detected we are connected to or disconnected from mdserver.
+func (r *ReporterKBPKI) OnlineStatusChanged(ctx context.Context, online bool) {
+	r.onlineStatusBuffer <- online
+}
+
 func (r *ReporterKBPKI) setLastNotifyPath(p string) (same bool) {
 	r.lastNotifyPathLock.Lock()
 	defer r.lastNotifyPathLock.Unlock()
@@ -259,6 +267,7 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
 	close(r.notifyBuffer)
+	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
 }
 
@@ -292,6 +301,14 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				notification); err != nil {
 				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 					"notification: %s", err)
+			}
+		case online, ok := <-r.onlineStatusBuffer:
+			if !ok {
+				return
+			}
+			if err := r.config.KeybaseService().NotifyOnlineStatusChanged(ctx, online); err != nil {
+				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+					"NotifyOnlineStatusChanged: %s", err)
 			}
 		case <-sendTicker.C:
 			select {

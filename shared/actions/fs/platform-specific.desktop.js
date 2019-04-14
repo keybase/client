@@ -202,7 +202,7 @@ const windowsCheckMountFromOtherDokanInstall = status =>
   )
 
 const refreshDriverStatus = (state, action) =>
-  (action.type !== FsGen.kbfsDaemonStatusChanged || action.payload.kbfsDaemonStatus === 'connected') &&
+  (action.type !== FsGen.kbfsDaemonRpcStatusChanged || action.payload.rpcStatus === 'connected') &&
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
     .then(status =>
       isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed
@@ -388,8 +388,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainAction<FsGen.KbfsDaemonStatusChangedPayload | FsGen.RefreshDriverStatusPayload>(
-    [FsGen.kbfsDaemonStatusChanged, FsGen.refreshDriverStatus],
+  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload>(
+    [FsGen.kbfsDaemonRpcStatusChanged, FsGen.refreshDriverStatus],
     refreshDriverStatus
   )
   yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)

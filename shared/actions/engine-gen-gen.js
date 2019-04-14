@@ -102,6 +102,7 @@ export const keybase1LoginUiPromptResetAccount = 'engine-gen:keybase1LoginUiProm
 export const keybase1LoginUiPromptRevokePaperKeys = 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'
 export const keybase1LogsendPrepareLogsend = 'engine-gen:keybase1LogsendPrepareLogsend'
 export const keybase1NotifyAppExit = 'engine-gen:keybase1NotifyAppExit'
+export const keybase1NotifyAuditBoxAuditError = 'engine-gen:keybase1NotifyAuditBoxAuditError'
 export const keybase1NotifyAuditRootAuditError = 'engine-gen:keybase1NotifyAuditRootAuditError'
 export const keybase1NotifyBadgesBadgeState = 'engine-gen:keybase1NotifyBadgesBadgeState'
 export const keybase1NotifyCanUserPerformCanUserPerformChanged = 'engine-gen:keybase1NotifyCanUserPerformCanUserPerformChanged'
@@ -110,6 +111,7 @@ export const keybase1NotifyEmailAddressEmailAddressVerified = 'engine-gen:keybas
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
+export const keybase1NotifyFSFSOnlineStatusChanged = 'engine-gen:keybase1NotifyFSFSOnlineStatusChanged'
 export const keybase1NotifyFSFSPathUpdated = 'engine-gen:keybase1NotifyFSFSPathUpdated'
 export const keybase1NotifyFSFSSyncActivity = 'engine-gen:keybase1NotifyFSFSSyncActivity'
 export const keybase1NotifyFSFSSyncStatusResponse = 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'
@@ -274,6 +276,7 @@ type _Keybase1LoginUiPromptResetAccountPayload = $ReadOnly<{|params: $Exact<$Pro
 type _Keybase1LoginUiPromptRevokePaperKeysPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}|}>
 type _Keybase1LogsendPrepareLogsendPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyAppExitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'outParam'>) => void}|}>
+type _Keybase1NotifyAuditBoxAuditErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.boxAuditError'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyAuditRootAuditErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.rootAuditError'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyBadgesBadgeStatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'>> & {|sessionID: number|}|}>
@@ -282,6 +285,7 @@ type _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = $ReadOnly<{|params
 type _Keybase1NotifyEphemeralNewTeamEkPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSActivityPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSEditListResponsePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}|}>
+type _Keybase1NotifyFSFSOnlineStatusChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyFSFSPathUpdatedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyFSFSSyncActivityPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyFSFSSyncStatusResponsePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}|}>
@@ -446,6 +450,7 @@ export const createKeybase1LoginUiPromptResetAccount = (payload: _Keybase1LoginU
 export const createKeybase1LoginUiPromptRevokePaperKeys = (payload: _Keybase1LoginUiPromptRevokePaperKeysPayload) => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
 export const createKeybase1LogsendPrepareLogsend = (payload: _Keybase1LogsendPrepareLogsendPayload) => ({payload, type: keybase1LogsendPrepareLogsend})
 export const createKeybase1NotifyAppExit = (payload: _Keybase1NotifyAppExitPayload) => ({payload, type: keybase1NotifyAppExit})
+export const createKeybase1NotifyAuditBoxAuditError = (payload: _Keybase1NotifyAuditBoxAuditErrorPayload) => ({payload, type: keybase1NotifyAuditBoxAuditError})
 export const createKeybase1NotifyAuditRootAuditError = (payload: _Keybase1NotifyAuditRootAuditErrorPayload) => ({payload, type: keybase1NotifyAuditRootAuditError})
 export const createKeybase1NotifyBadgesBadgeState = (payload: _Keybase1NotifyBadgesBadgeStatePayload) => ({payload, type: keybase1NotifyBadgesBadgeState})
 export const createKeybase1NotifyCanUserPerformCanUserPerformChanged = (payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload) => ({payload, type: keybase1NotifyCanUserPerformCanUserPerformChanged})
@@ -454,6 +459,7 @@ export const createKeybase1NotifyEmailAddressEmailAddressVerified = (payload: _K
 export const createKeybase1NotifyEphemeralNewTeamEk = (payload: _Keybase1NotifyEphemeralNewTeamEkPayload) => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
 export const createKeybase1NotifyFSFSActivity = (payload: _Keybase1NotifyFSFSActivityPayload) => ({payload, type: keybase1NotifyFSFSActivity})
 export const createKeybase1NotifyFSFSEditListResponse = (payload: _Keybase1NotifyFSFSEditListResponsePayload) => ({payload, type: keybase1NotifyFSFSEditListResponse})
+export const createKeybase1NotifyFSFSOnlineStatusChanged = (payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload) => ({payload, type: keybase1NotifyFSFSOnlineStatusChanged})
 export const createKeybase1NotifyFSFSPathUpdated = (payload: _Keybase1NotifyFSFSPathUpdatedPayload) => ({payload, type: keybase1NotifyFSFSPathUpdated})
 export const createKeybase1NotifyFSFSSyncActivity = (payload: _Keybase1NotifyFSFSSyncActivityPayload) => ({payload, type: keybase1NotifyFSFSSyncActivity})
 export const createKeybase1NotifyFSFSSyncStatusResponse = (payload: _Keybase1NotifyFSFSSyncStatusResponsePayload) => ({payload, type: keybase1NotifyFSFSSyncStatusResponse})
@@ -618,6 +624,7 @@ export type Keybase1LoginUiPromptResetAccountPayload = {|+payload: _Keybase1Logi
 export type Keybase1LoginUiPromptRevokePaperKeysPayload = {|+payload: _Keybase1LoginUiPromptRevokePaperKeysPayload, +type: 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'|}
 export type Keybase1LogsendPrepareLogsendPayload = {|+payload: _Keybase1LogsendPrepareLogsendPayload, +type: 'engine-gen:keybase1LogsendPrepareLogsend'|}
 export type Keybase1NotifyAppExitPayload = {|+payload: _Keybase1NotifyAppExitPayload, +type: 'engine-gen:keybase1NotifyAppExit'|}
+export type Keybase1NotifyAuditBoxAuditErrorPayload = {|+payload: _Keybase1NotifyAuditBoxAuditErrorPayload, +type: 'engine-gen:keybase1NotifyAuditBoxAuditError'|}
 export type Keybase1NotifyAuditRootAuditErrorPayload = {|+payload: _Keybase1NotifyAuditRootAuditErrorPayload, +type: 'engine-gen:keybase1NotifyAuditRootAuditError'|}
 export type Keybase1NotifyBadgesBadgeStatePayload = {|+payload: _Keybase1NotifyBadgesBadgeStatePayload, +type: 'engine-gen:keybase1NotifyBadgesBadgeState'|}
 export type Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = {|+payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload, +type: 'engine-gen:keybase1NotifyCanUserPerformCanUserPerformChanged'|}
@@ -626,6 +633,7 @@ export type Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = {|+payload: 
 export type Keybase1NotifyEphemeralNewTeamEkPayload = {|+payload: _Keybase1NotifyEphemeralNewTeamEkPayload, +type: 'engine-gen:keybase1NotifyEphemeralNewTeamEk'|}
 export type Keybase1NotifyFSFSActivityPayload = {|+payload: _Keybase1NotifyFSFSActivityPayload, +type: 'engine-gen:keybase1NotifyFSFSActivity'|}
 export type Keybase1NotifyFSFSEditListResponsePayload = {|+payload: _Keybase1NotifyFSFSEditListResponsePayload, +type: 'engine-gen:keybase1NotifyFSFSEditListResponse'|}
+export type Keybase1NotifyFSFSOnlineStatusChangedPayload = {|+payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload, +type: 'engine-gen:keybase1NotifyFSFSOnlineStatusChanged'|}
 export type Keybase1NotifyFSFSPathUpdatedPayload = {|+payload: _Keybase1NotifyFSFSPathUpdatedPayload, +type: 'engine-gen:keybase1NotifyFSFSPathUpdated'|}
 export type Keybase1NotifyFSFSSyncActivityPayload = {|+payload: _Keybase1NotifyFSFSSyncActivityPayload, +type: 'engine-gen:keybase1NotifyFSFSSyncActivity'|}
 export type Keybase1NotifyFSFSSyncStatusResponsePayload = {|+payload: _Keybase1NotifyFSFSSyncStatusResponsePayload, +type: 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'|}
@@ -792,6 +800,7 @@ export type Actions =
   | Keybase1LoginUiPromptRevokePaperKeysPayload
   | Keybase1LogsendPrepareLogsendPayload
   | Keybase1NotifyAppExitPayload
+  | Keybase1NotifyAuditBoxAuditErrorPayload
   | Keybase1NotifyAuditRootAuditErrorPayload
   | Keybase1NotifyBadgesBadgeStatePayload
   | Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
@@ -800,6 +809,7 @@ export type Actions =
   | Keybase1NotifyEphemeralNewTeamEkPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
+  | Keybase1NotifyFSFSOnlineStatusChangedPayload
   | Keybase1NotifyFSFSPathUpdatedPayload
   | Keybase1NotifyFSFSSyncActivityPayload
   | Keybase1NotifyFSFSSyncStatusResponsePayload

@@ -2659,3 +2659,15 @@ func NewResetMissingParamsError(msg string) error {
 func (e ResetMissingParamsError) Error() string {
 	return e.msg
 }
+
+type ChainLinkBadUnstubError struct {
+	msg string
+}
+
+func NewChainLinkBadUnstubError(s string) error {
+	return ChainLinkBadUnstubError{s}
+}
+
+func (c ChainLinkBadUnstubError) Error() string {
+	return c.msg
+}

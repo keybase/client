@@ -25,11 +25,9 @@ platform :ios do
   desc "Submit a new Beta Build to Apple TestFlight"
   desc "This will also make sure the profile is up to date"
   lane :beta do
-  version = get_version_number(xcodeproj: ENV['XCODEPROJ_NAME'], target: 'Keybase')
-    increment_build_number({
-      # build_number: latest_testflight_build_number(version: version) + 4
-      build_number: 66
-    })
+    version = get_version_number(xcodeproj: ENV['XCODEPROJ_NAME'], target: 'Keybase')
+    build_number = latest_testflight_build_number(version: version, live: "false", initial_build_number: 1) + 1
+    increment_build_number({ build_number: build_number })
 
     sigh(app_identifier: "keybase.ios")
     sigh(app_identifier: "keybase.ios.KeybaseShare")

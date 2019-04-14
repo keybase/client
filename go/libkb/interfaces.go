@@ -102,12 +102,14 @@ type configGetter interface {
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
+	GetDisableTeamBoxAuditor() (bool, bool)
 	GetDisableMerkleAuditor() (bool, bool)
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
 	GetExtraNetLogging() (bool, bool)
 	GetForceLinuxKeyring() (bool, bool)
+	GetForceSecretStoreFile() (bool, bool)
 }
 
 type CommandLine interface {
@@ -125,6 +127,8 @@ type CommandLine interface {
 
 type Server interface {
 }
+
+type DBKeySet map[DbKey]bool
 
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
@@ -148,12 +152,14 @@ type LocalDb interface {
 	Nuke() (string, error)
 	Clean(force bool) error
 	OpenTransaction() (LocalDbTransaction, error)
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type KVStorer interface {
 	GetInto(obj interface{}, id DbKey) (found bool, err error)
 	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
 	Delete(id DbKey) error
+	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type JSONReader interface {
@@ -663,6 +669,7 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
+	MapTeamAncestors(ctx context.Context, f func(t keybase1.TeamSigChainState) error, teamID keybase1.TeamID, reason string, forceFullReloadOnceToAssert func(t keybase1.TeamSigChainState) bool) error
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
@@ -687,6 +694,16 @@ type FastTeamLoader interface {
 
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
+	OnLogout(m MetaContext)
+}
+
+type TeamBoxAuditor interface {
+	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
+	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
+	RetryNextBoxAudit(m MetaContext) (err error)
+	BoxAuditRandomTeam(m MetaContext) (err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (err error)
+	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
 	OnLogout(m MetaContext)
 }
 

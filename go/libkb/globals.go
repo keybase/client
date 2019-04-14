@@ -79,6 +79,7 @@ type GlobalContext struct {
 	IDLocktab        LockTable
 	loadUserLockTab  LockTable
 	teamAuditor      TeamAuditor
+	teamBoxAuditor   TeamBoxAuditor
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
@@ -150,7 +151,8 @@ type GlobalContext struct {
 }
 
 type GlobalTestOptions struct {
-	NoBug3964Repair bool
+	NoBug3964Repair             bool
+	NoAutorotateOnBoxAuditRetry bool
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
@@ -214,6 +216,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
 	g.teamAuditor = newNullTeamAuditor()
+	g.teamBoxAuditor = newNullTeamBoxAuditor()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
@@ -338,6 +341,11 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 		st.OnLogout()
 	}
 
+	tba := g.teamBoxAuditor
+	if tba != nil {
+		tba.OnLogout(mctx)
+	}
+
 	g.logoutSecretStore(mctx, username, killSecrets)
 
 	// reload config to clear anything in memory
@@ -353,6 +361,8 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	g.IdentifyDispatch.OnLogout()
 
 	g.Identify3State.OnLogout()
+
+	g.GetUPAKLoader().OnLogout()
 
 	return nil
 }
@@ -575,6 +585,12 @@ func (g *GlobalContext) GetTeamAuditor() TeamAuditor {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamAuditor
+}
+
+func (g *GlobalContext) GetTeamBoxAuditor() TeamBoxAuditor {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamBoxAuditor
 }
 
 func (g *GlobalContext) GetStellar() Stellar {
@@ -964,12 +980,13 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.loginHooks = append(g.loginHooks, hook)
 }
 
-func (g *GlobalContext) CallLoginHooks() {
-	mctx := NewMetaContextTODO(g)
-	g.Log.Debug("G#CallLoginHooks")
+func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
+	mctx.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
-	_, _ = g.GetPerUserKeyring(context.TODO())
+	_, _ = g.GetPerUserKeyring(mctx.Ctx())
+
+	g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin(mctx)
@@ -978,7 +995,7 @@ func (g *GlobalContext) CallLoginHooks() {
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
 		if err := h.OnLogin(mctx); err != nil {
-			g.Log.Warning("OnLogin hook error: %s", err)
+			mctx.Warning("OnLogin hook error: %s", err)
 		}
 	}
 
@@ -1126,6 +1143,12 @@ func (g *GlobalContext) SetTeamAuditor(a TeamAuditor) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamAuditor = a
+}
+
+func (g *GlobalContext) SetTeamBoxAuditor(a TeamBoxAuditor) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamBoxAuditor = a
 }
 
 func (g *GlobalContext) SetStellar(s Stellar) {

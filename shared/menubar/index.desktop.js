@@ -47,7 +47,9 @@ class MenubarRender extends React.Component<Props, State> {
   attachmentRef = React.createRef<Kb.Icon>()
 
   _refreshUserFileEditsIfPossible = () =>
-    this.props.loggedIn && this.props.kbfsDaemonStatus === 'connected' && this.props.refreshUserFileEdits()
+    this.props.loggedIn &&
+    this.props.kbfsDaemonStatus.rpcStatus === 'connected' &&
+    this.props.refreshUserFileEdits()
 
   componentDidMount() {
     this._refreshUserFileEditsIfPossible()
@@ -320,7 +322,7 @@ class MenubarRender extends React.Component<Props, State> {
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.ScrollView>
           <ChatContainer convLimit={3} />
-          {this.props.kbfsDaemonStatus === 'connected' ? (
+          {this.props.kbfsDaemonStatus.rpcStatus === 'connected' ? (
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>

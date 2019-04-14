@@ -139,17 +139,17 @@ func (mr *MockBlockCacheMockRecorder) GetWithLifetime(arg0 interface{}) *gomock.
 }
 
 // Put mocks base method
-func (m *MockBlockCache) Put(arg0 data.BlockPointer, arg1 tlf.ID, arg2 data.Block, arg3 data.BlockCacheLifetime) error {
+func (m *MockBlockCache) Put(arg0 data.BlockPointer, arg1 tlf.ID, arg2 data.Block, arg3 data.BlockCacheLifetime, arg4 data.BlockCacheHashBehavior) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Put indicates an expected call of Put
-func (mr *MockBlockCacheMockRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockBlockCacheMockRecorder) Put(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBlockCache)(nil).Put), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBlockCache)(nil).Put), arg0, arg1, arg2, arg3, arg4)
 }
 
 // SetCleanBytesCapacity mocks base method

@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
+import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
@@ -175,6 +175,8 @@ class PlainInput extends Component<InternalProps, State> {
 
   _getCommonStyle = () => {
     const textStyle = getTextStyle(this.props.textType)
+    // RN TextInput plays better without this
+    delete textStyle.lineHeight
     return collapseStyles([styles.common, textStyle])
   }
 
@@ -210,6 +212,7 @@ class PlainInput extends Component<InternalProps, State> {
       autoCapitalize: this.props.autoCapitalize || 'none',
       autoCorrect: !!this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
+      children: this.props.children,
       editable: !this.props.disabled,
       keyboardType: this.props.keyboardType,
       multiline: false,
@@ -226,6 +229,7 @@ class PlainInput extends Component<InternalProps, State> {
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
       style: this._getStyle(),
+      textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
     }
     if (this.props.multiline) {
@@ -250,12 +254,15 @@ class PlainInput extends Component<InternalProps, State> {
 
 const styles = styleSheetCreate({
   common: {backgroundColor: globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
-  multiline: {
-    height: undefined,
-    // TODO: Maybe remove these paddings?
-    paddingBottom: 0,
-    paddingTop: 0,
-  },
+  multiline: platformStyles({
+    isMobile: {
+      height: undefined,
+      // TODO: Maybe remove these paddings?
+      paddingBottom: 0,
+      paddingTop: 0,
+      textAlignVertical: 'top', // android centers by default
+    },
+  }),
   singleline: {padding: 0},
 })
 

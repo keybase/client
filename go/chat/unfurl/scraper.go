@@ -9,6 +9,8 @@ import (
 	"github.com/keybase/colly"
 )
 
+const userAgent = "Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"
+
 type Scraper struct {
 	utils.DebugLabeler
 	cache      *unfurlCache
@@ -25,7 +27,7 @@ func NewScraper(logger logger.Logger) *Scraper {
 
 func (s *Scraper) makeCollector() *colly.Collector {
 	c := colly.NewCollector(
-		colly.UserAgent("Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"),
+		colly.UserAgent(userAgent),
 	)
 	c.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("connection", "keep-alive")

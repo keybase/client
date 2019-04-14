@@ -549,6 +549,9 @@ type KeybaseService interface {
 	// DecryptFavorites decrypts cached favorites stored on disk.
 	DecryptFavorites(ctx context.Context, dataToDecrypt []byte) ([]byte, error)
 
+	// NotifyOnlineStatusChanged notifies about online/offline status
+	// changes.
+	NotifyOnlineStatusChanged(ctx context.Context, online bool) error
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 
@@ -820,6 +823,8 @@ type Reporter interface {
 		mode ErrorModeType, err error)
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
+	// NotifyOnlineStatusChanged sends the given notification to any sink.
+	OnlineStatusChanged(ctx context.Context, online bool)
 	// Notify sends the given notification to any sink.
 	Notify(ctx context.Context, notification *keybase1.FSNotification)
 	// NotifyPathUpdated sends the given notification to any sink.
@@ -2019,6 +2024,11 @@ type Config interface {
 	// to TLFs that are first accessed after `AddRootNodeWrapper` is
 	// called.
 	AddRootNodeWrapper(func(Node) Node)
+
+	// SetVLogLevel sets the vdebug level for all logs.  The possible
+	// strings are hard-coded in go/libkb/vdebug.go, but include
+	// "mobile", "vlog1", "vlog2", etc.
+	SetVLogLevel(levelString string)
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

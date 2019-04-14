@@ -1037,7 +1037,7 @@ func (bt *blockTree) readyWorker(
 	defer lock.Unlock()
 
 	err = bcache.Put(
-		newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
+		newInfo.BlockPointer, id, pb.pblock, PermanentEntry, SkipCacheHash)
 	if err != nil {
 		return err
 	}

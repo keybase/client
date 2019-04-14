@@ -129,7 +129,7 @@ func (k KeychainSecretStore) updateAccessibility(mctx MetaContext, account keych
 
 func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(mctx MetaContext, err error) {
 	mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: checking for mobile permission denied")
-	if !isIOS || mctx.G().IsMobileAppType() {
+	if !(isIOS && mctx.G().IsMobileAppType()) {
 		mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: not an iOS app")
 		return
 	}
@@ -225,9 +225,8 @@ func (k KeychainSecretStore) clearSecret(mctx MetaContext, account keychainSlott
 }
 
 func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
-	if mctx.G().Env.DarwinForceSecretStoreFile() {
-		// Allow use of file secret store for development/testing
-		// on MacOS.
+	if mctx.G().Env.ForceSecretStoreFile() {
+		// Allow use of file secret store for development/testing on MacOS.
 		return NewSecretStoreFile(mctx.G().Env.GetDataDir())
 	}
 	return KeychainSecretStore{}

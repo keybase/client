@@ -277,7 +277,8 @@ func testFileDataWriteExtendEmptyFile(t *testing.T, maxBlockSize Int64Offset,
 		t, int64(maxBlockSize), maxPtrsPerBlock)
 	topBlock := NewFileBlock().(*FileBlock)
 	cleanBcache.Put(
-		fd.rootBlockPointer(), fd.tree.file.Tlf, topBlock, TransientEntry)
+		fd.rootBlockPointer(), fd.tree.file.Tlf, topBlock, TransientEntry,
+		SkipCacheHash)
 	de := DirEntry{}
 	data := make([]byte, fullDataLen)
 	for i := 0; i < int(fullDataLen); i++ {
@@ -405,7 +406,8 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 					BlockInfo: BlockInfo{ptr, 0},
 					Off:       off,
 				})
-				cleanBcache.Put(ptr, fd.tree.file.Tlf, child, TransientEntry)
+				cleanBcache.Put(
+					ptr, fd.tree.file.Tlf, child, TransientEntry, SkipCacheHash)
 			}
 			prevChildIndex = newIndex
 			level = append(level, fblock)
@@ -420,7 +422,7 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 
 	cleanBcache.Put(
 		fd.rootBlockPointer(), fd.tree.file.Tlf, prevChildren[0],
-		TransientEntry)
+		TransientEntry, SkipCacheHash)
 	return prevChildren[0], numLevels
 }
 

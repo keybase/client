@@ -77,7 +77,8 @@ func TestDirDataGetChildren(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
+		SkipCacheHash)
 
 	t.Log("No entries, direct block")
 	children, err := dd.GetChildren(ctx)
@@ -123,9 +124,12 @@ func TestDirDataGetChildren(t *testing.T) {
 	addFakeDirDataEntryToBlock(block2, "z1", 3)
 	addFakeDirDataEntryToBlock(block2, "z2", 4)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry)
-	cleanBcache.Put(ptr1, dd.tree.file.Tlf, topBlock, TransientEntry)
-	cleanBcache.Put(ptr2, dd.tree.file.Tlf, block2, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry,
+		SkipCacheHash)
+	cleanBcache.Put(
+		ptr1, dd.tree.file.Tlf, topBlock, TransientEntry, SkipCacheHash)
+	cleanBcache.Put(
+		ptr2, dd.tree.file.Tlf, block2, TransientEntry, SkipCacheHash)
 	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 4)
@@ -148,7 +152,8 @@ func TestDirDataLookup(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
+		SkipCacheHash)
 
 	t.Log("No entries, direct block")
 	_, err := dd.Lookup(ctx, "a")
@@ -185,9 +190,12 @@ func TestDirDataLookup(t *testing.T) {
 	addFakeDirDataEntryToBlock(block2, "z1", 3)
 	addFakeDirDataEntryToBlock(block2, "z2", 4)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry)
-	cleanBcache.Put(ptr1, dd.tree.file.Tlf, topBlock, TransientEntry)
-	cleanBcache.Put(ptr2, dd.tree.file.Tlf, block2, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry,
+		SkipCacheHash)
+	cleanBcache.Put(
+		ptr1, dd.tree.file.Tlf, topBlock, TransientEntry, SkipCacheHash)
+	cleanBcache.Put(
+		ptr2, dd.tree.file.Tlf, block2, TransientEntry, SkipCacheHash)
 
 	testDirDataCheckLookup(t, ctx, dd, "a", 1)
 	testDirDataCheckLookup(t, ctx, dd, "b", 2)
@@ -290,7 +298,8 @@ func testDirDataCleanCache(
 	dbc := dirtyBCache.(*DirtyBlockCacheStandard)
 	for id, block := range dbc.cache {
 		ptr := BlockPointer{ID: id.id}
-		cleanBCache.Put(ptr, dd.tree.file.Tlf, block, TransientEntry)
+		cleanBCache.Put(
+			ptr, dd.tree.file.Tlf, block, TransientEntry, SkipCacheHash)
 	}
 	dbc.cache = make(map[dirtyBlockID]Block)
 }
@@ -300,7 +309,8 @@ func TestDirDataAddEntry(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
+		SkipCacheHash)
 
 	t.Log("Add first entry")
 	addFakeDirDataEntry(t, ctx, dd, "a", 1)
@@ -396,7 +406,8 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
+		SkipCacheHash)
 
 	t.Log("Make a simple dir and remove one entry")
 	addFakeDirDataEntry(t, ctx, dd, "a", 1)
@@ -445,7 +456,8 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
+		SkipCacheHash)
 
 	t.Log("Make a simple dir and update one entry")
 	addFakeDirDataEntry(t, ctx, dd, "a", 1)
@@ -507,7 +519,8 @@ func TestDirDataShifting(t *testing.T) {
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
 	cleanBcache.Put(
-		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
+		SkipCacheHash)
 
 	for i := 0; i <= 10; i++ {
 		addFakeDirDataEntry(t, ctx, dd, strconv.Itoa(i), uint64(i+1))

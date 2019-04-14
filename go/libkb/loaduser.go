@@ -19,6 +19,27 @@ type UIDer interface {
 	GetUID() keybase1.UID
 }
 
+type StubMode int
+
+const (
+	StubModeStubbed   StubMode = 0
+	StubModeUnstubbed StubMode = 1
+)
+
+func StubModeFromUnstubbedBool(unstubbed bool) StubMode {
+	if unstubbed {
+		return StubModeUnstubbed
+	}
+	return StubModeStubbed
+}
+
+func (s StubMode) String() string {
+	if s == StubModeUnstubbed {
+		return "unstubbed"
+	}
+	return "stubbed"
+}
+
 type LoadUserArg struct {
 	uid                      keybase1.UID
 	name                     string // Can also be an assertion like foo@twitter
@@ -33,7 +54,8 @@ type LoadUserArg struct {
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 	upakLite                 bool
-	fullSigchain             bool
+	stubMode                 StubMode // by default, this is StubModeStubbed, meaning, stubbed links are OK
+
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
 	// the result of an earlier no-features load from cache. We shouldn't add
@@ -54,9 +76,9 @@ func (arg LoadUserArg) String() string {
 	if arg.merkleLeaf != nil {
 		leaf = fmt.Sprintf("%v", arg.merkleLeaf.idVersion)
 	}
-	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v Leaf:%v}",
+	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v Leaf:%v %v}",
 		arg.uid, arg.name, arg.publicKeyOptional, arg.noCacheResult, arg.self, arg.forceReload,
-		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly, leaf)
+		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly, leaf, arg.stubMode)
 }
 
 func (arg LoadUserArg) MetaContext() MetaContext {
@@ -201,8 +223,8 @@ func (arg LoadUserArg) WithForceReload() LoadUserArg {
 	return arg
 }
 
-func (arg LoadUserArg) WithFullSigchain() LoadUserArg {
-	arg.fullSigchain = true
+func (arg LoadUserArg) WithStubMode(sm StubMode) LoadUserArg {
+	arg.stubMode = sm
 	return arg
 }
 
@@ -359,7 +381,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(m, &ret.leaf, arg.self, arg.fullSigchain); err != nil {
+	if err = ret.LoadSigChains(m, &ret.leaf, arg.self, arg.stubMode); err != nil {
 		return ret, err
 	}
 

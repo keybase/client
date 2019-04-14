@@ -15,6 +15,10 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 		return ssecretservice
 	}
 
+	if mctx.G().Env.ForceSecretStoreFile() {
+		return sfile
+	}
+
 	shouldUpgradeOpportunistically := func() bool {
 		return false
 	}
