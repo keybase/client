@@ -2,9 +2,11 @@ package search
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 
+	"github.com/araddon/dateparse"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -150,23 +152,53 @@ func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.Conversatio
 	return uiMsgs
 }
 
-var fromRegex = regexp.MustCompile("^from:(@?[a-z0-9][a-z0-9_]+)")
+const beforeFilter = "before:"
+const afterFilter = "after:"
+
+var fromRegex = regexp.MustCompile("from:(@?[a-z0-9][a-z0-9_]+)")
+var dateRangeRegex = regexp.MustCompile(fmt.Sprintf(
+	`(%s|%s)(\d{1,4}[-/\.]+\d{1,2}[-/\.]+\d{1,4})`, beforeFilter, afterFilter))
 
 func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1.SearchRegexpArg {
 	query := arg.Query
+	var hasQueryOpts bool
 	// From
 	if match := fromRegex.FindStringSubmatch(query); match != nil && len(match) == 2 {
+		hasQueryOpts = true
 		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
 		sentBy := strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
 		if sentBy == "me" {
 			sentBy = username
 		}
 		arg.Opts.SentBy = sentBy
-		if len(query) == 0 {
-			query = "/.*/"
+	}
+
+	matches := dateRangeRegex.FindAllStringSubmatch(query, 2)
+	for _, match := range matches {
+		// [fullMatch, filter, dateRange]
+		if len(match) != 3 {
+			continue
+		}
+		hasQueryOpts = true
+		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
+		time, err := dateparse.ParseAny(strings.TrimSpace(match[2]))
+		if err != nil {
+			continue
+		}
+
+		gtime := gregor1.ToTime(time)
+		switch match[1] {
+		case beforeFilter:
+			arg.Opts.SentBefore = gtime
+		case afterFilter:
+			arg.Opts.SentAfter = gtime
 		}
 	}
-	// Regex
+
+	if hasQueryOpts && len(query) == 0 {
+		query = "/.*/"
+	}
+	// IsRegex
 	if len(query) > 2 && query[0] == '/' && query[len(query)-1] == '/' {
 		query = query[1 : len(query)-1]
 		arg.IsRegex = true
