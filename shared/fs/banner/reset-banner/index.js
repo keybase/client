@@ -76,13 +76,14 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
       {resetParticipants.map(p => (
         <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
           <Kb.Button
-            type="SecondaryColoredBackground"
+            mode="Secondary"
+            backgroundColor="red"
             label={'View ' + p + "'s profile"}
             onClick={onViewProfile(p)}
             style={styles.button}
           />
           <Kb.Button
-            type="PrimaryColoredBackground"
+            type="Danger"
             backgroundColor="red"
             label={'Let ' + p + ' back in'}
             onClick={onReAddToTeam(p)}

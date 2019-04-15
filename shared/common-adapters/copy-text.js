@@ -97,7 +97,7 @@ class _CopyText extends React.Component<Props, State> {
           </Text>
         )}
         <Button
-          type={this.props.buttonType || 'Primary'}
+          type={this.props.buttonType || 'Default'}
           style={styles.button}
           onClick={this.copy}
           labelContainerStyle={styles.buttonLabelContainer}
@@ -134,6 +134,7 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'stretch',
       height: undefined,
       marginLeft: 'auto',
+      minWidth: undefined,
       paddingLeft: 17,
       paddingRight: 17,
     },
@@ -196,7 +197,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   toastText: Styles.platformStyles({
-    common: { color: Styles.globalColors.white },
+    common: {color: Styles.globalColors.white},
     isMobile: {
       paddingLeft: 10,
       paddingRight: 10,

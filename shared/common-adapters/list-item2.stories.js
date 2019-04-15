@@ -22,7 +22,7 @@ const body3 = (
     <Text type="BodySmall">Subtitle</Text>
   </Box2>
 )
-const actionButton = <Button label={'Action'} type={'Primary'} small={true} onClick={Sb.action('button')} />
+const actionButton = <Button label={'Action'} small={true} onClick={Sb.action('button')} />
 const icon1 = <Icon type="icon-computer-32" />
 const icon2 = <Icon type="icon-bitcoin-logo-48" />
 
