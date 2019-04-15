@@ -209,7 +209,7 @@ const commonSecondaryWhiteBg = platformStyles({
     border: `1px solid ${globalColors.black_20}`,
     transition: 'background-color 0.1s ease-out, border 0.3s ease-out',
   },
-  isMobile: {borderStyle: 'solid', borderWidth: 2},
+  isMobile: {borderColor: globalColors.black_20, borderStyle: 'solid', borderWidth: 1},
 })
 
 const commonLabel = platformStyles({
@@ -246,23 +246,17 @@ const styles = styleSheetCreate({
   },
 })
 
-// No backgroundColor styles
-const makeSecondaryWhiteBgContainerStyle = borderColor =>
-  platformStyles({
-    common: commonSecondaryWhiteBg,
-    isMobile: {borderColor},
-  })
 const containerStyles = styleSheetCreate({
   PrimaryDefault: {...common, backgroundColor: globalColors.blue},
   PrimarySuccess: {...common, backgroundColor: globalColors.green},
   PrimaryDanger: {...common, backgroundColor: globalColors.red},
   PrimaryWallet: {...common, backgroundColor: globalColors.purple2},
   PrimaryDim: {...common, backgroundColor: globalColors.lightGrey2},
-  SecondaryDefault: makeSecondaryWhiteBgContainerStyle(globalColors.blue),
-  SecondarySuccess: makeSecondaryWhiteBgContainerStyle(globalColors.green),
-  SecondaryDanger: makeSecondaryWhiteBgContainerStyle(globalColors.red),
-  SecondaryWallet: makeSecondaryWhiteBgContainerStyle(globalColors.purple2),
-  SecondaryDim: makeSecondaryWhiteBgContainerStyle(globalColors.black_20),
+  SecondaryDefault: commonSecondaryWhiteBg,
+  SecondarySuccess: commonSecondaryWhiteBg,
+  SecondaryDanger: commonSecondaryWhiteBg,
+  SecondaryWallet: commonSecondaryWhiteBg,
+  SecondaryDim: commonSecondaryWhiteBg,
 })
 
 const primaryWhiteBgLabel = {
