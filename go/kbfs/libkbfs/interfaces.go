@@ -1291,6 +1291,9 @@ type Prefetcher interface {
 	// Status returns the current status of the prefetch for the block
 	// tree rooted at the given pointer.
 	Status(ctx context.Context, ptr data.BlockPointer) (PrefetchProgress, error)
+	// OverallSyncStatus returns the current status of all sync
+	// prefetches.
+	OverallSyncStatus() PrefetchProgress
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(data.BlockPointer)

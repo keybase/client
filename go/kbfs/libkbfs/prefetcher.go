@@ -134,6 +134,12 @@ type blockPrefetcher struct {
 	// map to channels for cancelling queued prefetches
 	queuedPrefetchHandlesLock sync.Mutex
 	queuedPrefetchHandles     map[data.BlockPointer]queuedPrefetch
+
+	// Tracks the overall bytes currently being prefetched to the sync
+	// cache.  The total outstanding bytes resets on the first new
+	// prefetch after a completion happens.
+	overallSyncStatusLock sync.RWMutex
+	overallSyncStatus     PrefetchProgress
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -185,12 +191,51 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	return p
 }
 
+func (p *blockPrefetcher) updateOverallSyncTotalBytes(
+	bytes uint64, req *prefetchRequest) {
+	if !req.action.Sync() {
+		return
+	}
+
+	p.overallSyncStatusLock.Lock()
+	defer p.overallSyncStatusLock.Unlock()
+	if p.overallSyncStatus.SubtreeBytesFetched ==
+		p.overallSyncStatus.SubtreeBytesTotal {
+		// Reset since we had already finished syncing.
+		p.overallSyncStatus = PrefetchProgress{}
+		p.overallSyncStatus.Start = p.config.Clock().Now()
+	}
+
+	p.overallSyncStatus.SubtreeBytesTotal += bytes
+}
+
+func (p *blockPrefetcher) updateOverallSyncFetchedBytes(
+	bytes uint64, req *prefetchRequest) {
+	if !req.action.Sync() {
+		return
+	}
+
+	p.overallSyncStatusLock.Lock()
+	defer p.overallSyncStatusLock.Unlock()
+	p.overallSyncStatus.SubtreeBytesFetched += bytes
+	if p.overallSyncStatus.SubtreeBytesFetched >
+		p.overallSyncStatus.SubtreeBytesTotal {
+		// Both log and panic so that we get the PFID in the log.
+		p.log.CErrorf(nil, "panic: updateOverallSyncFetchedBytes overstepped "+
+			"its bounds (fetched=%d, total=%d)",
+			p.overallSyncStatus.SubtreeBytesFetched,
+			p.overallSyncStatus.SubtreeBytesTotal)
+		panic("updateOverallSyncFetchedBytes overstepped its bounds")
+	}
+}
+
 func (p *blockPrefetcher) newPrefetch(
 	count int, bytes uint64, triggered bool,
 	req *prefetchRequest) *prefetch {
 	ctx, cancel := context.WithTimeout(p.ctx, prefetchTimeout)
 	ctx = CtxWithRandomIDReplayable(
 		ctx, ctxPrefetchIDKey, ctxPrefetchID, p.log)
+	p.updateOverallSyncTotalBytes(bytes, req)
 	return &prefetch{
 		subtreeBlockCount: count,
 		subtreeTriggered:  triggered,
@@ -940,6 +985,14 @@ func (p *blockPrefetcher) run(
 				continue
 			}
 
+			if isPrefetchWaiting && !pre.req.action.Sync() &&
+				req.action.Sync() {
+				// This request turned into a syncing request, so
+				// update the overall sync status.
+				p.updateOverallSyncFetchedBytes(pre.SubtreeBytesFetched, req)
+				p.updateOverallSyncTotalBytes(pre.SubtreeBytesTotal, req)
+			}
+
 			// If the request is finished (i.e., if it's marked as
 			// finished or if it has no child blocks to fetch), then
 			// complete the prefetch.
@@ -957,10 +1010,10 @@ func (p *blockPrefetcher) run(
 					// Since we decrement by `pre.subtreeBlockCount`, we're
 					// guaranteed that `pre` will be removed from the
 					// prefetcher.
+					numBytes := pre.SubtreeBytesTotal - pre.SubtreeBytesFetched
+					p.updateOverallSyncFetchedBytes(numBytes, req)
 					p.applyToParentsRecursive(
-						p.completePrefetch(
-							pre.subtreeBlockCount,
-							pre.SubtreeBytesTotal-pre.SubtreeBytesFetched),
+						p.completePrefetch(pre.subtreeBlockCount, numBytes),
 						req.ptr.ID, pre)
 				} else {
 					p.vlog.CLogf(ctx, libkb.VLog1,
@@ -1057,9 +1110,10 @@ func (p *blockPrefetcher) run(
 					}
 					p.applyToParentsRecursive(
 						p.decrementPrefetch, req.ptr.ID, pre)
+					bytes := uint64(b.GetEncodedSize())
+					p.updateOverallSyncFetchedBytes(bytes, req)
 					p.applyToParentsRecursive(
-						p.addFetchedBytes(
-							uint64(b.GetEncodedSize())), req.ptr.ID, pre)
+						p.addFetchedBytes(bytes), req.ptr.ID, pre)
 					pre.subtreeTriggered = true
 					pre.req.action = newAction
 				}
@@ -1305,6 +1359,14 @@ func (p *blockPrefetcher) Status(ctx context.Context, ptr data.BlockPointer) (
 	case <-ctx.Done():
 		return PrefetchProgress{}, ctx.Err()
 	}
+}
+
+// OverallSyncStatus implements the Prefetcher interface for
+// blockPrefetcher.
+func (p *blockPrefetcher) OverallSyncStatus() PrefetchProgress {
+	p.overallSyncStatusLock.RLock()
+	defer p.overallSyncStatusLock.RUnlock()
+	return p.overallSyncStatus
 }
 
 func (p *blockPrefetcher) CancelPrefetch(ptr data.BlockPointer) {
