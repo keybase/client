@@ -6,9 +6,12 @@ import RolePicker, {FloatingRolePicker} from './index'
 
 let rolePickerProps = toMerge => ({
   disabledRoles: {},
+  onCancel: Sb.action('cancel'),
+  onConfirm: Sb.action('confirm'),
   onSelectRole: role => {
     Sb.action('onSelectRole - not attached to state')(role)
   },
+  presetRole: 'Owner',
   ...toMerge,
 })
 
@@ -35,7 +38,7 @@ const load = () => {
     .add('Picker', () => state => (
       <RolePicker
         {...rolePickerProps({
-          selectedRole: 'Owners',
+          selectedRole: 'Owner',
           ...state,
         })}
       />
@@ -44,7 +47,7 @@ const load = () => {
       <RolePicker
         {...rolePickerProps({
           disabledRoles: {
-            Owners: 'Non-Keybase users can not be added as owners.',
+            Owner: 'Non-Keybase users can not be added as owners.',
           },
           onLetIn: Sb.action('Let in'),
           ...state,
@@ -71,26 +74,24 @@ const load = () => {
       />
     ))
     .add('Picker as popup dropdown from button', () => (state, setState) => (
-      <Kb.Box2 direction="vertical" style={{height: 600, justifyContent: 'flex-end'}}>
-        <Kb.Button
-          ref={ref => !state.ref && ref && setState({ref})}
-          onClick={() => setState({opened: true})}
-          disabled={state.opened}
-          type="Primary"
-          label="Add"
-        />
-        {state.opened && (
-          <FloatingRolePicker
-            attachTo={state.ref ? () => state.ref : undefined}
-            position={'top center'}
-            {...rolePickerProps({
-              headerText: 'Add them as:',
-              onCancel: () => setState({opened: false}),
-              onLetIn: Sb.action('Let in'),
-              ...state,
-            })}
+      <Kb.Box2 direction="vertical" alignItems={'center'} style={{height: 600, justifyContent: 'flex-end'}}>
+        <FloatingRolePicker
+          position={'top center'}
+          open={state.opened}
+          {...rolePickerProps({
+            headerText: 'Add them as:',
+            onCancel: () => setState({opened: false}),
+            onLetIn: Sb.action('Let in'),
+            ...state,
+          })}
+        >
+          <Kb.Button
+            onClick={() => setState({opened: true})}
+            disabled={state.opened}
+            type="Primary"
+            label="Add"
           />
-        )}
+        </FloatingRolePicker>
       </Kb.Box2>
     ))
 }
