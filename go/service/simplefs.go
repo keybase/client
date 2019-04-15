@@ -448,6 +448,18 @@ func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)
 }
 
+// SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
+	ctx context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.SyncConfigAndStatusRes{}, err
+	}
+	return cli.SimpleFSSyncConfigAndStatus(ctx)
+}
+
 func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)

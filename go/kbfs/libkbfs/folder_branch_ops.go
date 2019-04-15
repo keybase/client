@@ -842,6 +842,9 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 	})
 }
 
+var errNeedMDForPartialSyncConfig = errors.New(
+	"needs MD for partial sync config")
+
 func (fbo *folderBranchOps) getProtocolSyncConfig(
 	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
@@ -851,6 +854,10 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 	ret.Mode = config.Mode
 	if ret.Mode != keybase1.FolderSyncMode_PARTIAL {
 		return ret, config.TlfPath, nil
+	}
+
+	if kmd.TlfID() == tlf.NullID {
+		return keybase1.FolderSyncConfig{}, "", errNeedMDForPartialSyncConfig
 	}
 
 	var block *data.FileBlock
@@ -8504,6 +8511,27 @@ func (fbo *folderBranchOps) GetSyncConfig(
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	config, tlfPath, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
+	if errors.Cause(err) == errNeedMDForPartialSyncConfig {
+		// This is a partially-synced TLF, so it should be initialized
+		// automatically by KBFSOps; we just need to wait for the MD.
+		var once sync.Once
+		for md == (ImmutableRootMetadata{}) {
+			once.Do(func() {
+				fbo.log.CDebugf(
+					ctx, "Waiting for head to be populated while getting "+
+						"sync config")
+			})
+			t := time.After(100 * time.Millisecond)
+			select {
+			case <-t:
+			case <-ctx.Done():
+				return keybase1.FolderSyncConfig{}, errors.WithStack(ctx.Err())
+			}
+			md, _ = fbo.getHead(ctx, lState, mdNoCommit)
+		}
+		config, tlfPath, err = fbo.getProtocolSyncConfigUnlocked(
+			ctx, lState, md)
+	}
 	if err != nil {
 		return keybase1.FolderSyncConfig{}, err
 	}

@@ -469,6 +469,17 @@ protocol SimpleFS {
     FolderSyncStatus status;
   }
 
+  record FolderSyncConfigAndStatusWithFolder {
+    Folder folder;
+    FolderSyncConfig config;
+    FolderSyncStatus status;
+  }
+
+  record SyncConfigAndStatusRes {
+    array<FolderSyncConfigAndStatusWithFolder> folders;
+    FolderSyncStatus overallStatus;
+  }
+
   // simpleFSFolderSyncConfigAndStatus returns the current sync config for the
   // folder specified in `path` (e.g., whether syncing is enabled for
   // that folder).
@@ -477,6 +488,11 @@ protocol SimpleFS {
   // simpleFSSetFolderSyncConfig sets the sync config for the folder
   // specified in `path`.
   void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
+
+  // simpleFSSyncConfigAndStatus returns the sync config and status
+  // for all syncing folders, as well as an overall status for the whole
+  // device.
+  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus();
 
   boolean simpleFSAreWeConnectedToMDServer();
 
