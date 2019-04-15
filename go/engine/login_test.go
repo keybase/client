@@ -580,8 +580,10 @@ func TestProvisionAutoreset(t *testing.T) {
 
 	// create user (and device X)
 	userX := CreateAndSignupFakeUser(tcX, "login")
-	require.Nil(t, AssertLoggedIn(tcX), "should be logged in on device x")
-	require.Nil(t, AssertProvisioned(tcX), "should be provisioned on device x")
+	require.NoError(t, AssertLoggedIn(tcX), "should be logged in on device x")
+	require.NoError(t, AssertProvisioned(tcX), "should be provisioned on device x")
+	m := NewMetaContextForTest(tcX)
+	require.NoError(t, m.G().FeatureFlags.EnableImmediately(m, libkb.AutoresetPipeline))
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "provision_y")
@@ -594,14 +596,14 @@ func TestProvisionAutoreset(t *testing.T) {
 		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
 		GPGUI:       &gpgtestui{},
 	}
-	m := NewMetaContextForTest(tcY).WithUIs(uis)
+	m = NewMetaContextForTest(tcY).WithUIs(uis)
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	require.Nil(t, RunEngine2(m, eng), "expected login engine to succeed")
+	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
 	// Travel 3 days into future + 60s to make sure that it all runs
-	require.Nil(t, accelerateReset(tcX))
-	require.Nil(t, timeTravelReset(tcX, time.Hour*72))
+	require.NoError(t, accelerateReset(tcX))
+	require.NoError(t, timeTravelReset(tcX, time.Hour*72))
 	time.Sleep(time.Second)
 
 	// Second iteration on device Y should result in a reset + provision
@@ -614,9 +616,9 @@ func TestProvisionAutoreset(t *testing.T) {
 	}
 	m = NewMetaContextForTest(tcY).WithUIs(uis)
 	eng = NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	require.Nil(t, RunEngine2(m, eng), "expected 2nd login engine to succeed")
-	require.Nil(t, AssertLoggedIn(tcY), "should be logged in")
-	require.Nil(t, AssertProvisioned(tcY), "should be provisioned on device y")
+	require.NoError(t, RunEngine2(m, eng), "expected 2nd login engine to succeed")
+	require.NoError(t, AssertLoggedIn(tcY), "should be logged in")
+	require.NoError(t, AssertProvisioned(tcY), "should be provisioned on device y")
 }
 
 func timeTravelReset(tc libkb.TestContext, duration time.Duration) error {

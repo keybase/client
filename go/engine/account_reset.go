@@ -99,7 +99,7 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		libkb.RetryExhaustedError,
 		libkb.InputCanceledError,
 		libkb.SkipSecretPromptError:
-		mctx.Debug("unable to create a session: %v, charging forward without it", err)
+		mctx.Debug("unable to authenticate a session: %v, charging forward without it", err)
 		if len(e.usernameOrEmail) == 0 {
 			return libkb.NewResetMissingParamsError("Unable to start autoreset process, unable to establish session, no username or email provided")
 		}

@@ -699,10 +699,8 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
-	arg := keybase1.ChooseDeviceArg{
-		Devices:           expDevices,
-		CanSelectNoDevice: true,
-	}
+	pipelineEnabled := m.G().FeatureFlags.Enabled(m, libkb.AutoresetPipeline)
+	m.Warning("autoreset enabled %v", pipelineEnabled)
 
 	// check to see if they have a PUK, in which case they must select a device
 	hasPUK, err := e.hasPerUserKey(m)
@@ -710,6 +708,10 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		return err
 	}
 
+	arg := keybase1.ChooseDeviceArg{
+		Devices:           expDevices,
+		CanSelectNoDevice: (pgp && !hasPUK) || pipelineEnabled,
+	}
 	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
 		return err
@@ -726,6 +728,10 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 			}
 
 			return nil
+		}
+
+		if !pipelineEnabled {
+			return libkb.ProvisionUnavailableError{}
 		}
 
 		m.G().Log.Info(`

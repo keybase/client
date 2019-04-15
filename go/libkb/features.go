@@ -73,6 +73,7 @@ const (
 	FeatureBoxAuditor         = Feature("box_auditor")
 	ExperimentalGenericProofs = Feature("experimental_generic_proofs")
 	CreateBTCBech32           = Feature("create_btc_bech32")
+	AutoresetPipeline         = Feature("autoreset_pipeline")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.
