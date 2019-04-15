@@ -47,6 +47,9 @@
         "chat1ChatUiChatSearchIndexStatus": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'outParam'>) => void}"
         },
+        "chat1ChatUiChatSearchConvHits": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchConvHits'>, 'outParam'>) => void}"
+        },
         "chat1ChatUiChatConfirmChannelDelete": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'outParam'>) => void}"
         },
@@ -266,6 +269,9 @@
         "keybase1NotifyAuditRootAuditError": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.rootAuditError'>, 'inParam'>> & {|sessionID: number|}"
         },
+        "keybase1NotifyAuditBoxAuditError": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.boxAuditError'>, 'inParam'>> & {|sessionID: number|}"
+        },
         "keybase1NotifyBadgesBadgeState": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>> & {|sessionID: number|}"
         },
@@ -298,6 +304,9 @@
         },
         "keybase1NotifyFSFSSyncStatusResponse": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}"
+        },
+        "keybase1NotifyFSFSOnlineStatusChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>) => void}"
         },
         "keybase1NotifyKeyfamilyKeyfamilyChanged": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'outParam'>) => void}"

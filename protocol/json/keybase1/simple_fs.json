@@ -1149,8 +1149,17 @@
       ],
       "response": null
     },
-    "simpleFSPing": {
+    "simpleFSAreWeConnectedToMDServer": {
       "request": [],
+      "response": "boolean"
+    },
+    "simpleFSSetDebugLevel": {
+      "request": [
+        {
+          "name": "level",
+          "type": "string"
+        }
+      ],
       "response": null
     }
   },

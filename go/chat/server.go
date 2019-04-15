@@ -2387,17 +2387,23 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SearchInbox")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer h.suspendConvLoader(ctx)()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
 
+	username := h.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	chatUI := h.getChatUI(arg.SessionID)
 	// stream hits back to client UI
 	hitUICh := make(chan chat1.ChatSearchInboxHit)
 	hitUIDone := make(chan struct{})
 	numHits := 0
 	go func() {
+		defer close(hitUIDone)
+		if arg.NamesOnly {
+			return
+		}
 		for searchHit := range hitUICh {
 			numHits += len(searchHit.Hits)
 			chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
@@ -2405,27 +2411,43 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 				SearchHit: searchHit,
 			})
 		}
-		close(hitUIDone)
 	}()
 	// stream index status back to client UI
 	indexUICh := make(chan chat1.ChatSearchIndexStatus)
 	indexUIDone := make(chan struct{})
 	go func() {
+		defer close(indexUIDone)
+		if arg.NamesOnly {
+			return
+		}
 		for status := range indexUICh {
 			chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
 				SessionID: arg.SessionID,
 				Status:    status,
 			})
 		}
-		close(indexUIDone)
+	}()
+	// send up conversation name matches
+	convUIDone := make(chan struct{})
+	go func() {
+		defer close(convUIDone)
+		convHits, err := h.G().InboxSource.Search(ctx, uid, arg.Query, arg.Opts.MaxNameConvs)
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
+		} else {
+			chatUI.ChatSearchConvHits(ctx, utils.PresentRemoteConversationsAsSearchHits(convHits, username))
+		}
 	}()
 
-	searchRes, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, hitUICh, indexUICh)
-	if err != nil {
-		return res, err
+	var searchRes *chat1.ChatSearchInboxResults
+	if !arg.NamesOnly {
+		if searchRes, err = h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, hitUICh, indexUICh); err != nil {
+			return res, err
+		}
 	}
 	<-hitUIDone
 	<-indexUIDone
+	<-convUIDone
 
 	var doneRes chat1.ChatSearchInboxDone
 	if searchRes != nil {

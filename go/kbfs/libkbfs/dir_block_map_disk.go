@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/pkg/errors"
 )
@@ -16,7 +17,7 @@ import (
 type dirBlockMapDisk struct {
 	dirtyBcache *DirtyBlockCacheDisk
 	kmd         libkey.KeyMetadata
-	ptrs        map[BlockPointer]bool
+	ptrs        map[data.BlockPointer]bool
 }
 
 var _ dirBlockMap = (*dirBlockMapDisk)(nil)
@@ -26,14 +27,14 @@ func newDirBlockMapDisk(
 	return &dirBlockMapDisk{
 		dirtyBcache: dirtyBcache,
 		kmd:         kmd,
-		ptrs:        make(map[BlockPointer]bool),
+		ptrs:        make(map[data.BlockPointer]bool),
 	}
 }
 
 func (dbmd *dirBlockMapDisk) putBlock(
-	ctx context.Context, ptr BlockPointer, block *DirBlock) error {
+	ctx context.Context, ptr data.BlockPointer, block *data.DirBlock) error {
 	err := dbmd.dirtyBcache.Put(
-		ctx, dbmd.kmd.TlfID(), ptr, MasterBranch, block)
+		ctx, dbmd.kmd.TlfID(), ptr, data.MasterBranch, block)
 	if err != nil {
 		return err
 	}
@@ -43,15 +44,15 @@ func (dbmd *dirBlockMapDisk) putBlock(
 }
 
 func (dbmd *dirBlockMapDisk) getBlock(
-	ctx context.Context, ptr BlockPointer) (*DirBlock, error) {
+	ctx context.Context, ptr data.BlockPointer) (*data.DirBlock, error) {
 	if !dbmd.ptrs[ptr] {
 		return nil, errors.Errorf("No such block %s", ptr)
 	}
-	block, err := dbmd.dirtyBcache.Get(ctx, dbmd.kmd.TlfID(), ptr, MasterBranch)
+	block, err := dbmd.dirtyBcache.Get(ctx, dbmd.kmd.TlfID(), ptr, data.MasterBranch)
 	if err != nil {
 		return nil, err
 	}
-	dblock, ok := block.(*DirBlock)
+	dblock, ok := block.(*data.DirBlock)
 	if !ok {
 		return nil, errors.Errorf(
 			"Unexpected block type for dir block: %T", block)
@@ -60,12 +61,12 @@ func (dbmd *dirBlockMapDisk) getBlock(
 }
 
 func (dbmd *dirBlockMapDisk) hasBlock(
-	_ context.Context, ptr BlockPointer) (bool, error) {
+	_ context.Context, ptr data.BlockPointer) (bool, error) {
 	return dbmd.ptrs[ptr], nil
 }
 
 func (dbmd *dirBlockMapDisk) deleteBlock(
-	_ context.Context, ptr BlockPointer) error {
+	_ context.Context, ptr data.BlockPointer) error {
 	delete(dbmd.ptrs, ptr)
 	return nil
 }

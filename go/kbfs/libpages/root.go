@@ -8,6 +8,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
@@ -132,7 +133,7 @@ func (r *Root) MakeFS(
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		tlfFS, err := libfs.NewFS(
-			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch, "", "",
+			fsCtx, kbfsConfig, tlfHandle, data.MasterBranch, "", "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
@@ -158,7 +159,7 @@ func (r *Root) MakeFS(
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		autogitTLFFS, err := libfs.NewFS(
-			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch,
+			fsCtx, kbfsConfig, tlfHandle, data.MasterBranch,
 			libgit.AutogitRoot, "", keybase1.MDPriorityNormal)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err

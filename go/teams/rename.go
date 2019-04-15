@@ -38,7 +38,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		return fmt.Errorf("cannot rename team without changing name")
 	}
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		mctx := libkb.NewMetaContext(ctx, g)
 		mctx.Debug("RenameSubteam load teams: parent:'%v' subteam:'%v'",
 			parentName.String(), prevName.String())

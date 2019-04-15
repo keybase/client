@@ -361,13 +361,13 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderRadius: 4,
       color: Styles.globalColors.green,
-      fontSize: 16,
       paddingBottom: 15,
       paddingLeft: 20,
       paddingRight: 20,
       paddingTop: 15,
     },
     isElectron: {
+      fontSize: 16,
       maxWidth: 460,
     },
     isMobile: {

@@ -47,7 +47,7 @@ const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: 
     }
     if (error.desc.includes('KBFS client not found.')) {
       return [
-        FsGen.createKbfsDaemonStatusChanged({kbfsDaemonStatus: 'wait-timeout'}),
+        FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: 'wait-timeout'}),
         // We don't retry actions when re-connected, so just route user back
         // to root in case they get confused by orphan loading state.
         //

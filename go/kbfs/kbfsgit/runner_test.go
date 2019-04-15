@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libgit"
@@ -116,7 +117,7 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 	// Now there should be a valid git repo stored in KBFS.  Check the
 	// existence of the HEAD file to be sure.
 	fs, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, ".kbfs_git/test", "",
+		ctx, config, h, data.MasterBranch, ".kbfs_git/test", "",
 		keybase1.MDPriorityGit)
 	require.NoError(t, err)
 	head, err := fs.Open("HEAD")
@@ -413,7 +414,7 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
@@ -785,7 +786,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	}
 
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
@@ -904,7 +905,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	}
 
 	rootNode, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
@@ -998,7 +999,7 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 	// Reset using worktree.
 	repoFS, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
-	rootFS, err := libfs.NewFS(ctx, config, h, libkbfs.MasterBranch, "", "", 0)
+	rootFS, err := libfs.NewFS(ctx, config, h, data.MasterBranch, "", "", 0)
 	require.NoError(t, err)
 	err = rootFS.MkdirAll("test-checkout", 0600)
 	require.NoError(t, err)
@@ -1010,9 +1011,9 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 	f, err := wtFS.Open("foo")
 	require.NoError(t, err)
 	defer f.Close()
-	data, err := ioutil.ReadAll(f)
+	buf, err := ioutil.ReadAll(f)
 	require.NoError(t, err)
-	require.Equal(t, "hello", string(data))
+	require.Equal(t, "hello", string(buf))
 
 	// Sync data and flush journal.
 	err = rootFS.SyncAll()
@@ -1020,7 +1021,7 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = jManager.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)

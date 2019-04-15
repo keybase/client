@@ -20,51 +20,62 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
-	DBOfflineRPC               = 0xbe
-	DBChatCollapses            = 0xbf
-	DBMerkleAudit              = 0xca
-	DBUnfurler                 = 0xcb
-	DBStellarDisclaimer        = 0xcc
-	DBFTLStorage               = 0xcd
-	DBTeamAuditor              = 0xce
-	DBAttachmentUploader       = 0xcf
-	DBHasRandomPW              = 0xd0
-	DBDiskLRUEntries           = 0xda
-	DBDiskLRUIndex             = 0xdb
-	DBImplicitTeamConflictInfo = 0xdc
-	DBUidToFullName            = 0xdd
-	DBUidToUsername            = 0xde
-	DBUserPlusKeysVersioned    = 0xdf
-	DBLink                     = 0xe0
-	DBLocalTrack               = 0xe1
-	DBPGPKey                   = 0xe3
-	DBSigHints                 = 0xe4
-	DBProofCheck               = 0xe5
-	DBUserSecretKeys           = 0xe6
-	DBSigChainTailPublic       = 0xe7
-	DBSigChainTailSemiprivate  = 0xe8
-	DBSigChainTailEncrypted    = 0xe9
-	DBChatActive               = 0xea
-	DBUserEKBox                = 0xeb
-	DBTeamEKBox                = 0xec
-	DBChatIndex                = 0xed
-	DBChatReacji               = 0xef
-	DBMerkleRoot               = 0xf0
-	DBTrackers                 = 0xf1
-	DBGregor                   = 0xf2
-	DBTrackers2                = 0xf3
-	DBTrackers2Reverse         = 0xf4
-	DBNotificationDismiss      = 0xf5
-	DBChatBlockIndex           = 0xf6
-	DBChatBlocks               = 0xf7
-	DBChatOutbox               = 0xf8
-	DBChatInbox                = 0xf9
-	DBIdentify                 = 0xfa
-	DBResolveUsernameToUID     = 0xfb
-	DBChatBodyHashIndex        = 0xfc
-	DBMerkleStore              = 0xfd
-	DBChatConvFailures         = 0xfe
-	DBTeamList                 = 0xff
+	DBBoxAuditorPermanent            = 0xbb
+	DBBoxAuditor                     = 0xbc
+	DBUserPlusKeysVersionedUnstubbed = 0xbd
+	DBOfflineRPC                     = 0xbe
+	DBChatCollapses                  = 0xbf
+	DBMerkleAudit                    = 0xca
+	DBUnfurler                       = 0xcb
+	DBStellarDisclaimer              = 0xcc
+	DBFTLStorage                     = 0xcd
+	DBTeamAuditor                    = 0xce
+	DBAttachmentUploader             = 0xcf
+	DBHasRandomPW                    = 0xd0
+	DBDiskLRUEntries                 = 0xda
+	DBDiskLRUIndex                   = 0xdb
+	DBImplicitTeamConflictInfo       = 0xdc
+	DBUidToFullName                  = 0xdd
+	DBUidToUsername                  = 0xde
+	DBUserPlusKeysVersioned          = 0xdf
+	DBLink                           = 0xe0
+	DBLocalTrack                     = 0xe1
+	DBPGPKey                         = 0xe3
+	DBSigHints                       = 0xe4
+	DBProofCheck                     = 0xe5
+	DBUserSecretKeys                 = 0xe6
+	DBSigChainTailPublic             = 0xe7
+	DBSigChainTailSemiprivate        = 0xe8
+	DBSigChainTailEncrypted          = 0xe9
+	DBChatActive                     = 0xea
+	DBUserEKBox                      = 0xeb
+	DBTeamEKBox                      = 0xec
+	DBChatIndex                      = 0xed
+	DBChatReacji                     = 0xef
+	DBMerkleRoot                     = 0xf0
+	DBTrackers                       = 0xf1
+	DBGregor                         = 0xf2
+	DBTrackers2                      = 0xf3
+	DBTrackers2Reverse               = 0xf4
+	DBNotificationDismiss            = 0xf5
+	DBChatBlockIndex                 = 0xf6
+	DBChatBlocks                     = 0xf7
+	DBChatOutbox                     = 0xf8
+	DBChatInbox                      = 0xf9
+	DBIdentify                       = 0xfa
+	DBResolveUsernameToUID           = 0xfb
+	DBChatBodyHashIndex              = 0xfc
+	DBMerkleStore                    = 0xfd
+	DBChatConvFailures               = 0xfe
+	DBTeamList                       = 0xff
+)
+
+// Note(maxtaco) 2018.10.08 --- Note a bug here, that we used the `libkb.DBChatInbox` type here.
+// That's a copy-paste bug, but we get away with it since we have a `tid:` prefix that
+// disambiguates these entries from true Chat entries. We're not going to fix it now
+// since it would kill the team cache, but sometime in the future we should fix it.
+const (
+	DBSlowTeamsAlias = DBChatInbox
 )
 
 const (
@@ -95,7 +106,8 @@ func IsPermDbKey(typ ObjType) bool {
 		DBChatCollapses,
 		DBHasRandomPW,
 		DBChatReacji,
-		DBStellarDisclaimer:
+		DBStellarDisclaimer,
+		DBBoxAuditorPermanent:
 		return true
 	default:
 		return false
@@ -116,7 +128,7 @@ func tablePrefix(table string) []byte {
 }
 
 func (k DbKey) ToString(table string) string {
-	return fmt.Sprintf("%s:%02x:%s", table, k.Typ, k.Key)
+	return fmt.Sprintf("%s:%s", PrefixString(table, k.Typ), k.Key)
 }
 
 func (k DbKey) ToBytes(table string) []byte {
@@ -124,6 +136,10 @@ func (k DbKey) ToBytes(table string) []byte {
 		table = levelDbTablePerm
 	}
 	return []byte(k.ToString(table))
+}
+
+func PrefixString(table string, typ ObjType) string {
+	return fmt.Sprintf("%s:%02x", table, typ)
 }
 
 var fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)
@@ -225,6 +241,9 @@ func (j *JSONLocalDb) Close() error           { return j.engine.Close() }
 func (j *JSONLocalDb) Nuke() (string, error)  { return j.engine.Nuke() }
 func (j *JSONLocalDb) Clean(force bool) error { return j.engine.Clean(force) }
 func (j *JSONLocalDb) Stats() string          { return j.engine.Stats() }
+func (j *JSONLocalDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
+	return j.engine.KeysWithPrefixes(prefixes...)
+}
 
 func (j *JSONLocalDb) PutRaw(id DbKey, b []byte) error       { return j.engine.Put(id, nil, b) }
 func (j *JSONLocalDb) GetRaw(id DbKey) ([]byte, bool, error) { return j.engine.Get(id) }

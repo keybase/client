@@ -51,11 +51,6 @@ func TestProofSuggestions(t *testing.T) {
 			PickerText:    "Rooter",
 			PickerSubtext: "",
 		}, {
-			Key:           "mastodon.social",
-			ProfileText:   "Prove your Local Mastodon Social",
-			PickerText:    "Local Mastodon Social",
-			PickerSubtext: "mastodon.social",
-		}, {
 			Key:           "gubble.social",
 			ProfileText:   "Prove your Gubble.social",
 			PickerText:    "Gubble.social",

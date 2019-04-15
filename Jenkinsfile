@@ -388,6 +388,17 @@ def testGo(prefix, packagesToTest) {
       retry(5) {
         sh 'go get -u github.com/golang/mock/mockgen'
       }
+      dir('kbfs/data') {
+        retry(5) {
+          timeout(activity: true, time: 90, unit: 'SECONDS') {
+            sh '''
+              set -e -x
+              ./gen_mocks.sh
+              git diff --exit-code
+            '''
+          }
+        }
+      }
       dir('kbfs/libkbfs') {
         retry(5) {
           timeout(activity: true, time: 90, unit: 'SECONDS') {
@@ -428,6 +439,10 @@ def testGo(prefix, packagesToTest) {
           name: 'kbfs_test_fuse',
           flags: '-tags fuse',
           timeout: '15m',
+        ],
+        'github.com/keybase/client/go/kbfs/data': [
+          flags: '-race',
+          timeout: '30s',
         ],
         'github.com/keybase/client/go/kbfs/libfuse': [
           flags: '',
@@ -530,6 +545,13 @@ def testGo(prefix, packagesToTest) {
         ],
       ],
     ]
+    def getOverallTimeout = { testSpec ->
+      def timeoutMatches = (testSpec.timeout =~ /(\d+)([ms])/)
+      return [
+        time: 1 + (timeoutMatches[0][1] as Integer),
+        unit: timeoutMatches[0][2] == 's' ? 'SECONDS' : 'MINUTES',
+      ]
+    }
     def defaultPackageTestSpec = { pkg ->
       def dirPath = pkg.replaceAll('github.com/keybase/client/go/', '')
       def testName = dirPath.replaceAll('/', '_')
@@ -580,8 +602,11 @@ def testGo(prefix, packagesToTest) {
         if (fileExists(testBinary)) {
           def test = {
             dir(testSpec.dirPath) {
-              println "Running tests for ${testSpec.dirPath}"
-              sh "./${testBinary} -test.timeout ${testSpec.timeout}"
+              def t = getOverallTimeout(testSpec)
+              timeout(activity: true, time: t.time, unit: t.unit) {
+                println "Running tests for ${testSpec.dirPath}"
+                sh "./${testBinary} -test.timeout ${testSpec.timeout}"
+              }
             }
           }
           if (testSpec.name in specialTestFilter) {

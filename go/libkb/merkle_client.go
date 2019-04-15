@@ -644,7 +644,11 @@ func (mc *MerkleClient) fetchRootFromServer(m MetaContext, lastRoot *MerkleRoot)
 }
 
 func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *MerkleRoot, opts MerkleOpts) (mr *MerkleRoot, ss SkipSequence, apiRes *APIRes, err error) {
-	q := NewHTTPArgs()
+
+	// c=1 invokes server-side compression
+	q := HTTPArgs{
+		"c": B{true},
+	}
 
 	// Get back a series of skips from the last merkle root we had to the new
 	// one we're getting back, and hold the server to it.
@@ -727,6 +731,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArg
 	w := 10 * int(CITimeMultiplier(mc.G()))
 
 	q.Add("poll", I{w})
+	q.Add("c", B{true})
 	if isUser {
 		q.Add("load_deleted", B{true})
 		q.Add("load_reset_chain", B{true})

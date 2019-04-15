@@ -1080,6 +1080,20 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 	}
 }
 
+type UIChatSearchConvHit struct {
+	ConvID string       `codec:"convID" json:"convID"`
+	Name   string       `codec:"name" json:"name"`
+	Mtime  gregor1.Time `codec:"mtime" json:"mtime"`
+}
+
+func (o UIChatSearchConvHit) DeepCopy() UIChatSearchConvHit {
+	return UIChatSearchConvHit{
+		ConvID: o.ConvID,
+		Name:   o.Name,
+		Mtime:  o.Mtime.DeepCopy(),
+	}
+}
+
 type UIChatPayment struct {
 	Username      string  `codec:"username" json:"username"`
 	FullName      string  `codec:"fullName" json:"fullName"`
@@ -1900,6 +1914,11 @@ type ChatSearchIndexStatusArg struct {
 	Status    ChatSearchIndexStatus `codec:"status" json:"status"`
 }
 
+type ChatSearchConvHitsArg struct {
+	SessionID int                   `codec:"sessionID" json:"sessionID"`
+	Hits      []UIChatSearchConvHit `codec:"hits" json:"hits"`
+}
+
 type ChatConfirmChannelDeleteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Channel   string `codec:"channel" json:"channel"`
@@ -1967,6 +1986,7 @@ type ChatUiInterface interface {
 	ChatSearchInboxHit(context.Context, ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
+	ChatSearchConvHits(context.Context, ChatSearchConvHitsArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
@@ -2175,6 +2195,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatSearchIndexStatus(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatSearchConvHits": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSearchConvHitsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSearchConvHitsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSearchConvHitsArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchConvHits(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2400,6 +2435,11 @@ func (c ChatUiClient) ChatSearchInboxDone(ctx context.Context, __arg ChatSearchI
 
 func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearchIndexStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchIndexStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatSearchConvHits(ctx context.Context, __arg ChatSearchConvHitsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchConvHits", []interface{}{__arg}, nil)
 	return
 }
 

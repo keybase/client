@@ -424,3 +424,11 @@ func GetWalletClient(g *libkb.GlobalContext) (cli stellar1.LocalClient, err erro
 	cli = stellar1.LocalClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetAuditClient(g *libkb.GlobalContext) (cli keybase1.AuditClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.AuditClient{Cli: rcli}
+	}
+	return
+}

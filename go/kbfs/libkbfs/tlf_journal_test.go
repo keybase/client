@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -19,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -78,9 +80,9 @@ type testTLFJournalConfig struct {
 	*testSyncedTlfGetterSetter
 	t            *testing.T
 	tlfID        tlf.ID
-	splitter     BlockSplitter
+	splitter     data.BlockSplitter
 	crypto       *CryptoLocal
-	bcache       BlockCache
+	bcache       data.BlockCache
 	bops         BlockOps
 	mdcache      MDCache
 	ver          kbfsmd.MetadataVer
@@ -93,19 +95,19 @@ type testTLFJournalConfig struct {
 	dlTimeout    time.Duration
 }
 
-func (c testTLFJournalConfig) BlockSplitter() BlockSplitter {
+func (c testTLFJournalConfig) BlockSplitter() data.BlockSplitter {
 	return c.splitter
 }
 
 func (c testTLFJournalConfig) Clock() Clock {
-	return wallClock{}
+	return data.WallClock{}
 }
 
 func (c testTLFJournalConfig) Crypto() Crypto {
 	return c.crypto
 }
 
-func (c testTLFJournalConfig) BlockCache() BlockCache {
+func (c testTLFJournalConfig) BlockCache() data.BlockCache {
 	return c.bcache
 }
 
@@ -217,8 +219,9 @@ func setupTLFJournalTest(
 	cancel context.CancelFunc, tlfJournal *tlfJournal,
 	delegate testBWDelegate) {
 	// Set up config and dependencies.
-	bsplitter := &BlockSplitterSimple{
-		64 * 1024, int(64 * 1024 / bpSize), 8 * 1024, 0}
+	bsplitter, err := data.NewBlockSplitterSimpleExact(
+		64*1024, int(64*1024/data.BPSize), 8*1024)
+	require.NoError(t, err)
 	codec := kbfscodec.NewMsgpack()
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
@@ -243,7 +246,7 @@ func setupTLFJournalTest(
 		newTestSyncedTlfGetterSetter(), t,
 		tlf.FakeID(1, tlf.Private), bsplitter, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
-		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil,
+		NewReporterSimple(clocktest.NewTestClockNow(), 10), uid, verifyingKey, ekg, nil,
 		mdserver, defaultDiskLimitMaxDelay + time.Second,
 	}
 

@@ -49,14 +49,14 @@ func (o WalletAccountInfo) DeepCopy() WalletAccountInfo {
 }
 
 type ResetState struct {
-	EndTime Time   `codec:"endTime" json:"end_time"`
-	Msg     string `codec:"msg" json:"msg"`
+	EndTime Time `codec:"endTime" json:"end_time"`
+	Active  bool `codec:"active" json:"active"`
 }
 
 func (o ResetState) DeepCopy() ResetState {
 	return ResetState{
 		EndTime: o.EndTime.DeepCopy(),
-		Msg:     o.Msg,
+		Active:  o.Active,
 	}
 }
 

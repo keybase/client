@@ -12,8 +12,13 @@ type RootAuditErrorArg struct {
 	Message string `codec:"message" json:"message"`
 }
 
+type BoxAuditErrorArg struct {
+	Message string `codec:"message" json:"message"`
+}
+
 type NotifyAuditInterface interface {
 	RootAuditError(context.Context, string) error
+	BoxAuditError(context.Context, string) error
 }
 
 func NotifyAuditProtocol(i NotifyAuditInterface) rpc.Protocol {
@@ -35,6 +40,21 @@ func NotifyAuditProtocol(i NotifyAuditInterface) rpc.Protocol {
 					return
 				},
 			},
+			"boxAuditError": {
+				MakeArg: func() interface{} {
+					var ret [1]BoxAuditErrorArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BoxAuditErrorArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BoxAuditErrorArg)(nil), args)
+						return
+					}
+					err = i.BoxAuditError(ctx, typedArgs[0].Message)
+					return
+				},
+			},
 		},
 	}
 }
@@ -46,5 +66,11 @@ type NotifyAuditClient struct {
 func (c NotifyAuditClient) RootAuditError(ctx context.Context, message string) (err error) {
 	__arg := RootAuditErrorArg{Message: message}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.rootAuditError", []interface{}{__arg})
+	return
+}
+
+func (c NotifyAuditClient) BoxAuditError(ctx context.Context, message string) (err error) {
+	__arg := BoxAuditErrorArg{Message: message}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.boxAuditError", []interface{}{__arg})
 	return
 }

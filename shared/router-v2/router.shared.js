@@ -99,8 +99,9 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
       }
 
       // switch the switch and do a reset of the stack
+      // MUST pass undefined as key in reset else it won't work correctly
       return sa.length
-        ? [switchStack, StackActions.reset({actions: sa, index: sa.length - 1})]
+        ? [switchStack, StackActions.reset({actions: sa, index: sa.length - 1, key: undefined})]
         : [switchStack]
     }
     case RouteTreeGen.clearModals: {

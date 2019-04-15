@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"strings"
 	"sync"
 	"time"
@@ -69,7 +70,9 @@ type FeatureFlagSet struct {
 const (
 	FeatureFTL                = Feature("ftl")
 	FeatureIMPTOFU            = Feature("imptofu")
+	FeatureBoxAuditor         = Feature("box_auditor")
 	ExperimentalGenericProofs = Feature("experimental_generic_proofs")
+	CreateBTCBech32           = Feature("create_btc_bech32")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.
@@ -115,6 +118,23 @@ func (s *FeatureFlagSet) InvalidateCache(m MetaContext, f Feature) {
 	featureSlot.Lock()
 	defer featureSlot.Unlock()
 	featureSlot.cacheUntil = m.G().Clock().Now().Add(time.Duration(-1) * time.Second)
+}
+
+func (s *FeatureFlagSet) EnableImmediately(m MetaContext, f Feature) error {
+	if m.G().Env.GetRunMode() == ProductionRunMode {
+		return errors.New("EnableImmediately is a dev/test-only path")
+	}
+	s.InvalidateCache(m, f)
+	_, err := m.G().API.Post(m, APIArg{
+		Endpoint:    "test/feature",
+		SessionType: APISessionTypeREQUIRED,
+		Args: HTTPArgs{
+			"feature":   S{Val: string(f)},
+			"value":     I{Val: 1},
+			"cache_sec": I{Val: 100},
+		},
+	})
+	return err
 }
 
 // EnabledWithError returns if the given feature is enabled, it will return true if it's

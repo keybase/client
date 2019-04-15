@@ -18,6 +18,7 @@ type Props = {|
   onToggleInfoPanel: () => void,
   onToggleThreadSearch: () => void,
   participants: ?Array<string>,
+  showActions: boolean,
   unMuteConversation: () => void,
 |}
 
@@ -36,7 +37,9 @@ const Header = (p: Props) => (
       <Kb.Box2 direction="vertical" style={styles.grow}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {p.channel ? (
-            <Kb.Text type="Header">{p.channel}</Kb.Text>
+            <Kb.Text selectable={true} type="Header">
+              {p.channel}
+            </Kb.Text>
           ) : p.participants ? (
             <Kb.ConnectedUsernames
               colorFollowing={true}
@@ -59,11 +62,22 @@ const Header = (p: Props) => (
             />
           )}
         </Kb.Box2>
-        {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
+        {!!p.desc && (
+          <Kb.Text selectable={true} type="BodyTiny">
+            {p.desc}
+          </Kb.Text>
+        )}
       </Kb.Box2>
-      <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
-      <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
-      <Kb.Icon type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'} onClick={p.onToggleInfoPanel} />
+      {p.showActions && (
+        <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="flex-end">
+          <Kb.Icon type="iconfont-search" onClick={p.onToggleThreadSearch} />
+          <Kb.Icon type="iconfont-folder-private" onClick={p.onOpenFolder} />
+          <Kb.Icon
+            type={p.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+            onClick={p.onToggleInfoPanel}
+          />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -121,6 +135,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
     participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
+    showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
     unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
   }
 }

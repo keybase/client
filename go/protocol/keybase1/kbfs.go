@@ -40,6 +40,10 @@ type FSSyncEventArg struct {
 	Event FSPathSyncStatus `codec:"event" json:"event"`
 }
 
+type FSOnlineStatusChangedEventArg struct {
+	Online bool `codec:"online" json:"online"`
+}
+
 type CreateTLFArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 	TlfID  TLFID  `codec:"tlfID" json:"tlfID"`
@@ -85,6 +89,8 @@ type KbfsInterface interface {
 	// FSSyncEvent is called by KBFS when the sync status of an individual path
 	// changes.
 	FSSyncEvent(context.Context, FSPathSyncStatus) error
+	// FSSyncEvent is called by KBFS when the online status changes.
+	FSOnlineStatusChangedEvent(context.Context, bool) error
 	// createTLF is called by KBFS to associate the tlfID with the given teamID,
 	// using the v2 Team-based system.
 	CreateTLF(context.Context, CreateTLFArg) error
@@ -174,6 +180,21 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 						return
 					}
 					err = i.FSSyncEvent(ctx, typedArgs[0].Event)
+					return
+				},
+			},
+			"FSOnlineStatusChangedEvent": {
+				MakeArg: func() interface{} {
+					var ret [1]FSOnlineStatusChangedEventArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FSOnlineStatusChangedEventArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FSOnlineStatusChangedEventArg)(nil), args)
+						return
+					}
+					err = i.FSOnlineStatusChangedEvent(ctx, typedArgs[0].Online)
 					return
 				},
 			},
@@ -301,6 +322,13 @@ func (c KbfsClient) FSSyncStatus(ctx context.Context, __arg FSSyncStatusArg) (er
 func (c KbfsClient) FSSyncEvent(ctx context.Context, event FSPathSyncStatus) (err error) {
 	__arg := FSSyncEventArg{Event: event}
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncEvent", []interface{}{__arg}, nil)
+	return
+}
+
+// FSSyncEvent is called by KBFS when the online status changes.
+func (c KbfsClient) FSOnlineStatusChangedEvent(ctx context.Context, online bool) (err error) {
+	__arg := FSOnlineStatusChangedEventArg{Online: online}
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSOnlineStatusChangedEvent", []interface{}{__arg}, nil)
 	return
 }
 

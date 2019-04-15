@@ -1365,6 +1365,7 @@ function* threadSearch(state, action) {
           maxConvs: -1,
           maxHits: -1,
           maxMessages: -1,
+          maxNameConvs: 15,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',
@@ -2874,6 +2875,7 @@ const addUsersToChannel = (_, action) => {
   )
     .then(() => [
       Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      RouteTreeGen.createClearModals(),
       Chat2Gen.createNavigateToThread(),
     ])
     .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key

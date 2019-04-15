@@ -20,6 +20,37 @@ export type KeyboardType =
   // Android Only
   | 'visible-password'
 
+// All iOS only
+export type TextContentType =
+  | 'none'
+  | 'URL'
+  | 'addressCity'
+  | 'addressCityAndState'
+  | 'addressState'
+  | 'countryName'
+  | 'creditCardNumber'
+  | 'emailAddress'
+  | 'familyName'
+  | 'fullStreetAddress'
+  | 'givenName'
+  | 'jobTitle'
+  | 'location'
+  | 'middleName'
+  | 'name'
+  | 'namePrefix'
+  | 'nameSuffix'
+  | 'nickname'
+  | 'organizationName'
+  | 'postalCode'
+  | 'streetAddressLine1'
+  | 'streetAddressLine2'
+  | 'sublocality'
+  | 'telephoneNumber'
+  | 'username'
+  | 'password'
+  | 'newPassword'
+  | 'oneTimeCode'
+
 export type Selection = {start: number, end: number}
 
 export type Props = {|
@@ -58,6 +89,7 @@ export type Props = {|
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 
   // Mobile only
+  children?: React.Node,
   onKeyPress?: (event: {nativeEvent: {key: 'Enter' | 'Backspace' | string}}) => void,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
@@ -68,6 +100,11 @@ export type Props = {|
   // very flakey, don't rely on this for up to date
   // selection; only works with multiline={true}
   onSelectionChange?: (selection: Selection) => void,
+  // iOS only - give some context as to what is supposed to go in this input
+  // so the keyboard can give better recommendations. e.g.
+  // newPassword - suggest strong password
+  // oneTimeCode - suggest verification code arriving via SMS
+  textContentType?: TextContentType,
 |}
 
 // Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>

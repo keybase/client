@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -1154,6 +1155,14 @@ func (k *KeybaseServiceBase) DecryptFavorites(ctx context.Context, dataToEncrypt
 	return k.kbfsClient.DecryptFavorites(ctx, dataToEncrypt)
 }
 
+// NotifyOnlineStatusChanged implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyOnlineStatusChanged(ctx context.Context,
+	online bool) error {
+	k.log.CDebugf(ctx, "Sending notification for onlineStatus: online=%v", online)
+	return k.kbfsClient.FSOnlineStatusChangedEvent(ctx, online)
+}
+
 // Notify implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	// Reduce log spam by not repeating log lines for
@@ -1247,7 +1256,7 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	}
 
 	rootNode, _, err := k.config.KBFSOps().
-		GetOrCreateRootNode(ctx, tlfHandle, MasterBranch)
+		GetOrCreateRootNode(ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -559,7 +560,7 @@ func (f *Favorites) Add(ctx context.Context, fav favorites.ToAdd) error {
 		return nil
 	}
 	if f.hasShutdown() {
-		return ShutdownHappenedError{}
+		return data.ShutdownHappenedError{}
 	}
 	doAdd := true
 	var err error
@@ -608,7 +609,7 @@ func (f *Favorites) Delete(ctx context.Context, fav favorites.Folder) error {
 		return nil
 	}
 	if f.hasShutdown() {
-		return ShutdownHappenedError{}
+		return data.ShutdownHappenedError{}
 	}
 	return f.sendReq(ctx, &favReq{
 		ctx:   ctx,
@@ -674,7 +675,7 @@ func (f *Favorites) Get(ctx context.Context) ([]favorites.Folder, error) {
 		return nil, nil
 	}
 	if f.hasShutdown() {
-		return nil, ShutdownHappenedError{}
+		return nil, data.ShutdownHappenedError{}
 	}
 	favChan := make(chan []favorites.Folder, 1)
 	req := &favReq{
@@ -741,7 +742,7 @@ func (f *Favorites) GetAll(ctx context.Context) (keybase1.FavoritesResult,
 		return keybase1.FavoritesResult{}, nil
 	}
 	if f.hasShutdown() {
-		return keybase1.FavoritesResult{}, ShutdownHappenedError{}
+		return keybase1.FavoritesResult{}, data.ShutdownHappenedError{}
 	}
 	favChan := make(chan keybase1.FavoritesResult, 1)
 	req := &favReq{

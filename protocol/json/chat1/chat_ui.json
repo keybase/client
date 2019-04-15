@@ -957,6 +957,24 @@
     },
     {
       "type": "record",
+      "name": "UIChatSearchConvHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIChatPayment",
       "fields": [
         {
@@ -1524,6 +1542,22 @@
         {
           "name": "status",
           "type": "ChatSearchIndexStatus"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchConvHits": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "hits",
+          "type": {
+            "type": "array",
+            "items": "UIChatSearchConvHit"
+          }
         }
       ],
       "response": null

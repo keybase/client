@@ -77,6 +77,13 @@ func (r *RemoteChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.Chat
 	return r.cli.ChatSearchIndexStatus(ctx, arg)
 }
 
+func (r *RemoteChatUI) ChatSearchConvHits(ctx context.Context, hits []chat1.UIChatSearchConvHit) error {
+	return r.cli.ChatSearchConvHits(ctx, chat1.ChatSearchConvHitsArg{
+		SessionID: r.sessionID,
+		Hits:      hits,
+	})
+}
+
 func (r *RemoteChatUI) ChatStellarDataConfirm(ctx context.Context, summary chat1.UIChatPaymentSummary) (bool, error) {
 	return r.cli.ChatStellarDataConfirm(ctx, chat1.ChatStellarDataConfirmArg{
 		SessionID: r.sessionID,

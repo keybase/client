@@ -16,7 +16,7 @@ func getUsernameIfProvisioned(m MetaContext, uc UserConfig) (ret NormalizedUsern
 		m.Debug("- user was likely reset (%s)", err)
 		return ret, nil
 	case KeyRevokedError:
-		m.Debug("- device was revoked (s)", err)
+		m.Debug("- device was revoked (%s)", err)
 		return ret, nil
 	case UserDeletedError:
 		m.Debug(" - user was deleted (%s)", err)

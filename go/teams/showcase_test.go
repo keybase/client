@@ -23,7 +23,8 @@ func TestShowcaseTeam(t *testing.T) {
 	tc.G.SetService()
 	tc.G.NotifyRouter.AddListener(notifications)
 
-	name := createTeam(tc)
+	namex, teamID := createTeam2(tc)
+	name := namex.String()
 	t.Logf("Created team %q", name)
 
 	isShowcased := true
@@ -32,6 +33,13 @@ func TestShowcaseTeam(t *testing.T) {
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
 	showcase, err := GetTeamShowcase(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+	require.Equal(t, true, showcase.IsShowcased)
+	require.NotNil(t, showcase.SetByUID)
+	require.Equal(t, user.User.GetUID(), *showcase.SetByUID)
+	require.Nil(t, nil, showcase.Description)
+
+	showcase, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Equal(t, true, showcase.IsShowcased)
 	require.NotNil(t, showcase.SetByUID)
@@ -51,12 +59,23 @@ func TestShowcaseTeam(t *testing.T) {
 	require.NotNil(t, showcase.Description)
 	require.Equal(t, "Hello world", *showcase.Description)
 
+	showcase, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
+	require.NoError(t, err)
+	require.Equal(t, true, showcase.IsShowcased)
+	require.NotNil(t, showcase.SetByUID)
+	require.Equal(t, user.User.GetUID(), *showcase.SetByUID)
+	require.NotNil(t, showcase.Description)
+	require.Equal(t, "Hello world", *showcase.Description)
+
 	isShowcased = false
 	err = SetTeamShowcase(context.TODO(), tc.G, name, &isShowcased, nil, nil)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
 	showcase, err = GetTeamShowcase(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+
+	showcase, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 
 	require.Equal(t, false, showcase.IsShowcased)
@@ -132,7 +151,8 @@ func TestShowcasePermissions(t *testing.T) {
 	_, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
-	team := createTeam(tc)
+	namex, teamID := createTeam2(tc)
+	team := namex.String()
 	t.Logf("Created team %q", team)
 
 	isShowcased := true
@@ -179,6 +199,10 @@ func TestShowcasePermissions(t *testing.T) {
 	require.True(t, ret.TeamShowcase.IsShowcased)
 
 	ret2, err := GetTeamShowcase(context.TODO(), tc.G, team)
+	require.NoError(t, err)
+	require.Equal(t, ret.TeamShowcase, ret2)
+
+	ret2, err = GetTeamShowcaseByID(context.TODO(), tc.G, teamID)
 	require.NoError(t, err)
 	require.Equal(t, ret.TeamShowcase, ret2)
 }
