@@ -7,7 +7,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
-import {GatewayDest} from 'react-gateway'
 
 type OwnProps = {||}
 
