@@ -21,5 +21,8 @@ protocol NotifyFS {
   void FSSyncStatusResponse(FSSyncStatus status, int requestID) oneway;
 
   @lint("ignore")
+  void FSOverallSyncStatusChanged(FSOverallSyncStatus status) oneway;
+
+  @lint("ignore")
   void FSOnlineStatusChanged(boolean online) oneway;
 }

@@ -342,6 +342,26 @@ func (o FSSyncStatus) DeepCopy() FSSyncStatus {
 	}
 }
 
+type FSOverallSyncStatus struct {
+	SyncingBytes int64 `codec:"syncingBytes" json:"syncingBytes"`
+	SyncedBytes  int64 `codec:"syncedBytes" json:"syncedBytes"`
+	EndEstimate  *Time `codec:"endEstimate,omitempty" json:"endEstimate,omitempty"`
+}
+
+func (o FSOverallSyncStatus) DeepCopy() FSOverallSyncStatus {
+	return FSOverallSyncStatus{
+		SyncingBytes: o.SyncingBytes,
+		SyncedBytes:  o.SyncedBytes,
+		EndEstimate: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EndEstimate),
+	}
+}
+
 type KbfsCommonInterface interface {
 }
 
