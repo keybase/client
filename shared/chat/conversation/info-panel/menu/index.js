@@ -6,6 +6,7 @@ import * as ChatTypes from '../../../../constants/types/chat2'
 import {Avatars} from '../../../avatars'
 
 export type ConvProps = {
+  fullname: string,
   teamType: ChatTypes.TeamType,
   ignored: boolean,
   muted: boolean,
@@ -36,36 +37,53 @@ export type Props = {
   onViewTeam: () => void,
 }
 
-const AdhocHeader = ({isMuted, participants}: {isMuted: boolean, participants: Array<string>}) => (
-  <Kb.Box style={styles.headerContainer}>
+type AdhocHeaderProps = {
+  fullname: string,
+  isMuted: boolean,
+  participants: Array<string>,
+}
+const AdhocHeader = (props: AdhocHeaderProps) => (
+  <>
     <Avatars
       backgroundColor={Styles.globalColors.white}
       isHovered={false}
       isLocked={false}
-      isMuted={isMuted}
+      isMuted={props.isMuted}
       isSelected={false}
-      participants={participants}
+      participants={props.participants}
       size={Styles.isMobile ? 64 : 48}
     />
-    <Kb.PlaintextUsernames
-      type="Body"
-      users={participants.map(p => ({
-        username: p,
-      }))}
-    />
-  </Kb.Box>
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.ConnectedUsernames
+        colorFollowing={true}
+        commaColor={Styles.globalColors.black_50}
+        inline={false}
+        skipSelf={props.participants.length > 1}
+        type="BodyBig"
+        underline={false}
+        usernames={props.participants}
+      />
+      {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
+    </Kb.Box2>
+  </>
 )
 
-const TeamHeader = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
-  <Kb.Box style={styles.headerContainer}>
+type TeamHeaderProps = {
+  teamname: string,
+  memberCount: number,
+}
+const TeamHeader = (props: TeamHeaderProps) => (
+  <>
     <Kb.Avatar
       size={Styles.isMobile ? 64 : 48}
-      teamname={teamname}
+      teamname={props.teamname}
       style={Kb.avatarCastPlatformStyles(styles.headerAvatar)}
     />
-    <Kb.Text type="BodySemibold">{teamname}</Kb.Text>
-    <Kb.Text type="BodySmall">{`${memberCount} member${memberCount !== 1 ? 's' : ''}`}</Kb.Text>
-  </Kb.Box>
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.Text type="BodySemibold">{props.teamname}</Kb.Text>
+      <Kb.Text type="BodySmall">{`${props.memberCount} member${props.memberCount !== 1 ? 's' : ''}`}</Kb.Text>
+    </Kb.Box2>
+  </>
 )
 
 class InfoPanelMenu extends React.Component<Props> {
@@ -121,12 +139,19 @@ class InfoPanelMenu extends React.Component<Props> {
 
     const header = {
       title: 'header',
-      view:
-        isAdhoc && props.convProps ? (
-          <AdhocHeader isMuted={props.convProps.muted} participants={props.convProps.participants} />
-        ) : (
-          <TeamHeader teamname={props.teamname} memberCount={props.memberCount} />
-        ),
+      view: (
+        <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} style={styles.headerContainer}>
+          {isAdhoc && props.convProps ? (
+            <AdhocHeader
+              isMuted={props.convProps.muted}
+              fullname={props.convProps.fullname}
+              participants={props.convProps.participants}
+            />
+          ) : (
+            <TeamHeader teamname={props.teamname} memberCount={props.memberCount} />
+          )}
+        </Kb.Box2>
+      ),
     }
 
     return (

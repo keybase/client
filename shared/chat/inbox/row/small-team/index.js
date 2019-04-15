@@ -118,7 +118,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 iconHoverColor={props.iconHoverColor}
                 participants={props.teamname ? [props.teamname] : props.participants}
                 showBold={props.showBold}
-                showGear={!Styles.isMobile && !props.isInWidget}
+                showGear={!props.isInWidget}
                 forceShowMenu={this.state.showMenu}
                 onForceHideMenu={() => this._onShowMenu(false)}
                 subColor={props.subColor}

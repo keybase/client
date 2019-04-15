@@ -40,10 +40,15 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
   let convProps = null
   if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
     const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
+    const participants = ChatConstants.getRowParticipants(meta, state.config.username || '').toArray()
+    // If it's a one-on-one chat, we need the user's fullname.
+    const fullname =
+      participants.length === 1 ? state.users.infoMap.get(participants[0], {fullname: ''}).fullname : ''
     convProps = {
+      fullname,
       ignored: meta.status === RPCChatTypes.commonConversationStatus.ignored,
       muted: meta.isMuted,
-      participants: ChatConstants.getRowParticipants(meta, state.config.username || '').toArray(),
+      participants,
       teamType: meta.teamType,
     }
   }

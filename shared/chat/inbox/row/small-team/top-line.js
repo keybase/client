@@ -95,7 +95,7 @@ class _SimpleTopLine extends React.Component<Props> {
         >
           {this.props.timestamp}
         </Kb.Text>
-        {this.props.showGear && (
+        {this.props.showGear && !Styles.isMobile && (
           <Kb.Icon
             type="iconfont-gear"
             className="conversation-gear"

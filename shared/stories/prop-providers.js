@@ -70,6 +70,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
     badgeSubscribe: false,
     canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,
     convProps: {
+      fullname: '',
       ignored: false,
       muted: false,
       participants: [],
