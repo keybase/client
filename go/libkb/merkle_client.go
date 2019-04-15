@@ -1980,3 +1980,49 @@ func (mrp MerkleRootPayload) kbfsPublic() (keybase1.KBFSRootHash, *keybase1.Seqn
 func (mrp MerkleRootPayload) kbfsPrivateTeam() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.PrivateTeam.Root, mrp.unpacked.Body.Kbfs.PrivateTeam.Version
 }
+
+func (mc *MerkleClient) CheckRootSignatures(m MetaContext, seqno keybase1.Seqno) (checked []keybase1.KID, err error) {
+	q := HTTPArgs {
+		"seqno" : I{int(seqno)},
+	}
+	apiRes, err := m.G().API.Get(m, APIArg{
+		Endpoint:       "merkle/root",
+		SessionType:    APISessionTypeNONE,
+		Args:           q,
+		AppStatusCodes: []int{SCOk},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	root, err := readRootFromAPIRes(m, apiRes.Body, MerkleOpts{})
+	if err != nil {
+		return nil, err
+	}
+
+	v, err := root.sigs.Keys()
+	if err != nil {
+		return nil, err
+	}
+	for _, s := range v {
+		kid := keybase1.KIDFromString(s)
+		sig, err := root.sigs.AtKey(s).AtKey("sig").GetString()
+		if err != nil {
+			return nil, err
+		}
+		key, err := mc.keyring.Load(m, kid)
+		if err != nil {
+			return nil, err
+		}
+		if key == nil {
+			return nil, MerkleClientError{"no known verifying key", merkleErrorNoKnownKey}
+		}
+		_, err = key.VerifyString(mc.G().Log, sig, []byte(root.payload.packed))
+		if err != nil {
+			return nil, err
+		}
+		checked = append(checked, kid)
+	}
+	return checked, nil
+}

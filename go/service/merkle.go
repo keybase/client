@@ -38,3 +38,11 @@ func (h *MerkleHandler) VerifyMerkleRootAndKBFS(ctx context.Context, arg keybase
 	err = libkb.VerifyMerkleRootAndKBFS(m, arg)
 	return err
 }
+
+func (h *MerkleHandler) CheckRootSignatures(ctx context.Context, seqno keybase1.Seqno) (kids []keybase1.KID, err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+	m = m.WithLogTag("MRKL")
+	defer m.TraceTimed("MerkleHandler#CheckRootSignatures", func() error { return err })()
+	kids, err = h.G().MerkleClient.CheckRootSignatures(m, seqno)
+	return kids, err
+}

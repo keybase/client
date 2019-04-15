@@ -74,6 +74,19 @@
       ],
       "response": null,
       "doc": "VerifyMerkleRootAndKBFS checks that the given merkle root is indeed a valid\n    root of the keybase server's Merkle tree, and that the given KBFS root\n    is included in that global root."
+    },
+    "checkRootSignatures": {
+      "request": [
+        {
+          "name": "seqno",
+          "type": "Seqno"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "KID"
+      },
+      "doc": "checkRootSignatures checks any signatures on the root at the given sequence. It returns\n    the KIDs that were verified."
     }
   },
   "namespace": "keybase.1"

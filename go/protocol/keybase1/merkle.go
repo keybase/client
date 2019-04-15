@@ -54,6 +54,10 @@ type VerifyMerkleRootAndKBFSArg struct {
 	ExpectedKBFSRoot KBFSRoot     `codec:"expectedKBFSRoot" json:"expectedKBFSRoot"`
 }
 
+type CheckRootSignaturesArg struct {
+	Seqno Seqno `codec:"seqno" json:"seqno"`
+}
+
 type MerkleInterface interface {
 	// GetCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
 	// The caller can specify how stale a result can be with freshnessMsec.
@@ -64,6 +68,9 @@ type MerkleInterface interface {
 	// root of the keybase server's Merkle tree, and that the given KBFS root
 	// is included in that global root.
 	VerifyMerkleRootAndKBFS(context.Context, VerifyMerkleRootAndKBFSArg) error
+	// checkRootSignatures checks any signatures on the root at the given sequence. It returns
+	// the KIDs that were verified.
+	CheckRootSignatures(context.Context, Seqno) ([]KID, error)
 }
 
 func MerkleProtocol(i MerkleInterface) rpc.Protocol {
@@ -100,6 +107,21 @@ func MerkleProtocol(i MerkleInterface) rpc.Protocol {
 					return
 				},
 			},
+			"checkRootSignatures": {
+				MakeArg: func() interface{} {
+					var ret [1]CheckRootSignaturesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CheckRootSignaturesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CheckRootSignaturesArg)(nil), args)
+						return
+					}
+					ret, err = i.CheckRootSignatures(ctx, typedArgs[0].Seqno)
+					return
+				},
+			},
 		},
 	}
 }
@@ -123,5 +145,13 @@ func (c MerkleClient) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec in
 // is included in that global root.
 func (c MerkleClient) VerifyMerkleRootAndKBFS(ctx context.Context, __arg VerifyMerkleRootAndKBFSArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.merkle.verifyMerkleRootAndKBFS", []interface{}{__arg}, nil)
+	return
+}
+
+// checkRootSignatures checks any signatures on the root at the given sequence. It returns
+// the KIDs that were verified.
+func (c MerkleClient) CheckRootSignatures(ctx context.Context, seqno Seqno) (res []KID, err error) {
+	__arg := CheckRootSignaturesArg{Seqno: seqno}
+	err = c.Cli.Call(ctx, "keybase.1.merkle.checkRootSignatures", []interface{}{__arg}, &res)
 	return
 }

@@ -32,5 +32,12 @@ protocol merkle {
     is included in that global root.
    */
   void verifyMerkleRootAndKBFS(MerkleRootV2 root, KBFSRoot expectedKBFSRoot);
+
+  /**
+    checkRootSignatures checks any signatures on the root at the given sequence. It returns
+    the KIDs that were verified.
+   */
+  array<KID> checkRootSignatures(Seqno seqno);
+
 }
 
