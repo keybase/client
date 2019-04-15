@@ -5,6 +5,10 @@ import {iconMeta} from './icon.constants'
 
 export function defaultColor(type: IconType): ?string {
   switch (type) {
+    case 'iconfont-crown-admin':
+      return Styles.globalColors.black_35
+    case 'iconfont-crown-owner':
+      return Styles.globalColors.yellow2
     case 'iconfont-proof-broken':
       return Styles.globalColors.red
     case 'iconfont-proof-pending':
