@@ -94,6 +94,7 @@ const load = () => {
             {types.map(t => (
               <Box2 direction="vertical" key={t} gap="small" fullWidth={true}>
                 <Button {...commonProps} type={t} label={t} fullWidth={true} />
+                <Button {...commonProps} type={t} label={t + ' small'} fullWidth={true} small={true} />
               </Box2>
             ))}
           </Box2>

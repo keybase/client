@@ -15,7 +15,6 @@ import {
   isMobile,
   platformStyles,
   styleSheetCreate,
-  styled,
 } from '../styles'
 
 const Kb = {
@@ -53,27 +52,6 @@ const Progress = ({small, white}) => (
     />
   </Kb.Box>
 )
-
-const SecondaryWhiteBgButton = isMobile
-  ? Kb.ClickableBox
-  : styled(Kb.ClickableBox)({
-      backgroundColor: globalColors.white,
-      '&:hover': {
-        backgroundColor: 'rgba(77, 142, 255, 0.05)',
-        border: '1px solid rgba(77, 142, 255, 0.2)!important',
-      },
-    })
-
-const PrimaryUnderlay = isMobile
-  ? () => null
-  : styled(Kb.Box, {shouldForwardProp: prop => prop !== '_backgroundColor'})(props => ({
-      ...globalStyles.fillAbsolute,
-      borderRadius,
-      transition: 'background-color 0.2s ease-out',
-      '&:hover': {
-        backgroundColor: props._backgroundColor,
-      },
-    }))
 
 class Button extends React.Component<Props> {
   static defaultProps = {
@@ -114,30 +92,36 @@ class Button extends React.Component<Props> {
       (this.props.mode === 'Primary' && !(this.props.backgroundColor || this.props.type === 'Dim')) ||
       (this.props.mode === 'Secondary' && !!this.props.backgroundColor)
 
-    let ButtonBox = Kb.ClickableBox
+    // Hover border colors
+    let classNames = []
     if (this.props.mode === 'Secondary' && !this.props.backgroundColor && !unclickable) {
-      // Add hover styles
-      ButtonBox = SecondaryWhiteBgButton
+      classNames.push('button__border', `button__border_${typeToColorName[this.props.type]}`)
     }
 
-    let underlay = null
+    // Hover background colors
+    let underlayClassNames = []
     if (this.props.mode === 'Primary' && !unclickable) {
-      underlay = (
-        <PrimaryUnderlay
-          _backgroundColor={
-            this.props.backgroundColor
-              ? bgColorToPrimaryHover[this.props.backgroundColor]
-              : globalColors.black_10
-          }
-        />
+      underlayClassNames.push(
+        'button__underlay',
+        this.props.backgroundColor
+          ? `button__underlay_${this.props.backgroundColor}`
+          : 'button__underlay_black10'
       )
-    } else if (this.props.mode === 'Secondary' && !unclickable && this.props.backgroundColor) {
+    } else if (this.props.mode === 'Secondary' && !unclickable) {
       // default 0.2 opacity + 0.15 here = 0.35 hover
-      underlay = <PrimaryUnderlay _backgroundColor="rgba(0, 0, 0, 0.15)" />
+      underlayClassNames.push(
+        'button__underlay',
+        this.props.backgroundColor
+          ? 'button__underlay_black'
+          : `button__underlay_${typeToColorName[this.props.type]}`
+      )
     }
+    const underlay =
+      !isMobile && underlayClassNames.length ? <Kb.Box className={underlayClassNames.join(' ')} /> : null
 
     return (
-      <ButtonBox
+      <Kb.ClickableBox
+        className={classNames.join(' ')}
         style={containerStyle}
         onClick={onClick}
         onMouseEnter={this.props.onMouseEnter}
@@ -155,31 +139,27 @@ class Button extends React.Component<Props> {
         >
           {!this.props.waiting && this.props.children}
           {!!this.props.label && (
-            <Kb.Text
-              type={this.props.small ? 'BodySemibold' : 'BodyBig'}
-              style={collapseStyles([labelStyle, this.props.labelStyle])}
-            >
+            <Kb.Text type="BodySemibold" style={collapseStyles([labelStyle, this.props.labelStyle])}>
               {this.props.label}
             </Kb.Text>
           )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Kb.Box>
-      </ButtonBox>
+      </Kb.ClickableBox>
     )
   }
 }
 
-const bgColorToPrimaryHover = {
-  blue: 'rgba(76,142,255, 0.15)',
-  red: 'rgba(255,77,97, 0.15)',
-  green: 'rgba(55,189,153, 0.15)',
-  purple: 'rgba(112,78,186, 0.15)',
-  black: 'rgba(0, 0, 0, 0.15)',
+const typeToColorName = {
+  Default: 'blue',
+  Success: 'green',
+  Danger: 'red',
+  Wallet: 'purple',
+  Dim: 'black',
 }
 
 const smallHeight = isMobile ? 32 : 28
 const regularHeight = isMobile ? 40 : 32
-const fullWidthHeight = isMobile ? 48 : 40
 
 const common = platformStyles({
   common: {
@@ -206,10 +186,15 @@ const common = platformStyles({
 const commonSecondaryWhiteBg = platformStyles({
   common,
   isElectron: {
-    border: `1px solid ${globalColors.black_20}`,
-    transition: 'background-color 0.1s ease-out, border 0.3s ease-out',
+    backgroundColor: globalColors.white,
+    transition: 'border 0.3s ease-out',
   },
-  isMobile: {borderColor: globalColors.black_20, borderStyle: 'solid', borderWidth: 1},
+  isMobile: {
+    backgroundColor: globalColors.white,
+    borderColor: globalColors.black_20,
+    borderStyle: 'solid',
+    borderWidth: 1,
+  },
 })
 
 const commonLabel = platformStyles({
@@ -223,9 +208,7 @@ const commonLabel = platformStyles({
 
 const styles = styleSheetCreate({
   fullWidth: {
-    alignSelf: undefined,
     flexGrow: 1,
-    height: fullWidthHeight,
     width: '100%',
   },
   labelContainer: platformStyles({
