@@ -131,6 +131,11 @@ func (d *notificationDisplay) FSOnlineStatusChanged(_ context.Context, online bo
 	return d.printf("KBFS online status changed: online=%+v\n", online)
 }
 
+func (d *notificationDisplay) FSOverallSyncStatusChanged(_ context.Context,
+	status keybase1.FSOverallSyncStatus) error {
+	return d.printf("KBFS overall sync status: %+v\n", status)
+}
+
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
 }

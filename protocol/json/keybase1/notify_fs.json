@@ -82,6 +82,17 @@
       "response": null,
       "oneway": true,
       "lint": "ignore"
+    },
+    "FSOverallSyncStatusChanged": {
+      "request": [
+        {
+          "name": "status",
+          "type": "FSOverallSyncStatus"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

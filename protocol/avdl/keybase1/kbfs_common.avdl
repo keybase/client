@@ -101,4 +101,10 @@ protocol kbfsCommon {
     array<string> syncingPaths;
     union { null, Time} endEstimate;
   }
+
+  record FSOverallSyncStatus {
+    int64 syncingBytes;
+    int64 syncedBytes;
+    union { null, Time} endEstimate;
+  }
 }

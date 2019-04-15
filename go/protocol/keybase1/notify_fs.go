@@ -34,6 +34,10 @@ type FSOnlineStatusChangedArg struct {
 	Online bool `codec:"online" json:"online"`
 }
 
+type FSOverallSyncStatusChangedArg struct {
+	Status FSOverallSyncStatus `codec:"status" json:"status"`
+}
+
 type NotifyFSInterface interface {
 	FSActivity(context.Context, FSNotification) error
 	FSPathUpdated(context.Context, string) error
@@ -41,6 +45,7 @@ type NotifyFSInterface interface {
 	FSEditListResponse(context.Context, FSEditListResponseArg) error
 	FSSyncStatusResponse(context.Context, FSSyncStatusResponseArg) error
 	FSOnlineStatusChanged(context.Context, bool) error
+	FSOverallSyncStatusChanged(context.Context, FSOverallSyncStatus) error
 }
 
 func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
@@ -137,6 +142,21 @@ func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"FSOverallSyncStatusChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]FSOverallSyncStatusChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FSOverallSyncStatusChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FSOverallSyncStatusChangedArg)(nil), args)
+						return
+					}
+					err = i.FSOverallSyncStatusChanged(ctx, typedArgs[0].Status)
+					return
+				},
+			},
 		},
 	}
 }
@@ -176,5 +196,11 @@ func (c NotifyFSClient) FSSyncStatusResponse(ctx context.Context, __arg FSSyncSt
 func (c NotifyFSClient) FSOnlineStatusChanged(ctx context.Context, online bool) (err error) {
 	__arg := FSOnlineStatusChangedArg{Online: online}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOnlineStatusChanged", []interface{}{__arg})
+	return
+}
+
+func (c NotifyFSClient) FSOverallSyncStatusChanged(ctx context.Context, status FSOverallSyncStatus) (err error) {
+	__arg := FSOverallSyncStatusChangedArg{Status: status}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOverallSyncStatusChanged", []interface{}{__arg})
 	return
 }

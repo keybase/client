@@ -234,6 +234,27 @@
           "name": "endEstimate"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FSOverallSyncStatus",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "syncingBytes"
+        },
+        {
+          "type": "int64",
+          "name": "syncedBytes"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "endEstimate"
+        }
+      ]
     }
   ],
   "messages": {},
