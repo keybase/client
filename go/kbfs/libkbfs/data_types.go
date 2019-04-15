@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -309,6 +310,21 @@ func (s PrefetchStatus) String() string {
 		return "FinishedPrefetch"
 	}
 	return "Unknown"
+}
+
+// ToProtocolStatus returns a prefetch status that can be send over
+// the keybase1 protocol.
+func (s PrefetchStatus) ToProtocolStatus() keybase1.PrefetchStatus {
+	switch s {
+	case NoPrefetch:
+		return keybase1.PrefetchStatus_NOT_STARTED
+	case TriggeredPrefetch:
+		return keybase1.PrefetchStatus_IN_PROGRESS
+	case FinishedPrefetch:
+		return keybase1.PrefetchStatus_COMPLETE
+	default:
+		panic(fmt.Sprintf("Unknown prefetch status: %s", s))
+	}
 }
 
 // MarshalJSON converts a PrefetchStatus to JSON

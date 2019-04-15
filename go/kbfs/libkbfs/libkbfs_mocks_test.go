@@ -1128,6 +1128,22 @@ func (mr *MockKBFSOpsMockRecorder) GetRootNode(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootNode", reflect.TypeOf((*MockKBFSOps)(nil).GetRootNode), arg0, arg1, arg2)
 }
 
+// GetRootNodeMetadata mocks base method
+func (m *MockKBFSOps) GetRootNodeMetadata(arg0 context.Context, arg1 data.FolderBranch) (NodeMetadata, *tlfhandle.Handle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRootNodeMetadata", arg0, arg1)
+	ret0, _ := ret[0].(NodeMetadata)
+	ret1, _ := ret[1].(*tlfhandle.Handle)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetRootNodeMetadata indicates an expected call of GetRootNodeMetadata
+func (mr *MockKBFSOpsMockRecorder) GetRootNodeMetadata(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootNodeMetadata", reflect.TypeOf((*MockKBFSOps)(nil).GetRootNodeMetadata), arg0, arg1)
+}
+
 // GetSyncConfig mocks base method
 func (m *MockKBFSOps) GetSyncConfig(arg0 context.Context, arg1 tlf.ID) (keybase1.FolderSyncConfig, error) {
 	m.ctrl.T.Helper()

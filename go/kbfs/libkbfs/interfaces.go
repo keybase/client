@@ -461,6 +461,10 @@ type KBFSOps interface {
 
 	// GetNodeMetadata gets metadata associated with a Node.
 	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
+	// GetRootNodeMetadata gets metadata associated with the root node
+	// of a FolderBranch, and for convenience the TLF handle as well.
+	GetRootNodeMetadata(ctx context.Context, folderBranch data.FolderBranch) (
+		NodeMetadata, *tlfhandle.Handle, error)
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown(ctx context.Context) error

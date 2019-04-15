@@ -1181,6 +1181,30 @@ func (fs *KBFSOpsStandard) GetNodeMetadata(ctx context.Context, node Node) (
 	return ops.GetNodeMetadata(ctx, node)
 }
 
+// GetRootNodeMetadata implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetRootNodeMetadata(
+	ctx context.Context, folderBranch data.FolderBranch) (
+	NodeMetadata, *tlfhandle.Handle, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpNoChange)
+	rootNode, _, _, err := ops.getRootNode(ctx)
+	if err != nil {
+		return NodeMetadata{}, nil, err
+	}
+	md, err := ops.GetNodeMetadata(ctx, rootNode)
+	if err != nil {
+		return NodeMetadata{}, nil, err
+	}
+
+	h, err := ops.GetTLFHandle(ctx, rootNode)
+	if err != nil {
+		return NodeMetadata{}, nil, err
+	}
+	return md, h, nil
+}
+
 func (fs *KBFSOpsStandard) findTeamByID(
 	ctx context.Context, tid keybase1.TeamID) *folderBranchOps {
 	fs.opsLock.Lock()

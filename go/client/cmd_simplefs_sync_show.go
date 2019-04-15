@@ -18,7 +18,8 @@ import (
 // CmdSimpleFSSyncShow is the 'fs sync show' command.
 type CmdSimpleFSSyncShow struct {
 	libkb.Contextified
-	path keybase1.Path
+	path   keybase1.Path
+	getAll bool
 }
 
 // NewCmdSimpleFSSyncShow creates a new cli.Command.
@@ -26,8 +27,8 @@ func NewCmdSimpleFSSyncShow(
 	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "show",
-		ArgumentHelp: "[path-to-folder]",
-		Usage:        "shows the sync configuration and status for the given folder",
+		ArgumentHelp: "<path-to-folder>",
+		Usage:        "shows the sync configuration and status for the given folder, or all folders if none is specified",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSyncShow{
 				Contextified: libkb.NewContextified(g)}, "show", c)
@@ -68,44 +69,37 @@ func appendToTlfPath(tlfPath keybase1.Path, p string) (keybase1.Path, error) {
 		path.Join([]string{mountDir, tlfPath.String(), p}...))
 }
 
-// Run runs the command in client/server mode.
-func (c *CmdSimpleFSSyncShow) Run() error {
-	cli, err := GetSimpleFSClient(c.G())
-	if err != nil {
-		return err
-	}
+func printLocalStats(
+	ui libkb.TerminalUI, status keybase1.FolderSyncStatus) {
+	a := status.LocalDiskBytesAvailable
+	t := status.LocalDiskBytesTotal
+	ui.Printf("%s (%.2f%%) of the local disk available for caching.\n",
+		humanizeBytes(a, false), float64(a)/float64(t)*100)
+}
 
-	ctx := context.TODO()
-	res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, c.path)
-	if err != nil {
-		return err
-	}
-
-	ui := c.G().UI.GetTerminalUI()
-	switch res.Config.Mode {
+func printFolderStatus(
+	ctx context.Context, cli keybase1.SimpleFSClient, ui libkb.TerminalUI,
+	config keybase1.FolderSyncConfig, status keybase1.FolderSyncStatus,
+	tab string, tlfPath keybase1.Path, doPrintLocalStats bool) error {
+	switch config.Mode {
 	case keybase1.FolderSyncMode_DISABLED:
-		ui.Printf("Syncing disabled\n")
+		ui.Printf("%sSyncing disabled\n", tab)
 	case keybase1.FolderSyncMode_ENABLED:
-		ui.Printf("Syncing enabled\n")
+		ui.Printf("%sSyncing enabled\n", tab)
 		printPrefetchStatus(
-			ui, res.Status.PrefetchStatus, res.Status.PrefetchProgress, "")
-		a := res.Status.LocalDiskBytesAvailable
-		t := res.Status.LocalDiskBytesTotal
-		ui.Printf("%s (%.2f%%) of the local disk available for caching.\n",
-			humanizeBytes(a, false), float64(a)/float64(t)*100)
+			ui, status.PrefetchStatus, status.PrefetchProgress, tab)
+		if doPrintLocalStats {
+			printLocalStats(ui, status)
+		}
 	case keybase1.FolderSyncMode_PARTIAL:
 		// Show all the paths for the TLF, even if a more specific
 		// path was passed in.
-		tlfPath, err := toTlfPath(c.path)
-		if err != nil {
-			return err
-		}
 		paths := "these subpaths"
-		if len(res.Config.Paths) == 1 {
+		if len(config.Paths) == 1 {
 			paths = "this subpath"
 		}
-		ui.Printf("Syncing configured for %s:\n", paths)
-		for _, p := range res.Config.Paths {
+		ui.Printf("%sSyncing configured for %s:\n", tab, paths)
+		for _, p := range config.Paths {
 			fullPath, err := appendToTlfPath(tlfPath, p)
 			if err != nil {
 				ui.Printf("\tError: %v", err)
@@ -118,27 +112,76 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 				continue
 			}
 
-			ui.Printf("\t%s\n", p)
+			ui.Printf("%s\t%s\n", tab, p)
 			printPrefetchStatus(
-				ui, e.PrefetchStatus, e.PrefetchProgress, "\t\t")
+				ui, e.PrefetchStatus, e.PrefetchProgress, tab+"\t\t")
 		}
 	default:
-		return fmt.Errorf("Unknown sync mode: %s", res.Config.Mode)
+		return fmt.Errorf("Unknown sync mode: %s", config.Mode)
 	}
+	return nil
+}
+
+// Run runs the command in client/server mode.
+func (c *CmdSimpleFSSyncShow) Run() error {
+	cli, err := GetSimpleFSClient(c.G())
+	if err != nil {
+		return err
+	}
+
+	ctx := context.TODO()
+	ui := c.G().UI.GetTerminalUI()
+	if c.getAll {
+		res, err := cli.SimpleFSSyncConfigAndStatus(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, folder := range res.Folders {
+			p, err := makeSimpleFSPath(mountDir + "/" + folder.Folder.String())
+			if err != nil {
+				return err
+			}
+			ui.Printf("%s\n", folder.Folder)
+			err = printFolderStatus(
+				ctx, cli, ui, folder.Config, folder.Status, "  ", p, false)
+			if err != nil {
+				return err
+			}
+			ui.Printf("\n")
+		}
+		printLocalStats(ui, res.OverallStatus)
+	} else {
+		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, c.path)
+		if err != nil {
+			return err
+		}
+		tlfPath, err := toTlfPath(c.path)
+		if err != nil {
+			return err
+		}
+		return printFolderStatus(
+			ctx, cli, ui, res.Config, res.Status, "", tlfPath, true)
+	}
+
 	return nil
 }
 
 // ParseArgv gets the required path.
 func (c *CmdSimpleFSSyncShow) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
+	if len(ctx.Args()) > 1 {
 		return fmt.Errorf("wrong number of arguments")
 	}
 
-	p, err := makeSimpleFSPath(ctx.Args()[0])
-	if err != nil {
-		return err
+	if len(ctx.Args()) == 1 {
+		p, err := makeSimpleFSPath(ctx.Args()[0])
+		if err != nil {
+			return err
+		}
+		c.path = p
+	} else {
+		c.getAll = true
 	}
-	c.path = p
 	return nil
 }
 
