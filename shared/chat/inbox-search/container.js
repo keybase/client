@@ -19,11 +19,12 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
-  onSelectConversation: (conversationIDKey, query) =>
+  onSelectConversation: (conversationIDKey, selectedIndex, query) =>
     dispatch(
       Chat2Gen.createInboxSearchSelect({
         conversationIDKey,
         query: query.length > 0 ? new HiddenString(query) : undefined,
+        selectedIndex,
       })
     ),
 })

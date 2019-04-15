@@ -1132,6 +1132,15 @@ const rootReducer = (
         })
       })
     }
+    case Chat2Gen.inboxSearchSelect:
+      if (!state.inboxSearch || !action.payload.selectedIndex) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex: action.payload.selectedIndex,
+        })
+      })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -1266,7 +1275,6 @@ const rootReducer = (
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
     case Chat2Gen.loadMessagesFromSearchHit:
-    case Chat2Gen.inboxSearchSelect:
     case Chat2Gen.inboxSearch:
     case Chat2Gen.inboxSearchCancel:
       return state
