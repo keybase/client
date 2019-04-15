@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
-import {Avatars} from '../../../avatars'
+import {Avatars, TeamAvatar} from '../../../avatars'
 
 export type ConvProps = {
   fullname: string,
@@ -43,7 +43,7 @@ type AdhocHeaderProps = {
   participants: Array<string>,
 }
 const AdhocHeader = (props: AdhocHeaderProps) => (
-  <>
+  <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
     <Avatars
       backgroundColor={Styles.globalColors.white}
       isHovered={false}
@@ -51,7 +51,6 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
       isMuted={props.isMuted}
       isSelected={false}
       participants={props.participants}
-      size={Styles.isMobile ? 64 : 48}
     />
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.ConnectedUsernames
@@ -65,29 +64,26 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
       />
       {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
     </Kb.Box2>
-  </>
+  </Kb.Box2>
 )
 
 type TeamHeaderProps = {
-  teamname: string,
+  isMuted: boolean,
   memberCount: number,
+  teamname: string,
 }
 const TeamHeader = (props: TeamHeaderProps) => (
-  <>
-    <Kb.Avatar
-      size={Styles.isMobile ? 64 : 48}
-      teamname={props.teamname}
-      style={Kb.avatarCastPlatformStyles(styles.headerAvatar)}
-    />
+  <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
+    <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text type="BodySemibold">{props.teamname}</Kb.Text>
       <Kb.Text type="BodySmall">{`${props.memberCount} member${props.memberCount !== 1 ? 's' : ''}`}</Kb.Text>
     </Kb.Box2>
-  </>
+  </Kb.Box2>
 )
 
 class InfoPanelMenu extends React.Component<Props> {
-  componentDidDUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.hasCanPerform && this.props.visible !== prevProps.visible) {
       this.props.loadOperations()
     }
@@ -139,19 +135,20 @@ class InfoPanelMenu extends React.Component<Props> {
 
     const header = {
       title: 'header',
-      view: (
-        <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} style={styles.headerContainer}>
-          {isAdhoc && props.convProps ? (
-            <AdhocHeader
-              isMuted={props.convProps.muted}
-              fullname={props.convProps.fullname}
-              participants={props.convProps.participants}
-            />
-          ) : (
-            <TeamHeader teamname={props.teamname} memberCount={props.memberCount} />
-          )}
-        </Kb.Box2>
-      ),
+      view:
+        isAdhoc && props.convProps ? (
+          <AdhocHeader
+            isMuted={props.convProps.muted}
+            fullname={props.convProps.fullname}
+            participants={props.convProps.participants}
+          />
+        ) : (
+          <TeamHeader
+            isMuted={!!props.convProps?.muted}
+            teamname={props.teamname}
+            memberCount={props.memberCount}
+          />
+        ),
     }
 
     return (
