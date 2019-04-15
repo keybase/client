@@ -1110,6 +1110,10 @@ func (c *ChatUI) ChatSearchConvHits(ctx context.Context, hits []chat1.UIChatSear
 	return nil
 }
 
+func (c *ChatUI) ChatSearchInboxStart(ctx context.Context) error {
+	return nil
+}
+
 func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
 	c.InboxSearchDoneCb <- arg
 	return nil
