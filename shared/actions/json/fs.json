@@ -244,6 +244,9 @@
     "kbfsDaemonOnlineStatusChanged": {
       "online": "boolean",
     },
+    "overallSyncStatusChanged": {
+      "status": "Types.OverallSyncStatus"
+    },
 
     "placeholderAction": {}
   }

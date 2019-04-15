@@ -67,6 +67,12 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
+export type OverallSyncStatus = {
+  syncedBytes: number,
+  syncingBytes: number,
+  endEstimate?: number,
+}
+
 export type _Tlf = {
   name: string,
   isFavorite: boolean,
@@ -458,6 +464,7 @@ export type _State = {|
   sendAttachmentToChat: SendAttachmentToChat,
   sendLinkToChat: SendLinkToChat,
   sfmi: SystemFileManagerIntegration,
+  syncingFoldersProgress: number,
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
   uploads: Uploads,
