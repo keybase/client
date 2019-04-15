@@ -280,6 +280,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
+  syncingFoldersProgress: 1.0,
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),

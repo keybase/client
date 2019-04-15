@@ -72,22 +72,22 @@
       "oneway": true,
       "lint": "ignore"
     },
-    "FSOnlineStatusChanged": {
+    "FSOverallSyncStatusChanged": {
       "request": [
         {
-          "name": "online",
-          "type": "boolean"
+          "name": "status",
+          "type": "FSOverallSyncStatus"
         }
       ],
       "response": null,
       "oneway": true,
       "lint": "ignore"
     },
-    "FSOverallSyncStatusChanged": {
+    "FSOnlineStatusChanged": {
       "request": [
         {
-          "name": "status",
-          "type": "FSOverallSyncStatus"
+          "name": "online",
+          "type": "boolean"
         }
       ],
       "response": null,

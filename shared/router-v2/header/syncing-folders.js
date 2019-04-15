@@ -19,8 +19,7 @@ const SyncingFolders = (props: Props) =>
   )
 
 const mapStateToProps = state => ({
-  // TODO: actually calculate this instead of making it up
-  progress: (Math.floor(Date.now() / 1000) % 20) / 20,
+  progress: state.fs.syncingFoldersProgress,
 })
 
 const mapDispatchToProps = dispatch => ({})

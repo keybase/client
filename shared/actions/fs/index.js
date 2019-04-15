@@ -916,6 +916,16 @@ const getKbfsDaemonOnlineStatus = (state, action) =>
 const onFSOnlineStatusChanged = (state, action) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
+const onFSOverallSyncSyncStatusChanged = (state, action) => {
+  let status: Types.OverallSyncStatus = {
+    syncedBytes: action.payload.params.status.syncedBytes,
+    syncingBytes: action.payload.params.status.syncingBytes,
+  }
+  if (action.payload.params.status.endEstimate) {
+    status.endEstimate = action.payload.params.status.endEstimate
+  }
+  return FsGen.createOverallSyncStatusChanged({status: status})
+}
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -981,6 +991,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOnlineStatusChanged,
       onFSOnlineStatusChanged
+    )
+    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
+      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
+      onFSOverallSyncSyncStatusChanged
     )
   }
 
