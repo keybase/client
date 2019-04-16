@@ -272,6 +272,11 @@
       "reason": "'user-selected' | 'auto-selected' | 'from-chat'",
       "show?": "boolean"
     },
+    "showTransaction": {
+      "_description": "Navigate to the details page for the given transaction.",
+      "accountID": "Types.AccountID",
+      "paymentID": "Types.PaymentID"
+    },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"
     },

@@ -92,6 +92,7 @@ export const setBuildingTo = 'wallets:setBuildingTo'
 export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
+export const showTransaction = 'wallets:showTransaction'
 export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
 export const updateAirdropDetails = 'wallets:updateAirdropDetails'
 export const updateAirdropState = 'wallets:updateAirdropState'
@@ -188,6 +189,7 @@ type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
 type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, destination: Types.AccountID, name: string|}>
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
+type _ShowTransactionPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _UpdateAirdropBannerStatePayload = $ReadOnly<{|show: boolean|}>
 type _UpdateAirdropDetailsPayload = void
 type _UpdateAirdropStatePayload = void
@@ -348,6 +350,10 @@ export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({payload, type
  * Move to the confirm screen on a built payment.
  */
 export const createReviewPayment = (payload: _ReviewPaymentPayload) => ({payload, type: reviewPayment})
+/**
+ * Navigate to the details page for the given transaction.
+ */
+export const createShowTransaction = (payload: _ShowTransactionPayload) => ({payload, type: showTransaction})
 /**
  * Perform sending a payment
  */
@@ -636,6 +642,7 @@ export type SetBuildingToPayload = {|+payload: _SetBuildingToPayload, +type: 'wa
 export type SetInflationDestinationPayload = {|+payload: _SetInflationDestinationPayload, +type: 'wallets:setInflationDestination'|}
 export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
 export type SetReadyToReviewPayload = {|+payload: _SetReadyToReviewPayload, +type: 'wallets:setReadyToReview'|}
+export type ShowTransactionPayload = {|+payload: _ShowTransactionPayload, +type: 'wallets:showTransaction'|}
 export type UpdateAirdropBannerStatePayload = {|+payload: _UpdateAirdropBannerStatePayload, +type: 'wallets:updateAirdropBannerState'|}
 export type UpdateAirdropDetailsPayload = {|+payload: _UpdateAirdropDetailsPayload, +type: 'wallets:updateAirdropDetails'|}
 export type UpdateAirdropStatePayload = {|+payload: _UpdateAirdropStatePayload, +type: 'wallets:updateAirdropState'|}
@@ -736,6 +743,7 @@ export type Actions =
   | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
+  | ShowTransactionPayload
   | UpdateAirdropBannerStatePayload
   | UpdateAirdropDetailsPayload
   | UpdateAirdropStatePayload
