@@ -27,7 +27,9 @@ const Header = (props: Props) => {
   const backButton = props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
   // Only show caret/unread badge when we have a switcher,
   // i.e. when isMobile is true.
-  const caret = Styles.isMobile && <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.caret} sizeType='Tiny' />
+  const caret = Styles.isMobile && (
+    <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.caret} sizeType="Tiny" />
+  )
   const unread = Styles.isMobile && props.unreadPayments && (
     <Kb.Box2 direction="vertical" style={styles.unread} />
   )
@@ -80,7 +82,16 @@ const Header = (props: Props) => {
     >
       {nameAndInfo}
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-        {!props.sendDisabled && (
+        {props.sendDisabled ? (
+          <Kb.WithTooltip text="This is a mobile-only account.">
+            <SendButton
+              onSendToKeybaseUser={props.onSendToKeybaseUser}
+              onSendToStellarAddress={props.onSendToStellarAddress}
+              onSendToAnotherAccount={props.onSendToAnotherAccount}
+              disabled={true}
+            />
+          </Kb.WithTooltip>
+        ) : (
           <SendButton
             onSendToKeybaseUser={props.onSendToKeybaseUser}
             onSendToStellarAddress={props.onSendToStellarAddress}
