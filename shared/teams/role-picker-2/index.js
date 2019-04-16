@@ -2,12 +2,13 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {map} from 'lodash-es'
+import * as Flow from '../../util/flow'
+import {map, capitalize} from 'lodash-es'
 import type {Position} from '../../common-adapters/relative-popup-hoc.types'
-export type Role = 'Owner' | 'Admin' | 'Writer' | 'Reader'
-
+import {type TeamRoleType as Role} from '../../constants/types/teams'
+import type {StylesCrossPlatform} from '../../styles/css'
 // Controls the ordering of the role picker
-const orderedRoles = ['Owner', 'Admin', 'Writer', 'Reader']
+const orderedRoles = ['owner', 'admin', 'writer', 'reader']
 
 type DisabledReason = string
 
@@ -16,7 +17,7 @@ export type Props = {|
   headerText?: string,
   // If provided, a cancel button will appear
   onCancel?: () => void,
-  onConfirm: () => void,
+  onConfirm: (selectedRole: Role) => void,
   // Defaults to "Make ${selectedRole}"
   confirmLabel?: string,
   onSelectRole: (role: Role) => void,
@@ -53,64 +54,74 @@ const RoleRow = (p: RoleRowProps) => (
 )
 
 const rolesMetaInfo = (
+  infoForRole: Role,
   selectedRole: ?Role
-): {[key: Role]: {cans: Array<string>, cants: Array<string>, icon: ?React.Node}} => ({
-  Admin: {
-    cans: [
-      'Can manage team members roles',
-      'Can create subteams and channels',
-      'Can write and read in chats and folders',
-    ],
-    cants: [`Can't delete the team`],
-    icon: (
-      <Kb.Icon
-        boxStyle={{paddingBottom: 0}}
-        style={styles.roleIcon}
-        type={'iconfont-crown-admin'}
-        sizeType={'Small'}
-      />
-    ),
-  },
-  Owner: {
-    cans: [
-      'Can manage team members roles',
-      'Can create subteams and channels',
-      'Can write and read in chats and folders',
-      'Can delete team',
-    ],
-    cants: [],
-    extra: ['A team can have multiple owners'],
-    icon: (
-      <Kb.Icon
-        style={styles.roleIcon}
-        boxStyle={{paddingBottom: 0}}
-        type={'iconfont-crown-owner'}
-        sizeType={'Small'}
-      />
-    ),
-  },
-  Reader: {
-    cans: ['Can write in chats but read only in folders'],
-    cants: [
-      `Can't create channels`,
-      `Can't create subteams`,
-      `Can't add and remove members`,
-      `Can't manage team members' roles`,
-      `Can't delete the team`,
-    ],
-    icon: null,
-  },
-  Writer: {
-    cans: ['Can create channels', 'Can write and read in chats and folders'],
-    cants: [
-      `Can't create subteams`,
-      `Can't add and remove members`,
-      `Can't manage team members' roles`,
-      `Can't delete the team`,
-    ],
-    icon: null,
-  },
-})
+): {cans: Array<string>, cants: Array<string>, icon: ?React.Node} => {
+  switch (infoForRole) {
+    case 'admin':
+      return {
+        cans: [
+          'Can manage team members roles',
+          'Can create subteams and channels',
+          'Can write and read in chats and folders',
+        ],
+        cants: [`Can't delete the team`],
+        icon: (
+          <Kb.Icon
+            boxStyle={{paddingBottom: 0}}
+            style={styles.roleIcon}
+            type={'iconfont-crown-admin'}
+            sizeType={'Small'}
+          />
+        ),
+      }
+    case 'owner':
+      return {
+        cans: [
+          'Can manage team members roles',
+          'Can create subteams and channels',
+          'Can write and read in chats and folders',
+          'Can delete team',
+        ],
+        cants: [],
+        extra: ['A team can have multiple owners'],
+        icon: (
+          <Kb.Icon
+            style={styles.roleIcon}
+            boxStyle={{paddingBottom: 0}}
+            type={'iconfont-crown-owner'}
+            sizeType={'Small'}
+          />
+        ),
+      }
+    case 'reader':
+      return {
+        cans: ['Can write in chats but read only in folders'],
+        cants: [
+          `Can't create channels`,
+          `Can't create subteams`,
+          `Can't add and remove members`,
+          `Can't manage team members' roles`,
+          `Can't delete the team`,
+        ],
+        icon: null,
+      }
+    case 'writer':
+      return {
+        cans: ['Can create channels', 'Can write and read in chats and folders'],
+        cants: [
+          `Can't create subteams`,
+          `Can't add and remove members`,
+          `Can't manage team members' roles`,
+          `Can't delete the team`,
+        ],
+        icon: null,
+      }
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(infoForRole)
+      return {}
+  }
+}
 
 const roleAbilities = (
   abilities: Array<string>,
@@ -142,7 +153,7 @@ const roleAbilities = (
 
 const roleElementHelper = (selectedRole: ?Role) =>
   orderedRoles
-    .map(role => [role, rolesMetaInfo(selectedRole)[role]])
+    .map(role => [role, rolesMetaInfo(role, selectedRole)])
     .map(([role, roleInfo]) => ({
       body:
         selectedRole === role
@@ -155,7 +166,7 @@ const roleElementHelper = (selectedRole: ?Role) =>
       role,
       title: (
         <Kb.Text type="BodyBig" style={styles.text}>
-          {role}
+          {capitalize(role)}
         </Kb.Text>
       ),
     }))
@@ -176,7 +187,7 @@ const headerTextHelper = (text: ?string) =>
     </>
   )
 
-const footButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
+const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
   <Kb.Box2
     direction="horizontal"
     alignItems="flex-end"
@@ -219,6 +230,7 @@ const confirmLabelHelper = (presetRole: ?Role, selectedRole: ?Role): string => {
 }
 
 const RolePicker = (props: Props) => {
+  let selectedRole = props.selectedRole || props.presetRole
   return (
     <Kb.Box2
       direction="vertical"
@@ -229,7 +241,7 @@ const RolePicker = (props: Props) => {
     >
       {headerTextHelper(props.headerText)}
       {map(
-        roleElementHelper(props.selectedRole),
+        roleElementHelper(selectedRole),
         // $FlowIssue, the library type for map is wrong
         ({role, ...nodeMap}: {[key: string]: React.Node, role: Role}): React.Node => (
           <Kb.ClickableBox
@@ -239,7 +251,7 @@ const RolePicker = (props: Props) => {
             }
           >
             <RoleRow
-              selected={props.selectedRole === role}
+              selected={selectedRole === role}
               title={nodeMap.title}
               body={nodeMap.body}
               icon={nodeMap.icon}
@@ -252,10 +264,12 @@ const RolePicker = (props: Props) => {
           </Kb.ClickableBox>
         )
       ).map((row, i, arr) => [row, i === arr.length - 1 ? null : <Kb.Divider key={i} />])}
-      {footButtonsHelper(
+      {footerButtonsHelper(
         props.onCancel,
-        props.selectedRole && props.selectedRole !== props.presetRole ? props.onConfirm : undefined,
-        props.confirmLabel || confirmLabelHelper(props.presetRole, props.selectedRole)
+        selectedRole && props.selectedRole !== props.presetRole
+          ? () => props.onConfirm(selectedRole)
+          : undefined,
+        props.confirmLabel || confirmLabelHelper(props.presetRole, selectedRole)
       )}
     </Kb.Box2>
   )
@@ -301,11 +315,9 @@ const styles = Styles.styleSheetCreate({
   roleIcon: {
     paddingRight: Styles.globalMargins.xtiny,
   },
-  row: Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
-  }),
+  row: {
+    position: 'relative',
+  },
   rowBody: Styles.platformStyles({
     // Width of the radio button. Used to align text with title
     isElectron: {
@@ -332,6 +344,7 @@ const styles = Styles.styleSheetCreate({
 export type FloatingProps = {|
   position?: Position,
   children: React.ChildrenArray<any>,
+  floatingContainerStyle?: StylesCrossPlatform,
   open: boolean,
   ...Props,
 |}
@@ -345,13 +358,15 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
   _returnRef = () => this.state.ref
   _setRef = ref => this.setState({ref})
   render() {
-    const {position, children, open, ...props} = this.props
+    const {position, children, open, floatingContainerStyle, ...props} = this.props
     return (
       <>
         <Kb.Box ref={this._setRef}>{children}</Kb.Box>
         {open && (
           <Kb.FloatingBox attachTo={this.state.ref && this._returnRef} position={position || 'top center'}>
-            <RolePicker {...props} />
+            <Kb.Box style={floatingContainerStyle}>
+              <RolePicker {...props} />
+            </Kb.Box>
           </Kb.FloatingBox>
         )}
       </>

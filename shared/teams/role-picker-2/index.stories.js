@@ -11,7 +11,7 @@ let rolePickerProps = toMerge => ({
   onSelectRole: role => {
     Sb.action('onSelectRole - not attached to state')(role)
   },
-  presetRole: 'Owner',
+  presetRole: 'owner',
   ...toMerge,
 })
 
@@ -38,7 +38,7 @@ const load = () => {
     .add('Picker', () => state => (
       <RolePicker
         {...rolePickerProps({
-          selectedRole: 'Owner',
+          selectedRole: 'owner',
           ...state,
         })}
       />
@@ -47,7 +47,7 @@ const load = () => {
       <RolePicker
         {...rolePickerProps({
           disabledRoles: {
-            Owner: 'Non-Keybase users can not be added as owners.',
+            owner: 'Non-Keybase users can not be added as owners.',
           },
           onLetIn: Sb.action('Let in'),
           ...state,
