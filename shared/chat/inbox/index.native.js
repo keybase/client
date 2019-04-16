@@ -227,9 +227,9 @@ class Inbox extends React.PureComponent<Props, State> {
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
       <NoChats />
     )
-    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
-      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    )
+    const floatingDivider = this.state.showFloating &&
+      !this.props.isSearching &&
+      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
     return (
       <Kb.ErrorBoundary>
