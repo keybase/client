@@ -55,6 +55,13 @@ export const makePassword: I.RecordFactory<Types._PasswordState> = I.Record({
   rememberPassword: true,
 })
 
+export const makePhoneNumber: I.RecordFactory<Types._PhoneNumberRow> = I.Record({
+  ctime: null,
+  phoneNumber: null,
+  verified: null,
+  visibility: null,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   allowDeleteAccount: false,
   chat: makeChat(),
@@ -64,6 +71,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
   password: makePassword(),
+  phoneNumbers: null,
   waitingForResponse: false,
 })
 

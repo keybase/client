@@ -23,11 +23,13 @@ export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
+export const loadPhoneNumbers = 'settings:loadPhoneNumbers'
 export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
 export const loadedCheckPassword = 'settings:loadedCheckPassword'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
+export const loadedPhoneNumbers = 'settings:loadedPhoneNumbers'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const notificationsRefresh = 'settings:notificationsRefresh'
@@ -70,11 +72,13 @@ type _InvitesSentPayload = void
 type _InvitesSentPayloadError = $ReadOnly<{|error: Error|}>
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
+type _LoadPhoneNumbersPayload = void
 type _LoadRememberPasswordPayload = void
 type _LoadSettingsPayload = void
 type _LoadedCheckPasswordPayload = $ReadOnly<{|checkPasswordIsCorrect: ?boolean|}>
 type _LoadedHasRandomPwPayload = $ReadOnly<{|randomPW: boolean|}>
 type _LoadedLockdownModePayload = $ReadOnly<{|status: ?boolean|}>
+type _LoadedPhoneNumbersPayload = $ReadOnly<{|phoneNumbers: ?I.List<Types.PhoneNumberRow>|}>
 type _LoadedRememberPasswordPayload = $ReadOnly<{|remember: boolean|}>
 type _LoadedSettingsPayload = $ReadOnly<{|emails: ?I.List<Types.EmailRow>|}>
 type _NotificationsRefreshPayload = void
@@ -133,11 +137,13 @@ export const createInvitesSent = (payload: _InvitesSentPayload) => ({payload, ty
 export const createInvitesSentError = (payload: _InvitesSentPayloadError) => ({error: true, payload, type: invitesSent})
 export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload) => ({payload, type: loadHasRandomPw})
 export const createLoadLockdownMode = (payload: _LoadLockdownModePayload) => ({payload, type: loadLockdownMode})
+export const createLoadPhoneNumbers = (payload: _LoadPhoneNumbersPayload) => ({payload, type: loadPhoneNumbers})
 export const createLoadRememberPassword = (payload: _LoadRememberPasswordPayload) => ({payload, type: loadRememberPassword})
 export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
 export const createLoadedCheckPassword = (payload: _LoadedCheckPasswordPayload) => ({payload, type: loadedCheckPassword})
 export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload) => ({payload, type: loadedHasRandomPw})
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload) => ({payload, type: loadedLockdownMode})
+export const createLoadedPhoneNumbers = (payload: _LoadedPhoneNumbersPayload) => ({payload, type: loadedPhoneNumbers})
 export const createLoadedRememberPassword = (payload: _LoadedRememberPasswordPayload) => ({payload, type: loadedRememberPassword})
 export const createLoadedSettings = (payload: _LoadedSettingsPayload) => ({payload, type: loadedSettings})
 export const createNotificationsRefresh = (payload: _NotificationsRefreshPayload) => ({payload, type: notificationsRefresh})
@@ -176,11 +182,13 @@ export type InvitesSentPayload = {|+payload: _InvitesSentPayload, +type: 'settin
 export type InvitesSentPayloadError = {|+error: true, +payload: _InvitesSentPayloadError, +type: 'settings:invitesSent'|}
 export type LoadHasRandomPwPayload = {|+payload: _LoadHasRandomPwPayload, +type: 'settings:loadHasRandomPw'|}
 export type LoadLockdownModePayload = {|+payload: _LoadLockdownModePayload, +type: 'settings:loadLockdownMode'|}
+export type LoadPhoneNumbersPayload = {|+payload: _LoadPhoneNumbersPayload, +type: 'settings:loadPhoneNumbers'|}
 export type LoadRememberPasswordPayload = {|+payload: _LoadRememberPasswordPayload, +type: 'settings:loadRememberPassword'|}
 export type LoadSettingsPayload = {|+payload: _LoadSettingsPayload, +type: 'settings:loadSettings'|}
 export type LoadedCheckPasswordPayload = {|+payload: _LoadedCheckPasswordPayload, +type: 'settings:loadedCheckPassword'|}
 export type LoadedHasRandomPwPayload = {|+payload: _LoadedHasRandomPwPayload, +type: 'settings:loadedHasRandomPw'|}
 export type LoadedLockdownModePayload = {|+payload: _LoadedLockdownModePayload, +type: 'settings:loadedLockdownMode'|}
+export type LoadedPhoneNumbersPayload = {|+payload: _LoadedPhoneNumbersPayload, +type: 'settings:loadedPhoneNumbers'|}
 export type LoadedRememberPasswordPayload = {|+payload: _LoadedRememberPasswordPayload, +type: 'settings:loadedRememberPassword'|}
 export type LoadedSettingsPayload = {|+payload: _LoadedSettingsPayload, +type: 'settings:loadedSettings'|}
 export type NotificationsRefreshPayload = {|+payload: _NotificationsRefreshPayload, +type: 'settings:notificationsRefresh'|}
@@ -225,11 +233,13 @@ export type Actions =
   | InvitesSentPayloadError
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
+  | LoadPhoneNumbersPayload
   | LoadRememberPasswordPayload
   | LoadSettingsPayload
   | LoadedCheckPasswordPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
+  | LoadedPhoneNumbersPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | NotificationsRefreshPayload

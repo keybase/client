@@ -29,6 +29,10 @@
         "error": "Error"
       }
     },
+    "loadPhoneNumbers": {},
+    "loadedPhoneNumbers": {
+      "phoneNumbers": "?I.List<Types.PhoneNumberRow>"
+    },
     "loadRememberPassword": {},
     "loadedRememberPassword": {
       "remember": "boolean"

@@ -371,6 +371,15 @@ const deleteAccountForever = (state, action) => {
   )
 }
 
+const loadPhoneNumbers = () =>
+  RPCTypes.phoneNumbersGetPhoneNumbersRpcPromise().then(
+    phoneNumbers =>
+      phoneNumbers &&
+      SettingsGen.createLoadedPhoneNumbers({
+        phoneNumbers: I.List(phoneNumbers.map(row => Constants.makePhoneNumber(row))),
+      })
+  )
+
 const loadSettings = () =>
   RPCTypes.userLoadMySettingsRpcPromise().then(
     settings =>
@@ -497,6 +506,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     deleteAccountForever
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
+  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadPhoneNumbers)
+
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail

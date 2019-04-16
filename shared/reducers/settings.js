@@ -78,6 +78,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       )
     case SettingsGen.invitesClearError:
       return state.update('invites', invites => invites.merge({error: null}))
+    case SettingsGen.loadedPhoneNumbers:
+      return state.set('phoneNumbers', action.payload.phoneNumbers)
     case SettingsGen.loadedSettings:
       return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
     case SettingsGen.loadedRememberPassword:
@@ -131,6 +133,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
     case SettingsGen.invitesSend:
+    case SettingsGen.loadPhoneNumbers:
     case SettingsGen.loadRememberPassword:
     case SettingsGen.loadSettings:
     case SettingsGen.loadLockdownMode:
