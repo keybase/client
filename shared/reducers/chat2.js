@@ -1133,7 +1133,7 @@ const rootReducer = (
       })
     }
     case Chat2Gen.inboxSearchSelect:
-      if (!state.inboxSearch || !action.payload.selectedIndex) {
+      if (!state.inboxSearch || action.payload.selectedIndex == null) {
         return state
       }
       return state.update('inboxSearch', info => {
