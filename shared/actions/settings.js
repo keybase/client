@@ -382,6 +382,12 @@ const addPhoneNumber = (_, action) =>
 const deletePhoneNumber = (_, action) =>
   RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phoneNumber})
 
+const verifyPhoneNumber = (_, action) =>
+  RPCTypes.phoneNumbersVerifyPhoneNumberRpcPromise({
+    code: action.payload.code,
+    phoneNumber: action.payload.phoneNumber,
+  })
+
 const loadPhoneNumbers = () =>
   RPCTypes.phoneNumbersGetPhoneNumbersRpcPromise().then(
     phoneNumbers =>
@@ -520,6 +526,10 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.DeletePhoneNumberPayload>(
     SettingsGen.deletePhoneNumber,
     deletePhoneNumber
+  )
+  yield* Saga.chainAction<SettingsGen.VerifyPhoneNumberPayload>(
+    SettingsGen.verifyPhoneNumber,
+    verifyPhoneNumber
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadPhoneNumbers)

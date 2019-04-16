@@ -148,6 +148,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:
+    case SettingsGen.verifyPhoneNumber:
     case SettingsGen.loadHasRandomPw:
       return state
     default:

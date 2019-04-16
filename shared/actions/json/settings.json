@@ -120,6 +120,10 @@
       "_description": "An error occurred on the unfurl settings screen",
       "error": "string"
     },
+    "verifyPhoneNumber": {
+      "code": "string",
+      "phoneNumber": "string"
+    },
     "loadHasRandomPw": {},
     "loadedHasRandomPw": {
       "randomPW": "boolean"

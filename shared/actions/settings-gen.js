@@ -57,6 +57,7 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
@@ -108,6 +109,7 @@ type _UnfurlSettingsErrorPayload = $ReadOnly<{|error: string|}>
 type _UnfurlSettingsRefreshPayload = void
 type _UnfurlSettingsRefreshedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: I.List<string>|}>
 type _UnfurlSettingsSavedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: I.List<string>|}>
+type _VerifyPhoneNumberPayload = $ReadOnly<{|code: string, phoneNumber: string|}>
 type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
@@ -171,6 +173,7 @@ export const createOnUpdatedPGPSettings = (payload: _OnUpdatedPGPSettingsPayload
 export const createProcessorProfile = (payload: _ProcessorProfilePayload) => ({payload, type: processorProfile})
 export const createSetAllowDeleteAccount = (payload: _SetAllowDeleteAccountPayload) => ({payload, type: setAllowDeleteAccount})
 export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
+export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload) => ({payload, type: verifyPhoneNumber})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({payload, type: waitingForResponse})
 
 // Action Payloads
@@ -222,6 +225,7 @@ export type UnfurlSettingsErrorPayload = {|+payload: _UnfurlSettingsErrorPayload
 export type UnfurlSettingsRefreshPayload = {|+payload: _UnfurlSettingsRefreshPayload, +type: 'settings:unfurlSettingsRefresh'|}
 export type UnfurlSettingsRefreshedPayload = {|+payload: _UnfurlSettingsRefreshedPayload, +type: 'settings:unfurlSettingsRefreshed'|}
 export type UnfurlSettingsSavedPayload = {|+payload: _UnfurlSettingsSavedPayload, +type: 'settings:unfurlSettingsSaved'|}
+export type VerifyPhoneNumberPayload = {|+payload: _VerifyPhoneNumberPayload, +type: 'settings:verifyPhoneNumber'|}
 export type WaitingForResponsePayload = {|+payload: _WaitingForResponsePayload, +type: 'settings:waitingForResponse'|}
 
 // All Actions
@@ -275,5 +279,6 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | VerifyPhoneNumberPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: null}
