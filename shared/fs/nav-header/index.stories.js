@@ -7,15 +7,15 @@ import {commonProvider} from '../common/index.stories'
 import Nav2Header from '../../router-v2/header'
 import Title from './title-container'
 import Actions from './actions'
-import DesktopBanner from './desktop-banner'
 import MobileHeader from './mobile-header'
+import {MainBanner} from '.'
 
-const makeHeaderProps = offline => ({
-  NavBannerDesktop: () => ({
-    bannerType: offline ? 'offline' : 'none',
+export const headerProvider = {
+  MainBanner: (p: any) => ({
+    bannerType: p ? p.storyProps.bannerType : 'none',
+    onRetry: Sb.action('onRetry'),
   }),
   NavHeaderMobile: ({onBack, path}: {onBack: () => void, path: Types.Path}) => ({
-    bannerType: offline ? 'offline' : 'none',
     onBack,
     path,
   }),
@@ -23,18 +23,11 @@ const makeHeaderProps = offline => ({
     onOpenPath: Sb.action('onOpenPath'),
     path,
   }),
-})
-
-export const headerProvider = makeHeaderProps(false)
+}
 
 const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
-  ...makeHeaderProps(false),
-})
-
-const providerOffline = Sb.createPropProviderWithCommon({
-  ...commonProvider,
-  ...makeHeaderProps(true),
+  ...headerProvider,
 })
 
 const TestWrapper = ({path, offline}: {path: Types.Path, offline?: ?boolean}) =>
@@ -45,7 +38,6 @@ const TestWrapper = ({path, offline}: {path: Types.Path, offline?: ?boolean}) =>
       allowBack={true}
       onPop={Sb.action('onPop')}
       options={{
-        headerBanner: <DesktopBanner />,
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
       }}
@@ -64,5 +56,9 @@ const addStories = story =>
 
 export default () => {
   addStories(Sb.storiesOf('Files/NavHeaders', module).addDecorator(provider))
-  addStories(Sb.storiesOf('Files/NavHeaders (offline)', module).addDecorator(providerOffline))
+
+  Sb.storiesOf('Files/Banners', module)
+    .addDecorator(provider)
+    .add('Out of space', () => <MainBanner {...Sb.propOverridesForStory({bannerType: 'out-of-space'})} />)
+    .add('Offline', () => <MainBanner {...Sb.propOverridesForStory({bannerType: 'offline'})} />)
 }

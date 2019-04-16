@@ -1157,6 +1157,19 @@ export const makeActionsForShowSendAttachmentToChat = (
   ),
 ]
 
+// TODO(KBFS-4129): make this actually able to check out-of-spaceness
+export const getMainBannerType = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  overallSyncStatus: any
+): Types.MainBannerType =>
+  kbfsDaemonStatus.online
+    ? overallSyncStatus === null
+      ? 'none'
+      : 'out-of-space'
+    : flags.kbfsOfflineMode
+    ? 'offline'
+    : 'none'
+
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === 'folder'
 
