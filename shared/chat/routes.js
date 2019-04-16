@@ -176,7 +176,7 @@ export const newModalRoutes = {
     getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
     upgraded: true,
   },
-  chatCreateChannel: {getScreen: () => require('./create-channel/container').default}, // TODO upgrade / figure out route introspection in there
+  chatCreateChannel: {getScreen: () => require('./create-channel/container').default, upgraded: true}, // TODO upgrade / figure out route introspection in there
   chatDeleteHistoryWarning: {
     getScreen: () => require('./delete-history-warning/container').default,
     upgraded: true,
