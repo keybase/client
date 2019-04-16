@@ -946,7 +946,7 @@ type ChatHelper interface {
 	GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	TopReacjis(ctx context.Context, uid gregor1.UID) []string
+	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

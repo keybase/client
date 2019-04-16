@@ -5291,6 +5291,10 @@ type BulkAddToConvArg struct {
 	Usernames []string       `codec:"usernames" json:"usernames"`
 }
 
+type PutReacjiSkinToneArg struct {
+	SkinTone keybase1.ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5360,6 +5364,7 @@ type LocalInterface interface {
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
+	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6356,6 +6361,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"putReacjiSkinTone": {
+				MakeArg: func() interface{} {
+					var ret [1]PutReacjiSkinToneArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PutReacjiSkinToneArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PutReacjiSkinToneArg)(nil), args)
+						return
+					}
+					ret, err = i.PutReacjiSkinTone(ctx, typedArgs[0].SkinTone)
+					return
+				},
+			},
 		},
 	}
 }
@@ -6711,5 +6731,11 @@ func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMess
 
 func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.ReacjiSkinTone) (res keybase1.UserReacjis, err error) {
+	__arg := PutReacjiSkinToneArg{SkinTone: skinTone}
+	err = c.Cli.Call(ctx, "chat.1.local.putReacjiSkinTone", []interface{}{__arg}, &res)
 	return
 }
