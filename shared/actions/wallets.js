@@ -645,8 +645,28 @@ const navigateToAccount = (state, action) => {
 }
 
 const navigateToTransaction = (state, action) => {
-  // TODO: Fill
-  return null
+  const {accountID, paymentID} = action.payload
+  // TODO: fix.
+  const actions = [WalletsGen.createSelectAccount({accountID, reason: 'from-chat'})]
+  const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
+  if (flags.useNewRouter) {
+    // Since the new wallet routes have nested stacks, we actually
+    // do want to navigate to each path component separately.
+    for (var i = 0; i < path.length; ++i) {
+      // Set replace for all but the first navigate so that hitting
+      // back once takes us back to the chat.
+      const replace = i > 0
+      actions.push(
+        RouteTreeGen.createNavigateTo({
+          path: [path[i]],
+          replace,
+        })
+      )
+    }
+  } else {
+    actions.push(RouteTreeGen.createNavigateTo({path}))
+  }
+  return actions
 }
 
 const exportSecretKey = (state, action) =>

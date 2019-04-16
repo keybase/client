@@ -8,7 +8,6 @@ import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
-import flags from '../../../../../util/feature-flags'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
@@ -78,30 +77,8 @@ const sendMapDispatchToProps = dispatch => ({
         ? RouteTreeGen.createNavigateTo({path: WalletConstants.rootWalletPath})
         : RouteTreeGen.createSwitchTo({path: WalletConstants.rootWalletPath})
     ),
-  onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
-    dispatch(WalletGen.createSelectAccount({accountID, reason: 'from-chat'}))
-    const path = [
-      ...WalletConstants.walletPath,
-      {props: {accountID, paymentID}, selected: 'transactionDetails'},
-    ]
-    if (flags.useNewRouter) {
-      // Since the new wallet routes have nested stacks, we actually
-      // do want to navigate to each path component separately.
-      for (var i = 0; i < path.length; ++i) {
-        // Set replace for all but the first navigate so that hitting
-        // back once takes us back to the chat.
-        const replace = i > 0
-        dispatch(
-          RouteTreeGen.createNavigateTo({
-            path: [path[i]],
-            replace,
-          })
-        )
-      }
-    } else {
-      dispatch(RouteTreeGen.createNavigateTo({path}))
-    }
-  },
+  onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) =>
+    dispatch(WalletGen.createShowTransaction({accountID, paymentID})),
 })
 
 const getTopLineUser = (paymentInfo, sender, you) => {
