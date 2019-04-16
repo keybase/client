@@ -1028,13 +1028,13 @@ func (k *SimpleFS) doCopy(
 	} else {
 		k.setProgressTotals(opID, srcFI.Size(), 1)
 	}
-	dstFS, finalDstElem, err := k.getFS(ctx, destPath)
+	destFS, finalDestElem, err := k.getFS(ctx, destPath)
 	if err != nil {
 		return err
 	}
 
 	return k.doCopyFromSource(
-		ctx, opID, srcFS, srcFI, destPath, dstFS, finalDstElem)
+		ctx, opID, srcFS, srcFI, destPath, destFS, finalDestElem)
 }
 
 // SimpleFSCopy - Begin copy of file or directory
@@ -1056,12 +1056,12 @@ func (k *SimpleFS) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSym
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	dstFS, finalDstElem, err := k.getFS(ctx, arg.Link)
+	destFS, finalDestElem, err := k.getFS(ctx, arg.Link)
 	if err != nil {
 		return err
 	}
 
-	err = dstFS.Symlink(arg.Target, finalDstElem)
+	err = destFS.Symlink(arg.Target, finalDestElem)
 	return err
 }
 
@@ -1113,7 +1113,7 @@ func (k *SimpleFS) doCopyRecursive(
 		return k.doCopy(ctx, opID, src, dest)
 	}
 
-	dstFS, finalDstElem, err := k.getFS(ctx, dest)
+	destFS, finalDestElem, err := k.getFS(ctx, dest)
 	if err != nil {
 		return err
 	}
@@ -1121,9 +1121,9 @@ func (k *SimpleFS) doCopyRecursive(
 	var nodes = []copyNode{{
 		dest:          dest,
 		srcFS:         srcFS,
-		destFS:        dstFS,
+		destFS:        destFS,
 		srcFinalElem:  finalSrcElem,
-		destFinalElem: finalDstElem,
+		destFinalElem: finalDestElem,
 	}}
 	for len(nodes) > 0 {
 		select {
@@ -1159,7 +1159,7 @@ func (k *SimpleFS) doCopyRecursive(
 				return err
 			}
 
-			newDstFS, err := node.destFS.Chroot(node.destFinalElem)
+			newDestFS, err := node.destFS.Chroot(node.destFinalElem)
 			if err != nil {
 				return err
 			}
@@ -1169,7 +1169,7 @@ func (k *SimpleFS) doCopyRecursive(
 				nodes = append(nodes, copyNode{
 					dest:          pathAppend(node.dest, name),
 					srcFS:         newSrcFS,
-					destFS:        newDstFS,
+					destFS:        newDestFS,
 					srcFinalElem:  name,
 					destFinalElem: name,
 				})
@@ -1207,8 +1207,8 @@ func (k *SimpleFS) doRemove(
 }
 
 func (k *SimpleFS) pathsForSameTlfMove(
-	ctx context.Context, src, dst keybase1.Path) (
-	sameTlf bool, srcPath, dstPath string, tlfHandle *tlfhandle.Handle,
+	ctx context.Context, src, dest keybase1.Path) (
+	sameTlf bool, srcPath, destPath string, tlfHandle *tlfhandle.Handle,
 	err error) {
 	srcType, err := src.PathType()
 	if err != nil {
@@ -1217,11 +1217,11 @@ func (k *SimpleFS) pathsForSameTlfMove(
 	if srcType != keybase1.PathType_KBFS {
 		return false, "", "", nil, nil
 	}
-	dstType, err := dst.PathType()
+	destType, err := dest.PathType()
 	if err != nil {
 		return false, "", "", nil, err
 	}
-	if dstType != keybase1.PathType_KBFS {
+	if destType != keybase1.PathType_KBFS {
 		return false, "", "", nil, nil
 	}
 
@@ -1230,11 +1230,11 @@ func (k *SimpleFS) pathsForSameTlfMove(
 	if err != nil {
 		return false, "", "", nil, err
 	}
-	dstTlfType, dstTlfName, dstMid, dstFinal, err := remoteTlfAndPath(dst)
+	destTlfType, destTlfName, destMid, destFinal, err := remoteTlfAndPath(dest)
 	if err != nil {
 		return false, "", "", nil, err
 	}
-	if srcTlfType != dstTlfType || srcTlfName != dstTlfName {
+	if srcTlfType != destTlfType || srcTlfName != destTlfName {
 		return false, "", "", nil, nil
 	}
 
@@ -1245,7 +1245,7 @@ func (k *SimpleFS) pathsForSameTlfMove(
 		return false, "", "", nil, err
 	}
 
-	return true, stdpath.Join(srcMid, srcFinal), stdpath.Join(dstMid, dstFinal),
+	return true, stdpath.Join(srcMid, srcFinal), stdpath.Join(destMid, destFinal),
 		tlfHandle, nil
 }
 
@@ -1257,7 +1257,7 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 				OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest,
 			}),
 		func(ctx context.Context) (err error) {
-			sameTlf, srcPath, dstPath, tlfHandle, err := k.pathsForSameTlfMove(
+			sameTlf, srcPath, destPath, tlfHandle, err := k.pathsForSameTlfMove(
 				ctx, arg.Src, arg.Dest)
 			if err != nil {
 				return err
@@ -1272,7 +1272,7 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 					return err
 				}
 
-				return fs.Rename(srcPath, dstPath)
+				return fs.Rename(srcPath, destPath)
 			}
 
 			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
@@ -1311,7 +1311,7 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	// Get root FS, to be shared by both src and dst.
+	// Get root FS, to be shared by both src and dest.
 	t, tlfName, restOfSrcPath, finalSrcElem, err := remoteTlfAndPath(arg.Src)
 	if err != nil {
 		return err
@@ -1328,19 +1328,19 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 		return err
 	}
 
-	// Make sure src and dst share the same TLF.
-	tDst, tlfNameDst, restOfDstPath, finalDstElem, err :=
+	// Make sure src and dest share the same TLF.
+	tDest, tlfNameDest, restOfDestPath, finalDestElem, err :=
 		remoteTlfAndPath(arg.Dest)
 	if err != nil {
 		return err
 	}
-	if tDst != t || tlfName != tlfNameDst {
+	if tDest != t || tlfName != tlfNameDest {
 		return simpleFSError{"Cannot rename across top-level folders"}
 	}
 
 	err = fs.Rename(
 		stdpath.Join(restOfSrcPath, finalSrcElem),
-		stdpath.Join(restOfDstPath, finalDstElem))
+		stdpath.Join(restOfDestPath, finalDestElem))
 	return err
 }
 
