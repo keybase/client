@@ -12,8 +12,8 @@ import {NormalPreview} from './filepreview'
 import Loading from './common/loading'
 import KbfsDaemonNotRunning from './common/kbfs-daemon-not-running'
 import LoadPathMetadataWhenNeeded from './common/load-path-metadata-when-needed'
-import {Actions, DesktopBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 import Oops from './oops'
+import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 import flags from '../util/feature-flags'
 
 const mapStateToProps = (state, ownProps) => {
@@ -165,9 +165,9 @@ Connected.navigationOptions = ({navigation}: {navigation: any}) => {
         }
     : {
         header: undefined,
-        headerBanner: <DesktopBanner />,
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
+        subHeader: MainBanner,
         title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
       }
 }
