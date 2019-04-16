@@ -614,6 +614,8 @@ const (
 	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
 
 	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
+
+	DeriveReasonLinuxRevokableKeyring DeriveReason = "Keybase-Derived-LKS-SecretBox-1"
 )
 
 // Not a DeriveReason because it is not used in the same way.

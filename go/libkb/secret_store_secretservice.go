@@ -62,24 +62,34 @@ func (s *SecretStoreRevokableSecretService) maybeRetrieveSingleItem(mctx MetaCon
 	return &item, nil
 }
 
-func (s *SecretStoreRevokableSecretService) ekstoreDir(mctx MetaContext, username string) string {
+func (s *SecretStoreRevokableSecretService) keystoreDir(mctx MetaContext, username string) string {
 	return fmt.Sprintf("ring/%s", username)
 }
 
-func (s *SecretStoreRevokableSecretService) secretlessEKStore(mctx MetaContext, username string) SecretlessErasableKVStore {
-	return NewSecretlessFileErasableKVStore(mctx, s.ekstoreDir(mctx, username))
+func (s *SecretStoreRevokableSecretService) secretlessKeystore(mctx MetaContext, username string) SecretlessErasableKVStore {
+	return NewSecretlessFileErasableKVStore(mctx, s.keystoreDir(mctx, username))
 }
 
-func (s *SecretStoreRevokableSecretService) ekstore(mctx MetaContext, username string, keyringSecret []byte) ErasableKVStore {
+func (s *SecretStoreRevokableSecretService) keystoreKey() string {
+	return "key"
+}
+
+func (s *SecretStoreRevokableSecretService) keystore(mctx MetaContext, username string, keyringSecret []byte) ErasableKVStore {
 	keygen := func(mctx MetaContext, noise NoiseBytes) (xs [32]byte, err error) {
-		h := hkdf.New(sha256.New, append(noise[:], keyringSecret...), nil, []byte("Keybase-Derived-LKS-SecretBox-1"))
+		// hkdf with salt=nil, info=context string, and using entropy from both
+		// the noise in the file and the secret in the keyring. Thus, when we
+		// try to erase this secret, as long as we are able to delete it from
+		// either the noise file or the keyring, we'll have succeeded in making
+		// the secret impossible to retrieve.
+		// See additional docs at https://keybase.io/docs/crypto/local-key-security.
+		h := hkdf.New(sha256.New, append(noise[:], keyringSecret...), nil, []byte(DeriveReasonLinuxRevokableKeyring))
 		_, err = io.ReadFull(h, xs[:])
 		if err != nil {
 			return [32]byte{}, err
 		}
 		return xs, nil
 	}
-	return NewFileErasableKVStore(mctx, s.ekstoreDir(mctx, username), keygen)
+	return NewFileErasableKVStore(mctx, s.keystoreDir(mctx, username), keygen)
 }
 
 func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
@@ -107,9 +117,9 @@ func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, use
 		return LKSecFullSecret{}, err
 	}
 
-	ekstore := s.ekstore(mctx, string(username), keyringSecret)
+	keystore := s.keystore(mctx, string(username), keyringSecret)
 	var secretBytes []byte
-	err = ekstore.Get(mctx, "key", &secretBytes)
+	err = keystore.Get(mctx, s.keystoreKey(), &secretBytes)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -150,8 +160,8 @@ func (s *SecretStoreRevokableSecretService) StoreSecret(mctx MetaContext, userna
 		return err
 	}
 
-	ekstore := s.ekstore(mctx, string(username), keyringSecret)
-	err = ekstore.Put(mctx, "key", secret.Bytes())
+	keystore := s.keystore(mctx, string(username), keyringSecret)
+	err = keystore.Put(mctx, s.keystoreKey(), secret.Bytes())
 	if err != nil {
 		return err
 	}
@@ -163,19 +173,19 @@ func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, userna
 	defer mctx.TraceTimed("SecretStoreRevokableSecretService.ClearSecret", func() error { return err })()
 
 	// Delete file-based portion first. If it fails, we can still try to erase the keyring's portion.
-	secretlessEKStore := s.secretlessEKStore(mctx, string(username))
-	ekErr := secretlessEKStore.Erase(mctx, "key")
-	if ekErr != nil {
-		mctx.Warning("Failed to erase EKV half: %s; attempting to delete from keyring", ekErr)
+	secretlessKeystore := s.secretlessKeystore(mctx, string(username))
+	keystoreErr := secretlessKeystore.Erase(mctx, s.keystoreKey())
+	if keystoreErr != nil {
+		mctx.Warning("Failed to erase keystore half: %s; attempting to delete from keyring", keystoreErr)
 	}
 
 	srv, err := secsrv.NewService()
 	if err != nil {
-		return CombineErrors(ekErr, err)
+		return CombineErrors(keystoreErr, err)
 	}
 	item, err := s.maybeRetrieveSingleItem(mctx, srv, username)
 	if err != nil {
-		return CombineErrors(ekErr, err)
+		return CombineErrors(keystoreErr, err)
 	}
 	if item == nil {
 		mctx.Debug("secret not found; short-circuiting clear")
@@ -183,10 +193,10 @@ func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, userna
 	}
 	err = srv.DeleteItem(*item)
 	if err != nil {
-		return CombineErrors(ekErr, err)
+		return CombineErrors(keystoreErr, err)
 	}
 
-	return ekErr
+	return keystoreErr
 }
 
 func (s *SecretStoreRevokableSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (usernames []string, err error) {
