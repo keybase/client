@@ -2025,7 +2025,7 @@ export type BlockType =
   | 1 // MD_1
   | 2 // GIT_2
 
-export type BootstrapStatus = $ReadOnly<{registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, fullname: FullName, following?: ?Array<String>, followers?: ?Array<String>, topReacjis?: ?Array<String>}>
+export type BootstrapStatus = $ReadOnly<{registered: Boolean, loggedIn: Boolean, uid: UID, username: String, deviceID: DeviceID, deviceName: String, fullname: FullName, following?: ?Array<String>, followers?: ?Array<String>, userReacjis: UserReacjis}>
 export type BoxAuditAttempt = $ReadOnly<{ctime: UnixTime, error?: ?String, result: BoxAuditAttemptResult, generation?: ?PerTeamKeyGeneration}>
 export type BoxAuditAttemptResult =
   | 0 // FAILURE_RETRYABLE_0
@@ -2640,6 +2640,7 @@ export type Reachable =
   | 1 // YES_1
   | 2 // NO_2
 
+export type ReacjiSkinTone = Int
 export type ReadArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long, size: Int}>
 export type ReaderKeyMask = $ReadOnly<{application: TeamApplication, generation: PerTeamKeyGeneration, mask: MaskB64}>
 export type ReferenceCountRes = $ReadOnly<{counts?: ?Array<BlockIdCount>}>
@@ -3186,6 +3187,7 @@ export type UserPlusAllKeys = $ReadOnly<{base: UserPlusKeys, pgpKeys?: ?Array<Pu
 export type UserPlusKeys = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>, resets?: ?Array<ResetSummary>}>
 export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, stellarAccountID?: ?String, remoteTracks: {[key: string]: RemoteTrack}, reset?: ?ResetSummary, unstubbed: Boolean}>
 export type UserPlusKeysV2AllIncarnations = $ReadOnly<{current: UserPlusKeysV2, pastIncarnations?: ?Array<UserPlusKeysV2>, uvv: UserVersionVector, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPK2MinorVersion}>
+export type UserReacjis = $ReadOnly<{topReacjis?: ?Array<String>, skinTone: ReacjiSkinTone}>
 export type UserRolePair = $ReadOnly<{assertionOrEmail: String, role: TeamRole}>
 export type UserSettings = $ReadOnly<{emails?: ?Array<Email>}>
 export type UserSummary = $ReadOnly<{uid: UID, username: String, thumbnail: String, idVersion: Int, fullName: String, bio: String, proofs: Proofs, sigIDDisplay: String, trackTime: Time}>

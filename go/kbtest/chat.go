@@ -1325,8 +1325,8 @@ func (m *MockChatHelper) GetMessage(ctx context.Context, uid gregor1.UID, convID
 	return chat1.MessageUnboxed{}, nil
 }
 
-func (m *MockChatHelper) TopReacjis(ctx context.Context, uid gregor1.UID) []string {
-	return nil
+func (m *MockChatHelper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
+	return keybase1.UserReacjis{}
 }
 
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,

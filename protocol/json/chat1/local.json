@@ -4297,6 +4297,15 @@
         }
       ],
       "response": null
+    },
+    "putReacjiSkinTone": {
+      "request": [
+        {
+          "name": "skinTone",
+          "type": "keybase1.ReacjiSkinTone"
+        }
+      ],
+      "response": "keybase1.UserReacjis"
     }
   },
   "namespace": "chat.1"

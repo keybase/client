@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -20,52 +21,50 @@ var DefaultTopReacjis = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses
 
 var addReacjiMemCacheHookOnce sync.Once
 
-type ReacjiMap map[string]int
+type ReacjiInternalStorage struct {
+	FrequencyMap map[string]int
+	SkinTone     keybase1.ReacjiSkinTone
+}
+
+func NewReacjiInternalStorage() *ReacjiInternalStorage {
+	return &ReacjiInternalStorage{
+		FrequencyMap: make(map[string]int),
+	}
+}
 
 type reacjiMemCacheImpl struct {
 	sync.RWMutex
 
-	uid    gregor1.UID
-	datMap ReacjiMap
+	uid  gregor1.UID
+	data *ReacjiInternalStorage
 }
 
 func newReacjiMemCacheImpl() *reacjiMemCacheImpl {
 	return &reacjiMemCacheImpl{
-		datMap: make(ReacjiMap),
+		data: NewReacjiInternalStorage(),
 	}
 }
 
-func (i *reacjiMemCacheImpl) Get(uid gregor1.UID) (bool, ReacjiMap) {
+func (i *reacjiMemCacheImpl) Get(uid gregor1.UID) (bool, *ReacjiInternalStorage) {
 	i.RLock()
 	defer i.RUnlock()
 	if !uid.Eq(i.uid) {
 		return false, nil
 	}
-	return true, i.datMap
+	return true, i.data
 }
 
-func (i *reacjiMemCacheImpl) Put(uid gregor1.UID, datMap ReacjiMap) {
+func (i *reacjiMemCacheImpl) Put(uid gregor1.UID, data *ReacjiInternalStorage) {
 	i.Lock()
 	defer i.Unlock()
 	i.uid = uid
-	i.datMap = datMap
-}
-
-func (i *reacjiMemCacheImpl) Increment(uid gregor1.UID, reacji string) ReacjiMap {
-	i.Lock()
-	defer i.Unlock()
-	if !uid.Eq(i.uid) {
-		i.datMap = make(ReacjiMap)
-		i.uid = uid
-	}
-	i.datMap[reacji]++
-	return i.datMap
+	i.data = data
 }
 
 func (i *reacjiMemCacheImpl) OnLogout(m libkb.MetaContext) error {
 	i.Lock()
 	defer i.Unlock()
-	i.datMap = make(ReacjiMap)
+	i.data = NewReacjiInternalStorage()
 	i.uid = nil
 	return nil
 }
@@ -80,7 +79,7 @@ type reacjiPair struct {
 type reacjiDiskEntry struct {
 	Version int
 	// reacji name -> frequency
-	Data ReacjiMap
+	Data ReacjiInternalStorage
 }
 
 type ReacjiStore struct {
@@ -121,63 +120,78 @@ func (s *ReacjiStore) dbKey(uid gregor1.UID) libkb.DbKey {
 	}
 }
 
-func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) ReacjiMap {
-	if found, datMap := reacjiMemCache.Get(uid); found {
-		return datMap
+func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) *ReacjiInternalStorage {
+	if found, data := reacjiMemCache.Get(uid); found {
+		return data
 	}
 
 	// populate the cache after we fetch from disk
-	datMap := make(ReacjiMap)
-	defer func() { reacjiMemCache.Put(uid, datMap) }()
+	data := NewReacjiInternalStorage()
+	defer func() { reacjiMemCache.Put(uid, data) }()
 
 	dbKey := s.dbKey(uid)
 	var entry reacjiDiskEntry
 	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
 	if err != nil || !found {
 		s.Debug(ctx, "reacji map not found on disk")
-		return datMap
+		return data
 	}
 
 	if entry.Version != reacjiDiskVersion {
 		// drop the history if our format changed
 		if err = s.encryptedDB.Delete(ctx, dbKey); err != nil {
 			s.Debug(ctx, "unable to delete cache entry: %v", err)
-			return datMap
+			return data
 		}
 	}
-	datMap = entry.Data
-	return datMap
+	data = &entry.Data
+	return data
 }
 
-func (s *ReacjiStore) Put(ctx context.Context, uid gregor1.UID, reacji string) error {
+func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, reacji string) error {
 	s.Lock()
 	defer s.Unlock()
 
-	s.populateCacheLocked(ctx, uid)
-	datMap := reacjiMemCache.Increment(uid, reacji)
+	cache := s.populateCacheLocked(ctx, uid)
+	cache.FrequencyMap[reacji]++
+	reacjiMemCache.Put(uid, cache)
 	dbKey := s.dbKey(uid)
 	return s.encryptedDB.Put(ctx, dbKey, reacjiDiskEntry{
 		Version: reacjiDiskVersion,
-		Data:    datMap,
+		Data:    *cache,
 	})
 }
 
-func (s *ReacjiStore) Get(ctx context.Context, uid gregor1.UID) ReacjiMap {
+func (s *ReacjiStore) PutSkinTone(ctx context.Context, uid gregor1.UID,
+	skinTone keybase1.ReacjiSkinTone) error {
+	s.Lock()
+	defer s.Unlock()
+
+	cache := s.populateCacheLocked(ctx, uid)
+	cache.SkinTone = skinTone
+	dbKey := s.dbKey(uid)
+	return s.encryptedDB.Put(ctx, dbKey, reacjiDiskEntry{
+		Version: reacjiDiskVersion,
+		Data:    *cache,
+	})
+}
+
+func (s *ReacjiStore) GetInternalStore(ctx context.Context, uid gregor1.UID) *ReacjiInternalStorage {
 	s.Lock()
 	defer s.Unlock()
 	return s.populateCacheLocked(ctx, uid)
 }
 
-// TopReacjis returns the user's most frequently used 5 reacjis falling back
-// to `DefaultTopReacjis` if there is not enough history. Results are ordered by
+// UserReacjis returns the user's most frequently used reacjis falling back to
+// `DefaultTopReacjis` if there is not enough history. Results are ordered by
 // frequency and then alphabetically.
-func (s *ReacjiStore) TopReacjis(ctx context.Context, uid gregor1.UID) (res []string) {
+func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
 	s.Lock()
 	defer s.Unlock()
 
 	cache := s.populateCacheLocked(ctx, uid)
 	pairs := []reacjiPair{}
-	for name, freq := range cache {
+	for name, freq := range cache.FrequencyMap {
 		pairs = append(pairs, reacjiPair{name: name, freq: freq})
 	}
 	// sort by frequency and then alphabetically
@@ -188,14 +202,15 @@ func (s *ReacjiStore) TopReacjis(ctx context.Context, uid gregor1.UID) (res []st
 		return pairs[i].freq > pairs[j].freq
 	})
 
+	reacjis := []string{}
 	for _, p := range pairs {
-		res = append(res, p.name)
-		if len(res) >= len(DefaultTopReacjis) {
-			break
-		}
+		reacjis = append(reacjis, p.name)
 	}
-	if len(res) < len(DefaultTopReacjis) {
-		res = append(res, DefaultTopReacjis[:len(DefaultTopReacjis)-len(res)]...)
+	if len(reacjis) < len(DefaultTopReacjis) {
+		reacjis = append(reacjis, DefaultTopReacjis[:len(DefaultTopReacjis)-len(reacjis)]...)
 	}
-	return res
+	return keybase1.UserReacjis{
+		TopReacjis: reacjis,
+		SkinTone:   cache.SkinTone,
+	}
 }
