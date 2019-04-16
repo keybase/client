@@ -342,23 +342,19 @@ func (o FSSyncStatus) DeepCopy() FSSyncStatus {
 	}
 }
 
-type FSOverallSyncStatus struct {
-	SyncingBytes int64 `codec:"syncingBytes" json:"syncingBytes"`
-	SyncedBytes  int64 `codec:"syncedBytes" json:"syncedBytes"`
-	EndEstimate  *Time `codec:"endEstimate,omitempty" json:"endEstimate,omitempty"`
+type FolderSyncStatus struct {
+	LocalDiskBytesAvailable int64            `codec:"localDiskBytesAvailable" json:"localDiskBytesAvailable"`
+	LocalDiskBytesTotal     int64            `codec:"localDiskBytesTotal" json:"localDiskBytesTotal"`
+	PrefetchStatus          PrefetchStatus   `codec:"prefetchStatus" json:"prefetchStatus"`
+	PrefetchProgress        PrefetchProgress `codec:"prefetchProgress" json:"prefetchProgress"`
 }
 
-func (o FSOverallSyncStatus) DeepCopy() FSOverallSyncStatus {
-	return FSOverallSyncStatus{
-		SyncingBytes: o.SyncingBytes,
-		SyncedBytes:  o.SyncedBytes,
-		EndEstimate: (func(x *Time) *Time {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.EndEstimate),
+func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
+	return FolderSyncStatus{
+		LocalDiskBytesAvailable: o.LocalDiskBytesAvailable,
+		LocalDiskBytesTotal:     o.LocalDiskBytesTotal,
+		PrefetchStatus:          o.PrefetchStatus.DeepCopy(),
+		PrefetchProgress:        o.PrefetchProgress.DeepCopy(),
 	}
 }
 

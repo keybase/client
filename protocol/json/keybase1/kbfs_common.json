@@ -237,22 +237,23 @@
     },
     {
       "type": "record",
-      "name": "FSOverallSyncStatus",
+      "name": "FolderSyncStatus",
       "fields": [
         {
           "type": "int64",
-          "name": "syncingBytes"
+          "name": "localDiskBytesAvailable"
         },
         {
           "type": "int64",
-          "name": "syncedBytes"
+          "name": "localDiskBytesTotal"
         },
         {
-          "type": [
-            null,
-            "Time"
-          ],
-          "name": "endEstimate"
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
+        },
+        {
+          "type": "PrefetchProgress",
+          "name": "prefetchProgress"
         }
       ]
     }

@@ -65,7 +65,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.NotifyFS.FSOverallSyncStatusChanged': {|
-    inParam: $ReadOnly<{|status: FSOverallSyncStatus|}>,
+    inParam: $ReadOnly<{|status: FolderSyncStatus|}>,
     outParam: void,
   |},
   'keybase.1.NotifyFS.FSPathUpdated': {|
@@ -2170,7 +2170,6 @@ export type FSNotificationType =
   | 10 // FILE_RENAMED_10
   | 11 // INITIALIZED_11
 
-export type FSOverallSyncStatus = $ReadOnly<{syncingBytes: Int64, syncedBytes: Int64, endEstimate?: ?Time}>
 export type FSPathSyncStatus = $ReadOnly<{folderType: FolderType, path: String, syncingBytes: Int64, syncingOps: Int64, syncedBytes: Int64}>
 export type FSStatusCode =
   | 0 // START_0

@@ -102,9 +102,11 @@ protocol kbfsCommon {
     union { null, Time} endEstimate;
   }
 
-  record FSOverallSyncStatus {
-    int64 syncingBytes;
-    int64 syncedBytes;
-    union { null, Time} endEstimate;
+  record FolderSyncStatus {
+    // Bytes available and total on the partition hosting the sync cache.
+    int64 localDiskBytesAvailable;
+    int64 localDiskBytesTotal;
+    PrefetchStatus prefetchStatus;
+    PrefetchProgress prefetchProgress;
   }
 }

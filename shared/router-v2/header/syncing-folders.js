@@ -18,9 +18,12 @@ const SyncingFolders = (props: Props) =>
     </Kb.Box2>
   )
 
-const mapStateToProps = state => ({
-  progress: state.fs.syncingFoldersProgress,
-})
+const mapStateToProps = state => {
+  if (state.fs.syncingFoldersProgress.bytesTotal === 0) {
+    return {progress: 1}
+  }
+  return {progress: state.fs.syncingFoldersProgress.bytesFetched / state.fs.syncingFoldersProgress.bytesTotal}
+}
 
 const mapDispatchToProps = dispatch => ({})
 
