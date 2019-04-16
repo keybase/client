@@ -966,12 +966,8 @@ func (pw *progressWriter) Write(p []byte) (n int, err error) {
 func (k *SimpleFS) doCopyFromSource(
 	ctx context.Context, opID keybase1.OpID,
 	srcFS billy.Filesystem, srcFI os.FileInfo,
-	destPath keybase1.Path) (err error) {
-	dstFS, finalDstElem, err := k.getFS(ctx, destPath)
-	if err != nil {
-		return err
-	}
-
+	dstPath keybase1.Path, dstFS billy.Filesystem,
+	finalDstElem string) (err error) {
 	defer func() {
 		if err == nil {
 			k.updateReadProgress(opID, 0, 1)
@@ -996,9 +992,9 @@ func (k *SimpleFS) doCopyFromSource(
 	}
 	defer dst.Close()
 
-	if pathType, _ := destPath.PathType(); pathType == keybase1.PathType_LOCAL {
+	if pathType, _ := dstPath.PathType(); pathType == keybase1.PathType_LOCAL {
 		defer func() {
-			qerr := Quarantine(ctx, destPath.Local())
+			qerr := Quarantine(ctx, dstPath.Local())
 			if err == nil {
 				err = qerr
 			}
@@ -1032,7 +1028,13 @@ func (k *SimpleFS) doCopy(
 	} else {
 		k.setProgressTotals(opID, srcFI.Size(), 1)
 	}
-	return k.doCopyFromSource(ctx, opID, srcFS, srcFI, destPath)
+	dstFS, finalDstElem, err := k.getFS(ctx, destPath)
+	if err != nil {
+		return err
+	}
+
+	return k.doCopyFromSource(
+		ctx, opID, srcFS, srcFI, destPath, dstFS, finalDstElem)
 }
 
 // SimpleFSCopy - Begin copy of file or directory
@@ -1063,8 +1065,10 @@ func (k *SimpleFS) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSym
 	return err
 }
 
-type pathPair struct {
-	src, dest keybase1.Path
+type copyNode struct {
+	dest                        keybase1.Path
+	srcFS, destFS               billy.Filesystem
+	srcFinalElem, destFinalElem string
 }
 
 func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
@@ -1109,48 +1113,68 @@ func (k *SimpleFS) doCopyRecursive(
 		return k.doCopy(ctx, opID, src, dest)
 	}
 
-	var paths = []pathPair{{src: src, dest: dest}}
-	for len(paths) > 0 {
+	dstFS, finalDstElem, err := k.getFS(ctx, dest)
+	if err != nil {
+		return err
+	}
+
+	var nodes = []copyNode{{
+		dest:          dest,
+		srcFS:         srcFS,
+		destFS:        dstFS,
+		srcFinalElem:  finalSrcElem,
+		destFinalElem: finalDstElem,
+	}}
+	for len(nodes) > 0 {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
 
-		// wrap in a function for defers.
-		err = func() error {
-			path := paths[len(paths)-1]
-			paths = paths[:len(paths)-1]
+		node := nodes[len(nodes)-1]
+		nodes = nodes[:len(nodes)-1]
 
-			srcFS, finalSrcElem, err := k.getFSIfExists(ctx, path.src)
-			if err != nil {
-				return err
-			}
-			srcFI, err := srcFS.Stat(finalSrcElem)
-			if err != nil {
-				return err
-			}
-			err = k.doCopyFromSource(
-				ctx, opID, srcFS, srcFI, path.dest)
+		srcFI, err := node.srcFS.Stat(node.srcFinalElem)
+		if err != nil {
+			return err
+		}
+
+		err = k.doCopyFromSource(
+			ctx, opID, node.srcFS, srcFI, node.dest, node.destFS,
+			node.destFinalElem)
+		if err != nil {
+			return err
+		}
+
+		// TODO symlinks
+		if srcFI.IsDir() {
+			fis, err := node.srcFS.ReadDir(srcFI.Name())
 			if err != nil {
 				return err
 			}
 
-			// TODO symlinks
-			if srcFI.IsDir() {
-				fis, err := srcFS.ReadDir(srcFI.Name())
-				if err != nil {
-					return err
-				}
-				for _, fi := range fis {
-					paths = append(paths, pathPair{
-						src:  pathAppend(path.src, fi.Name()),
-						dest: pathAppend(path.dest, fi.Name()),
-					})
-				}
+			newSrcFS, err := node.srcFS.Chroot(node.srcFinalElem)
+			if err != nil {
+				return err
 			}
-			return nil
-		}()
+
+			newDstFS, err := node.destFS.Chroot(node.destFinalElem)
+			if err != nil {
+				return err
+			}
+
+			for _, fi := range fis {
+				name := fi.Name()
+				nodes = append(nodes, copyNode{
+					dest:          pathAppend(node.dest, name),
+					srcFS:         newSrcFS,
+					destFS:        newDstFS,
+					srcFinalElem:  name,
+					destFinalElem: name,
+				})
+			}
+		}
 	}
 	return err
 }
