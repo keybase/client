@@ -1386,20 +1386,15 @@ const onInboxSearchSelect = (state, action) => {
     actions.push(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
     actions.push(Chat2Gen.createThreadSearch({conversationIDKey, query}))
   } else {
-    actions.push(Chat2Gen.createInboxSearchCancel())
     actions.push(Chat2Gen.createToggleInboxSearch({enabled: false}))
   }
   return actions
 }
 
-const onInboxSearchCancel = (state, action) => {
-  return RPCChatTypes.localCancelActiveInboxSearchRpcPromise()
-}
-
 const onToggleInboxSearch = (state, action) => {
   const inboxSearch = state.chat2.inboxSearch
   if (!inboxSearch) {
-    return Chat2Gen.createInboxSearchCancel()
+    return RPCChatTypes.localCancelActiveInboxSearchRpcPromise()
   }
   return inboxSearch.nameStatus === 'initial' ? Chat2Gen.createInboxSearch({query: new HiddenString('')}) : []
 }
@@ -3348,7 +3343,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainGenerator<Chat2Gen.InboxSearchPayload>(Chat2Gen.inboxSearch, inboxSearch)
-  yield* Saga.chainAction<Chat2Gen.InboxSearchCancelPayload>(Chat2Gen.inboxSearchCancel, onInboxSearchCancel)
   yield* Saga.chainAction<Chat2Gen.ToggleInboxSearchPayload>(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
   yield* Saga.chainAction<Chat2Gen.InboxSearchSelectPayload>(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(Chat2Gen.threadSearch, threadSearch)

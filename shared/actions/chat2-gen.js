@@ -40,7 +40,6 @@ export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const hideConversation = 'chat2:hideConversation'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
-export const inboxSearchCancel = 'chat2:inboxSearchCancel'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
 export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
 export const inboxSearchSelect = 'chat2:inboxSearchSelect'
@@ -164,7 +163,6 @@ type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.Conversati
 type _HandleSeeingWalletsPayload = void
 type _HideConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
-type _InboxSearchCancelPayload = void
 type _InboxSearchMoveSelectedIndexPayload = $ReadOnly<{|increment: boolean|}>
 type _InboxSearchNameResultsPayload = $ReadOnly<{|results: I.List<Types.InboxSearchConvHit>|}>
 type _InboxSearchPayload = $ReadOnly<{|query: HiddenString|}>
@@ -278,10 +276,6 @@ export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload) => (
  * Add an unfurl prompt to a message
  */
 export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({payload, type: unfurlTogglePrompt})
-/**
- * Cancel an outstanding inbox search
- */
-export const createInboxSearchCancel = (payload: _InboxSearchCancelPayload) => ({payload, type: inboxSearchCancel})
 /**
  * Change selected index of inbox search
  */
@@ -584,7 +578,6 @@ export type GiphyToggleWindowPayload = {|+payload: _GiphyToggleWindowPayload, +t
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
 export type HideConversationPayload = {|+payload: _HideConversationPayload, +type: 'chat2:hideConversation'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
-export type InboxSearchCancelPayload = {|+payload: _InboxSearchCancelPayload, +type: 'chat2:inboxSearchCancel'|}
 export type InboxSearchMoveSelectedIndexPayload = {|+payload: _InboxSearchMoveSelectedIndexPayload, +type: 'chat2:inboxSearchMoveSelectedIndex'|}
 export type InboxSearchNameResultsPayload = {|+payload: _InboxSearchNameResultsPayload, +type: 'chat2:inboxSearchNameResults'|}
 export type InboxSearchPayload = {|+payload: _InboxSearchPayload, +type: 'chat2:inboxSearch'|}
@@ -712,7 +705,6 @@ export type Actions =
   | HandleSeeingWalletsPayload
   | HideConversationPayload
   | InboxRefreshPayload
-  | InboxSearchCancelPayload
   | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
   | InboxSearchPayload

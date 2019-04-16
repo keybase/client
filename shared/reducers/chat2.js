@@ -1276,7 +1276,6 @@ const rootReducer = (
     case Chat2Gen.addUsersToChannel:
     case Chat2Gen.loadMessagesFromSearchHit:
     case Chat2Gen.inboxSearch:
-    case Chat2Gen.inboxSearchCancel:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
