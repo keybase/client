@@ -1,20 +1,21 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {
-  Avatar,
-  Box,
-  ProgressIndicator,
-  Text,
-  Button,
-  Icon,
-  Usernames,
-  ButtonBar,
-} from '../../../common-adapters'
-import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {roleIconMap} from '../../role-picker/index.meta'
+import {FloatingRolePicker} from '../../role-picker-2'
 
-export type Props = {
+type RolePickerSpecificProps = {|
+  isRolePickerOpen: boolean,
+  onCancelRolePicker: () => void,
+  onConfirmRolePicker: (role: Types.TeamRoleType) => void,
+  onEditMembership: () => void,
+  onSelectRole: (role: Types.TeamRoleType) => void,
+  selectedRole: ?Types.TeamRoleType,
+|}
+
+export type MemberProps = {|
   admin: boolean,
   follower: boolean,
   following: boolean,
@@ -24,88 +25,119 @@ export type Props = {
   you: ?Types.MemberInfo,
   onOpenProfile: () => void,
   onChat: () => void,
-  onEditMembership: () => void,
   onRemoveMember: () => void,
   onBack: () => void,
+|}
+
+export type Props = {
+  ...MemberProps,
+  ...RolePickerSpecificProps,
 }
 
 export const TeamMember = (props: Props) => {
   const {user, you} = props
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
-      <Box
+    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
+      <Kb.Box
         style={{
-          ...globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
-          marginBottom: globalMargins.large,
-          marginTop: globalMargins.large,
+          marginBottom: Styles.globalMargins.large,
+          marginTop: Styles.globalMargins.large,
         }}
       >
-        <Box
+        <Kb.Box
           style={{
-            ...globalStyles.flexBoxRow,
+            ...Styles.globalStyles.flexBoxRow,
             alignItems: 'center',
-            margin: globalMargins.small,
+            margin: Styles.globalMargins.small,
           }}
         >
-          <Avatar
+          <Kb.Avatar
             onClick={props.onOpenProfile}
-            style={{alignSelf: 'center', marginRight: globalMargins.tiny}}
+            style={{alignSelf: 'center', marginRight: Styles.globalMargins.tiny}}
             username={user.username}
             showFollowingStatus={true}
             size={64}
           />
           {user.type && !!roleIconMap[user.type] && (
-            <Icon
+            <Kb.Icon
               type={roleIconMap[user.type]}
               style={{
                 alignSelf: 'center',
-                margin: globalMargins.tiny,
+                margin: Styles.globalMargins.tiny,
               }}
               fontSize={28}
             />
           )}
-          <Avatar
-            style={{alignSelf: 'center', marginLeft: globalMargins.tiny}}
+          <Kb.Avatar
+            style={{alignSelf: 'center', marginLeft: Styles.globalMargins.tiny}}
             isTeam={true}
             teamname={props.teamname}
             size={64}
           />
-        </Box>
-        <Box
-          style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 20, margin: globalMargins.small}}
+        </Kb.Box>
+        <Kb.Box
+          style={{
+            ...Styles.globalStyles.flexBoxRow,
+            alignItems: 'center',
+            height: 20,
+            margin: Styles.globalMargins.small,
+          }}
         >
-          {props.loading && <ProgressIndicator style={{alignSelf: 'center', height: 20, width: 20}} />}
-        </Box>
-        <Usernames
+          {props.loading && <Kb.ProgressIndicator style={{alignSelf: 'center', height: 20, width: 20}} />}
+        </Kb.Box>
+        <Kb.Usernames
           type="HeaderBig"
           colorFollowing={!(you && you.username === user.username)} // De-colorize if this is own member page
           users={[{following: props.following, username: user.username}]}
           onUsernameClicked={props.onOpenProfile}
         />
-        <Text type="BodySmall">
-          {user.type} in {props.teamname}
-        </Text>
-      </Box>
-      <ButtonBar direction={isMobile ? 'column' : 'row'}>
-        <Button label="Chat" type="Primary" onClick={props.onChat}>
-          <Icon
+        <Kb.Text type="BodySmall">
+          {props.loading ? '... ' : user.type} in {props.teamname}
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'}>
+        <Kb.Button label="Chat" type="Primary" onClick={props.onChat}>
+          <Kb.Icon
             type="iconfont-chat"
             style={{
               marginRight: 8,
             }}
-            color={globalColors.white}
+            color={Styles.globalColors.white}
           />
-        </Button>
-        {props.admin && <Button type="Secondary" label="Edit role" onClick={props.onEditMembership} />}
+        </Kb.Button>
         {props.admin && (
-          <Button
+          <FloatingRolePicker
+            selectedRole={props.selectedRole}
+            presetRole={props.user.type}
+            onSelectRole={props.onSelectRole}
+            floatingContainerStyle={styles.floatingRolePicker}
+            onConfirm={props.onConfirmRolePicker}
+            onCancel={props.onCancelRolePicker}
+            position={'top center'}
+            open={props.isRolePickerOpen}
+          >
+            <Kb.Button type="Secondary" label="Edit role" onClick={props.onEditMembership} />
+          </FloatingRolePicker>
+        )}
+        {props.admin && (
+          <Kb.Button
             type="Danger"
             label={you && you.username === user.username ? 'Leave team' : 'Remove'}
             onClick={props.onRemoveMember}
           />
         )}
-      </ButtonBar>
-    </Box>
+      </Kb.ButtonBar>
+    </Kb.Box>
   )
+}
+
+const styles = {
+  floatingRolePicker: Styles.platformStyles({
+    isElectron: {
+      bottom: -32,
+      position: 'relative',
+    },
+  }),
 }
