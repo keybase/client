@@ -1172,6 +1172,10 @@ func (fbo *folderBranchOps) markRecursive(
 		if err != nil {
 			return err
 		}
+		if childNode == nil {
+			// A symlink.
+			continue
+		}
 		err = fbo.markRecursive(ctx, lState, childNode, rmd, tag, cacheType)
 		if err != nil {
 			return err
