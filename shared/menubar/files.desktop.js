@@ -36,6 +36,13 @@ type FilesPreviewProps = {|
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 
+// Force word wrapping in long filenames so widget does not expand horizontally.
+const wordWrapFilename = Styles.platformStyles({
+  isElectron: {
+    wordBreak: 'break-word',
+  },
+})
+
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
@@ -45,7 +52,7 @@ export const FileUpdate = (props: FileUpdateProps) => (
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
         </Kb.Box>
       )}
-      <Kb.Text type="Body">
+      <Kb.Text type="Body" style={wordWrapFilename}>
         {props.targetNameWithoutExtension}
         {props.targetExtension}
       </Kb.Text>
