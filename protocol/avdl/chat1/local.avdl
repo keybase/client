@@ -948,6 +948,7 @@ protocol local {
 
   SearchRegexpRes searchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+  void cancelActiveInboxSearch();
 
   record SearchInboxRes {
     union { null, ChatSearchInboxResults } res;

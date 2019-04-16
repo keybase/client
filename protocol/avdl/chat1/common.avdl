@@ -540,6 +540,12 @@
     COINFLIP_9
   }
 
+  enum ReIndexingMode {
+    NONE_0,
+    FORCE_1,
+    AFTERSEARCH_2
+  }
+
   record SearchOpts {
     string sentBy;
     gregor1.Time sentBefore;
@@ -550,8 +556,9 @@
     int beforeContext;
     int afterContext;
     // only used by in inbox search
-    boolean forceReindex;
-    int maxConvs;
+    ReIndexingMode reindexMode;
+    int maxConvsSearched;
+    int maxConvsHit;
     // only used by conversation name search
     int maxNameConvs;
   }
@@ -593,7 +600,10 @@
 
   record ChatSearchInboxHit {
     ConversationID convID;
+    TeamType teamType;
     string convName;
+    string query;
+    gregor1.Time time;
     array<ChatSearchHit> hits;
   }
 
