@@ -646,8 +646,7 @@ const navigateToAccount = (state, action) => {
 
 const navigateToTransaction = (state, action) => {
   const {accountID, paymentID} = action.payload
-  // TODO: fix.
-  const actions = [WalletsGen.createSelectAccount({accountID, reason: 'from-chat'})]
+  const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
   const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
   if (flags.useNewRouter) {
     // Since the new wallet routes have nested stacks, we actually

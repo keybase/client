@@ -269,7 +269,7 @@
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
-      "reason": "'user-selected' | 'auto-selected' | 'from-chat'",
+      "reason": "'user-selected' | 'auto-selected' | 'from-chat' | 'show-transaction'",
       "show?": "boolean"
     },
     "showTransaction": {
