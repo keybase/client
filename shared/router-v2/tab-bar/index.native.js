@@ -27,7 +27,9 @@ class TabBar extends React.PureComponent<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.selectedTab !== prevProps.selectedTab) {
       const justSelected = this.props.selectedTab
-      this.setState(p => (p.justSelected === justSelected ? null : {justSelected}))
+      if (this.state.justSelected !== justSelected) {
+        this.setState(p => (p.justSelected === justSelected ? null : {justSelected}))
+      }
     }
   }
 
