@@ -8,14 +8,14 @@ package libkb
 import (
 	cryptorand "crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"strings"
 
 	dbus "github.com/guelfey/go.dbus"
 	secsrv "github.com/keybase/go-keychain/secretservice"
 	"golang.org/x/crypto/hkdf"
-
-	"github.com/pkg/errors"
 )
 
 type SecretStoreRevokableSecretService struct{}
@@ -32,18 +32,19 @@ func (s *SecretStoreRevokableSecretService) makeServiceAttributes(mctx MetaConte
 	}
 }
 
-func (s *SecretStoreRevokableSecretService) makeAttributes(mctx MetaContext, username NormalizedUsername) secsrv.Attributes {
+func (s *SecretStoreRevokableSecretService) makeAttributes(mctx MetaContext, username NormalizedUsername, instanceIdentifier []byte) secsrv.Attributes {
 	serviceAttributes := s.makeServiceAttributes(mctx)
 	serviceAttributes["username"] = string(username)
+	serviceAttributes["identifier"] = hex.EncodeToString(instanceIdentifier)
 	serviceAttributes["note"] = "https://keybase.io/docs/crypto/local-key-security"
 	return serviceAttributes
 }
 
-func (s *SecretStoreRevokableSecretService) maybeRetrieveSingleItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername) (*dbus.ObjectPath, error) {
+func (s *SecretStoreRevokableSecretService) maybeRetrieveSingleItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername, instanceIdentifier []byte) (*dbus.ObjectPath, error) {
 	if srv == nil {
 		return nil, fmt.Errorf("got nil d-bus secretservice")
 	}
-	attributes := s.makeAttributes(mctx, username)
+	attributes := s.makeAttributes(mctx, username, instanceIdentifier)
 	items, err := srv.SearchCollection(secsrv.DefaultCollection, attributes)
 	if err != nil {
 		return nil, err
@@ -92,8 +93,28 @@ func (s *SecretStoreRevokableSecretService) keystore(mctx MetaContext, username 
 	return NewFileErasableKVStore(mctx, s.keystoreDir(mctx, username), keygen)
 }
 
+var identifierKeystoreSuffix = ".user"
+
+func (s *SecretStoreRevokableSecretService) identifierKeystoreKey(username NormalizedUsername) string {
+	return string(username) + identifierKeystoreSuffix
+}
+
+func (s *SecretStoreRevokableSecretService) identifierKeystore(mctx MetaContext) ErasableKVStore {
+	plaintextKeygen := func(mctx MetaContext, noise NoiseBytes) (xs [32]byte, err error) {
+		return sha256.Sum256(noise[:]), nil
+	}
+	return NewFileErasableKVStore(mctx, "ring-identifiers", plaintextKeygen)
+}
+
 func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
 	defer mctx.TraceTimed("SecretStoreRevokableSecretService.RetrieveSecret", func() error { return err })()
+
+	identifierKeystore := s.identifierKeystore(mctx)
+	var instanceIdentifier []byte
+	err = identifierKeystore.Get(mctx, s.identifierKeystoreKey(username), &instanceIdentifier)
+	if err != nil {
+		return LKSecFullSecret{}, err
+	}
 
 	srv, err := secsrv.NewService()
 	if err != nil {
@@ -105,7 +126,7 @@ func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, use
 	}
 	defer srv.CloseSession(session)
 
-	item, err := s.maybeRetrieveSingleItem(mctx, srv, username)
+	item, err := s.maybeRetrieveSingleItem(mctx, srv, username, instanceIdentifier)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -130,6 +151,17 @@ func (s *SecretStoreRevokableSecretService) RetrieveSecret(mctx MetaContext, use
 func (s *SecretStoreRevokableSecretService) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
 	defer mctx.TraceTimed("SecretStoreRevokableSecretService.StoreSecret", func() error { return err })()
 
+	// We add a public random identifier to the secret's properties in the
+	// Secret Service so if the same machine (with the same keyring) is storing
+	// passwords for the same user but in different home directories, they
+	// don't overwrite each others' keyring secrets (effectively logging the
+	// other one out after service restart).
+	instanceIdentifier := make([]byte, 32)
+	_, err = cryptorand.Read(instanceIdentifier)
+	if err != nil {
+		return err
+	}
+
 	keyringSecret := make([]byte, 32)
 	_, err = cryptorand.Read(keyringSecret)
 	if err != nil {
@@ -146,7 +178,7 @@ func (s *SecretStoreRevokableSecretService) StoreSecret(mctx MetaContext, userna
 	}
 	defer srv.CloseSession(session)
 	label := fmt.Sprintf("%s@%s", username, mctx.G().Env.GetStoredSecretServiceName())
-	properties := secsrv.NewSecretProperties(label, s.makeAttributes(mctx, username))
+	properties := secsrv.NewSecretProperties(label, s.makeAttributes(mctx, username, instanceIdentifier))
 	srvSecret, err := session.NewSecret(keyringSecret)
 	if err != nil {
 		return err
@@ -156,6 +188,12 @@ func (s *SecretStoreRevokableSecretService) StoreSecret(mctx MetaContext, userna
 		return err
 	}
 	_, err = srv.CreateItem(secsrv.DefaultCollection, properties, srvSecret, secsrv.ReplaceBehaviorReplace)
+	if err != nil {
+		return err
+	}
+
+	identifierKeystore := s.identifierKeystore(mctx)
+	err = identifierKeystore.Put(mctx, s.identifierKeystoreKey(username), instanceIdentifier)
 	if err != nil {
 		return err
 	}
@@ -179,11 +217,25 @@ func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, userna
 		mctx.Warning("Failed to erase keystore half: %s; attempting to delete from keyring", keystoreErr)
 	}
 
+	identifierKeystore := s.identifierKeystore(mctx)
+	var instanceIdentifier []byte
+	err = identifierKeystore.Get(mctx, s.identifierKeystoreKey(username), &instanceIdentifier)
+	if err != nil {
+		return err
+	}
+	err = identifierKeystore.Erase(mctx, s.identifierKeystoreKey(username))
+	if err != nil {
+		return err
+	}
+
 	srv, err := secsrv.NewService()
 	if err != nil {
 		return CombineErrors(keystoreErr, err)
 	}
-	item, err := s.maybeRetrieveSingleItem(mctx, srv, username)
+	// Only delete the one for the identifier we care about, so as not to erase
+	// other passwords for the same user in a different home directory on the
+	// same computer.
+	item, err := s.maybeRetrieveSingleItem(mctx, srv, username, instanceIdentifier)
 	if err != nil {
 		return CombineErrors(keystoreErr, err)
 	}
@@ -199,29 +251,19 @@ func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, userna
 	return keystoreErr
 }
 
+// Note that in the case of corruption, not all of these usernames may actually
+// be able to be logged in as due to the noise file being corrupted, the
+// keyring being uninstalled, etc.
 func (s *SecretStoreRevokableSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (usernames []string, err error) {
 	defer mctx.TraceTimed("SecretStoreRevokableSecretService.GetUsersWithStoredSecrets", func() error { return err })()
-
-	srv, err := secsrv.NewService()
+	identifierKeystore := s.identifierKeystore(mctx)
+	suffixedUsernames, err := identifierKeystore.AllKeys(mctx, identifierKeystoreSuffix)
 	if err != nil {
 		return nil, err
 	}
-	items, err := srv.SearchCollection(secsrv.DefaultCollection, s.makeServiceAttributes(mctx))
-	if err != nil {
-		return nil, err
+	for _, suffixedUsername := range suffixedUsernames {
+		usernames = append(usernames, strings.TrimSuffix(suffixedUsername, identifierKeystoreSuffix))
 	}
-	for _, item := range items {
-		attributes, err := srv.GetAttributes(item)
-		if err != nil {
-			return nil, err
-		}
-		username, ok := attributes["username"]
-		if !ok {
-			return nil, errors.Errorf("secret with attributes %+v does not have username key", attributes)
-		}
-		usernames = append(usernames, username)
-	}
-
 	return usernames, nil
 }
 

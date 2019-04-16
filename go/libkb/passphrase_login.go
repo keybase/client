@@ -213,12 +213,6 @@ func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts in
 	return PassphraseLoginPromptWithArg(m, maxAttempts, arg)
 }
 
-func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
-	defer m.Trace("StoreSecretAfterLogin", func() error { return err })()
-	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID)
-	return StoreSecretAfterLoginWithLKS(m, n, lksec)
-}
-
 func pplSecretStore(m MetaContext) (err error) {
 	lctx := m.LoginContext()
 	uid := lctx.GetUID()
@@ -229,7 +223,7 @@ func pplSecretStore(m MetaContext) (err error) {
 	if deviceID.IsNil() {
 		return NewNoDeviceError(fmt.Sprintf("UID=%s", uid))
 	}
-	return StoreSecretAfterLogin(m, lctx.GetUsername(), uid, deviceID)
+	return StoreSecretAfterLoginWithOptions(m, lctx.GetUsername(), uid, deviceID, nil)
 }
 
 func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string, maxAttempts int, failOnStoreError bool) (err error) {
@@ -251,8 +245,30 @@ func PassphraseLoginPromptThenSecretStore(m MetaContext, usernameOrEmail string,
 	return nil
 }
 
-func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSec) (err error) {
-	return StoreSecretAfterLoginWithLKSWithOptions(m, n, lks, nil)
+func LoadAdvisorySecretStoreOptionsFromRemote(mctx MetaContext) (options SecretStoreOptions) {
+	options = DefaultSecretStoreOptions()
+
+	var ret struct {
+		AppStatusEmbed
+		RandomPW bool `json:"random_pw"`
+	}
+	err := mctx.G().API.GetDecode(mctx, APIArg{
+		Endpoint:    "user/has_random_pw",
+		SessionType: APISessionTypeREQUIRED,
+	}, &ret)
+	if err != nil {
+		// If there was an API error, just return the default options.
+		return options
+	}
+	options.RandomPw = ret.RandomPW
+
+	return options
+}
+
+func StoreSecretAfterLoginWithOptions(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID, options *SecretStoreOptions) (err error) {
+	defer m.Trace("StoreSecretAfterLogin", func() error { return err })()
+	lksec := NewLKSecWithDeviceID(m.LoginContext().PassphraseStreamCache().PassphraseStream(), uid, deviceID)
+	return StoreSecretAfterLoginWithLKSWithOptions(m, n, lksec, options)
 }
 
 func StoreSecretAfterLoginWithLKSWithOptions(m MetaContext, n NormalizedUsername, lks *LKSec, options *SecretStoreOptions) (err error) {

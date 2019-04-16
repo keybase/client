@@ -185,9 +185,10 @@ func (e *LoginProvisionedDevice) tryPassphraseLogin(m libkb.MetaContext) (err er
 		return err
 	}
 
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
 	// A failure here is just a warning, since we still can use the app for this
 	// session. But it will undoubtedly cause pain.
-	w := libkb.StoreSecretAfterLogin(m, e.username, e.uid, e.deviceID)
+	w := libkb.StoreSecretAfterLoginWithOptions(m, e.username, e.uid, e.deviceID, &options)
 	if w != nil {
 		m.Warning("Secret store failed: %s", w.Error())
 	}
