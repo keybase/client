@@ -533,6 +533,16 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadPhoneNumbers)
+  yield* Saga.chainAction<
+    | EngineGen.Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
+    | EngineGen.Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
+  >(
+    [
+      EngineGen.keybase1NotifyPhoneNumberPhoneNumberAdded,
+      EngineGen.keybase1NotifyPhoneNumberPhoneNumberVerified,
+    ],
+    loadPhoneNumbers
+  )
 
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
     SettingsGen.onSubmitNewEmail,
