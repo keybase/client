@@ -199,12 +199,12 @@ class InfoPanelMenu extends React.Component<Props> {
           <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
             {title}
           </Kb.Text>
-          <Kb.Icon
+          {!convProps.muted && <Kb.Icon
             color={Styles.globalColors.black_20}
             fontSize={Styles.isMobile ? 18 : undefined}
             style={styles.icon}
             type="iconfont-shh"
-          />
+          />}
         </Kb.Box>
       ),
     }

@@ -72,12 +72,15 @@ class SmallTeam extends React.PureComponent<Props, State> {
 
   render() {
     const props = this.props
+    const clickProps = {
+      onClick: props.onSelectConversation,
+      ...(Styles.isMobile ? {onLongPress: () => this._onShowMenu(true)} : {}),
+      onMouseLeave: this._onMouseLeave,
+      onMouseOver: this._onMouseOver,
+    }
     return (
       <SmallTeamBox
-        onClick={props.onSelectConversation}
-        onLongPress={() => this._onShowMenu(true)}
-        onMouseLeave={this._onMouseLeave}
-        onMouseOver={this._onMouseOver}
+        {...clickProps}
         style={Styles.collapseStyles([
           {
             backgroundColor: this._backgroundColor(),
