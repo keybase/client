@@ -149,10 +149,20 @@ const load = () => {
         />
         <FileUpdate
           path={Types.stringToPath(
-            '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
+            '/keybase/team/kbkbfstest/poo-long-name-long-name-long-name long-name-long-name-long-name-long-name long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name'
           )}
           targetExtension=""
-          targetNameWithoutExtension="poo-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
+          targetNameWithoutExtension="poo-long-name-long-name-long-name long-name-long-name-long-name-long-name long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={false}
+        />
+        <FileUpdate
+          path={Types.stringToPath(
+            '/keybase/team/kbkbfstest/moo_c_windows_system32_drivers_etc_hosts_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name'
+          )}
+          targetExtension=""
+          targetNameWithoutExtension="moo_c_windows_system32_drivers_etc_hosts_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name_long_name"
           tlfType="private"
           onClick={Storybook.action('onClick')}
           uploading={false}
