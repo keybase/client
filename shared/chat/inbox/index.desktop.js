@@ -13,7 +13,6 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
 import UnreadShortcut from './unread-shortcut'
-import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
 import {virtualListMarks} from '../../local-debug'
@@ -180,7 +179,6 @@ class Inbox extends React.PureComponent<Props, State> {
     this._selectedVisible = !!this.props.rows.find(
       r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
     )
-    const owl = !this.props.rows.length && <Owl />
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
@@ -206,7 +204,6 @@ class Inbox extends React.PureComponent<Props, State> {
               )}
             </AutoSizer>
           </div>
-          {owl}
           {floatingDivider || <BuildTeam />}
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this._scrollToUnread} />
