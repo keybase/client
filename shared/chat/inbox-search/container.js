@@ -42,6 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   nameStatus: stateProps._inboxSearch.nameStatus,
   onCancel: dispatchProps.onCancel,
   onSelectConversation: dispatchProps.onSelectConversation,
+  query: stateProps._inboxSearch.query.stringValue(),
   selectedIndex: stateProps._inboxSearch.selectedIndex,
   textResults: stateProps._inboxSearch.textResults
     .map(r => ({

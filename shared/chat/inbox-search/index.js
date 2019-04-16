@@ -32,6 +32,7 @@ type Props = {|
   selectedIndex: number,
   textStatus: Types.InboxSearchStatus,
   textResults: Array<TextResult>,
+  query: string,
 |}
 
 type State = {
@@ -120,7 +121,8 @@ class InboxSearch extends React.Component<Props, State> {
       this.props.nameStatus === 'done' &&
       this.props.textStatus === 'done' &&
       this.props.nameResults.length === 0 &&
-      this.props.textResults.length === 0
+      this.props.textResults.length === 0 &&
+      this.props.query.length > 0
     const sections = [
       {
         data: nameResults,
@@ -149,18 +151,15 @@ class InboxSearch extends React.Component<Props, State> {
     }
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-        {noResults ? (
-          <Owl />
-        ) : (
-          <Kb.SectionList
-            ListHeaderComponent={this.props.header}
-            stickySectionHeadersEnabled={true}
-            renderSectionHeader={this._renderSectionHeader}
-            keyExtractor={this._keyExtractor}
-            keyboardShouldPersistTaps="handled"
-            sections={sections}
-          />
-        )}
+        <Kb.SectionList
+          ListHeaderComponent={this.props.header}
+          stickySectionHeadersEnabled={true}
+          renderSectionHeader={this._renderSectionHeader}
+          keyExtractor={this._keyExtractor}
+          keyboardShouldPersistTaps="handled"
+          sections={sections}
+        />
+        {noResults && <Owl />}
       </Kb.Box2>
     )
   }

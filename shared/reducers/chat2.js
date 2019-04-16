@@ -1142,6 +1142,15 @@ const rootReducer = (
           selectedIndex: action.payload.selectedIndex,
         })
       })
+    case Chat2Gen.inboxSearch:
+      if (!state.inboxSearch) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          query: action.payload.query,
+        })
+      })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -1276,7 +1285,6 @@ const rootReducer = (
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
     case Chat2Gen.loadMessagesFromSearchHit:
-    case Chat2Gen.inboxSearch:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

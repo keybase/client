@@ -99,6 +99,7 @@ export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Re
   nameResults: I.List(),
   nameResultsUnread: false,
   nameStatus: 'initial',
+  query: new HiddenString(''),
   selectedIndex: 0,
   textResults: I.List(),
   textStatus: 'initial',

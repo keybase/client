@@ -254,7 +254,7 @@ class Inbox extends React.PureComponent<Props, State> {
             />
           )}
           {noChats}
-          {floatingDivider || <BuildTeam />}
+          {floatingDivider || (!this.props.isSearching && <BuildTeam />)}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this._scrollToUnread} />
           )}
