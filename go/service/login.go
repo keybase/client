@@ -147,13 +147,13 @@ func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) error {
+func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, arg keybase1.LoginWithPaperKeyArg) error {
 	uis := libkb.UIs{
-		LogUI:     h.getLogUI(sessionID),
-		SecretUI:  h.getSecretUI(sessionID, h.G()),
-		SessionID: sessionID,
+		LogUI:     h.getLogUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
 	}
-	eng := engine.NewLoginWithPaperKey(h.G())
+	eng := engine.NewLoginWithPaperKey(h.G(), arg.Username)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	err := engine.RunEngine2(m, eng)
 	return err

@@ -13,13 +13,15 @@ import (
 // LoginWithPaperKey is an engine.
 type LoginWithPaperKey struct {
 	libkb.Contextified
+	username string
 }
 
 // NewLoginWithPaperKey creates a LoginWithPaperKey engine.
 // Uses the paperkey to log in and unlock LKS.
-func NewLoginWithPaperKey(g *libkb.GlobalContext) *LoginWithPaperKey {
+func NewLoginWithPaperKey(g *libkb.GlobalContext, username string) *LoginWithPaperKey {
 	return &LoginWithPaperKey{
 		Contextified: libkb.NewContextified(g),
+		username:     username,
 	}
 }
 

@@ -39,7 +39,8 @@ type LoginProvisionedDeviceArg struct {
 }
 
 type LoginWithPaperKeyArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
 }
 
 type ClearStoredSecretArg struct {
@@ -105,7 +106,7 @@ type LoginInterface interface {
 	// Login and unlock by
 	// - trying unlocked device keys if available
 	// - prompting for a paper key and using that
-	LoginWithPaperKey(context.Context, int) error
+	LoginWithPaperKey(context.Context, LoginWithPaperKeyArg) error
 	// Removes any existing stored secret for the given username.
 	// loginWithStoredSecret(_, username) will fail after this is called.
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
@@ -189,7 +190,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LoginWithPaperKeyArg)(nil), args)
 						return
 					}
-					err = i.LoginWithPaperKey(ctx, typedArgs[0].SessionID)
+					err = i.LoginWithPaperKey(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -379,8 +380,7 @@ func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProv
 // Login and unlock by
 // - trying unlocked device keys if available
 // - prompting for a paper key and using that
-func (c LoginClient) LoginWithPaperKey(ctx context.Context, sessionID int) (err error) {
-	__arg := LoginWithPaperKeyArg{SessionID: sessionID}
+func (c LoginClient) LoginWithPaperKey(ctx context.Context, __arg LoginWithPaperKeyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []interface{}{__arg}, nil)
 	return
 }

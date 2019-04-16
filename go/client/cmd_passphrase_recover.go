@@ -5,23 +5,27 @@ package client
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CmdPassphraseRecover struct {
 	libkb.Contextified
+	Username string
 }
 
 func NewCmdPassphraseRecover(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "recover",
-		Usage: "Recover your keybase account passphrase",
+		Name:         "recover",
+		ArgumentHelp: "[username]",
+		Usage:        "Recover your keybase account passphrase",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPassphraseRecoverRunner(g), "recover", c)
 		},
@@ -99,7 +103,9 @@ func (c *CmdPassphraseRecover) loginWithPaperKey(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = client.LoginWithPaperKey(ctx, 0)
+	err = client.LoginWithPaperKey(ctx, keybase1.LoginWithPaperKeyArg{
+		Username: c.Username,
+	})
 	if err != nil {
 		return err
 	}
@@ -107,6 +113,18 @@ func (c *CmdPassphraseRecover) loginWithPaperKey(ctx context.Context) error {
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {
+	nargs := len(ctx.Args())
+	if nargs > 1 {
+		return errors.New("Invalid arguments.")
+	}
+
+	if nargs == 1 {
+		c.Username = ctx.Args()[0]
+		checker := libkb.CheckUsername
+		if !checker.F(c.Username) {
+			return fmt.Errorf("Invalid username. Valid usernames are: %s", checker.Hint)
+		}
+	}
 	return nil
 }
 

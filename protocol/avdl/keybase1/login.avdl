@@ -35,7 +35,7 @@ protocol login {
   - trying unlocked device keys if available
   - prompting for a paper key and using that
     */
-  void loginWithPaperKey(int sessionID);
+  void loginWithPaperKey(int sessionID, string username);
 
   /**
     Removes any existing stored secret for the given username.
