@@ -1,22 +1,20 @@
 // @flow
 import {isEqual} from 'lodash-es'
 import * as ChatTypes from '../../constants/types/chat2'
-import * as ChatConstants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ChannelMembershipState} from '../../constants/types/teams'
 import ManageChannels from '.'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {getPath} from '../../route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import * as Tabs from '../../constants/tabs'
+import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, {routeProps, routeState}) => {
-  const teamname = routeProps.get('teamname')
+const mapStateToProps = (state, ownProps) => {
+  const teamname = Container.getRouteProps(ownProps, 'teamname')
   const waitingKey = getChannelsWaitingKey(teamname)
   const waitingForGet = anyWaiting(state, waitingKey)
   const channelInfos = getTeamChannelInfos(state, teamname)
@@ -41,10 +39,7 @@ const mapStateToProps = (state, {routeProps, routeState}) => {
     .toArray()
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const selectedConversation = state.chat2.selectedConversation
-  const routePath = getPath(state.routeTree.routeState)
-  const chatTabSelected = routePath.get(0) === Tabs.chatTab
-  const selectedChatID = chatTabSelected ? selectedConversation : ChatConstants.noConversationIDKey
+  const selectedChatID = state.chat2.selectedConversation
 
   return {
     _hasOperations,
@@ -59,8 +54,8 @@ const mapStateToProps = (state, {routeProps, routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
-  const teamname = routeProps.get('teamname')
+const mapDispatchToProps = (dispatch, ownProps) => {
+  const teamname = Container.getRouteProps(ownProps, 'teamname')
   return {
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
     _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
@@ -78,7 +73,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
           you,
         })
       )
-      dispatch(navigateUp())
+      dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'manageView', teamname}))
     },
     _saveSubscriptions: (
@@ -95,18 +90,22 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
           you,
         })
       )
-      selectedChatID in nextChannelState && !nextChannelState[selectedChatID]
-        ? dispatch(
-            Chat2Gen.createNavigateToInbox({avoidConversationID: selectedChatID, findNewConversation: true})
-          )
-        : dispatch(navigateUp())
+      if (selectedChatID in nextChannelState && !nextChannelState[selectedChatID]) {
+        dispatch(
+          flags.useNewRouter && Container.isMobile
+            ? RouteTreeGen.createNavigateUp()
+            : Chat2Gen.createNavigateToInbox({avoidConversationID: selectedChatID, findNewConversation: true})
+        )
+      } else {
+        dispatch(RouteTreeGen.createNavigateUp())
+      }
     },
-    onBack: () => dispatch(navigateUp()),
-    onClose: () => dispatch(navigateUp()),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCreate: () =>
       dispatch(
         RouteTreeGen.createNavigateTo({
-          parentPath: routePath.butLast(),
+          parentPath: flags.useNewRouter ? [] : ownProps.routePath.butLast(),
           path: [{props: {teamname}, selected: 'chatCreateChannel'}],
         })
       ),
