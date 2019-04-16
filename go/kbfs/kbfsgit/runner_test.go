@@ -139,8 +139,8 @@ func gitExec(t *testing.T, gitDir, workTree string, command ...string) {
 	cmd := exec.Command("git",
 		append([]string{"--git-dir", gitDir, "--work-tree", workTree},
 			command...)...)
-	err := cmd.Run()
-	require.NoError(t, err)
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(output))
 }
 
 func makeLocalRepoWithOneFileCustomCommitMsg(t *testing.T,
