@@ -73,7 +73,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return 0
     }
 
-    return getRowHeight(row.type, false, row.type === 'divider' && row.showButton)
+    return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
   _itemRenderer = (index, style) => {
