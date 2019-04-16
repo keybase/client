@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {TeamAvatar} from './avatars'
+import {pluralize} from '../util/string'
 
 type Props = {|
   isSelected: boolean,
@@ -90,7 +91,9 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               </Kb.Text>
             </Kb.Box2>
             {!!this.props.numSearchHits && (
-              <Kb.Text type="BodySmall">{this._getSearchHits()} Message Hits</Kb.Text>
+              <Kb.Text type="BodySmall">
+                {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
+              </Kb.Text>
             )}
           </Kb.Box2>
           {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}

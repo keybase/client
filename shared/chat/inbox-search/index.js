@@ -25,6 +25,7 @@ type Props = {|
   indexPercent: number,
   nameStatus: Types.InboxSearchStatus,
   nameResults: Array<NameResult>,
+  nameResultsUnread: boolean,
   onCancel: () => void,
   onSelectConversation: (Types.ConversationIDKey, number, string) => void,
   selectedIndex: number,
@@ -112,6 +113,34 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   render() {
+    const textResults = this._textResults()
+    const nameResults = this._nameResults()
+    const sections = [
+      {
+        data: nameResults,
+        indexOffset: 0,
+        isCollapsed: this.state.nameCollapsed,
+        onCollapse: this._toggleCollapseName,
+        onSelect: this._selectName,
+        renderHeader: this._renderNameHeader,
+        renderItem: this._renderHit,
+        status: this.props.nameStatus,
+        title: this.props.nameResultsUnread ? 'Recent' : 'Chats',
+      },
+    ]
+    if (!this.props.nameResultsUnread) {
+      sections.push({
+        data: textResults,
+        indexOffset: nameResults.length,
+        isCollapsed: this.state.textCollapsed,
+        onCollapse: this._toggleCollapseText,
+        onSelect: this._selectText,
+        renderHeader: this._renderTextHeader,
+        renderItem: this._renderHit,
+        status: this.props.textStatus,
+        title: 'Messages',
+      })
+    }
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         <Kb.SectionList
@@ -120,30 +149,7 @@ class InboxSearch extends React.Component<Props, State> {
           renderSectionHeader={this._renderSectionHeader}
           keyExtractor={this._keyExtractor}
           keyboardShouldPersistTaps="handled"
-          sections={[
-            {
-              data: this._nameResults(),
-              indexOffset: 0,
-              isCollapsed: this.state.nameCollapsed,
-              onCollapse: this._toggleCollapseName,
-              onSelect: this._selectName,
-              renderHeader: this._renderNameHeader,
-              renderItem: this._renderHit,
-              status: this.props.nameStatus,
-              title: 'Conversation Name Matches',
-            },
-            {
-              data: this._textResults(),
-              indexOffset: this._nameResults().length,
-              isCollapsed: this.state.textCollapsed,
-              onCollapse: this._toggleCollapseText,
-              onSelect: this._selectText,
-              renderHeader: this._renderTextHeader,
-              renderItem: this._renderHit,
-              status: this.props.textStatus,
-              title: 'Message Text Matches',
-            },
-          ]}
+          sections={sections}
         />
       </Kb.Box2>
     )

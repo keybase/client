@@ -972,6 +972,23 @@
     },
     {
       "type": "record",
+      "name": "UIChatSearchConvHits",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIChatSearchConvHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "boolean",
+          "name": "unreadMatches"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIChatPayment",
       "fields": [
         {
@@ -1560,10 +1577,7 @@
         },
         {
           "name": "hits",
-          "type": {
-            "type": "array",
-            "items": "UIChatSearchConvHit"
-          }
+          "type": "UIChatSearchConvHits"
         }
       ],
       "response": null

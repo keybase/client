@@ -279,7 +279,7 @@ func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearch
 	if c.noOutput {
 		return nil
 	}
-	for _, hit := range arg.Hits {
+	for _, hit := range arg.Hits.Hits {
 		c.terminal.Output(fmt.Sprintf("Conversation: %s found with matching name\n", hit.Name))
 	}
 	return nil

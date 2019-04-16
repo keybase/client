@@ -2458,8 +2458,10 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 			case <-ctx.Done():
 				return
 			default:
-				chatUI.ChatSearchConvHits(ctx, utils.PresentRemoteConversationsAsSearchHits(convHits,
-					username))
+				chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
+					Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
+					UnreadMatches: len(query) == 0,
+				})
 			}
 		}
 	}()

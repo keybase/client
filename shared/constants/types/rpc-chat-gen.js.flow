@@ -157,7 +157,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.chatUi.chatSearchConvHits': {|
-    inParam: $ReadOnly<{|hits?: ?Array<UIChatSearchConvHit>|}>,
+    inParam: $ReadOnly<{|hits: UIChatSearchConvHits|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatSearchDone': {|
@@ -1274,6 +1274,7 @@ export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIChatPayment = $ReadOnly<{username: String, fullName: String, xlmAmount: String, error?: ?String, displayAmount?: ?String}>
 export type UIChatPaymentSummary = $ReadOnly<{xlmTotal: String, displayTotal: String, payments?: ?Array<UIChatPayment>}>
 export type UIChatSearchConvHit = $ReadOnly<{convID: String, teamType: TeamType, name: String, mtime: Gregor1.Time}>
+export type UIChatSearchConvHits = $ReadOnly<{hits?: ?Array<UIChatSearchConvHit>, unreadMatches: Boolean}>
 export type UICoinFlipAbsenteeError = $ReadOnly<{absentees?: ?Array<UICoinFlipErrorParticipant>}>
 export type UICoinFlipError = {typ: 0, generic: ?String} | {typ: 1, absentee: ?UICoinFlipAbsenteeError} | {typ: 2} | {typ: 3} | {typ: 4, dupreg: ?UICoinFlipErrorParticipant} | {typ: 5, dupcommitcomplete: ?UICoinFlipErrorParticipant} | {typ: 6, dupreveal: ?UICoinFlipErrorParticipant} | {typ: 7, commitmismatch: ?UICoinFlipErrorParticipant}
 export type UICoinFlipErrorParticipant = $ReadOnly<{user: String, device: String}>

@@ -97,6 +97,7 @@ export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
   indexPercent: 0,
   nameResults: I.List(),
+  nameResultsUnread: false,
   nameStatus: 'initial',
   selectedIndex: 0,
   textResults: I.List(),

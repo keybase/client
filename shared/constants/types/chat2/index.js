@@ -80,6 +80,7 @@ export type _InboxSearchInfo = {
   indexPercent: number,
   nameResults: I.List<InboxSearchConvHit>,
   nameStatus: InboxSearchStatus,
+  nameResultsUnread: boolean,
   selectedIndex: number,
   textResults: I.List<InboxSearchTextHit>,
   textStatus: InboxSearchStatus,

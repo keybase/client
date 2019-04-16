@@ -2,6 +2,7 @@
 import React, {PureComponent} from 'react'
 import {PlaintextUsernames, Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles'
+import {pluralize} from '../util/string'
 
 type Props = {
   numSearchHits?: number,
@@ -47,7 +48,11 @@ class FilteredTopLine extends PureComponent<Props> {
             users={participants.map(p => ({username: p}))}
             title={participants.join(', ')}
           />
-          {!!this.props.numSearchHits && <Text type="BodySmall">{this._getSearchHits()} Message Hits</Text>}
+          {!!this.props.numSearchHits && (
+            <Text type="BodySmall">
+              {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
+            </Text>
+          )}
         </Box>
       </Box>
     )

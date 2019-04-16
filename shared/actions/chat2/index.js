@@ -1405,7 +1405,7 @@ function* inboxSearch(state, action) {
   const onConvHits = resp => {
     return Saga.put(
       Chat2Gen.createInboxSearchNameResults({
-        results: (resp.hits || []).reduce((l, h) => {
+        results: (resp.hits.hits || []).reduce((l, h) => {
           return l.push(
             Constants.makeInboxSearchConvHit({
               conversationIDKey: Types.stringToConversationIDKey(h.convID),
@@ -1413,6 +1413,7 @@ function* inboxSearch(state, action) {
             })
           )
         }, I.List()),
+        unread: resp.hits.unreadMatches,
       })
     )
   }

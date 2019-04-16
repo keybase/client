@@ -1105,8 +1105,8 @@ func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInb
 	return nil
 }
 
-func (c *ChatUI) ChatSearchConvHits(ctx context.Context, hits []chat1.UIChatSearchConvHit) error {
-	c.InboxSearchConvHitsCb <- hits
+func (c *ChatUI) ChatSearchConvHits(ctx context.Context, hits chat1.UIChatSearchConvHits) error {
+	c.InboxSearchConvHitsCb <- hits.Hits
 	return nil
 }
 

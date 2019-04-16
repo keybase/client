@@ -1088,6 +1088,28 @@ func (o UIChatSearchConvHit) DeepCopy() UIChatSearchConvHit {
 	}
 }
 
+type UIChatSearchConvHits struct {
+	Hits          []UIChatSearchConvHit `codec:"hits" json:"hits"`
+	UnreadMatches bool                  `codec:"unreadMatches" json:"unreadMatches"`
+}
+
+func (o UIChatSearchConvHits) DeepCopy() UIChatSearchConvHits {
+	return UIChatSearchConvHits{
+		Hits: (func(x []UIChatSearchConvHit) []UIChatSearchConvHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIChatSearchConvHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		UnreadMatches: o.UnreadMatches,
+	}
+}
+
 type UIChatPayment struct {
 	Username      string  `codec:"username" json:"username"`
 	FullName      string  `codec:"fullName" json:"fullName"`
@@ -1913,8 +1935,8 @@ type ChatSearchIndexStatusArg struct {
 }
 
 type ChatSearchConvHitsArg struct {
-	SessionID int                   `codec:"sessionID" json:"sessionID"`
-	Hits      []UIChatSearchConvHit `codec:"hits" json:"hits"`
+	SessionID int                  `codec:"sessionID" json:"sessionID"`
+	Hits      UIChatSearchConvHits `codec:"hits" json:"hits"`
 }
 
 type ChatConfirmChannelDeleteArg struct {

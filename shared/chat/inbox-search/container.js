@@ -38,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
       type: r.teamType,
     }))
     .toArray(),
+  nameResultsUnread: stateProps._inboxSearch.nameResultsUnread,
   nameStatus: stateProps._inboxSearch.nameStatus,
   onCancel: dispatchProps.onCancel,
   onSelectConversation: dispatchProps.onSelectConversation,
