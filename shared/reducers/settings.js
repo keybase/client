@@ -127,8 +127,10 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.loadedCheckPassword:
       return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
     // Saga only actions
+    case SettingsGen.addPhoneNumber:
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
+    case SettingsGen.deletePhoneNumber:
     case SettingsGen.invitesReclaim:
     case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:

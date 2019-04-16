@@ -5,8 +5,15 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "addPhoneNumber": {
+      "phoneNumber": "string",
+      "searchable": "boolean"
+    },
     "dbNuke": {},
     "deleteAccountForever": {},
+    "deletePhoneNumber": {
+      "phoneNumber": "string"
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"

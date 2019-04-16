@@ -371,6 +371,17 @@ const deleteAccountForever = (state, action) => {
   )
 }
 
+const addPhoneNumber = (_, action) =>
+  RPCTypes.phoneNumbersAddPhoneNumberRpcPromise({
+    phoneNumber: action.payload.phoneNumber,
+    visibility: action.payload.searchable
+      ? RPCTypes.commonIdentityVisibility.public
+      : RPCTypes.commonIdentityVisibility.private,
+  })
+
+const deletePhoneNumber = (_, action) =>
+  RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phoneNumber})
+
 const loadPhoneNumbers = () =>
   RPCTypes.phoneNumbersGetPhoneNumbersRpcPromise().then(
     phoneNumbers =>
@@ -504,6 +515,11 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.DeleteAccountForeverPayload>(
     SettingsGen.deleteAccountForever,
     deleteAccountForever
+  )
+  yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(SettingsGen.addPhoneNumber, addPhoneNumber)
+  yield* Saga.chainAction<SettingsGen.DeletePhoneNumberPayload>(
+    SettingsGen.deletePhoneNumber,
+    deletePhoneNumber
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadPhoneNumbers)

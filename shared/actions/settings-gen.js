@@ -11,9 +11,11 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addPhoneNumber = 'settings:addPhoneNumber'
 export const checkPassword = 'settings:checkPassword'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
+export const deletePhoneNumber = 'settings:deletePhoneNumber'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
 export const invitesReclaimed = 'settings:invitesReclaimed'
@@ -58,9 +60,11 @@ export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _AddPhoneNumberPayload = $ReadOnly<{|phoneNumber: string, searchable: boolean|}>
 type _CheckPasswordPayload = $ReadOnly<{|password: HiddenString|}>
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
+type _DeletePhoneNumberPayload = $ReadOnly<{|phoneNumber: string|}>
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = $ReadOnly<{|inviteId: string|}>
 type _InvitesReclaimedPayload = void
@@ -123,9 +127,11 @@ export const createUnfurlSettingsRefreshed = (payload: _UnfurlSettingsRefreshedP
  * Update unfurl settings from settings screen
  */
 export const createUnfurlSettingsSaved = (payload: _UnfurlSettingsSavedPayload) => ({payload, type: unfurlSettingsSaved})
+export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload) => ({payload, type: addPhoneNumber})
 export const createCheckPassword = (payload: _CheckPasswordPayload) => ({payload, type: checkPassword})
 export const createDbNuke = (payload: _DbNukePayload) => ({payload, type: dbNuke})
 export const createDeleteAccountForever = (payload: _DeleteAccountForeverPayload) => ({payload, type: deleteAccountForever})
+export const createDeletePhoneNumber = (payload: _DeletePhoneNumberPayload) => ({payload, type: deletePhoneNumber})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload) => ({payload, type: invitesClearError})
 export const createInvitesReclaim = (payload: _InvitesReclaimPayload) => ({payload, type: invitesReclaim})
 export const createInvitesReclaimed = (payload: _InvitesReclaimedPayload) => ({payload, type: invitesReclaimed})
@@ -168,9 +174,11 @@ export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({payload, type: waitingForResponse})
 
 // Action Payloads
+export type AddPhoneNumberPayload = {|+payload: _AddPhoneNumberPayload, +type: 'settings:addPhoneNumber'|}
 export type CheckPasswordPayload = {|+payload: _CheckPasswordPayload, +type: 'settings:checkPassword'|}
 export type DbNukePayload = {|+payload: _DbNukePayload, +type: 'settings:dbNuke'|}
 export type DeleteAccountForeverPayload = {|+payload: _DeleteAccountForeverPayload, +type: 'settings:deleteAccountForever'|}
+export type DeletePhoneNumberPayload = {|+payload: _DeletePhoneNumberPayload, +type: 'settings:deletePhoneNumber'|}
 export type InvitesClearErrorPayload = {|+payload: _InvitesClearErrorPayload, +type: 'settings:invitesClearError'|}
 export type InvitesReclaimPayload = {|+payload: _InvitesReclaimPayload, +type: 'settings:invitesReclaim'|}
 export type InvitesReclaimedPayload = {|+payload: _InvitesReclaimedPayload, +type: 'settings:invitesReclaimed'|}
@@ -219,9 +227,11 @@ export type WaitingForResponsePayload = {|+payload: _WaitingForResponsePayload, 
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddPhoneNumberPayload
   | CheckPasswordPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
+  | DeletePhoneNumberPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
   | InvitesReclaimedPayload
