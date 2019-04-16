@@ -14,7 +14,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-const reacjiDiskVersion = 1
+const reacjiDiskVersion = 2
 
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses:"}
