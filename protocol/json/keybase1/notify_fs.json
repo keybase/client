@@ -76,7 +76,7 @@
       "request": [
         {
           "name": "status",
-          "type": "FSOverallSyncStatus"
+          "type": "FolderSyncStatus"
         }
       ],
       "response": null,

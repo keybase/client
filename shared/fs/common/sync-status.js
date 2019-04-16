@@ -75,7 +75,7 @@ const SyncStatus = (props: Props) => (
     {typeof props.status === 'number' ? (
       <PieSlice degrees={360 * props.status} animated={true} />
     ) : (
-      <Kb.Icon type={getIcon(props)} sizeType={'Small'} color={getColor(props)} />
+      <Kb.Icon type={getIcon(props)} sizeType="Small" color={getColor(props)} />
     )}
   </Kb.WithTooltip>
 )

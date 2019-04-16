@@ -31,7 +31,7 @@ type FSSyncStatusResponseArg struct {
 }
 
 type FSOverallSyncStatusChangedArg struct {
-	Status FSOverallSyncStatus `codec:"status" json:"status"`
+	Status FolderSyncStatus `codec:"status" json:"status"`
 }
 
 type FSOnlineStatusChangedArg struct {
@@ -44,7 +44,7 @@ type NotifyFSInterface interface {
 	FSSyncActivity(context.Context, FSPathSyncStatus) error
 	FSEditListResponse(context.Context, FSEditListResponseArg) error
 	FSSyncStatusResponse(context.Context, FSSyncStatusResponseArg) error
-	FSOverallSyncStatusChanged(context.Context, FSOverallSyncStatus) error
+	FSOverallSyncStatusChanged(context.Context, FolderSyncStatus) error
 	FSOnlineStatusChanged(context.Context, bool) error
 }
 
@@ -193,7 +193,7 @@ func (c NotifyFSClient) FSSyncStatusResponse(ctx context.Context, __arg FSSyncSt
 	return
 }
 
-func (c NotifyFSClient) FSOverallSyncStatusChanged(ctx context.Context, status FSOverallSyncStatus) (err error) {
+func (c NotifyFSClient) FSOverallSyncStatusChanged(ctx context.Context, status FolderSyncStatus) (err error) {
 	__arg := FSOverallSyncStatusChangedArg{Status: status}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOverallSyncStatusChanged", []interface{}{__arg})
 	return

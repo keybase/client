@@ -132,7 +132,7 @@ func (d *notificationDisplay) FSOnlineStatusChanged(_ context.Context, online bo
 }
 
 func (d *notificationDisplay) FSOverallSyncStatusChanged(_ context.Context,
-	status keybase1.FSOverallSyncStatus) error {
+	status keybase1.FolderSyncStatus) error {
 	return d.printf("KBFS overall sync status: %+v\n", status)
 }
 

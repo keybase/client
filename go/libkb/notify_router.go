@@ -41,7 +41,7 @@ type NotifyListener interface {
 	FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)
 	FSSyncEvent(arg keybase1.FSPathSyncStatus)
 	FSEditListRequest(arg keybase1.FSEditListRequest)
-	FSOverallSyncStatusChanged(arg keybase1.FSOverallSyncStatus)
+	FSOverallSyncStatusChanged(arg keybase1.FolderSyncStatus)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
@@ -104,20 +104,20 @@ type NoopNotifyListener struct{}
 
 var _ NotifyListener = (*NoopNotifyListener)(nil)
 
-func (n *NoopNotifyListener) Logout()                                                        {}
-func (n *NoopNotifyListener) Login(username string)                                          {}
-func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)                            {}
-func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                   {}
-func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername)  {}
-func (n *NoopNotifyListener) FSOnlineStatusChanged(online bool)                              {}
-func (n *NoopNotifyListener) FSOverallSyncStatusChanged(status keybase1.FSOverallSyncStatus) {}
-func (n *NoopNotifyListener) FSActivity(activity keybase1.FSNotification)                    {}
-func (n *NoopNotifyListener) FSPathUpdated(path string)                                      {}
-func (n *NoopNotifyListener) FSEditListResponse(arg keybase1.FSEditListArg)                  {}
-func (n *NoopNotifyListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)              {}
-func (n *NoopNotifyListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                      {}
-func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)               {}
-func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                              {}
+func (n *NoopNotifyListener) Logout()                                                       {}
+func (n *NoopNotifyListener) Login(username string)                                         {}
+func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)                           {}
+func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                  {}
+func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername) {}
+func (n *NoopNotifyListener) FSOnlineStatusChanged(online bool)                             {}
+func (n *NoopNotifyListener) FSOverallSyncStatusChanged(status keybase1.FolderSyncStatus)   {}
+func (n *NoopNotifyListener) FSActivity(activity keybase1.FSNotification)                   {}
+func (n *NoopNotifyListener) FSPathUpdated(path string)                                     {}
+func (n *NoopNotifyListener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
+func (n *NoopNotifyListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
+func (n *NoopNotifyListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
+func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)              {}
+func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                             {}
 func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
 }
 func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID) {}
@@ -498,7 +498,7 @@ func (n *NotifyRouter) HandleFSOnlineStatusChanged(online bool) {
 
 // HandleFSOverallSyncStatusChanged is called when the overall sync status
 // changes. It will broadcast the messages to all curious listeners.
-func (n *NotifyRouter) HandleFSOverallSyncStatusChanged(status keybase1.FSOverallSyncStatus) {
+func (n *NotifyRouter) HandleFSOverallSyncStatusChanged(status keybase1.FolderSyncStatus) {
 	if n == nil {
 		return
 	}
