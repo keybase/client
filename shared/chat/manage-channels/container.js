@@ -6,22 +6,14 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ChannelMembershipState} from '../../constants/types/teams'
 import ManageChannels from '.'
-import {
-  connect,
-  compose,
-  lifecycle,
-  withHandlers,
-  withStateHandlers,
-  withPropsOnChange,
-  type RouteProps,
-} from '../../util/container'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {getPath} from '../../route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 import * as Tabs from '../../constants/tabs'
 
-type OwnProps = RouteProps<{teamname: string}, {}>
+type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
 const mapStateToProps = (state, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
@@ -127,19 +119,19 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   }
 }
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
+export default Container.compose(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
   ),
-  withPropsOnChange(['channels'], props => ({
+  Container.withPropsOnChange(['channels'], props => ({
     oldChannelState: props.channels.reduce((acc, c) => {
       acc[ChatTypes.conversationIDKeyToString(c.convID)] = c.selected
       return acc
     }, {}),
   })),
-  withStateHandlers(
+  Container.withStateHandlers(
     props => ({
       nextChannelState: props.oldChannelState,
     }),
@@ -147,7 +139,7 @@ export default compose(
       setNextChannelState: () => nextChannelState => ({nextChannelState}),
     }
   ),
-  withHandlers({
+  Container.withHandlers({
     onClickChannel: props => (channelname: string) => {
       props._onView(props.oldChannelState, props.nextChannelState, props._you, channelname)
     },
@@ -166,7 +158,7 @@ export default compose(
         ],
       }),
   }),
-  lifecycle({
+  Container.lifecycle({
     componentDidMount() {
       this.props._loadChannels()
       if (!this.props._hasOperations) {
@@ -179,7 +171,7 @@ export default compose(
       }
     },
   }),
-  withPropsOnChange(['oldChannelState', 'nextChannelState'], props => ({
+  Container.withPropsOnChange(['oldChannelState', 'nextChannelState'], props => ({
     unsavedSubscriptions: !isEqual(props.oldChannelState, props.nextChannelState),
   }))
 )(ManageChannels)
