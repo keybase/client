@@ -1370,14 +1370,14 @@ function* threadSearch(state, action) {
 const onInboxSearchSelect = (state, action) => {
   const inboxSearch = state.chat2.inboxSearch
   if (!inboxSearch) {
-    return []
+    return
   }
   const selected = Constants.getInboxSearchSelected(inboxSearch)
   const conversationIDKey = action.payload.conversationIDKey
     ? action.payload.conversationIDKey
     : selected?.conversationIDKey
   if (!conversationIDKey) {
-    return []
+    return
   }
   const query = action.payload.query ? action.payload.query : selected?.query
   const actions = [Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSearch'})]
