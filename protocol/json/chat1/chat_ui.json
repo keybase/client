@@ -950,6 +950,45 @@
     },
     {
       "type": "record",
+      "name": "UIChatSearchConvHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIChatSearchConvHits",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIChatSearchConvHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "boolean",
+          "name": "unreadMatches"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIChatPayment",
       "fields": [
         {
@@ -1024,6 +1063,23 @@
         {
           "type": "boolean",
           "name": "previewIsVideo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GiphySearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "GiphySearchResult"
+          },
+          "name": "results"
+        },
+        {
+          "type": "string",
+          "name": "galleryUrl"
         }
       ]
     },
@@ -1465,6 +1521,15 @@
       ],
       "response": null
     },
+    "chatSearchInboxStart": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "chatSearchInboxHit": {
       "request": [
         {
@@ -1500,6 +1565,19 @@
         {
           "name": "status",
           "type": "ChatSearchIndexStatus"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchConvHits": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "hits",
+          "type": "UIChatSearchConvHits"
         }
       ],
       "response": null
@@ -1577,10 +1655,7 @@
         },
         {
           "name": "results",
-          "type": {
-            "type": "array",
-            "items": "GiphySearchResult"
-          }
+          "type": "GiphySearchResults"
         }
       ],
       "response": null
@@ -1597,6 +1672,10 @@
         },
         {
           "name": "show",
+          "type": "boolean"
+        },
+        {
+          "name": "clearInput",
           "type": "boolean"
         }
       ],

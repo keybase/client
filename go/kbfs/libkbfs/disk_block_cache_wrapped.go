@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -48,7 +49,7 @@ type diskBlockCacheWrapped struct {
 var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
 
 func (cache *diskBlockCacheWrapped) enableCache(
-	typ diskLimitTrackerType, cacheFolder string) (err error) {
+	typ diskLimitTrackerType, cacheFolder string, mode InitMode) (err error) {
 	cache.mtx.Lock()
 	defer cache.mtx.Unlock()
 	var cachePtr **DiskBlockCacheLocal
@@ -65,7 +66,7 @@ func (cache *diskBlockCacheWrapped) enableCache(
 		// idempotent.
 		return nil
 	}
-	if cache.config.IsTestMode() {
+	if mode.IsTestMode() {
 		*cachePtr, err = newDiskBlockCacheLocalForTest(
 			cache.config, typ)
 	} else {
@@ -76,19 +77,20 @@ func (cache *diskBlockCacheWrapped) enableCache(
 	return err
 }
 
-func newDiskBlockCacheWrapped(config diskBlockCacheConfig,
-	storageRoot string) (cache *diskBlockCacheWrapped, err error) {
+func newDiskBlockCacheWrapped(
+	config diskBlockCacheConfig, storageRoot string, mode InitMode) (
+	cache *diskBlockCacheWrapped, err error) {
 	cache = &diskBlockCacheWrapped{
 		config:      config,
 		storageRoot: storageRoot,
 	}
-	err = cache.enableCache(workingSetCacheLimitTrackerType,
-		workingSetCacheFolderName)
+	err = cache.enableCache(
+		workingSetCacheLimitTrackerType, workingSetCacheFolderName, mode)
 	if err != nil {
 		return nil, err
 	}
-	syncCacheErr := cache.enableCache(syncCacheLimitTrackerType,
-		syncCacheFolderName)
+	syncCacheErr := cache.enableCache(
+		syncCacheLimitTrackerType, syncCacheFolderName, mode)
 	if syncCacheErr != nil {
 		log := config.MakeLogger("DBC")
 		log.Warning("Could not initialize sync block cache.")
@@ -186,7 +188,7 @@ func (cache *diskBlockCacheWrapped) Get(
 	primaryCache, secondaryCache := cache.rankCachesLocked(preferredCacheType)
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, prefetchStatus, err = primaryCache.Get(ctx, tlfID, blockID)
-	if _, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError); isNoSuchBlockError &&
+	if _, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		buf, serverHalf, prefetchStatus, err = secondaryCache.Get(
 			ctx, tlfID, blockID)
@@ -348,7 +350,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 	primaryCache, secondaryCache := cache.rankCachesLocked(cacheType)
 
 	err := primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}
@@ -362,7 +364,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 		return err
 	}
 	err = secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError = errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError = errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}

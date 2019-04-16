@@ -6,6 +6,7 @@ package externals
 import (
 	"context"
 	"encoding/json"
+	"sort"
 	"strings"
 	"sync"
 
@@ -21,7 +22,6 @@ const SupportedVersion int = 1
 type proofServices struct {
 	sync.Mutex
 	libkb.Contextified
-	loaded           bool
 	externalServices map[string]libkb.ServiceType // map keys are ServiceType.Key()
 	displayConfigs   map[string]keybase1.ServiceDisplayConfig
 	suggestionFold   int
@@ -37,12 +37,13 @@ func newProofServices(g *libkb.GlobalContext) *proofServices {
 		externalServices: make(map[string]libkb.ServiceType),
 		displayConfigs:   make(map[string]keybase1.ServiceDisplayConfig),
 	}
-
-	staticServices := getStaticProofServices()
-	p.Lock()
-	defer p.Unlock()
-	p.registerServiceTypes(staticServices)
+	p.registerServiceTypes(getStaticProofServices())
 	return p
+}
+
+func (p *proofServices) clearServiceTypes() {
+	p.externalServices = make(map[string]libkb.ServiceType)
+	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)
 }
 
 func (p *proofServices) registerServiceTypes(services []libkb.ServiceType) {
@@ -72,17 +73,30 @@ func (p *proofServices) ListProofCheckers() []string {
 	return ret
 }
 
+type serviceAndPriority struct {
+	name     string
+	priority int
+}
+
 func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) []string {
 	p.Lock()
 	defer p.Unlock()
 	p.loadServiceConfigs()
-	var ret []string
+	var services []serviceAndPriority
 	for k, v := range p.externalServices {
 		if v.CanMakeNewProofs(mctx) {
-			ret = append(ret, k)
+			s := serviceAndPriority{name: k, priority: v.DisplayPriority()}
+			services = append(services, s)
 		}
 	}
-	return ret
+	sort.Slice(services[:], func(i, j int) bool {
+		return services[i].priority < services[j].priority
+	})
+	var serviceNames []string
+	for _, service := range services {
+		serviceNames = append(serviceNames, service.name)
+	}
+	return serviceNames
 }
 
 func (p *proofServices) ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig) {
@@ -123,7 +137,8 @@ func (p *proofServices) loadServiceConfigs() {
 	for _, config := range config.ProofConfigs {
 		services = append(services, NewGenericSocialProofServiceType(config))
 	}
-	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)
+	p.clearServiceTypes()
+	p.registerServiceTypes(getStaticProofServices())
 	p.registerServiceTypes(services)
 	for _, config := range config.DisplayConfigs {
 		p.displayConfigs[config.Key] = *config

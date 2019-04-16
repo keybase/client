@@ -71,6 +71,17 @@
       "response": null,
       "oneway": true,
       "lint": "ignore"
+    },
+    "FSOnlineStatusChanged": {
+      "request": [
+        {
+          "name": "online",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

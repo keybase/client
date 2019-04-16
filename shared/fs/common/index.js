@@ -11,3 +11,5 @@ export {default as LoadPathMetadataWhenNeeded} from './load-path-metadata-when-n
 export {default as OpenChat} from './open-chat'
 export {default as NewFolder} from './new-folder'
 export {default as UploadButton} from './upload-button'
+export {default as FolderViewFilter} from './folder-view-filter'
+export {default as SyncStatus} from './sync-status-container'

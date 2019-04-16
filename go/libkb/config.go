@@ -863,6 +863,10 @@ func (f *JSONConfigFile) GetDisableTeamAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_team_auditor")
 }
 
+func (f *JSONConfigFile) GetDisableTeamBoxAuditor() (bool, bool) {
+	return f.GetBoolAtPath("disable_team_box_auditor")
+}
+
 func (f *JSONConfigFile) GetDisableMerkleAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_merkle_auditor")
 }
@@ -881,6 +885,14 @@ func (f *JSONConfigFile) GetEnableBotLiteMode() (bool, bool) {
 
 func (f *JSONConfigFile) GetExtraNetLogging() (bool, bool) {
 	return f.GetBoolAtPath("extra_net_logging")
+}
+
+func (f *JSONConfigFile) GetForceLinuxKeyring() (bool, bool) {
+	return f.GetBoolAtPath("force_linux_keyring")
+}
+
+func (f *JSONConfigFile) GetForceSecretStoreFile() (bool, bool) {
+	return f.GetBoolAtPath("force_less_safe_secret_store_file")
 }
 
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {

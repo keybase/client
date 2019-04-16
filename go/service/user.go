@@ -452,11 +452,16 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		if len(subtext) == 0 {
 			subtext = serviceType.PickerSubtext()
 		}
+		var metas []keybase1.Identify3RowMeta
+		if serviceType.IsNew(mctx) {
+			metas = []keybase1.Identify3RowMeta{{Label: "new", Color: keybase1.Identify3RowColor_BLUE}}
+		}
 		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           service,
 			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
 			PickerText:    serviceType.DisplayName(),
 			PickerSubtext: subtext,
+			Metas:         metas,
 		}})
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
@@ -567,7 +572,7 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 	m = m.WithLogTag("HASRPW")
 	defer m.TraceTimed(fmt.Sprintf("UserHandler#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
 
-	meUID := m.G().ActiveDevice.UID()
+	meUID := m.ActiveDevice().UID()
 	cacheKey := libkb.DbKey{
 		Typ: libkb.DBHasRandomPW,
 		Key: meUID.String(),
@@ -638,6 +643,20 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 		h.G().Log.CDebugf(ctx, "CanLogout: looks like user is not logged in")
 		res.CanLogout = true
 		return res, nil
+	}
+
+	if err := libkb.CheckCurrentUIDDeviceID(libkb.NewMetaContext(ctx, h.G())); err != nil {
+		switch err.(type) {
+		case libkb.DeviceNotFoundError, libkb.UserNotFoundError,
+			libkb.KeyRevokedError, libkb.NoDeviceError, libkb.NoUIDError:
+			h.G().Log.CDebugf(ctx, "CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", err.Error())
+			return keybase1.CanLogoutRes{CanLogout: true}, nil
+		default:
+			// Unexpected error like network connectivity issue, fall through.
+			// Even if we are offline here, we may be able to get cached value
+			// `false` from LoadHasRandomPw and be allowed to log out.
+			h.G().Log.CDebugf(ctx, "CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
+		}
 	}
 
 	hasRandomPW, err := h.LoadHasRandomPw(ctx, keybase1.LoadHasRandomPwArg{

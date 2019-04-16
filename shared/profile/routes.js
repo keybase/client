@@ -37,9 +37,21 @@ const profileRoute = () => {
     component: ProveEnterUsername,
   })
 
+  const profileGenericEnterUsername = {
+    children: {
+      profileGenericProofSuccess: {
+        component: GenericProofSuccess,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
+    },
+    component: GenericEnterUsername,
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+  }
+
   return makeRouteDefNode({
     children: {
-      addToTeam: {
+      profile: profileRoute,
+      profileAddToTeam: {
         children: {
           teamControlledRolePicker: {
             children: {},
@@ -50,7 +62,6 @@ const profileRoute = () => {
         component: AddToTeam,
         tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
       },
-      profile: profileRoute,
       profileEdit: {
         component: EditProfile,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
@@ -59,6 +70,7 @@ const profileRoute = () => {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
+      profileGenericEnterUsername,
       profileNonUser: {
         children: {profile: profileRoute},
         component: NonUserProfile,
@@ -66,16 +78,7 @@ const profileRoute = () => {
       profilePgp: pgpRoutes,
       profileProofsList: {
         children: {
-          profileGenericEnterUsername: {
-            children: {
-              profileGenericProofSuccess: {
-                component: GenericProofSuccess,
-                tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-              },
-            },
-            component: GenericEnterUsername,
-            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-          },
+          profileGenericEnterUsername,
         },
         component: ProofsList,
         tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),

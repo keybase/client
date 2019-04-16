@@ -5150,6 +5150,7 @@ type UpdateTypingArg struct {
 
 type UpdateUnsentTextArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	TlfName        string         `codec:"tlfName" json:"tlfName"`
 	Text           string         `codec:"text" json:"text"`
 }
 
@@ -5243,10 +5244,14 @@ type SearchRegexpArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type CancelActiveInboxSearchArg struct {
+}
+
 type SearchInboxArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	Query            string                       `codec:"query" json:"query"`
 	Opts             SearchOpts                   `codec:"opts" json:"opts"`
+	NamesOnly        bool                         `codec:"namesOnly" json:"namesOnly"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -5284,6 +5289,10 @@ type ToggleMessageCollapseArg struct {
 type BulkAddToConvArg struct {
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	Usernames []string       `codec:"usernames" json:"usernames"`
+}
+
+type PutReacjiSkinToneArg struct {
+	SkinTone keybase1.ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
 }
 
 type LocalInterface interface {
@@ -5345,6 +5354,7 @@ type LocalInterface interface {
 	SetConvMinWriterRoleLocal(context.Context, SetConvMinWriterRoleLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	SearchRegexp(context.Context, SearchRegexpArg) (SearchRegexpRes, error)
+	CancelActiveInboxSearch(context.Context) error
 	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
 	CancelActiveSearch(context.Context) error
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
@@ -5354,6 +5364,7 @@ type LocalInterface interface {
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
+	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6220,6 +6231,16 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"cancelActiveInboxSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelActiveInboxSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.CancelActiveInboxSearch(ctx)
+					return
+				},
+			},
 			"searchInbox": {
 				MakeArg: func() interface{} {
 					var ret [1]SearchInboxArg
@@ -6337,6 +6358,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.BulkAddToConv(ctx, typedArgs[0])
+					return
+				},
+			},
+			"putReacjiSkinTone": {
+				MakeArg: func() interface{} {
+					var ret [1]PutReacjiSkinToneArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PutReacjiSkinToneArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PutReacjiSkinToneArg)(nil), args)
+						return
+					}
+					ret, err = i.PutReacjiSkinTone(ctx, typedArgs[0].SkinTone)
 					return
 				},
 			},
@@ -6647,6 +6683,11 @@ func (c LocalClient) SearchRegexp(ctx context.Context, __arg SearchRegexpArg) (r
 	return
 }
 
+func (c LocalClient) CancelActiveInboxSearch(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.cancelActiveInboxSearch", []interface{}{CancelActiveInboxSearchArg{}}, nil)
+	return
+}
+
 func (c LocalClient) SearchInbox(ctx context.Context, __arg SearchInboxArg) (res SearchInboxRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.searchInbox", []interface{}{__arg}, &res)
 	return
@@ -6690,5 +6731,11 @@ func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMess
 
 func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.ReacjiSkinTone) (res keybase1.UserReacjis, err error) {
+	__arg := PutReacjiSkinToneArg{SkinTone: skinTone}
+	err = c.Cli.Call(ctx, "chat.1.local.putReacjiSkinTone", []interface{}{__arg}, &res)
 	return
 }

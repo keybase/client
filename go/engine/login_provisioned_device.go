@@ -61,7 +61,7 @@ func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	m.Debug("LoginProvisionedDevice success, sending login notification")
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), e.username.String())
 	m.Debug("LoginProvisionedDevice success, calling login hooks")
-	m.G().CallLoginHooks()
+	m.G().CallLoginHooks(m)
 
 	return nil
 }

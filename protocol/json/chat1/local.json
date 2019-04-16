@@ -3915,6 +3915,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
           "name": "text",
           "type": "string"
         }
@@ -4174,6 +4178,10 @@
       ],
       "response": "SearchRegexpRes"
     },
+    "cancelActiveInboxSearch": {
+      "request": [],
+      "response": null
+    },
     "searchInbox": {
       "request": [
         {
@@ -4187,6 +4195,10 @@
         {
           "name": "opts",
           "type": "SearchOpts"
+        },
+        {
+          "name": "namesOnly",
+          "type": "boolean"
         },
         {
           "name": "identifyBehavior",
@@ -4289,6 +4301,15 @@
         }
       ],
       "response": null
+    },
+    "putReacjiSkinTone": {
+      "request": [
+        {
+          "name": "skinTone",
+          "type": "keybase1.ReacjiSkinTone"
+        }
+      ],
+      "response": "keybase1.UserReacjis"
     }
   },
   "namespace": "chat.1"

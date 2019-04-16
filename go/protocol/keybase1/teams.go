@@ -1220,6 +1220,7 @@ type TeamSigChainState struct {
 	TlfIDs           []TLFID                                           `codec:"tlfIDs" json:"tlfIDs"`
 	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
 	HeadMerkle       *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
+	MerkleRoots      map[Seqno]MerkleRootV2                            `codec:"merkleRoots" json:"merkleRoots"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -1389,7 +1390,25 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.HeadMerkle),
+		MerkleRoots: (func(x map[Seqno]MerkleRootV2) map[Seqno]MerkleRootV2 {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]MerkleRootV2, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.MerkleRoots),
 	}
+}
+
+type BoxSummaryHash string
+
+func (o BoxSummaryHash) DeepCopy() BoxSummaryHash {
+	return o
 }
 
 type TeamNameLogPoint struct {
@@ -2713,6 +2732,11 @@ type TeamGetArg struct {
 	Name      string `codec:"name" json:"name"`
 }
 
+type TeamGetMembersArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
 type TeamImplicitAdminsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamName  string `codec:"teamName" json:"teamName"`
@@ -2993,6 +3017,7 @@ type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
+	TeamGetMembers(context.Context, TeamGetMembersArg) (TeamMembersDetails, error)
 	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
 	TeamListUnverified(context.Context, TeamListUnverifiedArg) (AnnotatedTeamList, error)
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
@@ -3105,6 +3130,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamGet(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamGetMembers": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamGetMembersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamGetMembersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamGetMembersArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamGetMembers(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -3848,6 +3888,11 @@ func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreat
 
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamGetMembers(ctx context.Context, __arg TeamGetMembersArg) (res TeamMembersDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembers", []interface{}{__arg}, &res)
 	return
 }
 

@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -31,7 +32,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
 	require.NoError(t, err)
 	rootFS, err := libfs.NewFS(
-		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
+		ctx, config, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	t.Log("Init a new repo directly into KBFS.")

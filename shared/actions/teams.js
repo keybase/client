@@ -606,30 +606,6 @@ function* getDetails(_, action) {
       return reqMap
     }, {})
 
-    const infos = []
-    const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
-    const typeToKey: Types.TypeMap = {
-      admin: 'admins',
-      owner: 'owners',
-      reader: 'readers',
-      writer: 'writers',
-    }
-    types.forEach(type => {
-      const key = typeToKey[type]
-      const members: Array<RPCTypes.TeamMemberDetails> = details.members[key] || []
-      members.forEach(({fullName, status, username}) => {
-        infos.push([
-          username,
-          Constants.makeMemberInfo({
-            fullName,
-            status: Constants.rpcMemberStatusToStatus[status],
-            type,
-            username,
-          }),
-        ])
-      })
-    })
-
     const invites = map(details.annotatedActiveInvites, (invite: RPCTypes.AnnotatedTeamInvite) => {
       const role = Constants.teamRoleByEnum[invite.role]
       if (role === 'none') {
@@ -670,7 +646,7 @@ function* getDetails(_, action) {
     yield Saga.put(
       TeamsGen.createSetTeamDetails({
         invites: I.Set(invites),
-        members: I.Map(infos),
+        members: Constants.rpcDetailsToMemberInfos(details.members),
         requests: I.Map(requestMap),
         settings: Constants.makeTeamSettings(details.settings),
         subteams: I.Set(subteams),
@@ -1358,6 +1334,20 @@ const deleteChannelConfirmed = (state, action) => {
   ).then(() => TeamsGen.createDeleteChannelInfo({conversationIDKey, teamname}))
 }
 
+const getMembers = (state, action) => {
+  const {teamname} = action.payload
+  return RPCTypes.teamsTeamGetMembersRpcPromise({
+    name: teamname,
+  })
+    .then(res => {
+      const members = Constants.rpcDetailsToMemberInfos(res)
+      return TeamsGen.createSetMembers({members, teamname})
+    })
+    .catch(error => {
+      logger.error(`Error updating members for ${teamname}: ${error.desc}`)
+    })
+}
+
 const badgeAppForTeams = (state, action) => {
   const loggedIn = state.config.loggedIn
   if (!loggedIn) {
@@ -1478,6 +1468,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<TeamsGen.CreateNewTeamPayload>(TeamsGen.createNewTeam, createNewTeam)
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam)
   yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails)
+  yield* Saga.chainAction<TeamsGen.GetMembersPayload>(TeamsGen.getMembers, getMembers)
   yield* Saga.chainAction<TeamsGen.GetDetailsForAllTeamsPayload>(
     TeamsGen.getDetailsForAllTeams,
     getDetailsForAllTeams

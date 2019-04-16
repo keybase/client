@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
+
+	"github.com/keybase/client/go/kbfs/data"
 )
 
 type nodeCacheEntry struct {
@@ -18,19 +20,19 @@ type nodeCacheEntry struct {
 // the reference counts of nodeStandard Nodes, and using their member
 // fields to construct paths.
 type nodeCacheStandard struct {
-	folderBranch FolderBranch
+	folderBranch data.FolderBranch
 
 	lock         sync.RWMutex
-	nodes        map[BlockRef]*nodeCacheEntry
+	nodes        map[data.BlockRef]*nodeCacheEntry
 	rootWrappers []func(Node) Node
 }
 
 var _ NodeCache = (*nodeCacheStandard)(nil)
 
-func newNodeCacheStandard(fb FolderBranch) *nodeCacheStandard {
+func newNodeCacheStandard(fb data.FolderBranch) *nodeCacheStandard {
 	return &nodeCacheStandard{
 		folderBranch: fb,
-		nodes:        make(map[BlockRef]*nodeCacheEntry),
+		nodes:        make(map[data.BlockRef]*nodeCacheEntry),
 	}
 }
 
@@ -63,7 +65,7 @@ func (ncs *nodeCacheStandard) forget(core *nodeCore) {
 func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandard, error) {
 	nodeStandard, ok := parent.Unwrap().(*nodeStandard)
 	if !ok {
-		return nil, ParentNodeNotFoundError{BlockRef{}}
+		return nil, ParentNodeNotFoundError{data.BlockRef{}}
 	}
 
 	ref := nodeStandard.core.pathNode.Ref()
@@ -95,7 +97,7 @@ func (ncs *nodeCacheStandard) makeNodeStandardForEntryLocked(
 
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) GetOrCreate(
-	ptr BlockPointer, name string, parent Node, et EntryType) (
+	ptr data.BlockPointer, name string, parent Node, et data.EntryType) (
 	n Node, err error) {
 	var rootWrappers []func(Node) Node
 	defer func() {
@@ -147,8 +149,8 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 }
 
 // Get implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Get(ref BlockRef) (n Node) {
-	if ref == (BlockRef{}) {
+func (ncs *nodeCacheStandard) Get(ref data.BlockRef) (n Node) {
+	if ref == (data.BlockRef{}) {
 		return nil
 	}
 
@@ -180,8 +182,8 @@ func (ncs *nodeCacheStandard) Get(ref BlockRef) (n Node) {
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
-	oldRef BlockRef, newPtr BlockPointer) (updatedNode NodeID) {
-	if oldRef == (BlockRef{}) && newPtr == (BlockPointer{}) {
+	oldRef data.BlockRef, newPtr data.BlockPointer) (updatedNode NodeID) {
+	if oldRef == (data.BlockRef{}) && newPtr == (data.BlockPointer{}) {
 		return nil
 	}
 
@@ -201,7 +203,7 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 	}
 
 	// Cannot update the pointer for an unlinked node.
-	if entry.core.cachedPath.isValid() {
+	if entry.core.cachedPath.IsValid() {
 		return nil
 	}
 
@@ -213,8 +215,8 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
-	ref BlockRef, newParent Node, newName string) (undoFn func(), err error) {
-	if ref == (BlockRef{}) {
+	ref data.BlockRef, newParent Node, newName string) (undoFn func(), err error) {
+	if ref == (data.BlockRef{}) {
 		return nil, nil
 	}
 
@@ -254,8 +256,8 @@ func (ncs *nodeCacheStandard) Move(
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Unlink(
-	ref BlockRef, oldPath path, oldDe DirEntry) (undoFn func()) {
-	if ref == (BlockRef{}) {
+	ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (undoFn func()) {
+	if ref == (data.BlockRef{}) {
 		return nil
 	}
 
@@ -272,7 +274,7 @@ func (ncs *nodeCacheStandard) Unlink(
 		return nil
 	}
 
-	if entry.core.cachedPath.isValid() {
+	if entry.core.cachedPath.IsValid() {
 		// Already unlinked!
 		return nil
 	}
@@ -286,8 +288,8 @@ func (ncs *nodeCacheStandard) Unlink(
 	entry.core.pathNode.Name = ""
 
 	return func() {
-		entry.core.cachedPath = path{}
-		entry.core.cachedDe = DirEntry{}
+		entry.core.cachedPath = data.Path{}
+		entry.core.cachedDe = data.DirEntry{}
 		entry.core.parent = oldParent
 		entry.core.pathNode.Name = oldName
 	}
@@ -304,18 +306,18 @@ func (ncs *nodeCacheStandard) IsUnlinked(node Node) bool {
 		return false
 	}
 
-	return ns.core.cachedPath.isValid()
+	return ns.core.cachedPath.IsValid()
 }
 
 // UnlinkedDirEntry implements the NodeCache interface for
 // nodeCacheStandard.
-func (ncs *nodeCacheStandard) UnlinkedDirEntry(node Node) DirEntry {
+func (ncs *nodeCacheStandard) UnlinkedDirEntry(node Node) data.DirEntry {
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
 
 	ns, ok := node.Unwrap().(*nodeStandard)
 	if !ok {
-		return DirEntry{}
+		return data.DirEntry{}
 	}
 
 	return ns.core.cachedDe
@@ -324,7 +326,7 @@ func (ncs *nodeCacheStandard) UnlinkedDirEntry(node Node) DirEntry {
 // UpdateUnlinkedDirEntry implements the NodeCache interface for
 // nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdateUnlinkedDirEntry(
-	node Node, newDe DirEntry) {
+	node Node, newDe data.DirEntry) {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 
@@ -337,34 +339,34 @@ func (ncs *nodeCacheStandard) UpdateUnlinkedDirEntry(
 }
 
 // PathFromNode implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
+func (ncs *nodeCacheStandard) PathFromNode(node Node) (p data.Path) {
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
 
 	ns, ok := node.Unwrap().(*nodeStandard)
 	if !ok {
-		p.path = nil
+		p.Path = nil
 		return
 	}
 
 	for ns != nil {
 		core := ns.core
-		if core.parent == nil && len(core.cachedPath.path) > 0 {
+		if core.parent == nil && len(core.cachedPath.Path) > 0 {
 			// The node was unlinked, but is still in use, so use its
 			// cached path.  The path is already reversed, so append
 			// it backwards one-by-one to the existing path.  If this
 			// is the first node, we can just optimize by returning
 			// the complete cached path.
-			if len(p.path) == 0 {
+			if len(p.Path) == 0 {
 				return core.cachedPath
 			}
-			for i := len(core.cachedPath.path) - 1; i >= 0; i-- {
-				p.path = append(p.path, core.cachedPath.path[i])
+			for i := len(core.cachedPath.Path) - 1; i >= 0; i-- {
+				p.Path = append(p.Path, core.cachedPath.Path[i])
 			}
 			break
 		}
 
-		p.path = append(p.path, *core.pathNode)
+		p.Path = append(p.Path, *core.pathNode)
 		if core.parent != nil {
 			ns = core.parent.Unwrap().(*nodeStandard)
 		} else {
@@ -373,9 +375,9 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 	}
 
 	// need to reverse the path nodes
-	for i := len(p.path)/2 - 1; i >= 0; i-- {
-		opp := len(p.path) - 1 - i
-		p.path[i], p.path[opp] = p.path[opp], p.path[i]
+	for i := len(p.Path)/2 - 1; i >= 0; i-- {
+		opp := len(p.Path) - 1 - i
+		p.Path[i], p.Path[opp] = p.Path[opp], p.Path[i]
 	}
 
 	// TODO: would it make any sense to cache the constructed path?

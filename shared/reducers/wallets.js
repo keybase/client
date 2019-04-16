@@ -398,6 +398,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadAccounts:
     case WalletsGen.loadWalletDisclaimer:
     case WalletsGen.setAccountAsDefault:
+    case WalletsGen.showTransaction:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:

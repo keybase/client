@@ -4,16 +4,13 @@ import * as Constants from '../../constants/teams'
 import {
   Avatar,
   Box,
-  ButtonBar,
+  ConfirmModal,
   HeaderOnMobile,
   Icon,
   MaybePopup,
   ProgressIndicator,
-  ScrollView,
-  Text,
-  WaitingButton,
 } from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
+import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {
   onBack: () => void,
@@ -33,45 +30,26 @@ const _Spinner = (props: Props) => (
 )
 const Spinner = HeaderOnMobile(_Spinner)
 
+const Header = (props: Props) => (
+  <>
+    <Avatar teamname={props.name} size={64} />
+    <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+  </>
+)
+
 const _ReallyLeaveTeam = (props: Props) => (
-  <MaybePopup onClose={props.onBack}>
-    <ScrollView
-      contentContainerStyle={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        padding: globalMargins.large,
-      }}
-    >
-      <Avatar teamname={props.name} size={64} />
-      <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
-      <Text
-        center={true}
-        type="Header"
-        style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}
-      >
-        Are you sure you want to leave {props.name}?
-      </Text>
-      <Text center={true} type="Body" style={{maxWidth: 430}}>
-        You will lose access to all the {props.name} chats and folders, and you won't be able to get back
-        unless an admin invites you.
-      </Text>
-      <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
-        <WaitingButton
-          type="Secondary"
-          onClick={props.onBack}
-          onlyDisable={true}
-          label="Cancel"
-          waitingKey={Constants.leaveTeamWaitingKey(props.name)}
-        />
-        <WaitingButton
-          type="Danger"
-          onClick={props.onLeave}
-          label={`Yes, leave ${props.name}`}
-          waitingKey={Constants.leaveTeamWaitingKey(props.name)}
-        />
-      </ButtonBar>
-    </ScrollView>
-  </MaybePopup>
+  <ConfirmModal
+    confirmText={`Yes, leave ${props.name}`}
+    description={`You will lose access to all the ${
+      props.name
+    } chats and folders, and you won't be able to get back
+    unless an admin invites you.`}
+    header={<Header {...props} />}
+    onCancel={props.onBack}
+    onConfirm={props.onLeave}
+    prompt={`Are you sure you want to leave ${props.name}?`}
+    waitingKey={Constants.leaveTeamWaitingKey(props.name)}
+  />
 )
 
 export default HeaderOnMobile(_ReallyLeaveTeam)

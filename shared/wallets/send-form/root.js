@@ -3,10 +3,12 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Header from './header'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   onClose: () => void,
   children: React.Node,
+  isRequest: boolean,
 |}
 
 const PoweredByStellar = () => (
@@ -18,28 +20,37 @@ const PoweredByStellar = () => (
         onClickURL="https://stellar.org"
         style={styles.textColor}
       >
-        stellar
+        Stellar
       </Kb.Text>
     </Kb.Text>
   </Kb.Box2>
 )
 
-const Root = (props: Props) => (
-  <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.KeyboardAvoidingView
-      behavior={Styles.isAndroid ? undefined : 'padding'}
-      style={Styles.globalStyles.fillAbsolute}
-    >
+const Root = (props: Props) => {
+  let child = (
+    <>
       <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Header onBack={Styles.isMobile ? props.onClose : null} />
+        <Header isRequest={props.isRequest} onBack={Styles.isMobile ? props.onClose : null} />
         {props.children}
       </Kb.Box2>
       {!Styles.isMobile && <PoweredByStellar />}
       <Kb.SafeAreaView style={styles.backgroundColorBlue5} />
-    </Kb.KeyboardAvoidingView>
-  </Kb.MaybePopup>
-)
+    </>
+  )
+  if (!flags.useNewRouter) {
+    // new router adds this by default
+    child = (
+      <Kb.KeyboardAvoidingView
+        behavior={Styles.isAndroid ? undefined : 'padding'}
+        style={Styles.globalStyles.fillAbsolute}
+      >
+        {child}
+      </Kb.KeyboardAvoidingView>
+    )
+  }
+  return <Kb.MaybePopup onClose={props.onClose}>{child}</Kb.MaybePopup>
+}
 
 const styles = Styles.styleSheetCreate({
   backgroundColorBlue5: {backgroundColor: Styles.globalColors.blue5},

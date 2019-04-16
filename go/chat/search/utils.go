@@ -2,9 +2,11 @@ package search
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 
+	"github.com/araddon/dateparse"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -36,35 +38,70 @@ var stripSeps = []string{
 }
 var stripExpr = regexp.MustCompile(strings.Join(stripSeps, "|"))
 
+func prefixes(token string) (res []string) {
+	if len(token) <= 2 {
+		return nil
+	}
+	for i := range token {
+		if i <= 2 {
+			continue
+		}
+		// Skip any prefixes longer than 20 to limit the index size.
+		if i >= 20 {
+			break
+		}
+		res = append(res, token[:i])
+	}
+	return res
+}
+
+type tokenMap map[string]map[string]chat1.EmptyStruct
+
 // getIndexTokens splits the content of the given message on whitespace and
-// special characters returning a set of tokens normalized to lowercase.
-func tokenize(msgText string) []string {
+// special characters returning a map of tokens to aliases  normalized to lowercase.
+func tokenize(msgText string) tokenMap {
 	if msgText == "" {
 		return nil
 	}
+
+	// split the message text up on basic punctuation/spaces
 	tokens := splitExpr.Split(msgText, -1)
-	tokenSet := mapset.NewThreadUnsafeSet()
+	tokenMap := tokenMap{}
 	for _, token := range tokens {
+		if token == "" {
+			continue
+		}
+
 		token = strings.ToLower(token)
-		tokenSet.Add(token)
+		if _, ok := tokenMap[token]; !ok {
+			tokenMap[token] = map[string]chat1.EmptyStruct{}
+		}
+
+		// strip separators to raw tokens which we count as an alias to the
+		// original token
 		stripped := stripExpr.Split(token, -1)
 		for _, s := range stripped {
-			tokenSet.Add(s)
+			if s == "" {
+				continue
+			}
+			tokenMap[token][s] = chat1.EmptyStruct{}
+
+			// add the stem as an alias
 			stemmed := porterstemmer.StemWithoutLowerCasing([]rune(s))
-			tokenSet.Add(string(stemmed))
+			tokenMap[token][string(stemmed)] = chat1.EmptyStruct{}
+
+			// calculate prefixes to alias to the token
+			for _, prefix := range prefixes(s) {
+				tokenMap[token][prefix] = chat1.EmptyStruct{}
+			}
 		}
+		// drop the original token from the set of aliases
+		delete(tokenMap[token], token)
 	}
-	strSlice := []string{}
-	for _, el := range tokenSet.ToSlice() {
-		str, ok := el.(string)
-		if ok && str != "" {
-			strSlice = append(strSlice, str)
-		}
-	}
-	return strSlice
+	return tokenMap
 }
 
-func tokensFromMsg(msg chat1.MessageUnboxed) []string {
+func tokensFromMsg(msg chat1.MessageUnboxed) tokenMap {
 	return tokenize(msg.SearchableText())
 }
 
@@ -115,20 +152,54 @@ func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.Conversatio
 	return uiMsgs
 }
 
-var fromRegex = regexp.MustCompile("^from:(@?[a-z0-9][a-z0-9_]+)")
+const beforeFilter = "before:"
+const afterFilter = "after:"
 
-func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg) chat1.SearchRegexpArg {
+var fromRegex = regexp.MustCompile("from:(@?[a-z0-9][a-z0-9_]+)")
+var dateRangeRegex = regexp.MustCompile(fmt.Sprintf(
+	`(%s|%s)(\d{1,4}[-/\.]+\d{1,2}[-/\.]+\d{1,4})`, beforeFilter, afterFilter))
+
+func UpgradeRegexpArgFromQuery(arg chat1.SearchRegexpArg, username string) chat1.SearchRegexpArg {
 	query := arg.Query
+	var hasQueryOpts bool
 	// From
 	if match := fromRegex.FindStringSubmatch(query); match != nil && len(match) == 2 {
+		hasQueryOpts = true
 		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
-		arg.Opts.SentBy = strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
-		if len(query) == 0 {
-			query = "/.*/"
+		sentBy := strings.TrimSpace(strings.Replace(match[1], "@", "", -1))
+		if sentBy == "me" {
+			sentBy = username
+		}
+		arg.Opts.SentBy = sentBy
+	}
+
+	matches := dateRangeRegex.FindAllStringSubmatch(query, 2)
+	for _, match := range matches {
+		// [fullMatch, filter, dateRange]
+		if len(match) != 3 {
+			continue
+		}
+		hasQueryOpts = true
+		query = strings.TrimSpace(strings.Replace(query, match[0], "", 1))
+		time, err := dateparse.ParseAny(strings.TrimSpace(match[2]))
+		if err != nil {
+			continue
+		}
+
+		gtime := gregor1.ToTime(time)
+		switch match[1] {
+		case beforeFilter:
+			arg.Opts.SentBefore = gtime
+		case afterFilter:
+			arg.Opts.SentAfter = gtime
 		}
 	}
-	// Regex
-	if len(query) > 0 && query[0] == '/' && query[len(query)-1] == '/' {
+
+	if hasQueryOpts && len(query) == 0 {
+		query = "/.*/"
+	}
+	// IsRegex
+	if len(query) > 2 && query[0] == '/' && query[len(query)-1] == '/' {
 		query = query[1 : len(query)-1]
 		arg.IsRegex = true
 	}

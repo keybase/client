@@ -23,11 +23,13 @@
     },
     "navigateTo": {
       "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path"
+      "parentPath?": "?RCConstants.Path",
+      "replace?": "boolean"
     },
     "navigateAppend": {
       "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path"
+      "parentPath?": "?RCConstants.Path",
+      "replace?": "boolean"
     },
     "navigateUp": {},
     "putActionIfOnPath": {

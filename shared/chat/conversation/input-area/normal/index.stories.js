@@ -95,6 +95,7 @@ const InputContainer = (props: Props) => {
     isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
+    isSearching: false,
     onAttach: (paths: Array<string>) => {
       // This will always be called with an empty array, since some
       // browsers don't have the path property set on File.
@@ -114,6 +115,7 @@ const InputContainer = (props: Props) => {
     setUnsentText: Sb.action('setUnsentText'),
     showCommandMarkdown: false,
     showGiphySearch: false,
+    showTypingStatus: false,
     showWalletsIcon: !props.isEditing,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [

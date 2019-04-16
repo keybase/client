@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -1254,8 +1255,9 @@ func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 
 	// Ensure that the block changes are properly unembedded.
 	if !rmd.IsWriterMetadataCopiedSet() &&
-		rmd.data.Changes.Info.BlockPointer == zeroPtr &&
-		!md.config.BlockSplitter().ShouldEmbedBlockChanges(&rmd.data.Changes) {
+		rmd.data.Changes.Info.BlockPointer == data.ZeroPtr &&
+		!md.config.BlockSplitter().ShouldEmbedData(
+			rmd.data.Changes.SizeEstimate()) {
 		return ImmutableRootMetadata{},
 			errors.New("MD has embedded block changes, but shouldn't")
 	}

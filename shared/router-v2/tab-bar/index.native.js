@@ -6,11 +6,11 @@ import * as Tabs from '../../constants/tabs'
 import type {Props} from '.'
 
 const icons = {
-  [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.teamsTab]: 'iconfont-nav-teams',
-  [Tabs.peopleTab]: 'iconfont-nav-people',
-  [Tabs.settingsTab]: 'iconfont-nav-more',
-  [Tabs.walletsTab]: 'iconfont-nav-wallets',
+  [Tabs.chatTab]: 'iconfont-nav-2-chat',
+  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [Tabs.peopleTab]: 'iconfont-nav-2-people',
+  [Tabs.settingsTab]: 'iconfont-nav-2-more',
+  [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
 const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
@@ -27,7 +27,9 @@ class TabBar extends React.PureComponent<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.selectedTab !== prevProps.selectedTab) {
       const justSelected = this.props.selectedTab
-      this.setState(p => (p.justSelected === justSelected ? null : {justSelected}))
+      if (this.state.justSelected !== justSelected) {
+        this.setState(p => (p.justSelected === justSelected ? null : {justSelected}))
+      }
     }
   }
 
@@ -39,18 +41,19 @@ class TabBar extends React.PureComponent<Props, State> {
         <Kb.NativeSafeAreaView style={styles.safe}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
             {tabs.map(t => (
-              <Kb.Box2 key={t} direction="vertical" style={styles.iconContainer}>
-                <Kb.Icon
-                  type={icons[t]}
-                  onClick={() => this._onTabClick(t)}
-                  fontSize={32}
-                  style={styles.tab}
-                  color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
-                />
-                {!!p.badgeNumbers[t] && (
-                  <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />
-                )}
-              </Kb.Box2>
+              <Kb.NativeTouchableWithoutFeedback key={t} onPressIn={() => this._onTabClick(t)}>
+                <Kb.NativeView style={styles.iconContainer}>
+                  <Kb.Icon
+                    type={icons[t]}
+                    fontSize={32}
+                    style={styles.tab}
+                    color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+                  />
+                  {!!p.badgeNumbers[t] && (
+                    <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />
+                  )}
+                </Kb.NativeView>
+              </Kb.NativeTouchableWithoutFeedback>
             ))}
           </Kb.Box2>
         </Kb.NativeSafeAreaView>
@@ -58,9 +61,6 @@ class TabBar extends React.PureComponent<Props, State> {
     )
   }
 }
-
-// TEMP to really know you're on this branch. Leave until we flip the feature flag
-const backgroundColor = 'pink' // Styles.globalColors.darkBlue2,
 
 const styles = Styles.styleSheetCreate({
   badge: {
@@ -70,7 +70,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     alignItems: 'center',
-    backgroundColor,
+    backgroundColor: Styles.globalColors.darkBlue2,
     height: Styles.isAndroid ? 56 : 48,
     justifyContent: 'space-around',
   },
@@ -84,7 +84,7 @@ const styles = Styles.styleSheetCreate({
     top: 0,
   },
   safe: {
-    backgroundColor,
+    backgroundColor: Styles.globalColors.darkBlue2,
     flexGrow: 0,
   },
   tab: {

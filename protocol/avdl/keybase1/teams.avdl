@@ -474,7 +474,13 @@ protocol teams {
     // of TeamSigChainState. Thus, if you need it, you should check if it's there,
     // and if not, fetch the chainlink from the server and check against linksIDs[1].
     union { null, MerkleRootV2 } headMerkle;
+
+    // Merkle roots at each seqno
+    map<Seqno, MerkleRootV2> merkleRoots;
   }
+
+  @typedef("string")
+  record BoxSummaryHash {}
 
   // The team got this name at this point in time.
   record TeamNameLogPoint {
@@ -910,6 +916,9 @@ protocol teams {
   // A user can hope for success if and only if they are a member of
   // the team or an admin of any of its ancestors.
   TeamDetails teamGet(int sessionID, string name);
+
+  // Get the members of the team
+  TeamMembersDetails teamGetMembers(int sessionID, string name);
 
   // List all the admins of ancestor teams.
   // Includes admins of the specified team only if they are also admins of ancestor teams.

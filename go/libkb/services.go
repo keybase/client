@@ -173,6 +173,13 @@ func (t *BaseServiceType) CanMakeNewProofs(mctx MetaContext) bool {
 	return !t.displayConf.CreationDisabled
 }
 
+func (t *BaseServiceType) IsNew(mctx MetaContext) bool {
+	if t.displayConf == nil {
+		return false
+	}
+	return t.displayConf.New
+}
+
 //=============================================================================
 
 type assertionContext struct {

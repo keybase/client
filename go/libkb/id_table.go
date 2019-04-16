@@ -1224,6 +1224,7 @@ type IdentityTable struct {
 	stellar          *WalletStellarChainLink
 	checkResult      *CheckResult
 	eldest           keybase1.KID
+	hasStubs         bool
 }
 
 func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
@@ -1232,6 +1233,10 @@ func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofC
 
 func (idt *IdentityTable) GetTrackMap() map[NormalizedUsername][]*TrackChainLink {
 	return idt.tracks
+}
+
+func (idt *IdentityTable) HasStubs() bool {
+	return idt.hasStubs
 }
 
 func (idt *IdentityTable) insertLink(l TypedChainLink) {
@@ -1333,10 +1338,11 @@ func (idt *IdentityTable) populate(m MetaContext) (err error) {
 			return err
 		}
 		if isBad {
-			idt.G().Log.Debug("Ignoring bad chain link with linkID %s: %s", link.LinkID(), reason)
+			m.Debug("Ignoring bad chain link with linkID %s: %s", link.LinkID(), reason)
 			continue
 		}
 		if link.IsStubbed() {
+			idt.hasStubs = true
 			continue
 		}
 

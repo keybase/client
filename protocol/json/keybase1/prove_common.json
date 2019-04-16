@@ -260,6 +260,10 @@
             "string"
           ],
           "name": "group"
+        },
+        {
+          "type": "boolean",
+          "name": "new"
         }
       ]
     },

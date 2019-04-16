@@ -173,7 +173,7 @@ func (e *Login) notProvisionedErr(m libkb.MetaContext, err error) bool {
 
 func (e *Login) sendNotification(m libkb.MetaContext) {
 	m.G().NotifyRouter.HandleLogin(m.Ctx(), string(m.G().Env.GetUsername()))
-	m.G().CallLoginHooks()
+	m.G().CallLoginHooks(m)
 }
 
 // Get a per-user key.

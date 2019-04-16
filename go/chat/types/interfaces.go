@@ -65,8 +65,6 @@ type UnboxConversationInfo interface {
 }
 
 type ConversationSource interface {
-	Offlinable
-
 	AcquireConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	ReleaseConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 
@@ -153,6 +151,7 @@ type InboxSource interface {
 		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
+	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
@@ -358,6 +357,8 @@ type AttachmentURLSrv interface {
 	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
 	GetGiphyURL(ctx context.Context, giphyURL string) string
+	GetGiphyGalleryURL(ctx context.Context, convID chat1.ConversationID,
+		tlfName string, results []chat1.GiphySearchResult) string
 	GetAttachmentFetcher() AttachmentFetcher
 	OnCacheCleared(mctx libkb.MetaContext)
 }
@@ -436,7 +437,7 @@ type Unfurler interface {
 type ConversationCommand interface {
 	Match(ctx context.Context, text string) bool
 	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string) error
-	Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
+	Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tflName, text string)
 	Name() string
 	Usage() string
 	Description() string
@@ -456,7 +457,8 @@ type ConversationCommandsSource interface {
 	GetBuiltinCommandType(ctx context.Context, c ConversationCommandsSpec) chat1.ConversationBuiltinCommandTyp
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody) (bool, error)
-	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
+	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		tlfName, text string)
 }
 
 type CoinFlipManager interface {

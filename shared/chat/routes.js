@@ -160,6 +160,10 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
+  chatAddToChannel: {
+    getScreen: () => require('./conversation/info-panel/add-to-channel/container').default,
+    upgraded: true,
+  },
   chatAttachmentFullscreen: {
     getScreen: () => require('./conversation/attachment-fullscreen/container').default,
     upgraded: true,

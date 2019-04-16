@@ -6,9 +6,11 @@ import * as Constants from '../../constants/profile'
 import * as Waiting from '../../constants/waiting'
 import {connect, getRouteProps, type RouteProps} from '../../util/container'
 import type {PlatformsExpandedType} from '../../constants/types/more'
+import type {SiteIconSet} from '../../constants/types/tracker2'
 
 type OwnProps = RouteProps<
   {
+    icon: SiteIconSet,
     platform: PlatformsExpandedType,
     platformHandle: string,
     proofId: string,
@@ -18,6 +20,7 @@ type OwnProps = RouteProps<
 
 const mapStateToProps = (state, ownProps) => ({
   errorMessage: state.profile.revokeError,
+  icon: getRouteProps(ownProps, 'icon'),
   isWaiting: Waiting.anyWaiting(state, Constants.waitingKey),
   platform: getRouteProps(ownProps, 'platform'),
   platformHandle: getRouteProps(ownProps, 'platformHandle'),

@@ -152,6 +152,12 @@ const SettingsSubNavigator = createNavigator(
   {}
 )
 
+SettingsSubNavigator.navigationOptions = {
+  header: undefined,
+  headerTitle: 'Settings',
+  title: 'Settings',
+}
+
 export const newRoutes = {
   'tabs.settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
 }

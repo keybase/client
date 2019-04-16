@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import moment from 'moment'
+import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../../util/timestamp'
 
 type Props = {
   device: Types.Device,
@@ -35,13 +35,12 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
   </Kb.Box2>
 )
 
-const formatTime = t => moment(t).format('MMM D, YYYY')
 const Timeline = ({device}) => {
   const timeline = [
     ...(device.revokedAt
       ? [
           {
-            desc: `Revoked ${formatTime(device.revokedAt)}`,
+            desc: `Revoked ${formatTimeForDeviceTimeline(device.revokedAt)}`,
             subDesc: device.revokedByName || '',
             type: 'Revoked',
           },
@@ -50,14 +49,14 @@ const Timeline = ({device}) => {
     ...(device.lastUsed
       ? [
           {
-            desc: `Last used ${formatTime(device.lastUsed)}`,
-            subDesc: moment(device.lastUsed).fromNow(),
+            desc: `Last used ${formatTimeForDeviceTimeline(device.lastUsed)}`,
+            subDesc: formatTimeRelativeToNow(device.lastUsed),
             type: 'LastUsed',
           },
         ]
       : []),
     {
-      desc: `Added ${formatTime(device.created)}`,
+      desc: `Added ${formatTimeForDeviceTimeline(device.created)}`,
       subDesc: device.provisionerName || '',
       type: 'Added',
     },
@@ -111,7 +110,14 @@ const DevicePage = (props: Props) => {
   }[props.device.type]
 
   return (
-    <Kb.Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
+    <Kb.Box2
+      direction="vertical"
+      gap="medium"
+      gapStart={true}
+      gapEnd={true}
+      fullWidth={true}
+      fullHeight={true}
+    >
       <Kb.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={props.device} />
       {!props.device.revokedAt && (

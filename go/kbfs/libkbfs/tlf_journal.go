@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -33,11 +34,11 @@ import (
 // tlfJournalConfig is the subset of the Config interface needed by
 // tlfJournal (for ease of testing).
 type tlfJournalConfig interface {
-	BlockSplitter() BlockSplitter
+	BlockSplitter() data.BlockSplitter
 	Clock() Clock
 	Codec() kbfscodec.Codec
 	Crypto() Crypto
-	BlockCache() BlockCache
+	BlockCache() data.BlockCache
 	BlockOps() BlockOps
 	MDCache() MDCache
 	MetadataVersion() kbfsmd.MetadataVer
@@ -282,6 +283,13 @@ type tlfJournal struct {
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
+
+	// Needs to be taken for reading when putting block data, and for
+	// writing when clearing block data, to ensure that we don't put a
+	// block (in parallel with other blocks), then clear out the whole
+	// block journal before appending the block's entry to the block
+	// journal.  Should be taken before `journalLock`.
+	blockPutFlushLock sync.RWMutex
 
 	// Protects all operations on blockJournal and mdJournal, and all
 	// the fields until the next blank line.
@@ -1393,6 +1401,9 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 			removedFiles)
 	}
 
+	j.blockPutFlushLock.Lock()
+	defer j.blockPutFlushLock.Unlock()
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1964,7 +1975,7 @@ func (j *tlfJournal) enable() error {
 // successful MD flush).  This is safe because the journal doesn't
 // support removing references for anything other than a flush (see
 // the comment in tlfJournal.removeBlockReferences).
-func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
+func (j *tlfJournal) getBlockData(ctx context.Context, id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1972,17 +1983,18 @@ func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	return j.blockJournal.getData(id)
+	return j.blockJournal.getData(ctx, id)
 }
 
-func (j *tlfJournal) getBlockSize(id kbfsblock.ID) (uint32, error) {
+func (j *tlfJournal) getBlockSize(
+	ctx context.Context, id kbfsblock.ID) (uint32, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return 0, err
 	}
 
-	size, err := j.blockJournal.getDataSize(id)
+	size, err := j.blockJournal.getDataSize(ctx, id)
 	if err != nil {
 		return 0, err
 	}
@@ -2071,6 +2083,17 @@ func (j *tlfJournal) putBlockData(
 			filesPerBlockMax, putData, j.chargedTo)
 	}()
 
+	j.blockPutFlushLock.RLock()
+	defer j.blockPutFlushLock.RUnlock()
+
+	// Put the block data before taking the lock, so block puts can
+	// run in parallel.
+	putData, err = j.blockJournal.putBlockData(
+		ctx, id, blockCtx, buf, serverHalf)
+	if err != nil {
+		return err
+	}
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2083,8 +2106,12 @@ func (j *tlfJournal) putBlockData(
 
 	storedBytesBefore := j.blockJournal.getStoredBytes()
 
-	putData, err = j.blockJournal.putData(
-		ctx, id, blockCtx, buf, serverHalf)
+	bufLenToAdd := bufLen
+	if !putData {
+		bufLenToAdd = 0
+	}
+
+	err = j.blockJournal.appendBlock(ctx, id, blockCtx, bufLenToAdd)
 	if err != nil {
 		return err
 	}
@@ -2183,7 +2210,8 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
-func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
+func (j *tlfJournal) isBlockUnflushed(
+	ctx context.Context, id kbfsblock.ID) (bool, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -2197,7 +2225,7 @@ func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
 		return true, nil
 	}
 
-	return j.blockJournal.isUnflushed(id)
+	return j.blockJournal.isUnflushed(ctx, id)
 }
 
 func (j *tlfJournal) markFlushingBlockIDs(entries blockEntriesToFlush) error {

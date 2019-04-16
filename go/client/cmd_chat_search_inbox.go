@@ -23,9 +23,10 @@ import (
 
 type CmdChatSearchInbox struct {
 	libkb.Contextified
-	query  string
-	opts   chat1.SearchOpts
-	hasTTY bool
+	query     string
+	opts      chat1.SearchOpts
+	namesOnly bool
+	hasTTY    bool
 }
 
 func NewCmdChatSearchInboxRunner(g *libkb.GlobalContext) *CmdChatSearchInbox {
@@ -50,8 +51,16 @@ func newCmdChatSearchInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 				Usage: "Ensure inbox is fully indexed before executing the search.",
 			},
 			cli.IntFlag{
-				Name:  "max-convs",
-				Usage: fmt.Sprintf("Specify the maximum number conversations to find matches is. Default is all conversations."),
+				Name:  "max-convs-searched",
+				Usage: fmt.Sprintf("Specify the maximum number of conversations to search. Default is all conversations."),
+			},
+			cli.IntFlag{
+				Name:  "max-convs-hit",
+				Usage: fmt.Sprintf("Specify the maximum number conversations to return search hits from. Default is unlimited."),
+			},
+			cli.BoolFlag{
+				Name:  "names-only",
+				Usage: "Search only the names of conversations",
 			},
 		),
 	}
@@ -76,6 +85,7 @@ func (c *CmdChatSearchInbox) Run() (err error) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		Query:            c.query,
 		Opts:             c.opts,
+		NamesOnly:        c.namesOnly,
 	}
 	_, err = resolver.ChatClient.SearchInbox(ctx, arg)
 	return err
@@ -85,8 +95,12 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
 		return errors.New("usage: keybase chat search <query>")
 	}
+	reindexMode := chat1.ReIndexingMode_AFTERSEARCH
+	if ctx.Bool("force-reindex") {
+		reindexMode = chat1.ReIndexingMode_FORCE
+	}
 	c.query = ctx.Args().Get(0)
-	c.opts.ForceReindex = ctx.Bool("force-reindex")
+	c.opts.ReindexMode = reindexMode
 	c.opts.SentBy = ctx.String("sent-by")
 	sentBeforeStr := ctx.String("sent-before")
 	sentAfterStr := ctx.String("sent-after")
@@ -110,9 +124,10 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 
 	c.opts.MaxHits = ctx.Int("max-hits")
 	if c.opts.MaxHits > search.MaxAllowedSearchHits {
-		return fmt.Errorf("max-hits cannot exceed %d.", search.MaxAllowedSearchHits)
+		return fmt.Errorf("max-hits cannot exceed %d", search.MaxAllowedSearchHits)
 	}
-	c.opts.MaxConvs = ctx.Int("max-convs")
+	c.opts.MaxConvsSearched = ctx.Int("max-convs-searched")
+	c.opts.MaxConvsHit = ctx.Int("max-convs-hit")
 
 	c.opts.AfterContext = ctx.Int("after-context")
 	c.opts.BeforeContext = ctx.Int("before-context")
@@ -121,6 +136,9 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 		c.opts.BeforeContext = context
 		c.opts.AfterContext = context
 	}
+
+	c.namesOnly = ctx.Bool("names-only")
+	c.opts.MaxNameConvs = 10
 
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	return nil

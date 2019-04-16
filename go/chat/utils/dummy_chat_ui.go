@@ -54,6 +54,10 @@ func (r DummyChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDon
 	return nil
 }
 
+func (r DummyChatUI) ChatSearchInboxStart(ctx context.Context, sessionID int) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	return nil
 }
@@ -63,6 +67,10 @@ func (r DummyChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSear
 }
 
 func (r DummyChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearchConvHitsArg) error {
 	return nil
 }
 

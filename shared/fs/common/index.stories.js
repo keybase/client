@@ -17,6 +17,7 @@ import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
+import SyncStatus from './sync-status'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -63,6 +64,11 @@ export const commonProvider = {
     driverEnabled: false,
     enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
+  }),
+  FolderViewFilter: (props: any) => ({
+    filter: '',
+    onUpdate: Sb.action('onUpdate'),
+    ...props,
   }),
   LoadPathMetadataWhenNeeded: ({path}: {path: Types.Path}) => ({
     loadPathMetadata: Sb.action('loadPathMetadata'),
@@ -241,6 +247,17 @@ const load = () => {
           openInSystemFileManager={Sb.action('openInSystemFileManager')}
           enableDriver={Sb.action('enableDriver')}
         />
+      </Kb.Box2>
+    ))
+    .add('Sync Status', () => (
+      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
+        <SyncStatus status={'awaiting-to-sync'} folder={false} />
+        <SyncStatus status={'awaiting-to-upload'} folder={false} />
+        <SyncStatus status={'online-only'} folder={false} />
+        <SyncStatus status={'synced'} folder={false} />
+        <SyncStatus status={'sync-error'} folder={true} />
+        <SyncStatus status={'uploading'} folder={false} />
+        <SyncStatus status={0.3} folder={false} />
       </Kb.Box2>
     ))
 

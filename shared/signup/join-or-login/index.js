@@ -11,7 +11,7 @@ type Props = {|
   onLogin: () => void,
 |}
 
-const _JoinOrLogin = (props: Kb.PropsWithOverlay<Props>) => (
+const JoinOrLogin = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
       <InfoIcon onDocumentation={props.onDocumentation} onFeedback={props.onFeedback} />
@@ -33,7 +33,6 @@ const _JoinOrLogin = (props: Kb.PropsWithOverlay<Props>) => (
     </Kb.ButtonBar>
   </Kb.Box2>
 )
-const JoinOrLogin = Kb.OverlayParentHOC(_JoinOrLogin)
 
 const styles = Styles.styleSheetCreate({
   body: {

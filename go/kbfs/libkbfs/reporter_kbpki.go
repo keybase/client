@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -78,12 +79,13 @@ var noErrorNames = map[string]bool{
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config           Config
-	log              logger.Logger
-	notifyBuffer     chan *keybase1.FSNotification
-	notifyPathBuffer chan string
-	notifySyncBuffer chan *keybase1.FSPathSyncStatus
-	canceler         func()
+	config             Config
+	log                logger.Logger
+	notifyBuffer       chan *keybase1.FSNotification
+	onlineStatusBuffer chan bool
+	notifyPathBuffer   chan string
+	notifySyncBuffer   chan *keybase1.FSPathSyncStatus
+	canceler           func()
 
 	lastNotifyPathLock sync.Mutex
 	lastNotifyPath     string
@@ -92,12 +94,13 @@ type ReporterKBPKI struct {
 // NewReporterKBPKI creates a new ReporterKBPKI.
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	r := &ReporterKBPKI{
-		ReporterSimple:   NewReporterSimple(config.Clock(), maxErrors),
-		config:           config,
-		log:              config.MakeLogger(""),
-		notifyBuffer:     make(chan *keybase1.FSNotification, bufSize),
-		notifyPathBuffer: make(chan string, 1),
-		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, 1),
+		ReporterSimple:     NewReporterSimple(config.Clock(), maxErrors),
+		config:             config,
+		log:                config.MakeLogger(""),
+		notifyBuffer:       make(chan *keybase1.FSNotification, bufSize),
+		onlineStatusBuffer: make(chan bool, bufSize),
+		notifyPathBuffer:   make(chan string, 1),
+		notifySyncBuffer:   make(chan *keybase1.FSPathSyncStatus, 1),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -206,6 +209,12 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 	}
 }
 
+// OnlineStatusChanged notifies the service (and eventually GUI) when we
+// detected we are connected to or disconnected from mdserver.
+func (r *ReporterKBPKI) OnlineStatusChanged(ctx context.Context, online bool) {
+	r.onlineStatusBuffer <- online
+}
+
 func (r *ReporterKBPKI) setLastNotifyPath(p string) (same bool) {
 	r.lastNotifyPathLock.Lock()
 	defer r.lastNotifyPathLock.Unlock()
@@ -258,6 +267,7 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
 	close(r.notifyBuffer)
+	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
 }
 
@@ -291,6 +301,14 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				notification); err != nil {
 				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 					"notification: %s", err)
+			}
+		case online, ok := <-r.onlineStatusBuffer:
+			if !ok {
+				return
+			}
+			if err := r.config.KeybaseService().NotifyOnlineStatusChanged(ctx, online); err != nil {
+				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+					"NotifyOnlineStatusChanged: %s", err)
 			}
 		case <-sendTicker.C:
 			select {
@@ -326,7 +344,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 
 // writeNotification creates FSNotifications from paths for file
 // write events.
-func writeNotification(file path, finish bool) *keybase1.FSNotification {
+func writeNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_SIGNING
@@ -338,7 +356,7 @@ func writeNotification(file path, finish bool) *keybase1.FSNotification {
 
 // readNotification creates FSNotifications from paths for file
 // read events.
-func readNotification(file path, finish bool) *keybase1.FSNotification {
+func readNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	n := baseNotification(file, finish)
 	if file.Tlf.Type() == tlf.Public {
 		n.NotificationType = keybase1.FSNotificationType_VERIFYING
@@ -364,7 +382,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Han
 	}
 }
 
-func baseFileEditNotification(file path, writer keybase1.UID,
+func baseFileEditNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseNotification(file, true)
 	n.WriterUid = writer
@@ -374,7 +392,7 @@ func baseFileEditNotification(file path, writer keybase1.UID,
 
 // fileCreateNotification creates FSNotifications from paths for file
 // create events.
-func fileCreateNotification(file path, writer keybase1.UID,
+func fileCreateNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_CREATED
@@ -383,7 +401,7 @@ func fileCreateNotification(file path, writer keybase1.UID,
 
 // fileModifyNotification creates FSNotifications from paths for file
 // modification events.
-func fileModifyNotification(file path, writer keybase1.UID,
+func fileModifyNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
@@ -392,7 +410,7 @@ func fileModifyNotification(file path, writer keybase1.UID,
 
 // fileDeleteNotification creates FSNotifications from paths for file
 // delete events.
-func fileDeleteNotification(file path, writer keybase1.UID,
+func fileDeleteNotification(file data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(file, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_DELETED
@@ -401,7 +419,7 @@ func fileDeleteNotification(file path, writer keybase1.UID,
 
 // fileRenameNotification creates FSNotifications from paths for file
 // rename events.
-func fileRenameNotification(oldFile path, newFile path, writer keybase1.UID,
+func fileRenameNotification(oldFile data.Path, newFile data.Path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(newFile, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
@@ -421,7 +439,7 @@ func connectionNotification(status keybase1.FSStatusCode) *keybase1.FSNotificati
 
 // baseNotification creates a basic FSNotification without a
 // NotificationType from a path.
-func baseNotification(file path, finish bool) *keybase1.FSNotification {
+func baseNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	code := keybase1.FSStatusCode_START
 	if finish {
 		code = keybase1.FSStatusCode_FINISH

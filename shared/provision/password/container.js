@@ -8,6 +8,7 @@ import React, {Component} from 'react'
 import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import * as WaitingConstants from '../../constants/waiting'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {|
   ...$Exact<RouteProps<{}, {}>>,
@@ -72,7 +73,9 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => dispatch(ownProps.navigateUp()),
+  onBack: () => {
+    !flags.useNewRouter && dispatch(ownProps.navigateUp())
+  },
   onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onSubmit: (password: string) =>
     dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),

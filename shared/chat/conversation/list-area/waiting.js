@@ -14,7 +14,7 @@ const styles = styleSheetCreate({
     flex: 1,
     justifyContent: 'center',
   },
-  spinner: {width: 40},
+  spinner: {height: 40, width: 40},
 })
 
 export default Waiting

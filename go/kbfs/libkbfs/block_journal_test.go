@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	kbfsdata "github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -152,9 +153,11 @@ func putBlockData(
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 
-	putData, err := j.putData(ctx, bID, bCtx, data, serverHalf)
+	putData, err := j.putBlockData(ctx, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 	require.True(t, putData)
+	err = j.appendBlock(ctx, bID, bCtx, int64(len(data)))
+	require.NoError(t, err)
 
 	require.Equal(t, oldLength+1, j.length())
 
@@ -183,7 +186,7 @@ func addBlockRef(
 func getAndCheckBlockData(ctx context.Context, t *testing.T, j *blockJournal,
 	bID kbfsblock.ID, bCtx kbfsblock.Context, expectedData []byte,
 	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf) {
-	data, serverHalf, err := j.getDataWithContext(bID, bCtx)
+	data, serverHalf, err := j.getDataWithContext(ctx, bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, expectedData, data)
 	require.Equal(t, expectedServerHalf, serverHalf)
@@ -238,18 +241,22 @@ func TestBlockJournalDuplicatePut(t *testing.T) {
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 
-	putData, err := j.putData(ctx, bID, bCtx, data, serverHalf)
+	putData, err := j.putBlockData(ctx, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 	require.True(t, putData)
+	err = j.appendBlock(ctx, bID, bCtx, int64(len(data)))
+	require.NoError(t, err)
 
 	require.Equal(t, int64(len(data)), j.getStoredBytes())
 	require.Equal(t, int64(len(data)), j.getUnflushedBytes())
 	require.Equal(t, int64(filesPerBlockMax), j.getStoredFiles())
 
 	// Put a second time.
-	putData, err = j.putData(ctx, bID, bCtx, data, serverHalf)
+	putData, err = j.putBlockData(ctx, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 	require.False(t, putData)
+	err = j.appendBlock(ctx, bID, bCtx, 0)
+	require.NoError(t, err)
 
 	require.Equal(t, oldLength+2, j.length())
 
@@ -272,7 +279,7 @@ func TestBlockJournalAddReference(t *testing.T) {
 	bCtx := addBlockRef(ctx, t, j, bID)
 
 	// Of course, the block get should still fail.
-	_, _, err = j.getDataWithContext(bID, bCtx)
+	_, _, err = j.getDataWithContext(ctx, bID, bCtx)
 	require.Equal(t, blockNonExistentError{bID}, err)
 }
 
@@ -336,11 +343,11 @@ func TestBlockJournalRemoveReferences(t *testing.T) {
 	require.Equal(t, uint64(3), j.length())
 
 	// Make sure the block data is inaccessible.
-	_, _, err = j.getDataWithContext(bID, bCtx)
+	_, _, err = j.getDataWithContext(ctx, bID, bCtx)
 	require.Equal(t, blockNonExistentError{bID}, err)
 
 	// But the actual data should remain (for flushing).
-	buf, half, err := j.getData(bID)
+	buf, half, err := j.getData(ctx, bID)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, half)
@@ -443,7 +450,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	flush := func() (flushedBytes, removedBytes, removedFiles int64) {
@@ -538,7 +545,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	j *blockJournal, blockServer BlockServer,
-	bcache BlockCache, reporter Reporter, tlfID tlf.ID) (
+	bcache kbfsdata.BlockCache, reporter Reporter, tlfID tlf.ID) (
 	flushedBytes, removedFiles, removedBytes int64) {
 	first, err := j.j.readEarliestOrdinal()
 	require.NoError(t, err)
@@ -584,7 +591,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	flushOne := func() (int64, int64, int64) {
@@ -715,7 +722,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Make sure the block journal reports that entries up to `rev`
@@ -776,7 +783,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Make sure the block journal reports that entries up to 10 can
@@ -853,7 +860,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Flush and make sure we only flush the non-ignored blocks.
@@ -924,7 +931,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
 	// Flush all the entries, but they should still remain accessible.
@@ -950,7 +957,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	// The blocks can still be fetched from the journal.
 	for _, bid := range savedBlocks {
-		ok, err := j.hasData(bid)
+		ok, err := j.hasData(ctx, bid)
 		require.NoError(t, err)
 		require.True(t, ok)
 	}
@@ -977,7 +984,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	// Make sure all the blocks still exist, including both the old
 	// and the new ones.
 	for _, bid := range savedBlocks {
-		ok, err := j.hasData(bid)
+		ok, err := j.hasData(ctx, bid)
 		require.NoError(t, err)
 		require.True(t, ok)
 	}
@@ -999,16 +1006,16 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	require.Equal(t, expectedBytes, removedBytes)
 	require.Equal(t, expectedFiles, removedFiles)
 
-	ok, err := j.isUnflushed(bID1)
+	ok, err := j.isUnflushed(ctx, bID1)
 	require.NoError(t, err)
 	require.False(t, ok)
-	ok, err = j.isUnflushed(bID2)
+	ok, err = j.isUnflushed(ctx, bID2)
 	require.NoError(t, err)
 	require.False(t, ok)
-	ok, err = j.isUnflushed(bID3)
+	ok, err = j.isUnflushed(ctx, bID3)
 	require.NoError(t, err)
 	require.False(t, ok)
-	ok, err = j.isUnflushed(bID4)
+	ok, err = j.isUnflushed(ctx, bID4)
 	require.NoError(t, err)
 	require.False(t, ok)
 
@@ -1082,7 +1089,7 @@ func TestBlockJournalByteCounters(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, tlf.Private)
-	bcache := NewBlockCacheStandard(0, 0)
+	bcache := kbfsdata.NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 	flushOne := func() (int64, int64, int64) {
 		return flushBlockJournalOne(

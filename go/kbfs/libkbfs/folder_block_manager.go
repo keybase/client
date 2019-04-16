@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -61,7 +62,7 @@ const (
 
 type blocksToDelete struct {
 	md      ReadOnlyRootMetadata
-	blocks  []BlockPointer
+	blocks  []data.BlockPointer
 	bdType  blockDeleteType
 	backoff backoff.BackOff
 }
@@ -133,14 +134,14 @@ type folderBlockManager struct {
 }
 
 func newFolderBlockManager(
-	appStateUpdater env.AppStateUpdater, config Config, fb FolderBranch,
+	appStateUpdater env.AppStateUpdater, config Config, fb data.FolderBranch,
 	bType branchType, helper fbmHelper) *folderBlockManager {
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
 
 	var latestMergedChan chan struct{}
 	qrEnabled :=
-		fb.Branch == MasterBranch && config.Mode().QuotaReclamationEnabled()
+		fb.Branch == data.MasterBranch && config.Mode().QuotaReclamationEnabled()
 	if qrEnabled {
 		latestMergedChan = make(chan struct{}, 1)
 	}
@@ -451,7 +452,7 @@ func (fbm *folderBlockManager) forceQuotaReclamation() {
 // block server for the given block pointers.  For deletes, it returns
 // a list of block IDs that no longer have any references.
 func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer, archive bool) (
+	tlfID tlf.ID, ptrs []data.BlockPointer, archive bool) (
 	[]kbfsblock.ID, error) {
 	fbm.log.CDebugf(ctx, "Downgrading %d pointers (archive=%t)",
 		len(ptrs), archive)
@@ -464,7 +465,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
 	}
-	chunks := make(chan []BlockPointer, numChunks)
+	chunks := make(chan []data.BlockPointer, numChunks)
 
 	var wg sync.WaitGroup
 	defer wg.Wait()
@@ -535,7 +536,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 // for the given block pointers.  It returns a list of block IDs that
 // no longer have any references.
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer) ([]kbfsblock.ID, error) {
+	tlfID tlf.ID, ptrs []data.BlockPointer) ([]kbfsblock.ID, error) {
 	return fbm.doChunkedDowngrades(ctx, tlfID, ptrs, false)
 }
 
@@ -661,9 +662,8 @@ func (fbm *folderBlockManager) ctxWithFBMID(
 }
 
 // Run the passed function with a context that's canceled on shutdown.
-func (fbm *folderBlockManager) runUnlessShutdown(
-	fn func(ctx context.Context) error) error {
-	ctx := fbm.ctxWithFBMID(context.Background())
+func (fbm *folderBlockManager) runUnlessShutdownWithCtx(
+	ctx context.Context, fn func(ctx context.Context) error) error {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 	errChan := make(chan error, 1)
@@ -679,56 +679,140 @@ func (fbm *folderBlockManager) runUnlessShutdown(
 	}
 }
 
+// Run the passed function with a context that's canceled on shutdown.
+func (fbm *folderBlockManager) runUnlessShutdown(
+	fn func(ctx context.Context) error) error {
+	ctx := fbm.ctxWithFBMID(context.Background())
+	return fbm.runUnlessShutdownWithCtx(ctx, fn)
+}
+
 func (fbm *folderBlockManager) archiveBlockRefs(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer) error {
+	tlfID tlf.ID, ptrs []data.BlockPointer) error {
 	_, err := fbm.doChunkedDowngrades(ctx, tlfID, ptrs, true)
 	return err
+}
+
+type unrefIterator struct {
+	nextPtr int
+}
+
+// getUnrefPointersFromMD returns a slice of BlockPointers that were
+// unreferenced by the given `rmd`.  If there are too many pointers to
+// process, given the current mode, then it will return a partial
+// list, plus a non-nil `iter` parameter that can be passed into a
+// subsequent call to get the next set of unreferenced BlockPointers
+// from the same MD.  If a nil `iter` is given, pointers are returned
+// from the beginning of the list.
+func (fbm *folderBlockManager) getUnrefPointersFromMD(
+	rmd ReadOnlyRootMetadata, includeGC bool, iter *unrefIterator) (
+	ptrs []data.BlockPointer, nextIter *unrefIterator) {
+	currPtr := 0
+	complete := true
+	nextPtr := 0
+	if iter != nil {
+		nextPtr = iter.nextPtr
+	}
+	ptrMap := make(map[data.BlockPointer]bool)
+	max := fbm.config.Mode().MaxBlockPtrsToManageAtOnce()
+opLoop:
+	for _, op := range rmd.data.Changes.Ops {
+		if _, ok := op.(*GCOp); !includeGC && ok {
+			continue
+		}
+		for _, ptr := range op.Unrefs() {
+			currPtr++
+			// Skip past any ptrs we've already processed.
+			if currPtr <= nextPtr {
+				continue
+			}
+
+			// Can be zeroPtr in weird failed sync scenarios.
+			// See syncInfo.replaceRemovedBlock for an example
+			// of how this can happen.
+			if ptr != data.ZeroPtr && !ptrMap[ptr] {
+				ptrMap[ptr] = true
+			}
+			nextPtr++
+			if max >= 0 && len(ptrMap) >= max {
+				complete = false
+				break opLoop
+			}
+		}
+		for _, update := range op.allUpdates() {
+			currPtr++
+			// Skip past any ptrs we've already processed.
+			if currPtr <= nextPtr {
+				continue
+			}
+
+			// It's legal for there to be an "update" between
+			// two identical pointers (usually because of
+			// conflict resolution), so ignore that for quota
+			// reclamation purposes.
+			if update.Ref != update.Unref && !ptrMap[update.Unref] {
+				ptrMap[update.Unref] = true
+			}
+			nextPtr++
+			if max >= 0 && len(ptrMap) >= max {
+				complete = false
+				break opLoop
+			}
+		}
+	}
+	ptrs = make([]data.BlockPointer, 0, len(ptrMap))
+	for ptr := range ptrMap {
+		ptrs = append(ptrs, ptr)
+	}
+	if !complete {
+		nextIter = &unrefIterator{nextPtr}
+	}
+	return ptrs, nextIter
+}
+
+func (fbm *folderBlockManager) archiveAllBlocksInMD(md ReadOnlyRootMetadata) {
+	// This func doesn't take any locks, though it can
+	// block md writes due to the buffered channel.
+	// So use the long timeout to make sure things get
+	// unblocked eventually, but no need for a short
+	// timeout.
+	ctx := fbm.ctxWithFBMID(context.Background())
+	ctx, cancel := context.WithTimeout(
+		context.Background(), data.BackgroundTaskTimeout)
+	fbm.setArchiveCancel(cancel)
+	defer fbm.cancelArchive()
+
+	iter := &unrefIterator{0}
+	defer fbm.archiveGroup.Done()
+	for iter != nil {
+		var ptrs []data.BlockPointer
+		ptrs, iter = fbm.getUnrefPointersFromMD(md, true, iter)
+		fbm.runUnlessShutdownWithCtx(
+			ctx, func(ctx context.Context) (err error) {
+				fbm.log.CDebugf(
+					ctx, "Archiving %d block pointers as a result "+
+						"of revision %d", len(ptrs), md.Revision())
+				err = fbm.archiveBlockRefs(ctx, md.TlfID(), ptrs)
+				if err != nil {
+					fbm.log.CWarningf(
+						ctx, "Couldn't archive blocks: %v", err)
+					return err
+				}
+
+				return nil
+			})
+		if iter != nil {
+			fbm.log.CDebugf(
+				ctx, "Archived %d pointers for revision %d, "+
+					"now looking for more", len(ptrs), md.Revision())
+		}
+	}
 }
 
 func (fbm *folderBlockManager) archiveBlocksInBackground() {
 	for {
 		select {
 		case md := <-fbm.archiveChan:
-			var ptrs []BlockPointer
-			for _, op := range md.data.Changes.Ops {
-				for _, ptr := range op.Unrefs() {
-					// Can be zeroPtr in weird failed sync scenarios.
-					// See syncInfo.replaceRemovedBlock for an example
-					// of how this can happen.
-					if ptr != zeroPtr {
-						ptrs = append(ptrs, ptr)
-					}
-				}
-				for _, update := range op.allUpdates() {
-					// It's legal for there to be an "update" between
-					// two identical pointers (usually because of
-					// conflict resolution), so ignore that for
-					// archival purposes.
-					if update.Ref != update.Unref {
-						ptrs = append(ptrs, update.Unref)
-					}
-				}
-			}
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
-				defer fbm.archiveGroup.Done()
-				// This func doesn't take any locks, though it can
-				// block md writes due to the buffered channel.  So
-				// use the long timeout to make sure things get
-				// unblocked eventually, but no need for a short timeout.
-				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
-				fbm.setArchiveCancel(cancel)
-				defer fbm.cancelArchive()
-
-				fbm.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
-					"of revision %d", len(ptrs), md.Revision())
-				err = fbm.archiveBlockRefs(ctx, md.TlfID(), ptrs)
-				if err != nil {
-					fbm.log.CWarningf(ctx, "Couldn't archive blocks: %v", err)
-					return err
-				}
-
-				return nil
-			})
+			fbm.archiveAllBlocksInMD(md)
 		case unpause := <-fbm.archivePauseChan:
 			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
 				fbm.log.CInfof(ctx, "Archives paused")
@@ -752,7 +836,8 @@ func (fbm *folderBlockManager) deleteBlocksInBackground() {
 		select {
 		case toDelete := <-fbm.blocksToDeleteChan:
 			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
-				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
+				ctx, cancel := context.WithTimeout(
+					ctx, data.BackgroundTaskTimeout)
 				fbm.setBlocksToDeleteCancel(cancel)
 				defer fbm.cancelBlocksToDelete()
 
@@ -845,38 +930,6 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 	}
 }
 
-func getUnrefPointersFromMD(
-	rmd ImmutableRootMetadata, includeGC bool) (ptrs []BlockPointer) {
-	ptrMap := make(map[BlockPointer]bool)
-	for _, op := range rmd.data.Changes.Ops {
-		if _, ok := op.(*GCOp); !includeGC && ok {
-			continue
-		}
-		for _, ptr := range op.Unrefs() {
-			// Can be zeroPtr in weird failed sync scenarios.
-			// See syncInfo.replaceRemovedBlock for an example
-			// of how this can happen.
-			if ptr != zeroPtr && !ptrMap[ptr] {
-				ptrMap[ptr] = true
-			}
-		}
-		for _, update := range op.allUpdates() {
-			// It's legal for there to be an "update" between
-			// two identical pointers (usually because of
-			// conflict resolution), so ignore that for quota
-			// reclamation purposes.
-			if update.Ref != update.Unref && !ptrMap[update.Unref] {
-				ptrMap[update.Unref] = true
-			}
-		}
-	}
-	ptrs = make([]BlockPointer, 0, len(ptrMap))
-	for ptr := range ptrMap {
-		ptrs = append(ptrs, ptr)
-	}
-	return ptrs
-}
-
 // getUnrefBlocks returns a slice containing all the block pointers
 // that were unreferenced after the earliestRev, up to and including
 // those in latestRev.  If the number of pointers is too large, it
@@ -884,7 +937,7 @@ func getUnrefPointersFromMD(
 // the latest revision represented in the returned slice of pointers.
 func (fbm *folderBlockManager) getUnreferencedBlocks(
 	ctx context.Context, earliestRev, mostRecentRev kbfsmd.Revision) (
-	ptrs []BlockPointer, lastRev kbfsmd.Revision,
+	ptrs []data.BlockPointer, lastRev kbfsmd.Revision,
 	complete bool, err error) {
 	fbm.log.CDebugf(ctx, "Getting unreferenced blocks between revisions "+
 		"%d and %d", earliestRev, mostRecentRev)
@@ -922,7 +975,18 @@ outer:
 				break outer
 			}
 			lastRev = rmd.Revision()
-			newPtrs := getUnrefPointersFromMD(rmd, false)
+			// A garbage-collection op *must* contain all pointers in
+			// its respective op.  If this device can't handle it,
+			// error the process and let another device take care of
+			// it.
+			newPtrs, iter := fbm.getUnrefPointersFromMD(
+				rmd.ReadOnlyRootMetadata, false, &unrefIterator{0})
+			if iter != nil {
+				return nil, kbfsmd.RevisionUninitialized, false, errors.New(
+					fmt.Sprintf(
+						"Can't handle the unref'd pointers of revision %d",
+						lastRev))
+			}
 			ptrs = append(ptrs, newPtrs...)
 			// TODO: when can we clean up the MD's unembedded block
 			// changes pointer?  It's not safe until we know for sure
@@ -951,11 +1015,11 @@ outer:
 }
 
 func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
-	ptrs []BlockPointer, zeroRefCounts []kbfsblock.ID,
+	ptrs []data.BlockPointer, zeroRefCounts []kbfsblock.ID,
 	latestRev kbfsmd.Revision) error {
 	gco := newGCOp(latestRev)
 	for _, id := range zeroRefCounts {
-		gco.AddUnrefBlock(BlockPointer{ID: id})
+		gco.AddUnrefBlock(data.BlockPointer{ID: id})
 	}
 
 	ctx, err := tlfhandle.MakeExtendedIdentify(
@@ -1261,7 +1325,7 @@ func (fbm *folderBlockManager) clearLastQRData() {
 }
 
 func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
-	ctx context.Context, ptrs []BlockPointer) (
+	ctx context.Context, ptrs []data.BlockPointer) (
 	nonLiveBlocks []kbfsblock.ID, err error) {
 	fbm.log.CDebugf(ctx, "Get live count for %d pointers", len(ptrs))
 	bops := fbm.config.BlockOps()
@@ -1273,7 +1337,7 @@ func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
 	}
-	chunks := make(chan []BlockPointer, numChunks)
+	chunks := make(chan []data.BlockPointer, numChunks)
 
 	eg, groupCtx := errgroup.WithContext(ctx)
 	chunkResults := make(chan []kbfsblock.ID, numChunks)
@@ -1387,66 +1451,79 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 			return err
 		}
 
-		// Include unrefs from `gcOp`s here, as a double-check against
-		// archive races (see comment below).
-		ptrs := getUnrefPointersFromMD(rmd, true)
+		iter := &unrefIterator{0}
+		for iter != nil {
+			// Include unrefs from `gcOp`s here, as a double-check
+			// against archive races (see comment below).
+			var ptrs []data.BlockPointer
+			ptrs, iter = fbm.getUnrefPointersFromMD(
+				rmd.ReadOnlyRootMetadata, true, iter)
 
-		// Cancel any prefetches for these blocks that might be in
-		// flight, to make sure they don't get put into the cache
-		// after we're done cleaning it.  Ideally we would cancel them
-		// in a particular order (the lowest level ones first, up to
-		// the root), but since we already do one round of
-		// prefetch-canceling as part of applying the MD and updating
-		// the pointers, doing a second round here should be good
-		// enough to catch any weird relationships between the
-		// pointers where one non-yet-canceled prefetch can revive the
-		// prefetch of an already-canceled child block.
-		for _, ptr := range ptrs {
-			fbm.config.BlockOps().Prefetcher().CancelPrefetch(ptr)
-			c, err := fbm.config.BlockOps().Prefetcher().
-				WaitChannelForBlockPrefetch(ctx, ptr)
-			if err != nil {
-				return err
-			}
-			select {
-			case <-c:
-			case <-ctx.Done():
-				return ctx.Err()
-			}
-		}
-
-		var ids []kbfsblock.ID
-		if cacheType == DiskBlockSyncCache {
-			// Wait for our own archives to complete, to make sure the
-			// bserver already knows this block isn't live yet when we
-			// make the call below.  However, when dealing with MDs
-			// written by other clients, there could be a race here
-			// where we see the ID is live before the other client
-			// gets to archive the block, leading to a leak.  Once the
-			// revision is GC'd though, we should run through this
-			// code again with the `gcOp`, and we'll delete the block
-			// then.  (Note there's always a chance for a race here,
-			// since the client could crash before archiving the
-			// blocks.  But the GC should always catch it eventually.)
-			err := fbm.waitForArchives(ctx)
-			if err != nil {
-				return err
-			}
-
-			ids, err = fbm.doChunkedGetNonLiveBlocks(ctx, ptrs)
-			if err != nil {
-				return err
-			}
-		} else {
-			ids = make([]kbfsblock.ID, 0, len(ptrs))
+			// Cancel any prefetches for these blocks that might be in
+			// flight, to make sure they don't get put into the cache
+			// after we're done cleaning it.  Ideally we would cancel
+			// them in a particular order (the lowest level ones
+			// first, up to the root), but since we already do one
+			// round of prefetch-canceling as part of applying the MD
+			// and updating the pointers, doing a second round here
+			// should be good enough to catch any weird relationships
+			// between the pointers where one non-yet-canceled
+			// prefetch can revive the prefetch of an already-canceled
+			// child block.
 			for _, ptr := range ptrs {
-				ids = append(ids, ptr.ID)
+				fbm.config.BlockOps().Prefetcher().CancelPrefetch(ptr)
+				c, err := fbm.config.BlockOps().Prefetcher().
+					WaitChannelForBlockPrefetch(ctx, ptr)
+				if err != nil {
+					return err
+				}
+				select {
+				case <-c:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
 			}
-		}
-		fbm.log.CDebugf(ctx, "Deleting %d blocks from cache", len(ids))
-		_, _, err = dbc.Delete(ctx, ids, cacheType)
-		if err != nil {
-			return err
+
+			var ids []kbfsblock.ID
+			if cacheType == DiskBlockSyncCache {
+				// Wait for our own archives to complete, to make sure
+				// the bserver already knows this block isn't live yet
+				// when we make the call below.  However, when dealing
+				// with MDs written by other clients, there could be a
+				// race here where we see the ID is live before the
+				// other client gets to archive the block, leading to
+				// a leak.  Once the revision is GC'd though, we
+				// should run through this code again with the `gcOp`,
+				// and we'll delete the block then.  (Note there's
+				// always a chance for a race here, since the client
+				// could crash before archiving the blocks.  But the
+				// GC should always catch it eventually.)
+				err := fbm.waitForArchives(ctx)
+				if err != nil {
+					return err
+				}
+
+				ids, err = fbm.doChunkedGetNonLiveBlocks(ctx, ptrs)
+				if err != nil {
+					return err
+				}
+			} else {
+				ids = make([]kbfsblock.ID, 0, len(ptrs))
+				for _, ptr := range ptrs {
+					ids = append(ids, ptr.ID)
+				}
+			}
+			fbm.log.CDebugf(ctx, "Deleting %d blocks from cache", len(ids))
+			_, _, err = dbc.Delete(ctx, ids, cacheType)
+			if err != nil {
+				return err
+			}
+
+			if iter != nil {
+				fbm.log.CDebugf(
+					ctx, "Cleaned %d pointers for revision %d, "+
+						"now looking for more", len(ptrs), rmd.Revision())
+			}
 		}
 
 		err = dbc.PutLastUnrefRev(ctx, fbm.id, nextRev, cacheType)

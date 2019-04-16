@@ -5,10 +5,12 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
+import * as Styles from '../../styles'
 import {isDarwin, isMobile, isIOS} from '../../constants/platform'
 
 type OwnProps = {|
   path: Types.Path,
+  style?: ?Styles.StylesCrossPlatform,
 |}
 
 const UploadButton = Kb.OverlayParentHOC(props => {
@@ -16,7 +18,15 @@ const UploadButton = Kb.OverlayParentHOC(props => {
     return null
   }
   if (isDarwin) {
-    return <Kb.Button small={true} type="Primary" onClick={props.openAndUpload('both')} label="Upload" />
+    return (
+      <Kb.Button
+        small={true}
+        type="Primary"
+        onClick={props.openAndUpload('both')}
+        label="Upload"
+        style={props.style}
+      />
+    )
   }
   if (isIOS) {
     return <Kb.Icon type="iconfont-new" padding="tiny" onClick={props.pickAndUpload('mixed')} />
@@ -34,6 +44,7 @@ const UploadButton = Kb.OverlayParentHOC(props => {
           onClick={props.toggleShowingMenu}
           label="Upload"
           ref={props.setAttachmentRef}
+          style={props.style}
         />
       )}
       <Kb.FloatingMenu
@@ -83,6 +94,7 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 
 const mergeProps = (s, d, o) => ({
   canUpload: s._pathItem.type === 'folder' && s._pathItem.writable,
+  style: o.style,
   ...d,
 })
 

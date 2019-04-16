@@ -301,11 +301,22 @@ func IsValidHostname(s string) bool {
 	return true
 }
 
-var phoneRE = regexp.MustCompile("^[1-9][0-9]{1,14}$")
+var phoneAssertionRE = regexp.MustCompile(`^[1-9]\d{1,14}$`)
 
-// IsPossiblePhoneNumber checks if s is string of digits starting with 1.
-func IsPossiblePhoneNumber(s string) bool {
-	return phoneRE.MatchString(s)
+// IsPossiblePhoneNumberAssertion checks if s is string of digits without a `+`
+// prefix for SBS assertions
+func IsPossiblePhoneNumberAssertion(s string) bool {
+	return phoneAssertionRE.MatchString(s)
+}
+
+var phoneRE = regexp.MustCompile(`^\+[1-9]\d{1,14}$`)
+
+// IsPossiblePhoneNumber checks if s is string of digits in phone number format
+func IsPossiblePhoneNumber(phone keybase1.PhoneNumber) error {
+	if !phoneRE.MatchString(string(phone)) {
+		return fmt.Errorf("Invalid phone number, expected +11234567890 format")
+	}
+	return nil
 }
 
 func RandBytes(length int) ([]byte, error) {

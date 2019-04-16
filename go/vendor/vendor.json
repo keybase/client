@@ -391,6 +391,12 @@
 			"revisionTime": "2015-06-08T14:53:52-07:00"
 		},
 		{
+			"checksumSHA1": "37mmUDpo8//7mhcLc9rnsD8OfrE=",
+			"path": "github.com/guelfey/go.dbus",
+			"revision": "f6a3a2366cc39b8479cadc499d3c735fb10fbdda",
+			"revisionTime": "2013-11-13T12:16:18Z"
+		},
+		{
 			"checksumSHA1": "degm0JimzEvQjOTMaHOO6QzXNMI=",
 			"path": "github.com/hashicorp/golang-lru",
 			"revision": "995efda3e073b6946b175ed93901d729ad47466a",
@@ -541,52 +547,52 @@
 			"revisionTime": "2017-01-27T01:24:59Z"
 		},
 		{
-			"checksumSHA1": "IcsUw1En0CCbFeI2NtpRqL1acAg=",
+			"checksumSHA1": "Yg+fF0sf26WCOZO3xwkWAqMbrz8=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
 			"checksumSHA1": "OaxYRgIReJPa1+DSBEFemGzt/Iw=",
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
 			"checksumSHA1": "cTboJNAg/so2wzlf6HscarfPlDE=",
 			"path": "github.com/keybase/go-crypto/openpgp/clearsign",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
 			"checksumSHA1": "LhCQJCoB7yqxN6hSaPP7qXW2y5s=",
 			"path": "github.com/keybase/go-crypto/openpgp/ecdh",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
 			"checksumSHA1": "uxXG9IC/XF8jwwvZUbW65+x8/+M=",
 			"path": "github.com/keybase/go-crypto/openpgp/elgamal",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
 			"checksumSHA1": "ofZhU2758YZAAGSEJ8UjFMQLc+k=",
 			"path": "github.com/keybase/go-crypto/openpgp/errors",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
-			"checksumSHA1": "8Fp0B6L11cjcbTlmtFQLXn5zzsc=",
+			"checksumSHA1": "Ak84t7WVMcDlWl+q3KPn46SALrE=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
 			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
-			"revision": "b475f2ecc1fe24e8fbf4994e69cbb066c6846554",
-			"revisionTime": "2019-03-12T10:10:36Z"
+			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
+			"revisionTime": "2019-04-03T13:23:59Z"
 		},
 		{
 			"checksumSHA1": "rE3pp7b3gfcmBregzpIvN5IdFhY=",
@@ -635,6 +641,12 @@
 			"path": "github.com/keybase/go-keychain",
 			"revision": "da9bb486ccd551aeb1929211500fc4a0bcb62a56",
 			"revisionTime": "2019-03-11T21:27:40Z"
+		},
+		{
+			"checksumSHA1": "U4UI9YzOjjzb5wNqyLfGfZBzvcc=",
+			"path": "github.com/keybase/go-keychain/secretservice",
+			"revision": "18419f45091c941bd31260f957523063206554ef",
+			"revisionTime": "2019-04-10T17:11:33Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
@@ -1269,6 +1281,12 @@
 			"path": "golang.org/x/crypto/ed25519/internal/edwards25519",
 			"revision": "cbc3d0884eac986df6e78a039b8792e869bff863",
 			"revisionTime": "2017-04-09T18:29:52Z"
+		},
+		{
+			"checksumSHA1": "4D8hxMIaSDEW5pCQk22Xj4DcDh4=",
+			"path": "golang.org/x/crypto/hkdf",
+			"revision": "614d502a4dac94afa3a6ce146bd1736da82514c6",
+			"revisionTime": "2018-07-28T08:01:47Z"
 		},
 		{
 			"checksumSHA1": "fhxj9uzosD3dQefNF5JuGJzGZwg=",

@@ -164,7 +164,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
-        <Typing conversationIDKey={this.props.conversationIDKey} />
+        {this.props.showTypingStatus && !this.props.suggestionsVisible && (
+          <Typing conversationIDKey={this.props.conversationIDKey} />
+        )}
         <Kb.Box style={styles.container}>
           {this.props.isEditing && (
             <Kb.Box style={styles.editingTabStyle}>
@@ -187,7 +189,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
             style={styles.input}
-            textType="BodyBig"
+            textType="Body"
             rowsMax={3}
             rowsMin={1}
           />
@@ -324,8 +326,7 @@ const styles = Styles.styleSheetCreate({
   },
   input: {
     flex: 1,
-    // Override BodyBig's default weight.
-    fontWeight: Styles.globalStyles.fontRegular.fontWeight,
+    fontSize: 17, // Override Body's font size with BodyBig.
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
     ...(isIOS

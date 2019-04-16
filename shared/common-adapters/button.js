@@ -159,6 +159,7 @@ const styles = styleSheetCreate({
     alignSelf: undefined,
     flexGrow: 1,
     height: fullWidthHeight,
+    maxWidth: isMobile ? undefined : 400,
     width: undefined,
   },
   labelContainer: {height: '100%', position: 'relative'},

@@ -159,6 +159,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
+		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
@@ -347,6 +348,8 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
 	d.runBackgroundWalletUpkeep()
+	d.runBackgroundBoxAuditRetry()
+	d.runBackgroundBoxAuditScheduler()
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
@@ -415,7 +418,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
 	g.CtxFactory = chat.NewCtxFactory(g)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
+	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
@@ -462,7 +465,6 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
-	chatSyncer.RegisterOfflinable(g.ConvSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
 
@@ -846,6 +848,40 @@ func (d *Service) runBackgroundWalletUpkeep() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping background WalletUpkeep")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundBoxAuditRetry() {
+	eng := engine.NewBoxAuditRetryBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background BoxAuditorRetry error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background BoxAuditorRetry")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundBoxAuditScheduler() {
+	eng := engine.NewBoxAuditSchedulerBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background BoxAuditorScheduler error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background BoxAuditorScheduler")
 		eng.Shutdown()
 		return nil
 	})

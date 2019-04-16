@@ -9,6 +9,7 @@ import button from './button.stories'
 import buttonBar from './button-bar.stories'
 import checkbox from './checkbox.stories'
 import choiceList from './choice-list.stories'
+import confirmModal from './confirm-modal/index.stories'
 import copyText from './copy-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
@@ -31,6 +32,7 @@ import reload from './reload.stories'
 import saveIndicator from './save-indicator.stories'
 import sectionList from './section-list.stories'
 import standardScreen from './standard-screen.stories'
+import switchStories from './switch.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
 import video from './video.stories'
@@ -47,6 +49,7 @@ const load = () => {
     buttonBar,
     checkbox,
     choiceList,
+    confirmModal,
     copyText,
     dropdown,
     formWithCheckbox,
@@ -69,6 +72,7 @@ const load = () => {
     saveIndicator,
     sectionList,
     standardScreen,
+    switchStories,
     text,
     tooltip,
     video,

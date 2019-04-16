@@ -38,6 +38,8 @@ type InfoPanelProps = {|
   participants: Array<{
     username: string,
     fullname: string,
+    isAdmin: boolean,
+    isOwner: boolean,
   }>,
   isPreview: boolean,
   teamname: ?string,
@@ -45,6 +47,7 @@ type InfoPanelProps = {|
   smallTeam: boolean,
   admin: boolean,
   ignored: boolean,
+  spinnerForHide: boolean,
 
   // Used by HeaderHoc.
   onBack: () => void,
@@ -89,6 +92,8 @@ type ParticipantRow = {|
   key: string,
   username: string,
   fullname: string,
+  isAdmin: boolean,
+  isOwner: boolean,
   onShowProfile: string => void,
 |}
 
@@ -331,6 +336,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             onClick={row.onHideConv}
             noDanger={true}
             icon="iconfont-remove"
+            spinner={this.props.spinnerForHide}
           />
         )
 
@@ -341,6 +347,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             caption="Unhide this conversation"
             onClick={row.onUnhideConv}
             noDanger={true}
+            spinner={this.props.spinnerForHide}
           />
         )
 
@@ -441,6 +448,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const props = this.props
     const participants: Array<ParticipantRow> = props.participants.map(p => ({
       fullname: p.fullname,
+      isAdmin: p.isAdmin,
+      isOwner: p.isOwner,
       key: p.username,
       onShowProfile: props.onShowProfile,
       type: 'participant',

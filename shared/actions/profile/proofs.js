@@ -8,7 +8,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
+import * as Tracker2Constants from '../../constants/tracker2'
 import {peopleTab} from '../../constants/tabs'
+import {getPath} from '../../route-tree'
 import flags from '../../util/feature-flags'
 import openURL from '../../util/open-url'
 
@@ -78,7 +80,7 @@ function* addProof(state, action) {
       )
       return
     case 'pgp':
-      yield Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePgp']}))
+      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profilePgp']}))
       return
   }
 
@@ -145,9 +147,33 @@ function* addProof(state, action) {
     }
   })
 
+  const watchForNavUp = yield Saga._fork(function*() {
+    // TODO remove this when flags.useNewRouter is removed
+    // nav2 should use navigationOptions.gesturesEnabled = false
+    // to disable sidestepping custom behavior on back
+    // Check that those exist before removing this
+    while (true) {
+      yield Saga.take(RouteTreeGen.navigateUp)
+      const state = yield Saga.selectState()
+      const path = getPath(state.routeTree.routeState)
+      if (
+        ![
+          'profileGenericEnterUsername',
+          'profileProveEnterUsername',
+          'profileConfirmOrPending',
+          'profilePostProof',
+          'profileGenericProofSuccess',
+        ].includes(path.last()) &&
+        !canceled
+      ) {
+        // We nav'd away without canceling
+        yield Saga.put(ProfileGen.createCancelAddProof())
+      }
+    }
+  })
+
   const promptUsername = (args, response) => {
     const {parameters, prevError} = args
-    // TODO get parameters from this
     if (canceled) {
       cancelResponse(response)
       return
@@ -210,16 +236,30 @@ function* addProof(state, action) {
   }
 
   const checking = (_, response) => {
+    if (canceled) {
+      cancelResponse(response)
+      return
+    }
     response.result()
     return [Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: true}))]
   }
 
+  // service calls in when it polls to give us an opportunity to cancel
+  const continueChecking = (_, response) => (canceled ? response.result(false) : response.result(true))
+
   const responseYes = (_, response) => response.result(true)
 
+  const loadAfter = Tracker2Gen.createLoad({
+    assertion: state.config.username,
+    guiID: Tracker2Constants.generateGUIID(),
+    inTracker: false,
+    reason: '',
+  })
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
       customResponseIncomingCallMap: {
         'keybase.1.proveUi.checking': checking,
+        'keybase.1.proveUi.continueChecking': continueChecking,
         'keybase.1.proveUi.okToCheck': responseYes,
         'keybase.1.proveUi.outputInstructions': outputInstructions,
         'keybase.1.proveUi.preProofWarning': responseYes,
@@ -241,12 +281,16 @@ function* addProof(state, action) {
     })
     yield Saga.put(ProfileGen.createUpdateSigID({sigID}))
     logger.info('Start Proof done: ', sigID)
-    yield Saga.put(ProfileGen.createCheckProof())
+    if (!genericService) {
+      yield Saga.put(ProfileGen.createCheckProof())
+    }
+    yield Saga.put(loadAfter)
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
   } catch (error) {
     logger.warn('Error making proof')
+    yield Saga.put(loadAfter)
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
@@ -255,6 +299,7 @@ function* addProof(state, action) {
   cancelTask.cancel()
   checkProofTask.cancel()
   submitUsernameTask.cancel()
+  watchForNavUp.cancel()
   addProofInProgress = false
 }
 

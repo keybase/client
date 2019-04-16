@@ -15,8 +15,6 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-var locktab libkb.LockTable
-
 type Identify2TestStats struct {
 	untrackedFastPaths int
 }
@@ -438,7 +436,7 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 	m.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
-	lock, err := locktab.AcquireOnNameWithContext(m.Ctx(), m.G(), e.arg.Uid.String())
+	lock, err := m.G().IDLocktab.AcquireOnNameWithContext(m.Ctx(), m.G(), e.arg.Uid.String())
 	if err != nil {
 		m.Debug("| error acquiring singleflight lock for %s: %v", e.arg.Uid, err)
 		return err
@@ -956,7 +954,8 @@ func (e *Identify2WithUID) loadMe(m libkb.MetaContext, uid keybase1.UID) (err er
 	if e.testArgs != nil && e.testArgs.noMe {
 		return nil
 	}
-	e.me, err = loadIdentifyUser(m, e.loadUserOpts(libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid)), e.getCache())
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithSelf(true).WithStubMode(libkb.StubModeUnstubbed)
+	e.me, err = loadIdentifyUser(m, e.loadUserOpts(arg), e.getCache())
 	return err
 }
 

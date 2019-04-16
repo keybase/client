@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -20,7 +21,7 @@ func TestFetchDecider(t *testing.T) {
 	}
 
 	log := logger.NewTestLogger(t)
-	clock := newTestClockNow()
+	clock := clocktest.NewTestClockNow()
 	fd := newFetchDecider(log, fetcher, "", "", &testClockGetter{clock})
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
