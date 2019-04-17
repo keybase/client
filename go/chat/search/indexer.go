@@ -531,9 +531,11 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 		if err != nil {
 			return nil, err
 		}
-		pagination = inbox.Pagination
-		pagination.Num = idx.pageSize
-		pagination.Previous = nil
+		if inbox.Pagination != nil {
+			pagination = inbox.Pagination
+			pagination.Num = idx.pageSize
+			pagination.Previous = nil
+		}
 		for _, conv := range inbox.ConvsUnverified {
 			if !conv.Conv.IsSelfFinalized(username) {
 				convID := conv.GetConvID()
