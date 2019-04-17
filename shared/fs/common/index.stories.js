@@ -130,6 +130,24 @@ const pathItemActionCommonProps = {
 
 const pieSlices = [0, 20, 90, 179, 180, 181, 270, 359, 360]
 
+class PieSliceWrapper extends React.PureComponent<
+  {
+    initialDegrees: number,
+  },
+  {degrees: number}
+> {
+  state = {degrees: this.props.initialDegrees}
+  _onClick = () => this.setState(({degrees}) => ({degrees: (degrees + 72) % 361}))
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" gap="small">
+        <Kb.Text type="Header">{this.state.degrees} degrees: </Kb.Text>
+        <PieSlice degrees={this.state.degrees} animated={true} />
+        <Kb.Button type="Primary" onClick={this._onClick} label="Add progress" />
+      </Kb.Box2>
+    )
+  }
+}
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
@@ -269,23 +287,8 @@ const load = () => {
     .add('Pie Loaders', () => (
       <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
         {pieSlices.map(deg => (
-          <Kb.Box2 direction="horizontal" gap="small" key={deg.toString()}>
-            <Kb.Text type="Header">{deg} degrees: </Kb.Text>
-            <PieSlice degrees={deg} />
-          </Kb.Box2>
+          <PieSliceWrapper initialDegrees={deg} key={deg} />
         ))}
-        <Kb.Box2 direction="horizontal" gap="small">
-          <Kb.Text type="Header">Duration animated: </Kb.Text>
-          <Kb.Animated config={{delay: 500, duration: 2000}} from={{deg: 0}} to={{deg: 360}}>
-            {({deg}) => <PieSlice degrees={deg} />}
-          </Kb.Animated>
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="small">
-          <Kb.Text type="Header">Spring animated: </Kb.Text>
-          <Kb.Animated config={{delay: 2500, friction: 10, tension: 20}} from={{deg: 0}} to={{deg: 360}}>
-            {({deg}) => <PieSlice degrees={deg} />}
-          </Kb.Animated>
-        </Kb.Box2>
       </Kb.Box2>
     ))
 
