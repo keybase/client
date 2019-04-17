@@ -3885,6 +3885,39 @@ func TestKBFSOpsReadonlyNodes(t *testing.T) {
 	require.IsType(t, WriteToReadonlyNodeError{}, errors.Cause(err))
 }
 
+type fakeFileInfo struct {
+	et data.EntryType
+}
+
+var _ os.FileInfo = (*fakeFileInfo)(nil)
+
+func (fi *fakeFileInfo) Name() string {
+	return ""
+}
+
+func (fi *fakeFileInfo) Size() int64 {
+	return 0
+}
+
+func (fi *fakeFileInfo) Mode() os.FileMode {
+	if fi.et == data.Dir || fi.et == data.Exec {
+		return 0700
+	}
+	return 0600
+}
+
+func (fi *fakeFileInfo) ModTime() time.Time {
+	return time.Time{}
+}
+
+func (fi *fakeFileInfo) IsDir() bool {
+	return fi.et == data.Dir
+}
+
+func (fi *fakeFileInfo) Sys() interface{} {
+	return nil
+}
+
 type wrappedAutocreateNode struct {
 	Node
 	et      data.EntryType
@@ -3892,8 +3925,9 @@ type wrappedAutocreateNode struct {
 }
 
 func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
-	ctx context.Context, _ string) (bool, context.Context, data.EntryType, string) {
-	return true, ctx, wan.et, wan.sympath
+	ctx context.Context, _ string) (
+	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	return true, ctx, wan.et, &fakeFileInfo{wan.et}, wan.sympath
 }
 
 func testKBFSOpsAutocreateNodes(t *testing.T, et data.EntryType, sympath string) {
@@ -4138,9 +4172,9 @@ type testKBFSOpsRootNode struct {
 
 func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
 	ctx context.Context, name string) (
-	bool, context.Context, data.EntryType, string) {
+	bool, context.Context, data.EntryType, os.FileInfo, string) {
 	if name == "memfs" {
-		return true, ctx, data.FakeDir, ""
+		return true, ctx, data.FakeDir, nil, ""
 	}
 	return n.Node.ShouldCreateMissedLookup(ctx, name)
 }

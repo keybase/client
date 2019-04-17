@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -98,8 +99,8 @@ func (n *nodeStandard) Readonly(_ context.Context) bool {
 }
 
 func (n *nodeStandard) ShouldCreateMissedLookup(ctx context.Context, _ string) (
-	bool, context.Context, data.EntryType, string) {
-	return false, ctx, data.File, ""
+	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	return false, ctx, data.File, nil, ""
 }
 
 func (n *nodeStandard) ShouldRetryOnDirRead(ctx context.Context) bool {
