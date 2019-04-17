@@ -87,10 +87,15 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	}
 	idx.started = true
 	ticker := libkb.NewBgTicker(time.Hour)
-	// run one quickly
-	idx.SelectiveSync(ctx, uid, false /*forceReindex */)
 	go func() {
 		idx.Debug(ctx, "starting SelectiveSync bg loop")
+
+		// run one quickly
+		select {
+		case <-time.After(libkb.DefaultBgTickerWait):
+			idx.SelectiveSync(ctx, uid, false /*forceReindex */)
+		}
+
 		for {
 			select {
 			case <-ticker.C:
