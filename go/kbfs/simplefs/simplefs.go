@@ -2342,8 +2342,8 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		}
 
 		if config.Mode == keybase1.FolderSyncMode_DISABLED {
-			// Shouldn't happen.
-			continue
+			panic(fmt.Sprintf(
+				"Folder %s has sync unexpectedly disabled", tlfID))
 		}
 
 		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
