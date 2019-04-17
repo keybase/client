@@ -1463,7 +1463,7 @@ function* inboxSearch(state, action) {
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults
               : Constants.inboxSearchMaxUnreadNameResults,
-          reindexMode: RPCChatTypes.commonReIndexingMode.none,
+          reindexMode: RPCChatTypes.commonReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
           sentBy: '',

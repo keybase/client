@@ -571,8 +571,9 @@ export const commonNotificationKind = {
 
 export const commonReIndexingMode = {
   none: 0,
-  force: 1,
-  aftersearch: 2,
+  presearchSync: 1,
+  postsearchAsync: 2,
+  postsearchSync: 3,
 }
 
 export const commonRetentionPolicyType = {
@@ -1169,8 +1170,9 @@ export type ProfileSearchConvStats = $ReadOnly<{numMessages: Int, indexSize: Int
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type ReIndexingMode =
   | 0 // NONE_0
-  | 1 // FORCE_1
-  | 2 // AFTERSEARCH_2
+  | 1 // PRESEARCH_SYNC_1
+  | 2 // POSTSEARCH_ASYNC_2
+  | 3 // POSTSEARCH_SYNC_3
 
 export type Reaction = $ReadOnly<{ctime: Gregor1.Time, reactionMsgID: MessageID}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: {[key: string]: Reaction}}}>
