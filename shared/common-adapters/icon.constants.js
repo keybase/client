@@ -2026,6 +2026,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-filter': {
+    charCode: 0xe986,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-finder': {
     charCode: 0xe91e,
     gridSize: 16,
