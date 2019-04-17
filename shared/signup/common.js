@@ -126,7 +126,7 @@ const _SignupScreen = (props: SignupScreenProps) => (
       {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
       <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
         {props.buttons.map(b => (
-          <Kb.Button key={b.label} style={styles.button} {...b} />
+          <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
         ))}
       </Kb.ButtonBar>
     </Kb.Box2>

@@ -47,7 +47,7 @@ export default (props: Props) => (
           </Box>
         ))}
       </Box>
-      <Button waiting={props.waiting} type="Primary" label="Submit" onClick={props.onSubmit} small={true} />
+      <Button waiting={props.waiting} label="Submit" onClick={props.onSubmit} small={true} />
     </Box>
   </ScrollView>
 )

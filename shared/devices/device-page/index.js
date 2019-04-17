@@ -111,6 +111,7 @@ const DevicePage = (props: Props) => {
 
   return (
     <Kb.Box2
+      alignItems="center"
       direction="vertical"
       gap="medium"
       gapStart={true}

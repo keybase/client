@@ -38,13 +38,7 @@ const Actions = (p: Props) => {
   )
 
   const chatButton = (
-    <Kb.WaitingButton
-      type="Primary"
-      key="Chat"
-      label="Chat"
-      waitingKey={Constants.waitingKey}
-      onClick={p.onChat}
-    >
+    <Kb.WaitingButton key="Chat" label="Chat" waitingKey={Constants.waitingKey} onClick={p.onChat}>
       <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
@@ -53,7 +47,7 @@ const Actions = (p: Props) => {
     buttons = [
       <Kb.Button
         key="Edit profile"
-        type={Styles.isMobile ? 'Primary' : 'Secondary'}
+        type={Styles.isMobile ? 'Default' : 'Dim'}
         label="Edit profile"
         onClick={p.onEditProfile}
       />,
@@ -73,14 +67,13 @@ const Actions = (p: Props) => {
     } else {
       buttons = [
         <Kb.WaitingButton
-          type="Primary"
           key="Reload"
           label="Reload"
           waitingKey={Constants.waitingKey}
           onClick={p.onReload}
         />,
         <Kb.WaitingButton
-          type="PrimaryGreen"
+          type="Success"
           key="Accept"
           label="Accept"
           waitingKey={Constants.waitingKey}
@@ -93,7 +86,6 @@ const Actions = (p: Props) => {
     if (p.state === 'error') {
       buttons = [
         <Kb.WaitingButton
-          type="Primary"
           key="Reload"
           label="Reload"
           waitingKey={Constants.waitingKey}
@@ -136,7 +128,7 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
+        <Kb.Button onClick={null} type="Dim" style={styles.dropdownButton}>
           <Kb.Icon
             color={Styles.globalColors.black}
             fontSize={Styles.isMobile ? 21 : 16}
@@ -158,7 +150,7 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
 
 const styles = Styles.styleSheetCreate({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  dropdownButton: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
+  dropdownButton: {minWidth: undefined},
 })
 
 export default Actions

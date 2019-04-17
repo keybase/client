@@ -16,7 +16,7 @@ const StartConversation = (props: Props) => (
     <Text center={true} type="BodySmall" style={styles.header}>
       You haven't chatted with {props.participants} yet.
     </Text>
-    <Button type="Primary" label="Start chatting" onClick={props.onStart} waiting={props.isLoading}>
+    <Button label="Start chatting" onClick={props.onStart} waiting={props.isLoading}>
       <Icon
         type="iconfont-chat"
         style={{
@@ -54,12 +54,12 @@ const styles = styleSheetCreate({
     padding: 8,
     width: '100%',
   },
-  error: { color: globalColors.red },
+  error: {color: globalColors.red},
   header: {
     marginLeft: globalMargins.medium,
     marginRight: globalMargins.medium,
   },
-  spacer: { flex: 1 },
+  spacer: {flex: 1},
 })
 
 export default StartConversation

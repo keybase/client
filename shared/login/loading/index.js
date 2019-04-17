@@ -17,7 +17,7 @@ type State = {|
 const Feedback = ({onFeedback}) =>
   onFeedback ? (
     <Kb.ButtonBar>
-      <Kb.Button type="Secondary" label="Send us feedback" onClick={onFeedback} />
+      <Kb.Button type="Dim" label="Send us feedback" onClick={onFeedback} />
     </Kb.ButtonBar>
   ) : (
     <Kb.Text type="BodySmall">
@@ -57,7 +57,7 @@ class Splash extends React.Component<Props, State> {
         {!!this.props.failed && <Kb.Text type="BodySmall">({this.props.failed})</Kb.Text>}
         {this.props.onRetry && (
           <Kb.ButtonBar>
-            <Kb.Button type="Primary" label="Reload" onClick={this.props.onRetry} />
+            <Kb.Button label="Reload" onClick={this.props.onRetry} />
           </Kb.ButtonBar>
         )}
         {(this.props.onRetry || this.state.showFeedback) && <Feedback onFeedback={this.props.onFeedback} />}

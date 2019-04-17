@@ -67,7 +67,7 @@ const _itemRenderer = (index, row) => {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.moreLessContainer}>
           <Kb.Button
-            type="Secondary"
+            type="Dim"
             label={row.hiddenCount ? `+${row.hiddenCount} more` : 'Show less ...'}
             small={true}
             onClick={row.onClick}

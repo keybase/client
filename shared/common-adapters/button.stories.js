@@ -1,12 +1,12 @@
 // @flow
 import {Box2} from './box'
+import Text from './text'
 import Button from './button'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {globalColors, isMobile} from '../styles'
 
 const commonProps = {
-  backgroundMode: 'Normal',
   disabled: false,
   fullWidth: false,
   label: 'label',
@@ -15,13 +15,13 @@ const commonProps = {
   onMouseEnter: Sb.action('onMouseEnter'),
   onMouseLeave: Sb.action('onMouseLeave'),
   small: false,
-  style: {alignSelf: undefined}, // button really shouldn't have this set
   waiting: false,
 }
 
 const Wrapper = ({children}) => (
   <Box2
     gap="small"
+    alignItems="center"
     direction={isMobile ? 'vertical' : 'horizontal'}
     gapStart={true}
     gapEnd={true}
@@ -31,14 +31,14 @@ const Wrapper = ({children}) => (
   </Box2>
 )
 
-const types = ['Primary', 'Secondary', 'Danger', 'Wallet', 'PrimaryGreen', 'PrimaryGreenActive']
-const backgroundModes = ['Red', 'Green', 'Blue', 'Black', 'Purple']
-const modeToColor = {
-  Black: globalColors.black,
-  Blue: globalColors.blue,
-  Green: globalColors.green,
-  Purple: globalColors.purple2,
-  Red: globalColors.red,
+const types = ['Default', 'Success', 'Danger', 'Wallet', 'Dim']
+const backgroundColors = ['blue', 'red', 'green', 'purple', 'black']
+const bgToColor = {
+  black: globalColors.black_75,
+  blue: globalColors.blue,
+  green: globalColors.green,
+  purple: globalColors.purple2,
+  red: globalColors.red,
 }
 
 const load = () => {
@@ -48,9 +48,11 @@ const load = () => {
       <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true}>
         {types.map(t => (
           <Wrapper key={t}>
-            <Button {...commonProps} type={t} label={t} />
-            <Button {...commonProps} type={t} label={t} disabled={true} />
-            <Button {...commonProps} type={t} label={t} waiting={true} />
+            <Text type="BodySemibold" style={{width: 60}}>
+              {t}
+            </Text>
+            <Button {...commonProps} type={t} label="Primary" mode="Primary" />
+            <Button {...commonProps} type={t} label="Secondary" mode="Secondary" />
           </Wrapper>
         ))}
         <Wrapper>
@@ -61,10 +63,15 @@ const load = () => {
             gapEnd={true}
             style={{alignSelf: 'flex-start'}}
           >
+            <Text type="BodySemibold">Small + disabled + waiting</Text>
             {types.map(t => (
               <Wrapper key={t}>
                 <Button {...commonProps} type={t} label={t} small={true} />
+                <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} />
+                <Button {...commonProps} type={t} label={t} small={true} disabled={true} />
+                <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} disabled={true} />
                 <Button {...commonProps} type={t} label={t} small={true} waiting={true} />
+                <Button {...commonProps} type={t} label={t} mode="Secondary" small={true} waiting={true} />
               </Wrapper>
             ))}
           </Box2>
@@ -80,28 +87,28 @@ const load = () => {
               borderColor: 'black',
               borderStyle: 'solid',
               borderWidth: 1,
-              width: isMobile ? 220 : 400,
+              width: isMobile ? 280 : 450,
             }}
           >
+            <Text type="BodySemibold">Full width</Text>
             {types.map(t => (
               <Box2 direction="vertical" key={t} gap="small" fullWidth={true}>
                 <Button {...commonProps} type={t} label={t} fullWidth={true} />
-                <Button {...commonProps} type={t} label={t} fullWidth={true} waiting={true} />
+                <Button {...commonProps} type={t} label={t + ' small'} fullWidth={true} small={true} />
               </Box2>
             ))}
           </Box2>
         </Wrapper>
         <Box2 direction="vertical" style={{alignSelf: 'flex-start'}}>
-          {backgroundModes.map(b => (
-            <Box2 direction="horizontal" key={b} style={{backgroundColor: modeToColor[b], padding: 20}}>
-              <Button {...commonProps} type="PrimaryColoredBackground" label={b} backgroundMode={b} />
-              <Button
-                {...commonProps}
-                type="PrimaryColoredBackground"
-                label={b}
-                backgroundMode={b}
-                waiting={true}
-              />
+          {backgroundColors.map(b => (
+            <Box2
+              direction="horizontal"
+              gap="tiny"
+              key={b}
+              style={{backgroundColor: bgToColor[b], padding: 20, width: '100%'}}
+            >
+              <Button {...commonProps} mode="Primary" backgroundColor={b} label={b} />
+              <Button {...commonProps} mode="Secondary" backgroundColor={b} label={b} />
             </Box2>
           ))}
         </Box2>

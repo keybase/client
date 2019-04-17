@@ -117,7 +117,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
     const {files, totalSyncingBytes, timeLeft, debugToggleShow} = this.props
     return (
       <React.Fragment>
-        {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
+        {!!debugToggleShow && <Button onClick={debugToggleShow} label="Toggle" />}
         {this.state.showing && (
           <NativeAnimated.View style={{position: 'relative', top: this.state.uploadTop}}>
             <Box style={stylesBackgroundBox}>

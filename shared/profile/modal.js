@@ -17,7 +17,7 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
     </Kb.Box2>
     {onCancel && !skipButton && (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
-        <Kb.Button type="Secondary" label="Cancel" onClick={onCancel} />
+        <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
       </Kb.Box2>
     )}
   </Kb.Box2>
@@ -29,7 +29,7 @@ const OldScreen = ({children, onCancel, skipButton}: Props) => (
     {children}
     {onCancel && !skipButton && (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
-        <Kb.Button type="Secondary" label="Cancel" onClick={onCancel} />
+        <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
       </Kb.Box2>
     )}
   </Kb.StandardScreen>

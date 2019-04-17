@@ -137,9 +137,8 @@ const ManageChannels = (props: Props) => {
           ))}
         </Kb.ScrollView>
         <Kb.ButtonBar style={{alignSelf: 'flex-end'}}>
-          <Kb.Button type="Secondary" label="Cancel" onClick={props.onClose} />
+          <Kb.Button type="Dim" label="Cancel" onClick={props.onClose} />
           <Kb.WaitingButton
-            type="Primary"
             label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
             waitingKey={props.waitingKey}
             disabled={!props.unsavedSubscriptions}

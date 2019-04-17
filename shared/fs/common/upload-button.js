@@ -18,15 +18,7 @@ const UploadButton = Kb.OverlayParentHOC(props => {
     return null
   }
   if (isDarwin) {
-    return (
-      <Kb.Button
-        small={true}
-        type="Primary"
-        onClick={props.openAndUpload('both')}
-        label="Upload"
-        style={props.style}
-      />
-    )
+    return <Kb.Button small={true} onClick={props.openAndUpload('both')} label="Upload" style={props.style} />
   }
   if (isIOS) {
     return <Kb.Icon type="iconfont-new" padding="tiny" onClick={props.pickAndUpload('mixed')} />
@@ -40,7 +32,6 @@ const UploadButton = Kb.OverlayParentHOC(props => {
         <Kb.Icon type="iconfont-new" padding="tiny" onClick={props.toggleShowingMenu} />
       ) : (
         <Kb.Button
-          type="Primary"
           onClick={props.toggleShowingMenu}
           label="Upload"
           ref={props.setAttachmentRef}

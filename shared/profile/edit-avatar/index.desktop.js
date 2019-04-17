@@ -375,7 +375,7 @@ class EditAvatar extends React.Component<_Props, State> {
             <Kb.WaitingButton
               label={this.props.createdTeam ? 'Later, thanks' : 'Cancel'}
               onClick={this.props.onClose}
-              type="Secondary"
+              type="Dim"
               waitingKey={this.props.waitingKey}
               onlyDisable={true}
             />
@@ -383,7 +383,6 @@ class EditAvatar extends React.Component<_Props, State> {
               disabled={!this.state.hasPreview}
               label="Save"
               onClick={this._onSave}
-              type="Primary"
               waitingKey={this.props.waitingKey}
             />
           </Kb.ButtonBar>

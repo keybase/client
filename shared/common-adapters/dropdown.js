@@ -24,7 +24,7 @@ export const DropdownButton = (props: DropdownButtonProps) => (
       <Icon
         type="iconfont-caret-down"
         inheritColor={true}
-        sizeType='Tiny'
+        sizeType="Tiny"
         style={{marginTop: Styles.isMobile ? 4 : -8}}
       />
     </ButtonBox>
