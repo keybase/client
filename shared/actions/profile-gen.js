@@ -37,7 +37,7 @@ export const updatePgpPublicKey = 'profile:updatePgpPublicKey'
 export const updatePlatform = 'profile:updatePlatform'
 export const updatePlatformGenericChecking = 'profile:updatePlatformGenericChecking'
 export const updatePlatformGenericURL = 'profile:updatePlatformGenericURL'
-export const updatePromptForStore = 'profile:updatePromptForStore'
+export const updatePromptShouldStoreKeyOnServer = 'profile:updatePromptShouldStoreKeyOnServer'
 export const updateProofStatus = 'profile:updateProofStatus'
 export const updateProofText = 'profile:updateProofText'
 export const updateSigID = 'profile:updateSigID'
@@ -73,7 +73,7 @@ type _UpdatePgpPublicKeyPayload = $ReadOnly<{|publicKey: string|}>
 type _UpdatePlatformGenericCheckingPayload = $ReadOnly<{|checking: boolean|}>
 type _UpdatePlatformGenericURLPayload = $ReadOnly<{|url: string|}>
 type _UpdatePlatformPayload = $ReadOnly<{|platform: More.PlatformsExpandedType|}>
-type _UpdatePromptForStorePayload = $ReadOnly<{|promptForStore: boolean|}>
+type _UpdatePromptShouldStoreKeyOnServerPayload = $ReadOnly<{|promptShouldStoreKeyOnServer: boolean|}>
 type _UpdateProofStatusPayload = $ReadOnly<{|found: boolean, status: RPCTypes.ProofStatus|}>
 type _UpdateProofTextPayload = $ReadOnly<{|proof: string|}>
 type _UpdateSigIDPayload = $ReadOnly<{|sigID: ?RPCTypes.SigID|}>
@@ -112,7 +112,7 @@ export const createUpdatePgpPublicKey = (payload: _UpdatePgpPublicKeyPayload) =>
 export const createUpdatePlatform = (payload: _UpdatePlatformPayload) => ({payload, type: updatePlatform})
 export const createUpdatePlatformGenericChecking = (payload: _UpdatePlatformGenericCheckingPayload) => ({payload, type: updatePlatformGenericChecking})
 export const createUpdatePlatformGenericURL = (payload: _UpdatePlatformGenericURLPayload) => ({payload, type: updatePlatformGenericURL})
-export const createUpdatePromptForStore = (payload: _UpdatePromptForStorePayload) => ({payload, type: updatePromptForStore})
+export const createUpdatePromptShouldStoreKeyOnServer = (payload: _UpdatePromptShouldStoreKeyOnServerPayload) => ({payload, type: updatePromptShouldStoreKeyOnServer})
 export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => ({payload, type: updateProofStatus})
 export const createUpdateProofText = (payload: _UpdateProofTextPayload) => ({payload, type: updateProofText})
 export const createUpdateSigID = (payload: _UpdateSigIDPayload) => ({payload, type: updateSigID})
@@ -148,7 +148,7 @@ export type UpdatePgpPublicKeyPayload = {|+payload: _UpdatePgpPublicKeyPayload, 
 export type UpdatePlatformGenericCheckingPayload = {|+payload: _UpdatePlatformGenericCheckingPayload, +type: 'profile:updatePlatformGenericChecking'|}
 export type UpdatePlatformGenericURLPayload = {|+payload: _UpdatePlatformGenericURLPayload, +type: 'profile:updatePlatformGenericURL'|}
 export type UpdatePlatformPayload = {|+payload: _UpdatePlatformPayload, +type: 'profile:updatePlatform'|}
-export type UpdatePromptForStorePayload = {|+payload: _UpdatePromptForStorePayload, +type: 'profile:updatePromptForStore'|}
+export type UpdatePromptShouldStoreKeyOnServerPayload = {|+payload: _UpdatePromptShouldStoreKeyOnServerPayload, +type: 'profile:updatePromptShouldStoreKeyOnServer'|}
 export type UpdateProofStatusPayload = {|+payload: _UpdateProofStatusPayload, +type: 'profile:updateProofStatus'|}
 export type UpdateProofTextPayload = {|+payload: _UpdateProofTextPayload, +type: 'profile:updateProofText'|}
 export type UpdateSigIDPayload = {|+payload: _UpdateSigIDPayload, +type: 'profile:updateSigID'|}
@@ -186,7 +186,7 @@ export type Actions =
   | UpdatePlatformGenericCheckingPayload
   | UpdatePlatformGenericURLPayload
   | UpdatePlatformPayload
-  | UpdatePromptForStorePayload
+  | UpdatePromptShouldStoreKeyOnServerPayload
   | UpdateProofStatusPayload
   | UpdateProofTextPayload
   | UpdateSigIDPayload

@@ -45,7 +45,9 @@ function* generatePgp(state) {
           ],
         })
       )
-      yield Saga.put(ProfileGen.createUpdatePromptForStore({promptForStore: prompt}))
+      yield Saga.put(
+        ProfileGen.createUpdatePromptShouldStoreKeyOnServer({promptShouldStoreKeyOnServer: prompt})
+      )
       const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
       response.result(action.payload.shouldStoreKeyOnServer)
       yield navBack
