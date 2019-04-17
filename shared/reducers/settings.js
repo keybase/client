@@ -80,6 +80,7 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.update('invites', invites => invites.merge({error: null}))
     case SettingsGen.loadedPhoneNumbers:
       return state.set('phoneNumbers', action.payload.phoneNumbers)
+    case SettingsGen.loadedEmails:
     case SettingsGen.loadedSettings:
       return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
     case SettingsGen.loadedRememberPassword:
@@ -127,14 +128,17 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.loadedCheckPassword:
       return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
     // Saga only actions
+    case SettingsGen.addEmail:
     case SettingsGen.addPhoneNumber:
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
+    case SettingsGen.deleteEmail:
     case SettingsGen.deletePhoneNumber:
     case SettingsGen.invitesReclaim:
     case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
     case SettingsGen.invitesSend:
+    case SettingsGen.loadEmails:
     case SettingsGen.loadPhoneNumbers:
     case SettingsGen.loadRememberPassword:
     case SettingsGen.loadSettings:
@@ -145,6 +149,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.onSubmitNewPassword:
     case SettingsGen.onUpdatePGPSettings:
     case SettingsGen.onChangeLockdownMode:
+    case SettingsGen.sendVerificationEmail:
+    case SettingsGen.setPrimaryEmail:
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:

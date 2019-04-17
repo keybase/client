@@ -371,6 +371,32 @@ const deleteAccountForever = (state, action) => {
   )
 }
 
+const addEmail = (_, action) =>
+  RPCTypes.emailsAddEmailRpcPromise({
+    email: action.payload.email,
+    visibility: action.payload.searchable
+      ? RPCTypes.commonIdentityVisibility.public
+      : RPCTypes.commonIdentityVisibility.private,
+  })
+
+const deleteEmail = (_, action) => RPCTypes.emailsDeleteEmailRpcPromise({email: action.payload.email})
+
+const loadEmails = () =>
+  RPCTypes.emailsGetEmailsRpcPromise().then(
+    emails =>
+      emails &&
+      SettingsGen.createLoadedEmails({
+        emails: I.List(emails.map(row => Constants.makeEmailRow(row))),
+      })
+  )
+
+const sendVerificationEmail = (_, action) =>
+  RPCTypes.emailsSendVerificationEmailRpcPromise({
+    email: action.payload.email,
+  })
+
+const setPrimaryEmail = (_, action) => RPCTypes.emailsSetPrimaryEmailRpcPromise({email: action.payload.email})
+
 const addPhoneNumber = (_, action) =>
   RPCTypes.phoneNumbersAddPhoneNumberRpcPromise({
     phoneNumber: action.payload.phoneNumber,
@@ -522,6 +548,13 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.deleteAccountForever,
     deleteAccountForever
   )
+  yield* Saga.chainAction<SettingsGen.AddEmailPayload>(SettingsGen.addEmail, addEmail)
+  yield* Saga.chainAction<SettingsGen.DeleteEmailPayload>(SettingsGen.deleteEmail, deleteEmail)
+  yield* Saga.chainAction<SettingsGen.SetPrimaryEmailPayload>(SettingsGen.setPrimaryEmail, setPrimaryEmail)
+  yield* Saga.chainAction<SettingsGen.SendVerificationEmailPayload>(
+    SettingsGen.sendVerificationEmail,
+    sendVerificationEmail
+  )
   yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(SettingsGen.addPhoneNumber, addPhoneNumber)
   yield* Saga.chainAction<SettingsGen.DeletePhoneNumberPayload>(
     SettingsGen.deletePhoneNumber,
@@ -531,8 +564,13 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.verifyPhoneNumber,
     verifyPhoneNumber
   )
+  yield* Saga.chainAction<SettingsGen.LoadEmailsPayload>(SettingsGen.loadEmails, loadEmails)
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadPhoneNumbers)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload>(
+    EngineGen.keybase1NotifyEmailAddressEmailAddressVerified,
+    loadEmails
+  )
   yield* Saga.chainAction<
     | EngineGen.Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
     | EngineGen.Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload

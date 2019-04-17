@@ -5,12 +5,19 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "addEmail": {
+      "email": "string",
+      "searchable": "boolean"
+    },
     "addPhoneNumber": {
       "phoneNumber": "string",
       "searchable": "boolean"
     },
     "dbNuke": {},
     "deleteAccountForever": {},
+    "deleteEmail": {
+      "email": "string"
+    },
     "deletePhoneNumber": {
       "phoneNumber": "string"
     },
@@ -35,6 +42,10 @@
       "canError": {
         "error": "Error"
       }
+    },
+    "loadEmails": {},
+    "loadedEmails": {
+      "emails": "?I.List<Types.EmailRow>"
     },
     "loadPhoneNumbers": {},
     "loadedPhoneNumbers": {
@@ -91,8 +102,14 @@
     "onUpdatedPGPSettings": {
       "hasKeys": "boolean"
     },
+    "sendVerificationEmail": {
+      "email": "string"
+    },
     "setAllowDeleteAccount": {
       "allow": "boolean"
+    },
+    "setPrimaryEmail": {
+      "email": "string"
     },
     "trace": {
       "durationSeconds": "number"
