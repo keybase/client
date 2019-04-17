@@ -442,6 +442,14 @@ export type _KbfsDaemonStatus = {
 }
 export type KbfsDaemonStatus = I.RecordOf<_KbfsDaemonStatus>
 
+export type _SyncingFoldersProgress = {
+  bytesFetched: number,
+  bytesTotal: number,
+  endEstimate: number,
+  start: number,
+}
+export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
+
 export type _State = {|
   downloads: Downloads,
   edits: Edits,
@@ -458,7 +466,7 @@ export type _State = {|
   sendAttachmentToChat: SendAttachmentToChat,
   sendLinkToChat: SendLinkToChat,
   sfmi: SystemFileManagerIntegration,
-  syncingFoldersProgress: RPCTypes.PrefetchProgress,
+  syncingFoldersProgress: SyncingFoldersProgress,
   tlfUpdates: UserTlfUpdates,
   tlfs: Tlfs,
   uploads: Uploads,

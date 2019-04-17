@@ -245,7 +245,7 @@
       "online": "boolean",
     },
     "overallSyncStatusChanged": {
-      "status": "RPCTypes.FolderSyncStatus"
+      "progress": "Types.SyncingFoldersProgress"
     },
 
     "placeholderAction": {}

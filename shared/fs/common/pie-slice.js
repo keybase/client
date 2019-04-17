@@ -9,19 +9,16 @@ type Props = {|
 |}
 
 const PieSliceDefault = (props: Props) => {
-  const styleLeft1 = {zIndex: props.degrees > 180 ? -2 : 0}
-  const styleRight2 = {zIndex: props.degrees > 180 ? -1 : -3}
   const styleRotate = Styles.isMobile
     ? {transform: [{rotate: props.degrees + 'deg'}]}
     : {transform: 'rotate(' + props.degrees + 'deg)'}
   return (
     <Kb.Box style={styles.container}>
-      <Kb.Box style={Styles.collapseStyles([styles.left1, styleLeft1])} />
+      <Kb.Box style={styles.right1} />
       <Kb.Box style={Styles.collapseStyles([styles.rotateContainer, styleRotate])}>
         <Kb.Box style={styles.left2} />
       </Kb.Box>
-      <Kb.Box style={styles.right1} />
-      <Kb.Box style={Styles.collapseStyles([styles.right2, styleRight2])} />
+      {props.degrees <= 180 ? <Kb.Box style={styles.left1} /> : <Kb.Box style={styles.right2} />}
     </Kb.Box>
   )
 }
@@ -63,7 +60,6 @@ const styles = Styles.styleSheetCreate({
     ...stylePieHalf,
     backgroundColor: Styles.globalColors.white,
     left: 6,
-    zIndex: -2,
   },
   right2: {
     ...stylePieHalf,
@@ -77,7 +73,6 @@ const styles = Styles.styleSheetCreate({
     left: 0,
     position: 'absolute',
     width: 12,
-    zIndex: -1,
   },
 })
 

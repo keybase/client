@@ -18,18 +18,18 @@ const SyncingFolders = (props: Props) =>
     </Kb.Box2>
   )
 
-const mapStateToProps = state => {
-  if (state.fs.syncingFoldersProgress.bytesTotal === 0) {
-    return {progress: 1}
-  }
-  return {progress: state.fs.syncingFoldersProgress.bytesFetched / state.fs.syncingFoldersProgress.bytesTotal}
-}
+const mapStateToProps = state => ({
+  _syncingFoldersProgress: state.fs.syncingFoldersProgress,
+})
 
 const mapDispatchToProps = dispatch => ({})
 
-const mergeProps = (s, d, o) => ({
-  ...s,
-})
+const mergeProps = (s, d, o) => {
+  if (s._syncingFoldersProgress.bytesTotal === 0) {
+    return {progress: 1}
+  }
+  return {progress: s._syncingFoldersProgress.bytesFetched / s._syncingFoldersProgress.bytesTotal}
+}
 
 type OwnProps = {||}
 
