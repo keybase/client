@@ -618,7 +618,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	var convLock sync.Mutex
 	// convID -> convIdx
 	convIdxMap := map[string]*chat1.ConversationIndex{}
-	convIdxCh := make(chan string)
+	convIdxCh := make(chan string, 200)
 	eg, ectx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		defer close(convIdxCh)
