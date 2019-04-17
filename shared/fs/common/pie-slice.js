@@ -9,8 +9,8 @@ type Props = {|
 |}
 
 const PieSliceDefault = (props: Props) => {
-  const styleLeft1 = {zIndex: props.degrees > 180 ? 1 : 3}
-  const styleRight2 = {zIndex: props.degrees > 180 ? 2 : 0}
+  const styleLeft1 = {zIndex: props.degrees > 180 ? -2 : 0}
+  const styleRight2 = {zIndex: props.degrees > 180 ? -1 : -3}
   const styleRotate = Styles.isMobile
     ? {transform: [{rotate: props.degrees + 'deg'}]}
     : {transform: 'rotate(' + props.degrees + 'deg)'}
@@ -63,7 +63,7 @@ const styles = Styles.styleSheetCreate({
     ...stylePieHalf,
     backgroundColor: Styles.globalColors.white,
     left: 6,
-    zIndex: 1,
+    zIndex: -2,
   },
   right2: {
     ...stylePieHalf,
@@ -77,7 +77,7 @@ const styles = Styles.styleSheetCreate({
     left: 0,
     position: 'absolute',
     width: 12,
-    zIndex: 2,
+    zIndex: -1,
   },
 })
 
