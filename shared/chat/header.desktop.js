@@ -107,6 +107,7 @@ const mapStateToProps = state => {
   const _conversationIDKey = Constants.getSelectedConversation(state)
   const _fullnames = state.users.infoMap
   const _meta = Constants.getMeta(state, _conversationIDKey)
+
   return {
     _conversationIDKey,
     _fullnames,
