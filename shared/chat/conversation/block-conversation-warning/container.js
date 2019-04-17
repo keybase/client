@@ -11,12 +11,11 @@ type OwnProps = RouteProps<{conversationIDKey: ConversationIDKey}, {}>
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')
-  const participants = Constants.getMeta(state, conversationIDKey)
-    .participants.filter(p => p !== state.config.username)
-    .join(',')
+  const _participants = Constants.getMeta(state, conversationIDKey).participants
   return {
+    _participants,
+    _you: state.config.username,
     conversationIDKey,
-    participants,
   }
 }
 
@@ -36,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: dispatchProps.onBack,
   onBlock: () => dispatchProps._onBlock(stateProps.conversationIDKey, false),
   onBlockAndReport: () => dispatchProps._onBlock(stateProps.conversationIDKey, true),
-  participants: stateProps.participants,
+  participants: stateProps._participants.filter(p => p !== stateProps._you).join(','),
 })
 
 export default Container.connect<OwnProps, _, _, _, _>(
