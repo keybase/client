@@ -1458,6 +1458,11 @@ const gregorPushState = (_, action) => {
   return actions
 }
 
+const renameTeam = (_, action) => {
+  const {newName, oldName} = action.payload
+  logger.warn('DANNYDEBUG', newName, oldName)
+}
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainAction<TeamsGen.GetTeamProfileAddListPayload>(
@@ -1537,6 +1542,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     TeamsGen.addTeamWithChosenChannels,
     addTeamWithChosenChannels
   )
+  yield* Saga.chainAction<TeamsGen.RenameTeamPayload>(TeamsGen.renameTeam, renameTeam)
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
     NotificationsGen.receivedBadgeState,
     receivedBadgeState
