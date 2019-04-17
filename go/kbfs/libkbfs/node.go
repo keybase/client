@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -131,3 +132,5 @@ func (n *nodeStandard) GetFile(_ context.Context) billy.File {
 func (n *nodeStandard) EntryType() data.EntryType {
 	return n.core.entryType
 }
+
+func (n *nodeStandard) FillCacheDuration(d *time.Duration) {}
