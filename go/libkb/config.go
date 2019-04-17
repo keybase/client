@@ -863,6 +863,10 @@ func (f *JSONConfigFile) GetDisableTeamAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_team_auditor")
 }
 
+func (f *JSONConfigFile) GetDisableTeamBoxAuditor() (bool, bool) {
+	return f.GetBoolAtPath("disable_team_box_auditor")
+}
+
 func (f *JSONConfigFile) GetDisableMerkleAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_merkle_auditor")
 }

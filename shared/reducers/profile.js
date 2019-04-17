@@ -75,6 +75,8 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       })
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
+    case ProfileGen.updatePromptShouldStoreKeyOnServer:
+      return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
     case ProfileGen.addProof: {
       const platform = action.payload.platform
       const maybeNotGeneric = More.isPlatformsExpandedType(platform)

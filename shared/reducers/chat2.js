@@ -476,8 +476,6 @@ const rootReducer = (
     }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
-    case Chat2Gen.setInboxFilter:
-      return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
       return state.withMutations(_s => {
         const s = (_s: Types.State)
@@ -1047,6 +1045,112 @@ const rootReducer = (
           return info.set('hits', I.List())
         }
       )
+    case Chat2Gen.setThreadSearchQuery:
+      return state.setIn(['threadSearchQueryMap', action.payload.conversationIDKey], action.payload.query)
+    case Chat2Gen.inboxSearchSetTextStatus:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          textStatus: action.payload.status,
+        })
+      })
+    case Chat2Gen.inboxSearchSetIndexPercent:
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          indexPercent: action.payload.percent,
+        })
+      })
+    case Chat2Gen.toggleInboxSearch: {
+      let nextState = state
+      if (action.payload.enabled && !state.inboxSearch) {
+        nextState = state.set('inboxSearch', Constants.makeInboxSearchInfo())
+      } else if (!action.payload.enabled && state.inboxSearch) {
+        nextState = state.set('inboxSearch', null)
+      }
+      return nextState
+    }
+    case Chat2Gen.inboxSearchTextResult:
+      if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
+        return state
+      }
+      if (!state.metaMap.get(action.payload.result.conversationIDKey)) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        const old = info || Constants.makeInboxSearchInfo()
+        const textResults = old.textResults
+          .push(action.payload.result)
+          .sort((l: Types.InboxSearchTextHit, r: Types.InboxSearchTextHit) => {
+            return r.time - l.time
+          })
+        return old.merge({
+          textResults,
+        })
+      })
+    case Chat2Gen.inboxSearchStarted:
+      if (!state.inboxSearch) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          nameStatus: 'inprogress',
+          selectedIndex: 0,
+          textResults: I.List(),
+          textStatus: 'inprogress',
+        })
+      })
+    case Chat2Gen.inboxSearchNameResults: {
+      if (!state.inboxSearch || state.inboxSearch.nameStatus !== 'inprogress') {
+        return state
+      }
+      const results = action.payload.results.reduce((l, r) => {
+        if (state.metaMap.get(r.conversationIDKey)) {
+          return l.push(r)
+        }
+        return l
+      }, I.List())
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          nameResults: results,
+          nameResultsUnread: action.payload.unread,
+          nameStatus: 'done',
+        })
+      })
+    }
+    case Chat2Gen.inboxSearchMoveSelectedIndex: {
+      if (!state.inboxSearch) {
+        return state
+      }
+      let selectedIndex = state.inboxSearch.selectedIndex
+      const totalResults = state.inboxSearch.nameResults.size + state.inboxSearch.textResults.size
+      if (action.payload.increment && selectedIndex < totalResults - 1) {
+        selectedIndex++
+      } else if (!action.payload.increment && selectedIndex > 0) {
+        selectedIndex--
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex,
+        })
+      })
+    }
+    case Chat2Gen.inboxSearchSelect:
+      if (!state.inboxSearch || action.payload.selectedIndex == null) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex: action.payload.selectedIndex,
+        })
+      })
+    case Chat2Gen.inboxSearch:
+      if (!state.inboxSearch) {
+        return state
+      }
+      return state.update('inboxSearch', info => {
+        return (info || Constants.makeInboxSearchInfo()).merge({
+          query: action.payload.query,
+        })
+      })
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {

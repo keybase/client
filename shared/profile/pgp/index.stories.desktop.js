@@ -16,6 +16,7 @@ const provider = Sb.createPropProviderWithCommon({
     onDone: Sb.action('onDone'),
     pgpKeyString:
       '-----BEGIN PGP PUBLIC KEY BLOCK-----\nComment: GPGTools - https://gpgtools.org\n\nmQINBFWtLwEBEADLvrTe/bzrKVL0Z4bofdrLACmwC8PGXk3iD6t+1uTBKVMpfqkH\nQxGVECp598wS8XI6ZC+sMUM+AGTROi+HUsfn2cFk6y6pYl/z9A7lgctoX5xKXYTt\nE4xAZBeN1mn+x2YTjHW2lga/SZmh5qpSn5AMeNe42R0EtZ9FrCwD+IiOlw/LqGoh\n7DHKVDHmqK//mfK/lFTJck+HPkgmLyC4iYjpGuqXKqODUtMFT4+bHYfowG8WkvVX\ncf59Z6Fc7PA+rSFy9QXt7TP1po5Mnxxr9jcqQzzy3BSrAhHxAPj3F9rWBLUG0yGJ\nmAy6c1yTsbSgviiA0n4gjqPVj3iD3aiOx/KGxCdN/vru37Gp5q4KiBz7yHIqvg3B\nSeCBEOremB3gZG24OIVncpr0U6qITaFIe6iHmx53sID9JAKwfxAIwcktXe+aGtWp\n',
+    promptShouldStoreKeyOnServer: true,
   }),
   Generate: p => ({onCancel: Sb.action('onCancel')}),
   Import: p => ({onCancel: Sb.action('onCancel')}),

@@ -70,6 +70,7 @@ type FeatureFlagSet struct {
 const (
 	FeatureFTL                = Feature("ftl")
 	FeatureIMPTOFU            = Feature("imptofu")
+	FeatureBoxAuditor         = Feature("box_auditor")
 	ExperimentalGenericProofs = Feature("experimental_generic_proofs")
 	CreateBTCBech32           = Feature("create_btc_bech32")
 )

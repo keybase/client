@@ -107,7 +107,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 
 	// A saltpack message
 	saltpack := `BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE.
-	kiOUtMhcc4NXXRb XMxIeCbf5rGHq6R lPA7tN3yNXtviMm fQULSIc4k93xPgP ranhF1KYLsndSXH 5hK5WHvPJYOvN3G XLzn8MQ3Q5nwFfY K81cz83VtMGh4CC QnNDeIWVZawH75I jFf8SlDWsdj139W FeS69yb9b7Mo5fA rusOzT3JaydVWgf qC7hU3CUvYR65nP xUpmT2HdHPG5MQu XsOhrf5Zv39u9BB AOkyDAgD7hVSSl9 JQ3eYiduTli4Bqh Ri3uJyBayvkWZTF PSOdMhIbjCptBQ3 oTdvh6pOaUPQeoJ ENL1iuVK04KCOy9 xFekloWTI94hkgt gZakcYbimhmzhea Dsgl2mVqgIwmHgv hp5Indezz4TNtOh VJ8c4BBt1NEzIDg ZfFUiAALL0jRfrB cz7tQc1ussnYzrI IfHSFPDe9Cvz9lp gb1BBogunZOkoNW skfxofDP2lX3Qx7 QP5ah5zm8VV0iw1 zfQaNoxicwkqrM8 tfxyKUWZAypOKoF wUIaC1CQIkTZANa bIJyCxs9g6WceUE jLhh4PazAPCMOU9 M3zOBPP1ieDvc0M OzBLKtBWwz0J1nU 0wtMiADTMKMV. 
+	kiOUtMhcc4NXXRb XMxIeCbf5rGHq6R lPA7tN3yNXtviMm fQULSIc4k93xPgP ranhF1KYLsndSXH 5hK5WHvPJYOvN3G XLzn8MQ3Q5nwFfY K81cz83VtMGh4CC QnNDeIWVZawH75I jFf8SlDWsdj139W FeS69yb9b7Mo5fA rusOzT3JaydVWgf qC7hU3CUvYR65nP xUpmT2HdHPG5MQu XsOhrf5Zv39u9BB AOkyDAgD7hVSSl9 JQ3eYiduTli4Bqh Ri3uJyBayvkWZTF PSOdMhIbjCptBQ3 oTdvh6pOaUPQeoJ ENL1iuVK04KCOy9 xFekloWTI94hkgt gZakcYbimhmzhea Dsgl2mVqgIwmHgv hp5Indezz4TNtOh VJ8c4BBt1NEzIDg ZfFUiAALL0jRfrB cz7tQc1ussnYzrI IfHSFPDe9Cvz9lp gb1BBogunZOkoNW skfxofDP2lX3Qx7 QP5ah5zm8VV0iw1 zfQaNoxicwkqrM8 tfxyKUWZAypOKoF wUIaC1CQIkTZANa bIJyCxs9g6WceUE jLhh4PazAPCMOU9 M3zOBPP1ieDvc0M OzBLKtBWwz0J1nU 0wtMiADTMKMV.
 	END KEYBASE SALTPACK ENCRYPTED MESSAGE.`
 
 	decoded = libkb.NewBufferCloser()
@@ -492,7 +492,7 @@ func (t *TestPgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedA
 	return nil
 }
 
-func (t *TestPgpUI) ShouldPushPrivate(context.Context, int) (bool, error) {
+func (t *TestPgpUI) ShouldPushPrivate(context.Context, keybase1.ShouldPushPrivateArg) (bool, error) {
 	return t.ShouldPush, nil
 }
 

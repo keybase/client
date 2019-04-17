@@ -642,6 +642,30 @@ const navigateToAccount = (state, action) => {
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
 
+const navigateToTransaction = (state, action) => {
+  const {accountID, paymentID} = action.payload
+  const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
+  const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
+  if (flags.useNewRouter) {
+    // Since the new wallet routes have nested stacks, we actually
+    // do want to navigate to each path component separately.
+    for (var i = 0; i < path.length; ++i) {
+      // Set replace for all but the first navigate so that hitting
+      // back once takes us back to the chat.
+      const replace = i > 0
+      actions.push(
+        RouteTreeGen.createNavigateTo({
+          path: [path[i]],
+          replace,
+        })
+      )
+    }
+  } else {
+    actions.push(RouteTreeGen.createNavigateTo({path}))
+  }
+  return actions
+}
+
 const exportSecretKey = (state, action) =>
   RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(
     res =>
@@ -1131,6 +1155,16 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.selectAccount,
     navigateToAccount,
     'navigateToAccount'
+  )
+  yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(
+    WalletsGen.selectAccount,
+    navigateToAccount,
+    'navigateToAccount'
+  )
+  yield* Saga.chainAction<WalletsGen.ShowTransactionPayload>(
+    WalletsGen.showTransaction,
+    navigateToTransaction,
+    'navigateToTransaction'
   )
   yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload, WalletsGen.ChangedAccountNamePayload>(
     [WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName],

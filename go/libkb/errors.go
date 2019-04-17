@@ -2660,6 +2660,8 @@ func (e ResetMissingParamsError) Error() string {
 	return e.msg
 }
 
+//============================================================================
+
 type ChainLinkBadUnstubError struct {
 	msg string
 }
@@ -2670,4 +2672,18 @@ func NewChainLinkBadUnstubError(s string) error {
 
 func (c ChainLinkBadUnstubError) Error() string {
 	return c.msg
+}
+
+//============================================================================
+
+type PushSecretWithoutPasswordError struct {
+	msg string
+}
+
+func NewPushSecretWithoutPasswordError(msg string) error {
+	return PushSecretWithoutPasswordError{msg: msg}
+}
+
+func (e PushSecretWithoutPasswordError) Error() string {
+	return e.msg
 }

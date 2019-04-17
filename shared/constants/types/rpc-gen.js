@@ -13,6 +13,15 @@ export const appStateMobileAppState = {
   backgroundactive: 3,
 }
 
+export const auditBoxAuditAttemptResult = {
+  failureRetryable: 0,
+  failureMaliciousServer: 1,
+  okVerified: 2,
+  okNotAttemptedRole: 3,
+  okNotAttemptedOpenteam: 4,
+  okNotAttemptedSubteam: 5,
+}
+
 export const backendCommonBlockType = {
   data: 0,
   md: 1,

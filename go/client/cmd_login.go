@@ -6,6 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -24,11 +25,27 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			Name:  "s, switch",
 			Usage: "switch out the current user for another",
 		},
+		cli.StringFlag{
+			Name:  "paperkey",
+			Usage: "DANGEROUS: automatically provision using this paper key",
+		},
+		cli.StringFlag{
+			Name:  "devicename",
+			Usage: "Device name used in automated provisioning",
+		},
 	}
 	cmd := cli.Command{
 		Name:         "login",
 		ArgumentHelp: "[username]",
 		Usage:        "Establish a session with the keybase server",
+		Description: `"keybase login" allows you to authenticate your local service against
+the keybase server. By default this runs an interactive flow, but
+you can automate this if your service has never been logged into
+a particular account before and the account has a paper key - in order
+to do so, pass the username as an argument, your desired unique device
+name as the "-devicename" flag and pass the paper key as the standard
+input. Alternatively, these parameters can be passed as "KEYBASE_PAPERKEY"
+and "KEYBASE_DEVICENAME" environment variables.`,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdLoginRunner(g), "login", c)
 		},
@@ -50,10 +67,14 @@ type CmdLogin struct {
 	libkb.Contextified
 	Username     string
 	doUserSwitch bool
-	clientType   keybase1.ClientType
-	cancel       func()
-	done         chan struct{}
-	SessionID    int
+
+	PaperKey   string
+	DeviceName string
+
+	clientType keybase1.ClientType
+	cancel     func()
+	done       chan struct{}
+	SessionID  int
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
@@ -89,6 +110,14 @@ func (c *CmdLogin) Run() error {
 		c.cancel = nil
 	}()
 
+	var paperKey string
+	if c.DeviceName != "" {
+		paperKey, err = c.getPaperKey()
+		if err != nil {
+			return err
+		}
+	}
+
 	err = client.Login(ctx,
 		keybase1.LoginArg{
 			Username:     c.Username,
@@ -96,6 +125,9 @@ func (c *CmdLogin) Run() error {
 			ClientType:   c.clientType,
 			SessionID:    c.SessionID,
 			DoUserSwitch: c.doUserSwitch,
+
+			PaperKey:   paperKey,
+			DeviceName: c.DeviceName,
 		})
 	c.done <- struct{}{}
 
@@ -134,7 +166,24 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 		}
 	}
 	c.doUserSwitch = ctx.Bool("switch")
+
+	c.PaperKey = c.getOption(ctx, "paperkey")
+	c.DeviceName = c.getOption(ctx, "devicename")
+
 	return nil
+}
+
+func (c *CmdLogin) getOption(ctx *cli.Context, s string) string {
+	v := ctx.String(s)
+	if len(v) > 0 {
+		return v
+	}
+	envVarName := fmt.Sprintf("KEYBASE_%s", strings.ToUpper(strings.Replace(s, "-", "_", -1)))
+	v = os.Getenv(envVarName)
+	if len(v) > 0 {
+		return v
+	}
+	return ""
 }
 
 func (c *CmdLogin) GetUsage() libkb.Usage {
@@ -163,6 +212,14 @@ func (c *CmdLogin) Cancel() error {
 		}
 	}
 	return nil
+}
+
+func (c *CmdLogin) getPaperKey() (ret string, err error) {
+	if len(c.PaperKey) > 0 {
+		return c.PaperKey, nil
+	}
+	ret, err = c.G().UI.GetTerminalUI().PromptPasswordMaybeScripted(PromptDescriptorPaperKey, "paper key: ")
+	return ret, err
 }
 
 func (c *CmdLogin) errNoSyncedKey() error {

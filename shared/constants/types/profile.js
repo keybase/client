@@ -42,6 +42,7 @@ export type _State = {
   platformGenericChecking: boolean,
   platformGenericParams: ?ProveGenericParams,
   platformGenericURL: ?string,
+  promptShouldStoreKeyOnServer: boolean,
   proofFound: boolean,
   proofStatus: ?RPCTypes.ProofStatus,
   proofText: string,

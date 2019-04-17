@@ -3,9 +3,10 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import {GatewayDest} from 'react-gateway'
+import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
 
 type OwnProps = {||}
 
@@ -15,6 +16,7 @@ type Props = {|
   infoPanelOpen: boolean,
   muted: boolean,
   onOpenFolder: () => void,
+  onNewChat: () => void,
   onToggleInfoPanel: () => void,
   onToggleThreadSearch: () => void,
   participants: ?Array<string>,
@@ -25,7 +27,7 @@ type Props = {|
 const Header = (p: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container}>
     <Kb.Box2 direction="vertical" style={styles.left}>
-      <GatewayDest name="chatHeader" />
+      <ChatInboxHeader onNewChat={p.onNewChat} />
     </Kb.Box2>
     <Kb.Box2
       direction="horizontal"
@@ -37,7 +39,9 @@ const Header = (p: Props) => (
       <Kb.Box2 direction="vertical" style={styles.grow}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {p.channel ? (
-            <Kb.Text type="Header">{p.channel}</Kb.Text>
+            <Kb.Text selectable={true} type="Header">
+              {p.channel}
+            </Kb.Text>
           ) : p.participants ? (
             <Kb.ConnectedUsernames
               colorFollowing={true}
@@ -60,7 +64,11 @@ const Header = (p: Props) => (
             />
           )}
         </Kb.Box2>
-        {!!p.desc && <Kb.Text type="BodyTiny">{p.desc}</Kb.Text>}
+        {!!p.desc && (
+          <Kb.Text selectable={true} type="BodyTiny">
+            {p.desc}
+          </Kb.Text>
+        )}
       </Kb.Box2>
       {p.showActions && (
         <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end" alignSelf="flex-end">
@@ -107,6 +115,12 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+  onNewChat: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {}, selected: 'chatNewChat'}],
+      })
+    ),
   onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   onToggleThreadSearch: conversationIDKey => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
   onUnMuteConversation: conversationIDKey =>
@@ -125,6 +139,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     desc: meta.description,
     infoPanelOpen: stateProps.infoPanelOpen,
     muted: meta.isMuted,
+    onNewChat: dispatchProps.onNewChat,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
