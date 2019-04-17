@@ -39,6 +39,14 @@ export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const hideConversation = 'chat2:hideConversation'
 export const inboxRefresh = 'chat2:inboxRefresh'
+export const inboxSearch = 'chat2:inboxSearch'
+export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
+export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
+export const inboxSearchSelect = 'chat2:inboxSearchSelect'
+export const inboxSearchSetIndexPercent = 'chat2:inboxSearchSetIndexPercent'
+export const inboxSearchSetTextStatus = 'chat2:inboxSearchSetTextStatus'
+export const inboxSearchStarted = 'chat2:inboxSearchStarted'
+export const inboxSearchTextResult = 'chat2:inboxSearchTextResult'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -92,19 +100,20 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
-export const setInboxFilter = 'chat2:setInboxFilter'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingStatus = 'chat2:setPendingStatus'
+export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResult = 'chat2:threadSearchResult'
+export const toggleInboxSearch = 'chat2:toggleInboxSearch'
 export const toggleInfoPanel = 'chat2:toggleInfoPanel'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
@@ -154,6 +163,14 @@ type _GiphyToggleWindowPayload = $ReadOnly<{|conversationIDKey: Types.Conversati
 type _HandleSeeingWalletsPayload = void
 type _HideConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
+type _InboxSearchMoveSelectedIndexPayload = $ReadOnly<{|increment: boolean|}>
+type _InboxSearchNameResultsPayload = $ReadOnly<{|results: I.List<Types.InboxSearchConvHit>, unread: boolean|}>
+type _InboxSearchPayload = $ReadOnly<{|query: HiddenString|}>
+type _InboxSearchSelectPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey, query?: HiddenString, selectedIndex?: number|}>
+type _InboxSearchSetIndexPercentPayload = $ReadOnly<{|percent: number|}>
+type _InboxSearchSetTextStatusPayload = $ReadOnly<{|status: Types.InboxSearchStatus|}>
+type _InboxSearchStartedPayload = void
+type _InboxSearchTextResultPayload = $ReadOnly<{|result: Types.InboxSearchTextHit|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _JumpToRecentPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, dontNavigateToInbox?: boolean|}>
@@ -201,7 +218,7 @@ type _ResetLetThemInPayload = $ReadOnly<{|conversationIDKey: Types.ConversationI
 type _SaveMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SelectConversationPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat' | 'addedToChannel',
+  reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'inboxSearch' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat' | 'addedToChannel',
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
 type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, md: ?RPCChatTypes.UICommandMarkdown|}>
@@ -210,7 +227,6 @@ type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.Convers
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
 type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, unset?: boolean|}>
-type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SetPaymentConfirmInfoPayload = $ReadOnly<{|summary: RPCChatTypes.UIChatPaymentSummary|}>
 type _SetPaymentConfirmInfoPayloadError = $ReadOnly<{|error: RPCTypes.Status|}>
@@ -218,12 +234,14 @@ type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conve
 type _SetPendingConversationUsersPayload = $ReadOnly<{|users: Array<string>, fromSearch: boolean|}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode, noneDestination?: 'inbox' | 'thread'|}>
 type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
+type _SetThreadSearchQueryPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
 type _SetThreadSearchStatusPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, status: Types.ThreadSearchStatus|}>
 type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: ?HiddenString|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ThreadSearchPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, query: HiddenString|}>
 type _ThreadSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, message: Types.Message|}>
+type _ToggleInboxSearchPayload = $ReadOnly<{|enabled: boolean|}>
 type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
 type _ToggleMessageCollapsePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, collapse: boolean|}>
@@ -259,6 +277,10 @@ export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload) => (
  */
 export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({payload, type: unfurlTogglePrompt})
 /**
+ * Change selected index of inbox search
+ */
+export const createInboxSearchMoveSelectedIndex = (payload: _InboxSearchMoveSelectedIndexPayload) => ({payload, type: inboxSearchMoveSelectedIndex})
+/**
  * Clear data for payment confirm modal
  */
 export const createClearPaymentConfirmInfo = (payload: _ClearPaymentConfirmInfoPayload) => ({payload, type: clearPaymentConfirmInfo})
@@ -287,6 +309,18 @@ export const createGiphyGotSearchResult = (payload: _GiphyGotSearchResultPayload
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({payload, type: updateConvExplodingModes})
 /**
+ * Inbox search has started
+ */
+export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload) => ({payload, type: inboxSearchStarted})
+/**
+ * Inbox search name results received
+ */
+export const createInboxSearchNameResults = (payload: _InboxSearchNameResultsPayload) => ({payload, type: inboxSearchNameResults})
+/**
+ * Inbox text result has arrived
+ */
+export const createInboxSearchTextResult = (payload: _InboxSearchTextResultPayload) => ({payload, type: inboxSearchTextResult})
+/**
  * Jump to most recent messages in a conversation
  */
 export const createJumpToRecent = (payload: _JumpToRecentPayload) => ({payload, type: jumpToRecent})
@@ -294,6 +328,10 @@ export const createJumpToRecent = (payload: _JumpToRecentPayload) => ({payload, 
  * Perform a search in a thread
  */
 export const createThreadSearch = (payload: _ThreadSearchPayload) => ({payload, type: threadSearch})
+/**
+ * Perform an inbox search
+ */
+export const createInboxSearch = (payload: _InboxSearchPayload) => ({payload, type: inboxSearch})
 /**
  * Prime data to fulfill this message's request and navigate to the send form.
  */
@@ -311,6 +349,10 @@ export const createUnfurlRemove = (payload: _UnfurlRemovePayload) => ({payload, 
  */
 export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) => ({payload, type: unfurlResolvePrompt})
 /**
+ * Select an inbox search item
+ */
+export const createInboxSearchSelect = (payload: _InboxSearchSelectPayload) => ({payload, type: inboxSearchSelect})
+/**
  * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({payload, type: setExplodingModeLock})
@@ -318,6 +360,10 @@ export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload
  * Set command markdown for a conversation
  */
 export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload) => ({payload, type: setCommandMarkdown})
+/**
+ * Set index percent complete
+ */
+export const createInboxSearchSetIndexPercent = (payload: _InboxSearchSetIndexPercentPayload) => ({payload, type: inboxSearchSetIndexPercent})
 /**
  * Set that wallets in chat is not new.
  */
@@ -343,6 +389,14 @@ export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload
  * Set the status of a thread search
  */
 export const createSetThreadSearchStatus = (payload: _SetThreadSearchStatusPayload) => ({payload, type: setThreadSearchStatus})
+/**
+ * Set the status of the inbox text search
+ */
+export const createInboxSearchSetTextStatus = (payload: _InboxSearchSetTextStatusPayload) => ({payload, type: inboxSearchSetTextStatus})
+/**
+ * Set thread search query (used from inbox search to initialize it)
+ */
+export const createSetThreadSearchQuery = (payload: _SetThreadSearchQueryPayload) => ({payload, type: setThreadSearchQuery})
 /**
  * Set unsent text for a conversation
  */
@@ -375,6 +429,10 @@ export const createGiphyToggleWindow = (payload: _GiphyToggleWindowPayload) => (
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({payload, type: toggleLocalReaction})
+/**
+ * Toggle inbox search view
+ */
+export const createToggleInboxSearch = (payload: _ToggleInboxSearchPayload) => ({payload, type: toggleInboxSearch})
 /**
  * Toggle the display of the thread search window
  */
@@ -483,7 +541,6 @@ export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({paylo
 export const createSelectConversation = (payload: _SelectConversationPayload) => ({payload, type: selectConversation})
 export const createSendTyping = (payload: _SendTypingPayload) => ({payload, type: sendTyping})
 export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({payload, type: setConversationOffline})
-export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({payload, type: setInboxFilter})
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({payload, type: setPendingMode})
 export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({payload, type: setPendingStatus})
@@ -521,6 +578,14 @@ export type GiphyToggleWindowPayload = {|+payload: _GiphyToggleWindowPayload, +t
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
 export type HideConversationPayload = {|+payload: _HideConversationPayload, +type: 'chat2:hideConversation'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
+export type InboxSearchMoveSelectedIndexPayload = {|+payload: _InboxSearchMoveSelectedIndexPayload, +type: 'chat2:inboxSearchMoveSelectedIndex'|}
+export type InboxSearchNameResultsPayload = {|+payload: _InboxSearchNameResultsPayload, +type: 'chat2:inboxSearchNameResults'|}
+export type InboxSearchPayload = {|+payload: _InboxSearchPayload, +type: 'chat2:inboxSearch'|}
+export type InboxSearchSelectPayload = {|+payload: _InboxSearchSelectPayload, +type: 'chat2:inboxSearchSelect'|}
+export type InboxSearchSetIndexPercentPayload = {|+payload: _InboxSearchSetIndexPercentPayload, +type: 'chat2:inboxSearchSetIndexPercent'|}
+export type InboxSearchSetTextStatusPayload = {|+payload: _InboxSearchSetTextStatusPayload, +type: 'chat2:inboxSearchSetTextStatus'|}
+export type InboxSearchStartedPayload = {|+payload: _InboxSearchStartedPayload, +type: 'chat2:inboxSearchStarted'|}
+export type InboxSearchTextResultPayload = {|+payload: _InboxSearchTextResultPayload, +type: 'chat2:inboxSearchTextResult'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
 export type JumpToRecentPayload = {|+payload: _JumpToRecentPayload, +type: 'chat2:jumpToRecent'|}
 export type LeaveConversationPayload = {|+payload: _LeaveConversationPayload, +type: 'chat2:leaveConversation'|}
@@ -574,7 +639,6 @@ export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePaylo
 export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyPayload, +type: 'chat2:setConvRetentionPolicy'|}
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
 export type SetExplodingModeLockPayload = {|+payload: _SetExplodingModeLockPayload, +type: 'chat2:setExplodingModeLock'|}
-export type SetInboxFilterPayload = {|+payload: _SetInboxFilterPayload, +type: 'chat2:setInboxFilter'|}
 export type SetMinWriterRolePayload = {|+payload: _SetMinWriterRolePayload, +type: 'chat2:setMinWriterRole'|}
 export type SetPaymentConfirmInfoPayload = {|+payload: _SetPaymentConfirmInfoPayload, +type: 'chat2:setPaymentConfirmInfo'|}
 export type SetPaymentConfirmInfoPayloadError = {|+error: true, +payload: _SetPaymentConfirmInfoPayloadError, +type: 'chat2:setPaymentConfirmInfo'|}
@@ -582,12 +646,14 @@ export type SetPendingConversationExistingConversationIDKeyPayload = {|+payload:
 export type SetPendingConversationUsersPayload = {|+payload: _SetPendingConversationUsersPayload, +type: 'chat2:setPendingConversationUsers'|}
 export type SetPendingModePayload = {|+payload: _SetPendingModePayload, +type: 'chat2:setPendingMode'|}
 export type SetPendingStatusPayload = {|+payload: _SetPendingStatusPayload, +type: 'chat2:setPendingStatus'|}
+export type SetThreadSearchQueryPayload = {|+payload: _SetThreadSearchQueryPayload, +type: 'chat2:setThreadSearchQuery'|}
 export type SetThreadSearchStatusPayload = {|+payload: _SetThreadSearchStatusPayload, +type: 'chat2:setThreadSearchStatus'|}
 export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
 export type StaticConfigLoadedPayload = {|+payload: _StaticConfigLoadedPayload, +type: 'chat2:staticConfigLoaded'|}
 export type ThreadSearchPayload = {|+payload: _ThreadSearchPayload, +type: 'chat2:threadSearch'|}
 export type ThreadSearchResultPayload = {|+payload: _ThreadSearchResultPayload, +type: 'chat2:threadSearchResult'|}
+export type ToggleInboxSearchPayload = {|+payload: _ToggleInboxSearchPayload, +type: 'chat2:toggleInboxSearch'|}
 export type ToggleInfoPanelPayload = {|+payload: _ToggleInfoPanelPayload, +type: 'chat2:toggleInfoPanel'|}
 export type ToggleLocalReactionPayload = {|+payload: _ToggleLocalReactionPayload, +type: 'chat2:toggleLocalReaction'|}
 export type ToggleMessageCollapsePayload = {|+payload: _ToggleMessageCollapsePayload, +type: 'chat2:toggleMessageCollapse'|}
@@ -639,6 +705,14 @@ export type Actions =
   | HandleSeeingWalletsPayload
   | HideConversationPayload
   | InboxRefreshPayload
+  | InboxSearchMoveSelectedIndexPayload
+  | InboxSearchNameResultsPayload
+  | InboxSearchPayload
+  | InboxSearchSelectPayload
+  | InboxSearchSetIndexPercentPayload
+  | InboxSearchSetTextStatusPayload
+  | InboxSearchStartedPayload
+  | InboxSearchTextResultPayload
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload
@@ -692,7 +766,6 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
-  | SetInboxFilterPayload
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError
@@ -700,12 +773,14 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetPendingStatusPayload
+  | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
   | ThreadSearchPayload
   | ThreadSearchResultPayload
+  | ToggleInboxSearchPayload
   | ToggleInfoPanelPayload
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload

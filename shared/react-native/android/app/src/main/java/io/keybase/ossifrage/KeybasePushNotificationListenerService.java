@@ -98,11 +98,11 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                 }
                 break;
                 case "chat.readmessage": {
-                    // Cancel any push notifications for this message ID.
-                    String convID = bundle.getString("c");
+                    // Cancel any push notifications.
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-                    notificationManager.cancel(Integer.parseInt(convID.substring(0, 7), 16));
+                    notificationManager.cancelAll();
                 }
+                break;
                 default:
                     super.onMessageReceived(message);
             }

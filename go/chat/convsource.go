@@ -953,9 +953,9 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 			}
 		}
 		if len(reactionUpdates) > 0 {
-			topReactjis := storage.NewReacjiStore(s.G()).TopReacjis(ctx, uid)
+			userReacjis := storage.NewReacjiStore(s.G()).UserReacjis(ctx, uid)
 			activity := chat1.NewChatActivityWithReactionUpdate(chat1.ReactionUpdateNotif{
-				TopReacjis:      topReactjis,
+				UserReacjis:     userReacjis,
 				ReactionUpdates: reactionUpdates,
 				ConvID:          convID,
 			})

@@ -117,6 +117,13 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   youCanUnlock: I.List(),
 })
 
+export const makeSyncingFoldersProgress: I.RecordFactory<Types._SyncingFoldersProgress> = I.Record({
+  bytesFetched: 0,
+  bytesTotal: 0,
+  endEstimate: 0,
+  start: 0,
+})
+
 export const defaultSortSetting = 'name-asc'
 
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
@@ -280,6 +287,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
+  syncingFoldersProgress: makeSyncingFoldersProgress(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),

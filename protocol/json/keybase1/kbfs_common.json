@@ -234,6 +234,28 @@
           "name": "endEstimate"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncStatus",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "localDiskBytesAvailable"
+        },
+        {
+          "type": "int64",
+          "name": "localDiskBytesTotal"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
+        },
+        {
+          "type": "PrefetchProgress",
+          "name": "prefetchProgress"
+        }
+      ]
     }
   ],
   "messages": {},

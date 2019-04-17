@@ -10,6 +10,7 @@ import Modal from '../modal'
 type OwnProps = {||}
 type Props = {|
   onDone: (shouldStoreKeyOnServer: boolean) => void,
+  promptShouldStoreKeyOnServer: boolean,
   pgpKeyString: string,
 |}
 type State = {|shouldStoreKeyOnServer: boolean|}
@@ -33,17 +34,19 @@ class Finished extends React.Component<Props, State> {
             GPG’s keychain.
           </Kb.Text>
           <textarea style={styles.pgpKeyString} readOnly={true} value={this.props.pgpKeyString} />
-          <Kb.Box2 direction="vertical">
-            <Kb.Checkbox
-              onCheck={newVal => this._onCheckToggle(newVal)}
-              checked={this.state.shouldStoreKeyOnServer}
-              label="Store encrypted private key on Keybase's server"
-            />
-            <Kb.Text type="BodySmall">
-              Allows you to download & import your key to other devices. You might need to enter your Keybase
-              password.{' '}
-            </Kb.Text>
-          </Kb.Box2>
+          {this.props.promptShouldStoreKeyOnServer && (
+            <Kb.Box2 direction="vertical">
+              <Kb.Checkbox
+                onCheck={newVal => this._onCheckToggle(newVal)}
+                checked={this.state.shouldStoreKeyOnServer}
+                label="Store encrypted private key on Keybase's server"
+              />
+              <Kb.Text type="BodySmall">
+                Allows you to download & import your key to other devices. You might need to enter your
+                Keybase password.{' '}
+              </Kb.Text>
+            </Kb.Box2>
+          )}
           <Kb.Button
             onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)}
             label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'}
@@ -80,6 +83,7 @@ const styles = Styles.styleSheetCreate({
 
 const mapStateToProps = state => ({
   pgpKeyString: state.profile.pgpPublicKey || 'Error getting public key...',
+  promptShouldStoreKeyOnServer: state.profile.promptShouldStoreKeyOnServer,
 })
 
 const mapDispatchToProps = dispatch => ({

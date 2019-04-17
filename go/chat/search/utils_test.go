@@ -3,9 +3,11 @@ package search
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -180,7 +182,7 @@ func TestUpgradeRegexpArg(t *testing.T) {
 	sentByCase("from:@karenm hi mike", "hi mike", "karenm")
 	sentByCase("from:@karenm          hi mike          ", "hi mike", "karenm")
 	sentByCase("from: hi mike", "from: hi mike", "")
-	sentByCase("hi mike from:karenm", "hi mike from:karenm", "")
+	sentByCase("hi mike from:karenm", "hi mike", "karenm")
 	sentByCase("from:me hi mike", "hi mike", "mikem")
 
 	regexpCase := func(query, resQuery string, isRegex bool) {
@@ -191,28 +193,40 @@ func TestUpgradeRegexpArg(t *testing.T) {
 		require.Equal(t, resQuery, res.Query)
 		require.Equal(t, isRegex, res.IsRegex)
 	}
+	regexpCase("/", "/", false)
+	regexpCase("//", "//", false)
 	regexpCase("/mike.*always/", "mike.*always", true)
 	regexpCase("X/mike.*always/", "X/mike.*always/", false)
 
+	dateFilterCase := func(query, resQuery string, sentBefore, sentAfter gregor1.Time) {
+		arg := chat1.SearchRegexpArg{
+			Query: query,
+		}
+		res := UpgradeRegexpArgFromQuery(arg, username)
+		require.Equal(t, resQuery, res.Query)
+		require.Equal(t, sentBefore, res.Opts.SentBefore)
+		require.Equal(t, sentAfter, res.Opts.SentAfter)
+	}
+	parsed, err := time.Parse(time.RFC822, "16 Mar 18 00:00 UTC")
+	require.NoError(t, err)
+	expectedTime := gregor1.ToTime(parsed)
+	dateFilterCase("before:2018-03-16 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("before:3/16/18 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("before:3.16.18 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("before:03/16/2018 hi mike", "hi mike", expectedTime, 0)
+	dateFilterCase("after:2018-03-16 hi mike", "hi mike", 0, expectedTime)
+	dateFilterCase("before:2018-03-16 after:2018-03-16 hi mike", "hi mike", expectedTime, expectedTime)
+	dateFilterCase("before:2018 after:asdf hi mike", "before:2018 after:asdf hi mike", 0, 0)
+
+	// the whole shabang
 	arg := chat1.SearchRegexpArg{
-		Query: "from:karenm /Lisa.*something/",
+		Query: "from:karenm before:2018-03-16 after:3/16/18 /Lisa.*something/",
 	}
 	res := UpgradeRegexpArgFromQuery(arg, username)
 	require.Equal(t, "Lisa.*something", res.Query)
 	require.Equal(t, "karenm", res.Opts.SentBy)
+	require.Equal(t, expectedTime, res.Opts.SentBefore)
+	require.Equal(t, expectedTime, res.Opts.SentBefore)
 	require.True(t, res.IsRegex)
 
-	arg = chat1.SearchRegexpArg{
-		Query: "/",
-	}
-	res = UpgradeRegexpArgFromQuery(arg, username)
-	require.Equal(t, "/", res.Query)
-	require.False(t, res.IsRegex)
-
-	arg = chat1.SearchRegexpArg{
-		Query: "//",
-	}
-	res = UpgradeRegexpArgFromQuery(arg, username)
-	require.Equal(t, "//", res.Query)
-	require.False(t, res.IsRegex)
 }

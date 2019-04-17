@@ -394,6 +394,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
         kbfsDaemonStatus.set('online', action.payload.online)
       )
+    case FsGen.overallSyncStatusChanged:
+      return state.set('syncingFoldersProgress', action.payload.progress)
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:

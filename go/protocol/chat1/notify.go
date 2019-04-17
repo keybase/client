@@ -336,25 +336,15 @@ func (o ReactionUpdate) DeepCopy() ReactionUpdate {
 }
 
 type ReactionUpdateNotif struct {
-	ConvID          ConversationID   `codec:"convID" json:"convID"`
-	TopReacjis      []string         `codec:"topReacjis" json:"topReacjis"`
-	ReactionUpdates []ReactionUpdate `codec:"reactionUpdates" json:"reactionUpdates"`
+	ConvID          ConversationID       `codec:"convID" json:"convID"`
+	UserReacjis     keybase1.UserReacjis `codec:"userReacjis" json:"userReacjis"`
+	ReactionUpdates []ReactionUpdate     `codec:"reactionUpdates" json:"reactionUpdates"`
 }
 
 func (o ReactionUpdateNotif) DeepCopy() ReactionUpdateNotif {
 	return ReactionUpdateNotif{
-		ConvID: o.ConvID.DeepCopy(),
-		TopReacjis: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.TopReacjis),
+		ConvID:      o.ConvID.DeepCopy(),
+		UserReacjis: o.UserReacjis.DeepCopy(),
 		ReactionUpdates: (func(x []ReactionUpdate) []ReactionUpdate {
 			if x == nil {
 				return nil

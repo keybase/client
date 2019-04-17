@@ -802,6 +802,29 @@
         "NONE_0",
         "BEST_EFFORT_1"
       ]
+    },
+    {
+      "type": "record",
+      "name": "ReacjiSkinTone",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "UserReacjis",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "topReacjis"
+        },
+        {
+          "type": "ReacjiSkinTone",
+          "name": "skinTone"
+        }
+      ]
     }
   ],
   "messages": {},

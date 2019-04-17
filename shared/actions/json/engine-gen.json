@@ -38,6 +38,9 @@
         "chat1ChatUiChatSearchDone": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void}"
         },
+        "chat1ChatUiChatSearchInboxStart": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxStart'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxStart'>, 'outParam'>) => void}"
+        },
         "chat1ChatUiChatSearchInboxHit": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'outParam'>) => void}"
         },
@@ -304,6 +307,9 @@
         },
         "keybase1NotifyFSFSSyncStatusResponse": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}"
+        },
+        "keybase1NotifyFSFSOverallSyncStatusChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOverallSyncStatusChanged'>, 'outParam'>) => void}"
         },
         "keybase1NotifyFSFSOnlineStatusChanged": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSOnlineStatusChanged'>, 'outParam'>) => void}"

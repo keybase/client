@@ -65,6 +65,10 @@ func (r *RemoteChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchD
 	return r.cli.ChatSearchDone(ctx, arg)
 }
 
+func (r *RemoteChatUI) ChatSearchInboxStart(ctx context.Context) error {
+	return r.cli.ChatSearchInboxStart(ctx, r.sessionID)
+}
+
 func (r *RemoteChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	return r.cli.ChatSearchInboxHit(ctx, arg)
 }
@@ -77,10 +81,10 @@ func (r *RemoteChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.Chat
 	return r.cli.ChatSearchIndexStatus(ctx, arg)
 }
 
-func (r *RemoteChatUI) ChatSearchConvHits(ctx context.Context, hits []chat1.UIChatSearchConvHit) error {
+func (r *RemoteChatUI) ChatSearchConvHits(ctx context.Context, arg chat1.UIChatSearchConvHits) error {
 	return r.cli.ChatSearchConvHits(ctx, chat1.ChatSearchConvHitsArg{
 		SessionID: r.sessionID,
-		Hits:      hits,
+		Hits:      arg,
 	})
 }
 

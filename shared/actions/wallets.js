@@ -644,6 +644,30 @@ const navigateToAccount = (state, action) => {
   return RouteTreeGen.createNavigateTo({path: wallet})
 }
 
+const navigateToTransaction = (state, action) => {
+  const {accountID, paymentID} = action.payload
+  const actions = [WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'})]
+  const path = [...Constants.walletPath, {props: {accountID, paymentID}, selected: 'transactionDetails'}]
+  if (flags.useNewRouter) {
+    // Since the new wallet routes have nested stacks, we actually
+    // do want to navigate to each path component separately.
+    for (var i = 0; i < path.length; ++i) {
+      // Set replace for all but the first navigate so that hitting
+      // back once takes us back to the chat.
+      const replace = i > 0
+      actions.push(
+        RouteTreeGen.createNavigateTo({
+          path: [path[i]],
+          replace,
+        })
+      )
+    }
+  } else {
+    actions.push(RouteTreeGen.createNavigateTo({path}))
+  }
+  return actions
+}
+
 const exportSecretKey = (state, action) =>
   RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(
     res =>
@@ -842,9 +866,9 @@ const acceptDisclaimer = (state, action) =>
   )
 
 const checkDisclaimer = state =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
-    WalletsGen.createWalletDisclaimerReceived({accepted})
-  ).catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
+    .then(accepted => WalletsGen.createWalletDisclaimerReceived({accepted}))
+    .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
 
 const maybeNavToLinkExisting = (state, action) =>
   action.payload.nextScreen === 'linkExisting' &&
@@ -1101,6 +1125,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     changeAccountName
   )
   yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(WalletsGen.selectAccount, navigateToAccount)
+  yield* Saga.chainAction<WalletsGen.ShowTransactionPayload>(
+    WalletsGen.showTransaction,
+    navigateToTransaction
+  )
   yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload, WalletsGen.ChangedAccountNamePayload>(
     [WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName],
     navigateUp

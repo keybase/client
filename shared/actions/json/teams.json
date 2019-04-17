@@ -25,9 +25,9 @@
       "teamname": "string",
       "channelname": "string",
       "description": "?string",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
-      "destSubPath": "I.List<string>"
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
+      "destSubPath?": "I.List<string>"
     },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {

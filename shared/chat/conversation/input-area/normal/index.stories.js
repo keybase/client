@@ -95,6 +95,7 @@ const InputContainer = (props: Props) => {
     isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
+    isSearching: false,
     onAttach: (paths: Array<string>) => {
       // This will always be called with an empty array, since some
       // browsers don't have the path property set on File.

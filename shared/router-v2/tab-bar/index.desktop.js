@@ -65,7 +65,7 @@ class TabBar extends React.PureComponent<Props, State> {
   _menuItems = () => [
     {
       onClick: this.props.onProfileClick,
-      title: 'View Profile',
+      title: 'View profile',
     },
     'Divider',
     {
