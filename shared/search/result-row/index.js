@@ -38,7 +38,7 @@ const Left = ({leftService, leftIcon, leftIconOpaque, leftUsername, leftFollowin
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text
           type="BodySemibold"
-          style={collapseStyles([followingStateToStyle(leftFollowingState), {letterSpacing: 0.25}])}
+          style={collapseStyles([followingStateToStyle(leftFollowingState), {letterSpacing: 0.2}])}
         >
           {leftUsername}
         </Text>

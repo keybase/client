@@ -38,7 +38,7 @@ const styles = Styles.styleSheetCreate({
     borderRadius: 2,
   },
   kerning: {
-    letterSpacing: 0.25,
+    letterSpacing: 0.3,
   },
   nonFollow: {
     backgroundColor: Styles.globalColors.blue4,

@@ -45,7 +45,7 @@ const Tlf = (props: TlfProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  kerning: {letterSpacing: 0.25},
+  kerning: {letterSpacing: 0.2},
 })
 
 export default Tlf
