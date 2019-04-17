@@ -28,7 +28,7 @@ class SagaLogger {
   // call this first in your saga if you want chainAction / chainGenerator to log
   // before and after you run
   tag = () => {
-    this.debug('->')
+    this.info('->')
     this.isTagged = true
   }
 }
@@ -103,7 +103,7 @@ function* chainGenerator<Actions: {+type: string}>(
       const state = yield* selectState()
       yield* f(state, action, sl)
       if (sl.isTagged) {
-        sl.info('calling -> ok')
+        sl.info('-> ok')
       }
     } catch (error) {
       sl.warn(error.message)
