@@ -494,11 +494,20 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	return nil
 }
 
-func pushPendingMessageFailure(convID chat1.ConversationID, pusher PushNotifier) {
-	kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", convID)
-	pusher.LocalNotification("failedpending",
-		"Heads up! One or more pending messages failed to send. Tap here to retry them.",
-		-1, "default", convID.String(), "chat.failedpending")
+// pushPendingMessageFailure sends at most one notification that a message
+// failed to send. We don't notify the user about background failures like
+// unfurling.
+func pushPendingMessageFailure(obrs []chat1.OutboxRecord, pusher PushNotifier) {
+	for _, obr := range obrs {
+		if !obr.IsUnfurl() {
+			kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", obr.ConvID)
+			pusher.LocalNotification("failedpending",
+				"Heads up! One or more pending messages failed to send. Tap here to retry them.",
+				-1, "default", obr.ConvID.String(), "chat.failedpending")
+			return
+		}
+	}
+	kbCtx.Log.Debug("pushPendingMessageFailure: skipped notification for: %d items", len(obrs))
 }
 
 // AppWillExit is called reliably on iOS when the app is about to terminate
@@ -509,11 +518,11 @@ func AppWillExit(pusher PushNotifier) {
 	}
 	defer kbCtx.Trace("AppWillExit", func() error { return nil })()
 	ctx := context.Background()
-	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
-	if err == nil && len(convs) > 0 {
-		// We are about to get killed with messages still to send, let the user know they will get
-		// stuck
-		pushPendingMessageFailure(convs[0], pusher)
+	obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
+	if err == nil {
+		// We are about to get killed with messages still to send, let the user
+		// know they will get stuck
+		pushPendingMessageFailure(obrs, pusher)
 	}
 	kbCtx.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 }
@@ -592,7 +601,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 		case obrs := <-ch:
 			kbCtx.Log.Debug(
 				"AppBeginBackgroundTask: failure received, alerting the user: %d marked", len(obrs))
-			pushPendingMessageFailure(obrs[0].ConvID, pusher)
+			pushPendingMessageFailure(obrs, pusher)
 			return errors.New("failure received")
 		case <-ctx.Done():
 			return ctx.Err()
@@ -603,12 +612,12 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 		for {
 			select {
 			case <-ticker.C:
-				convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
+				obrs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 				if err != nil {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to query active deliveries: %s", err)
 					continue
 				}
-				if len(convs) == 0 {
+				if len(obrs) == 0 {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: delivered everything: successCount: %d",
 						successCount)
 					// We can race the failure case here, so lets go a couple passes of no pending
@@ -621,7 +630,7 @@ func AppBeginBackgroundTask(pusher PushNotifier) {
 				curTime := libkb.ForceWallClock(time.Now())
 				if curTime.Sub(beginTime) >= 10*time.Minute {
 					kbCtx.Log.Debug("AppBeginBackgroundTask: failed to deliver and time is up, aborting")
-					pushPendingMessageFailure(convs[0], pusher)
+					pushPendingMessageFailure(obrs, pusher)
 					return errors.New("time expired")
 				}
 			case <-ctx.Done():
