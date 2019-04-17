@@ -22,7 +22,7 @@ func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 		mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
 }
 
-const CurrentBoxAuditVersion Version = 4
+const CurrentBoxAuditVersion Version = 5
 const JailLRUSize = 100
 const BoxAuditIDLen = 16
 const MaxBoxAuditRetryAttempts = 6
