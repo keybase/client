@@ -438,7 +438,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
-				ret.SetCause(fmt.Errorf(field.Value))
+				ret.Cause = fmt.Errorf(field.Value)
 			}
 		}
 		return ret

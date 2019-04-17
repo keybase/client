@@ -39,23 +39,17 @@ func (p BadKeyError) Error() string {
 }
 
 type VerificationError struct {
-	cause error
-}
-
-func (e VerificationError) Cause() error {
-	return e.cause
-}
-
-func (e VerificationError) SetCause(c error) {
-	e.cause = c
+	// XXX - NOTE(maxtaco) - 20190418 - this is not to be confused with Cause(), which interacts with the pkg/errors
+	// system. There should probably be a better solution than this, but let's leave it for now.
+	Cause error
 }
 
 func newVerificationErrorWithString(s string) VerificationError {
-	return VerificationError{errors.New(s)}
+	return VerificationError{Cause: errors.New(s)}
 }
 
 func NewVerificationError(e error) VerificationError {
-	return VerificationError{cause: e}
+	return VerificationError{Cause: e}
 }
 
 const (
@@ -63,16 +57,16 @@ const (
 )
 
 func (e VerificationError) Error() string {
-	if e.cause == nil {
+	if e.Cause == nil {
 		return "Verification failed"
 	}
-	return fmt.Sprintf("Verification failed: %s", e.cause.Error())
+	return fmt.Sprintf("Verification failed: %s", e.Cause.Error())
 }
 
 func (e VerificationError) ToStatus() keybase1.Status {
 	cause := ""
-	if e.cause != nil {
-		cause = e.cause.Error()
+	if e.Cause != nil {
+		cause = e.Cause.Error()
 	}
 	return keybase1.Status{
 		Code: SCSigCannotVerify,
