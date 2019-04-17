@@ -50,12 +50,12 @@ const stylePadding = platformStyles({
     marginRight: 80,
     marginTop: 40,
   },
-  isMobile: { paddingTop: globalMargins.xlarge },
+  isMobile: {paddingTop: globalMargins.xlarge},
 })
 
 const styleButtonBox = platformStyles({
-  common: { marginTop: globalMargins.xlarge },
-  isElectron: { ...globalStyles.flexBoxRow },
+  common: {marginTop: globalMargins.xlarge},
+  isElectron: {...globalStyles.flexBoxRow},
   isMobile: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
@@ -67,10 +67,10 @@ const styleButtonBox = platformStyles({
 })
 
 const styleButton = platformStyles({
-  isElectron: { marginLeft: globalMargins.tiny },
-  isMobile: { marginTop: globalMargins.tiny },
+  isElectron: {marginLeft: globalMargins.tiny},
+  isMobile: {marginTop: globalMargins.tiny},
 })
 
-const styleText = { padding: globalMargins.small }
+const styleText = {padding: globalMargins.small}
 
 export default HeaderOnMobile(DeleteHistoryWarning)

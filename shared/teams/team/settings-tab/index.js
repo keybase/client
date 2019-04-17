@@ -309,7 +309,6 @@ export class Settings extends React.Component<Props, State> {
           }}
         >
           <Button
-            
             label="Save"
             onClick={this.onSaveSettings}
             disabled={!this.state.publicitySettingsChanged}

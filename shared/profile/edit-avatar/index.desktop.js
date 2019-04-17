@@ -383,7 +383,6 @@ class EditAvatar extends React.Component<_Props, State> {
               disabled={!this.state.hasPreview}
               label="Save"
               onClick={this._onSave}
-              
               waitingKey={this.props.waitingKey}
             />
           </Kb.ButtonBar>

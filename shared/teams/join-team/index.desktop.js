@@ -43,12 +43,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}) => (
           onEnterKeyDown={onSubmit}
         />
         <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
-          <Button
-            
-            style={{marginLeft: globalMargins.tiny}}
-            onClick={onSubmit}
-            label="Continue"
-          />
+          <Button style={{marginLeft: globalMargins.tiny}} onClick={onSubmit} label="Continue" />
         </Box>
       </Box>
     </Box>

@@ -32,7 +32,6 @@ class Password extends Component<Props> {
           <Button
             waiting={this.props.waitingForResponse}
             label="Continue"
-            
             onClick={() => this.props.onSubmit()}
             disabled={!(this.props.password && this.props.password.length)}
           />

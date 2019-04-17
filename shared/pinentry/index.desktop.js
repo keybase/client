@@ -124,7 +124,6 @@ class Pinentry extends Component<Props, State> {
           />
           <Button
             style={{alignSelf: 'center'}}
-            
             label={this.props.submitLabel}
             onClick={this._onSubmit}
             disabled={!this.state.password}

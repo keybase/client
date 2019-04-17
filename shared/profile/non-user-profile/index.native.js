@@ -27,12 +27,7 @@ const NonUserRender = (props: Props) => (
         {capitalize(props.serviceName)} user
       </Text>
     </Box>
-    <Button
-      style={{marginTop: globalMargins.medium}}
-      onClick={props.onStartChat}
-      label="Start a chat"
-      
-    />
+    <Button style={{marginTop: globalMargins.medium}} onClick={props.onStartChat} label="Start a chat" />
     <Text center={true} type="BodySmall" style={styleDetails}>{`When ${
       props.username
     } connects Keybase and their ${capitalize(

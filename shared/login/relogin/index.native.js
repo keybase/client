@@ -77,7 +77,6 @@ class LoginRender extends Component<Props> {
               waitingKey={Constants.waitingKey}
               style={{marginTop: 0, width: '100%'}}
               fullWidth={true}
-              
               label="Log in"
               onClick={this.props.onSubmit}
             />

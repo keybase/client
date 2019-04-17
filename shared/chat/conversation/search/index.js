@@ -199,12 +199,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
               )}
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Button
-            
-            disabled={this.props.inProgress()}
-            onClick={this.props.submitSearch}
-            label="Search"
-          />
+          <Kb.Button disabled={this.props.inProgress()} onClick={this.props.submitSearch} label="Search" />
           <Kb.Button type="Dim" onClick={this.props.onCancel} label="Cancel" />
         </Kb.Box2>
         {this.props.hits.length > 0 && (

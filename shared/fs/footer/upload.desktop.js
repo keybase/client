@@ -40,7 +40,7 @@ const realCSS = `
 const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
   return (
     <React.Fragment>
-      {!!debugToggleShow && <Kb.Button  onClick={debugToggleShow} label="Toggle" />}
+      {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
       <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
         <Kb.Box2
           direction="vertical"

@@ -139,7 +139,6 @@ const ManageChannels = (props: Props) => {
         <Kb.ButtonBar style={{alignSelf: 'flex-end'}}>
           <Kb.Button type="Dim" label="Cancel" onClick={props.onClose} />
           <Kb.WaitingButton
-            
             label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
             waitingKey={props.waitingKey}
             disabled={!props.unsavedSubscriptions}

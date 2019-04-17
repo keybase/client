@@ -41,7 +41,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
           </Text>
         )}
         <ButtonBar direction="column">
-          <Button  style={styles.button} onClick={onSubmit} label="Continue" />
+          <Button style={styles.button} onClick={onSubmit} label="Continue" />
         </ButtonBar>
         <InfoNote>
           <Text center={true} type="BodySmall" style={styles.info}>
@@ -59,9 +59,9 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.small,
     width: '100%',
   },
-  container: { flexGrow: 1 },
-  errorText: { marginTop: globalMargins.tiny },
-  info: { maxWidth: 280 },
+  container: {flexGrow: 1},
+  errorText: {marginTop: globalMargins.tiny},
+  info: {maxWidth: 280},
   input: {
     borderRadius: 4,
     borderStyle: 'solid',

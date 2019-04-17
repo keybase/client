@@ -177,7 +177,6 @@ class NewRepo extends React.Component<Props, State> {
               onlyDisable={true}
             />
             <Kb.WaitingButton
-              
               onClick={this._onSubmit}
               label="Create"
               disabled={!this._canSubmit()}

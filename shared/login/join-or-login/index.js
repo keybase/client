@@ -47,7 +47,7 @@ const Intro = (props: Props) => (
           Join Keybase
         </Kb.Text>
         <Kb.ButtonBar>
-          <Kb.Button  onClick={props.onSignup} label="Create an account" />
+          <Kb.Button onClick={props.onSignup} label="Create an account" />
         </Kb.ButtonBar>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.alignItemsCenter}>

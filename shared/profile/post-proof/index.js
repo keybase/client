@@ -179,14 +179,12 @@ class PostProof extends React.Component<Props, State> {
               <Kb.Button type="Dim" onClick={props.onCancel} label="Cancel" />
               {this.state.showSubmit ? (
                 <Kb.WaitingButton
-                  
                   onClick={props.onSubmit}
                   label={onCompleteText || ''}
                   waitingKey={Constants.waitingKey}
                 />
               ) : (
                 <Kb.Button
-                  
                   onClick={() => {
                     this.setState({showSubmit: true})
                     props.url && openUrl(props.url)

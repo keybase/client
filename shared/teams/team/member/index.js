@@ -88,7 +88,7 @@ export const TeamMember = (props: Props) => {
         </Text>
       </Box>
       <ButtonBar direction={isMobile ? 'column' : 'row'}>
-        <Button label="Chat"  onClick={props.onChat}>
+        <Button label="Chat" onClick={props.onChat}>
           <Icon
             type="iconfont-chat"
             style={{

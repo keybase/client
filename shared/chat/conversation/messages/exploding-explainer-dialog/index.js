@@ -30,7 +30,6 @@ export const ExplodingExplainerElement = (props: Props) => (
       </Kb.Text>
       <Kb.Box style={styles.buttonBox}>
         <Kb.Button
-          
           style={styles.button}
           onClick={props.onCancel}
           label="Got it"

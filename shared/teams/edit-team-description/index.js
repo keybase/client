@@ -40,7 +40,6 @@ const EditTeamDescription = ({
         disabled={description === origDescription}
         label="Save"
         onClick={onSetDescription}
-        
         waitingKey={waitingKey}
       />
     </ButtonBar>

@@ -34,13 +34,7 @@ const StartNewChat = (props: Props) => {
   }
   return (
     <Box2 direction="horizontal" fullWidth={true}>
-      <Button
-        
-        label="Start a new chat"
-        onClick={props.onNewChat}
-        style={styles.button}
-        small={true}
-      >
+      <Button label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true}>
         <Icon type="iconfont-compose" color={globalColors.white} style={styles.buttonIcon} />
       </Button>
     </Box2>

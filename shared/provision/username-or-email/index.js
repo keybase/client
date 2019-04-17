@@ -59,7 +59,6 @@ class Username extends React.Component<Props, State> {
           />
           <Kb.WaitingButton
             label="Continue"
-            
             fullWidth={true}
             style={styles.button}
             onClick={() => this.props.onSubmit(this.state.username)}

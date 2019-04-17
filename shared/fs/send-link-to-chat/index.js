@@ -178,7 +178,6 @@ const Footer = (props: Props) => (
     {!Styles.isMobile && <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />}
     {props.conversation.type !== 'none' && (
       <Kb.Button
-        
         label="Send in conversation"
         disabled={props.sendLinkToChatState !== 'ready-to-send'}
         waiting={['locating-conversation', 'sending'].includes(props.sendLinkToChatState)}

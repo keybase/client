@@ -34,7 +34,6 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
           label={this.state.saving ? 'Stop save' : 'Start save'}
           onClick={this._toggleSave}
           style={{alignSelf: 'flex-start'}}
-          
         />
         <SaveIndicator
           saving={this.state.saving}

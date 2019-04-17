@@ -22,7 +22,6 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
     }}
   >
     <Button
-      
       small={true}
       onClick={onClick}
       labelStyle={{color: globalColors.white}}

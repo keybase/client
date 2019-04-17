@@ -76,7 +76,6 @@ const DesktopSendAttachmentToChat = (props: Props) => (
       >
         <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
         <Kb.Button
-          
           label="Send in conversation"
           onClick={props.send}
           disabled={props.sendAttachmentToChatState !== 'ready-to-send'}

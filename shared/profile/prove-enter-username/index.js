@@ -71,7 +71,6 @@ class EnterUsername extends React.Component<Props, State> {
             <Kb.WaitingButton
               waitingKey={Constants.waitingKey}
               disabled={!this.state.canSubmit}
-              
               onClick={this._submit}
               label="Continue"
             />

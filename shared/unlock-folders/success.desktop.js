@@ -16,7 +16,7 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
       </Text>
     </Box>
     <ButtonBar>
-      <Button  label="Okay" onClick={onClose} />
+      <Button label="Okay" onClick={onClose} />
     </ButtonBar>
   </div>
 )

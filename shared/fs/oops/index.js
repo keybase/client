@@ -70,7 +70,7 @@ const NoAccess = (props: Props) => (
     </Kb.Box2>
     {!isMobile && (
       <Kb.Box2 direction="horizontal" style={styles.footer} fullWidth={true} centerChildren={true}>
-        <Kb.Button  label="Got it" onClick={props.onCancel} />
+        <Kb.Button label="Got it" onClick={props.onCancel} />
       </Kb.Box2>
     )}
   </Kb.Box2>
@@ -104,7 +104,7 @@ const NonExistent = (props: Props) => (
     </Kb.Box2>
     {!isMobile && (
       <Kb.Box2 direction="horizontal" style={styles.footer} fullWidth={true} centerChildren={true}>
-        <Kb.Button  label="Got it" onClick={props.onCancel} />
+        <Kb.Button label="Got it" onClick={props.onCancel} />
       </Kb.Box2>
     )}
   </Kb.Box2>

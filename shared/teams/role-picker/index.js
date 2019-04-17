@@ -131,7 +131,6 @@ export const RoleOptions = ({
     <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
       <Button
         label={addButtonLabel || (controlled ? 'Select' : 'Continue')}
-        
         onClick={() => setConfirm(true)}
         disabled={!selectedRole}
       />
@@ -222,7 +221,6 @@ export const RoleConfirm = ({
         <Button type="Dim" label="Back" onClick={() => setConfirm(false)} />
         <Button
           label="Confirm"
-          
           onClick={() => onComplete(selectedRole, sendNotification)}
           disabled={!selectedRole}
         />

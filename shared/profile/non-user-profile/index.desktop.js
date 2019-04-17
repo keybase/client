@@ -43,7 +43,6 @@ const NonUserRender = (props: Props) => (
             style={{marginTop: globalMargins.medium}}
             onClick={props.onStartChat}
             label="Start a chat"
-            
           />
           <Button
             style={{marginTop: globalMargins.tiny}}

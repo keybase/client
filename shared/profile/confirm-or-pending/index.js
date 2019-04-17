@@ -57,7 +57,7 @@ const ConfirmOrPending = (props: Props) => {
             </Kb.Text>
           )}
         </>
-        <Kb.Button  onClick={props.onCancel} label="Reload profile" />
+        <Kb.Button onClick={props.onCancel} label="Reload profile" />
       </Kb.Box2>
     </Modal>
   )

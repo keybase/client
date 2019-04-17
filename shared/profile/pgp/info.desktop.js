@@ -56,7 +56,6 @@ const Info = props => (
     <Kb.Box2 fullWidth={true} direction="horizontal" gap="small">
       <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
       <Kb.Button
-        
         label="Let the math begin"
         disabled={props.nextDisabled}
         onClick={props.onNext}

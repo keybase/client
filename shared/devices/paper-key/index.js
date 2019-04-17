@@ -52,7 +52,6 @@ class PaperKey extends React.Component<Props, State> {
             onCheck={wroteItDown => this.setState({wroteItDown})}
           />
           <Kb.WaitingButton
-            
             label="Done"
             onClick={this.props.onBack}
             disabled={!this.state.wroteItDown}

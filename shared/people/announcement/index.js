@@ -30,7 +30,7 @@ const Announcement = (props: Props) => {
       {(!!props.confirmLabel || !!props.onDismiss) && (
         <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true} style={styles.container}>
           {!!props.confirmLabel && (
-            <Kb.Button small={true}  label={props.confirmLabel} onClick={props.onConfirm} />
+            <Kb.Button small={true} label={props.confirmLabel} onClick={props.onConfirm} />
           )}
           {!!props.onDismiss && (
             <Kb.Text type="BodyPrimaryLink" onClick={props.onDismiss}>
