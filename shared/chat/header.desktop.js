@@ -65,7 +65,7 @@ const Header = (p: Props) => (
           )}
         </Kb.Box2>
         {!!p.desc && (
-          <Kb.Text selectable={true} type="BodyTiny">
+          <Kb.Text selectable={true} type="BodyTiny" style={styles.desc}>
             {p.desc}
           </Kb.Text>
         )}
@@ -89,6 +89,7 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     height: 40,
   },
+  desc: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   grow: {flexGrow: 1},
   left: {minWidth: 260},
   right: {

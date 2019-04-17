@@ -11,12 +11,7 @@ import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 
-type OwnProps = {|
-  routeState: I.RecordOf<{
-    smallTeamsExpanded: boolean,
-  }>,
-  navigateAppend: (...Array<any>) => any,
-|}
+type OwnProps = {||}
 
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
@@ -41,7 +36,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = dispatch => ({
   _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>

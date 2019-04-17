@@ -156,6 +156,7 @@ export const newRoutes = {
     getScreen: () =>
       // TODO mark as upgraded when inbox doesn't use routeState anymore
       isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
+    upgraded: true,
   },
 }
 
@@ -176,7 +177,7 @@ export const newModalRoutes = {
     getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
     upgraded: true,
   },
-  chatCreateChannel: {getScreen: () => require('./create-channel/container').default}, // TODO upgrade / figure out route introspection in there
+  chatCreateChannel: {getScreen: () => require('./create-channel/container').default, upgraded: true},
   chatDeleteHistoryWarning: {
     getScreen: () => require('./delete-history-warning/container').default,
     upgraded: true,
@@ -186,14 +187,14 @@ export const newModalRoutes = {
     upgraded: true,
   },
   chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default, upgraded: true},
-  // TODO upgrade the ones below
-  chatManageChannels: {getScreen: () => require('./manage-channels/container').default},
-  chatNewChat: {getScreen: () => require('../team-building/container').default},
-  chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},
+  chatManageChannels: {getScreen: () => require('./manage-channels/container').default, upgraded: true},
+  chatNewChat: {getScreen: () => require('../team-building/container').default, upgraded: true},
+  chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default, upgraded: true},
   chatShowBlockConversationDialog: {
     getScreen: () => require('./conversation/block-conversation-warning/container').default,
+    upgraded: true,
   },
-  chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
+  chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default, upgraded: true},
 }
 
 export default routeTree

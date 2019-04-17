@@ -1017,7 +1017,7 @@ function* createChannel(_, action) {
       if (Router2Constants.getVisibleScreen()?.routeName === 'chatCreateChannel') {
         yield Saga.put(RouteTreeGen.createClearModals())
       }
-    } else {
+    } else if (sourceSubPath && rootPath && destSubPath) {
       yield Saga.put(
         RouteTreeGen.createPutActionIfOnPath({
           expectedPath: rootPath.concat(sourceSubPath),
