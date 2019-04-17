@@ -137,7 +137,6 @@ class SharedAskForUserData {
       this._userQueue = {}
       if (usernames.length || teamnames.length) {
         requestAnimationFrame(() => {
-          console.log('aaa making dispatch for avatars', usernames)
           usernames.length && this._dispatch(ConfigGen.createLoadAvatars({usernames}))
           teamnames.length && this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
         })
