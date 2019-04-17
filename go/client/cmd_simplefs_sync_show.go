@@ -73,7 +73,7 @@ func printLocalStats(
 	ui libkb.TerminalUI, status keybase1.FolderSyncStatus) {
 	a := status.LocalDiskBytesAvailable
 	t := status.LocalDiskBytesTotal
-	ui.Printf("%s (%.2f%%) of the local disk available for caching.\n",
+	ui.Printf("%s (%.2f%%) of the local disk is available for caching.\n",
 		humanizeBytes(a, false), float64(a)/float64(t)*100)
 }
 
