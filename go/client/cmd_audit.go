@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -185,7 +186,11 @@ func (c *CmdAuditBox) Run() error {
 		}
 
 		if failedTeamIDs != nil {
-			return fmt.Errorf("Some teams failed to pass an audit. This does not necessarily mean something is wrong, unless you are a member of those teams.")
+			var teamIDStrs []string
+			for _, teamID := range failedTeamIDs {
+				teamIDStrs = append(teamIDStrs, teamID.String())
+			}
+			return fmt.Errorf("The following teams failed to pass an audit. This does not necessarily mean something is wrong, unless you are a member of those teams.\n%s", strings.Join(teamIDStrs, ", "))
 		}
 		return nil
 	case c.IsInJail:
