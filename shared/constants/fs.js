@@ -117,7 +117,7 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   youCanUnlock: I.List(),
 })
 
-const makeSyncingFoldersProgress = (): RPCTypes.PrefetchProgress => ({
+export const makeSyncingFoldersProgress: I.RecordFactory<Types._SyncingFoldersProgress> = I.Record({
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
