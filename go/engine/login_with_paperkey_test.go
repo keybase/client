@@ -34,7 +34,7 @@ func TestLoginWithPaperKeyAlreadyIn(t *testing.T) {
 			AllowedGetPassphraseCalls: 0,
 		},
 	}
-	eng := NewLoginWithPaperKey(tc.G)
+	eng := NewLoginWithPaperKey(tc.G, "")
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestLoginWithPaperKeyFromScratch(t *testing.T) {
 			AllowedGetPassphraseCalls: 1,
 		},
 	}
-	eng := NewLoginWithPaperKey(tc.G)
+	eng := NewLoginWithPaperKey(tc.G, "")
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -110,7 +110,7 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 			AllowedGetPassphraseCalls: 1,
 		},
 	}
-	eng := NewLoginWithPaperKey(tc.G)
+	eng := NewLoginWithPaperKey(tc.G, "")
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)

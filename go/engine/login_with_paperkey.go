@@ -49,10 +49,18 @@ func (e *LoginWithPaperKey) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
-	if err != nil {
-		return err
+func (e *LoginWithPaperKey) Run(m libkb.MetaContext) (err error) {
+	var me *libkb.User
+	if e.username == "" {
+		me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
+		if err != nil {
+			return err
+		}
+	} else {
+		me, err = libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload().WithName(e.username))
+		if err != nil {
+			return err
+		}
 	}
 
 	if loggedIn, _ := isLoggedIn(m); loggedIn {
