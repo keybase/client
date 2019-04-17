@@ -554,6 +554,10 @@ func (r *RemoteClientMock) DetailsPlusPayments(ctx context.Context, accountID st
 	}, nil
 }
 
+func (r *RemoteClientMock) ChangeTrustline(ctx context.Context, signedTx string) error {
+	return fmt.Errorf("change trustline is not implemented in mock")
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 const (

@@ -1229,6 +1229,26 @@ type AirdropRegisterLocalArg struct {
 	Register  bool `codec:"register" json:"register"`
 }
 
+type AddTrustlineLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Trustline Trustline `codec:"trustline" json:"trustline"`
+	Limit     string    `codec:"limit" json:"limit"`
+}
+
+type DeleteTrustlineLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Trustline Trustline `codec:"trustline" json:"trustline"`
+}
+
+type ChangeTrustlineLimitLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Trustline Trustline `codec:"trustline" json:"trustline"`
+	Limit     string    `codec:"limit" json:"limit"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -1361,6 +1381,9 @@ type LocalInterface interface {
 	AirdropDetailsLocal(context.Context, int) (string, error)
 	AirdropStatusLocal(context.Context, int) (AirdropStatus, error)
 	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
+	AddTrustlineLocal(context.Context, AddTrustlineLocalArg) error
+	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
+	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -2030,6 +2053,51 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"addTrustlineLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]AddTrustlineLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddTrustlineLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddTrustlineLocalArg)(nil), args)
+						return
+					}
+					err = i.AddTrustlineLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"deleteTrustlineLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]DeleteTrustlineLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DeleteTrustlineLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DeleteTrustlineLocalArg)(nil), args)
+						return
+					}
+					err = i.DeleteTrustlineLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"changeTrustlineLimitLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ChangeTrustlineLimitLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChangeTrustlineLimitLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChangeTrustlineLimitLocalArg)(nil), args)
+						return
+					}
+					err = i.ChangeTrustlineLimitLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -2508,6 +2576,21 @@ func (c LocalClient) AirdropStatusLocal(ctx context.Context, sessionID int) (res
 
 func (c LocalClient) AirdropRegisterLocal(ctx context.Context, __arg AirdropRegisterLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.airdropRegisterLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) AddTrustlineLocal(ctx context.Context, __arg AddTrustlineLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.addTrustlineLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) DeleteTrustlineLocal(ctx context.Context, __arg DeleteTrustlineLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.deleteTrustlineLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ChangeTrustlineLimitLocal(ctx context.Context, __arg ChangeTrustlineLimitLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.changeTrustlineLimitLocal", []interface{}{__arg}, nil)
 	return
 }
 

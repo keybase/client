@@ -1893,6 +1893,65 @@
       ],
       "response": null
     },
+    "addTrustlineLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "trustline",
+          "type": "Trustline"
+        },
+        {
+          "name": "limit",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "deleteTrustlineLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "trustline",
+          "type": "Trustline"
+        }
+      ],
+      "response": null
+    },
+    "changeTrustlineLimitLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "trustline",
+          "type": "Trustline"
+        },
+        {
+          "name": "limit",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "balancesLocal": {
       "request": [
         {

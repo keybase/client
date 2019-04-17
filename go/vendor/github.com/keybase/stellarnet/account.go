@@ -161,6 +161,28 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 	return a.internal.Balances, nil
 }
 
+// Trustline describes a stellar trustline.  It contains an asset and a limit.
+type Trustline struct {
+	horizon.Asset
+	Limit string
+}
+
+// Trustlines returns all the trustlines for an account.
+func (a *Account) Trustlines() ([]Trustline, error) {
+	balances, err := a.Balances()
+	if err != nil {
+		return nil, err
+	}
+	tlines := make([]Trustline, len(balances))
+	for i, b := range balances {
+		tlines[i] = Trustline{
+			Asset: b.Asset,
+			Limit: b.Limit,
+		}
+	}
+	return tlines, nil
+}
+
 // SubentryCount returns the number of subentries in the account's ledger.
 // Subentries affect the minimum balance.
 func (a *Account) SubentryCount() (int, error) {
@@ -589,6 +611,50 @@ func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
 	t.AddAccountMergeOp(to)
 	t.AddMemoID(memoID)
 	t.AddBuiltTimeBounds(timeBounds)
+	return t.Sign(from)
+}
+
+// CreateTrustline submits a transaction to the stellar network to establish a trustline
+// from an account to an asset.
+func CreateTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, limit int64, baseFee uint64) (txID string, err error) {
+	sig, err := CreateTrustlineTransaction(from, assetCode, assetIssuer, limit, Client(), nil /* timeBounds */, baseFee)
+	if err != nil {
+		return "", err
+	}
+	_, txID, _, err = Submit(sig.Signed)
+	return txID, err
+}
+
+// CreateTrustlineTransaction create a signed transaction to establish a trustline from
+// the `from` account to assetCode/assetIssuer.
+func CreateTrustlineTransaction(from SeedStr, assetCode string, assetIssuer AddressStr, limit int64, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
+	if err != nil {
+		return SignResult{}, err
+	}
+	t.AddCreateTrustlineOp(assetCode, assetIssuer, limit)
+	return t.Sign(from)
+}
+
+// DeleteTrustline submits a transaction to the stellar network to remove a trustline
+// from an account.
+func DeleteTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, baseFee uint64) (txID string, err error) {
+	sig, err := DeleteTrustlineTransaction(from, assetCode, assetIssuer, Client(), nil /* timeBounds */, baseFee)
+	if err != nil {
+		return "", err
+	}
+	_, txID, _, err = Submit(sig.Signed)
+	return txID, err
+}
+
+// DeleteTrustlineTransaction create a signed transaction to remove a trustline from
+// the `from` account to assetCode/assetIssuer.
+func DeleteTrustlineTransaction(from SeedStr, assetCode string, assetIssuer AddressStr, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
+	if err != nil {
+		return SignResult{}, err
+	}
+	t.AddDeleteTrustlineOp(assetCode, assetIssuer)
 	return t.Sign(from)
 }
 

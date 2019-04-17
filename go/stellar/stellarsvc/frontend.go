@@ -1085,3 +1085,33 @@ func (s *Server) AirdropStatusLocal(ctx context.Context, sessionID int) (status 
 
 	return stellar.AirdropStatus(mctx)
 }
+
+func (s *Server) AddTrustlineLocal(ctx context.Context, arg stellar1.AddTrustlineLocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AddTrustline",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	return stellar.AddTrustlineLocal(mctx, arg)
+}
+
+func (s *Server) DeleteTrustlineLocal(ctx context.Context, arg stellar1.DeleteTrustlineLocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AddTrustline",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	return stellar.DeleteTrustlineLocal(mctx, arg)
+}
+
+func (s *Server) ChangeTrustlineLimitLocal(ctx context.Context, arg stellar1.ChangeTrustlineLimitLocalArg) (err error) {
+	return fmt.Errorf("not implemented")
+}

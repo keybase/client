@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/build"
@@ -120,6 +121,53 @@ func (t *Tx) AddInflationDestinationOp(to AddressStr) {
 	op := xdr.SetOptionsOp{InflationDest: &accountID}
 
 	t.addOp(xdr.OperationTypeSetOptions, op)
+}
+
+// AddCreateTrustlineOp adds a change_trust operation that will establish
+// a trustline.
+func (t *Tx) AddCreateTrustlineOp(assetCode string, assetIssuer AddressStr, limit int64) {
+	if t.skipAddOp() {
+		return
+	}
+
+	if limit <= 0 {
+		t.err = errors.New("limit must be greater than zero to create a trustline")
+		return
+	}
+
+	asset, err := makeXDRAsset(assetCode, assetIssuer)
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	op := xdr.ChangeTrustOp{
+		Line:  asset,
+		Limit: xdr.Int64(limit),
+	}
+
+	t.addOp(xdr.OperationTypeChangeTrust, op)
+}
+
+// AddDeleteTrustlineOp adds a change_trust operation that will remove
+// a trustline.
+func (t *Tx) AddDeleteTrustlineOp(assetCode string, assetIssuer AddressStr) {
+	if t.skipAddOp() {
+		return
+	}
+
+	asset, err := makeXDRAsset(assetCode, assetIssuer)
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	op := xdr.ChangeTrustOp{
+		Line:  asset,
+		Limit: 0,
+	}
+
+	t.addOp(xdr.OperationTypeChangeTrust, op)
 }
 
 // addOp adds an operation to the internal transaction.

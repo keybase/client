@@ -374,3 +374,22 @@ func (a *AccountDetails) SetDefaultDisplayCurrency() {
 		a.DisplayCurrency = "USD"
 	}
 }
+
+func (a AssetCode) String() string {
+	return string(a)
+}
+
+func (a AssetCode) Eq(other AssetCode) bool {
+	return a == other
+}
+
+func (a AssetCode) GetAssetType() string {
+	if len(a) >= 1 && len(a) <= 4 {
+		return "credit_alphanum4"
+	} else if len(a) >= 5 && len(a) <= 12 {
+		return "credit_alphanum12"
+	} else {
+		// nil or invalid AssetCode
+		return "asset_code_invalid"
+	}
+}
