@@ -3,6 +3,7 @@ import * as Types from '../../constants/types/search'
 import * as React from 'react'
 import {Box, Icon, ClickableBox, Divider, Text} from '../../common-adapters/index'
 import {
+  collapseStyles,
   globalColors,
   globalStyles,
   globalMargins,
@@ -35,7 +36,10 @@ const Left = ({leftService, leftIcon, leftIconOpaque, leftUsername, leftFollowin
         />
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-        <Text type="BodySemibold" style={followingStateToStyle(leftFollowingState)}>
+        <Text
+          type="BodySemibold"
+          style={collapseStyles([followingStateToStyle(leftFollowingState), {letterSpacing: 0.25}])}
+        >
           {leftUsername}
         </Text>
         {!!leftFullname && <Text type="BodySmall">{leftFullname}</Text>}
