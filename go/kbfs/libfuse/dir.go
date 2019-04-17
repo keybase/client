@@ -375,6 +375,7 @@ func (f *Folder) fillAttrWithUIDAndWritePerm(
 	ctx context.Context, node libkbfs.Node, ei *data.EntryInfo,
 	a *fuse.Attr) (err error) {
 	a.Valid = 1 * time.Minute
+	node.FillCacheDuration(&a.Valid)
 
 	a.Size = ei.Size
 	a.Blocks = getNumBlocksFromSize(ei.Size)
@@ -584,6 +585,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		if n, ok := d.folder.nodes[newNode.GetID()]; ok {
 			return n, nil
 		}
+
+		newNode.FillCacheDuration(&resp.EntryValid)
 	}
 
 	switch de.Type {

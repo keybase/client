@@ -3320,6 +3320,18 @@ func (mr *MockNodeMockRecorder) EntryType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EntryType", reflect.TypeOf((*MockNode)(nil).EntryType))
 }
 
+// FillCacheDuration mocks base method
+func (m *MockNode) FillCacheDuration(arg0 *time.Duration) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "FillCacheDuration", arg0)
+}
+
+// FillCacheDuration indicates an expected call of FillCacheDuration
+func (mr *MockNodeMockRecorder) FillCacheDuration(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FillCacheDuration", reflect.TypeOf((*MockNode)(nil).FillCacheDuration), arg0)
+}
+
 // GetBasename mocks base method
 func (m *MockNode) GetBasename() string {
 	m.ctrl.T.Helper()

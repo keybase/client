@@ -219,6 +219,9 @@ type Node interface {
 	EntryType() data.EntryType
 	// GetBlockID returns the block ID of the node.
 	GetBlockID() kbfsblock.ID
+	// FillCacheDuration sets `d` to the suggested cache time for this
+	// node, if desired.
+	FillCacheDuration(d *time.Duration)
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
