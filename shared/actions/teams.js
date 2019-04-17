@@ -1427,6 +1427,15 @@ const onTabChange = (_, action) => {
   }
 }
 
+const clearNavBadges = () =>
+  RPCTypes.gregorDismissCategoryRpcPromise({
+    category: 'team.newly_added_to_team',
+  }).then(() =>
+    RPCTypes.gregorDismissCategoryRpcPromise({
+      category: 'team.request_access',
+    })
+  )
+
 const receivedBadgeState = (state, action) =>
   TeamsGen.createBadgeAppForTeams({
     newTeamAccessRequests: action.payload.badgeState.newTeamAccessRequests || [],
@@ -1511,7 +1520,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     deleteChannelConfirmed
   )
   yield* Saga.chainAction<TeamsGen.BadgeAppForTeamsPayload>(TeamsGen.badgeAppForTeams, badgeAppForTeams)
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
   yield* Saga.chainAction<TeamsGen.InviteToTeamByPhonePayload>(
     TeamsGen.inviteToTeamByPhone,
     inviteToTeamByPhone
@@ -1553,6 +1561,12 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<
     EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
   >([EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit], teamDeletedOrExit)
+
+  if (flags.useNewRouter) {
+    yield* Saga.chainAction<TeamsGen.GetTeamsPayload>(TeamsGen.getTeams, clearNavBadges)
+  } else {
+    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
+  }
 }
 
 export default teamsSaga
