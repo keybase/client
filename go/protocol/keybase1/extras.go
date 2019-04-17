@@ -2710,3 +2710,14 @@ func (r BoxAuditAttemptResult) IsOK() bool {
 		return false
 	}
 }
+
+func (a BoxAuditAttempt) String() string {
+	ret := fmt.Sprintf("%s", a.Result)
+	if a.Error != nil {
+		ret += fmt.Sprintf("\t(error: %s)", *a.Error)
+	}
+	if a.Rotated {
+		ret += "\t(team rotated)"
+	}
+	return ret
+}
