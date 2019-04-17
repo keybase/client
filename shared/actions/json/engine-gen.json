@@ -38,6 +38,9 @@
         "chat1ChatUiChatSearchDone": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void}"
         },
+        "chat1ChatUiChatSearchInboxStart": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxStart'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxStart'>, 'outParam'>) => void}"
+        },
         "chat1ChatUiChatSearchInboxHit": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: chat1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'outParam'>) => void}"
         },

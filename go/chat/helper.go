@@ -245,8 +245,8 @@ func (h *Helper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return GetMessage(ctx, h.G(), uid, convID, msgID, resolveSupersedes, reason)
 }
 
-func (h *Helper) TopReacjis(ctx context.Context, uid gregor1.UID) []string {
-	return storage.NewReacjiStore(h.G()).TopReacjis(ctx, uid)
+func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
+	return storage.NewReacjiStore(h.G()).UserReacjis(ctx, uid)
 }
 
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,

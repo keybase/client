@@ -10,7 +10,6 @@ import {isMobile} from '../../../constants/platform'
 import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
-import filteredRowData from './filtered'
 
 type OwnProps = {|
   routeState: I.RecordOf<{
@@ -21,11 +20,11 @@ type OwnProps = {|
 
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
-  const filter = state.chat2.inboxFilter
-  const username = state.config.username
-  const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
-    ? filteredRowData(metaMap, filter, username)
-    : normalRowData(metaMap, state.chat2.smallTeamsExpanded, state.chat2.selectedConversation)
+  const {allowShowFloatingButton, rows, smallTeamsExpanded} = normalRowData(
+    metaMap,
+    state.chat2.smallTeamsExpanded,
+    state.chat2.selectedConversation
+  )
   const neverLoaded = !state.chat2.inboxHasLoaded
   const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
 
@@ -35,7 +34,7 @@ const mapStateToProps = state => {
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
-    filter,
+    isSearching: !!state.chat2.inboxSearch,
     neverLoaded,
     rows,
     smallTeamsExpanded,
@@ -80,21 +79,19 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const unreadIndices = []
-  if (!stateProps.filter) {
-    for (let i = stateProps.rows.length - 1; i >= 0; i--) {
-      const row = stateProps.rows[i]
-      if (!['big', 'bigHeader'].includes(row.type)) {
-        // only check big teams for large inbox perf
-        break
-      }
-      if (
-        row.conversationIDKey &&
-        stateProps._badgeMap.get(row.conversationIDKey) &&
-        (isMobile || row.conversationIDKey !== stateProps._selectedConversationIDKey)
-      ) {
-        // on mobile include all convos, on desktop only not currently selected convo
-        unreadIndices.unshift(i)
-      }
+  for (let i = stateProps.rows.length - 1; i >= 0; i--) {
+    const row = stateProps.rows[i]
+    if (!['big', 'bigHeader'].includes(row.type)) {
+      // only check big teams for large inbox perf
+      break
+    }
+    if (
+      row.conversationIDKey &&
+      stateProps._badgeMap.get(row.conversationIDKey) &&
+      (isMobile || row.conversationIDKey !== stateProps._selectedConversationIDKey)
+    ) {
+      // on mobile include all convos, on desktop only not currently selected convo
+      unreadIndices.unshift(i)
     }
   }
   return {
@@ -103,7 +100,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     _onInitialLoad: dispatchProps._onInitialLoad,
     _refreshInbox: dispatchProps._refreshInbox,
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
-    filter: stateProps.filter,
+    isSearching: stateProps.isSearching,
     neverLoaded: stateProps.neverLoaded,
     onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
     onEnsureSelection: () => {
@@ -131,34 +128,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-type Props = $Diff<
-  {|
-    ..._Props,
-    _hasLoadedTrusted: boolean,
-    _onInitialLoad: (Array<Types.ConversationIDKey>) => void,
-    _refreshInbox: () => void,
-    _canRefreshOnMount: boolean,
-  |},
-  {
-    clearedFilterCount: number,
-    filterFocusCount: number,
-    focusFilter: () => void,
-  }
->
+type Props = {|
+  ..._Props,
+  _hasLoadedTrusted: boolean,
+  _onInitialLoad: (Array<Types.ConversationIDKey>) => void,
+  _refreshInbox: () => void,
+  _canRefreshOnMount: boolean,
+|}
 
-type State = {
-  clearedFilterCount: number,
-  filterFocusCount: number,
-}
-class InboxWrapper extends React.PureComponent<Props, State> {
-  state = {
-    clearedFilterCount: 0,
-    filterFocusCount: 0,
-  }
-  _focusFilter = () => {
-    this.setState(p => ({filterFocusCount: p.filterFocusCount + 1}))
-  }
-
+class InboxWrapper extends React.PureComponent<Props> {
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
 
@@ -179,27 +157,9 @@ class InboxWrapper extends React.PureComponent<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps) {
-    // check if we cleared filter to tell inbox to skip unboxing
-    if (prevProps.filter.length && !this.props.filter.length) {
-      this.setState(s => ({
-        clearedFilterCount: s.clearedFilterCount + 1,
-      }))
-    }
-  }
-
   render() {
     const {_hasLoadedTrusted, _refreshInbox, _onInitialLoad, _canRefreshOnMount, ...rest} = this.props
-    return (
-      <Inbox
-        {...rest}
-        clearedFilterCount={this.state.clearedFilterCount}
-        filterFocusCount={this.state.filterFocusCount}
-        focusFilter={this._focusFilter}
-        onSelectUp={this._onSelectUp}
-        onSelectDown={this._onSelectDown}
-      />
-    )
+    return <Inbox {...rest} onSelectUp={this._onSelectUp} onSelectDown={this._onSelectDown} />
   }
 }
 

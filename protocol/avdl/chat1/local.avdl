@@ -948,6 +948,7 @@ protocol local {
 
   SearchRegexpRes searchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+  void cancelActiveInboxSearch();
 
   record SearchInboxRes {
     union { null, ChatSearchInboxResults } res;
@@ -1006,4 +1007,6 @@ protocol local {
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 
   void bulkAddToConv(ConversationID convID, array<string> usernames);
+
+  keybase1.UserReacjis putReacjiSkinTone(keybase1.ReacjiSkinTone skinTone);
 }

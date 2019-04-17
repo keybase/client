@@ -77,17 +77,8 @@ const sendMapDispatchToProps = dispatch => ({
         ? RouteTreeGen.createNavigateTo({path: WalletConstants.rootWalletPath})
         : RouteTreeGen.createSwitchTo({path: WalletConstants.rootWalletPath})
     ),
-  onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
-    dispatch(WalletGen.createSelectAccount({accountID, reason: 'from-chat'}))
-    dispatch(
-      RouteTreeGen.createNavigateTo({
-        path: [
-          ...WalletConstants.walletPath,
-          {props: {accountID, paymentID}, selected: 'transactionDetails'},
-        ],
-      })
-    )
-  },
+  onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) =>
+    dispatch(WalletGen.createShowTransaction({accountID, paymentID})),
 })
 
 const getTopLineUser = (paymentInfo, sender, you) => {

@@ -790,8 +790,12 @@ func (c *chatServiceHandler) SearchInboxV1(ctx context.Context, opts searchInbox
 		opts.MaxHits = 10
 	}
 
+	reindexMode := chat1.ReIndexingMode_AFTERSEARCH
+	if opts.ForceReindex {
+		reindexMode = chat1.ReIndexingMode_FORCE
+	}
 	searchOpts := chat1.SearchOpts{
-		ForceReindex:  opts.ForceReindex,
+		ReindexMode:   reindexMode,
 		SentBy:        opts.SentBy,
 		MaxHits:       opts.MaxHits,
 		BeforeContext: opts.BeforeContext,

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -822,6 +823,75 @@ func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeysV2AllIncarnations
 		return false
 	}
 	return true
+}
+
+func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res bool, err error) {
+	mctx = mctx.WithLogTag("HASRPW")
+	defer mctx.TraceTimed(fmt.Sprintf("User#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
+
+	cacheKey := DbKey{
+		Typ: DBHasRandomPW,
+		Key: mctx.ActiveDevice().UID().String(),
+	}
+
+	var cachedValue, hasCache bool
+	if !arg.ForceRepoll {
+		if hasCache, err = mctx.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
+			if hasCache && !cachedValue {
+				mctx.Debug("Returning HasRandomPW=false from KVStore cache")
+				return false, nil
+			}
+			// If it was never cached or user *IS* RandomPW right now, pass through
+			// and call the API.
+		} else {
+			mctx.Debug("Unable to get cached value for HasRandomPW: %v", err)
+		}
+	}
+
+	var initialTimeout time.Duration
+	if !arg.ForceRepoll {
+		// If we are do not need accurate response from the API server, make
+		// the request with a timeout for quicker overall RPC response time
+		// if network is bad/unavailable.
+		initialTimeout = 3 * time.Second
+	}
+
+	var ret struct {
+		AppStatusEmbed
+		RandomPW bool `json:"random_pw"`
+	}
+	err = mctx.G().API.GetDecode(mctx, APIArg{
+		Endpoint:       "user/has_random_pw",
+		SessionType:    APISessionTypeREQUIRED,
+		InitialTimeout: initialTimeout,
+	}, &ret)
+	if err != nil {
+		if !arg.ForceRepoll {
+			if hasCache {
+				// We are allowed to return cache if we have any.
+				mctx.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
+				return cachedValue, nil
+			}
+
+			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
+		}
+		return res, err
+	}
+
+	if !hasCache || cachedValue != ret.RandomPW {
+		// Cache current state. If we put `randomPW=false` in the cache, we will never
+		// ever have to call to the network from this device, because it's not possible
+		// to become `randomPW=true` again. If we cache `randomPW=true` we are going to
+		// keep asking the network, but we will be resilient to bad network conditions
+		// because we will have this cached state to fall back on.
+		if err := mctx.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
+			mctx.Debug("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
+		} else {
+			mctx.Debug("Unable to add HasRandomPW state to KVStore")
+		}
+	}
+
+	return ret.RandomPW, err
 }
 
 // PartialCopy copies some fields of the User object, but not all.

@@ -96,7 +96,7 @@ protocol NotifyChat {
 
   record ReactionUpdateNotif {
     ConversationID convID;
-    array<string> topReacjis;
+    keybase1.UserReacjis userReacjis;
     array<ReactionUpdate> reactionUpdates;
   }
 

@@ -690,6 +690,8 @@ func testPrefetcherForSyncedTLF(
 		}
 		status, _ := q.Prefetcher().Status(ctx, rootPtr)
 		statusCh <- status
+		overallStatus := q.Prefetcher().OverallSyncStatus()
+		statusCh <- overallStatus
 		continueChFileC <- nil
 		continueChDirB <- nil
 		// After this, the prefetch worker can either pick up the third child of
@@ -721,6 +723,16 @@ func testPrefetcherForSyncedTLF(
 		require.Equal(t, uint64(3*testFakeBlockSize), status.SubtreeBytesTotal)
 		require.Equal(t, uint64(0), status.SubtreeBytesFetched)
 		require.Equal(t, config.Clock().Now(), status.Start)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	select {
+	case overallStatus := <-statusCh:
+		// Should match the above.
+		require.Equal(
+			t, uint64(3*testFakeBlockSize), overallStatus.SubtreeBytesTotal)
+		require.Equal(t, uint64(0), overallStatus.SubtreeBytesFetched)
+		require.Equal(t, config.Clock().Now(), overallStatus.Start)
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
 	}

@@ -410,9 +410,10 @@ type ChatUI interface {
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxStart(context.Context) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
-	ChatSearchConvHits(context.Context, []chat1.UIChatSearchConvHit) error
+	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
@@ -945,7 +946,7 @@ type ChatHelper interface {
 	GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	TopReacjis(ctx context.Context, uid gregor1.UID) []string
+	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

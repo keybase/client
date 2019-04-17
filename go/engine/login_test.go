@@ -3737,11 +3737,66 @@ func TestProvisioningWithSmartPunctuationDeviceName(t *testing.T) {
 	}
 }
 
+func TestProvisionAutomatedPaperKey(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(t, "paper")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	loginUI := &paperLoginUI{Username: fu.Username}
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	assertNumDevicesAndKeys(tc, fu, 2, 4)
+
+	Logout(tc)
+
+	if len(loginUI.PaperPhrase) == 0 {
+		t.Fatal("login ui has no paper key phrase")
+	}
+
+	// redo SetupEngineTest to get a new home directory
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{}
+	uis2 := libkb.UIs{
+		ProvisionUI: provUI,
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    fu.NewSecretUI(),
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
+	eng.PaperKey = loginUI.PaperPhrase
+	eng.DeviceName = "a different device name"
+	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
+	require.NoError(t, RunEngine2(m2, eng), "run login engine")
+
+	assertNumDevicesAndKeys(tc, fu, 3, 6)
+	require.NoError(t, AssertProvisioned(tc2), "provisioned")
+
+	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0, "expected no calls to GetEmailOrUsername")
+	require.Equal(t, provUI.calledChooseDevice, 0, "expected no calls to ChooseDevice")
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
 	gpgMethod              keybase1.GPGMethod
 	chooseDevice           string
+	calledChooseDevice     int
 	verbose                bool
 	calledChooseDeviceType int
 	abortSwitchToGPGSign   bool
@@ -3821,6 +3876,8 @@ func (u *testProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.Sw
 
 func (u *testProvisionUI) ChooseDevice(_ context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
 	u.printf("ChooseDevice")
+	u.calledChooseDevice++
+
 	if len(arg.Devices) == 0 {
 		return "", nil
 	}

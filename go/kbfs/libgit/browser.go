@@ -26,7 +26,7 @@ func translateGitError(err *error) {
 	if *err == nil {
 		return
 	}
-	switch *err {
+	switch errors.Cause(*err) {
 	case object.ErrEntryNotFound:
 		*err = os.ErrNotExist
 	default:
@@ -191,6 +191,11 @@ func (b *Browser) Open(filename string) (f billy.File, err error) {
 			return nil, err
 		}
 
+		// Check if this is a submodule.
+		if sfi, ok := fi.(*submoduleFileInfo); ok {
+			return sfi.sf, nil
+		}
+
 		// If it's not a symlink, we can return right away.
 		if fi.Mode()&os.ModeSymlink == 0 {
 			f, err := b.tree.File(filename)
@@ -245,20 +250,24 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 	defer translateGitError(&err)
 	entry, err := b.tree.FindEntry(filename)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	size, err := b.tree.Size(filename)
-	if err != nil {
-		return nil, err
+	switch errors.Cause(err) {
+	case nil:
+		// Git doesn't keep track of the mtime of individual files
+		// anywhere, so just use the timestamp from the commit.
+		fi = &browserFileInfo{entry, size, b.mtime}
+	case plumbing.ErrObjectNotFound:
+		// This is likely a git submodule.
+		sf := newSubmoduleFile(entry.Hash, filename, b.mtime)
+		fi = sf.GetInfo()
+	default:
+		return nil, errors.WithStack(err)
 	}
 
-	// Git doesn't keep track of the mtime of individual files
-	// anywhere, so just use the timestamp from the commit.
-	fi = &browserFileInfo{entry, size, b.mtime}
-
 	b.sharedCache.setFileInfo(b.commitHash, cachePath, fi)
-
 	return fi, nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -447,6 +448,7 @@ type HybridInboxSource struct {
 	utils.DebugLabeler
 	*baseInboxSource
 
+	badger      *badges.Badger
 	started     bool
 	stopCh      chan struct{}
 	flushDelay  time.Duration
@@ -455,13 +457,14 @@ type HybridInboxSource struct {
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
 
-func NewHybridInboxSource(g *globals.Context,
+func NewHybridInboxSource(g *globals.Context, badger *badges.Badger,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
 	labeler := utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
 		flushDelay:   time.Minute,
+		badger:       badger,
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
 	return s
@@ -698,6 +701,8 @@ const (
 	nameContainsQuerySimilar
 	nameContainsQueryPrefix
 	nameContainsQueryExact
+	nameContainsQueryUnread
+	nameContainsQueryBadged
 )
 
 type convSearchHit struct {
@@ -718,6 +723,10 @@ func (h convSearchHit) hitScore() (score int) {
 			score += 10
 		case nameContainsQuerySimilar:
 			score += 3
+		case nameContainsQueryUnread:
+			score += 100
+		case nameContainsQueryBadged:
+			score += 200
 		}
 	}
 	if len(h.queryToks) == len(h.convToks) && len(h.hits) == len(h.convToks) && exacts == len(h.hits) {
@@ -734,18 +743,37 @@ func (h convSearchHit) less(o convSearchHit) bool {
 	} else if hScore > oScore {
 		return false
 	}
-	return h.conv.GetMtime().Before(o.conv.GetMtime())
+	htime := utils.GetConvMtime(h.conv.Conv)
+	otime := utils.GetConvMtime(o.conv.Conv)
+	return htime.Before(otime)
 }
 
 func (h convSearchHit) valid() bool {
 	return len(h.hits) > 0
 }
 
-func (s *HybridInboxSource) isConvSearchHit(conv types.RemoteConversation, queryToks []string,
-	username string) (res convSearchHit) {
+func (s *HybridInboxSource) getDeviceType() keybase1.DeviceType {
+	if s.G().IsMobileAppType() {
+		return keybase1.DeviceType_MOBILE
+	}
+	return keybase1.DeviceType_DESKTOP
+}
+
+func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.RemoteConversation,
+	queryToks []string, username string) (res convSearchHit) {
 	var convToks []string
 	res.conv = conv
 	res.queryToks = queryToks
+	if len(queryToks) == 0 {
+		if conv.Conv.IsUnread() {
+			cqe := nameContainsQueryUnread
+			if s.badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
+				cqe = nameContainsQueryBadged
+			}
+			res.hits = []nameContainsQueryRes{cqe}
+		}
+		return res
+	}
 	searchable := utils.SearchableRemoteConversationName(conv, username)
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
@@ -792,13 +820,13 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	}
 	var hits []convSearchHit
 	for _, conv := range convs {
-		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT {
+		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT ||
+			!(conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
+				conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) ||
+			utils.IsConvEmpty(conv.Conv) || conv.Conv.IsPublic() {
 			continue
 		}
-		if conv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_NEVER_JOINED) {
-			continue
-		}
-		hit := s.isConvSearchHit(conv, queryToks, username)
+		hit := s.isConvSearchHit(ctx, conv, queryToks, username)
 		if !hit.valid() {
 			continue
 		}
@@ -1161,10 +1189,10 @@ func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel stri
 	return conv, nil
 }
 
-func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterface) types.InboxSource {
+func NewInboxSource(g *globals.Context, typ string, badger *badges.Badger, ri func() chat1.RemoteInterface) types.InboxSource {
 	switch typ {
 	case "hybrid":
-		return NewHybridInboxSource(g, ri)
+		return NewHybridInboxSource(g, badger, ri)
 	default:
 		return NewRemoteInboxSource(g, ri)
 	}
