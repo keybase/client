@@ -100,6 +100,9 @@ export const commonProvider = {
     refresh: Sb.action('refresh'),
   }),
   SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
+  SyncingFolders: () => ({
+    progress: 0.67,
+  }),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
     reset: ['foo', 'bar', 'cue'],
