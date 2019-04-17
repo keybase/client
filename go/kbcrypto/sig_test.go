@@ -41,7 +41,7 @@ func TestVerifyWithPayload(t *testing.T) {
 
 	requireError := func(err error, s string) {
 		require.Error(t, err)
-		require.Equal(t, errors.New(s), err.(VerificationError).Cause())
+		require.Equal(t, errors.New(s), err.(VerificationError).Cause)
 	}
 
 	_, _, err = NaclVerifyWithPayload(sig, msg)
