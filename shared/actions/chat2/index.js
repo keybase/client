@@ -2093,6 +2093,10 @@ const resetLetThemIn = (_, action) =>
   })
 
 const markThreadAsRead = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.info('marking read bail on not logged in')
+    return
+  }
   const conversationIDKey = Constants.getSelectedConversation(state)
 
   if (!conversationIDKey) {
