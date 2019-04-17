@@ -110,37 +110,42 @@ class SharedAskForUserData {
       this._userLastReq = {}
     }
   }
-  _makeCalls = throttle(() => {
-    if (!this._dispatch) {
-      return
-    }
-    const now = Date.now()
-    const oldEnough = now - this._cacheTime
-    const usernames = Object.keys(this._userQueue).filter(k => {
-      const lr = this._userLastReq[k]
-      if (!lr || lr < oldEnough) {
-        this._userLastReq[k] = now
-        return true
+  _makeCalls = throttle(
+    () => {
+      if (!this._dispatch) {
+        return
       }
-      return false
-    })
-    const teamnames = Object.keys(this._teamQueue).filter(k => {
-      const lr = this._teamLastReq[k]
-      if (!lr || lr < oldEnough) {
-        this._teamLastReq[k] = now
-        return true
+      const now = Date.now()
+      const oldEnough = now - this._cacheTime
+      const usernames = Object.keys(this._userQueue).filter(k => {
+        const lr = this._userLastReq[k]
+        if (!lr || lr < oldEnough) {
+          this._userLastReq[k] = now
+          return true
+        }
+        return false
+      })
+      const teamnames = Object.keys(this._teamQueue).filter(k => {
+        const lr = this._teamLastReq[k]
+        if (!lr || lr < oldEnough) {
+          this._teamLastReq[k] = now
+          return true
+        }
+        return false
+      })
+      this._teamQueue = {}
+      this._userQueue = {}
+      if (usernames.length || teamnames.length) {
+        requestAnimationFrame(() => {
+          console.log('aaa making dispatch for avatars', usernames)
+          usernames.length && this._dispatch(ConfigGen.createLoadAvatars({usernames}))
+          teamnames.length && this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
+        })
       }
-      return false
-    })
-    this._teamQueue = {}
-    this._userQueue = {}
-    if (usernames.length) {
-      this._dispatch(ConfigGen.createLoadAvatars({usernames}))
-    }
-    if (teamnames.length) {
-      this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
-    }
-  }, 200)
+    },
+    100,
+    {leading: false}
+  )
   getTeam = name => {
     this._teamQueue[name] = true
     this._makeCalls()

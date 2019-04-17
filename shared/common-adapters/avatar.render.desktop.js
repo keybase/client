@@ -7,11 +7,11 @@ import type {Props} from './avatar.render'
 class AvatarRender extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.name !== prevProps.name) {
-      this.props.load && requestAnimationFrame(this.props.load)
+      this.props.load && this.props.load()
     }
   }
   componentDidMount() {
-    this.props.load && requestAnimationFrame(this.props.load)
+    this.props.load && this.props.load()
   }
   render() {
     const avatarSizeClasName = `avatar-${this.props.isTeam ? 'team' : 'user'}-size-${this.props.size}`

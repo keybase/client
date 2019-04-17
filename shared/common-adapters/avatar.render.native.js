@@ -75,8 +75,8 @@ class AvatarRender extends React.PureComponent<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.name !== prevProps.name) {
-      this.props.load && requestAnimationFrame(this.props.load)
+    if (this.props.load && this.props.name !== prevProps.name) {
+      this.props.load()
     }
     if (this.props.url !== prevProps.url) {
       this.setState({loaded: false})
@@ -85,7 +85,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
 
   componentDidMount() {
     this._mounted = true
-    this.props.load && requestAnimationFrame(this.props.load)
+    this.props.load && this.props.load()
   }
 
   componentWillUnmount() {
