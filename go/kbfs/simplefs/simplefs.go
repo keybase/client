@@ -177,17 +177,24 @@ func rawPathFromKbfsPath(path keybase1.Path) (string, error) {
 	}
 }
 
-// remoteTlfAndPath decodes a remote path for us.
-func remoteTlfAndPath(path keybase1.Path) (
-	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
+func splitPathFromKbfsPath(path keybase1.Path) ([]string, error) {
 	raw, err := rawPathFromKbfsPath(path)
 	if err != nil {
-		return tlf.Private, "", "", "", err
+		return nil, err
 	}
 	if stdpath.IsAbs(raw) {
 		raw = raw[1:]
 	}
-	ps := strings.Split(raw, `/`)
+	return strings.Split(raw, `/`), nil
+}
+
+// remoteTlfAndPath decodes a remote path for us.
+func remoteTlfAndPath(path keybase1.Path) (
+	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
+	ps, err := splitPathFromKbfsPath(path)
+	if err != nil {
+		return tlf.Private, "", "", "", err
+	}
 	switch {
 	case len(ps) < 2:
 		return tlf.Private, "", "", "", errInvalidRemotePath
@@ -266,6 +273,19 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 	}
 	switch pt {
 	case keybase1.PathType_KBFS, keybase1.PathType_KBFS_ARCHIVED:
+		// Check for the root FS first.
+		ps, err := splitPathFromKbfsPath(path)
+		if err != nil {
+			return nil, "", err
+		}
+		if len(ps) < 2 {
+			fs = libfs.NewRootFS(k.config)
+			if len(ps) == 1 {
+				finalElem = ps[0]
+			}
+			return fs, finalElem, nil
+		}
+
 		t, tlfName, restOfPath, finalElem, err := remoteTlfAndPath(path)
 		if err != nil {
 			return nil, "", err
