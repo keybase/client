@@ -720,7 +720,11 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	if len(id) == 0 {
 		// they chose not to use a device
 		m.Debug("user has devices, but chose not to use any of them")
-		if pgp && !hasPUK {
+		if pgp {
+			if hasPUK {
+				return libkb.ProvisionViaDeviceRequiredError{}
+			}
+
 			// they have pgp keys, so try that:
 			if err := e.tryPGP(m); err != nil {
 				// TODO CORE-10630: consider this flow with autoreset
