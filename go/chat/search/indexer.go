@@ -359,6 +359,11 @@ func (idx *Indexer) convHits(ctx context.Context, conv types.RemoteConversation,
 	hits.Query = query
 	if hitUICh != nil {
 		// Stream search hits back to the UI channel
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
 		hitUICh <- *hits
 	}
 	return hits, nil
@@ -496,6 +501,11 @@ func (idx *Indexer) reindexConvWithUIUpdate(ctx context.Context, conv chat1.Conv
 		totalPercentIndexed -= percentIndexed
 		totalPercentIndexed += newPercentIndexed
 		if indexUICh != nil { // stream back index percentage as we update it
+			select {
+			case <-ctx.Done():
+				return nil, totalPercentIndexed, ctx.Err()
+			default:
+			}
 			indexUICh <- chat1.ChatSearchIndexStatus{
 				PercentIndexed: totalPercentIndexed / totalConvs,
 			}
@@ -651,6 +661,11 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			}
 		}
 		if indexUICh != nil {
+			select {
+			case <-ectx.Done():
+				return ectx.Err()
+			default:
+			}
 			indexUICh <- chat1.ChatSearchIndexStatus{
 				PercentIndexed: totalPercentIndexed / len(convList),
 			}
