@@ -729,7 +729,6 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	}
 
 	pipelineEnabled := m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
-	m.Warning("autoreset enabled %v", pipelineEnabled)
 
 	// check to see if they have a PUK, in which case they must select a device
 	hasPUK, err := e.hasPerUserKey(m)
@@ -767,6 +766,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 			return libkb.ProvisionUnavailableError{}
 		}
 
+		// TODO CORE-10631 make this a UI
 		m.G().Log.Info(`
 The only way to provision this device is with access to one of your existing
 devices. You can try again later, or if you have lost access to all your
