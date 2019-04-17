@@ -2,17 +2,18 @@
 import RenderBlockConversationWarning from './'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {connect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type ConversationIDKey} from '../../../constants/types/chat2'
 
-type RenderBlockConversationWarningRouteProps = RouteProps<{conversationIDKey: ConversationIDKey}, {}>
-type OwnProps = RenderBlockConversationWarningRouteProps
+type OwnProps = RouteProps<{conversationIDKey: ConversationIDKey}, {}>
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => {
-  const conversationIDKey = routeProps.get('conversationIDKey')
-  const participants = Constants.getMeta(state, conversationIDKey).participants.join(',')
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')
+  const participants = Constants.getMeta(state, conversationIDKey)
+    .participants.filter(p => p !== state.config.username)
+    .join(',')
   return {
     conversationIDKey,
     participants,
@@ -38,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   participants: stateProps.participants,
 })
 
-export default connect<OwnProps, _, _, _, _>(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

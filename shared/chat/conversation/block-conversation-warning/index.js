@@ -35,7 +35,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
           You won't see this conversation anymore.
         </Text>
         <Text type="Body" style={{marginTop: globalMargins.small}}>
-          To unblock it, run:
+          To unblock it, enter the command:
         </Text>
         <Box
           style={{
@@ -46,10 +46,10 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
           }}
         >
           <Text type="Terminal" selectable={true} style={{alignSelf: 'center'}}>
-            keybase chat hide -u {participants}
+            /unhide {participants}
           </Text>
         </Box>
-        <Text type="Body">in the terminal on a desktop computer.</Text>
+        <Text type="Body">into any chat compose box.</Text>
       </Box>
       <ButtonBar direction="column">
         <Button type="Secondary" onClick={onBack} label="No, don't block them" />

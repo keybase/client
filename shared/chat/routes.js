@@ -186,14 +186,14 @@ export const newModalRoutes = {
     upgraded: true,
   },
   chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default, upgraded: true},
-  // TODO upgrade the ones below
   chatManageChannels: {getScreen: () => require('./manage-channels/container').default, upgraded: true},
-  chatNewChat: {getScreen: () => require('../team-building/container').default},
-  chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},
+  chatNewChat: {getScreen: () => require('../team-building/container').default, upgraded: true},
+  chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default, upgraded: true},
   chatShowBlockConversationDialog: {
     getScreen: () => require('./conversation/block-conversation-warning/container').default,
+    upgraded: true,
   },
-  chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
+  chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default, upgraded: true},
 }
 
 export default routeTree

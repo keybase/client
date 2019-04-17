@@ -2,14 +2,15 @@
 import * as Types from '../constants/types/chat2'
 import * as TeamsGen from '../actions/teams-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as WaitingConstants from '../constants/waiting'
 import * as Constants from '../constants/teams'
+import * as Container from '../util/container'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
-import {connect, lifecycle, compose, withStateHandlers, type RouteProps} from '../util/container'
 import flags from '../util/feature-flags'
 
-type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
 const mapStateToProps = state => ({
   baseTeam: '',
@@ -19,18 +20,20 @@ const mapStateToProps = state => ({
   pending: WaitingConstants.anyWaiting(state, Constants.teamCreationWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   _onCreateNewTeam: (teamname: string) => {
     dispatch(
       TeamsGen.createCreateNewTeamFromConversation({
-        conversationIDKey: routeProps.get('conversationIDKey'),
+        conversationIDKey: Container.getRouteProps(ownProps, 'conversationIDKey'),
         teamname,
       })
     )
   },
   onCancel: () =>
     dispatch(
-      flags.useNewRouter ? navigateUp() : Chat2Gen.createNavigateToInbox({findNewConversation: false})
+      flags.useNewRouter
+        ? RouteTreeGen.createNavigateUp()
+        : Chat2Gen.createNavigateToInbox({findNewConversation: false})
     ),
   onJoinSubteamChange: () => {},
   onSetTeamCreationError: (error: string) => {
@@ -38,13 +41,13 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
+export default Container.compose(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
   ),
-  withStateHandlers(
+  Container.withStateHandlers(
     // $FlowIssue don't use recompose
     {name: ''},
     {
@@ -54,7 +57,7 @@ export default compose(
       },
     }
   ),
-  lifecycle({
+  Container.lifecycle({
     componentDidMount() {
       this.props.onSetTeamCreationError('')
     },
