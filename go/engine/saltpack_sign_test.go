@@ -400,7 +400,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	if !ok {
 		t.Fatal("expected VerificationError during verify")
 	}
-	badSenderError, ok := verificationError.Cause().(*FakeBadSenderError)
+	badSenderError, ok := verificationError.Cause.(*FakeBadSenderError)
 	if !ok {
 		t.Fatal("expected FakeBadSenderError during verify")
 	}
