@@ -1,23 +1,20 @@
 // @flow
 import Icon from './icon'
 import * as React from 'react'
-import {globalColors, styleSheetCreate, collapseStyles} from '../styles'
+import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {NativeImage} from './native-image.native'
-import type {AvatarSize, Props} from './avatar.render'
+import type {Props} from './avatar.render'
 
-type ImageProps = {
-  onLoadEnd: () => void,
-  opacity: ?number,
-  size: AvatarSize,
-  url: string,
-  borderRadius: any,
+const Kb = {
+  Box,
+  ClickableBox,
+  Icon,
+  NativeImage,
 }
 
-type State = {
-  loaded: boolean,
-}
+type State = {loaded: boolean}
 
 const sizeToTeamBorderRadius = {
   '12': 2,
@@ -32,70 +29,55 @@ const sizeToTeamBorderRadius = {
 // Android doesn't handle background colors border radius setting
 const backgroundOffset = 1
 
-class Background extends React.PureComponent<{loaded: boolean, loadingColor: any, borderRadius: number}> {
-  render() {
-    return (
-      <Box
-        loadingColor={this.props.loadingColor}
-        borderRadius={this.props.borderRadius}
-        style={[
-          styles.background,
-          {
-            backgroundColor: this.props.loaded
-              ? globalColors.white
-              : this.props.loadingColor || globalColors.lightGrey,
-            borderRadius: this.props.borderRadius,
-          },
-        ]}
-      />
-    )
-  }
-}
+const background = props => (
+  <Kb.Box
+    loadingColor={props.loadingColor}
+    borderRadius={props.borderRadius}
+    style={[
+      styles.background,
+      {
+        backgroundColor: props.loaded
+          ? Styles.globalColors.white
+          : props.loadingColor || Styles.globalColors.lightGrey,
+        borderRadius: props.borderRadius,
+      },
+    ]}
+  />
+)
 
-class UserImage extends React.PureComponent<ImageProps> {
-  render() {
-    const {borderRadius, opacity = 1} = this.props
-    return (
-      <NativeImage
-        source={this.props.url}
-        onLoadEnd={this.props.onLoadEnd}
-        style={[styles[`image:${this.props.size}`], {borderRadius, opacity}]}
-      />
-    )
-  }
-}
+const userImage = ({onLoadEnd, url, size, borderRadius, opacity = 1}) => (
+  <Kb.NativeImage
+    source={url}
+    onLoadEnd={onLoadEnd}
+    style={[styles[`image:${size}`], {borderRadius, opacity}]}
+  />
+)
 
 const borderOffset = -1
 const borderSize = 1
 // Layer on top to extend outside of the image
-class Border extends React.PureComponent<{borderColor: any, borderRadius: number}> {
-  render() {
-    return (
-      <Box
-        style={[
-          styles.borderBase,
-          {
-            borderColor: this.props.borderColor,
-            borderRadius: this.props.borderRadius,
-          },
-        ]}
-      />
-    )
-  }
-}
+const border = ({borderColor, borderRadius}) => (
+  <Kb.Box style={[styles.borderBase, {borderColor, borderRadius}]} />
+)
 
 class AvatarRender extends React.PureComponent<Props, State> {
-  state: State = {loaded: false}
+  constructor(props: Props) {
+    super(props)
+    this.state = {loaded: !!this.props.load}
+  }
 
-  _mounted: boolean = false
+  _mounted = false
 
   _onLoadOrError = () => {
-    if (this._mounted) {
+    if (this._mounted && !this.state.loaded) {
       this.setState({loaded: true})
     }
   }
 
   componentDidUpdate(prevProps: Props) {
+    if (this.props.name !== prevProps.name) {
+      this.props.load && requestAnimationFrame(this.props.load)
+    }
     if (this.props.url !== prevProps.url) {
       this.setState({loaded: false})
     }
@@ -103,6 +85,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
 
   componentDidMount() {
     this._mounted = true
+    this.props.load && requestAnimationFrame(this.props.load)
   }
 
   componentWillUnmount() {
@@ -112,44 +95,42 @@ class AvatarRender extends React.PureComponent<Props, State> {
   render() {
     const {size} = this.props
     const borderRadius = this.props.isTeam ? sizeToTeamBorderRadius[String(size)] : size / 2
-    const containerStyle = collapseStyles([styles[`box:${size}`], this.props.style])
+    const containerStyle = Styles.collapseStyles([styles[`box:${size}`], this.props.style])
 
     return (
-      <ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
-        <Box style={containerStyle}>
-          {!this.props.skipBackground && (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) && (
-            <Background
-              loaded={this.state.loaded}
-              loadingColor={this.props.loadingColor}
-              borderRadius={borderRadius}
-            />
-          )}
-          {!!this.props.url && (
-            <UserImage
-              opacity={this.props.opacity}
-              onLoadEnd={this._onLoadOrError}
-              size={size}
-              url={this.props.url}
-              borderRadius={borderRadius}
-            />
-          )}
-          {(!!this.props.borderColor || this.props.isTeam) && (
-            <Border
-              borderColor={this.props.borderColor || globalColors.black_10}
-              borderRadius={borderRadius}
-            />
-          )}
+      <Kb.ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
+        <Kb.Box style={containerStyle}>
+          {!this.props.skipBackground &&
+            (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) &&
+            background({
+              borderRadius: borderRadius,
+              loaded: this.state.loaded,
+              loadingColor: this.props.loadingColor,
+            })}
+          {!!this.props.url &&
+            userImage({
+              borderRadius: borderRadius,
+              onLoadEnd: this._onLoadOrError,
+              opacity: this.props.opacity,
+              size: size,
+              url: this.props.url,
+            })}
+          {(!!this.props.borderColor || this.props.isTeam) &&
+            border({
+              borderColor: this.props.borderColor || Styles.globalColors.black_10,
+              borderRadius: borderRadius,
+            })}
           {this.props.followIconType && (
-            <Icon
+            <Kb.Icon
               type={this.props.followIconType}
-              style={collapseStyles([
+              style={Styles.collapseStyles([
                 styles[`icon:${this.props.followIconSize}`],
                 this.props.followIconStyle,
               ])}
             />
           )}
           {this.props.editable && (
-            <Icon
+            <Kb.Icon
               type="iconfont-edit"
               onClick={this.props.onEditAvatarClick}
               style={{
@@ -160,8 +141,8 @@ class AvatarRender extends React.PureComponent<Props, State> {
             />
           )}
           {this.props.children}
-        </Box>
-      </ClickableBox>
+        </Kb.Box>
+      </Kb.ClickableBox>
     )
   }
 }
@@ -180,7 +161,7 @@ const boxStyles = sizes.reduce((map, size) => {
 
 const imageStyles = sizes.reduce((map, size) => {
   map[`image:${size}`] = {
-    backgroundColor: globalColors.fastBlank,
+    backgroundColor: Styles.globalColors.fastBlank,
     bottom: 0,
     height: size,
     left: 0,
@@ -192,7 +173,7 @@ const imageStyles = sizes.reduce((map, size) => {
   return map
 }, {})
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   ...boxStyles,
   ...iconStyles,
   ...imageStyles,

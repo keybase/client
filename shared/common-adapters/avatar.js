@@ -1,7 +1,7 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
-import Render from './avatar.render'
+import Avatar from './avatar.render'
 import {throttle} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
 import {namedConnect} from '../util/container'
@@ -43,8 +43,6 @@ type Props = {|
   followIconSize: number,
   followIconType: ?IconType,
   followIconStyle: ?$PropertyType<IconProps, 'style'>,
-  following: boolean,
-  followsYou: boolean,
   isTeam: boolean,
   load: () => void,
   loadingColor?: string,
@@ -159,9 +157,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
   _sharedAskForUserData._checkLoggedIn(state.config.username)
   return {
+    _following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
+    _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
     _urlMap: name ? state.config.avatars.get(name) : null,
-    following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
-    followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
   }
 }
 
@@ -186,27 +184,28 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onClick = () => dispatchProps._goToProfile(u, desktopDest)
   }
 
-  const style = Styles.collapseStyles([
-    ownProps.style,
-    onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
-  ])
+  const style = Styles.isMobile
+    ? ownProps.style
+    : Styles.collapseStyles([
+        ownProps.style,
+        onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
+      ])
 
   let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
+  let load
   if (!url) {
     url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
+    load = isTeam
+      ? () => {
+          ownProps.teamname && _sharedAskForUserData.getTeam(ownProps.teamname)
+        }
+      : () => {
+          ownProps.username && _sharedAskForUserData.getUser(ownProps.username)
+        }
   }
 
-  const load = isTeam
-    ? () => {
-        ownProps.teamname && _sharedAskForUserData.getTeam(ownProps.teamname)
-      }
-    : () => {
-        ownProps.username && _sharedAskForUserData.getUser(ownProps.username)
-      }
-
   const name = isTeam ? ownProps.teamname : ownProps.username
-
-  const iconInfo = followIconHelper(ownProps.size, stateProps.followsYou, stateProps.following)
+  const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
 
   return {
     borderColor: ownProps.borderColor,
@@ -215,8 +214,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     followIconSize: iconInfo.iconSize,
     followIconStyle: iconInfo.iconStyle,
     followIconType: iconInfo.iconType,
-    following: stateProps.following,
-    followsYou: stateProps.followsYou,
     isTeam,
     load,
     loadingColor: ownProps.loadingColor,
@@ -231,44 +228,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-class AvatarConnector extends React.PureComponent<Props> {
-  _mounted: boolean = false
-
-  componentDidMount() {
-    this.props.load()
-  }
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.name !== prevProps.name) {
-      this.props.load()
-    }
-  }
-
-  render() {
-    return (
-      <Render
-        skipBackground={this.props.skipBackground}
-        borderColor={this.props.borderColor}
-        children={this.props.children}
-        editable={this.props.editable}
-        followIconSize={this.props.followIconSize}
-        followIconStyle={this.props.followIconStyle}
-        followIconType={this.props.followIconType}
-        isTeam={this.props.isTeam}
-        loadingColor={this.props.loadingColor}
-        onClick={this.props.onClick}
-        onEditAvatarClick={this.props.onEditAvatarClick}
-        opacity={this.props.opacity}
-        size={this.props.size}
-        style={this.props.style}
-        url={this.props.url}
-      />
-    )
-  }
-}
-
-const Avatar = namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(
-  AvatarConnector
-)
+const ConnectedAvatar = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'Avatar'
+)(Avatar)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,
@@ -304,8 +269,6 @@ const mockOwnToViewProps = (
     followIconSize: iconInfo.iconSize,
     followIconStyle: iconInfo.iconStyle,
     followIconType: iconInfo.iconType,
-    following,
-    followsYou,
     isTeam,
     load: () => {},
     loadingColor: ownProps.loadingColor,
@@ -318,7 +281,7 @@ const mockOwnToViewProps = (
   }
 }
 
-export default Avatar
+export default ConnectedAvatar
 export {mockOwnToViewProps}
 
 export function castPlatformStyles(styles: any) {
