@@ -658,6 +658,11 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 		switch opts.ReindexMode {
 		case chat1.ReIndexingMode_PRESEARCH_SYNC:
 			for _, conv := range convList {
+				select {
+				case <-ectx.Done():
+					return ectx.Err()
+				default:
+				}
 				convIDStr := conv.GetConvID().String()
 				convLock.Lock()
 				convIdx := convIdxMap[convIDStr]
