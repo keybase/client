@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -1129,6 +1130,10 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 }
 
 func TestRunnerSubmodule(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("submodule add doesn't work well on Windows")
+	}
+
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
