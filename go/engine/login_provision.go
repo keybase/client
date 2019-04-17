@@ -699,7 +699,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
-	pipelineEnabled := m.G().FeatureFlags.Enabled(m, libkb.AutoresetPipeline)
+	pipelineEnabled := m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
 	m.Warning("autoreset enabled %v", pipelineEnabled)
 
 	// check to see if they have a PUK, in which case they must select a device

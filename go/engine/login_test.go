@@ -582,12 +582,11 @@ func TestProvisionAutoreset(t *testing.T) {
 	userX := CreateAndSignupFakeUser(tcX, "login")
 	require.NoError(t, AssertLoggedIn(tcX), "should be logged in on device x")
 	require.NoError(t, AssertProvisioned(tcX), "should be provisioned on device x")
-	m := NewMetaContextForTest(tcX)
-	require.NoError(t, m.G().FeatureFlags.EnableImmediately(m, libkb.AutoresetPipeline))
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "provision_y")
 	defer tcY.Cleanup()
+	libkb.AddEnvironmentFeatureForTest(tcY, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
@@ -596,7 +595,7 @@ func TestProvisionAutoreset(t *testing.T) {
 		SecretUI:    &libkb.TestSecretUI{Passphrase: userX.Passphrase},
 		GPGUI:       &gpgtestui{},
 	}
-	m = NewMetaContextForTest(tcY).WithUIs(uis)
+	m := NewMetaContextForTest(tcY).WithUIs(uis)
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
