@@ -244,6 +244,7 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	if !success {
 		return libkb.NewLoginRequiredError("login failed after passphrase verified")
 	}
+
 	return nil
 }
 

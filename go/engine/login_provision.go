@@ -30,6 +30,9 @@ type loginProvision struct {
 	hasPGP         bool
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
+
+	resetPending  bool
+	resetComplete bool
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -118,6 +121,9 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		}
 
 		return err
+	}
+	if e.resetPending || e.resetComplete {
+		return nil
 	}
 
 	// e.route is point of no return. If it succeeds, it means that
@@ -722,20 +728,18 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
-	arg := keybase1.ChooseDeviceArg{
-		Devices:           expDevices,
-		CanSelectNoDevice: true,
-	}
+	pipelineEnabled := m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// check to see if they have a PUK, in which case they must select a device
 	hasPUK, err := e.hasPerUserKey(m)
 	if err != nil {
 		return err
 	}
-	if hasPUK {
-		arg.CanSelectNoDevice = false
-	}
 
+	arg := keybase1.ChooseDeviceArg{
+		Devices:           expDevices,
+		CanSelectNoDevice: (pgp && !hasPUK) || pipelineEnabled,
+	}
 	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
 		return err
@@ -746,15 +750,38 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		m.Debug("user has devices, but chose not to use any of them")
 		if pgp {
 			if hasPUK {
-				m.Debug("user has a per-user-key, not attempting pgp provision")
 				return libkb.ProvisionViaDeviceRequiredError{}
 			}
 
 			// they have pgp keys, so try that:
-			return e.tryPGP(m)
+			if err := e.tryPGP(m); err != nil {
+				// TODO CORE-10630: consider this flow with autoreset
+				return err
+			}
+
+			return nil
 		}
-		// tell them they need to reset their account
-		return libkb.ProvisionUnavailableError{}
+
+		if !pipelineEnabled {
+			return libkb.ProvisionUnavailableError{}
+		}
+
+		// TODO CORE-10631 make this a UI
+		m.G().Log.Info(`
+The only way to provision this device is with access to one of your existing
+devices. You can try again later, or if you have lost access to all your
+existing devices you can reset your account and start fresh:`)
+
+		// go into the reset flow
+		eng := NewAccountReset(m.G(), e.arg.User.GetName())
+		eng.completeReset = true
+		if err := eng.Run(m); err != nil {
+			return err
+		}
+
+		e.resetPending = eng.resetPending
+		e.resetComplete = eng.resetComplete
+		return nil
 	}
 
 	m.Debug("user selected device %s", id)

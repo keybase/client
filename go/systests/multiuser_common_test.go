@@ -163,6 +163,12 @@ func (s usernameLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.Disp
 func (s usernameLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return false, nil
+}
+func (s usernameLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
+	return nil
+}
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	if len(d.clones) == 0 {

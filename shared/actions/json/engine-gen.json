@@ -263,6 +263,12 @@
         "keybase1LoginUiDisplayPrimaryPaperKey": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>) => void}"
         },
+        "keybase1LoginUiPromptResetAccount": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptResetAccount'>, 'outParam'>) => void}"
+        },
+        "keybase1LoginUiDisplayResetProgress": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayResetProgress'>, 'outParam'>) => void}"
+        },
         "keybase1LogsendPrepareLogsend": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}"
         },
