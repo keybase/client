@@ -143,7 +143,7 @@ class PieSliceWrapper extends React.PureComponent<
       <Kb.Box2 direction="horizontal" gap="small">
         <Kb.Text type="Header">{this.state.degrees} degrees: </Kb.Text>
         <PieSlice degrees={this.state.degrees} animated={true} />
-        <Kb.Button type="Primary" onClick={this._onClick} label="Add progress" />
+        <Kb.Button onClick={this._onClick} label="Add progress" />
       </Kb.Box2>
     )
   }
