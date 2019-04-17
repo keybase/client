@@ -44,30 +44,30 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	}
 	if err != nil {
 		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
-		return kbcrypto.VerificationError{Cause: err}
+		return kbcrypto.NewVerificationError(err)
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 
 	n, err := io.Copy(sink, vs)
 	if err != nil {
-		return kbcrypto.VerificationError{Cause: err}
+		return kbcrypto.NewVerificationError(err)
 	}
 
 	if sc.Armored {
 		if err = checkSaltpackBrand(brand); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 
 	g.GetLog().Debug("Verify: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
-		return kbcrypto.VerificationError{Cause: err}
+		return kbcrypto.NewVerificationError(err)
 	}
 	return nil
 }
@@ -93,22 +93,22 @@ func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signatur
 		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, string(signature), kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 		if err = checkSaltpackBrand(brand); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	} else {
 		skey, err = saltpack.VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, signature, kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.VerifyDetachedReader error: %s", err)
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return kbcrypto.VerificationError{Cause: err}
+			return kbcrypto.NewVerificationError(err)
 		}
 	}
 

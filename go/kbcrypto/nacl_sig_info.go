@@ -39,11 +39,23 @@ func (p BadKeyError) Error() string {
 }
 
 type VerificationError struct {
-	Cause error
+	cause error
 }
 
-func newVerificationError(s string) VerificationError {
+func (e VerificationError) Cause() error {
+	return e.cause
+}
+
+func (e VerificationError) SetCause(c error) {
+	e.cause = c
+}
+
+func newVerificationErrorWithString(s string) VerificationError {
 	return VerificationError{errors.New(s)}
+}
+
+func NewVerificationError(e error) VerificationError {
+	return VerificationError{cause: e}
 }
 
 const (
@@ -51,16 +63,16 @@ const (
 )
 
 func (e VerificationError) Error() string {
-	if e.Cause == nil {
+	if e.cause == nil {
 		return "Verification failed"
 	}
-	return fmt.Sprintf("Verification failed: %v", e.Cause)
+	return fmt.Sprintf("Verification failed: %s", e.cause.Error())
 }
 
 func (e VerificationError) ToStatus() keybase1.Status {
 	cause := ""
-	if e.Cause != nil {
-		cause = e.Cause.Error()
+	if e.cause != nil {
+		cause = e.cause.Error()
 	}
 	return keybase1.Status{
 		Code: SCSigCannotVerify,
@@ -97,27 +109,27 @@ func (s NaclSigInfo) verifyWithPayload(payload []byte, checkPayloadEquality bool
 		return nil, BadKeyError{}
 	}
 	if payload == nil {
-		return nil, newVerificationError("nil payload")
+		return nil, newVerificationErrorWithString("nil payload")
 	}
 	if len(payload) == 0 {
-		return nil, newVerificationError("empty payload")
+		return nil, newVerificationErrorWithString("empty payload")
 	}
 
 	if checkPayloadEquality && s.Payload != nil && !SecureByteArrayEq(payload, s.Payload) {
-		return nil, newVerificationError("payload mismatch")
+		return nil, newVerificationErrorWithString("payload mismatch")
 	}
 
 	switch s.Version {
 	case 0, 1:
 		if !key.Verify(payload, s.Sig) {
-			return nil, newVerificationError("verify failed")
+			return nil, newVerificationErrorWithString("verify failed")
 		}
 	case 2:
 		if !s.Prefix.IsWhitelisted() {
-			return nil, newVerificationError("unknown prefix")
+			return nil, newVerificationErrorWithString("unknown prefix")
 		}
 		if !key.Verify(s.Prefix.Prefix(payload), s.Sig) {
-			return nil, newVerificationError("verify failed")
+			return nil, newVerificationErrorWithString("verify failed")
 		}
 	default:
 		return nil, UnhandledSignatureError{s.Version}
