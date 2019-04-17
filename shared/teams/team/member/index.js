@@ -88,7 +88,7 @@ export const TeamMember = (props: Props) => {
         </Text>
       </Box>
       <ButtonBar direction={isMobile ? 'column' : 'row'}>
-        <Button label="Chat" type="Primary" onClick={props.onChat}>
+        <Button label="Chat" onClick={props.onChat}>
           <Icon
             type="iconfont-chat"
             style={{
@@ -97,7 +97,7 @@ export const TeamMember = (props: Props) => {
             color={globalColors.white}
           />
         </Button>
-        {props.admin && <Button type="Secondary" label="Edit role" onClick={props.onEditMembership} />}
+        {props.admin && <Button type="Dim" label="Edit role" onClick={props.onEditMembership} />}
         {props.admin && (
           <Button
             type="Danger"

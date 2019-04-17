@@ -102,6 +102,7 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
                     notificationManager.cancelAll();
                 }
+                break;
                 default:
                     super.onMessageReceived(message);
             }

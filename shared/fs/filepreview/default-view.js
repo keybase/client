@@ -51,7 +51,7 @@ const DefaultView = (props: DefaultViewProps) => (
           <PathItemAction
             clickable={{
               component: ({onClick, setRef}) => (
-                <Kb.Button key="share" type="Primary" label="Share" onClick={onClick} ref={setRef} />
+                <Kb.Button key="share" label="Share" onClick={onClick} ref={setRef} />
               ),
               type: 'component',
             }}
@@ -65,7 +65,7 @@ const DefaultView = (props: DefaultViewProps) => (
         (props.sfmiEnabled ? (
           <Kb.Button
             key="open"
-            type="Secondary"
+            type="Dim"
             label={'Show in ' + fileUIName}
             style={{marginTop: Styles.globalMargins.small}}
             onClick={props.showInSystemFileManager}
@@ -73,7 +73,7 @@ const DefaultView = (props: DefaultViewProps) => (
         ) : (
           <Kb.Button
             key="download"
-            type="Secondary"
+            type="Dim"
             label="Download a copy"
             style={{marginTop: Styles.globalMargins.small}}
             onClick={props.download}

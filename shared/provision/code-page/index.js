@@ -237,8 +237,7 @@ class EnterText extends React.Component<Props, {code: string}> {
         />
         <Kb.WaitingButton
           fullWidth={true}
-          type="PrimaryColoredBackground"
-          backgroundMode="Green"
+          backgroundColor="green"
           label="Submit"
           onClick={this._submit}
           disabled={!this.state.code}

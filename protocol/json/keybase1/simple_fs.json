@@ -662,28 +662,6 @@
     },
     {
       "type": "record",
-      "name": "FolderSyncStatus",
-      "fields": [
-        {
-          "type": "int64",
-          "name": "localDiskBytesAvailable"
-        },
-        {
-          "type": "int64",
-          "name": "localDiskBytesTotal"
-        },
-        {
-          "type": "PrefetchStatus",
-          "name": "prefetchStatus"
-        },
-        {
-          "type": "PrefetchProgress",
-          "name": "prefetchProgress"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "FolderSyncConfigAndStatus",
       "fields": [
         {

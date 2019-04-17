@@ -87,11 +87,11 @@ const TeamInfo = (props: Props) => (
           type={
             props.teamJoinSuccess || props.youHaveRequestedAccess
               ? props.openTeam
-                ? 'PrimaryGreen'
-                : 'Secondary'
+                ? 'Success'
+                : 'Dim'
               : props.openTeam
-              ? 'PrimaryGreen'
-              : 'Primary'
+              ? 'Success'
+              : 'Default'
           }
         />
       </Box>

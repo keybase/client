@@ -17,7 +17,7 @@ const YouRekey = ({onRekey}: Props) => {
         </Text>
       </Box>
       <ButtonBar>
-        <Button type="Secondary" backgroundMode="Terminal" onClick={onRekey} label="Rekey" />
+        <Button backgroundColor="blue" onClick={onRekey} label="Rekey" />
       </ButtonBar>
     </Box>
   )

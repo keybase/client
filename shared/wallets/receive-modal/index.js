@@ -76,7 +76,7 @@ const ReceiveModal = (props: Props) => {
         </Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
           <Addresses federatedAddress={props.federatedAddress} stellarAddress={props.stellarAddress} />
-          {!Styles.isMobile && <Kb.Button label="Close" onClick={props.onClose} type="Secondary" />}
+          {!Styles.isMobile && <Kb.Button label="Close" onClick={props.onClose} type="Dim" />}
         </Kb.Box2>
       </Kb.Box2>
     </WalletPopup>

@@ -43,7 +43,6 @@ class UpdateEmail extends Component<Props, State> {
         />
         <Button
           style={{alignSelf: 'center', marginTop: globalMargins.medium}}
-          type="Primary"
           label="Save"
           onClick={() => {
             this.props.onSave(this.state.email)

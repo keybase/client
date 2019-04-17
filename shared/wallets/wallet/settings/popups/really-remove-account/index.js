@@ -60,7 +60,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             key={1}
             label="Finish"
             onClick={this.props.onFinish}
-            type="Secondary"
+            type="Dim"
             waiting={this.props.waiting}
             disabled={this.props.loading}
           />,

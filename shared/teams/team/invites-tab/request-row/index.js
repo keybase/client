@@ -55,7 +55,6 @@ export const TeamRequestRow = (props: Props) => {
           onClick={onAccept}
           small={true}
           style={{backgroundColor: globalColors.green, marginLeft: globalMargins.xtiny}}
-          type="Primary"
         />
         <Button
           label="Ignore"

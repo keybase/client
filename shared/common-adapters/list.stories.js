@@ -76,7 +76,6 @@ class PropsChangeTester extends React.PureComponent<{||}, {|counter: number|}> {
     return (
       <>
         <Button
-          type="Primary"
           label="increase"
           onClick={() =>
             this.setState(prevState => ({

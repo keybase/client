@@ -306,11 +306,11 @@ class ThreadWrapper extends React.Component<Props, State> {
     return (
       <React.Fragment>
         <ButtonBar direction="row" align="flex-start">
-          <Button label={injectLabel} type="Primary" onClick={this._toggleInjectMessages} />
-          <Button label={loadMoreLabel} type="Primary" onClick={this._toggleLoadMore} />
-          <Button label="Change conversation ID" type="Primary" onClick={this._changeIDKey} />
-          <Button label="Scroll up" type="Primary" onClick={this._scrollUp} />
-          <Button label="Scroll down" type="Primary" onClick={this._scrollDown} />
+          <Button label={injectLabel} onClick={this._toggleInjectMessages} />
+          <Button label={loadMoreLabel} onClick={this._toggleLoadMore} />
+          <Button label="Change conversation ID" onClick={this._changeIDKey} />
+          <Button label="Scroll up" onClick={this._scrollUp} />
+          <Button label="Scroll down" onClick={this._scrollDown} />
         </ButtonBar>
         <Thread
           {...props}

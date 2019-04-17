@@ -69,7 +69,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
             </Box2>
           )}
         </Box2>
-        {!Styles.isMobile && <Button label="Close" onClick={this.props.onClose} type="Secondary" />}
+        {!Styles.isMobile && <Button label="Close" onClick={this.props.onClose} type="Dim" />}
       </WalletPopup>
     )
   }

@@ -46,12 +46,7 @@ class InviteGeneratedRender extends Component<Props> {
             {this.props.link}
           </Text>
         </Box>
-        <Button
-          style={{marginTop: globalMargins.medium}}
-          type="Primary"
-          label="Close"
-          onClick={this.props.onClose}
-        />
+        <Button style={{marginTop: globalMargins.medium}} label="Close" onClick={this.props.onClose} />
       </Box>
     )
   }

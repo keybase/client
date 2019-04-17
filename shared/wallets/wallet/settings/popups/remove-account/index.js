@@ -13,7 +13,7 @@ export type Props = {|
 
 const RemoveAccountPopup = (props: Props) => {
   const buttons = [
-    <Kb.Button fullWidth={Styles.isMobile} key={0} label="Cancel" onClick={props.onClose} type="Secondary" />,
+    <Kb.Button fullWidth={Styles.isMobile} key={0} label="Cancel" onClick={props.onClose} type="Dim" />,
     <Kb.Button
       fullWidth={Styles.isMobile}
       key={1}

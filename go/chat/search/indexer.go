@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"golang.org/x/sync/errgroup"
 )
 
 type Indexer struct {
@@ -25,7 +26,7 @@ type Indexer struct {
 
 	store    *store
 	pageSize int
-	stopCh   chan chan struct{}
+	stopCh   chan struct{}
 	started  bool
 
 	maxSyncConvs int
@@ -43,7 +44,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
 		store:        newStore(g),
 		pageSize:     defaultPageSize,
-		stopCh:       make(chan chan struct{}),
+		stopCh:       make(chan struct{}),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -87,13 +88,22 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	idx.started = true
 	ticker := libkb.NewBgTicker(time.Hour)
 	go func() {
+		idx.Debug(ctx, "starting SelectiveSync bg loop")
+
+		// run one quickly
+		select {
+		case <-time.After(libkb.DefaultBgTickerWait):
+			idx.SelectiveSync(ctx, uid, false /*forceReindex */)
+		}
+
 		for {
 			select {
 			case <-ticker.C:
 				// queue up some jobs on the background loader
+				idx.Debug(ctx, "running SelectiveSync")
 				idx.SelectiveSync(ctx, uid, false /*forceReindex */)
-			case ch := <-idx.stopCh:
-				close(ch)
+			case <-idx.stopCh:
+				idx.Debug(ctx, "stopping SelectiveSync loop")
 				ticker.Stop()
 				return
 			}
@@ -108,11 +118,11 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 
 	ch := make(chan struct{})
 	if idx.started {
+		close(idx.stopCh)
+		idx.stopCh = make(chan struct{})
 		idx.started = false
-		idx.stopCh <- ch
-	} else {
-		close(ch)
 	}
+	close(ch)
 	return ch
 }
 
@@ -284,22 +294,24 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	hits := []chat1.ChatSearchHit{}
 	for i, msg := range msgs {
 		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && opts.Matches(msg) {
-			matches := searchMatches(msg, queryRe)
-			afterLimit := i - opts.AfterContext
-			if afterLimit < 0 {
-				afterLimit = 0
+			var afterMessages, beforeMessages []chat1.UIMessage
+			if opts.AfterContext > 0 {
+				afterLimit := i - opts.AfterContext
+				if afterLimit < 0 {
+					afterLimit = 0
+				}
+				afterMessages = getUIMsgs(ctx, idx.G(), convID, uid, msgs[afterLimit:i])
 			}
-			afterMessages := getUIMsgs(ctx, idx.G(), convID, uid, msgs[afterLimit:i])
 
-			var beforeMessages []chat1.UIMessage
-			if i < len(msgs)-1 {
-				beforeLimit := i + 1 + opts.AfterContext
+			if opts.BeforeContext > 0 && i < len(msgs)-1 {
+				beforeLimit := i + 1 + opts.BeforeContext
 				if beforeLimit >= len(msgs) {
 					beforeLimit = len(msgs)
 				}
 				beforeMessages = getUIMsgs(ctx, idx.G(), convID, uid, msgs[i+1:beforeLimit])
 			}
 
+			matches := searchMatches(msg, queryRe)
 			searchHit := chat1.ChatSearchHit{
 				BeforeMessages: beforeMessages,
 				HitMessage:     utils.PresentMessageUnboxed(ctx, idx.G(), msg, uid, convID),
@@ -322,6 +334,39 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 		Hits:     hits,
 		Time:     hits[0].HitMessage.Valid().Ctime,
 	}, nil
+}
+
+func (idx *Indexer) convHits(ctx context.Context, conv types.RemoteConversation,
+	convIdx *chat1.ConversationIndex, uid gregor1.UID, tokens tokenMap, queryRe *regexp.Regexp,
+	query string, hitUICh chan chat1.ChatSearchInboxHit,
+	opts chat1.SearchOpts) (*chat1.ChatSearchInboxHit, error) {
+
+	msgIDs, err := idx.searchConv(ctx, conv.GetConvID(), convIdx, uid, tokens, opts)
+	if err != nil {
+		return nil, err
+	}
+	hits, err := idx.searchHitsFromMsgIDs(ctx, conv, uid, msgIDs, queryRe, opts)
+	if err != nil {
+		return nil, err
+	}
+	if len(msgIDs) != hits.Size() {
+		idx.Debug(ctx, "Search: hit mismatch, found %d msgIDs in index, %d hits in conv: %v",
+			len(msgIDs), hits.Size(), conv.GetName())
+	}
+	if hits == nil {
+		return nil, nil
+	}
+	hits.Query = query
+	if hitUICh != nil {
+		// Stream search hits back to the UI channel
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+		hitUICh <- *hits
+	}
+	return hits, nil
 }
 
 type reindexOpts struct {
@@ -358,7 +403,8 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 
 	convID := conv.GetConvID()
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.reindex: convID: %v, minID: %v, maxID: %v, numMissing: %v", convID, minIdxID, maxIdxID, len(missingIDs)))()
+		fmt.Sprintf("Indexer.reindex: convID: %v, minID: %v, maxID: %v, numMissing: %v",
+			convID, minIdxID, maxIdxID, len(missingIDs)))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
@@ -440,6 +486,34 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 	return completedJobs, convIdx, nil
 }
 
+func (idx *Indexer) reindexConvWithUIUpdate(ctx context.Context, conv chat1.Conversation,
+	uid gregor1.UID, convIdx *chat1.ConversationIndex, indexUICh chan chat1.ChatSearchIndexStatus,
+	totalPercentIndexed, totalConvs int) (*chat1.ConversationIndex, int, error) {
+
+	percentIndexed := convIdx.PercentIndexed(conv)
+	_, convIdx, err := idx.reindexConv(ctx, conv, uid, convIdx,
+		reindexOpts{forceReindex: true})
+	if err != nil {
+		return convIdx, totalPercentIndexed, err
+	}
+	newPercentIndexed := convIdx.PercentIndexed(conv)
+	if percentIndexed != newPercentIndexed { // only write out updates..
+		totalPercentIndexed -= percentIndexed
+		totalPercentIndexed += newPercentIndexed
+		if indexUICh != nil { // stream back index percentage as we update it
+			select {
+			case <-ctx.Done():
+				return nil, totalPercentIndexed, ctx.Err()
+			default:
+			}
+			indexUICh <- chat1.ChatSearchIndexStatus{
+				PercentIndexed: totalPercentIndexed / totalConvs,
+			}
+		}
+	}
+	return convIdx, totalPercentIndexed, nil
+}
+
 func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
 	pagination := &chat1.Pagination{Num: idx.pageSize}
@@ -467,9 +541,11 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 		if err != nil {
 			return nil, err
 		}
-		pagination = inbox.Pagination
-		pagination.Num = idx.pageSize
-		pagination.Previous = nil
+		if inbox.Pagination != nil {
+			pagination = inbox.Pagination
+			pagination.Num = idx.pageSize
+			pagination.Previous = nil
+		}
 		for _, conv := range inbox.ConvsUnverified {
 			if !conv.Conv.IsSelfFinalized(username) {
 				convID := conv.GetConvID()
@@ -548,115 +624,193 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	if err != nil || len(convMap) == 0 {
 		return nil, err
 	}
-	idx.Debug(ctx, "Search: allConvs: %d", len(convMap))
+	convList := idx.flattenConvMap(ctx, uid, convMap)
 
+	var totalPercentIndexed int
+	var convLock sync.Mutex
 	// convID -> convIdx
 	convIdxMap := map[string]*chat1.ConversationIndex{}
-	totalPercentIndexed := 0
-	for _, conv := range convMap {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-		convID := conv.GetConvID()
-		convIdx, err := idx.store.getConvIndex(ctx, convID, uid)
-		if err != nil {
-			return nil, err
-		}
-		totalPercentIndexed += convIdx.PercentIndexed(conv.Conv)
-		convIdxMap[convID.String()] = convIdx
-	}
-	if indexUICh != nil {
-		indexUICh <- chat1.ChatSearchIndexStatus{
-			PercentIndexed: totalPercentIndexed / len(convMap),
-		}
-	}
-	idx.Debug(ctx, "Search: convIdxMap: %d percent: %d", len(convIdxMap), totalPercentIndexed/len(convMap))
-	switch opts.ReindexMode {
-	case chat1.ReIndexingMode_FORCE:
-		for convIDStr, conv := range convMap {
-			convIdx := convIdxMap[convIDStr]
-			percentIndexed := convIdx.PercentIndexed(conv.Conv)
-			_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx,
-				reindexOpts{forceReindex: true})
+	convIdxCh := make(chan string, 200)
+	eg, ectx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		defer close(convIdxCh)
+		for _, conv := range convList {
+			select {
+			case <-ectx.Done():
+				return ectx.Err()
+			default:
+			}
+
+			convID := conv.GetConvID()
+			convIdx, err := idx.store.getConvIndex(ectx, convID, uid)
 			if err != nil {
-				idx.Debug(ctx, "Search: Unable to reindexConv: %v, %v", conv.Conv.GetConvID(), err)
+				return err
+			}
+			totalPercentIndexed += convIdx.PercentIndexed(conv.Conv)
+			convIDStr := convID.String()
+
+			convLock.Lock()
+			convIdxMap[convIDStr] = convIdx
+			convLock.Unlock()
+
+			switch opts.ReindexMode {
+			case chat1.ReIndexingMode_PRESEARCH_SYNC:
+				// don't send the conv to be searched until we reindex
+			default:
+				convIdxCh <- convIDStr
+			}
+		}
+		if indexUICh != nil {
+			select {
+			case <-ectx.Done():
+				return ectx.Err()
+			default:
+			}
+			indexUICh <- chat1.ChatSearchIndexStatus{
+				PercentIndexed: totalPercentIndexed / len(convList),
+			}
+		}
+		idx.Debug(ectx, "Search: convIdxMap: %d percent: %d", len(convIdxMap), totalPercentIndexed/len(convList))
+
+		switch opts.ReindexMode {
+		case chat1.ReIndexingMode_PRESEARCH_SYNC:
+			for _, conv := range convList {
+				select {
+				case <-ectx.Done():
+					return ectx.Err()
+				default:
+				}
+				convIDStr := conv.GetConvID().String()
+				convLock.Lock()
+				convIdx := convIdxMap[convIDStr]
+				convLock.Unlock()
+
+				convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ectx, conv.Conv, uid, convIdx,
+					indexUICh, totalPercentIndexed, len(convList))
+				if err != nil {
+					idx.Debug(ectx, "Search: Unable to reindexConv: %v, %v", convIDStr, err)
+					continue
+				}
+				convLock.Lock()
+				convIdxMap[convIDStr] = convIdx
+				convLock.Unlock()
+
+				convIdxCh <- convIDStr
+			}
+		}
+		return nil
+	})
+
+	var numConvsSearched int
+	// convID -> hit
+	hitMap := make(map[string]chat1.ChatSearchInboxHit)
+	eg.Go(func() error {
+		defer func() {
+			for range convIdxCh {
+				// drain the channel in case we short circuit the search.
+			}
+		}()
+		for convIDStr := range convIdxCh {
+			select {
+			case <-ectx.Done():
+				return ectx.Err()
+			default:
+			}
+
+			convLock.Lock()
+			convIdx := convIdxMap[convIDStr]
+			convLock.Unlock()
+
+			conv := convMap[convIDStr]
+			numConvsSearched++
+			convHits, err := idx.convHits(ectx, conv, convIdx, uid,
+				tokens, queryRe, query, hitUICh, opts)
+			if err != nil {
+				return err
+			}
+			if convHits == nil {
 				continue
 			}
-			convIdxMap[convIDStr] = convIdx
-			newPercentIndexed := convIdx.PercentIndexed(conv.Conv)
-			if percentIndexed != newPercentIndexed { // only write out updates..
-				totalPercentIndexed -= percentIndexed
-				totalPercentIndexed += newPercentIndexed
-				if indexUICh != nil { // stream back index percentage as we update it
-					indexUICh <- chat1.ChatSearchIndexStatus{
-						PercentIndexed: totalPercentIndexed / len(convMap),
-					}
+			hitMap[convIDStr] = *convHits
+			if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
+				idx.Debug(ectx, "Search: max search convs reached, ending search")
+				break
+			}
+			if opts.MaxConvsHit > 0 && len(hitMap) >= opts.MaxConvsHit {
+				idx.Debug(ectx, "Search: max hit convs reached, ending search")
+				break
+			}
+		}
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	switch opts.ReindexMode {
+	case chat1.ReIndexingMode_POSTSEARCH_ASYNC,
+		chat1.ReIndexingMode_POSTSEARCH_SYNC:
+		for _, conv := range convList {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+			}
+			convIDStr := conv.GetConvID().String()
+			convIdx := convIdxMap[convIDStr]
+
+			switch opts.ReindexMode {
+			// kick this off in the background after we have our results so there is no
+			// lock contention during the search
+			case chat1.ReIndexingMode_POSTSEARCH_ASYNC:
+				_, _, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: false})
+				if err != nil {
+					return nil, err
 				}
+			// reindex all of the conversations and research to populate any new results
+			case chat1.ReIndexingMode_POSTSEARCH_SYNC:
+				// ignore any fully indexed convs since we respect
+				// opts.MaxConvsSearched
+				if convIdx.PercentIndexed(conv.Conv) == 100 {
+					continue
+				}
+				convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ctx, conv.Conv, uid,
+					convIdx, indexUICh, totalPercentIndexed, len(convList))
+				if err != nil {
+					return nil, err
+				}
+
+				if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
+					idx.Debug(ctx, "Search: postSync: max search convs reached, reindexing without sending more search results")
+					continue
+				}
+				if opts.MaxConvsHit > 0 && len(hitMap) >= opts.MaxConvsHit {
+					idx.Debug(ctx, "Search: postSync: max hit convs reached, reindexing without sending more search results")
+					continue
+				}
+
+				numConvsSearched++
+				convHits, err := idx.convHits(ctx, conv, convIdx, uid,
+					tokens, queryRe, query, hitUICh, opts)
+				if err != nil {
+					return nil, err
+				}
+				if convHits == nil {
+					continue
+				}
+				hitMap[convIDStr] = *convHits
 			}
 		}
 	}
 
-	var numConvsSearched, numConvsHit int
-	hits := []chat1.ChatSearchInboxHit{}
-	convList := idx.flattenConvMap(ctx, uid, convMap)
-	idx.Debug(ctx, "Search: beginning conv searches")
-	for _, conv := range convList {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-		convID := conv.GetConvID()
-		convIDStr := convID.String()
-		numConvsSearched++
-		convIdx := convIdxMap[convIDStr]
-		msgIDs, err := idx.searchConv(ctx, convID, convIdx, uid, tokens, opts)
-		if err != nil {
-			return nil, err
-		}
-		convHits, err := idx.searchHitsFromMsgIDs(ctx, conv, uid, msgIDs, queryRe, opts)
-		if err != nil {
-			return nil, err
-		}
-		if len(msgIDs) != convHits.Size() {
-			idx.Debug(ctx, "Search: hit mismatch, found %d msgIDs in index, %d hits in conv: %v",
-				len(msgIDs), convHits.Size(), conv.GetName())
-		}
-		if convHits == nil {
-			continue
-		}
-		convHits.Query = query
-		numConvsHit++
-		if hitUICh != nil {
-			// Stream search hits back to the UI channel
-			hitUICh <- *convHits
-		}
-		hits = append(hits, *convHits)
-		if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
-			idx.Debug(ctx, "Search: max search convs reached, ending search")
-			break
-		}
-		if opts.MaxConvsHit > 0 && numConvsHit >= opts.MaxConvsHit {
-			idx.Debug(ctx, "Search: max hit convs reached, ending search")
-			break
-		}
+	hits := make([]chat1.ChatSearchInboxHit, len(hitMap))
+	index := 0
+	for _, hit := range hitMap {
+		hits[index] = hit
+		index++
 	}
-	// kick this off in the background after we have our results so there is no
-	// lock contention during the search
-	switch opts.ReindexMode {
-	case chat1.ReIndexingMode_AFTERSEARCH:
-		for _, conv := range convList {
-			convIDStr := conv.GetConvID().String()
-			convIdx := convIdxMap[convIDStr]
-			_, _, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: false})
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	percentIndexed := totalPercentIndexed / len(convMap)
+	percentIndexed := totalPercentIndexed / len(convList)
 	res = &chat1.ChatSearchInboxResults{
 		Hits:           hits,
 		PercentIndexed: percentIndexed,

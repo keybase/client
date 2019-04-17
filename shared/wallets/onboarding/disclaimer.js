@@ -88,7 +88,8 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         style={styles.notNowButtonStyle}
         key={2}
         fullWidth={true}
-        type="SecondaryColoredBackground"
+        backgroundColor="purple"
+        mode="Secondary"
         onClick={this.props.onNotNow}
         label="Not now"
       />,
@@ -100,7 +101,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
           disabled={true}
           key={0}
           fullWidth={true}
-          type="Secondary"
+          type="Dim"
           onClick={this.props.onCheckDisclaimer}
           label={afterLabel}
         />
@@ -111,7 +112,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
           disabled={this.state.secondsLeftBeforeAccept > 0}
           key={1}
           fullWidth={true}
-          type="Secondary"
+          type="Dim"
           onClick={this.props.onAcceptDisclaimer}
           label={beforeLabel}
         />
