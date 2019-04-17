@@ -1,0 +1,20 @@
+// @flow
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
+import RenameTeam from '.'
+
+const props = {
+  onCancel: Sb.action('onCancel'),
+  onRename: Sb.action('onRename'),
+  teamname: 'teamname.withatypo',
+  title: 'Rename subteam',
+}
+
+const load = () => {
+  Sb.storiesOf('Teams', module)
+    .addDecorator(Sb.createPropProviderWithCommon())
+    .add('Rename team', () => <RenameTeam {...props} />)
+    .add('Rename team - error', () => <RenameTeam {...props} error="There was an error" />)
+}
+
+export default load
