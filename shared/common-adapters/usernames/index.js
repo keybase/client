@@ -74,7 +74,7 @@ function UsernameText(props: Props) {
             ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black}
             : null),
         }
-        userStyle = Styles.collapseStyles([props.style, userStyle])
+        userStyle = Styles.collapseStyles([props.style, userStyle, styles.kerning])
 
         // Make sure onClick is undefined when _onUsernameClicked is, so
         // as to not override any existing onClick handler from containers
@@ -230,6 +230,9 @@ const styles = Styles.styleSheetCreate({
       textDecoration: 'none',
     },
   }),
+  kerning: {
+    letterSpacing: 0.25,
+  },
   nonInlineStyle: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
