@@ -816,7 +816,7 @@ const getChannels = (_, action) => {
   })
 }
 
-function* getTeams(state) {
+function* getTeams(state, action) {
   const username = state.config.username
   if (!username) {
     logger.warn('getTeams while logged out')
@@ -880,6 +880,10 @@ function* getTeams(state) {
         teamnames: teamNameSet,
       })
     )
+
+    if (action.type === TeamsGen.getTeams && action.payload.clearNavBadges) {
+      yield Saga.put(TeamsGen.createClearNavBadges())
+    }
   } catch (err) {
     if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
@@ -1053,14 +1057,14 @@ const setMemberPublicity = (state, action) => {
     .then(() => [
       TeamsGen.createGetDetails({teamname}),
       // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-      TeamsGen.createGetTeams(),
+      TeamsGen.createGetTeams({clearNavBadges: false}),
     ])
     .catch(e =>
       // TODO handle error, but for now make sure loading is unset
       [
         TeamsGen.createGetDetails({teamname}),
         // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-        TeamsGen.createGetTeams(),
+        TeamsGen.createGetTeams({clearNavBadges: false}),
       ]
     )
 }
@@ -1202,7 +1206,7 @@ const teamChangedByName = (state, action) => {
     (flags.useNewRouter || getPath(state.routeTree.routeState).first() === teamsTab)
   ) {
     // only reload if that team is selected
-    return [TeamsGen.createGetTeams(), TeamsGen.createGetDetails({teamname: teamName})]
+    return [TeamsGen.createGetTeams({clearNavBadges: false}), TeamsGen.createGetDetails({teamname: teamName})]
   }
   return getLoadCalls()
 }
@@ -1217,7 +1221,7 @@ const teamDeletedOrExit = (state, action) => {
 }
 
 const getLoadCalls = (teamname?: string) => [
-  ...(_wasOnTeamsTab || flags.useNewRouter ? [TeamsGen.createGetTeams()] : []),
+  ...(_wasOnTeamsTab || flags.useNewRouter ? [TeamsGen.createGetTeams({clearNavBadges: false})] : []),
   ...(teamname ? [TeamsGen.createGetDetails({teamname})] : []),
 ]
 
@@ -1381,7 +1385,7 @@ const badgeAppForTeams = (state, action) => {
     const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
     if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
       // We have been added to a new team & we need to refresh the list
-      actions.push(TeamsGen.createGetTeams())
+      actions.push(TeamsGen.createGetTeams({clearNavBadges: false}))
     }
 
     // getDetails for teams that have new access requests
@@ -1414,27 +1418,9 @@ const onTabChange = (_, action) => {
     _wasOnTeamsTab = true
   } else if (_wasOnTeamsTab) {
     _wasOnTeamsTab = false
-    // clear badges
-    return RPCTypes.gregorDismissCategoryRpcPromise({
-      category: 'team.newly_added_to_team',
-    })
-      .then(() =>
-        RPCTypes.gregorDismissCategoryRpcPromise({
-          category: 'team.request_access',
-        })
-      )
-      .catch(err => logError(err))
+    return TeamsGen.createClearNavBadges()
   }
 }
-
-const clearNavBadges = () =>
-  RPCTypes.gregorDismissCategoryRpcPromise({
-    category: 'team.newly_added_to_team',
-  }).then(() =>
-    RPCTypes.gregorDismissCategoryRpcPromise({
-      category: 'team.request_access',
-    })
-  )
 
 const receivedBadgeState = (state, action) =>
   TeamsGen.createBadgeAppForTeams({
@@ -1466,6 +1452,17 @@ const gregorPushState = (_, action) => {
 
   return actions
 }
+
+const clearNavBadges = () =>
+  RPCTypes.gregorDismissCategoryRpcPromise({
+    category: 'team.newly_added_to_team',
+  })
+    .then(() =>
+      RPCTypes.gregorDismissCategoryRpcPromise({
+        category: 'team.request_access',
+      })
+    )
+    .catch(err => logError(err))
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam)
@@ -1562,10 +1559,10 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
   >([EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit], teamDeletedOrExit)
 
-  if (flags.useNewRouter) {
-    yield* Saga.chainAction<TeamsGen.GetTeamsPayload>(TeamsGen.getTeams, clearNavBadges)
-  } else {
+  if (!flags.useNewRouter) {
     yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
+  } else {
+    yield* Saga.chainAction<TeamsGen.ClearNavBadgesPayload>(TeamsGen.clearNavBadges, clearNavBadges)
   }
 }
 

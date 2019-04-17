@@ -19,6 +19,7 @@ export const addUserToTeams = 'teams:addUserToTeams'
 export const badgeAppForTeams = 'teams:badgeAppForTeams'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
+export const clearNavBadges = 'teams:clearNavBadges'
 export const clearTeamRequests = 'teams:clearTeamRequests'
 export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
@@ -87,6 +88,7 @@ type _AddUserToTeamsPayload = $ReadOnly<{|role: Types.TeamRoleType, teams: Array
 type _BadgeAppForTeamsPayload = $ReadOnly<{|newTeamNames: Array<string>, newTeamAccessRequests: Array<string>, teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>|}>
 type _CheckRequestedAccessPayload = $ReadOnly<{|teamname: string|}>
 type _ClearAddUserToTeamsResultsPayload = void
+type _ClearNavBadgesPayload = void
 type _ClearTeamRequestsPayload = $ReadOnly<{|teamname: string|}>
 type _CreateChannelPayload = $ReadOnly<{|teamname: string, channelname: string, description: ?string, rootPath: I.List<string>, sourceSubPath: I.List<string>, destSubPath: I.List<string>|}>
 type _CreateNewTeamFromConversationPayload = $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey, teamname: string|}>
@@ -104,7 +106,7 @@ type _GetTeamOperationsPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamProfileAddListPayload = $ReadOnly<{|username: string|}>
 type _GetTeamPublicityPayload = $ReadOnly<{|teamname: string|}>
 type _GetTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string|}>
-type _GetTeamsPayload = void
+type _GetTeamsPayload = $ReadOnly<{|clearNavBadges?: boolean|}>
 type _IgnoreRequestPayload = $ReadOnly<{|teamname: string, username: string|}>
 type _InviteToTeamByEmailPayload = $ReadOnly<{|destSubPath?: I.List<string>, invitees: string, role: Types.TeamRoleType, rootPath?: I.List<string>, sourceSubPath?: I.List<string>, teamname: string|}>
 type _InviteToTeamByPhonePayload = $ReadOnly<{|teamname: string, role: Types.TeamRoleType, phoneNumber: string, fullName: string|}>
@@ -175,6 +177,7 @@ export const createAddUserToTeams = (payload: _AddUserToTeamsPayload) => ({paylo
 export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload) => ({payload, type: badgeAppForTeams})
 export const createCheckRequestedAccess = (payload: _CheckRequestedAccessPayload) => ({payload, type: checkRequestedAccess})
 export const createClearAddUserToTeamsResults = (payload: _ClearAddUserToTeamsResultsPayload) => ({payload, type: clearAddUserToTeamsResults})
+export const createClearNavBadges = (payload: _ClearNavBadgesPayload) => ({payload, type: clearNavBadges})
 export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload) => ({payload, type: clearTeamRequests})
 export const createCreateChannel = (payload: _CreateChannelPayload) => ({payload, type: createChannel})
 export const createCreateNewTeam = (payload: _CreateNewTeamPayload) => ({payload, type: createNewTeam})
@@ -238,6 +241,7 @@ export type AddUserToTeamsPayload = {|+payload: _AddUserToTeamsPayload, +type: '
 export type BadgeAppForTeamsPayload = {|+payload: _BadgeAppForTeamsPayload, +type: 'teams:badgeAppForTeams'|}
 export type CheckRequestedAccessPayload = {|+payload: _CheckRequestedAccessPayload, +type: 'teams:checkRequestedAccess'|}
 export type ClearAddUserToTeamsResultsPayload = {|+payload: _ClearAddUserToTeamsResultsPayload, +type: 'teams:clearAddUserToTeamsResults'|}
+export type ClearNavBadgesPayload = {|+payload: _ClearNavBadgesPayload, +type: 'teams:clearNavBadges'|}
 export type ClearTeamRequestsPayload = {|+payload: _ClearTeamRequestsPayload, +type: 'teams:clearTeamRequests'|}
 export type CreateChannelPayload = {|+payload: _CreateChannelPayload, +type: 'teams:createChannel'|}
 export type CreateNewTeamFromConversationPayload = {|+payload: _CreateNewTeamFromConversationPayload, +type: 'teams:createNewTeamFromConversation'|}
@@ -308,6 +312,7 @@ export type Actions =
   | BadgeAppForTeamsPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
+  | ClearNavBadgesPayload
   | ClearTeamRequestsPayload
   | CreateChannelPayload
   | CreateNewTeamFromConversationPayload
