@@ -82,7 +82,16 @@ const Header = (props: Props) => {
     >
       {nameAndInfo}
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-        {!props.sendDisabled && (
+        {props.sendDisabled ? (
+          <Kb.WithTooltip text="This is a mobile-only account.">
+            <SendButton
+              onSendToKeybaseUser={props.onSendToKeybaseUser}
+              onSendToStellarAddress={props.onSendToStellarAddress}
+              onSendToAnotherAccount={props.onSendToAnotherAccount}
+              disabled={true}
+            />
+          </Kb.WithTooltip>
+        ) : (
           <SendButton
             onSendToKeybaseUser={props.onSendToKeybaseUser}
             onSendToStellarAddress={props.onSendToStellarAddress}

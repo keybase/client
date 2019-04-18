@@ -13,28 +13,48 @@ type Props = {
   worthDescription?: string,
 }
 
-const Footer = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2
-      direction="vertical"
-      gap="tiny"
-      gapEnd={true}
-      gapStart={true}
+const Footer = (props: Props) => {
+  const sendButton = (
+    <Kb.WaitingButton
+      type="Wallet"
+      waitingKey={props.waitingKey}
+      label="Send"
+      onClick={props.onClickSend}
+      disabled={props.disabled}
       fullWidth={true}
-      style={styles.background}
-    >
-      {(!!props.worthDescription || props.calculating) && (
-        <Kb.Box2 direction="horizontal">
-          {props.worthDescription ? (
-            <Kb.Text center={true} type="BodySmall">
-              This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
-            </Kb.Text>
-          ) : (
-            <Kb.Text center={true} type="BodySmall">
-              Calculating...
-            </Kb.Text>
-          )}
-          {/* <Kb.Icon
+      style={styles.button}
+      children={
+        <Kb.Icon
+          type="iconfont-stellar-send"
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+          color={Styles.globalColors.white}
+          fontSize={Styles.isMobile ? 22 : 16}
+        />
+      }
+    />
+  )
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        gap="tiny"
+        gapEnd={true}
+        gapStart={true}
+        fullWidth={true}
+        style={styles.background}
+      >
+        {(!!props.worthDescription || props.calculating) && (
+          <Kb.Box2 direction="horizontal">
+            {props.worthDescription ? (
+              <Kb.Text center={true} type="BodySmall">
+                This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
+              </Kb.Text>
+            ) : (
+              <Kb.Text center={true} type="BodySmall">
+                Calculating...
+              </Kb.Text>
+            )}
+            {/* <Kb.Icon
             type="iconfont-question-mark"
             color={Styles.globalColors.black_20}
             hoverColor={Styles.globalColors.black_50}
@@ -43,51 +63,39 @@ const Footer = (props: Props) => (
             onClick={() => {
               TODO
           }/> */}
-        </Kb.Box2>
-      )}
-      <Kb.ButtonBar align="center" direction="row" style={styles.buttonBox} fullWidth={true}>
-        {!!props.onClickRequest && (
-          <Kb.WaitingButton
-            type="Wallet"
-            label="Request"
-            waitingKey={Constants.requestPaymentWaitingKey}
-            onClick={props.onClickRequest}
-            disabled={props.disabled}
-            fullWidth={true}
-            style={styles.button}
-            children={
-              <Kb.Icon
-                type="iconfont-stellar-request"
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-                color={Styles.globalColors.white}
-                fontSize={Styles.isMobile ? 22 : 16}
-              />
-            }
-          />
+          </Kb.Box2>
         )}
-        {!!props.onClickSend && (
-          <Kb.WaitingButton
-            type="Wallet"
-            waitingKey={props.waitingKey}
-            label="Send"
-            onClick={props.onClickSend}
-            disabled={props.disabled}
-            fullWidth={true}
-            style={styles.button}
-            children={
-              <Kb.Icon
-                type="iconfont-stellar-send"
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-                color={Styles.globalColors.white}
-                fontSize={Styles.isMobile ? 22 : 16}
-              />
-            }
-          />
-        )}
-      </Kb.ButtonBar>
+        <Kb.ButtonBar align="center" direction="row" style={styles.buttonBox} fullWidth={true}>
+          {!!props.onClickRequest && (
+            <Kb.WaitingButton
+              type="Wallet"
+              label="Request"
+              waitingKey={Constants.requestPaymentWaitingKey}
+              onClick={props.onClickRequest}
+              disabled={props.disabled}
+              fullWidth={true}
+              style={styles.button}
+              children={
+                <Kb.Icon
+                  type="iconfont-stellar-request"
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  color={Styles.globalColors.white}
+                  fontSize={Styles.isMobile ? 22 : 16}
+                />
+              }
+            />
+          )}
+          {!!props.onClickSend &&
+            (props.disabled ? (
+              <Kb.WithTooltip text="This is a mobile-only wallet.">{sendButton}</Kb.WithTooltip>
+            ) : (
+              sendButton
+            ))}
+        </Kb.ButtonBar>
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   background: Styles.platformStyles({
