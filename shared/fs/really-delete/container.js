@@ -9,26 +9,31 @@ import * as Constants from '../../constants/fs'
 
 type OwnProps = Container.RouteProps<{path: Types.Path}, {}>
 
-const mapStateToProps = state => {
+const mapStateToProps = state => ({
+  _deleting: anyWaiting(state, Constants.deleteWaitingKey),
+  title: 'Confirmation',
+})
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  const path = Container.getRouteProps(ownProps, 'path')
   return {
-    _deleting: anyWaiting(state, Constants.deleteWaitingKey),
-    title: 'Confirmation',
+    _onFinishDelete: () => dispatch(Constants.makeActionForOpenPathInFilesTab(Types.getPathParent(path))),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onDelete: () => {
+      if (path !== Constants.defaultPath) {
+        dispatch(FsGen.createDeleteFile({path}))
+      }
+    },
   }
 }
-
-const mapDispatchToProps = dispatch => ({
-  _onDelete: (path: Types.Path) => {
-    dispatch(FsGen.createDeleteFile({path}))
-  },
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const path = Container.getRouteProps(ownProps, 'path')
   return {
     _deleting: stateProps._deleting,
+    _onFinishDelete: dispatchProps._onFinishDelete,
     onBack: stateProps._deleting ? () => {} : dispatchProps.onBack,
-    onDelete: () => dispatchProps._onDelete(path),
+    onDelete: dispatchProps.onDelete,
     path: path,
     title: stateProps.title,
   }

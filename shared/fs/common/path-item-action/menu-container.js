@@ -36,14 +36,13 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
   _confirmSendToOtherApp: () =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-send-to-other-app'})),
   _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
-  _deleteFile: () => {
+  _delete: () => {
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [fsTab],
         path: [{props: {path}, selected: 'reallyDelete'}],
       })
     )
-    dispatch(Constants.makeActionForOpenPathInFilesTab(Types.getPathParent(path), routePath))
   },
   _download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
   _ignoreTlf: () => dispatch(FsGen.createFavoriteIgnore({path})),
@@ -144,7 +143,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // menu items
     // eslint-disable-next-line sort-keys
     copyPath: layout.copyPath ? c(dispatchProps._copyPath) : null,
-    delete: layout.delete ? c(dispatchProps._deleteFile) : null,
+    delete: layout.delete ? c(dispatchProps._delete) : null,
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,

@@ -19,7 +19,6 @@ import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 import SyncStatus from './sync-status'
 import PieSlice from './pie-slice'
-import ReallyDelete from '../really-delete'
 
 const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
@@ -180,15 +179,6 @@ const load = () => {
         />
       </Kb.Box2>
     ))
-
-  const reallyDeleteProps = {
-    _deleting: false,
-    onBack: Sb.action('onBack'),
-    onDelete: Sb.action('onDelete'),
-    path: Types.stringToPath('/keybase/private/alice/my_folder'),
-    title: 'foo',
-  }
-  Sb.storiesOf('Files', module).add('Really Delete', () => <ReallyDelete {...reallyDeleteProps} />)
 
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
