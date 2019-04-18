@@ -32,7 +32,7 @@ const _Success = (props: Props) => (
       </>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.bottomContainer}>
-      <Kb.Button type="Secondary" label="Close and reload Profile" onClick={props.onClose} />
+      <Kb.Button type="Dim" label="Close and reload Profile" onClick={props.onClose} />
     </Kb.Box2>
   </Kb.Box2>
 )

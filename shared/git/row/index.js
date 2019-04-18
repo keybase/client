@@ -187,12 +187,7 @@ class Row extends React.Component<Props> {
                 style={{marginTop: Styles.globalMargins.tiny}}
                 gap="tiny"
               >
-                <Kb.Button
-                  type="Secondary"
-                  small={true}
-                  label="View files"
-                  onClick={this.props.onBrowseGitRepo}
-                >
+                <Kb.Button type="Dim" small={true} label="View files" onClick={this.props.onBrowseGitRepo}>
                   <Kb.Icon type="iconfont-file" style={{marginRight: Styles.globalMargins.xtiny}} />
                 </Kb.Button>
                 {this.props.canDelete && (

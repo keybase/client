@@ -717,6 +717,14 @@ func (fs *fsBlocker) ReadDir(p string) (fis []os.FileInfo, err error) {
 	return fs.FS.ReadDir(p)
 }
 
+func (fs *fsBlocker) Chroot(p string) (newFS billy.Filesystem, err error) {
+	chrootFS, err := fs.FS.ChrootAsLibFS(p)
+	if err != nil {
+		return nil, err
+	}
+	return &fsBlocker{chrootFS, fs.signalCh, fs.unblockCh}, nil
+}
+
 type fsBlockerMaker struct {
 	signalCh  chan<- struct{}
 	unblockCh <-chan struct{}

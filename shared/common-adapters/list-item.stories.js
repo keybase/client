@@ -7,7 +7,7 @@ import Text from './text'
 import Button from './button'
 import {globalColors} from '../styles'
 
-const actionButton = <Button label={'Action'} type={'Primary'} small={true} onClick={Sb.action('button')} />
+const actionButton = <Button label={'Action'} small={true} onClick={Sb.action('button')} />
 const load = () => {
   Sb.storiesOf('Common/ListItem', module)
     .addDecorator(Sb.scrollViewDecorator)

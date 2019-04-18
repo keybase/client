@@ -1,12 +1,15 @@
 // @flow
 import * as Constants from '../constants/chat2'
 import * as Types from '../constants/types/chat2'
+import * as Styles from '../styles'
 import SelectableSmallTeam from './selectable-small-team'
 import {namedConnect} from '../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   filter?: string,
+  numSearchHits?: number,
+  maxSearchHits?: number,
   isSelected: boolean,
   onSelectConversation: () => void,
 |}
@@ -15,6 +18,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
 
   return {
+    _hasBadge: Constants.getHasBadge(state, conversationIDKey),
     _hasUnread: Constants.getHasUnread(state, conversationIDKey),
     _meta: Constants.getMeta(state, conversationIDKey),
     _username: state.config.username,
@@ -24,8 +28,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = () => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const isSelected = ownProps.isSelected && !Styles.isMobile
   const hasUnread = stateProps._hasUnread
-  const styles = Constants.getRowStyles(stateProps._meta, ownProps.isSelected, hasUnread)
+  const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
   const isLocked = participantNeedToRekey || youNeedToRekey
@@ -54,9 +59,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     backgroundColor: styles.backgroundColor,
     isLocked,
     isMuted: stateProps._meta.isMuted,
-    isSelected: ownProps.isSelected,
+    isSelected,
+    maxSearchHits: ownProps.maxSearchHits,
+    numSearchHits: ownProps.numSearchHits,
     onSelectConversation: ownProps.onSelectConversation,
     participants,
+    showBadge: stateProps._hasBadge,
     showBold: styles.showBold,
     teamname: stateProps._meta.teamname,
     usernameColor: styles.usernameColor,

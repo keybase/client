@@ -12,7 +12,7 @@ class Render extends React.PureComponent<Props> {
   render() {
     return (
       <div style={style}>
-        <Inbox routeState={this.props.routeState} navigateAppend={this.props.navigateAppend} />
+        <Inbox />
         {this.props.children}
       </div>
     )

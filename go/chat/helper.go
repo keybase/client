@@ -1113,6 +1113,15 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				} else {
 					return res, reserr
 				}
+			case libkb.ChatNotInTeamError:
+				if n.membersType == chat1.ConversationMembersType_TEAM {
+					teamID, tmpErr := TLFIDToTeamID(triple.Tlfid)
+					if tmpErr == nil && teamID.IsSubTeam() {
+						n.Debug(ctx, "For tlf ID %s, inferring NotExplicitMemberOfSubteamError, from error: %s", triple.Tlfid, reserr.Error())
+						return res, teams.NewNotExplicitMemberOfSubteamError()
+					}
+				}
+				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}

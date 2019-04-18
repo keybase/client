@@ -36,7 +36,8 @@ const TeamRow = ({
             label={showcased ? 'Published' : 'Publish'}
             onClick={() => onPromote(!showcased)}
             small={true}
-            type={showcased ? 'PrimaryGreenActive' : 'PrimaryGreen'}
+            type="Success"
+            mode={showcased ? 'Secondary' : 'Primary'}
             waiting={waiting}
           />
         </Kb.Box2>

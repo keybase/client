@@ -102,7 +102,7 @@ class AddToChannel extends React.Component<Props, State> {
                 <Kb.WaitingButton
                   onlyDisable={true}
                   waitingKey={this.props.waitingKey || null}
-                  type="Secondary"
+                  type="Dim"
                   label="Cancel"
                   onClick={this.props.onCancel}
                 />
@@ -110,7 +110,6 @@ class AddToChannel extends React.Component<Props, State> {
               <Kb.WaitingButton
                 disabled={!this.state.selected.size}
                 waitingKey={this.props.waitingKey || null}
-                type="Primary"
                 label={
                   this.state.selected.size
                     ? `Add ${this.state.selected.size} ${pluralize('user', this.state.selected.size)}`

@@ -123,7 +123,6 @@ class Contents extends React.Component<Props> {
 
             <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
               <Kb.WaitingButton
-                type="Primary"
                 style={{marginLeft: globalMargins.tiny}}
                 onClick={this._onSubmit}
                 label="Create team"

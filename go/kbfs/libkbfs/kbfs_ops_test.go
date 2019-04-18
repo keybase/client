@@ -31,6 +31,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -86,8 +87,9 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// Each test is expected to check the cache for correctness at the
 	// end of the test.
 	config.SetBlockCache(data.NewBlockCacheStandard(100, 1<<30))
-	config.SetDirtyBlockCache(data.NewDirtyBlockCacheStandard(data.WallClock{},
-		config.MakeLogger(""), 5<<20, 10<<20, 5<<20))
+	log := config.MakeLogger("")
+	config.SetDirtyBlockCache(data.NewDirtyBlockCacheStandard(
+		data.WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20))
 	config.mockBcache = nil
 	config.mockDirtyBcache = nil
 
@@ -4692,7 +4694,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
-	config.vdebugSetting = "vlog2"
+	config.SetVLogLevel(libkb.VLog2String)
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
@@ -4913,7 +4915,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
 	config.SetMode(modeTest{NewInitModeFromType(InitDefault)})
-	config.vdebugSetting = "vlog2"
+	config.SetVLogLevel(libkb.VLog2String)
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(

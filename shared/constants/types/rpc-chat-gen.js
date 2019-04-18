@@ -153,6 +153,13 @@ export const commonNotificationKind = {
   atmention: 1,
 }
 
+export const commonReIndexingMode = {
+  none: 0,
+  presearchSync: 1,
+  postsearchAsync: 2,
+  postsearchSync: 3,
+}
+
 export const commonRetentionPolicyType = {
   none: 0,
   retain: 1,
@@ -353,6 +360,7 @@ export const unfurlUnfurlType = {
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localCancelActiveInboxSearchRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveSearchRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteConversationLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.deleteConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -391,6 +399,7 @@ export const localProfileChatSearchRpcPromise = (params, waitingKey) => new Prom
 export const localResolveUnfurlPromptRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveUnfurlPrompt', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRetryPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.RetryPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSaveUnfurlSettingsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.saveUnfurlSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localSearchInboxRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.searchInbox', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localSearchRegexpRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.searchRegexp', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localSetAppNotificationSettingsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetConvMinWriterRoleLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setConvMinWriterRoleLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

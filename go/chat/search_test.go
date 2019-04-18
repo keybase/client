@@ -822,7 +822,7 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// DB nuke, ensure that we reindex after the search
 		g1.LocalChatDb.Nuke()
-		opts.ForceReindex = true // force reindex so we're fully up to date.
+		opts.ReindexMode = chat1.ReIndexingMode_PRESEARCH_SYNC // force reindex so we're fully up to date.
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
@@ -840,7 +840,20 @@ func TestChatSearchInbox(t *testing.T) {
 		g1.LocalChatDb.Nuke()
 		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
-		opts.ForceReindex = false
+		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_ASYNC
+		res = runSearch(query, opts, true /* expectedReindex*/)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{msgID3, msgID7}, msgID8, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
+		verifySearchDone(1)
+		verifyIndex(expectedIndex)
+
+		// Verify POSTSEARCH_SYNC
+		g1.LocalChatDb.Nuke()
+		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
+		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_SYNC
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]

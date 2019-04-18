@@ -140,7 +140,7 @@ export const TeamMemberRow = (props: Props) => {
                   small={true}
                   label="Re-Admit"
                   onClick={props.onReAddToTeam}
-                  type="PrimaryGreen"
+                  type="Success"
                   waiting={props.waitingForAdd}
                   disabled={props.waitingForRemove}
                 />
@@ -149,7 +149,7 @@ export const TeamMemberRow = (props: Props) => {
                 small={true}
                 label="Remove"
                 onClick={props.onRemoveFromTeam}
-                type="Secondary"
+                type="Dim"
                 waiting={props.waitingForRemove}
                 disabled={props.waitingForAdd}
               />
@@ -177,7 +177,7 @@ export const TeamMemberRow = (props: Props) => {
                 small={true}
                 label="Re-Admit"
                 onClick={props.onReAddToTeam}
-                type="PrimaryGreen"
+                type="Success"
                 waiting={props.waitingForAdd}
                 disabled={props.waitingForRemove}
               />
@@ -186,7 +186,7 @@ export const TeamMemberRow = (props: Props) => {
               small={true}
               label="Remove"
               onClick={props.onRemoveFromTeam}
-              type="Secondary"
+              type="Dim"
               waiting={props.waitingForRemove}
               disabled={props.waitingForAdd}
             />

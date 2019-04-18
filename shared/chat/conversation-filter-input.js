@@ -7,50 +7,26 @@ import flags from '../util/feature-flags'
 
 export type Props = {|
   filter: string,
-  filterFocusCount: number,
-  focusOnMount?: ?boolean,
   isLoading: boolean,
+  isSearching: boolean,
   onBack: () => void,
   noShortcut: ?boolean,
-  onBlur: () => void,
   onEnsureSelection: () => void,
-  onFocus: () => void,
   onNewChat?: () => void,
   onSelectDown: () => void,
   onSelectUp: () => void,
   onSetFilter: (filter: string) => void,
+  onStartSearch: () => void,
+  onStopSearch: () => void,
   style?: Styles.StylesCrossPlatform,
 |}
 
-type State = {
-  isEditing: boolean,
-}
-
-class ConversationFilterInput extends React.PureComponent<Props, State> {
-  state: State
+class ConversationFilterInput extends React.PureComponent<Props> {
   _input: any
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      isEditing: false,
-    }
-  }
-
-  _startEditing = () => {
-    this.setState({isEditing: true})
-    this.props.onFocus()
-  }
-
-  _stopEditing = () => {
-    this.setState({isEditing: false})
-    this.props.onBlur()
-  }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {
-      this.props.onSetFilter('')
-      this._stopEditing()
+      this.props.onStopSearch()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
       e.stopPropagation()
@@ -66,37 +42,22 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     if (!Styles.isMobile) {
       e.preventDefault()
       e.stopPropagation()
-      this.props.onSetFilter('')
-      this._stopEditing()
-      this._input && this._input.blur()
       this.props.onEnsureSelection()
+      this._input && this._input.blur()
     }
   }
 
-  componentDidMount() {
-    // In choose-conversation, this is inside overlay and gets unmounted when
-    // the popup hides. So just provide an option to focus on mount.
-    this.props.focusOnMount && this._startEditing()
-  }
-
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.state.isEditing !== prevState.isEditing && this.state.isEditing) {
+  componentDidUpdate(prevProps: Props) {
+    if (!prevProps.isSearching && this.props.isSearching) {
       this._input && this._input.focus()
-    }
-    if (this.props.filterFocusCount !== prevProps.filterFocusCount) {
-      this._startEditing()
     }
   }
 
   _setRef = r => (this._input = r)
-  _onCancel = () => {
-    this.props.onSetFilter('')
-    this._stopEditing()
-  }
 
   render() {
     let children
-    if (this.state.isEditing || this.props.filter) {
+    if (this.props.isSearching) {
       children = (
         <Kb.Box2
           alignItems="center"
@@ -116,13 +77,12 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             fontSize={Styles.isMobile ? 20 : 16}
           />
           <Kb.Input
+            autoFocus={Styles.isMobile}
             hideUnderline={true}
             small={true}
             value={this.props.filter}
-            hintText="Jump to..."
+            hintText="Search..."
             onChangeText={this.props.onSetFilter}
-            onFocus={this._startEditing}
-            onBlur={this._stopEditing}
             onKeyDown={this._onKeyDown}
             onEnterKeyDown={this._onEnterKeyDown}
             ref={this._setRef}
@@ -132,7 +92,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             type="iconfont-remove"
             fontSize={16}
             color={Styles.globalColors.black_50}
-            onClick={this._onCancel}
+            onClick={this.props.onStopSearch}
             style={styles.icon}
           />
         </Kb.Box2>
@@ -157,7 +117,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             {flags.useNewRouter && Styles.isMobile && (
               <Kb.BackButton onClick={this.props.onBack} style={styles.backButton} />
             )}
-            <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
+            <Kb.ClickableBox style={styles.filterContainer} onClick={this.props.onStartSearch}>
               <Kb.Icon
                 type="iconfont-search"
                 style={styles.icon}
@@ -165,7 +125,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
                 fontSize={Styles.isMobile ? 20 : 16}
               />
               <Kb.Text type="BodySemibold" style={styles.text}>
-                Jump to...
+                Search...
               </Kb.Text>
               {!Styles.isMobile && !this.props.noShortcut && (
                 <Kb.Text type="BodySemibold" style={styles.textFaint}>
@@ -176,7 +136,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           </Kb.Box2>
           {!!this.props.onNewChat && (
             <Kb.WithTooltip position="bottom center" text={`New chat (${Platforms.shortcutSymbol}N)`}>
-              <Kb.Button small={true} type="Primary" onClick={this.props.onNewChat}>
+              <Kb.Button small={true} onClick={this.props.onNewChat}>
                 <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
               </Kb.Button>
             </Kb.WithTooltip>

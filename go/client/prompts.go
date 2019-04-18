@@ -69,6 +69,7 @@ const (
 	PromptDescriptorStellarDisclaimer
 	PromptDescriptorPaperKey
 	PromptDescriptorStellarConfirm
+	PromptDescriptorResetAccount
 )
 
 const (

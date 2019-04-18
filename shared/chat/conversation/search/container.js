@@ -21,6 +21,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   const info = Constants.getThreadSearchInfo(state, conversationIDKey)
   return {
     _hits: info.hits,
+    initialText: state.chat2.threadSearchQueryMap.get(conversationIDKey, null),
     status: info.status,
   }
 }
@@ -28,6 +29,8 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _loadSearchHit: messageID =>
     dispatch(Chat2Gen.createLoadMessagesFromSearchHit({conversationIDKey, messageID})),
+  clearInitialText: () =>
+    dispatch(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query: new HiddenString('')})),
   onCancel: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
   onHotkey: (cmd: string) => {
     switch (cmd) {
@@ -41,6 +44,8 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
+  clearInitialText: dispatchProps.clearInitialText,
+  conversationIDKey,
   hits: stateProps._hits
     .map(h => ({
       author: h.author,
@@ -49,6 +54,7 @@ const mergeProps = (stateProps, dispatchProps, {conversationIDKey, style}) => ({
     }))
     .toArray(),
   hotkeys: ['esc'],
+  initialText: stateProps.initialText ? stateProps.initialText.stringValue() : null,
   loadSearchHit: index => {
     const message = stateProps._hits.get(index, Constants.makeMessageText())
     if (message.id > 0) {

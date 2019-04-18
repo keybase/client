@@ -59,7 +59,7 @@ export const TeamInviteRow = (props: Props) => {
           small={true}
           label={isMobile ? 'Cancel' : 'Cancel invite'}
           onClick={onCancelInvite}
-          type="Secondary"
+          type="Dim"
           waitingKey={null}
         />
       </Box>

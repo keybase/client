@@ -24,12 +24,18 @@ const JoinOrLogin = (props: Props) => (
     </Kb.Box2>
     <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
       <Kb.Button
-        type="Primary"
         label="Create an account"
         onClick={props.onCreateAccount}
         style={styles.button}
+        fullWidth={true}
       />
-      <Kb.Button type="Secondary" label="Log in" onClick={props.onLogin} style={styles.button} />
+      <Kb.Button
+        mode="Secondary"
+        label="Log in"
+        onClick={props.onLogin}
+        style={styles.button}
+        fullWidth={true}
+      />
     </Kb.ButtonBar>
   </Kb.Box2>
 )

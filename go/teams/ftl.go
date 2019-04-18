@@ -327,7 +327,12 @@ func (f *FastTeamChainLoader) deriveKeyForApplicationAtGeneration(m libkb.MetaCo
 		}
 	}
 	if mask == nil {
-		return key, NewFastLoadError(fmt.Sprintf("Could not get reader key mask for <%d,%d>", app, gen))
+		m.Debug("Could not get reader key mask for <%s,%d>", app, gen)
+		if state.ID().IsSubTeam() {
+			m.Debug("guessing lack of RKM is due to not being an explicit member of the subteam")
+			return key, NewNotExplicitMemberOfSubteamError()
+		}
+		return key, NewFastLoadError("Could not load application keys")
 	}
 
 	rkm := keybase1.ReaderKeyMask{

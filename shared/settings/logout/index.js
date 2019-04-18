@@ -62,11 +62,10 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
         {!this.props.checkPasswordIsCorrect ? (
           <Kb.Box2 direction="vertical">
             <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
-              <Kb.Button onClick={this.props.onCancel} label="Cancel" fullWidth={true} type="Secondary" />
+              <Kb.Button onClick={this.props.onCancel} label="Cancel" fullWidth={true} type="Dim" />
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                type="Primary"
                 disabled={!!this.props.checkPasswordIsCorrect}
                 label="Test password"
                 onClick={() => {
@@ -87,7 +86,7 @@ class OfferToCheckPassword extends React.Component<TestProps, State> {
               label="Safely sign out"
               fullWidth={true}
               onClick={this.props.onLogout}
-              type="PrimaryGreen"
+              type="Success"
             />
           </Kb.ButtonBar>
         )}

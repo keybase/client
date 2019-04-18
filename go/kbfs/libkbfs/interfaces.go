@@ -29,7 +29,7 @@ import (
 
 type logMaker interface {
 	MakeLogger(module string) logger.Logger
-	MakeVLogger(module string) *libkb.VDebugLog
+	MakeVLogger(logger.Logger) *libkb.VDebugLog
 }
 
 type blockCacher interface {
@@ -1291,6 +1291,9 @@ type Prefetcher interface {
 	// Status returns the current status of the prefetch for the block
 	// tree rooted at the given pointer.
 	Status(ctx context.Context, ptr data.BlockPointer) (PrefetchProgress, error)
+	// OverallSyncStatus returns the current status of all sync
+	// prefetches.
+	OverallSyncStatus() PrefetchProgress
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(data.BlockPointer)
@@ -2029,6 +2032,11 @@ type Config interface {
 	// strings are hard-coded in go/libkb/vdebug.go, but include
 	// "mobile", "vlog1", "vlog2", etc.
 	SetVLogLevel(levelString string)
+
+	// VLogLevel gets the vdebug level for this config.  The possible
+	// strings are hard-coded in go/libkb/vdebug.go, but include
+	// "mobile", "vlog1", "vlog2", etc.
+	VLogLevel() string
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

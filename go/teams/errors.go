@@ -289,6 +289,18 @@ func (e ImplicitAdminCannotLeaveError) Error() string {
 	return "You cannot leave this team. You are an implicit admin (admin of a parent team) but not an explicit member."
 }
 
+type NotExplicitMemberOfSubteamError struct{}
+
+func NewNotExplicitMemberOfSubteamError() error { return NotExplicitMemberOfSubteamError{} }
+
+func (e NotExplicitMemberOfSubteamError) Error() string {
+	return "You are not an explicit member of this subteam, so you can't access chats or files; try adding yourself (if you're an admin of the parent team)"
+}
+
+func (e NotExplicitMemberOfSubteamError) HumanError() error {
+	return e
+}
+
 type TeamDeletedError struct{}
 
 func NewTeamDeletedError() error { return &TeamDeletedError{} }

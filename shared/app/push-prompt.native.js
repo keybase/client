@@ -37,7 +37,6 @@ const PushPrompt = (props: Props) => (
         you provision a new device, this phone will be contacted.
       </Kb.Text>
       <Kb.WaitingButton
-        type="Primary"
         fullWidth={true}
         onClick={props.onRequestPermissions}
         label="Got it"
@@ -45,7 +44,7 @@ const PushPrompt = (props: Props) => (
         style={styles.button}
       />
       <Kb.Button
-        type="Secondary"
+        type="Dim"
         fullWidth={true}
         onClick={props.onNoPermissions}
         label="No thanks"

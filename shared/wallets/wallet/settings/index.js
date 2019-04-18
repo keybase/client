@@ -183,7 +183,7 @@ class AccountSettings extends React.Component<SettingsProps> {
               )}
               {!!props.canSubmitTx && (
                 <Kb.Button
-                  type="Secondary"
+                  type="Dim"
                   label={props.inflationDestination ? 'Change' : 'Set up'}
                   onClick={props.onSetupInflation}
                   style={styles.setupInflation}

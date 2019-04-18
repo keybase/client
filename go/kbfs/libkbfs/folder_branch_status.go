@@ -235,7 +235,9 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		fbs.LocalTimestamp = fbsk.md.localTimestamp
 
 		if fbsk.quotaUsage == nil {
-			loggerSuffix := fmt.Sprintf("status-%s", fbsk.md.TlfID())
+			log := fbsk.config.MakeLogger(QuotaUsageLogModule(fmt.Sprintf(
+				"status-%s", fbsk.md.TlfID())))
+			vlog := fbsk.config.MakeVLogger(log)
 			chargedTo, err := chargedToForTLF(
 				ctx, fbsk.config.KBPKI(), fbsk.config.KBPKI(),
 				fbsk.config, fbsk.md.GetTlfHandle())
@@ -246,13 +248,13 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 				// TODO: somehow share this team quota usage instance
 				// with the journal for the team (and subteam) TLFs?
 				fbsk.quotaUsage = NewEventuallyConsistentTeamQuotaUsage(
-					fbsk.config, chargedTo.AsTeamOrBust(), loggerSuffix)
+					fbsk.config, chargedTo.AsTeamOrBust(), log, vlog)
 			} else {
 				// Almost certainly this should be being passed in by
 				// the caller of fbsk's constructor, and in that case
 				// we wouldn't be making a new one here
 				fbsk.quotaUsage = NewEventuallyConsistentQuotaUsage(
-					fbsk.config, loggerSuffix)
+					fbsk.config, log, vlog)
 			}
 		}
 		_, usageBytes, archiveBytes, limitBytes,

@@ -71,7 +71,7 @@ const RetentionWarning = (props: Props) => {
           }
         />
         <ButtonBar>
-          <Button type="Secondary" onClick={props.onBack} label="Cancel" />
+          <Button type="Dim" onClick={props.onBack} label="Cancel" />
           <Button
             type="Danger"
             onClick={props.onConfirm}

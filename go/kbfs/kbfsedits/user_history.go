@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -38,13 +39,15 @@ type UserHistory struct {
 	lock      sync.RWMutex
 	histories map[tlfKey]writersByRevision
 	log       logger.Logger
+	vlog      *libkb.VDebugLog
 }
 
 // NewUserHistory constructs a UserHistory instance.
-func NewUserHistory(log logger.Logger) *UserHistory {
+func NewUserHistory(log logger.Logger, vlog *libkb.VDebugLog) *UserHistory {
 	return &UserHistory{
 		histories: make(map[tlfKey]writersByRevision),
 		log:       log,
+		vlog:      vlog,
 	}
 }
 
@@ -53,7 +56,7 @@ func NewUserHistory(log logger.Logger) *UserHistory {
 func (uh *UserHistory) UpdateHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory,
 	loggedInUser string) {
-	uh.log.CDebugf(nil, "Updating user history for TLF %s, "+
+	uh.vlog.CLogf(nil, libkb.VLog1, "Updating user history for TLF %s, "+
 		"user %s", tlfName, loggedInUser)
 	history := tlfHistory.getHistory(loggedInUser)
 	key := tlfKey{tlfName, tlfType}
@@ -163,7 +166,7 @@ func (uh *UserHistory) Get(loggedInUser string) (
 	history []keybase1.FSFolderEditHistory) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
-	uh.log.CDebugf(nil, "User history requested: %s", loggedInUser)
+	uh.vlog.CLogf(nil, libkb.VLog1, "User history requested: %s", loggedInUser)
 	var clusters historyClusters
 	for key := range uh.histories {
 		history := uh.getTlfHistoryLocked(key.tlfName, key.tlfType)

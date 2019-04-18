@@ -818,6 +818,15 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 	return nil
 }
 
+func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+	return l.parent.PromptYesNo(PromptDescriptorResetAccount, arg.Text, libkb.PromptDefaultNo)
+}
+
+func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
+	l.parent.Printf("%s\n", arg.Text)
+	return nil
+}
+
 type SecretUI struct {
 	parent *UI
 }
