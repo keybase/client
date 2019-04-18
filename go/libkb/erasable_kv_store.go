@@ -18,14 +18,23 @@ import (
 
 type UnboxError struct {
 	inner error
+	info  string
 }
 
 func NewUnboxError(inner error) UnboxError {
 	return UnboxError{inner: inner}
 }
 
+func NewUnboxErrorWithInfo(inner error, info string) UnboxError {
+	return UnboxError{inner: inner, info: info}
+}
+
 func (e UnboxError) Error() string {
-	return fmt.Sprintf("ErasableKVStore UnboxError: %v", e.inner.Error())
+	return fmt.Sprintf("ErasableKVStore UnboxError (info=%s): %v", e.info, e.inner.Error())
+}
+
+func (e UnboxError) Info() string {
+	return e.info
 }
 
 type boxedData struct {
@@ -119,7 +128,12 @@ func (s *FileErasableKVStore) unbox(mctx MetaContext, data []byte, noiseBytes No
 		// If this fails, let's see if our noise file was corrupted somehow.
 		originalNoise := boxed.H
 		currentNoise := s.noiseHash(noiseBytes[:])
-		return NewUnboxError(fmt.Errorf("secretbox.Open failure. Stored noise hash: %x, current noise hash: %x, equal: %v", originalNoise, currentNoise, bytes.Equal(originalNoise, currentNoise)))
+		eq := bytes.Equal(originalNoise, currentNoise)
+		err = fmt.Errorf("secretbox.Open failure. Stored noise hash: %x, current noise hash: %x, equal: %v", originalNoise, currentNoise, eq)
+		if eq {
+			return NewUnboxErrorWithInfo(err, "noise hashes match")
+		}
+		return NewUnboxErrorWithInfo(err, "noise hashes do not match")
 	}
 
 	err = MPackDecode(pt, val)

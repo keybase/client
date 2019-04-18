@@ -259,6 +259,7 @@ func LoadAdvisorySecretStoreOptionsFromRemote(mctx MetaContext) (options SecretS
 	if err != nil {
 		mctx.Warning("Failed to load advisory secret store options from remote: %s", err)
 		// If there was an API error, just return the default options.
+		options.RandomPw = true
 		return options
 	}
 	options.RandomPw = ret.RandomPW

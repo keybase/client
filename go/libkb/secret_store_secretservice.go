@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 
 	dbus "github.com/guelfey/go.dbus"
@@ -37,10 +38,11 @@ func (s *SecretStoreRevokableSecretService) makeAttributes(mctx MetaContext, use
 	serviceAttributes["username"] = string(username)
 	serviceAttributes["identifier"] = hex.EncodeToString(instanceIdentifier)
 	serviceAttributes["note"] = "https://keybase.io/docs/crypto/local-key-security"
+	serviceAttributes["note2"] = "Do not delete this entry. Instead, run `keybase logout` to remove it."
 	return serviceAttributes
 }
 
-func (s *SecretStoreRevokableSecretService) maybeRetrieveSingleItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername, instanceIdentifier []byte) (*dbus.ObjectPath, error) {
+func (s *SecretStoreRevokableSecretService) retrieveManyItems(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername, instanceIdentifier []byte) ([]dbus.ObjectPath, error) {
 	if srv == nil {
 		return nil, fmt.Errorf("got nil d-bus secretservice")
 	}
@@ -49,11 +51,20 @@ func (s *SecretStoreRevokableSecretService) maybeRetrieveSingleItem(mctx MetaCon
 	if err != nil {
 		return nil, err
 	}
+	return items, nil
+}
+
+func (s *SecretStoreRevokableSecretService) maybeRetrieveSingleItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername, instanceIdentifier []byte) (*dbus.ObjectPath, error) {
+	items, err := s.retrieveManyItems(mctx, srv, username, instanceIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(items) < 1 {
 		return nil, nil
 	}
 	if len(items) > 1 {
-		mctx.Warning("found more than one match in keyring for query %+v", attributes)
+		mctx.Warning("found more than one match in keyring for query %+v", s.makeAttributes(mctx, username, instanceIdentifier))
 	}
 	item := items[0]
 	err = srv.Unlock([]dbus.ObjectPath{item})
@@ -64,7 +75,7 @@ func (s *SecretStoreRevokableSecretService) maybeRetrieveSingleItem(mctx MetaCon
 }
 
 func (s *SecretStoreRevokableSecretService) keystoreDir(mctx MetaContext, username string) string {
-	return fmt.Sprintf("ring/%s", username)
+	return fmt.Sprintf("ring%c%s", filepath.Separator, username)
 }
 
 func (s *SecretStoreRevokableSecretService) secretlessKeystore(mctx MetaContext, username string) SecretlessErasableKVStore {
@@ -93,7 +104,7 @@ func (s *SecretStoreRevokableSecretService) keystore(mctx MetaContext, username 
 	return NewFileErasableKVStore(mctx, s.keystoreDir(mctx, username), keygen)
 }
 
-var identifierKeystoreSuffix = ".user"
+const identifierKeystoreSuffix = ".user"
 
 func (s *SecretStoreRevokableSecretService) identifierKeystoreKey(username NormalizedUsername) string {
 	return string(username) + identifierKeystoreSuffix
@@ -221,31 +232,32 @@ func (s *SecretStoreRevokableSecretService) ClearSecret(mctx MetaContext, userna
 	var instanceIdentifier []byte
 	err = identifierKeystore.Get(mctx, s.identifierKeystoreKey(username), &instanceIdentifier)
 	if err != nil {
-		return err
+		// If we can't get the identifier, we can't delete it from the keyring, so bail out here.
+		return CombineErrors(keystoreErr, err)
 	}
+
 	err = identifierKeystore.Erase(mctx, s.identifierKeystoreKey(username))
 	if err != nil {
-		return err
+		// We can continue even if we failed to erase the identifier, since we know it now.
+		mctx.Warning("Failed to erase identifier from identifier keystore %s; continuing to attempt to delete from keyring", err)
 	}
 
 	srv, err := secsrv.NewService()
 	if err != nil {
 		return CombineErrors(keystoreErr, err)
 	}
-	// Only delete the one for the identifier we care about, so as not to erase
+	// Only delete the ones for the identifier we care about, so as not to erase
 	// other passwords for the same user in a different home directory on the
 	// same computer.
-	item, err := s.maybeRetrieveSingleItem(mctx, srv, username, instanceIdentifier)
+	items, err := s.retrieveManyItems(mctx, srv, username, instanceIdentifier)
 	if err != nil {
 		return CombineErrors(keystoreErr, err)
 	}
-	if item == nil {
-		mctx.Debug("secret not found; short-circuiting clear")
-		return nil
-	}
-	err = srv.DeleteItem(*item)
-	if err != nil {
-		return CombineErrors(keystoreErr, err)
+	for _, item := range items {
+		err = srv.DeleteItem(item)
+		if err != nil {
+			return CombineErrors(keystoreErr, err)
+		}
 	}
 
 	return keystoreErr
