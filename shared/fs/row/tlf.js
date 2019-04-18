@@ -29,7 +29,11 @@ const Tlf = (props: TlfProps) => (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Text
           type={Constants.pathTypeToTextType('folder')}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
+          style={Styles.collapseStyles([
+            rowStyles.rowText,
+            {color: Constants.getPathTextColor(props.path)},
+            styles.kerning,
+          ])}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
@@ -39,5 +43,9 @@ const Tlf = (props: TlfProps) => (
     </Kb.Box>
   </StillCommon>
 )
+
+const styles = Styles.styleSheetCreate({
+  kerning: {letterSpacing: 0.2},
+})
 
 export default Tlf
