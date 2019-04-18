@@ -893,33 +893,44 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 	res = map[string]chat1.ProfileSearchConvStats{}
 	for convIDStr, conv := range convMap {
 		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", conv.GetName())
-		convStats, err := idx.indexConvWithProfile(ctx, conv.Conv, uid)
+		convStats, err := idx.indexConvWithProfile(ctx, conv, uid)
 		if err != nil {
 			idx.G().Log.CDebugf(ctx, "Indexing errored for conv: %v, %v", conv.GetName(), err)
-			continue
+		} else {
+			idx.G().Log.CDebugf(ctx, "Indexing completed for conv: %v, stats: %+v", conv.GetName(), convStats)
 		}
-		idx.G().Log.CDebugf(ctx, "Indexing completed for conv: %v, stats: %+v", conv.GetName(), convStats)
 		res[convIDStr] = convStats
 	}
 	return res, nil
 }
 
-func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv chat1.Conversation, uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
+func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation,
+	uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConvWithProfile")()
+	var convIdx *chat1.ConversationIndex
+	defer func() {
+		res.ConvName = conv.GetName()
+		if convIdx != nil {
+			res.NumMessages = len(convIdx.Metadata.SeenIDs)
+			res.PercentIndexed = convIdx.PercentIndexed(conv.Conv)
+		}
+		if err != nil {
+			res.Err = err.Error()
+		}
+	}()
 
 	convID := conv.GetConvID()
-	convIdx, err := idx.store.getConvIndex(ctx, convID, uid)
+	convIdx, err = idx.store.getConvIndex(ctx, convID, uid)
 	if err != nil {
 		return res, err
 	}
+
 	startT := time.Now()
-	_, convIdx, err = idx.reindexConv(ctx, conv, uid, convIdx, reindexOpts{forceReindex: true})
+	_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: true})
 	if err != nil {
 		return res, err
 	}
-	res.NumMessages += len(convIdx.Metadata.SeenIDs)
 	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
-	res.PercentIndexed = convIdx.PercentIndexed(conv)
 	dbKey := idx.store.dbKey(convID, uid)
 	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {
