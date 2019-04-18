@@ -352,13 +352,15 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 	case key.TrackDiff == nil || key.TrackDiff.Type == keybase1.TrackDiffType_NONE:
 		arg.State = keybase1.Identify3RowState_VALID
 		arg.Color = keybase1.Identify3RowColor_GREEN
-	case key.TrackDiff != nil && key.TrackDiff.Type == keybase1.TrackDiffType_REVOKED:
+	case key.TrackDiff != nil && (key.TrackDiff.Type == keybase1.TrackDiffType_REVOKED || key.TrackDiff.Type == keybase1.TrackDiffType_NEW_ELDEST):
 		arg.State = keybase1.Identify3RowState_REVOKED
 		arg.Color = keybase1.Identify3RowColor_RED
 	case key.TrackDiff != nil && key.TrackDiff.Type == keybase1.TrackDiffType_NEW:
 		arg.State = keybase1.Identify3RowState_VALID
 		arg.Color = keybase1.Identify3RowColor_BLUE
 		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "new"})
+	default:
+		mctx.Warning("unhandled ID3 setRowStatus in displayKey: %+v", key)
 	}
 
 	i.updateRow(mctx, arg)
