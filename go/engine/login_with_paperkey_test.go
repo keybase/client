@@ -18,7 +18,7 @@ import (
 func TestLoginWithPaperKeyAlreadyIn(t *testing.T) {
 	tc := SetupEngineTest(t, "loginwithpaperkey")
 	defer tc.Cleanup()
-	_, paperkey := CreateAndSigunpLPK(tc, "login")
+	_, paperkey := CreateAndSignupLPK(tc, "login")
 
 	t.Logf("checking logged in status [before]")
 	AssertLoggedInLPK(&tc, true)
@@ -52,7 +52,7 @@ func TestLoginWithPaperKeyAlreadyIn(t *testing.T) {
 func TestLoginWithPaperKeyFromScratch(t *testing.T) {
 	tc := SetupEngineTest(t, "loginwithpaperkey")
 	defer tc.Cleanup()
-	_, paperkey := CreateAndSigunpLPK(tc, "login")
+	_, paperkey := CreateAndSignupLPK(tc, "login")
 
 	t.Logf("logging out")
 	Logout(tc)
@@ -89,7 +89,7 @@ func TestLoginWithPaperKeyFromScratch(t *testing.T) {
 func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 	tc := SetupEngineTest(t, "loginwithpaperkey")
 	defer tc.Cleanup()
-	u, paperkey := CreateAndSigunpLPK(tc, "login")
+	u, paperkey := CreateAndSignupLPK(tc, "login")
 
 	t.Logf("locking keys")
 	tc.SimulateServiceRestart()
@@ -121,8 +121,42 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 	AssertDeviceKeysLock(&tc, true)
 }
 
+// full flow, login with username
+func TestLoginWithPaperKeyByUsername(t *testing.T) {
+	tc := SetupEngineTest(t, "loginwithpaperkey")
+	defer tc.Cleanup()
+	fu, paperkey := CreateAndSignupLPK(tc, "login")
+
+	t.Logf("logging out")
+	Logout(tc)
+
+	t.Logf("checking logged in status [before]")
+	AssertLoggedInLPK(&tc, false)
+	t.Logf("checking unlocked status [before]")
+	AssertDeviceKeysLock(&tc, false)
+
+	t.Logf("running LoginWithPaperKey")
+	uis := libkb.UIs{
+		LogUI: tc.G.UI.GetLogUI(),
+		SecretUI: &TestSecretUIPaperKey{
+			T:                         t,
+			Paperkey:                  paperkey,
+			AllowedGetPassphraseCalls: 1,
+		},
+	}
+	eng := NewLoginWithPaperKey(tc.G, fu.NormalizedUsername().String())
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	t.Logf("checking logged in status [after]")
+	AssertLoggedInLPK(&tc, true)
+	t.Logf("checking unlocked status [after]")
+	AssertDeviceKeysLock(&tc, true)
+}
+
 // Returns the user and paper key.
-func CreateAndSigunpLPK(tc libkb.TestContext, prefix string) (*FakeUser, string) {
+func CreateAndSignupLPK(tc libkb.TestContext, prefix string) (*FakeUser, string) {
 	u := CreateAndSignupFakeUser(tc, prefix)
 
 	uis := libkb.UIs{
@@ -142,7 +176,6 @@ func CreateAndSigunpLPK(tc libkb.TestContext, prefix string) (*FakeUser, string)
 }
 
 func AssertLoggedInLPK(tc *libkb.TestContext, shouldBeLoggedIn bool) {
-
 	activeDeviceIsValid := tc.G.ActiveDevice.Valid()
 	t := tc.T
 	if shouldBeLoggedIn {
