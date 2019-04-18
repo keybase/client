@@ -1561,9 +1561,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
 
   if (!flags.useNewRouter) {
     yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, onTabChange)
-  } else {
-    yield* Saga.chainAction<TeamsGen.ClearNavBadgesPayload>(TeamsGen.clearNavBadges, clearNavBadges)
   }
+  yield* Saga.chainAction<TeamsGen.ClearNavBadgesPayload>(TeamsGen.clearNavBadges, clearNavBadges)
 }
 
 export default teamsSaga
