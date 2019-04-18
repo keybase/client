@@ -4654,6 +4654,8 @@ func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 }
 
 type ProfileSearchConvStats struct {
+	Err            string               `codec:"err" json:"err"`
+	ConvName       string               `codec:"convName" json:"convName"`
 	NumMessages    int                  `codec:"numMessages" json:"numMessages"`
 	IndexSize      int                  `codec:"indexSize" json:"indexSize"`
 	DurationMsec   gregor1.DurationMsec `codec:"durationMsec" json:"durationMsec"`
@@ -4662,6 +4664,8 @@ type ProfileSearchConvStats struct {
 
 func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 	return ProfileSearchConvStats{
+		Err:            o.Err,
+		ConvName:       o.ConvName,
 		NumMessages:    o.NumMessages,
 		IndexSize:      o.IndexSize,
 		DurationMsec:   o.DurationMsec.DeepCopy(),
