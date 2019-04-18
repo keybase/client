@@ -1,7 +1,7 @@
 // @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {executeActionsForContext} from '../../util/quit-helper.desktop'
-import {isDarwin} from '../../constants/platform'
+import {isDarwin, isLinux} from '../../constants/platform'
 
 let devToolsState = false
 
@@ -128,6 +128,10 @@ export default function makeMenu(window: any) {
     ]
     // $FlowIssue not sure yet
     const menu = SafeElectron.Menu.buildFromTemplate(template)
+    if (isLinux) {
+      window.setAutoHideMenuBar(true)
+      window.setMenuBarVisibility(false)
+    }
     window.setMenu(menu)
   }
 }
