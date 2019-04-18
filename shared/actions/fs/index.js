@@ -262,28 +262,14 @@ function* folderList(_, action) {
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
     const state = yield* Saga.selectState()
-    const {lastModifiedTimestamp, lastWriter, size, writable} = state.fs.pathItems.get(
-      rootPath,
-      Constants.makeFolder({name: Types.getPathName(rootPath)})
-    )
+    const rootPathItem = state.fs.pathItems.get(rootPath, Constants.unknownPathItem)
+    const rootFolder: Types.FolderPathItem = (rootPathItem.type === 'folder'
+      ? rootPathItem
+      : Constants.makeFolder({name: Types.getPathName(rootPath)})
+    ).withMutations(f => f.set('children', I.Set(childMap.get(rootPath))).set('progress', 'loaded'))
 
     const pathItems = [
-      ...(Types.getPathLevel(rootPath) > 2
-        ? [
-            [
-              rootPath,
-              Constants.makeFolder({
-                children: I.Set(childMap.get(rootPath)),
-                lastModifiedTimestamp,
-                lastWriter,
-                name: Types.getPathName(rootPath),
-                progress: 'loaded',
-                size,
-                writable,
-              }),
-            ],
-          ]
-        : []),
+      ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: I.Map(pathItems)}))
