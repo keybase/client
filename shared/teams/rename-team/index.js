@@ -54,11 +54,16 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
           <Kb.Avatar teamname={this.props.teamname} size={Styles.isMobile ? 64 : 48} />
-          {!Styles.isMobile && (
-            <Kb.Text type="Header" center={true}>
-              Rename {this.props.teamname}
+          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny">
+            {!Styles.isMobile && (
+              <Kb.Text type="Header" center={true}>
+                Rename {this.props.teamname}
+              </Kb.Text>
+            )}
+            <Kb.Text type="BodySmall" center={true}>
+              Subteam of {this._prefix}
             </Kb.Text>
-          )}
+          </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
           direction="vertical"
