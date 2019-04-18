@@ -79,10 +79,9 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
         </Kb.Box2>
         <Kb.ButtonBar direction="row" style={styles.buttonBar}>
           {!Styles.isMobile && (
-            <Kb.Button type="Secondary" label="Cancel" onClick={this.props.onCancel} style={styles.button} />
+            <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} style={styles.button} />
           )}
           <Kb.Button
-            type="Primary"
             label="Rename"
             onClick={this._onRename}
             style={styles.button}

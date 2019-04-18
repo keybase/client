@@ -55,14 +55,15 @@ const _HeaderRightActions = (props: Props) => (
 )
 export const HeaderRightActions = Kb.OverlayParentHOC(_HeaderRightActions)
 
-type HeaderTitleProps = {
+type HeaderTitleProps = {|
   teamname: string,
   description: string,
   members: number,
   onEditAvatar: ?() => void,
   onEditDescription: ?() => void,
+  onRename: ?() => void,
   role: string,
-}
+|}
 
 export const HeaderTitle = (props: HeaderTitleProps) => (
   <Kb.Box2 alignItems="center" direction="horizontal" gap="small" gapStart={true}>
@@ -77,7 +78,10 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       ])}
     />
     <Kb.Box2 direction="vertical">
-      <Kb.Text type="Header">{props.teamname}</Kb.Text>
+      <Kb.Box2 direction="horizontal" alignItems="flex-end" gap="xtiny">
+        <Kb.Text type="Header">{props.teamname}</Kb.Text>
+        {!!props.onRename && <Kb.Icon type="iconfont-edit" onClick={props.onRename} />}
+      </Kb.Box2>
       <Kb.Text type="BodySmall">
         TEAM · {props.members} {pluralize('member', props.members)}
         {!!props.role && ` · ${props.role === 'none' ? 'Not a member' : capitalize(props.role)}`}
@@ -95,9 +99,9 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
   </Kb.Box2>
 )
 
-type SubHeaderProps = {
+type SubHeaderProps = {|
   onAddSelf: ?() => void,
-}
+|}
 
 export const SubHeader = (props: SubHeaderProps) =>
   props.onAddSelf ? (

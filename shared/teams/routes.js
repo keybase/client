@@ -161,5 +161,10 @@ export const newModalRoutes = {
     getScreen: () => require('./team/really-remove-member/container').default,
     upgraded: true,
   },
+  teamRename: {
+    // TODO add to nav1 routes too
+    getScreen: () => require('./rename-team/container').default,
+    upgraded: true,
+  },
   teamRolePicker: {getScreen: () => require('./role-picker/container').default},
 }
