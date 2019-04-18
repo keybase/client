@@ -536,6 +536,11 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
 	for !pagination.Last {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
 		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
 			inboxQuery, pagination)
 		if err != nil {
