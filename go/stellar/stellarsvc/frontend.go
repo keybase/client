@@ -1113,5 +1113,14 @@ func (s *Server) DeleteTrustlineLocal(ctx context.Context, arg stellar1.DeleteTr
 }
 
 func (s *Server) ChangeTrustlineLimitLocal(ctx context.Context, arg stellar1.ChangeTrustlineLimitLocalArg) (err error) {
-	return fmt.Errorf("not implemented")
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "ChangeTrustlineLimit",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+	return stellar.ChangeTrustlineLimitLocal(mctx, arg)
 }

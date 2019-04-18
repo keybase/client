@@ -2757,6 +2757,61 @@ func TestGetInflationDestinations(t *testing.T) {
 	require.True(t, found, "expecting to find lumenaut in the list")
 }
 
+func TestManageTrustlines(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
+	require.NoError(t, err)
+	tcs[0].Backend.Gift(senderAccountID, "20")
+
+	keys := tcs[0].Backend.CreateFakeAsset("KEYS")
+
+	err = tcs[0].Srv.AddTrustlineLocal(context.Background(), stellar1.AddTrustlineLocalArg{
+		AccountID: senderAccountID,
+		Trustline: stellar1.Trustline{
+			AssetCode: stellar1.AssetCode(keys.Code),
+			Issuer:    stellar1.AccountID(keys.Issuer),
+		},
+		Limit: "",
+	})
+	require.NoError(t, err)
+
+	balances, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{
+		AccountID: senderAccountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances, 2)
+
+	require.Equal(t, keys.Code, balances[1].AssetCode)
+	require.Equal(t, keys.Code, balances[1].Name)
+	require.Equal(t, keys.Issuer, balances[1].IssuerAccountID)
+	require.Equal(t, "0", balances[1].BalanceTotal)
+	require.Equal(t, "0", balances[1].BalanceAvailableToSend)
+
+	err = tcs[0].Srv.DeleteTrustlineLocal(context.Background(), stellar1.DeleteTrustlineLocalArg{
+		AccountID: senderAccountID,
+		Trustline: stellar1.Trustline{
+			AssetCode: stellar1.AssetCode(keys.Code),
+			Issuer:    stellar1.AccountID(keys.Issuer),
+		},
+	})
+	require.NoError(t, err)
+
+	balances, err = tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{
+		AccountID: senderAccountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, balances, 1)
+	require.Equal(t, "Lumens", balances[0].Name)
+	require.Equal(t, "Stellar network", balances[0].IssuerName)
+	require.Equal(t, "", balances[0].IssuerAccountID)
+
+}
+
 type chatListener struct {
 	libkb.NoopNotifyListener
 

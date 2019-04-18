@@ -555,7 +555,7 @@ func (r *RemoteClientMock) DetailsPlusPayments(ctx context.Context, accountID st
 }
 
 func (r *RemoteClientMock) ChangeTrustline(ctx context.Context, signedTx string) error {
-	return fmt.Errorf("change trustline is not implemented in mock")
+	return r.Backend.ChangeTrustline(ctx, r.Tc, signedTx)
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -1259,6 +1259,74 @@ func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestConte
 func (r *BackendMock) GetInflationDestinations(ctx context.Context, tc *TestContext) ([]stellar1.PredefinedInflationDestination, error) {
 	// Call into real server for integration testing.
 	return remote.GetInflationDestinations(ctx, tc.G)
+}
+
+func (r *BackendMock) ChangeTrustline(ctx context.Context, tc *TestContext, signedTx string) error {
+	unpackedTx, _, err := unpackTx(signedTx)
+	if err != nil {
+		return err
+	}
+
+	accountID := stellar1.AccountID(unpackedTx.Tx.SourceAccount.Address())
+	account, ok := r.accounts[accountID]
+	require.True(tc.T, ok)
+
+	require.Len(tc.T, unpackedTx.Tx.Operations, 1)
+	op := unpackedTx.Tx.Operations[0]
+	require.Nil(tc.T, op.SourceAccount)
+	require.Equal(tc.T, xdr.OperationTypeChangeTrust, op.Body.Type)
+	setOpt, ok := op.Body.GetChangeTrustOp()
+	require.True(tc.T, ok)
+
+	if setOpt.Limit == 0 {
+		// Removing a trustline.
+		var found bool
+		for i, bal := range account.otherBalances {
+			if bal.Asset.String() == setOpt.Line.String() {
+				copy(account.otherBalances[i:], account.otherBalances[i+1:])
+				account.otherBalances = account.otherBalances[:len(account.otherBalances)-1]
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("invalid limit=0, trustline not found in account")
+		}
+		tc.T.Logf("BackendMock set limit removed trustline %s for account  %s", setOpt.Line.String(), accountID)
+	} else {
+		limitStr := stellarnet.StringFromStellarAmount(int64(setOpt.Limit))
+		var found bool
+		for i, bal := range account.otherBalances {
+			if bal.Asset.String() == setOpt.Line.String() {
+				account.otherBalances[i].Limit = limitStr
+				found = true
+				break
+			}
+		}
+
+		if found {
+			tc.T.Logf("BackendMock set limit changed trustline %s limit to %s for account %s",
+				setOpt.Line.String(), limitStr, accountID)
+		} else {
+			var t, c, i string
+			if err := setOpt.Line.Extract(&t, &c, &i); err != nil {
+				return err
+			}
+			account.otherBalances = append(account.otherBalances, stellar1.Balance{
+				Asset: stellar1.Asset{
+					Type:   t,
+					Code:   c,
+					Issuer: i,
+				},
+				Limit:  limitStr,
+				Amount: stellarnet.StringFromStellarAmount(0),
+			})
+			tc.T.Logf("BackendMock set limit added trustline %s with limit %s for account %s",
+				setOpt.Line.String(), limitStr, accountID)
+		}
+	}
+
+	return nil
 }
 
 // Friendbot sends someone XLM

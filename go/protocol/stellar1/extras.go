@@ -209,6 +209,15 @@ func (a *Asset) IsNativeXLM() bool {
 	return a.Type == "native"
 }
 
+// String returns a display friendly form of the asset, compatible with
+// xdr.Asset fomat: type/code/issuer or just "native" if asset is native XLM.
+func (a Asset) String() string {
+	if a.Type == "native" {
+		return a.Type
+	}
+	return fmt.Sprintf("%s/%s/%s", a.Type, a.Code, a.Issuer)
+}
+
 func AssetNative() Asset {
 	return Asset{
 		Type:   "native",
