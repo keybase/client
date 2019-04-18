@@ -249,6 +249,13 @@ func (dbcr *DiskBlockCacheRemote) ClearHomeTLFs(ctx context.Context) error {
 	return nil
 }
 
+// GetTlfSize implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetTlfSize(
+	_ context.Context, _ tlf.ID, _ DiskBlockCacheType) (uint64, error) {
+	panic("GetTlfSize() not implemented in DiskBlockCacheRemote")
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
 	dbcr.conn.Close()

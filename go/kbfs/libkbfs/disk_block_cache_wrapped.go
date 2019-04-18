@@ -494,6 +494,33 @@ func (cache *diskBlockCacheWrapped) ClearHomeTLFs(ctx context.Context) error {
 	return cache.syncCache.ClearHomeTLFs(ctx)
 }
 
+// GetTlfSize implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetTlfSize(
+	ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+	size uint64, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		syncSize, err := cache.syncCache.GetTlfSize(ctx, tlfID)
+		if err != nil {
+			return 0, err
+		}
+		size += syncSize
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		workingSetSize, err := cache.workingSetCache.GetTlfSize(ctx, tlfID)
+		if err != nil {
+			return 0, err
+		}
+		size += workingSetSize
+	}
+
+	return size, nil
+}
+
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Shutdown(ctx context.Context) {
 	cache.mtx.Lock()
