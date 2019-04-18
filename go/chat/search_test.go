@@ -7,6 +7,8 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/search"
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -373,10 +375,6 @@ func TestChatSearchInbox(t *testing.T) {
 		u1 := users[0]
 		u2 := users[1]
 
-		conv := mustCreateConversationForTest(t, ctc, u1, chat1.TopicType_CHAT,
-			mt, ctc.as(t, u2).user())
-		convID := conv.Id
-
 		tc1 := ctc.as(t, u1)
 		tc2 := ctc.as(t, u2)
 		uid1 := u1.User.GetUID().ToBytes()
@@ -418,6 +416,24 @@ func TestChatSearchInbox(t *testing.T) {
 			require.Fail(t, "g2 Indexer did not stop")
 		}
 		g2.Indexer = indexer2
+
+		conv := mustCreateConversationForTest(t, ctc, u1, chat1.TopicType_CHAT,
+			mt, ctc.as(t, u2).user())
+		convID := conv.Id
+
+		rconv, err := utils.GetUnverifiedConv(ctx, g1, uid1, conv.Id,
+			types.InboxSourceDataSourceRemoteOnly)
+		require.NoError(t, err)
+		// verify zero messages case
+		convIdx, err := indexer1.GetConvIndex(ctx, convID, uid1)
+		require.NoError(t, err)
+		require.True(t, convIdx.FullyIndexed(rconv.Conv))
+		require.Equal(t, 100, convIdx.PercentIndexed(rconv.Conv))
+
+		convIdx, err = indexer2.GetConvIndex(ctx, convID, uid2)
+		require.NoError(t, err)
+		require.True(t, convIdx.FullyIndexed(rconv.Conv))
+		require.Equal(t, 100, convIdx.PercentIndexed(rconv.Conv))
 
 		sendMessage := func(msgBody chat1.MessageBody, user *kbtest.FakeUser) chat1.MessageID {
 			msgID := mustPostLocalForTest(t, ctc, user, conv, msgBody)

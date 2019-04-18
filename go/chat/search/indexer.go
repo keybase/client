@@ -437,23 +437,12 @@ type reindexOpts struct {
 func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 	convIdx *chat1.ConversationIndex, opts reindexOpts) (completedJobs int, newIdx *chat1.ConversationIndex, err error) {
 
-	// find the min and max missing ids so we can page between them to fill the gaps.
-	minConvMsgID := conv.GetMaxDeletedUpTo()
-	maxConvMsgID := conv.GetMaxMessageID()
-	missingIDs := convIdx.MissingIDs(minConvMsgID, maxConvMsgID)
+	missingIDs := convIdx.MissingIDForConv(conv)
 	if len(missingIDs) == 0 {
 		return 0, convIdx, nil
 	}
-	minIdxID := maxConvMsgID
-	maxIdxID := minConvMsgID
-	for _, msgID := range missingIDs {
-		if msgID < minIdxID {
-			minIdxID = msgID
-		}
-		if msgID > maxIdxID {
-			maxIdxID = msgID
-		}
-	}
+	minIdxID := missingIDs[0]
+	maxIdxID := missingIDs[len(missingIDs)-1]
 
 	convID := conv.GetConvID()
 	defer idx.Trace(ctx, func() error { return err },
