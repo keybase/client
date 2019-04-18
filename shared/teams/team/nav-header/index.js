@@ -14,7 +14,8 @@ const _AddPeopleButton = (props: {teamname: string} & Kb.OverlayParentProps) => 
       onClick={props.toggleShowingMenu}
       ref={props.setAttachmentRef}
       small={true}
-      type="Dim"
+      type="Default"
+      mode="Secondary"
     />
     <AddPeopleHow
       attachTo={props.getAttachmentRef}
