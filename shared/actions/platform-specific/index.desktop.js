@@ -371,7 +371,6 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifySessionClientOutOfDate,
     onOutOfDate
   )
-  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)
