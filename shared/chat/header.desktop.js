@@ -105,11 +105,14 @@ const styles = Styles.styleSheetCreate({
 
 const mapStateToProps = state => {
   const _conversationIDKey = Constants.getSelectedConversation(state)
+  const _fullnames = state.users.infoMap
   const _meta = Constants.getMeta(state, _conversationIDKey)
 
   return {
     _conversationIDKey,
+    _fullnames,
     _meta,
+    _username: state.config.username,
     infoPanelOpen: Constants.isInfoPanelOpen(state),
   }
 }
@@ -130,6 +133,12 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const meta = stateProps._meta
+  const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
+  // If it's a one-on-one chat, use the user's fullname as the description
+  const desc =
+    meta.teamType === 'adhoc' && otherParticipants.length === 1
+      ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+      : meta.description
   return {
     channel:
       meta.teamType === 'big'
@@ -137,7 +146,7 @@ const mergeProps = (stateProps, dispatchProps) => {
         : meta.teamType === 'small'
         ? meta.teamname
         : null,
-    desc: meta.description,
+    desc,
     infoPanelOpen: stateProps.infoPanelOpen,
     muted: meta.isMuted,
     onNewChat: dispatchProps.onNewChat,
