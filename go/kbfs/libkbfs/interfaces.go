@@ -999,6 +999,12 @@ type DiskBlockCache interface {
 	// ClearHomeTLFs should be called on logout so that the old user's TLFs
 	// are not still marked as home.
 	ClearHomeTLFs(ctx context.Context) error
+	// GetTlfSize returns the number of bytes stored for the given TLF
+	// in the cache of the given type.  If `DiskBlockAnyCache` is
+	// specified, it returns the total sum of bytes across all caches.
+	GetTlfSize(
+		ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+		uint64, error)
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }

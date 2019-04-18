@@ -1436,6 +1436,15 @@ func (cache *DiskBlockCacheLocal) ClearHomeTLFs(ctx context.Context) error {
 	return nil
 }
 
+// GetTlfSize returns the number of bytes stored for the given TLF in
+// the cache.
+func (cache *DiskBlockCacheLocal) GetTlfSize(
+	_ context.Context, tlfID tlf.ID) (uint64, error) {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	return cache.tlfSizes[tlfID], nil
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
 	// Wait for the cache to either finish starting or error.
