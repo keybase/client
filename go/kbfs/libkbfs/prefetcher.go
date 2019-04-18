@@ -989,8 +989,8 @@ func (p *blockPrefetcher) run(
 				req.action.Sync() {
 				// This request turned into a syncing request, so
 				// update the overall sync status.
-				p.updateOverallSyncFetchedBytes(pre.SubtreeBytesFetched, req)
 				p.updateOverallSyncTotalBytes(pre.SubtreeBytesTotal, req)
+				p.updateOverallSyncFetchedBytes(pre.SubtreeBytesFetched, req)
 			}
 
 			// If the request is finished (i.e., if it's marked as
