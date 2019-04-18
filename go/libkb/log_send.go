@@ -573,10 +573,7 @@ func (l *LogSendContext) mergeExtendedStatus(status string) string {
 
 func keybaseProcessList() string {
 	ret := ""
-	osinfo, err := ioutil.ReadFile("/etc/os-release")
-	if err == nil {
-		ret += string(osinfo) + "\n\n"
-	}
+	ret += string(osinfo) + "\n\n"
 
 	processes, err := pgrep(keybaseProcessRegexp)
 	if err != nil {
@@ -590,6 +587,28 @@ func keybaseProcessList() string {
 		ret += fmt.Sprintf("%s (%+v)\n", path, process)
 	}
 	return ret
+}
+
+func osinfo() (string, error) {
+	switch runtime.GOOS {
+	case "linux":
+		osinfo, err := ioutil.ReadFile("/etc/os-release")
+		return string(osinfo), err
+	case "darwin":
+		ctx, cancel := context.WithTimeout(contexrt.Background(), 3*time.Second)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, "sw_vers")
+		osinfo, err = cmd.CombinedOutput()
+		return string(osinfo), err
+	case "windows":
+		ctx, cancel := context.WithTimeout(contexrt.Background(), 3*time.Second)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, "ver")
+		osinfo, err = cmd.CombinedOutput()
+		return string(osinfo), err
+	default:
+		return "", fmt.Errorf("no OS info for platform %s", runtime.GOOS)
+	}
 }
 
 var keybaseProcessRegexp = regexp.MustCompile(`(?i:kbfs|keybase|upd)`)
