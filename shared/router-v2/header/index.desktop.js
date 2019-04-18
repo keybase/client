@@ -55,6 +55,7 @@ class Header extends React.PureComponent<Props> {
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+        {!!opt.headerBanner && opt.headerBanner}
         <Kb.Box2
           noShrink={true}
           direction="vertical"
