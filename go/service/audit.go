@@ -30,7 +30,7 @@ func (h *AuditHandler) IsInJail(ctx context.Context, arg keybase1.IsInJailArg) (
 	return h.G().GetTeamBoxAuditor().IsInJail(mctx, arg.TeamID)
 }
 
-func (h *AuditHandler) BoxAuditTeam(ctx context.Context, arg keybase1.BoxAuditTeamArg) (err error) {
+func (h *AuditHandler) BoxAuditTeam(ctx context.Context, arg keybase1.BoxAuditTeamArg) (res *keybase1.BoxAuditAttempt, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("AuditHandler#BoxAuditTeam", func() error { return err })()
 	return h.G().GetTeamBoxAuditor().BoxAuditTeam(mctx, arg.TeamID)

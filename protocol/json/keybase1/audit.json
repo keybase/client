@@ -48,6 +48,10 @@
             "PerTeamKeyGeneration"
           ],
           "name": "generation"
+        },
+        {
+          "type": "boolean",
+          "name": "rotated"
         }
       ]
     }
@@ -77,7 +81,10 @@
           "type": "TeamID"
         }
       ],
-      "response": null
+      "response": [
+        null,
+        "BoxAuditAttempt"
+      ]
     },
     "attemptBoxAudit": {
       "request": [

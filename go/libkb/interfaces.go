@@ -701,9 +701,9 @@ type TeamAuditor interface {
 type TeamBoxAuditor interface {
 	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
 	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
-	RetryNextBoxAudit(m MetaContext) (err error)
-	BoxAuditRandomTeam(m MetaContext) (err error)
-	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (err error)
+	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
 	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
 	OnLogout(m MetaContext)
 }

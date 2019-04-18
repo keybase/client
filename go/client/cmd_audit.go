@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -35,6 +36,7 @@ type CmdAuditBox struct {
 	RotateBeforeAttempt bool
 	Ls                  bool
 	TeamID              keybase1.TeamID
+	TeamName            string
 }
 
 func NewCmdAuditBox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -56,7 +58,11 @@ func NewCmdAuditBox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			},
 			cli.StringFlag{
 				Name:  "team-id",
-				Usage: "Team ID, required for all operations except list-known-team-ids",
+				Usage: "Team ID, required (or team name) except for list-known-team-ids/audit-all-known-teams",
+			},
+			cli.StringFlag{
+				Name:  "team",
+				Usage: "Team name, required (or team ID) except for list-known-team-ids/audit-all-known-teams",
 			},
 			cli.BoolFlag{
 				Name:  "is-in-jail",
@@ -106,16 +112,24 @@ func (c *CmdAuditBox) ParseArgv(ctx *cli.Context) error {
 	if c.RotateBeforeAttempt && !c.Attempt {
 		return fmt.Errorf("can only use --rotate-before-attempt with --attempt")
 	}
+
 	c.TeamID = keybase1.TeamID(ctx.String("team-id"))
+	c.TeamName = ctx.String("team")
+	if len(c.TeamID) != 0 && len(c.TeamName) != 0 {
+		return fmt.Errorf("cannot provide both team id and team name")
+	}
+	gaveTeam := c.TeamID != "" || c.TeamName != ""
+
 	if c.Ls || c.AuditAllKnownTeams {
-		if len(c.TeamID) != 0 {
-			return fmt.Errorf("cannot provide team id with this option")
+		if gaveTeam {
+			return fmt.Errorf("cannot provide team with this option")
 		}
 	} else {
-		if len(c.TeamID) == 0 {
-			return fmt.Errorf("need team id")
+		if !gaveTeam {
+			return fmt.Errorf("need team id or team name")
 		}
 	}
+
 	return nil
 }
 
@@ -131,45 +145,52 @@ func (c *CmdAuditBox) Run() error {
 	}
 
 	ctx := context.Background()
+
+	if c.TeamName != "" {
+		cli, err := GetTeamsClient(c.G())
+		if err != nil {
+			return err
+		}
+		teamID, err := cli.GetTeamID(ctx, c.TeamName)
+		if err != nil {
+			return err
+		}
+		c.TeamID = teamID
+	}
+
+	var failedTeamIDs []keybase1.TeamID
 	switch {
 	case c.AuditAllKnownTeams:
 		knownTeamIDs, err := cli.KnownTeamIDs(ctx, 0)
 		if err != nil {
 			return err
 		}
-		var auditResults []AuditResult
-		for _, teamID := range knownTeamIDs {
-			c.G().Log.Info("Auditing team %s...", teamID)
+
+		// team name, 1/...
+		for idx, teamID := range knownTeamIDs {
 			arg := keybase1.BoxAuditTeamArg{TeamID: teamID}
+
 			var err error
-			for idx := 0; idx < 2; idx++ {
-				// If the previous one failed, it will be in the retry queue
-				// and hence, this retry will rotate before attempt
-				// automatically.
-				err = cli.BoxAuditTeam(ctx, arg)
-				if err == nil {
-					break
-				}
+			var attempt *keybase1.BoxAuditAttempt
+			attempt, err = cli.BoxAuditTeam(ctx, arg)
+			prefix := fmt.Sprintf("(%d/%d) %s", idx+1, len(knownTeamIDs), teamID)
+			describeAttempt(c.G(), attempt, prefix)
+			if err != nil {
+				attempt, err = cli.BoxAuditTeam(ctx, arg)
+				describeAttempt(c.G(), attempt, "(retry) "+prefix)
 			}
-			auditResults = append(auditResults, AuditResult{
-				teamID: teamID,
-				err:    err,
-			})
+			if err != nil {
+				c.G().Log.Error("Audit failed for %s: %s", teamID, err)
+				failedTeamIDs = append(failedTeamIDs, teamID)
+			}
 		}
 
-		ok := true
-		for _, auditResult := range auditResults {
-			var description string
-			if auditResult.err == nil {
-				description = "OK"
-			} else {
-				ok = false
-				description = fmt.Sprintf("ERROR %s", auditResult.err)
+		if failedTeamIDs != nil {
+			var teamIDStrs []string
+			for _, teamID := range failedTeamIDs {
+				teamIDStrs = append(teamIDStrs, teamID.String())
 			}
-			fmt.Printf("%s %s\n", auditResult.teamID, description)
-		}
-		if !ok {
-			return fmt.Errorf("Some teams failed to pass an audit. This does not necessarily mean something is wrong, unless you are a member of those teams.")
+			return fmt.Errorf("The following teams failed to pass an audit. This does not necessarily mean something is wrong, unless you are a member of those teams.\n%s", strings.Join(teamIDStrs, ", "))
 		}
 		return nil
 	case c.IsInJail:
@@ -180,11 +201,9 @@ func (c *CmdAuditBox) Run() error {
 		fmt.Println(ok)
 		return nil
 	case c.Audit:
-		err := cli.BoxAuditTeam(ctx, keybase1.BoxAuditTeamArg{TeamID: c.TeamID})
-		if err != nil {
-			return err
-		}
-		return nil
+		attempt, err := cli.BoxAuditTeam(ctx, keybase1.BoxAuditTeamArg{TeamID: c.TeamID})
+		describeAttempt(c.G(), attempt, "")
+		return err
 	case c.Attempt:
 		arg := keybase1.AttemptBoxAuditArg{TeamID: c.TeamID, RotateBeforeAudit: c.RotateBeforeAttempt}
 		audit, err := cli.AttemptBoxAudit(ctx, arg)
@@ -218,5 +237,20 @@ func (c *CmdAuditBox) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
+	}
+}
+
+func describeAttempt(g *libkb.GlobalContext, attempt *keybase1.BoxAuditAttempt, info string) {
+	tui := g.UI.GetTerminalUI()
+	prefix := ""
+	if info != "" {
+		prefix = info + " "
+	}
+	if attempt == nil {
+		tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+"Audit not attempted."))
+	} else if attempt.Error == nil {
+		tui.PrintfUnescaped("%s\n", ColorString(g, "green", prefix+attempt.String()))
+	} else {
+		tui.PrintfUnescaped("%s\n", ColorString(g, "red", prefix+attempt.String()))
 	}
 }
