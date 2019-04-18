@@ -132,7 +132,9 @@ func (rfs *RootFS) Readlink(_ string) (target string, err error) {
 
 // Chroot implements the billy.Filesystem interface for RootFS.
 func (rfs *RootFS) Chroot(_ string) (newFS billy.Filesystem, err error) {
-	return nil, errors.New("RootFS cannot read links")
+	// Don't allow chroot'ing anywhere outside of the root FS since we
+	// haven't yet implemented folderlist browsing.
+	return nil, errors.New("RootFS cannot chroot")
 }
 
 // Root implements the billy.Filesystem interface for RootFS.
