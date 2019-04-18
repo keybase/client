@@ -2119,6 +2119,17 @@ func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	return 100 * (1 - (len(missingIDs) / numMessages))
 }
 
+func (idx *ConversationIndex) FullyIndexed(conv Conversation) bool {
+	if idx == nil {
+		return false
+	}
+	// lowest msgID we care about
+	min := conv.GetMaxDeletedUpTo()
+	// highest msgID we care about
+	max := conv.GetMaxMessageID()
+	return len(idx.MissingIDs(min, max)) == 0
+}
+
 func (u UnfurlRaw) GetUrl() string {
 	typ, err := u.UnfurlType()
 	if err != nil {

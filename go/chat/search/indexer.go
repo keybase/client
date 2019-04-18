@@ -831,7 +831,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			case chat1.ReIndexingMode_POSTSEARCH_SYNC:
 				// ignore any fully indexed convs since we respect
 				// opts.MaxConvsSearched
-				if convIdx.PercentIndexed(conv.Conv) == 100 {
+				if convIdx.FullyIndexed(conv.Conv) {
 					continue
 				}
 				convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ctx, conv.Conv, uid,
