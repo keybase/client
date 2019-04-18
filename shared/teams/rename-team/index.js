@@ -11,6 +11,7 @@ type Props = {|
   onRename: (newName: string) => void,
   teamname: string,
   title: string,
+  waiting: boolean,
 |}
 
 class RenameTeam extends React.Component<Props, {|newName: string|}> {
@@ -22,18 +23,30 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
     super(props)
     const teamNameParts = splitTeamname(this.props.teamname)
     const newName = teamNameParts.pop()
-    this._prefix = teamNameParts.join('')
+    this._prefix = teamNameParts.join('.')
     this._originalName = newName
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (!this.props.waiting && prevProps.waiting) {
+      // finished, go back
+      this.props.onCancel()
+    }
+  }
+
+  _newFullName = () => [this._prefix, this.state.newName].join('.')
   _onChangeText = newName => this.setState({newName})
+  _disabled = () => this.state.newName.length < 2
   _onRename = () => {
-    if (this.props.teamname === [this._prefix, this.state.newName].join('.')) {
+    if (this.props.waiting || this._disabled()) {
+      return
+    }
+    if (this.props.teamname === this._newFullName()) {
       // same name
       this.props.onCancel()
       return
     }
-    this.props.onRename(this.state.newName)
+    this.props.onRename(this._newFullName())
   }
 
   render() {
@@ -65,8 +78,9 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
           >
             <Kb.PlainInput
               onChangeText={this._onChangeText}
+              onEnterKeyDown={this._onRename}
               textType="BodySemibold"
-              style={styles.input}
+              flexable={true}
               maxLength={16}
               placeholder={this._originalName}
             />
@@ -85,7 +99,8 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
             label="Rename"
             onClick={this._onRename}
             style={styles.button}
-            disabled={this.state.newName.length < 2}
+            disabled={this._disabled()}
+            waiting={this.props.waiting}
           />
         </Kb.ButtonBar>
       </Kb.Box2>
@@ -118,7 +133,6 @@ const styles = Styles.styleSheetCreate({
   error: {
     color: Styles.globalColors.red,
   },
-  input: Styles.platformStyles({isMobile: {flexGrow: 0, width: 200}}),
   inputContainer: {
     borderColor: Styles.globalColors.black_10,
     borderRadius: Styles.borderRadius,

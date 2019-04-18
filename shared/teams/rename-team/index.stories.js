@@ -8,6 +8,7 @@ const props = {
   onRename: Sb.action('onRename'),
   teamname: 'teamname.withatypo',
   title: 'Rename subteam',
+  waiting: false,
 }
 
 const load = () => {
