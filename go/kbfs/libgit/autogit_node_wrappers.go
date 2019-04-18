@@ -186,9 +186,15 @@ func (rdn *repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 	if rdn.subdir == "" {
 		// If this is the root node for the repo, register it exactly once.
 		rdn.once.Do(func() {
+			// TODO(KBFS-4077): remove this debugging when we find the bug
+			// where b.tree seems to be disappearing.
+			rdn.am.log.CDebugf(
+				ctx, "Got browser %p for repo=%s, branch=%s, subdir=%s, "+
+					"with tree %p", b, rdn.repo, rdn.branch, rdn.subdir,
+				b.tree)
 			billyFS, err := rdn.gitRootFS.Chroot(rdn.repo)
 			if err != nil {
-				rdn.am.log.CDebugf(nil, "Error getting repo FS: %+v", err)
+				rdn.am.log.CDebugf(ctx, "Error getting repo FS: %+v", err)
 				return
 			}
 			repoFS := billyFS.(*libfs.FS)
