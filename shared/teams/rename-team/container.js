@@ -27,7 +27,10 @@ const mapDispatchToProps = dispatch => ({
     // route with one with the newly changed teamname
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}], replace: true})
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {teamname: teamname.toLowerCase()}, selected: 'team'}],
+        replace: true,
+      })
     )
   },
 })

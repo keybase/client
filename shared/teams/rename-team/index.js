@@ -15,8 +15,10 @@ type Props = {|
   waiting: boolean,
 |}
 
-class RenameTeam extends React.Component<Props, {|newName: string|}> {
-  state = {newName: ''}
+const invalidChars = /[^a-zA-Z0-9_]/
+
+class RenameTeam extends React.Component<Props, {|error: string, newName: string|}> {
+  state = {error: '', newName: ''}
   _prefix = ''
   _originalName = ''
 
@@ -38,6 +40,20 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
   _newFullName = () => [this._prefix, this.state.newName].join('.')
   _onChangeText = newName => this.setState({newName})
   _disabled = () => this.state.newName.length < 2
+  _validateTeamname = () => {
+    const {newName} = this.state
+    if (newName.startsWith('_') || newName.includes('__')) {
+      this.setState({
+        error: "Teamnames can't start with underscores or use double underscores to avoid confusion.",
+      })
+      return false
+    }
+    if (invalidChars.test(newName)) {
+      this.setState({error: 'Teamnames can only use letters (a-z), numbers, and underscores.'})
+      return false
+    }
+    return true
+  }
   _onRename = () => {
     if (this.props.waiting || this._disabled()) {
       return
@@ -47,7 +63,10 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
       this.props.onCancel()
       return
     }
-    this.props.onRename(this._newFullName())
+    this.setState(s => (s.error ? {error: ''} : null))
+    if (this._validateTeamname()) {
+      this.props.onRename(this._newFullName())
+    }
   }
 
   render() {
@@ -93,9 +112,9 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
               placeholder={this._originalName}
             />
           </Kb.Box2>
-          {this.props.error && (
+          {(this.state.error || this.props.error) && (
             <Kb.Text type="BodySmall" style={styles.error}>
-              {this.props.error}
+              {this.state.error || this.props.error}
             </Kb.Text>
           )}
         </Kb.Box2>
