@@ -60,6 +60,12 @@ func newStore(g *globals.Context) *store {
 	}
 }
 
+func (s *store) ClearCache() {
+	s.Lock()
+	defer s.Unlock()
+	s.lru.Purge()
+}
+
 func (s *store) memKey(convID chat1.ConversationID, uid gregor1.UID) string {
 	return fmt.Sprintf("idx:%s:%s", uid, convID)
 }

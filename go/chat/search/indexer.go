@@ -126,6 +126,10 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
+func (idx *Indexer) ClearCache() {
+	idx.store.ClearCache()
+}
+
 func (idx *Indexer) GetConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (*chat1.ConversationIndex, error) {
 	return idx.store.getConvIndex(ctx, convID, uid)
 }
