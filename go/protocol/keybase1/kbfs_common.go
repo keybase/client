@@ -347,6 +347,7 @@ type FolderSyncStatus struct {
 	LocalDiskBytesTotal     int64            `codec:"localDiskBytesTotal" json:"localDiskBytesTotal"`
 	PrefetchStatus          PrefetchStatus   `codec:"prefetchStatus" json:"prefetchStatus"`
 	PrefetchProgress        PrefetchProgress `codec:"prefetchProgress" json:"prefetchProgress"`
+	StoredBytesTotal        int64            `codec:"storedBytesTotal" json:"storedBytesTotal"`
 }
 
 func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
@@ -355,6 +356,7 @@ func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
 		LocalDiskBytesTotal:     o.LocalDiskBytesTotal,
 		PrefetchStatus:          o.PrefetchStatus.DeepCopy(),
 		PrefetchProgress:        o.PrefetchProgress.DeepCopy(),
+		StoredBytesTotal:        o.StoredBytesTotal,
 	}
 }
 

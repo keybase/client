@@ -108,5 +108,6 @@ protocol kbfsCommon {
     int64 localDiskBytesTotal;
     PrefetchStatus prefetchStatus;
     PrefetchProgress prefetchProgress;
+    int64 storedBytesTotal;
   }
 }
