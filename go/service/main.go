@@ -1333,4 +1333,7 @@ func (d *Service) onDbNuke(ctx context.Context) {
 	if srv := d.ChatG().AttachmentURLSrv; srv != nil {
 		srv.OnCacheCleared(mctx)
 	}
+	if idx := d.ChatG().Indexer; idx != nil {
+		idx.ClearCache()
+	}
 }

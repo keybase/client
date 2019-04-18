@@ -75,6 +75,7 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 			}
 		}
 	}()
+
 	dbKey := s.dbKey(convID, uid)
 	var entry chat1.ConversationIndex
 	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
