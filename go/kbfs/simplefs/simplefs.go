@@ -2297,6 +2297,19 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 			res.Status.PrefetchStatus = metadata.PrefetchStatus
 			res.Status.PrefetchProgress = k.prefetchProgressFromByteStatus(
 				metadata.PrefetchProgress)
+
+			dbc := k.config.DiskBlockCache()
+			libfs, ok := fs.(*libfs.FS)
+			if dbc != nil && ok {
+				size, err := dbc.GetTlfSize(
+					ctx, libfs.RootNode().GetFolderBranch().Tlf,
+					libkbfs.DiskBlockSyncCache)
+				if err != nil {
+					return res, err
+				}
+				res.Status.StoredBytesTotal = int64(size)
+			}
+
 		} else {
 			k.log.CDebugf(ctx,
 				"Could not get prefetch status from filesys: %T", fi.Sys())
@@ -2335,6 +2348,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 	res.Folders = make(
 		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfIDs))
 
+	dbc := k.config.DiskBlockCache()
 	for i, tlfID := range tlfIDs {
 		config, err := k.config.KBFSOps().GetSyncConfig(ctx, tlfID)
 		if err != nil {
@@ -2368,6 +2382,14 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 		}
 		res.Folders[i].Status.LocalDiskBytesAvailable = bytesAvail
 		res.Folders[i].Status.LocalDiskBytesTotal = bytesTotal
+
+		if dbc != nil {
+			size, err := dbc.GetTlfSize(ctx, tlfID, libkbfs.DiskBlockSyncCache)
+			if err != nil {
+				return keybase1.SyncConfigAndStatusRes{}, err
+			}
+			res.Folders[i].Status.StoredBytesTotal = int64(size)
+		}
 	}
 
 	// Sort by folder name.
@@ -2376,9 +2398,16 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 			res.Folders[j].Folder.ToString()
 	})
 
-	// TODO(KBFS-4067): fill in the active overall prefetch progress.
 	res.OverallStatus.LocalDiskBytesAvailable = bytesAvail
 	res.OverallStatus.LocalDiskBytesTotal = bytesTotal
+
+	if dbc != nil {
+		statusMap := dbc.Status(ctx)
+		status, ok := statusMap["SyncBlockCache"]
+		if ok {
+			res.OverallStatus.StoredBytesTotal = int64(status.BlockBytes)
+		}
+	}
 
 	return res, nil
 }
