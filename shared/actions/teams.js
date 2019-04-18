@@ -1459,8 +1459,12 @@ const gregorPushState = (_, action) => {
 }
 
 const renameTeam = (_, action) => {
-  const {newName, oldName} = action.payload
-  logger.warn('DANNYDEBUG', newName, oldName)
+  const {newName: _newName, oldName} = action.payload
+  const prevName = {parts: oldName.split('.')}
+  const newName = {parts: _newName.split('.')}
+  return RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, Constants.teamRenameWaitingKey).catch(
+    () => {} // err displayed from waiting store in component
+  )
 }
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {

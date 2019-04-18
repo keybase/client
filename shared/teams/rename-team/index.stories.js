@@ -6,6 +6,7 @@ import RenameTeam from '.'
 const props = {
   onCancel: Sb.action('onCancel'),
   onRename: Sb.action('onRename'),
+  onSuccess: Sb.action('onSuccess'),
   teamname: 'teamname.withatypo',
   title: 'Rename subteam',
   waiting: false,

@@ -78,7 +78,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       ])}
     />
     <Kb.Box2 direction="vertical">
-      <Kb.Box2 direction="horizontal" alignItems="flex-end" gap="xtiny">
+      <Kb.Box2 direction="horizontal" alignItems="flex-end" gap="xtiny" style={styles.alignSelfFlexStart}>
         <Kb.Text type="Header">{props.teamname}</Kb.Text>
         {!!props.onRename && <Kb.Icon type="iconfont-edit" onClick={props.onRename} />}
       </Kb.Box2>
@@ -116,6 +116,9 @@ export const SubHeader = (props: SubHeaderProps) =>
   ) : null
 
 const styles = Styles.styleSheetCreate({
+  alignSelfFlexStart: {
+    alignSelf: 'flex-start',
+  },
   banner: {
     ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.xsmall, 0),
   },

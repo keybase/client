@@ -9,6 +9,7 @@ type Props = {|
   error?: string,
   onCancel: () => void,
   onRename: (newName: string) => void,
+  onSuccess: (newName: string) => void,
   teamname: string,
   title: string,
   waiting: boolean,
@@ -28,9 +29,9 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (!this.props.waiting && prevProps.waiting) {
+    if (!this.props.waiting && prevProps.waiting && !this.props.error) {
       // finished, go back
-      this.props.onCancel()
+      this.props.onSuccess(this._newFullName())
     }
   }
 
@@ -82,6 +83,8 @@ class RenameTeam extends React.Component<Props, {|newName: string|}> {
             fullWidth={true}
           >
             <Kb.PlainInput
+              autoFocus={true}
+              disabled={this.props.waiting}
               onChangeText={this._onChangeText}
               onEnterKeyDown={this._onRename}
               textType="BodySemibold"
