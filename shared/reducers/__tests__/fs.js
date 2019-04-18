@@ -26,6 +26,7 @@ const state0 = Constants.makeState({
       Constants.makeFolder({
         children: I.Set(['file0', 'folder0']),
         name: 'kbkbfstest',
+        prefetchStatus: Constants.makePrefetchInProgress(),
         progress: 'loaded',
       }),
     ],
@@ -68,7 +69,7 @@ describe('fs reducer', () => {
     expect(state1.pathItems).toBe(state0.pathItems)
   })
 
-  test('pathItemLoaded: reuse old pathItem even if new one remains the same', () => {
+  test('pathItemLoaded: reuse old pathItem if new one remains the same', () => {
     const state1 = reducer(
       state0,
       FsGen.createPathItemLoaded({
@@ -130,6 +131,7 @@ describe('fs reducer', () => {
         pathItem: Constants.makeFolder({
           children: I.Set(['file0', 'folder0']),
           name: 'kbkbfstest',
+          prefetchStatus: Constants.makePrefetchInProgress(),
           progress: 'loaded',
         }),
       })
@@ -148,6 +150,7 @@ describe('fs reducer', () => {
             Constants.makeFolder({
               children: I.Set(['file1']),
               name: 'folder0',
+              prefetchStatus: Constants.prefetchNotStarted,
               progress: 'loaded',
             }),
           ],
@@ -156,5 +159,26 @@ describe('fs reducer', () => {
     )
     expect(stage1.pathItems).not.toBe(state0.pathItems)
     expect(getFolderOrFail(stage1.pathItems, folder0Path).children).toEqual(I.Set(['file1']))
+    expect(getFolderOrFail(stage1.pathItems, folder0Path).prefetchStatus).toBe(Constants.prefetchNotStarted)
+  })
+
+  test('folderListLoaded: folder0 prefetch complete', () => {
+    const stage1 = reducer(
+      state0,
+      FsGen.createFolderListLoaded({
+        path: folder0Path,
+        pathItems: I.Map([
+          [
+            folder0Path,
+            Constants.makeFolder({
+              name: 'folder0',
+              prefetchStatus: Constants.prefetchComplete,
+            }),
+          ],
+        ]),
+      })
+    )
+    expect(stage1.pathItems).not.toBe(state0.pathItems)
+    expect(getFolderOrFail(stage1.pathItems, folder0Path).prefetchStatus).toBe(Constants.prefetchComplete)
   })
 })

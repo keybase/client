@@ -9,10 +9,18 @@ import * as Types from '../constants/types/fs'
 
 const initialState = Constants.makeState()
 
-const updatePathItem = (oldPathItem?: ?Types.PathItem, newPathItem: Types.PathItem): Types.PathItem => {
-  if (!oldPathItem || oldPathItem.type !== newPathItem.type) {
-    return newPathItem
+const updatePathItem = (
+  oldPathItem?: ?Types.PathItem,
+  newPathItemFromAction: Types.PathItem
+): Types.PathItem => {
+  if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
+    return newPathItemFromAction
   }
+  // Reuse prefetchStatus if they equal in value.
+  // $FlowIssue
+  const newPathItem = newPathItemFromAction.update('prefetchStatus', newPrefetchStatus =>
+    newPrefetchStatus.equals(oldPathItem.prefetchStatus) ? oldPathItem.prefetchStatus : newPrefetchStatus
+  )
   switch (newPathItem.type) {
     case 'unknown':
       return newPathItem

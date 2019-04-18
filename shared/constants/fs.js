@@ -41,7 +41,7 @@ export const emptyFolder = makeNewFolder()
 
 export const prefetchNotStarted: Types.PrefetchNotStarted = I.Record({state: 'not-started'})()
 
-export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'completet'})()
+export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'complete'})()
 
 export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> = I.Record({
   bytesFetched: 0,
