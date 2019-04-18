@@ -266,9 +266,7 @@ function* folderList(_, action) {
     const rootFolder: Types.FolderPathItem = (rootPathItem.type === 'folder'
       ? rootPathItem
       : Constants.makeFolder({name: Types.getPathName(rootPath)})
-    )
-      .set('children', I.Set(childMap.get(rootPath)))
-      .set('progress', 'loaded')
+    ).withMutations(f => f.set('children', I.Set(childMap.get(rootPath))).set('progress', 'loaded'))
 
     const pathItems = [
       ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
