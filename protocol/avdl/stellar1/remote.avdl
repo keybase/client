@@ -295,6 +295,6 @@ protocol remote {
   }
   DetailsPlusPayments detailsPlusPayments(keybase1.UserVersion caller, AccountID accountID);
 
-  // search by either an assetCode or an issuerAccountID to get back matches from stellard/horizon
+  // search by either an assetCode or an issuerAccountID (or both) to get back matches from stellard/horizon
   array<Asset> assetSearch(string assetCode, string issuerAccountID);
 }
