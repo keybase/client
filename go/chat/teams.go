@@ -759,6 +759,10 @@ func newTlfIDToTeamIDMap() *tlfIDToTeamIDMap {
 	}
 }
 
+func TLFIDToTeamID(tlfID chat1.TLFID) (keybase1.TeamID, error) {
+	return keybase1.TeamIDFromString(tlfID.String())
+}
+
 // Lookup gives the server trust mapping between tlfID and teamID
 func (t *tlfIDToTeamIDMap) Lookup(mctx libkb.MetaContext, tlfID chat1.TLFID, api libkb.API) (res keybase1.TeamID, err error) {
 	if iTeamID, ok := t.storage.Get(tlfID.String()); ok {
