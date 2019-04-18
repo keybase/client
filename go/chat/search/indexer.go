@@ -93,29 +93,32 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 		return
 	}
 	idx.started = true
-	ticker := libkb.NewBgTicker(time.Hour)
-	go func() {
-		idx.Debug(ctx, "starting SelectiveSync bg loop")
+	//ticker := libkb.NewBgTicker(time.Hour)
+	//go func(stopCh chan struct{}) {
+	//	idx.Debug(ctx, "starting SelectiveSync bg loop")
 
-		// run one quickly
-		select {
-		case <-time.After(libkb.DefaultBgTickerWait):
-			idx.SelectiveSync(ctx, uid, false /*forceReindex */)
-		}
+	//	// run one quickly
+	//	select {
+	//	case <-time.After(libkb.DefaultBgTickerWait):
+	//		idx.SelectiveSync(ctx, uid, false /*forceReindex */)
+	//	case <-stopCh:
+	//		idx.Debug(ctx, "stopping SelectiveSync bg loop")
+	//		return
+	//	}
 
-		for {
-			select {
-			case <-ticker.C:
-				// queue up some jobs on the background loader
-				idx.Debug(ctx, "running SelectiveSync")
-				idx.SelectiveSync(ctx, uid, false /*forceReindex */)
-			case <-idx.stopCh:
-				idx.Debug(ctx, "stopping SelectiveSync loop")
-				ticker.Stop()
-				return
-			}
-		}
-	}()
+	//	for {
+	//		select {
+	//		case <-ticker.C:
+	//			// queue up some jobs on the background loader
+	//			idx.Debug(ctx, "running SelectiveSync")
+	//			idx.SelectiveSync(ctx, uid, false /*forceReindex */)
+	//		case <-stopCh:
+	//			idx.Debug(ctx, "stopping SelectiveSync bg loop")
+	//			ticker.Stop()
+	//			return
+	//		}
+	//	}
+	//}(idx.stopCh)
 }
 
 func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
