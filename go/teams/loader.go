@@ -95,6 +95,8 @@ func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 	st := NewStorage(g)
 	l := NewTeamLoader(g, world, st)
 	g.SetTeamLoader(l)
+	g.AddLogoutHook(l, "teamLoader")
+	g.AddDbNukeHook(l, "teamLoader")
 	return l
 }
 
@@ -1322,8 +1324,14 @@ func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLink
 	return lows
 }
 
-func (l *TeamLoader) OnLogout() {
+func (l *TeamLoader) OnLogout(mctx libkb.MetaContext) error {
 	l.storage.clearMem()
+	return nil
+}
+
+func (l *TeamLoader) OnDbNuke(mctx libkb.MetaContext) error {
+	l.storage.clearMem()
+	return nil
 }
 
 // Clear the in-memory cache.

@@ -388,10 +388,16 @@ func (i *implicitTeamCache) OnLogout(m libkb.MetaContext) error {
 	return nil
 }
 
+func (i *implicitTeamCache) OnDbNuke(m libkb.MetaContext) error {
+	i.cache.Purge()
+	return nil
+}
+
 var _ libkb.MemLRUer = &implicitTeamCache{}
 
 func NewImplicitTeamCacheAndInstall(g *libkb.GlobalContext) {
 	cache := newImplicitTeamCache(g)
 	g.SetImplicitTeamCacher(cache)
 	g.AddLogoutHook(cache, "implicitTeamCache")
+	g.AddDbNukeHook(cache, "implicitTeamCache")
 }

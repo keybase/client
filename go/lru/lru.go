@@ -113,4 +113,14 @@ func (c *Cache) Put(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 	return nil
 }
 
+func (c *Cache) OnLogout(mctx libkb.MetaContext) error {
+	c.ClearMemory()
+	return nil
+}
+
+func (c *Cache) OnDbNuke(mctx libkb.MetaContext) error {
+	c.ClearMemory()
+	return nil
+}
+
 var _ libkb.LRUer = (*Cache)(nil)

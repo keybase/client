@@ -278,7 +278,7 @@ func (d DummyAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename s
 func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
 	return false, nil
 }
-func (d DummyAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {}
+func (d DummyAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error { return nil }
 
 type DummyAttachmentHTTPSrv struct{}
 
@@ -309,7 +309,7 @@ func (d DummyAttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID c
 	tlfName string, results []chat1.GiphySearchResult) string {
 	return ""
 }
-func (d DummyAttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {}
+func (d DummyAttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error { return nil }
 
 type DummyStellarLoader struct{}
 
