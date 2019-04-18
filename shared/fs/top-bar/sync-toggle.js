@@ -37,7 +37,7 @@ const Confirm = props => (
       >
         <Kb.Button
           small={true}
-          type="Secondary"
+          type="Dim"
           label="Cancel"
           onClick={props.toggleShowingMenu}
           disabled={props.waiting}
