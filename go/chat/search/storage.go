@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -19,6 +20,7 @@ type store struct {
 	globals.Contextified
 	utils.DebugLabeler
 	encryptedDB *encrypteddb.EncryptedDB
+	lru         *lru.Cache
 }
 
 // store keeps an encrypted index of chat messages for all conversations
@@ -46,17 +48,26 @@ func newStore(g *globals.Context) *store {
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
 	}
+	nlru, err := lru.New(1000)
+	if err != nil {
+		panic(fmt.Sprintf("Could not create lru cache: %v", err))
+	}
 	return &store{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.store", false),
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		lru:          nlru,
 	}
+}
+
+func (s *store) memKey(convID chat1.ConversationID, uid gregor1.UID) string {
+	return fmt.Sprintf("idx:%s:%s", uid, convID)
 }
 
 func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx:%s:%s", uid, convID),
+		Key: s.memKey(convID, uid),
 	}
 }
 
@@ -75,9 +86,18 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 			}
 		}
 	}()
+	val, found := s.lru.Get(s.memKey(convID, uid))
+	if found {
+		entry, ok := val.(chat1.ConversationIndex)
+		if ok && entry.Metadata.Version == IndexVersion {
+			return &entry, nil
+		}
+		s.lru.Remove(s.memKey(convID, uid))
+	}
+
 	dbKey := s.dbKey(convID, uid)
 	var entry chat1.ConversationIndex
-	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
+	found, err = s.encryptedDB.Get(ctx, dbKey, &entry)
 	if err != nil || !found {
 		return nil, err
 	}
@@ -86,6 +106,7 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 		err = s.deleteLocked(ctx, convID, uid)
 		return nil, err
 	}
+	s.lru.Add(s.memKey(convID, uid), entry)
 	return &entry, nil
 }
 
@@ -95,11 +116,13 @@ func (s *store) putLocked(ctx context.Context, convID chat1.ConversationID, uid 
 	}
 	dbKey := s.dbKey(convID, uid)
 	entry.Metadata.Version = IndexVersion
+	s.lru.Add(s.memKey(convID, uid), entry)
 	return s.encryptedDB.Put(ctx, dbKey, *entry)
 }
 
 func (s *store) deleteLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
 	dbKey := s.dbKey(convID, uid)
+	s.lru.Remove(s.memKey(convID, uid))
 	return s.encryptedDB.Delete(ctx, dbKey)
 }
 
