@@ -384,12 +384,13 @@ func (a AssetCode) Eq(other AssetCode) bool {
 }
 
 func (a AssetCode) GetAssetType() string {
-	if len(a) >= 1 && len(a) <= 4 {
+	switch {
+	case len(a) >= 1 && len(a) <= 4:
 		return "credit_alphanum4"
-	} else if len(a) >= 5 && len(a) <= 12 {
+	case len(a) >= 5 && len(a) <= 12:
 		return "credit_alphanum12"
-	} else {
-		// nil or invalid AssetCode
+	default:
+		// nil or invalid AssetCode.
 		return "asset_code_invalid"
 	}
 }
