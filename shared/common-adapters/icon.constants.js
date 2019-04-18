@@ -2026,6 +2026,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-filter': {
+    charCode: 0xe986,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-finder': {
     charCode: 0xe91e,
     gridSize: 16,
@@ -2306,6 +2311,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-phone-contact': {
+    charCode: 0xe97b,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-proof-broken': {
     charCode: 0xe94b,
     gridSize: 16,
@@ -2408,11 +2418,6 @@ const iconMeta_ = {
   },
   'iconfont-success': {
     charCode: 0xe95c,
-    gridSize: 16,
-    isFont: true,
-  },
-  'iconfont-tails': {
-    charCode: 0xe97b,
     gridSize: 16,
     isFont: true,
   },
