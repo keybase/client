@@ -827,7 +827,9 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 				convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ctx, conv.Conv, uid,
 					convIdx, indexUICh, totalPercentIndexed, len(convList))
 				if err != nil {
-					return nil, err
+					idx.Debug(ctx, "Search: postSync: error reindexing: convID: %s err: %s",
+						conv.GetConvID(), err)
+					continue
 				}
 
 				if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
@@ -849,6 +851,11 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 					continue
 				}
 				hitMap[convIDStr] = *convHits
+			}
+		}
+		if totalPercentIndexed >= 95 && opts.ReindexMode == chat1.ReIndexingMode_POSTSEARCH_SYNC {
+			indexUICh <- chat1.ChatSearchIndexStatus{
+				PercentIndexed: 100,
 			}
 		}
 	}
