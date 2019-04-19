@@ -123,7 +123,9 @@ type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
 	IsSyncedTlfPath(tlfPath string) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
-	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
+	SetTlfSyncState(
+		ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
+		<-chan error, error)
 	GetAllSyncedTlfs() []tlf.ID
 
 	idutil.OfflineStatusGetter
@@ -1309,6 +1311,9 @@ type Prefetcher interface {
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(data.BlockPointer)
+	// CancelTlfPrefetches notifies the prefetcher that all prefetches
+	// for a given TLF should be canceled.
+	CancelTlfPrefetches(context.Context, tlf.ID) error
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are

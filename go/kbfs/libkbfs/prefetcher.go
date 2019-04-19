@@ -84,7 +84,11 @@ type prefetch struct {
 }
 
 func (p *prefetch) Close() {
-	close(p.waitCh)
+	select {
+	case <-p.waitCh:
+	default:
+		close(p.waitCh)
+	}
 	p.cancel()
 }
 
@@ -96,6 +100,12 @@ type rescheduledPrefetch struct {
 type queuedPrefetch struct {
 	waitingPrefetches int
 	channel           chan struct{}
+	tlfID             tlf.ID
+}
+
+type cancelTlfPrefetch struct {
+	tlfID   tlf.ID
+	channel chan<- struct{}
 }
 
 type blockPrefetcher struct {
@@ -112,6 +122,8 @@ type blockPrefetcher struct {
 	prefetchRequestCh channels.Channel
 	// channel to cancel prefetches
 	prefetchCancelCh channels.Channel
+	// channel to cancel all prefetches for a TLF
+	prefetchCancelTlfCh channels.Channel
 	// channel to reschedule prefetches
 	prefetchRescheduleCh channels.Channel
 	// channel to get prefetch status
@@ -163,6 +175,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		retriever:             retriever,
 		prefetchRequestCh:     NewInfiniteChannelWrapper(),
 		prefetchCancelCh:      NewInfiniteChannelWrapper(),
+		prefetchCancelTlfCh:   NewInfiniteChannelWrapper(),
 		prefetchRescheduleCh:  NewInfiniteChannelWrapper(),
 		prefetchStatusCh:      NewInfiniteChannelWrapper(),
 		inFlightFetches:       NewInfiniteChannelWrapper(),
@@ -482,6 +495,21 @@ func (p *blockPrefetcher) cancelQueuedPrefetch(ptr data.BlockPointer) {
 	}
 }
 
+func (p *blockPrefetcher) cancelQueuedPrefetchesForTlf(tlfID tlf.ID) {
+	p.queuedPrefetchHandlesLock.Lock()
+	defer p.queuedPrefetchHandlesLock.Unlock()
+	for ptr, qp := range p.queuedPrefetchHandles {
+		if qp.tlfID != tlfID {
+			continue
+		}
+
+		p.vlog.Log(
+			libkb.VLog2, "Canceling queued prefetch for %s, tlf=%s", ptr, tlfID)
+		close(qp.channel)
+		delete(p.queuedPrefetchHandles, ptr)
+	}
+}
+
 func (p *blockPrefetcher) markQueuedPrefetchDone(ptr data.BlockPointer) {
 	p.queuedPrefetchHandlesLock.Lock()
 	defer p.queuedPrefetchHandlesLock.Unlock()
@@ -496,8 +524,7 @@ func (p *blockPrefetcher) markQueuedPrefetchDone(ptr data.BlockPointer) {
 		delete(p.queuedPrefetchHandles, ptr)
 	} else {
 		p.queuedPrefetchHandles[ptr] = queuedPrefetch{
-			qp.waitingPrefetches - 1, qp.channel,
-		}
+			qp.waitingPrefetches - 1, qp.channel, qp.tlfID}
 	}
 }
 
@@ -888,6 +915,7 @@ func (p *blockPrefetcher) run(
 		close(p.doneCh)
 		p.prefetchRequestCh.Close()
 		p.prefetchCancelCh.Close()
+		p.prefetchCancelTlfCh.Close()
 		p.prefetchRescheduleCh.Close()
 		p.prefetchStatusCh.Close()
 		p.inFlightFetches.Close()
@@ -904,6 +932,7 @@ func (p *blockPrefetcher) run(
 			if p.inFlightFetches.Len() == 0 &&
 				p.prefetchRequestCh.Len() == 0 &&
 				p.prefetchCancelCh.Len() == 0 &&
+				p.prefetchCancelTlfCh.Len() == 0 &&
 				p.prefetchRescheduleCh.Len() == 0 &&
 				p.prefetchStatusCh.Len() == 0 {
 				return
@@ -942,6 +971,21 @@ func (p *blockPrefetcher) run(
 			// refnonce.  Other references to the same ID might still
 			// be live.
 			p.applyToPtrParentsRecursive(p.cancelPrefetch, ptr, pre)
+		case reqInt := <-p.prefetchCancelTlfCh.Out():
+			req := reqInt.(cancelTlfPrefetch)
+			p.log.CDebugf(nil, "Canceling all prefetches for TLF %s", req.tlfID)
+			// Cancel all prefetches for this TLF.
+			for _, pre := range p.prefetches {
+				if pre.req.kmd.TlfID() != req.tlfID {
+					continue
+				}
+
+				p.vlog.CLogf(
+					pre.ctx, libkb.VLog2, "TLF-canceling prefetch for %s",
+					pre.req.ptr)
+				pre.Close()
+			}
+			close(req.channel)
 		case reqInt := <-p.prefetchRescheduleCh.Out():
 			req := reqInt.(*prefetchRequest)
 			blockID := req.ptr.ID
@@ -1263,7 +1307,8 @@ func (p *blockPrefetcher) setObseletedOnQueuedPrefetch(req *prefetchRequest) {
 	} else {
 		obseleted := make(chan struct{})
 		req.obseleted = obseleted
-		p.queuedPrefetchHandles[req.ptr] = queuedPrefetch{1, obseleted}
+		p.queuedPrefetchHandles[req.ptr] = queuedPrefetch{
+			1, obseleted, req.kmd.TlfID()}
 	}
 }
 
@@ -1405,6 +1450,30 @@ func (p *blockPrefetcher) CancelPrefetch(ptr data.BlockPointer) {
 	case <-p.shutdownCh:
 		p.log.Warning("Skipping prefetch cancel for block %v since "+
 			"the prefetcher is shutdown", ptr)
+	}
+}
+
+func (p *blockPrefetcher) CancelTlfPrefetches(
+	ctx context.Context, tlfID tlf.ID) error {
+	c := make(chan struct{})
+
+	p.cancelQueuedPrefetchesForTlf(tlfID)
+	select {
+	case p.prefetchCancelTlfCh.In() <- cancelTlfPrefetch{tlfID, c}:
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-p.shutdownCh:
+		p.log.Warning("Skipping prefetch cancel for TLF %s since "+
+			"the prefetcher is shutdown", tlfID)
+	}
+
+	select {
+	case <-c:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-p.shutdownCh:
+		return errPrefetcherAlreadyShutDown
 	}
 }
 

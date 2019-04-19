@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
+	libkeytest "github.com/keybase/client/go/kbfs/libkey/test"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -807,7 +808,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
-	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+	config.SetTlfSyncState(context.Background(), kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
 	testPrefetcherForSyncedTLF(t, q, bg, config, prefetchSyncCh, kmd, false)
@@ -1188,7 +1189,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Now set the folder to sync.")
-	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+	config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
@@ -1336,7 +1337,7 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Now set the folder to sync.")
-	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+	config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
@@ -1879,7 +1880,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 		ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB, DiskBlockAnyCache)
 	require.NoError(t, err)
 
-	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+	config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
 	// We must use a special channel here to learn when each
@@ -2175,4 +2176,107 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), a2Ptr)
+}
+
+func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
+	t.Log("Test that prefetches from a given TLF can all be canceled.")
+
+	cache, dbcConfig := initDiskBlockCacheTest(t)
+	q, bg, _ := initPrefetcherTestWithDiskCache(t, cache)
+	defer shutdownPrefetcherTest(q)
+	ctx, cancel := context.WithTimeout(
+		context.Background(), individualTestTimeout)
+	defer cancel()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
+	notifySyncCh(t, prefetchSyncCh)
+
+	kmd1 := libkeytest.NewEmptyKeyMetadata(tlf.FakeID(1, tlf.Private), 1)
+	kmd2 := libkeytest.NewEmptyKeyMetadata(tlf.FakeID(2, tlf.Private), 1)
+
+	bg.respectCancel = true
+
+	t.Log("Make two blocks each for two different TLFs")
+	rootPtr1 := makeRandomBlockPointer(t)
+	root1 := makeFakeDirBlockWithChildren(map[string]data.DirEntry{
+		"a": makeRandomDirEntry(t, data.Dir, 10, "a"),
+	})
+	encRoot1, serverHalfRoot1 :=
+		setupRealBlockForDiskCache(t, rootPtr1, root1, dbcConfig)
+	err := cache.Put(
+		ctx, kmd1.TlfID(), rootPtr1.ID, encRoot1, serverHalfRoot1,
+		DiskBlockAnyCache)
+	require.NoError(t, err)
+	_, _ = bg.setBlockToReturn(rootPtr1, root1)
+
+	rootPtr2 := makeRandomBlockPointer(t)
+	root2 := makeFakeDirBlockWithChildren(map[string]data.DirEntry{
+		"a": makeRandomDirEntry(t, data.Dir, 10, "a"),
+	})
+	encRoot2, serverHalfRoot2 :=
+		setupRealBlockForDiskCache(t, rootPtr2, root2, dbcConfig)
+	err = cache.Put(
+		ctx, kmd2.TlfID(), rootPtr2.ID, encRoot2, serverHalfRoot2,
+		DiskBlockAnyCache)
+	require.NoError(t, err)
+	_, _ = bg.setBlockToReturn(rootPtr2, root2)
+
+	aPtr1 := root1.Children["a"].BlockPointer
+	aBlock1 := makeFakeDirBlockWithChildren(map[string]data.DirEntry{
+		"b": makeRandomDirEntry(t, data.Dir, 10, "b"),
+	})
+	// Don't put this block in the disk cache; let the prefetcher try
+	// to fetch it from the block getter, and never release it.
+	require.NoError(t, err)
+	getA1, _ := bg.setBlockToReturn(aPtr1, aBlock1)
+
+	aPtr2 := root2.Children["a"].BlockPointer
+	aBlock2 := makeFakeDirBlockWithChildren(map[string]data.DirEntry{})
+	encA2, serverHalfA2 :=
+		setupRealBlockForDiskCache(t, aPtr2, aBlock2, dbcConfig)
+	err = cache.Put(
+		ctx, kmd2.TlfID(), aPtr2.ID, encA2, serverHalfA2,
+		DiskBlockAnyCache)
+	require.NoError(t, err)
+	_, _ = bg.setBlockToReturn(aPtr2, aBlock2)
+
+	t.Log("Request both roots")
+	block1 := &data.DirBlock{}
+	ch1 := q.Request(
+		ctx, defaultOnDemandRequestPriority, kmd1,
+		rootPtr1, block1, data.TransientEntry, BlockRequestPrefetchUntilFull)
+	block2 := &data.DirBlock{}
+	ch2 := q.Request(
+		ctx, defaultOnDemandRequestPriority, kmd2,
+		rootPtr2, block2, data.TransientEntry, BlockRequestPrefetchUntilFull)
+	err = <-ch1
+	require.NoError(t, err)
+	err = <-ch2
+	require.NoError(t, err)
+
+	t.Log("Release both root blocks for prefetching")
+	notifySyncCh(t, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	select {
+	case <-getA1:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	t.Log("Cancel the first TLF's prefetches")
+	go func() {
+		notifySyncCh(t, prefetchSyncCh)
+	}()
+	err = q.Prefetcher().CancelTlfPrefetches(ctx, kmd1.TlfID())
+	require.NoError(t, err)
+
+	// Handle another CancelPrefetch call from the a1's request
+	// context being canceled.
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Now we should be able to wait for the prefetcher to " +
+		"complete with only a single notify, for root2's child.")
+	notifySyncCh(t, prefetchSyncCh)
+	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr2)
 }

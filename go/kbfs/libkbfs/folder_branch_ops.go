@@ -8536,7 +8536,8 @@ func (fbo *folderBranchOps) GetSyncConfig(
 		return keybase1.FolderSyncConfig{}, err
 	}
 
-	if md == (ImmutableRootMetadata{}) ||
+	if config.Mode == keybase1.FolderSyncMode_DISABLED ||
+		md == (ImmutableRootMetadata{}) ||
 		md.GetTlfHandle().GetCanonicalPath() == tlfPath {
 		return config, nil
 	}
@@ -8807,7 +8808,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		}
 	}
 
-	ch, err = fbo.config.SetTlfSyncState(tlfID, newConfig)
+	ch, err = fbo.config.SetTlfSyncState(ctx, tlfID, newConfig)
 	if err != nil {
 		return nil, err
 	}

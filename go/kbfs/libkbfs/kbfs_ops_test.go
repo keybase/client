@@ -4502,7 +4502,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 	config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
