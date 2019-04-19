@@ -18,7 +18,7 @@ import {memoize} from '../../util/memoize'
 
 type Props = {
   destinationPickerIndex?: number,
-  items: Array<RowTypes.RowItemWithKey>,
+  items: I.List<RowTypes.RowItem>,
   isEmpty: boolean,
   path: Types.Path,
   routePath: I.List<string>,
@@ -101,13 +101,13 @@ class Rows extends React.PureComponent<Props> {
   }
   _getVariableRowLayout = (items, index) => ({
     index,
-    length: getRowHeight(items[index]),
+    length: getRowHeight(items.get(index, _unknownEmptyRowItem)),
     offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
   })
   _getTopVariableRowCountAndTotalHeight = memoize(items => {
     const index = items.findIndex(row => row !== 'header')
     return index === -1
-      ? {count: items.length, totalHeight: -1}
+      ? {count: items.size, totalHeight: -1}
       : {count: index, totalHeight: this._getVariableRowLayout(items, index).offset}
   })
   _getItemLayout = index => {
@@ -117,7 +117,7 @@ class Rows extends React.PureComponent<Props> {
     }
     return {
       index,
-      length: getRowHeight(this.props.items[index]),
+      length: getRowHeight(this.props.items.get(index, _unknownEmptyRowItem)),
       offset: (index - top.count) * normalRowHeight + top.totalHeight,
     }
   }
@@ -129,9 +129,9 @@ class Rows extends React.PureComponent<Props> {
     const index = items.findIndex(row => row.rowType !== 'header')
     return (
       items
-        .slice(0, index === -1 ? items.length : index)
+        .slice(0, index === -1 ? items.size : index)
         .map(row => getRowHeight(row).toString())
-        .join('-') + `:${items.length}`
+        .join('-') + `:${items.size}`
     )
   })
 
@@ -148,7 +148,7 @@ class Rows extends React.PureComponent<Props> {
       <Kb.BoxGrow>
         <Kb.List2
           key={this._getListKey(this.props.items)}
-          items={this.props.items}
+          items={this.props.items.toArray()}
           bounces={true}
           itemHeight={{
             getItemLayout: this._getItemLayout,
@@ -185,7 +185,11 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const getRowHeight = (row: RowTypes.RowItemWithKey) =>
-  row.rowType === 'header' ? row.height : normalRowHeight
+const getRowHeight = (row: RowTypes.RowItem) => (row.rowType === 'header' ? row.height : normalRowHeight)
+
+const _unknownEmptyRowItem = {
+  key: 'unknown-empty-row-item',
+  rowType: 'empty',
+}
 
 export default Rows
