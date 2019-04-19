@@ -6,6 +6,7 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import {memoize} from '../../util/memoize'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   path: Types.Path,
@@ -85,7 +86,8 @@ const Breadcrumb = Kb.OverlayParentHOC(
 )
 
 const MainTitle = (props: Props) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
+    {flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <Kbfs.SyncStatus path={props.path} />}
     <Kb.Text type="Header">{Types.getPathName(props.path)}</Kb.Text>
   </Kb.Box2>
 )
