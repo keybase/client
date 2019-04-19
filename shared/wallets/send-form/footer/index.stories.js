@@ -21,7 +21,7 @@ const onClickRequest = Sb.action('onClickRequest')
 
 const load = () => {
   const story = Sb.storiesOf('Wallets/SendForm/Footer', module).addDecorator(story => (
-    <Box style={{maxWidth: 360}}>{story()}</Box>
+    <Box style={{maxWidth: 400}}>{story()}</Box>
   ))
   story.addDecorator(provider)
   story.add('Normal send', () => <Footer {...common} />)
