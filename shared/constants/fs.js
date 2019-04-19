@@ -19,8 +19,7 @@ import {findKey} from 'lodash-es'
 import {type TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
-export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
-export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
+export const syncToggleWaitingKey = 'fs:syncToggle'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -787,6 +786,7 @@ export const parsedPathTeamList: Types.ParsedPathTlfList = I.Record({kind: 'tlf-
 const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Record({
   kind: 'group-tlf',
   readers: null,
+  tlfName: '',
   tlfType: 'private',
   writers: I.List(),
 })
@@ -794,6 +794,7 @@ const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Rec
 const makeParsedPathTeamTlf: I.RecordFactory<Types._ParsedPathTeamTlf> = I.Record({
   kind: 'team-tlf',
   team: '',
+  tlfName: '',
   tlfType: 'team',
 })
 
@@ -801,6 +802,7 @@ const makeParsedPathInGroupTlf: I.RecordFactory<Types._ParsedPathInGroupTlf> = I
   kind: 'in-group-tlf',
   readers: null,
   rest: I.List(),
+  tlfName: '',
   tlfType: 'private',
   writers: I.List(),
 })
@@ -809,6 +811,7 @@ const makeParsedPathInTeamTlf: I.RecordFactory<Types._ParsedPathInTeamTlf> = I.R
   kind: 'in-team-tlf',
   rest: I.List(),
   team: '',
+  tlfName: '',
   tlfType: 'team',
 })
 
@@ -926,6 +929,11 @@ export const canChat = (path: Types.Path) => {
 export const isTeamPath = (path: Types.Path): boolean => {
   const parsedPath = parsePath(path)
   return parsedPath.kind !== 'root' && parsedPath.tlfType === 'team'
+}
+
+export const isEmptyFolder = (pathItems: Types.PathItems, path: Types.Path) => {
+  const _pathItem = pathItems.get(path, unknownPathItem)
+  return _pathItem.type === 'folder' && !_pathItem.children.size
 }
 
 const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {

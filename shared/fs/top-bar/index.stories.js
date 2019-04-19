@@ -8,6 +8,12 @@ import * as Constants from '../../constants/fs'
 import TopBar from '.'
 
 export const topBarProvider = {
+  SyncToggle: () => ({
+    disableSync: Sb.action('disableSync'),
+    enableSync: Sb.action('enableSyncisableSync'),
+    syncConfig: Constants.tlfSyncEnabled,
+    waiting: false,
+  }),
   TopBarLoading: () => ({
     loading: true,
   }),
