@@ -110,6 +110,13 @@ const updatePathItem = (
   }
 }
 
+const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
+  tlf2.syncConfig &&
+  tlf1.syncConfig &&
+  tlf2.syncConfig.mode === 'partial' &&
+  tlf1.syncConfig.mode === 'partial' &&
+  tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
+
 const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
   if (!oldTlf) {
     return newTlf
@@ -127,13 +134,7 @@ const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
   }
   if (
     !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
-    !(
-      newTlfDontClearSyncConfig.syncConfig &&
-      oldTlf.syncConfig &&
-      newTlfDontClearSyncConfig.syncConfig.mode === 'partial' &&
-      oldTlf.syncConfig.mode === 'partial' &&
-      newTlfDontClearSyncConfig.syncConfig.enabledPaths.equals(oldTlf.syncConfig.enabledPaths)
-    )
+    !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
   ) {
     return newTlfDontClearSyncConfig
   }
@@ -149,7 +150,7 @@ const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
 }
 
 const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Types.TlfList =>
-  newTlfList.withMutations(list => list.map((tlf, name) => updateTlf(oldTlfList.get(name), tlf)))
+  newTlfList.map((tlf, name) => updateTlf(oldTlfList.get(name), tlf))
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
@@ -231,8 +232,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.favoritesLoaded:
       return state.update('tlfs', tlfs =>
-        tlfs.withMutations(tlfs =>
-          tlfs
+        tlfs.withMutations(tlfsMutatable =>
+          tlfsMutatable
             .update('private', privateTlfs => updateTlfList(privateTlfs, action.payload.private))
             .update('public', publicTlfs => updateTlfList(publicTlfs, action.payload.public))
             .update('team', team => updateTlfList(team, action.payload.team))
