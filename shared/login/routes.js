@@ -13,7 +13,7 @@ const mapStateToProps = state => {
 }
 
 const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
-  const JoinOrLogin = require('./join-or-login/container').default
+  const JoinOrLogin = require('../signup/join-or-login/container').default
   const Loading = require('./loading/container').default
   const Relogin = require('./relogin/container').default
   if (showLoading) {
@@ -64,6 +64,6 @@ export const newRoutes = {
   feedback: {getScreen: () => require('../settings/feedback-container').default},
   login: {getScreen: () => RootLogin},
   ...require('../provision/routes').newRoutes,
-  ...require('./signup/routes').newRoutes,
+  ...require('../signup/routes').newRoutes,
 }
 export const newModalRoutes = {}
