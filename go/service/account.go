@@ -112,7 +112,6 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAcc
 type GetLockdownResponse struct {
 	libkb.AppStatusEmbed
 	Enabled bool                       `json:"enabled"`
-	Status  libkb.AppStatus            `json:"status"`
 	History []keybase1.LockdownHistory `json:"history"`
 }
 
