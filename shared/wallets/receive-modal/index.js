@@ -54,7 +54,7 @@ const ReceiveModal = (props: Props) => {
           >
             <Kb.Icon
               type="iconfont-stellar-request"
-              fontSize={Styles.isMobile ? 22 : 16}
+              sizeType="Small"
               color={Styles.globalColors.white}
               style={Kb.iconCastPlatformStyles(styles.requestIcon)}
             />
@@ -142,7 +142,7 @@ const styles = Styles.styleSheetCreate({
   }),
   icon: Styles.platformStyles({
     isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
+      marginBottom: Styles.globalMargins.xtiny,
     },
     isMobile: {
       marginBottom: Styles.globalMargins.medium,

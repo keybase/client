@@ -338,7 +338,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           >
             <Kb.Icon
               color={colorForStatus(props.status)}
-              fontSize={16}
+              sizeType="Small"
               style={Kb.iconCastPlatformStyles(styles.statusIcon)}
               type={
                 ['error', 'canceled'].includes(props.status)

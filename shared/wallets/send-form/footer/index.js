@@ -28,7 +28,6 @@ const Footer = (props: Props) => {
           type="iconfont-stellar-send"
           style={Kb.iconCastPlatformStyles(styles.icon)}
           color={Styles.globalColors.white}
-          fontSize={Styles.isMobile ? 22 : 16}
         />
       }
     />
@@ -80,7 +79,6 @@ const Footer = (props: Props) => {
                   type="iconfont-stellar-request"
                   style={Kb.iconCastPlatformStyles(styles.icon)}
                   color={Styles.globalColors.white}
-                  fontSize={Styles.isMobile ? 22 : 16}
                 />
               }
             />
