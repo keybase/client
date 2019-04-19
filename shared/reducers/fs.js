@@ -232,8 +232,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.favoritesLoaded:
       return state.update('tlfs', tlfs =>
-        tlfs.withMutations(tlfsMutatable =>
-          tlfsMutatable
+        tlfs.withMutations(tlfsMutable =>
+          tlfsMutable
             .update('private', privateTlfs => updateTlfList(privateTlfs, action.payload.private))
             .update('public', publicTlfs => updateTlfList(publicTlfs, action.payload.public))
             .update('team', team => updateTlfList(team, action.payload.team))
