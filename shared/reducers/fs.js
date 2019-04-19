@@ -16,7 +16,13 @@ const updatePathItem = (
   if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
     return newPathItemFromAction
   }
-  // Reuse prefetchStatus if they equal in value.
+  // Reuse prefetchStatus if they equal in value. Note that `update` and
+  // `merge` don't actually make a new record unless we do give it a new value.
+  // So re-using the old prefetchStatus reference here makes it possible to
+  // reuse the oldPathItem as long as other fields are identical. For
+  // prefetchComplete and prefetchNotStarted this may not matter, since we are
+  // using the same references anyway. But for PrefetchInProgress it's a
+  // different record everytime, and this becomes useful.
   // $FlowIssue
   const newPathItem = newPathItemFromAction.update('prefetchStatus', newPrefetchStatus =>
     newPrefetchStatus.equals(oldPathItem.prefetchStatus) ? oldPathItem.prefetchStatus : newPrefetchStatus
