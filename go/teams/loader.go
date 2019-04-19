@@ -311,8 +311,9 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		}
 	}
 
-	if l.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
-		newMctx, shouldReload := VerifyBoxAudit(libkb.NewMetaContext(ctx, l.G()), teamID)
+	mctx := libkb.NewMetaContext(ctx, l.G())
+	if ShouldRunBoxAudit(mctx) {
+		newMctx, shouldReload := VerifyBoxAudit(mctx, teamID)
 		if shouldReload {
 			return l.load1(newMctx.Ctx(), me, lArg)
 		}
