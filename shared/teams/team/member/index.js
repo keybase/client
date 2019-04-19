@@ -17,12 +17,19 @@ type RolePickerSpecificProps = {|
 
 export type MemberProps = {|
   admin: boolean,
+  disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker,
   follower: boolean,
   following: boolean,
   loading: boolean,
-  user: Types.MemberInfo,
+  user: {|
+    type: ?Types.TeamRoleType,
+    username: string,
+  |},
   teamname: string,
-  you: ?Types.MemberInfo,
+  you: {|
+    type: ?Types.TeamRoleType,
+    username: string,
+  |},
   onOpenProfile: () => void,
   onChat: () => void,
   onRemoveMember: () => void,
@@ -117,6 +124,7 @@ export const TeamMember = (props: Props) => {
             onCancel={props.onCancelRolePicker}
             position={'top center'}
             open={props.isRolePickerOpen}
+            disabledRoles={props.disabledReasonsForRolePicker}
           >
             <Kb.Button type="Secondary" label="Edit role" onClick={props.onEditMembership} />
           </FloatingRolePicker>

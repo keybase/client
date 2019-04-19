@@ -11,17 +11,23 @@ import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {TeamMember, type MemberProps} from '.'
-import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/teams'
+import {
+  getCanPerform,
+  getTeamMembers,
+  teamWaitingKey,
+  disabledReasonsForRolePickerForUser,
+} from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 type OwnProps = Container.RouteProps<{username: string, teamname: string}, {}>
 
 type StateProps = {
+  disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker,
   teamname: string,
   following: boolean,
   follower: boolean,
-  _you: ?string,
+  _you: string,
   _username: string,
   _memberInfo: I.Map<string, Types.MemberInfo>,
   yourOperations: RPCTypes.TeamOperation,
@@ -31,11 +37,13 @@ type StateProps = {
 const mapStateToProps = (state, ownProps): StateProps => {
   const username = Container.getRouteProps(ownProps, 'username')
   const teamname = Container.getRouteProps(ownProps, 'teamname')
+  const disabledReasonsForRolePicker = disabledReasonsForRolePickerForUser(state, teamname, username)
 
   return {
     _memberInfo: getTeamMembers(state, teamname),
     _username: username,
     _you: state.config.username,
+    disabledReasonsForRolePicker,
     follower: amIBeingFollowed(state, username),
     following: amIFollowing(state, username),
     loading: anyWaiting(state, teamWaitingKey(teamname)),
@@ -79,14 +87,15 @@ const mapDispatchToProps = (dispatch, ownProps): DispatchProps => ({
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   // Gather contextual team membership info
-  const yourInfo = stateProps._you && stateProps._memberInfo.get(stateProps._you)
-  const userInfo = stateProps._memberInfo.get(stateProps._username)
+  const yourInfo = stateProps._memberInfo.get(stateProps._you)
+  const userInfo: ?Types.MemberInfo = stateProps._memberInfo.get(stateProps._username)
   const you = {
-    type: yourInfo && yourInfo.type,
+    type: yourInfo ? yourInfo.type : null,
     username: stateProps._you,
   }
+
   const user = {
-    type: userInfo && userInfo.type,
+    type: userInfo ? userInfo.type : null,
     username: stateProps._username,
   }
   // If they're an owner, you need to be an owner to edit them
@@ -95,6 +104,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
   return {
     admin,
+    disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
     follower: stateProps.follower,
     following: stateProps.following,
     loading: stateProps.loading,
@@ -111,9 +121,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
       }
     },
     teamname: stateProps.teamname,
-    // $FlowIssue this type is messed up, TODO cleanup
     user,
-    // $FlowIssue this type is messed up, TODO cleanup
     you,
   }
 }
