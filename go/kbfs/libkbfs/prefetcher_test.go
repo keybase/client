@@ -728,9 +728,9 @@ func testPrefetcherForSyncedTLF(
 	}
 	select {
 	case overallStatus := <-statusCh:
-		// Should match the above.
+		// The root block _does_ count in the overall total.
 		require.Equal(
-			t, uint64(3*testFakeBlockSize), overallStatus.SubtreeBytesTotal)
+			t, uint64(4*testFakeBlockSize), overallStatus.SubtreeBytesTotal)
 		require.Equal(t, uint64(0), overallStatus.SubtreeBytesFetched)
 		require.Equal(t, config.Clock().Now(), overallStatus.Start)
 	case <-ctx.Done():
