@@ -321,7 +321,7 @@ const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number
 const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
-const disabledReasonsForRolePickerForUser = (
+const getDisabledReasonsForRolePicker = (
   state: TypedState,
   teamname: Types.Teamname,
   memberToModify: string
@@ -575,10 +575,10 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 
 export {
-  disabledReasonsForRolePickerForUser,
   getNumberOfSubscribedChannels,
   getRole,
   getCanPerform,
+  getDisabledReasonsForRolePicker,
   hasCanPerform,
   hasChannelInfos,
   getEmailInviteError,

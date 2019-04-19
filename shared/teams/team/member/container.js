@@ -15,7 +15,7 @@ import {
   getCanPerform,
   getTeamMembers,
   teamWaitingKey,
-  disabledReasonsForRolePickerForUser,
+  getDisabledReasonsForRolePicker,
 } from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -37,7 +37,7 @@ type StateProps = {
 const mapStateToProps = (state, ownProps): StateProps => {
   const username = Container.getRouteProps(ownProps, 'username')
   const teamname = Container.getRouteProps(ownProps, 'teamname')
-  const disabledReasonsForRolePicker = disabledReasonsForRolePickerForUser(state, teamname, username)
+  const disabledReasonsForRolePicker = getDisabledReasonsForRolePicker(state, teamname, username)
 
   return {
     _memberInfo: getTeamMembers(state, teamname),
@@ -126,28 +126,21 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
 }
 
-type State = {rolePickerOpen: boolean, selectedRole: ?Types.TeamRoleType, buttonRef: () => ?any}
+type State = {rolePickerOpen: boolean, selectedRole: ?Types.TeamRoleType}
 type Props = MemberProps & {
   onEditRole: (role: Types.TeamRoleType) => void,
 }
 class TeamMemberStateWrapper extends React.Component<Props, State> {
   state = {
-    buttonRef: () => null,
     rolePickerOpen: false,
     selectedRole: null,
   }
-  _setRef = false
 
   render() {
     return (
       <TeamMember
         {...this.props}
         isRolePickerOpen={this.state.rolePickerOpen}
-        buttonRef={this.state.buttonRef}
-        setButtonRef={r => {
-          !this._setRef && r && this.setState({buttonRef: () => r})
-          this._setRef = true
-        }}
         onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
         onEditMembership={() => this.setState({rolePickerOpen: true})}
         onConfirmRolePicker={role => {

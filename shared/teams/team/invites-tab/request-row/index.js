@@ -1,73 +1,104 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../../constants/types/teams'
 import {Avatar, Box, Button, ClickableBox, Icon, Meta, ConnectedUsernames} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {FloatingRolePicker} from '../../../role-picker-2'
+import * as Styles from '../../../../styles'
 
-export type Props = {
-  username: string,
-  teamname: string,
-  onOpenProfile: (u: string) => void,
+export type RowProps = {|
+  disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker,
   onChat: () => void,
   onIgnoreRequest: () => void,
+  onOpenProfile: (u: string) => void,
+  teamname: string,
+  username: string,
+|}
+
+type RolePickerProps = {|
   onAccept: () => void,
-}
+  isRolePickerOpen: boolean,
+  onCancelRolePicker: () => void,
+  onConfirmRolePicker: (role: Types.TeamRoleType) => void,
+  onEditMembership: () => void,
+  onSelectRole: (role: Types.TeamRoleType) => void,
+  footerComponent: React.Node,
+  selectedRole: ?Types.TeamRoleType,
+|}
+
+export type Props = {|
+  ...RowProps,
+  ...RolePickerProps,
+|}
+
 export const TeamRequestRow = (props: Props) => {
   const {username, onOpenProfile, onChat, onIgnoreRequest, onAccept} = props
   return (
     <Box
       style={{
-        ...globalStyles.flexBoxRow,
+        ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        flexDirection: isMobile ? 'column' : 'row',
+        flexDirection: Styles.isMobile ? 'column' : 'row',
         flexShrink: 0,
-        height: isMobile ? 112 : 48,
-        padding: globalMargins.tiny,
+        height: Styles.isMobile ? 112 : 48,
+        padding: Styles.globalMargins.tiny,
         width: '100%',
       }}
     >
       <ClickableBox
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           flexGrow: 1,
           flexShrink: 0,
-          width: isMobile ? '100%' : 'initial',
+          width: Styles.isMobile ? '100%' : 'initial',
         }}
         onClick={() => onOpenProfile(username)}
       >
-        <Avatar username={username} size={isMobile ? 48 : 32} />
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
+        <Avatar username={username} size={Styles.isMobile ? 48 : 32} />
+        <Box style={{...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small}}>
           <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
-          <Box style={globalStyles.flexBoxRow}>
-            <Meta title="please decide" style={styleCharm} backgroundColor={globalColors.orange} />
+          <Box style={Styles.globalStyles.flexBoxRow}>
+            <Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
           </Box>
         </Box>
       </ClickableBox>
       <Box
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          marginTop: isMobile ? globalMargins.tiny : 0,
+          marginTop: Styles.isMobile ? Styles.globalMargins.tiny : 0,
         }}
       >
-        <Button
-          label="Let in as..."
-          onClick={onAccept}
-          small={true}
-          style={{backgroundColor: globalColors.green, marginLeft: globalMargins.xtiny}}
-          type="Primary"
-        />
+        <FloatingRolePicker
+          selectedRole={props.selectedRole}
+          onSelectRole={props.onSelectRole}
+          floatingContainerStyle={styles.floatingRolePicker}
+          footerComponent={props.footerComponent}
+          onConfirm={props.onConfirmRolePicker}
+          onCancel={props.onCancelRolePicker}
+          position={'bottom left'}
+          open={props.isRolePickerOpen}
+          disabledRoles={props.disabledReasonsForRolePicker}
+        >
+          <Button
+            label="Let in as..."
+            onClick={onAccept}
+            small={true}
+            style={{backgroundColor: Styles.globalColors.green, marginLeft: Styles.globalMargins.xtiny}}
+            type="Primary"
+          />
+        </FloatingRolePicker>
         <Button
           label="Ignore"
           onClick={onIgnoreRequest}
           small={true}
-          style={{marginLeft: globalMargins.xtiny}}
+          style={{marginLeft: Styles.globalMargins.xtiny}}
           type="Danger"
         />
-        {!isMobile && (
+        {!Styles.isMobile && (
           <Icon
             onClick={onChat}
-            style={{marginLeft: globalMargins.small, marginRight: globalMargins.tiny}}
+            style={{marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.tiny}}
             type="iconfont-chat"
           />
         )}
@@ -78,5 +109,14 @@ export const TeamRequestRow = (props: Props) => {
 
 const styleCharm = {
   alignSelf: 'center',
-  marginRight: globalMargins.xtiny,
+  marginRight: Styles.globalMargins.xtiny,
 }
+
+const styles = Styles.styleSheetCreate({
+  floatingRolePicker: Styles.platformStyles({
+    isElectron: {
+      position: 'relative',
+      top: -32,
+    },
+  }),
+})

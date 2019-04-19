@@ -22,6 +22,7 @@ export type Props = {|
   confirmLabel?: string,
   onSelectRole: (role: Role) => void,
   // The role they started with
+  footerComponent?: React.Node,
   presetRole?: ?Role,
   selectedRole?: ?Role,
 |}
@@ -188,15 +189,7 @@ const headerTextHelper = (text: ?string) =>
   )
 
 const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
-  <Kb.Box2
-    direction="horizontal"
-    alignItems="flex-end"
-    style={{
-      flexGrow: 2,
-      paddingBottom: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    }}
-  >
+  <Kb.Box2 direction="horizontal" alignItems="flex-end">
     {!!onCancel && (
       <Kb.Button
         style={{
@@ -264,13 +257,16 @@ const RolePicker = (props: Props) => {
           </Kb.ClickableBox>
         )
       ).map((row, i, arr) => [row, i === arr.length - 1 ? null : <Kb.Divider key={i} />])}
-      {footerButtonsHelper(
-        props.onCancel,
-        selectedRole && props.selectedRole !== props.presetRole
-          ? () => props.onConfirm(selectedRole)
-          : undefined,
-        props.confirmLabel || confirmLabelHelper(props.presetRole, selectedRole)
-      )}
+      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.footer}>
+        {props.footerComponent}
+        {footerButtonsHelper(
+          props.onCancel,
+          selectedRole && props.selectedRole !== props.presetRole
+            ? () => props.onConfirm(selectedRole)
+            : undefined,
+          props.confirmLabel || confirmLabelHelper(props.presetRole, selectedRole)
+        )}
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -306,6 +302,12 @@ const styles = Styles.styleSheetCreate({
   }),
   disabledRow: {
     opacity: 0.4,
+  },
+  footer: {
+    flexGrow: 2,
+    paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+    justifyContent: 'flex-end',
   },
   headerText: {
     alignSelf: 'center',

@@ -73,6 +73,21 @@ const load = () => {
         })}
       />
     ))
+    .add('Picker - With Custom extra footer', () => state => (
+      <RolePicker
+        {...rolePickerProps({
+          footerComponent: (
+            <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={{paddingTop: 8}}>
+              <Kb.Checkbox checked={false} onCheck={Sb.action('onCheck')} label="Bananas are berries" />
+            </Kb.Box2>
+          ),
+          headerText: 'Add them as:',
+          onCancel: Sb.action('cancel'),
+          onLetIn: Sb.action('Let in'),
+          ...state,
+        })}
+      />
+    ))
     .add('Picker as popup dropdown from button', () => (state, setState) => (
       <Kb.Box2 direction="vertical" alignItems={'center'} style={{height: 600, justifyContent: 'flex-end'}}>
         <FloatingRolePicker
