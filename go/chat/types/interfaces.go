@@ -127,6 +127,8 @@ type Indexer interface {
 	ClearCache()
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
+	OnLogout(mctx libkb.MetaContext) error
+	OnDbNuke(mctx libkb.MetaContext) error
 }
 
 type Sender interface {

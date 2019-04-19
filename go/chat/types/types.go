@@ -363,6 +363,12 @@ func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[stri
 func (d DummyIndexer) ClearCache() {
 	return
 }
+func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
+	return nil
+}
+func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
+	return nil
+}
 
 type DummyNativeVideoHelper struct{}
 
