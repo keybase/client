@@ -490,7 +490,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		}
 	}
 
-	root, err := m.G().MerkleClient.FetchRootFromServerByFreshness(m, getAuditParams(m).RootFreshness)
+	root, err := m.G().MerkleClient.FetchRootFromServer(m, getAuditParams(m).RootFreshness)
 	if err != nil {
 		return err
 	}
