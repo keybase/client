@@ -107,7 +107,7 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 		}
 	}
 
-	if m.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+	if m.G().FeatureFlags.Enabled(m, libkb.FeatureBoxAuditor) {
 		newM, shouldReload := VerifyBoxAudit(m, res.Name.ToTeamID(arg.Public))
 		if shouldReload {
 			return f.Load(newM, originalArg)
