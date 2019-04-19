@@ -207,7 +207,7 @@ const mergeProps = (s, d, o: OwnProps) => {
         // TODO: add `footerRows` and inject these from destination-picker, so that
         // Rows componenet don't need to worry about whether it's in
         // destinationPicker mode or not.
-        isMobile && typeof o.destinationPickerIndex === 'number'
+        !isMobile && typeof o.destinationPickerIndex === 'number'
           ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
           : []
       ),
