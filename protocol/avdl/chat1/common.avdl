@@ -331,6 +331,7 @@
     array<MessageID> reactionIDs;
     @mpackkey("u") @jsonkey("u")
     array<MessageID> unfurlIDs;
+    array<MessageID> replies;
     gregor1.Time ctime;
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")

@@ -1140,6 +1140,7 @@ type MessageServerHeader struct {
 	SupersededBy MessageID     `codec:"supersededBy" json:"supersededBy"`
 	ReactionIDs  []MessageID   `codec:"r" json:"r"`
 	UnfurlIDs    []MessageID   `codec:"u" json:"u"`
+	Replies      []MessageID   `codec:"replies" json:"replies"`
 	Ctime        gregor1.Time  `codec:"ctime" json:"ctime"`
 	Now          gregor1.Time  `codec:"n" json:"n"`
 	Rtime        *gregor1.Time `codec:"rt,omitempty" json:"rt,omitempty"`
@@ -1171,6 +1172,17 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 			}
 			return ret
 		})(o.UnfurlIDs),
+		Replies: (func(x []MessageID) []MessageID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MessageID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Replies),
 		Ctime: o.Ctime.DeepCopy(),
 		Now:   o.Now.DeepCopy(),
 		Rtime: (func(x *gregor1.Time) *gregor1.Time {

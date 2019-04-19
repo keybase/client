@@ -872,6 +872,13 @@
           "jsonkey": "u"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "replies"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
