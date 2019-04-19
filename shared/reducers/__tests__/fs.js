@@ -190,14 +190,21 @@ describe('fs reducer', () => {
       name: 'foo',
       needsRekey: true,
       resetParticipants: I.List(),
-      syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
       teamId: '123',
       waitingForParticipantUnlock: I.List(),
       youCanUnlock: I.List(),
     }
     const state0 = Constants.makeState({
       tlfs: Constants.makeTlfs({
-        private: I.Map([['foo', Constants.makeTlf(tlfFields)]]),
+        private: I.Map([
+          [
+            'foo',
+            Constants.makeTlf({
+              ...tlfFields,
+              syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
+            }),
+          ],
+        ]),
       }),
     })
     const state1 = reducer(
