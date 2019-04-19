@@ -27,12 +27,13 @@ func (c *cmdWalletTrustlineCommon) GetUsage() libkb.Usage {
 func parseTrustlineCommon(ctx *cli.Context, c *cmdWalletTrustlineCommon) error {
 	var err error
 	accountID := ctx.String("account")
-	if accountID == "" {
-		return fmt.Errorf("account argument is required")
-	}
-	c.accountID, err = libkb.ParseStellarAccountID(accountID)
-	if err != nil {
-		return fmt.Errorf("unable to parse `account` argument: %s", err.Error())
+	if accountID != "" {
+		// Parse account if provided, stellar RPCs use primary accounts by
+		// default if accountID is empty.
+		c.accountID, err = libkb.ParseStellarAccountID(accountID)
+		if err != nil {
+			return fmt.Errorf("unable to parse `account` argument: %s", err.Error())
+		}
 	}
 	assetCode := ctx.String("code")
 	if assetCode == "" {

@@ -30,7 +30,12 @@ func AddTrustlineLocal(mctx libkb.MetaContext, arg stellar1.AddTrustlineLocalArg
 
 	walletState := getGlobal(mctx.G()).walletState
 
-	currentBalances, err := walletState.Balances(mctx.Ctx(), arg.AccountID)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
+	if err != nil {
+		return err
+	}
+
+	currentBalances, err := walletState.Balances(mctx.Ctx(), senderEntry.AccountID)
 	if err != nil {
 		return err
 	}
@@ -42,10 +47,6 @@ func AddTrustlineLocal(mctx libkb.MetaContext, arg stellar1.AddTrustlineLocalArg
 		}
 	}
 
-	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
-	if err != nil {
-		return err
-	}
 	senderSeed := senderAccountBundle.Signers[0]
 	senderSeed2, err := stellarnet.NewSeedStr(senderSeed.SecureNoLogString())
 	if err != nil {
@@ -89,7 +90,12 @@ func DeleteTrustlineLocal(mctx libkb.MetaContext, arg stellar1.DeleteTrustlineLo
 
 	walletState := getGlobal(mctx.G()).walletState
 
-	currentBalances, err := walletState.Balances(mctx.Ctx(), arg.AccountID)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
+	if err != nil {
+		return err
+	}
+
+	currentBalances, err := walletState.Balances(mctx.Ctx(), senderEntry.AccountID)
 	if err != nil {
 		return err
 	}
@@ -114,10 +120,6 @@ func DeleteTrustlineLocal(mctx libkb.MetaContext, arg stellar1.DeleteTrustlineLo
 			arg.Trustline.AssetCode, arg.Trustline.Issuer)
 	}
 
-	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
-	if err != nil {
-		return err
-	}
 	senderSeed := senderAccountBundle.Signers[0]
 	senderSeed2, err := stellarnet.NewSeedStr(senderSeed.SecureNoLogString())
 	if err != nil {
@@ -170,7 +172,12 @@ func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustl
 		return fmt.Errorf("trustline limit has to be higher than 0, got %d", limitAmount)
 	}
 
-	currentBalances, err := walletState.Balances(mctx.Ctx(), arg.AccountID)
+	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
+	if err != nil {
+		return err
+	}
+
+	currentBalances, err := walletState.Balances(mctx.Ctx(), senderEntry.AccountID)
 	if err != nil {
 		return err
 	}
@@ -195,10 +202,6 @@ func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustl
 			arg.Trustline.AssetCode, arg.Trustline.Issuer)
 	}
 
-	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
-	if err != nil {
-		return err
-	}
 	senderSeed := senderAccountBundle.Signers[0]
 	senderSeed2, err := stellarnet.NewSeedStr(senderSeed.SecureNoLogString())
 	if err != nil {
