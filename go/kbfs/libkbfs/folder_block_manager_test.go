@@ -749,7 +749,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
@@ -815,7 +815,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 
 	t.Log("Set new TLF to syncing, and add a new revision")
 	_, err = config.SetTlfSyncState(
-		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
