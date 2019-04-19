@@ -89,6 +89,82 @@ func (o PhoneNumberSupersededMsg) DeepCopy() PhoneNumberSupersededMsg {
 	}
 }
 
+type ContactComponent struct {
+	PhoneNumber *RawPhoneNumber `codec:"phoneNumber,omitempty" json:"phoneNumber,omitempty"`
+	Email       *EmailAddress   `codec:"email,omitempty" json:"email,omitempty"`
+	Label       string          `codec:"label" json:"label"`
+}
+
+func (o ContactComponent) DeepCopy() ContactComponent {
+	return ContactComponent{
+		PhoneNumber: (func(x *RawPhoneNumber) *RawPhoneNumber {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PhoneNumber),
+		Email: (func(x *EmailAddress) *EmailAddress {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Email),
+		Label: o.Label,
+	}
+}
+
+type Contact struct {
+	Name       string             `codec:"name" json:"name"`
+	Components []ContactComponent `codec:"components" json:"components"`
+}
+
+func (o Contact) DeepCopy() Contact {
+	return Contact{
+		Name: o.Name,
+		Components: (func(x []ContactComponent) []ContactComponent {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ContactComponent, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Components),
+	}
+}
+
+type ResolvedContact struct {
+	Name      string           `codec:"name" json:"name"`
+	Component ContactComponent `codec:"component" json:"component"`
+	Err       *string          `codec:"err,omitempty" json:"err,omitempty"`
+	Uid       *UID             `codec:"uid,omitempty" json:"uid,omitempty"`
+}
+
+func (o ResolvedContact) DeepCopy() ResolvedContact {
+	return ResolvedContact{
+		Name:      o.Name,
+		Component: o.Component.DeepCopy(),
+		Err: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err),
+		Uid: (func(x *UID) *UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Uid),
+	}
+}
+
 type AddPhoneNumberArg struct {
 	SessionID   int                `codec:"sessionID" json:"sessionID"`
 	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phoneNumber"`
@@ -135,6 +211,12 @@ type BulkLookupPhoneNumbersArg struct {
 	UserRegionCode      *RegionCode      `codec:"userRegionCode,omitempty" json:"userRegionCode,omitempty"`
 }
 
+type LookupContactListArg struct {
+	SessionID      int        `codec:"sessionID" json:"sessionID"`
+	Contacts       []Contact  `codec:"contacts" json:"contacts"`
+	UserRegionCode RegionCode `codec:"userRegionCode" json:"userRegionCode"`
+}
+
 type PhoneNumbersInterface interface {
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
 	EditPhoneNumber(context.Context, EditPhoneNumberArg) error
@@ -144,6 +226,7 @@ type PhoneNumbersInterface interface {
 	SetVisibilityPhoneNumber(context.Context, SetVisibilityPhoneNumberArg) error
 	SetVisibilityAllPhoneNumber(context.Context, SetVisibilityAllPhoneNumberArg) error
 	BulkLookupPhoneNumbers(context.Context, BulkLookupPhoneNumbersArg) ([]PhoneNumberLookupResult, error)
+	LookupContactList(context.Context, LookupContactListArg) ([]ResolvedContact, error)
 }
 
 func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
@@ -270,6 +353,21 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 					return
 				},
 			},
+			"lookupContactList": {
+				MakeArg: func() interface{} {
+					var ret [1]LookupContactListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LookupContactListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LookupContactListArg)(nil), args)
+						return
+					}
+					ret, err = i.LookupContactList(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -316,5 +414,10 @@ func (c PhoneNumbersClient) SetVisibilityAllPhoneNumber(ctx context.Context, __a
 
 func (c PhoneNumbersClient) BulkLookupPhoneNumbers(ctx context.Context, __arg BulkLookupPhoneNumbersArg) (res []PhoneNumberLookupResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.bulkLookupPhoneNumbers", []interface{}{__arg}, &res)
+	return
+}
+
+func (c PhoneNumbersClient) LookupContactList(ctx context.Context, __arg LookupContactListArg) (res []ResolvedContact, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.lookupContactList", []interface{}{__arg}, &res)
 	return
 }
