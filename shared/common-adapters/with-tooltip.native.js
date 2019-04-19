@@ -74,7 +74,9 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
             visible: true,
           }) // default to top center
 
-      this.props.setTimeout(() => this.setState({visible: false}), 3000)
+      this.props.setTimeout(() => {
+        this._mounted && this.setState({visible: false})
+      }, 3000)
     })
   }
 
@@ -106,7 +108,10 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
         <Kb.Animated from={{}} to={{opacity: this.state.visible ? 1 : 0}}>
           {animatedStyle => (
             <Kb.FloatingBox>
-              <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top: this.state.top}])}>
+              <Kb.Box
+                pointerEvents="none"
+                style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top: this.state.top}])}
+              >
                 <Kb.Box
                   style={Styles.collapseStyles([animatedStyle, styles.container, {left: this.state.left}])}
                   ref={
