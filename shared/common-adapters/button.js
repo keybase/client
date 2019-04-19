@@ -256,7 +256,7 @@ const labelStyles = styleSheetCreate({
   SecondarySuccess: {...commonLabel, color: globalColors.green},
   SecondaryDanger: {...commonLabel, color: globalColors.red},
   SecondaryWallet: {...commonLabel, color: globalColors.purple},
-  SecondaryDim: {...commonLabel, color: globalColors.black},
+  SecondaryDim: {...commonLabel, color: globalColors.black_50},
 })
 
 // With backgroundColor styles
