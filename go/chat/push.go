@@ -561,10 +561,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message:         utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
-					ModifiedMessage: g.getSupersedesTarget(ctx, uid, conv, decmsg),
-					ConvID:          nm.ConvID,
-					Conv:            g.presentUIItem(ctx, conv, uid),
+					Message:                    utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
+					ModifiedMessage:            g.getSupersedesTarget(ctx, uid, conv, decmsg),
+					ConvID:                     nm.ConvID,
+					Conv:                       g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
 					DesktopNotificationSnippet: notificationSnippet,
 					Pagination:                 utils.PresentPagination(page),

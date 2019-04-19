@@ -47,7 +47,7 @@ func NewBlockOpsStandard(
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
 		blockRetrievalPartialConfig: config,
-		bg: bg,
+		bg:                          bg,
 	}
 	q := newBlockRetrievalQueue(
 		queueSize, prefetchQueueSize, throttledPrefetchPeriod, qConfig)
