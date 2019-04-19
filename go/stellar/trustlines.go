@@ -97,6 +97,13 @@ func DeleteTrustlineLocal(mctx libkb.MetaContext, arg stellar1.DeleteTrustlineLo
 	var found bool
 	for _, bal := range currentBalances {
 		if bal.Asset.Issuer == arg.Trustline.Issuer.String() && bal.Asset.Code == arg.Trustline.AssetCode.String() {
+			currentAmount, err := stellarnet.ParseStellarAmount(bal.Amount)
+			if err != nil {
+				return err
+			}
+			if currentAmount != 0 {
+				return fmt.Errorf("cannot delete a trustline with a balance")
+			}
 			found = true
 			break
 		}
@@ -160,7 +167,7 @@ func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustl
 	}
 
 	if limitAmount <= 0 {
-		return fmt.Errorf("trustline limit has to be higher than 0 in ChangeTrustlineLimitLocal, got %d", limitAmount)
+		return fmt.Errorf("trustline limit has to be higher than 0, got %d", limitAmount)
 	}
 
 	currentBalances, err := walletState.Balances(mctx.Ctx(), arg.AccountID)
@@ -171,6 +178,13 @@ func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustl
 	var found bool
 	for _, bal := range currentBalances {
 		if bal.Asset.Issuer == arg.Trustline.Issuer.String() && bal.Asset.Code == arg.Trustline.AssetCode.String() {
+			currentAmount, err := stellarnet.ParseStellarAmount(bal.Amount)
+			if err != nil {
+				return err
+			}
+			if limitAmount < currentAmount {
+				return fmt.Errorf("limit cannot be set to less what the current balance is: %s", bal.Amount)
+			}
 			found = true
 			break
 		}

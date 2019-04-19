@@ -14,6 +14,7 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		newCmdWalletBalances(cl, g),
 		newCmdWalletCancel(cl, g),
 		newCmdWalletCancelRequest(cl, g),
+		newCmdWalletChangeTrustlineLimit(cl, g),
 		newCmdWalletDeleteTrustline(cl, g),
 		newCmdWalletDetail(cl, g),
 		newCmdWalletExport(cl, g),

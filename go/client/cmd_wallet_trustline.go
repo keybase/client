@@ -143,7 +143,7 @@ func newCmdWalletDeleteTrustline(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 	flags := getTrustlineCommonFlags()
 	return cli.Command{
 		Name:  "delete-trustline",
-		Usage: "Delete trustline to an account",
+		Usage: "Delete trustline from an account",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "delete-trustline", c)
 		},
@@ -180,5 +180,69 @@ func (c *cmdWalletDeleteTrustline) Run() (err error) {
 
 	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("Trustline deleted\n")
+	return nil
+}
+
+// =====================================================
+
+type cmdWalletChangeTrustlineLimit struct {
+	libkb.Contextified
+	cmdWalletTrustlineCommon
+	limit string
+}
+
+func newCmdWalletChangeTrustlineLimit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cmd := &cmdWalletChangeTrustlineLimit{
+		Contextified: libkb.NewContextified(g),
+	}
+	flags := getTrustlineCommonFlags()
+	flags = append(flags, cli.StringFlag{
+		Name:  "l, limit",
+		Usage: "Balance limit for the trustline",
+	})
+	return cli.Command{
+		Name:  "change-trustline-limit",
+		Usage: "Change limit of a trustline in an account",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(cmd, "change-trustline-limit", c)
+		},
+		Flags: flags,
+	}
+}
+
+func (c *cmdWalletChangeTrustlineLimit) ParseArgv(ctx *cli.Context) error {
+	if err := parseTrustlineCommon(ctx, &c.cmdWalletTrustlineCommon); err != nil {
+		return err
+	}
+	c.limit = ctx.String("limit")
+	if c.limit == "" {
+		return fmt.Errorf("`limit` argument is required")
+	}
+	return nil
+}
+
+func (c *cmdWalletChangeTrustlineLimit) Run() (err error) {
+	defer transformStellarCLIError(&err)
+
+	cli, err := GetWalletClient(c.G())
+	if err != nil {
+		return err
+	}
+
+	arg := stellar1.ChangeTrustlineLimitLocalArg{
+		AccountID: c.accountID,
+		Trustline: stellar1.Trustline{
+			AssetCode: c.assetCode,
+			Issuer:    c.assetIssuer,
+		},
+		Limit: c.limit,
+	}
+	err = cli.ChangeTrustlineLimitLocal(context.Background(), arg)
+	if err != nil {
+		return err
+	}
+
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("Trustline limit changed\n")
 	return nil
 }
