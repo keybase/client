@@ -102,6 +102,7 @@ export const commonProvider = {
   SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
   SyncingFolders: () => ({
     progress: 0.67,
+    show: true,
   }),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
