@@ -41,6 +41,10 @@ type LogoutHook interface {
 	OnLogout(mctx MetaContext) error
 }
 
+type DbNukeHook interface {
+	OnDbNuke(mctx MetaContext) error
+}
+
 type StandaloneChatConnector interface {
 	StartStandaloneChat(g *GlobalContext) error
 }
@@ -122,6 +126,7 @@ type GlobalContext struct {
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
 	logoutHooks        []NamedLogoutHook         // call these on logout
+	dbNukeHooks        []NamedDbNukeHook         // call these on dbnuke
 	GregorState        GregorState               // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
 	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
@@ -320,31 +325,6 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	// NB: This will acquire and release the cacheMu lock, so we have to make
 	// sure nothing holding a cacheMu ever looks for the switchUserMu lock.
 	g.FlushCaches()
-
-	tl := g.teamLoader
-	if tl != nil {
-		tl.OnLogout()
-	}
-
-	ftl := g.fastTeamLoader
-	if ftl != nil {
-		ftl.OnLogout()
-	}
-
-	auditor := g.teamAuditor
-	if auditor != nil {
-		auditor.OnLogout(mctx)
-	}
-
-	st := g.stellar
-	if st != nil {
-		st.OnLogout()
-	}
-
-	tba := g.teamBoxAuditor
-	if tba != nil {
-		tba.OnLogout(mctx)
-	}
 
 	g.logoutSecretStore(mctx, username, killSecrets)
 
@@ -998,7 +978,6 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 			mctx.Warning("OnLogin hook error: %s", err)
 		}
 	}
-
 }
 
 type NamedLogoutHook struct {
@@ -1025,6 +1004,33 @@ func (g *GlobalContext) CallLogoutHooks(mctx MetaContext) {
 			mctx.Warning("| Logout hook [%v] : %s", h.name, err)
 		}
 		mctx.Debug("- Logout hook [%v]", h.name)
+	}
+}
+
+type NamedDbNukeHook struct {
+	DbNukeHook
+	name string
+}
+
+func (g *GlobalContext) AddDbNukeHook(hook DbNukeHook, name string) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
+	g.dbNukeHooks = append(g.dbNukeHooks, NamedDbNukeHook{
+		DbNukeHook: hook,
+		name:       name,
+	})
+}
+
+func (g *GlobalContext) CallDbNukeHooks(mctx MetaContext) {
+	defer mctx.TraceTimed("GlobalContext.CallDbNukeHook", func() error { return nil })()
+	g.hookMu.RLock()
+	defer g.hookMu.RUnlock()
+	for _, h := range g.dbNukeHooks {
+		mctx.Debug("+ DbNukeHook hook [%v]", h.name)
+		if err := h.OnDbNuke(mctx); err != nil {
+			mctx.Warning("| DbNukeHook hook [%v] : %s", h.name, err)
+		}
+		mctx.Debug("- DbNukeHook hook [%v]", h.name)
 	}
 }
 

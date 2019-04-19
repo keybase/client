@@ -124,8 +124,14 @@ func (a *BoxAuditor) getJailLRU() *lru.Cache {
 	return a.jailLRU
 }
 
-func (a *BoxAuditor) OnLogout(mctx libkb.MetaContext) {
+func (a *BoxAuditor) OnLogout(mctx libkb.MetaContext) error {
 	a.resetJailLRU()
+	return nil
+}
+
+func (a *BoxAuditor) OnDbNuke(mctx libkb.MetaContext) error {
+	a.jailLRU.Purge()
+	return nil
 }
 
 func NewBoxAuditor(g *libkb.GlobalContext) *BoxAuditor {
@@ -139,7 +145,10 @@ func NewBoxAuditorAndInstall(g *libkb.GlobalContext) {
 		g.Log.CWarningf(context.TODO(), "Box auditor disabled: using dummy auditor")
 		g.SetTeamBoxAuditor(DummyBoxAuditor{})
 	} else {
-		g.SetTeamBoxAuditor(NewBoxAuditor(g))
+		a := NewBoxAuditor(g)
+		g.SetTeamBoxAuditor(a)
+		g.AddLogoutHook(a, "boxAuditor")
+		g.AddDbNukeHook(a, "boxAuditor")
 	}
 }
 
@@ -630,7 +639,6 @@ func (d DummyBoxAuditor) Attempt(mctx libkb.MetaContext, _ keybase1.TeamID, _ bo
 		Ctime:  keybase1.ToUnixTime(time.Now()),
 	}
 }
-func (d DummyBoxAuditor) OnLogout(libkb.MetaContext) {}
 
 // BoxAuditLog is a log of audits for a particular team.
 type BoxAuditLog struct {

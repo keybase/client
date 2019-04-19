@@ -70,8 +70,6 @@ func (d dummyAuditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPubli
 	return nil
 }
 
-func (d dummyAuditor) OnLogout(m libkb.MetaContext) {}
-
 type Auditor struct {
 
 	// single-flight lock on TeamID
@@ -97,7 +95,10 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) {
 		g.Log.CDebugf(context.TODO(), "Using dummy auditor, audit disabled")
 		g.SetTeamAuditor(dummyAuditor{})
 	} else {
-		g.SetTeamAuditor(NewAuditor(g))
+		a := NewAuditor(g)
+		g.SetTeamAuditor(a)
+		g.AddLogoutHook(a, "team auditor")
+		g.AddDbNukeHook(a, "team auditor")
 	}
 }
 
@@ -557,6 +558,12 @@ func (a *Auditor) newLRU(m libkb.MetaContext) {
 	a.lru = lru
 }
 
-func (a *Auditor) OnLogout(m libkb.MetaContext) {
-	a.newLRU(m)
+func (a *Auditor) OnLogout(mctx libkb.MetaContext) error {
+	a.newLRU(mctx)
+	return nil
+}
+
+func (a *Auditor) OnDbNuke(mctx libkb.MetaContext) error {
+	a.newLRU(mctx)
+	return nil
 }

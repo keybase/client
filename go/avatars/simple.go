@@ -101,4 +101,4 @@ func (s *SimpleSource) ClearCacheForName(m libkb.MetaContext, name string, forma
 	return nil
 }
 
-func (s *SimpleSource) OnCacheCleared(m libkb.MetaContext) {}
+func (s *SimpleSource) OnDbNuke(m libkb.MetaContext) error { return nil }

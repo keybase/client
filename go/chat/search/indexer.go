@@ -142,6 +142,16 @@ func (idx *Indexer) ClearCache() {
 	idx.cache = make(map[string]*chat1.ConversationIndex)
 }
 
+func (idx *Indexer) OnLogout(mctx libkb.MetaContext) error {
+	idx.ClearCache()
+	return nil
+}
+
+func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
+	idx.ClearCache()
+	return nil
+}
+
 func (idx *Indexer) cacheKey(convID chat1.ConversationID, uid gregor1.UID) string {
 	return fmt.Sprintf("%s:%s", uid, convID)
 }
