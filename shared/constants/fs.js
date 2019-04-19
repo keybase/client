@@ -691,7 +691,7 @@ export const getTlfListAndTypeFromPath = (
 export const unknownTlf = makeTlf()
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
-  if (elems.length !== 3) {
+  if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
@@ -973,7 +973,7 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
     case 'partial':
       // TODO: when we enable partial sync lookup, remember to deal with
       // potential ".." traversal as well.
-      return false
+      return syncConfig.enabledPaths.includes(path)
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig.mode)
       return false
@@ -1012,6 +1012,9 @@ export const getSyncStatusInMergeProps = (
         return 'awaiting-to-sync'
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      if (inProgress.bytesTotal === 0) {
+        return 'sync-error'
+      }
       return inProgress.bytesFetched / inProgress.bytesTotal
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus.state)

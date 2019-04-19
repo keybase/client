@@ -20,7 +20,7 @@ function getIcon(props: Props): Kb.IconType {
     case 'online-only':
       return 'iconfont-cloud'
     case 'synced':
-      return 'iconfont-proof-good'
+      return 'iconfont-success'
     case 'sync-error':
       return 'iconfont-exclamation'
     default:
@@ -43,7 +43,7 @@ function getColor(props: Props) {
       return Styles.globalColors.red
     default:
       // This case should never be reached.
-      return Styles.globalColors.red
+      return Styles.globalColors.grey
   }
 }
 
@@ -69,13 +69,14 @@ function getTooltip(props: Props): string {
   }
 }
 
-// TODO: make syncing state actually animate
 const SyncStatus = (props: Props) => (
   <Kb.WithTooltip text={getTooltip(props)}>
     {typeof props.status === 'number' ? (
-      <PieSlice degrees={360 * props.status} animated={true} />
+      <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
+        <PieSlice degrees={360 * props.status} animated={true} />
+      </Kb.Box2>
     ) : (
-      <Kb.Icon type={getIcon(props)} sizeType="Small" color={getColor(props)} />
+      <Kb.Icon type={getIcon(props)} sizeType="Small" padding="xtiny" color={getColor(props)} />
     )}
   </Kb.WithTooltip>
 )
