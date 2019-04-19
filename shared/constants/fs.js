@@ -109,7 +109,6 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   resetParticipants: I.List(),
   syncConfig: null,
   teamId: '',
-  tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
 })

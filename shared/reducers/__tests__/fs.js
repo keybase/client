@@ -140,7 +140,7 @@ describe('fs reducer', () => {
   })
 
   test('folderListLoaded: load folder0', () => {
-    const stage1 = reducer(
+    const state1 = reducer(
       state0,
       FsGen.createFolderListLoaded({
         path: folder0Path,
@@ -157,13 +157,13 @@ describe('fs reducer', () => {
         ]),
       })
     )
-    expect(stage1.pathItems).not.toBe(state0.pathItems)
-    expect(getFolderOrFail(stage1.pathItems, folder0Path).children).toEqual(I.Set(['file1']))
-    expect(getFolderOrFail(stage1.pathItems, folder0Path).prefetchStatus).toBe(Constants.prefetchNotStarted)
+    expect(state1.pathItems).not.toBe(state0.pathItems)
+    expect(getFolderOrFail(state1.pathItems, folder0Path).children).toEqual(I.Set(['file1']))
+    expect(getFolderOrFail(state1.pathItems, folder0Path).prefetchStatus).toBe(Constants.prefetchNotStarted)
   })
 
   test('folderListLoaded: folder0 prefetch complete', () => {
-    const stage1 = reducer(
+    const state1 = reducer(
       state0,
       FsGen.createFolderListLoaded({
         path: folder0Path,
@@ -178,7 +178,36 @@ describe('fs reducer', () => {
         ]),
       })
     )
-    expect(stage1.pathItems).not.toBe(state0.pathItems)
-    expect(getFolderOrFail(stage1.pathItems, folder0Path).prefetchStatus).toBe(Constants.prefetchComplete)
+    expect(state1.pathItems).not.toBe(state0.pathItems)
+    expect(getFolderOrFail(state1.pathItems, folder0Path).prefetchStatus).toBe(Constants.prefetchComplete)
+  })
+
+  test('favorritesLoaded: reuse tlf', () => {
+    const tlfFields = {
+      isFavorite: true,
+      isIgnored: true,
+      isNew: true,
+      name: 'foo',
+      needsRekey: true,
+      resetParticipants: I.List(),
+      syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
+      teamId: '123',
+      waitingForParticipantUnlock: I.List(),
+      youCanUnlock: I.List(),
+    }
+    const state0 = Constants.makeState({
+      tlfs: Constants.makeTlfs({
+        private: I.Map([['foo', Constants.makeTlf(tlfFields)]]),
+      }),
+    })
+    const state1 = reducer(
+      state0,
+      FsGen.createFavoritesLoaded({
+        private: I.Map([['foo', Constants.makeTlf(tlfFields)]]),
+        public: I.Map(),
+        team: I.Map(),
+      })
+    )
+    expect(state1.tlfs.private.get('foo')).toBe(state0.tlfs.private.get('foo'))
   })
 })

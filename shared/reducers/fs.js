@@ -78,7 +78,7 @@ const updatePathItem = (
         return newFolderPathItem
       }
       if (oldFolderPathItem.progress === 'loaded' && newFolderPathItem.progress === 'pending') {
-        // The new one is doesn't have children, but the old one has. We don't
+        // The new one doesn't have children, but the old one has. We don't
         // want to override a loaded folder into pending, because otherwise
         // next time user goes into that folder we'd show placeholders.  So
         // first set the children in new one using what we already have, then
@@ -109,6 +109,47 @@ const updatePathItem = (
       return newPathItem
   }
 }
+
+const updateTlf = (oldTlf?: ?Types.Tlf, newTlf: Types.Tlf): Types.Tlf => {
+  if (!oldTlf) {
+    return newTlf
+  }
+  // TODO: Ideally this should come in with other data from the same RPC.
+  const newTlfDontClearSyncConfig = newTlf.syncConfig ? newTlf : newTlf.set('syncConfig', oldTlf.syncConfig)
+  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (!I.is(newTlfDontClearSyncConfig.waitingForParticipantUnlock, oldTlf.waitingForParticipantUnlock)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (!I.is(newTlfDontClearSyncConfig.youCanUnlock, oldTlf.youCanUnlock)) {
+    return newTlfDontClearSyncConfig
+  }
+  if (
+    !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
+    !(
+      newTlfDontClearSyncConfig.syncConfig &&
+      oldTlf.syncConfig &&
+      newTlfDontClearSyncConfig.syncConfig.mode === 'partial' &&
+      oldTlf.syncConfig.mode === 'partial' &&
+      newTlfDontClearSyncConfig.syncConfig.enabledPaths.equals(oldTlf.syncConfig.enabledPaths)
+    )
+  ) {
+    return newTlfDontClearSyncConfig
+  }
+  return oldTlf.merge(
+    newTlfDontClearSyncConfig.withMutations(n =>
+      n
+        .set('resetParticipants', oldTlf.resetParticipants)
+        .set('waitingForParticipantUnlock', oldTlf.waitingForParticipantUnlock)
+        .set('youCanUnlock', oldTlf.youCanUnlock)
+        .set('syncConfig', oldTlf.syncConfig)
+    )
+  )
+}
+
+const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Types.TlfList =>
+  newTlfList.withMutations(list => list.map((tlf, name) => updateTlf(oldTlfList.get(name), tlf)))
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
@@ -189,13 +230,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
       )
     case FsGen.favoritesLoaded:
-      return state.set(
-        'tlfs',
-        Constants.makeTlfs({
-          private: action.payload.private,
-          public: action.payload.public,
-          team: action.payload.team,
-        })
+      return state.update('tlfs', tlfs =>
+        tlfs.withMutations(tlfs =>
+          tlfs
+            .update('private', privateTlfs => updateTlfList(privateTlfs, action.payload.private))
+            .update('public', publicTlfs => updateTlfList(publicTlfs, action.payload.public))
+            .update('team', team => updateTlfList(team, action.payload.team))
+        )
       )
     case FsGen.setFolderViewFilter:
       return state.set('folderViewFilter', action.payload.filter)
