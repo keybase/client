@@ -4,6 +4,7 @@ import * as Tabs from '../../constants/tabs'
 
 export type Props = {|
   badgeNumbers: {[key: string]: number},
+  firstname: string,
   fullname: string,
   isWalletsNew?: boolean,
   onHelp: () => void,
