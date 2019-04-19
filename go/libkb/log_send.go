@@ -616,7 +616,7 @@ func getOSInfo() (string, error) {
 	}
 }
 
-var keybaseProcessRegexp = regexp.MustCompile(`(?i:kbfs|keybase|upd)`)
+var keybaseProcessRegexp = regexp.MustCompile(`(?i:kbfs|keybase|upd.exe)`)
 
 func pgrep(matcher *regexp.Regexp) ([]ps.Process, error) {
 	processes, err := ps.Processes()
