@@ -100,6 +100,10 @@ export const commonProvider = {
     refresh: Sb.action('refresh'),
   }),
   SendInAppAction: ({path}: {path: Types.Path}) => ({onClick: Sb.action('onClick'), path}),
+  SyncStatus: () => ({
+    folder: false,
+    status: 'online-only',
+  }),
   SyncingFolders: () => ({
     progress: 0.67,
   }),
