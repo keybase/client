@@ -82,7 +82,7 @@ public class MainActivity extends ReactFragmentActivity {
         initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
                 new DNSNSFetcher(), new VideoHelper());
 
-        super.onCreate(savedInstanceState);
+        super.onCreate(null);
 
 
         // Hide splash screen background after 300ms.
