@@ -2817,6 +2817,14 @@
       "name": "ProfileSearchConvStats",
       "fields": [
         {
+          "type": "string",
+          "name": "err"
+        },
+        {
+          "type": "string",
+          "name": "convName"
+        },
+        {
           "type": "int",
           "name": "numMessages"
         },
@@ -4213,6 +4221,10 @@
       ],
       "response": "SearchRegexpRes"
     },
+    "cancelActiveInboxSearch": {
+      "request": [],
+      "response": null
+    },
     "searchInbox": {
       "request": [
         {
@@ -4332,6 +4344,15 @@
         }
       ],
       "response": null
+    },
+    "putReacjiSkinTone": {
+      "request": [
+        {
+          "name": "skinTone",
+          "type": "keybase1.ReacjiSkinTone"
+        }
+      ],
+      "response": "keybase1.UserReacjis"
     }
   },
   "namespace": "chat.1"

@@ -26,6 +26,7 @@
         "'inboxFilterChanged'", // inbox filter made first one selected
         "'inboxSmall'", // inbox row
         "'inboxNewConversation'", // new conversation row
+        "'inboxSearch'", // selected from inbox seaech
         "'jumpFromReset'", // from older reset convo
         "'jumpToReset'", // going to an older reset convo
         "'justCreated'", // just made it and select it
@@ -91,10 +92,6 @@
         "'leftAConversation'",
         "'teamTypeChanged'"
       ]
-    },
-    // Update the 'jump to conversation' filter
-    "setInboxFilter": {
-      "filter": "string"
     },
     // We want to unbox an inbox row
     "metaNeedsUpdating": {
@@ -623,6 +620,49 @@
       "_description": "Reply to a message publicly",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID?": "Types.MessageID"
+    },
+    "setThreadSearchQuery": {
+      "_description": "Set thread search query (used from inbox search to initialize it)",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "query": "HiddenString"
+    },
+    "inboxSearch": {
+      "_description": "Perform an inbox search",
+      "query": "HiddenString"
+    },
+    "inboxSearchStarted": {
+      "_description": "Inbox search has started"
+    },
+    "toggleInboxSearch": {
+      "_description": "Toggle inbox search view",
+      "enabled": "boolean"
+    },
+    "inboxSearchNameResults": {
+      "_description": "Inbox search name results received",
+      "results": "I.List<Types.InboxSearchConvHit>",
+      "unread": "boolean"
+    },
+    "inboxSearchTextResult": {
+      "_description": "Inbox text result has arrived",
+      "result": "Types.InboxSearchTextHit"
+    },
+    "inboxSearchMoveSelectedIndex": {
+      "_description": "Change selected index of inbox search",
+      "increment": "boolean"
+    },
+    "inboxSearchSelect": {
+      "_description": "Select an inbox search item",
+      "conversationIDKey?": "Types.ConversationIDKey",
+      "query?": "HiddenString",
+      "selectedIndex?": "number"
+    },
+    "inboxSearchSetTextStatus": {
+      "_description": "Set the status of the inbox text search",
+      "status": "Types.InboxSearchStatus"
+    },
+    "inboxSearchSetIndexPercent": {
+      "_description": "Set index percent complete",
+      "percent": "number"
     }
   }
 }

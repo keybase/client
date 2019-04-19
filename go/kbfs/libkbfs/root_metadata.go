@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -477,7 +478,7 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *tlfhandle.Handle) error {
 // Possibly copies the MD, returns the copy if so, and whether copied.
 func (md *RootMetadata) loadCachedBlockChanges(
 	ctx context.Context, bps blockPutState, log logger.Logger,
-	codec kbfscodec.Codec) (*RootMetadata, bool) {
+	vlog *libkb.VDebugLog, codec kbfscodec.Codec) (*RootMetadata, bool) {
 	if md.data.Changes.Ops != nil {
 		return md, false
 	}
@@ -539,7 +540,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 		},
 		func(_ context.Context, ptr data.BlockPointer, block data.Block) error {
 			return nil
-		}, log)
+		}, log, vlog)
 
 	infos, err := fd.GetIndirectFileBlockInfos(ctx)
 	if err != nil {

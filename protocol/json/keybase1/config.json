@@ -529,11 +529,8 @@
           "name": "followers"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "topReacjis"
+          "type": "UserReacjis",
+          "name": "userReacjis"
         }
       ]
     },

@@ -106,7 +106,7 @@ type MessageDeliverer interface {
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		outboxID *chat1.OutboxID, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
 	ForceDeliverLoop(ctx context.Context)
-	ActiveDeliveries(ctx context.Context) ([]chat1.ConversationID, error)
+	ActiveDeliveries(ctx context.Context) ([]chat1.OutboxRecord, error)
 	NextFailure() (chan []chat1.OutboxRecord, func())
 }
 
@@ -124,6 +124,7 @@ type Indexer interface {
 	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
+	ClearCache()
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }

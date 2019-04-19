@@ -37,7 +37,8 @@ func Start(ctx context.Context, options StartOptions,
 	// of this once we integrate with the kbfs daemon.
 	errput.Write([]byte("Initializing Keybase... "))
 	ctx, config, err := libgit.Init(
-		ctx, options.KbfsParams, kbCtx, nil, defaultLogPath)
+		ctx, options.KbfsParams, kbCtx, nil, defaultLogPath,
+		kbCtx.GetVDebugSetting())
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}

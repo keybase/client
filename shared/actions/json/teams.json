@@ -10,6 +10,7 @@
       "teams": "Array<string>",
       "user": "string"
     },
+    "clearNavBadges": {},
     "createNewTeam": {
       "joinSubteam": "boolean",
       "teamname": "string",
@@ -25,9 +26,9 @@
       "teamname": "string",
       "channelname": "string",
       "description": "?string",
-      "rootPath": "I.List<string>",
-      "sourceSubPath": "I.List<string>",
-      "destSubPath": "I.List<string>"
+      "rootPath?": "I.List<string>",
+      "sourceSubPath?": "I.List<string>",
+      "destSubPath?": "I.List<string>"
     },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
@@ -47,7 +48,9 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {},
+    "getTeams": {
+      "clearNavBadges?": "boolean"
+    },
     "getDetails": {
       "teamname": "string"
     },

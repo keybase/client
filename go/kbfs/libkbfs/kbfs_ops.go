@@ -65,6 +65,7 @@ const longOperationDebugDumpDuration = time.Minute
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBFSOpsStandard {
 	log := config.MakeLogger("")
+	quLog := config.MakeLogger(QuotaUsageLogModule("KBFSOps"))
 	kops := &KBFSOpsStandard{
 		appStateUpdater:       appStateUpdater,
 		config:                config,
@@ -73,8 +74,9 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs:       NewFavorites(config),
-		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
+		favs: NewFavorites(config),
+		quotaUsage: NewEventuallyConsistentQuotaUsage(
+			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
 			config, longOperationDebugDumpDuration),
 		currentStatus: &kbfsCurrentStatus{},

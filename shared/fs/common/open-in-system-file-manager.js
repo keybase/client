@@ -63,7 +63,7 @@ const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
           and secure.
         </Text>
         <Box style={styles.buttonBox}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={props.enableDriver} />
+          <Button type="Success" label="Yes, enable" onClick={props.enableDriver} />
         </Box>
       </Box>
     </Overlay>
@@ -89,6 +89,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.small,
+    textAlign: 'center',
     width: '100%',
   },
   popup: {

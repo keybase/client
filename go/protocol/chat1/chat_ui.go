@@ -1081,16 +1081,40 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 }
 
 type UIChatSearchConvHit struct {
-	ConvID string       `codec:"convID" json:"convID"`
-	Name   string       `codec:"name" json:"name"`
-	Mtime  gregor1.Time `codec:"mtime" json:"mtime"`
+	ConvID   string       `codec:"convID" json:"convID"`
+	TeamType TeamType     `codec:"teamType" json:"teamType"`
+	Name     string       `codec:"name" json:"name"`
+	Mtime    gregor1.Time `codec:"mtime" json:"mtime"`
 }
 
 func (o UIChatSearchConvHit) DeepCopy() UIChatSearchConvHit {
 	return UIChatSearchConvHit{
-		ConvID: o.ConvID,
-		Name:   o.Name,
-		Mtime:  o.Mtime.DeepCopy(),
+		ConvID:   o.ConvID,
+		TeamType: o.TeamType.DeepCopy(),
+		Name:     o.Name,
+		Mtime:    o.Mtime.DeepCopy(),
+	}
+}
+
+type UIChatSearchConvHits struct {
+	Hits          []UIChatSearchConvHit `codec:"hits" json:"hits"`
+	UnreadMatches bool                  `codec:"unreadMatches" json:"unreadMatches"`
+}
+
+func (o UIChatSearchConvHits) DeepCopy() UIChatSearchConvHits {
+	return UIChatSearchConvHits{
+		Hits: (func(x []UIChatSearchConvHit) []UIChatSearchConvHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIChatSearchConvHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		UnreadMatches: o.UnreadMatches,
 	}
 }
 
@@ -1899,6 +1923,10 @@ type ChatSearchDoneArg struct {
 	NumHits   int `codec:"numHits" json:"numHits"`
 }
 
+type ChatSearchInboxStartArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ChatSearchInboxHitArg struct {
 	SessionID int                `codec:"sessionID" json:"sessionID"`
 	SearchHit ChatSearchInboxHit `codec:"searchHit" json:"searchHit"`
@@ -1915,8 +1943,8 @@ type ChatSearchIndexStatusArg struct {
 }
 
 type ChatSearchConvHitsArg struct {
-	SessionID int                   `codec:"sessionID" json:"sessionID"`
-	Hits      []UIChatSearchConvHit `codec:"hits" json:"hits"`
+	SessionID int                  `codec:"sessionID" json:"sessionID"`
+	Hits      UIChatSearchConvHits `codec:"hits" json:"hits"`
 }
 
 type ChatConfirmChannelDeleteArg struct {
@@ -1983,6 +2011,7 @@ type ChatUiInterface interface {
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
 	ChatSearchHit(context.Context, ChatSearchHitArg) error
 	ChatSearchDone(context.Context, ChatSearchDoneArg) error
+	ChatSearchInboxStart(context.Context, int) error
 	ChatSearchInboxHit(context.Context, ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
@@ -2150,6 +2179,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatSearchDone(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatSearchInboxStart": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSearchInboxStartArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSearchInboxStartArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSearchInboxStartArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchInboxStart(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -2420,6 +2464,12 @@ func (c ChatUiClient) ChatSearchHit(ctx context.Context, __arg ChatSearchHitArg)
 
 func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatSearchInboxStart(ctx context.Context, sessionID int) (err error) {
+	__arg := ChatSearchInboxStartArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxStart", []interface{}{__arg}, nil)
 	return
 }
 

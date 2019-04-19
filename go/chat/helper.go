@@ -245,8 +245,8 @@ func (h *Helper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return GetMessage(ctx, h.G(), uid, convID, msgID, resolveSupersedes, reason)
 }
 
-func (h *Helper) TopReacjis(ctx context.Context, uid gregor1.UID) []string {
-	return storage.NewReacjiStore(h.G()).TopReacjis(ctx, uid)
+func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
+	return storage.NewReacjiStore(h.G()).UserReacjis(ctx, uid)
 }
 
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -1113,6 +1113,15 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				} else {
 					return res, reserr
 				}
+			case libkb.ChatNotInTeamError:
+				if n.membersType == chat1.ConversationMembersType_TEAM {
+					teamID, tmpErr := TLFIDToTeamID(triple.Tlfid)
+					if tmpErr == nil && teamID.IsSubTeam() {
+						n.Debug(ctx, "For tlf ID %s, inferring NotExplicitMemberOfSubteamError, from error: %s", triple.Tlfid, reserr.Error())
+						return res, teams.NewNotExplicitMemberOfSubteamError()
+					}
+				}
+				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}

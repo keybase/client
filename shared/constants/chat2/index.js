@@ -20,6 +20,7 @@ import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import flags from '../../util/feature-flags'
+import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
@@ -34,8 +35,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   focus: null,
   giphyResultMap: I.Map(),
   giphyWindowMap: I.Map(),
-  inboxFilter: '',
   inboxHasLoaded: false,
+  inboxSearch: null,
   isWalletsNew: true,
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
@@ -56,6 +57,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   smallTeamsExpanded: false,
   staticConfig: null,
   threadSearchInfoMap: I.Map(),
+  threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
@@ -87,6 +89,56 @@ export const makeThreadSearchInfo: I.RecordFactory<Types._ThreadSearchInfo> = I.
   status: 'initial',
   visible: false,
 })
+
+export const inboxSearchMaxTextMessages = 100
+export const inboxSearchMaxTextResults = 50
+export const inboxSearchMaxNameResults = 7
+export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
+
+export const makeInboxSearchInfo: I.RecordFactory<Types._InboxSearchInfo> = I.Record({
+  indexPercent: 0,
+  nameResults: I.List(),
+  nameResultsUnread: false,
+  nameStatus: 'initial',
+  query: new HiddenString(''),
+  selectedIndex: 0,
+  textResults: I.List(),
+  textStatus: 'initial',
+})
+
+export const makeInboxSearchConvHit: I.RecordFactory<Types._InboxSearchConvHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  teamType: 'small',
+})
+
+export const makeInboxSearchTextHit: I.RecordFactory<Types._InboxSearchTextHit> = I.Record({
+  conversationIDKey: noConversationIDKey,
+  numHits: 0,
+  query: '',
+  teamType: 'small',
+  time: 0,
+})
+
+export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
+  if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
+    const conversationIDKey = inboxSearch.nameResults.get(inboxSearch.selectedIndex)?.conversationIDKey
+    if (conversationIDKey) {
+      return {
+        conversationIDKey,
+        query: undefined,
+      }
+    }
+  } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.size + inboxSearch.textResults.size) {
+    const result = inboxSearch.textResults.get(inboxSearch.selectedIndex - inboxSearch.nameResults.size)
+    if (result) {
+      return {
+        conversationIDKey: result.conversationIDKey,
+        query: new HiddenString(result.query),
+      }
+    }
+  }
+  return null
+}
 
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())

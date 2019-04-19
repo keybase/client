@@ -410,9 +410,10 @@ type ChatUI interface {
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxStart(context.Context) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
-	ChatSearchConvHits(context.Context, []chat1.UIChatSearchConvHit) error
+	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
@@ -700,9 +701,9 @@ type TeamAuditor interface {
 type TeamBoxAuditor interface {
 	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
 	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
-	RetryNextBoxAudit(m MetaContext) (err error)
-	BoxAuditRandomTeam(m MetaContext) (err error)
-	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (err error)
+	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
 	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
 	OnLogout(m MetaContext)
 }
@@ -945,7 +946,7 @@ type ChatHelper interface {
 	GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	TopReacjis(ctx context.Context, uid gregor1.UID) []string
+	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

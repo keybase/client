@@ -14,6 +14,7 @@ type CommonProps = {|
   isEditExploded: boolean,
   isEditing: boolean,
   isExploding: boolean,
+  isSearching: boolean,
   explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,

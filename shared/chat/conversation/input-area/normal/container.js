@@ -32,6 +32,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
+  const isSearching = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   // don't include 'small' here to ditch the single #general suggestion
   const teamname = meta.teamType === 'big' ? meta.teamname : ''
 
@@ -55,6 +56,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isActiveForFocus: state.chat2.focus === null,
     isEditExploded: editInfo ? editInfo.exploded : false,
     isExploding,
+    isSearching,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
@@ -111,7 +113,7 @@ const mapDispatchToProps = dispatch => ({
   _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     conversationIDKey &&
     dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
-  clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
+  clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
@@ -129,6 +131,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   isEditExploded: stateProps.isEditExploded,
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
+  isSearching: stateProps.isSearching,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),

@@ -36,8 +36,9 @@ func (u *RemotePgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGenerate
 	return u.cli.KeyGenerated(ctx, arg)
 }
 
-func (u *RemotePgpUI) ShouldPushPrivate(ctx context.Context, sessionID int) (bool, error) {
-	return u.cli.ShouldPushPrivate(ctx, u.sessionID)
+func (u *RemotePgpUI) ShouldPushPrivate(ctx context.Context, arg keybase1.ShouldPushPrivateArg) (bool, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.ShouldPushPrivate(ctx, arg)
 }
 
 func (u *RemotePgpUI) Finished(ctx context.Context, sessionID int) error {

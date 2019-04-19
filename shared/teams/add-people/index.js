@@ -103,7 +103,6 @@ const AddPeople = (props: Props) => (
               onClick={props.onOpenRolePicker}
               label={props.addButtonLabel}
               waitingKey={Constants.addPeopleToTeamWaitingKey(props.name)}
-              type="Primary"
             />
           </Kb.Box>
         </Kb.Box>

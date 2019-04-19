@@ -104,7 +104,7 @@ const styles = Styles.styleSheetCreate({
 
 const DeviceHeader = ({onAddNew, waiting}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
-    <Kb.Button type="Primary" label="Add a device or paper key">
+    <Kb.Button label="Add a device or paper key">
       <Kb.Icon
         type="iconfont-new"
         color={Styles.globalColors.white}
@@ -116,6 +116,7 @@ const DeviceHeader = ({onAddNew, waiting}) => (
 const headerStyles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
     height: Styles.isMobile ? 64 : 48,
     justifyContent: 'center',
   },

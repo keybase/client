@@ -42,6 +42,7 @@ esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
 experimental.const_params=true
 esproposal.optional_chaining=enable
+merge_timeout=180
 
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> '<PROJECT_ROOT>/__mocks__/global-image-stub.js'
 

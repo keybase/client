@@ -31,7 +31,6 @@ const SetPublicName = (props: Props) => {
           value={props.deviceName}
         />
         <WaitingButton
-          type="Primary"
           disabled={!props.onSubmit}
           label="Continue"
           onClick={props.onSubmit}

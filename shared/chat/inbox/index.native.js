@@ -10,10 +10,9 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
 import {virtualListMarks} from '../../local-debug'
 import {debounce} from 'lodash-es'
-import {Owl} from './owl'
 import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
-
+import InboxSearch from '../inbox-search/container'
 import type {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
@@ -76,7 +75,6 @@ class Inbox extends React.PureComponent<Props, State> {
       element = makeRow({
         channelname: row.channelname,
         conversationIDKey: row.conversationIDKey,
-        filtered: !!this.props.filter,
         teamname: row.teamname,
         type: row.type,
       })
@@ -187,10 +185,6 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _getItemLayout = (data, index) => {
-    if (this.props.filter.length) {
-      return {index, length: RowSizes.smallRowHeight, offset: RowSizes.smallRowHeight * (index - 1)}
-    }
-
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
@@ -218,9 +212,6 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
-  _onEnsureSelection = () => this.props.onEnsureSelection()
-  _onSelectUp = () => this.props.onSelectUp()
-  _onSelectDown = () => this.props.onSelectDown()
   _onDidFocus = () => this.props.onDeselectConversation()
 
   render() {
@@ -233,41 +224,38 @@ class Inbox extends React.PureComponent<Props, State> {
       return false
     })
 
-    const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
-    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
-    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
-      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
+      <NoChats />
     )
-    const HeadComponent = (
-      <ChatInboxHeader
-        filterFocusCount={this.props.filterFocusCount}
-        focusFilter={this.props.focusFilter}
-        onNewChat={this.props.onNewChat}
-        onEnsureSelection={this._onEnsureSelection}
-        onSelectUp={this._onSelectUp}
-        onSelectDown={this._onSelectDown}
-      />
-    )
+    const floatingDivider = this.state.showFloating &&
+      !this.props.isSearching &&
+      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
     return (
       <Kb.ErrorBoundary>
         <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
         <Kb.Box style={styles.container}>
-          <Kb.NativeFlatList
-            ListHeaderComponent={HeadComponent}
-            data={this.props.rows}
-            keyExtractor={this._keyExtractor}
-            renderItem={this._renderItem}
-            ref={this._setRef}
-            onViewableItemsChanged={this._onViewChanged}
-            windowSize={5}
-            keyboardShouldPersistTaps="handled"
-            getItemLayout={this._getItemLayout}
-            removeClippedSubviews={true}
-          />
+          {this.props.isSearching ? (
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <InboxSearch header={HeadComponent} />
+            </Kb.Box2>
+          ) : (
+            <Kb.NativeFlatList
+              ListHeaderComponent={HeadComponent}
+              data={this.props.rows}
+              keyExtractor={this._keyExtractor}
+              renderItem={this._renderItem}
+              ref={this._setRef}
+              onViewableItemsChanged={this._onViewChanged}
+              windowSize={5}
+              keyboardShouldPersistTaps="handled"
+              getItemLayout={this._getItemLayout}
+              removeClippedSubviews={true}
+            />
+          )}
           {noChats}
-          {owl}
-          {floatingDivider || <BuildTeam />}
-          {this.state.showUnread && !this.state.showFloating && (
+          {floatingDivider || (!this.props.isSearching && <BuildTeam />)}
+          {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this._scrollToUnread} />
           )}
         </Kb.Box>

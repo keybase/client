@@ -21,6 +21,7 @@ import (
 
 	"encoding/base64"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
@@ -358,7 +359,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.InboxSource = NewHybridInboxSource(g, func() chat1.RemoteInterface { return ri })
+	g.InboxSource = NewHybridInboxSource(g, badges.NewBadger(g.ExternalG()),
+		func() chat1.RemoteInterface { return ri })
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())
 	g.ServerCacheVersions = storage.NewServerVersions(g)
@@ -6452,35 +6454,36 @@ func TestReacjiStore(t *testing.T) {
 		ctc.as(t, user).h.G().NotifyRouter.AddListener(listener)
 		tc.ChatG.Syncer.(*Syncer).isConnected = true
 		reacjiStore := storage.NewReacjiStore(ctc.as(t, user).h.G())
-		assertTopReacjis := func(actual, expected []string, expectedMap storage.ReacjiMap) {
-			require.Len(t, actual, 5)
+		assertReacjiStore := func(actual, expected keybase1.UserReacjis, expectedData *storage.ReacjiInternalStorage) {
 			require.Equal(t, expected, actual)
-			require.Equal(t, expectedMap, reacjiStore.Get(ctx, uid))
-
+			data := reacjiStore.GetInternalStore(ctx, uid)
+			require.Equal(t, expectedData, data)
 		}
 
-		expectedMap := make(storage.ReacjiMap)
+		expectedData := storage.NewReacjiInternalStorage()
 		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
 		// if the user has no history we return the default list
-		top5 := tc.G.ChatHelper.TopReacjis(ctx, uid)
-		assertTopReacjis(top5, storage.DefaultTopReacjis, expectedMap)
+		userReacjis := tc.G.ChatHelper.UserReacjis(ctx, uid)
+		assertReacjiStore(userReacjis, keybase1.UserReacjis{TopReacjis: storage.DefaultTopReacjis}, expectedData)
 
 		// post a bunch of reactions, we should end up with these reactions
 		// replacing the defaults sorted alphabetically (since they tie on
 		// being used once each)
-		reactionKeys := []string{"e", "d", "c", "b", "a"}
-		expected := make([]string, len(storage.DefaultTopReacjis))
-		copy(expected, storage.DefaultTopReacjis)
+		reactionKeys := []string{"g", "f", "e", "d", "c", "b", "a"}
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
-		for _, reaction := range reactionKeys {
-			expectedMap[reaction]++
+		expected := keybase1.UserReacjis{}
+		for i, reaction := range reactionKeys {
+			expectedData.FrequencyMap[reaction]++
 			mustReactToMsg(ctx, t, ctc, user, conv, textID, reaction)
 			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
-			expected = append([]string{reaction}, expected...)[:len(storage.DefaultTopReacjis)]
 			info := consumeReactionUpdate(t, listener)
-			assertTopReacjis(info.TopReacjis, expected, expectedMap)
+			expected.TopReacjis = append([]string{reaction}, expected.TopReacjis...)
+			if i < 5 {
+				expected.TopReacjis = append(expected.TopReacjis, storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
+			}
+			assertReacjiStore(info.UserReacjis, expected, expectedData)
 		}
 		// bump "a" to the most frequent
 		msg = chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
@@ -6488,8 +6491,16 @@ func TestReacjiStore(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		mustReactToMsg(ctx, t, ctc, user, conv, textID2, "a")
 		consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
-		expectedMap["a"]++
+		expectedData.FrequencyMap["a"]++
 		info := consumeReactionUpdate(t, listener)
-		assertTopReacjis(info.TopReacjis, expected, expectedMap)
+		assertReacjiStore(info.UserReacjis, expected, expectedData)
+
+		// putSkinTone
+		expectedSkinTone := keybase1.ReacjiSkinTone(4)
+		userReacjis, err := ctc.as(t, user).chatLocalHandler().PutReacjiSkinTone(ctx, expectedSkinTone)
+		require.NoError(t, err)
+		expected.SkinTone = expectedSkinTone
+		expectedData.SkinTone = expectedSkinTone
+		assertReacjiStore(userReacjis, expected, expectedData)
 	})
 }

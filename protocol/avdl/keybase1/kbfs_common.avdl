@@ -101,4 +101,12 @@ protocol kbfsCommon {
     array<string> syncingPaths;
     union { null, Time} endEstimate;
   }
+
+  record FolderSyncStatus {
+    // Bytes available and total on the partition hosting the sync cache.
+    int64 localDiskBytesAvailable;
+    int64 localDiskBytesTotal;
+    PrefetchStatus prefetchStatus;
+    PrefetchProgress prefetchProgress;
+  }
 }

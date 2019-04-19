@@ -1061,9 +1061,10 @@ func SearchableRemoteConversationName(conv types.RemoteConversation, username st
 
 func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, username string) chat1.UIChatSearchConvHit {
 	return chat1.UIChatSearchConvHit{
-		ConvID: conv.GetConvID().String(),
-		Name:   SearchableRemoteConversationName(conv, username),
-		Mtime:  conv.GetMtime(),
+		ConvID:   conv.GetConvID().String(),
+		TeamType: conv.GetTeamType(),
+		Name:     SearchableRemoteConversationName(conv, username),
+		Mtime:    conv.GetMtime(),
 	}
 }
 

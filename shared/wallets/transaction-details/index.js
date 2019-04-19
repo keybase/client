@@ -96,7 +96,7 @@ const Counterparty = (props: CounterpartyProps) => {
             underline={true}
           />
           <Kb.Button
-            type="Secondary"
+            type="Dim"
             label="Chat"
             small={true}
             style={styles.chatButton}
@@ -299,12 +299,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
         />
       </Kb.Box2>
       <Kb.Divider />
-      <Kb.Box2
-        direction="vertical"
-        gap="small"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.container, styles.flexOne])}
-      >
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
@@ -495,7 +490,6 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   scrollViewContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
   },
   statusBox: {

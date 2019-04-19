@@ -3,9 +3,10 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import {GatewayDest} from 'react-gateway'
+import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
 
 type OwnProps = {||}
 
@@ -15,6 +16,7 @@ type Props = {|
   infoPanelOpen: boolean,
   muted: boolean,
   onOpenFolder: () => void,
+  onNewChat: () => void,
   onToggleInfoPanel: () => void,
   onToggleThreadSearch: () => void,
   participants: ?Array<string>,
@@ -25,7 +27,7 @@ type Props = {|
 const Header = (p: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container}>
     <Kb.Box2 direction="vertical" style={styles.left}>
-      <GatewayDest name="chatHeader" />
+      <ChatInboxHeader onNewChat={p.onNewChat} />
     </Kb.Box2>
     <Kb.Box2
       direction="horizontal"
@@ -63,7 +65,7 @@ const Header = (p: Props) => (
           )}
         </Kb.Box2>
         {!!p.desc && (
-          <Kb.Text selectable={true} type="BodyTiny">
+          <Kb.Text selectable={true} type="BodyTiny" style={styles.desc}>
             {p.desc}
           </Kb.Text>
         )}
@@ -87,6 +89,7 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     height: 40,
   },
+  desc: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
   grow: {flexGrow: 1},
   left: {minWidth: 260},
   right: {
@@ -102,17 +105,26 @@ const styles = Styles.styleSheetCreate({
 
 const mapStateToProps = state => {
   const _conversationIDKey = Constants.getSelectedConversation(state)
+  const _fullnames = state.users.infoMap
   const _meta = Constants.getMeta(state, _conversationIDKey)
 
   return {
     _conversationIDKey,
+    _fullnames,
     _meta,
+    _username: state.config.username,
     infoPanelOpen: Constants.isInfoPanelOpen(state),
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+  onNewChat: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {}, selected: 'chatNewChat'}],
+      })
+    ),
   onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   onToggleThreadSearch: conversationIDKey => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
   onUnMuteConversation: conversationIDKey =>
@@ -121,6 +133,12 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const meta = stateProps._meta
+  const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
+  // If it's a one-on-one chat, use the user's fullname as the description
+  const desc =
+    meta.teamType === 'adhoc' && otherParticipants.length === 1
+      ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+      : meta.description
   return {
     channel:
       meta.teamType === 'big'
@@ -128,9 +146,10 @@ const mergeProps = (stateProps, dispatchProps) => {
         : meta.teamType === 'small'
         ? meta.teamname
         : null,
-    desc: meta.description,
+    desc,
     infoPanelOpen: stateProps.infoPanelOpen,
     muted: meta.isMuted,
+    onNewChat: dispatchProps.onNewChat,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),

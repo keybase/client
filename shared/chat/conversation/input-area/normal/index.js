@@ -252,7 +252,9 @@ class Input extends React.Component<InputProps, InputState> {
       const text = this.props.getUnsentText()
       this._setText(text, true)
       // TODO: Ideally, we'd also stash and restore the selection.
-      this._inputFocus()
+      if (!this.props.isSearching) {
+        this._inputFocus()
+      }
     }
   }
 

@@ -34,10 +34,6 @@ export type RouteState = I.RecordOf<{
 export type Props = {|
   allowShowFloatingButton: boolean,
   children?: React$Element<any>,
-  clearedFilterCount: number,
-  focusFilter: () => void, // withStateHandler function
-  filter: string,
-  filterFocusCount: number,
   neverLoaded: boolean,
   nowOverride?: number, // just for dumb rendering
   onDeselectConversation: () => void,
@@ -51,4 +47,5 @@ export type Props = {|
   smallTeamsExpanded: boolean,
   toggleSmallTeamsExpanded: () => void,
   unreadIndices: I.List<number>,
+  isSearching: boolean,
 |}

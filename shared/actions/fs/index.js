@@ -92,12 +92,12 @@ const loadSyncConfigForAllTlfs = (state, action) =>
   })
 
 const loadTlfSyncConfig = (state, action) => {
-  const parsedPath = Constants.parsePath(action.payload.path)
+  const parsedPath = Constants.parsePath(action.payload.tlfPath)
   if (parsedPath.kind === 'root' || parsedPath.kind === 'tlf-list') {
     return null
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-    path: Constants.pathToRPCPath(action.payload.path),
+    path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(result =>
     FsGen.createTlfSyncConfigLoaded({
       syncConfig: getSyncConfigFromRPC(result.config),
@@ -108,16 +108,19 @@ const loadTlfSyncConfig = (state, action) => {
 }
 
 const setTlfSyncConfig = (state, action) =>
-  RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise({
-    config: {
-      mode: action.payload.enabled
-        ? RPCTypes.simpleFSFolderSyncMode.enabled
-        : RPCTypes.simpleFSFolderSyncMode.disabled,
+  RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+    {
+      config: {
+        mode: action.payload.enabled
+          ? RPCTypes.simpleFSFolderSyncMode.enabled
+          : RPCTypes.simpleFSFolderSyncMode.disabled,
+      },
+      path: Constants.pathToRPCPath(action.payload.tlfPath),
     },
-    path: Constants.pathToRPCPath(action.payload.path),
-  }).then(() =>
+    Constants.syncToggleWaitingKey
+  ).then(() =>
     FsGen.createLoadTlfSyncConfig({
-      path: action.payload.path,
+      tlfPath: action.payload.tlfPath,
     })
   )
 
@@ -262,28 +265,14 @@ function* folderList(_, action) {
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
     const state = yield* Saga.selectState()
-    const {lastModifiedTimestamp, lastWriter, size, writable} = state.fs.pathItems.get(
-      rootPath,
-      Constants.makeFolder({name: Types.getPathName(rootPath)})
-    )
+    const rootPathItem = state.fs.pathItems.get(rootPath, Constants.unknownPathItem)
+    const rootFolder: Types.FolderPathItem = (rootPathItem.type === 'folder'
+      ? rootPathItem
+      : Constants.makeFolder({name: Types.getPathName(rootPath)})
+    ).withMutations(f => f.set('children', I.Set(childMap.get(rootPath))).set('progress', 'loaded'))
 
     const pathItems = [
-      ...(Types.getPathLevel(rootPath) > 2
-        ? [
-            [
-              rootPath,
-              Constants.makeFolder({
-                children: I.Set(childMap.get(rootPath)),
-                lastModifiedTimestamp,
-                lastWriter,
-                name: Types.getPathName(rootPath),
-                progress: 'loaded',
-                size,
-                writable,
-              }),
-            ],
-          ]
-        : []),
+      ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: I.Map(pathItems)}))
@@ -917,6 +906,11 @@ const getKbfsDaemonOnlineStatus = (state, action) =>
 const onFSOnlineStatusChanged = (state, action) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
+const onFSOverallSyncSyncStatusChanged = (state, action) => {
+  return FsGen.createOverallSyncStatusChanged({
+    progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+  })
+}
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -982,6 +976,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOnlineStatusChanged,
       onFSOnlineStatusChanged
+    )
+    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
+      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
+      onFSOverallSyncSyncStatusChanged
     )
   }
 

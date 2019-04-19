@@ -39,23 +39,26 @@ export type Props = {
 
 type State = {
   isHovered: boolean,
+  showMenu: boolean,
 }
 
 const SmallTeamBox = Styles.isMobile
   ? Kb.ClickableBox
   : Styles.styled(Kb.Box)({
-      '& .small-team-gear': {display: 'none'},
-      ':hover .small-team-gear': {display: 'unset'},
-      ':hover .small-team-timestamp': {display: 'none'},
+      '& .conversation-gear': {display: 'none'},
+      ':hover .conversation-gear': {display: 'unset'},
+      ':hover .conversation-timestamp': {display: 'none'},
     })
 
 class SmallTeam extends React.PureComponent<Props, State> {
   state = {
     isHovered: false,
+    showMenu: false,
   }
 
   _onMouseLeave = () => this.setState({isHovered: false})
   _onMouseOver = () => this.setState({isHovered: true})
+  _onShowMenu = (showMenu: boolean) => this.setState({showMenu})
 
   _backgroundColor = () =>
     // props.backgroundColor should always override hover styles, otherwise, there's a
@@ -69,11 +72,15 @@ class SmallTeam extends React.PureComponent<Props, State> {
 
   render() {
     const props = this.props
+    const clickProps = {
+      onClick: props.onSelectConversation,
+      ...(Styles.isMobile ? {onLongPress: () => this._onShowMenu(true)} : {}),
+      onMouseLeave: this._onMouseLeave,
+      onMouseOver: this._onMouseOver,
+    }
     return (
       <SmallTeamBox
-        onClick={props.onSelectConversation}
-        onMouseLeave={this._onMouseLeave}
-        onMouseOver={this._onMouseOver}
+        {...clickProps}
         style={Styles.collapseStyles([
           {
             backgroundColor: this._backgroundColor(),
@@ -114,7 +121,9 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 iconHoverColor={props.iconHoverColor}
                 participants={props.teamname ? [props.teamname] : props.participants}
                 showBold={props.showBold}
-                showGear={!!props.teamname && !Styles.isMobile && !props.isInWidget}
+                showGear={!props.isInWidget}
+                forceShowMenu={this.state.showMenu}
+                onForceHideMenu={() => this._onShowMenu(false)}
                 subColor={props.subColor}
                 timestamp={props.timestamp}
                 usernameColor={props.usernameColor}

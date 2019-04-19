@@ -261,7 +261,9 @@ func NewConfigLocal(mode InitMode,
 	config.ResetCaches()
 	config.SetKeyOps(libkey.NewKeyOpsStandard(keyOpsConfigWrapper{config}))
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
-	config.SetUserHistory(kbfsedits.NewUserHistory(config.MakeLogger("HIS")))
+	uhLog := config.MakeLogger("HIS")
+	config.SetUserHistory(kbfsedits.NewUserHistory(
+		uhLog, config.MakeVLogger(uhLog)))
 
 	config.maxNameBytes = data.MaxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
@@ -880,7 +882,8 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() data.DirtyBlockCache {
 	startSyncBufferSize := minSyncBufferSize
 
 	dbcLog := c.MakeLogger("DBC")
-	c.dirtyBcache = data.NewDirtyBlockCacheStandard(c.clock, dbcLog,
+	c.dirtyBcache = data.NewDirtyBlockCacheStandard(
+		c.clock, dbcLog, c.makeVLoggerLocked(dbcLog),
 		minSyncBufferSize, maxSyncBufferSize, startSyncBufferSize)
 	return oldDirtyBcache
 }
@@ -915,14 +918,18 @@ func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	return c.loggerFn(module)
 }
 
-// MakeVLogger implements the logMaker interface for ConfigLocal.
-func (c *ConfigLocal) MakeVLogger(module string) *libkb.VDebugLog {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	vlog := libkb.NewVDebugLog(c.loggerFn(module))
+func (c *ConfigLocal) makeVLoggerLocked(log logger.Logger) *libkb.VDebugLog {
+	vlog := libkb.NewVDebugLog(log)
 	vlog.Configure(c.vdebugSetting)
 	c.vlogs = append(c.vlogs, vlog)
 	return vlog
+}
+
+// MakeVLogger implements the logMaker interface for ConfigLocal.
+func (c *ConfigLocal) MakeVLogger(log logger.Logger) *libkb.VDebugLog {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	return c.makeVLoggerLocked(log)
 }
 
 // MetricsRegistry implements the Config interface for ConfigLocal.
@@ -1145,7 +1152,8 @@ func (c *ConfigLocal) journalizeBcaches(jManager *JournalManager) error {
 	// always set the min and max to the same thing.
 	maxSyncBufferSize := int64(ForcedBranchSquashBytesThresholdDefault)
 	log := c.MakeLogger("DBCJ")
-	journalCache := data.NewDirtyBlockCacheStandard(c.clock, log,
+	journalCache := data.NewDirtyBlockCacheStandard(
+		c.clock, log, c.MakeVLogger(log),
 		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
 	c.SetDirtyBlockCache(jManager.dirtyBlockCache(journalCache))
 
@@ -1167,12 +1175,14 @@ func (c *ConfigLocal) getQuotaUsage(
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	quota, ok = c.quotaUsage[chargedTo]
+	log := c.MakeLogger(QuotaUsageLogModule("BDL"))
+	vlog := c.makeVLoggerLocked(log)
 	if !ok {
 		if chargedTo.IsTeamOrSubteam() {
 			quota = NewEventuallyConsistentTeamQuotaUsage(
-				c, chargedTo.AsTeamOrBust(), "BDL")
+				c, chargedTo.AsTeamOrBust(), log, vlog)
 		} else {
-			quota = NewEventuallyConsistentQuotaUsage(c, "BDL")
+			quota = NewEventuallyConsistentQuotaUsage(c, log, vlog)
 		}
 		c.quotaUsage[chargedTo] = quota
 	}
@@ -1643,4 +1653,11 @@ func (c *ConfigLocal) SetVLogLevel(levelString string) {
 	for _, vlog := range c.vlogs {
 		vlog.Configure(levelString)
 	}
+}
+
+// VLogLevel implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) VLogLevel() string {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.vdebugSetting
 }

@@ -62,7 +62,7 @@ class _ConfirmModal extends React.PureComponent<Props> {
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
             {!Styles.isMobile && (
               <WaitingButton
-                type="Secondary"
+                type="Dim"
                 label="Cancel"
                 onClick={this.props.onCancel}
                 style={styles.button}

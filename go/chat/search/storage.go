@@ -3,7 +3,6 @@ package search
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -15,7 +14,7 @@ import (
 )
 
 type store struct {
-	sync.Mutex
+	lockTab *libkb.LockTable
 	globals.Contextified
 	utils.DebugLabeler
 	encryptedDB *encrypteddb.EncryptedDB
@@ -50,6 +49,7 @@ func newStore(g *globals.Context) *store {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.store", false),
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		lockTab:      &libkb.LockTable{},
 	}
 }
 
@@ -75,6 +75,7 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 			}
 		}
 	}()
+
 	dbKey := s.dbKey(convID, uid)
 	var entry chat1.ConversationIndex
 	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
@@ -104,8 +105,8 @@ func (s *store) deleteLocked(ctx context.Context, convID chat1.ConversationID, u
 }
 
 func (s *store) getConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (entry *chat1.ConversationIndex, err error) {
-	s.Lock()
-	defer s.Unlock()
+	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 	return s.getLocked(ctx, convID, uid)
 }
 
@@ -172,8 +173,8 @@ func (s *store) removeMsgLocked(entry *chat1.ConversationIndex, msg chat1.Messag
 
 func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	s.Lock()
-	defer s.Unlock()
+	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 
 	entry, err := s.getLocked(ctx, convID, uid)
 	if err != nil {
@@ -235,8 +236,8 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 // Remove tokenizes the message content and updates/removes index keys for each token.
 func (s *store) remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	s.Lock()
-	defer s.Unlock()
+	lock := s.lockTab.AcquireOnName(ctx, s.G(), convID.String())
+	defer lock.Release(ctx)
 
 	entry, err := s.getLocked(ctx, convID, uid)
 	if err != nil {

@@ -331,6 +331,7 @@
     array<MessageID> reactionIDs;
     @mpackkey("u") @jsonkey("u")
     array<MessageID> unfurlIDs;
+    array<MessageID> replies;
     gregor1.Time ctime;
     // server's view of now(), used to calculate ephemeral lifetimes
     @mpackkey("n") @jsonkey("n")
@@ -540,6 +541,13 @@
     COINFLIP_9
   }
 
+  enum ReIndexingMode {
+    NONE_0,
+    PRESEARCH_SYNC_1,
+    POSTSEARCH_ASYNC_2,
+    POSTSEARCH_SYNC_3
+  }
+
   record SearchOpts {
     string sentBy;
     gregor1.Time sentBefore;
@@ -550,8 +558,9 @@
     int beforeContext;
     int afterContext;
     // only used by in inbox search
-    boolean forceReindex;
-    int maxConvs;
+    ReIndexingMode reindexMode;
+    int maxConvsSearched;
+    int maxConvsHit;
     // only used by conversation name search
     int maxNameConvs;
   }
@@ -593,7 +602,10 @@
 
   record ChatSearchInboxHit {
     ConversationID convID;
+    TeamType teamType;
     string convName;
+    string query;
+    gregor1.Time time;
     array<ChatSearchHit> hits;
   }
 
@@ -662,5 +674,4 @@
     AssetMetadata metadata;    // type-specific metadata
     AssetTag tag;              // for multiple previews, a tag to differentiate
   }
-
 }

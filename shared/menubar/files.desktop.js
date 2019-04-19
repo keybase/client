@@ -45,7 +45,7 @@ export const FileUpdate = (props: FileUpdateProps) => (
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
         </Kb.Box>
       )}
-      <Kb.Text type="Body">
+      <Kb.Text type="Body" style={styles.wordWrapFilename}>
         {props.targetNameWithoutExtension}
         {props.targetExtension}
       </Kb.Text>
@@ -88,7 +88,7 @@ const FileUpdatesShowAll = (props: ShowAllProps) => (
       label={`+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
       onClick={props.onShowAll}
       small={true}
-      type="Secondary"
+      type="Dim"
     />
   </Kb.Box2>
 )
@@ -242,6 +242,11 @@ const styles = Styles.styleSheetCreate({
       marginRight: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
+  wordWrapFilename: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
     },
   }),
 })

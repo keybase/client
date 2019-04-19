@@ -101,7 +101,6 @@ class EditProfile extends React.Component<Props, State> {
           <Kb.Box2 direction="vertical" style={styles.gap} />
           <Kb.WaitingButton
             waitingKey={Constants.waitingKey}
-            type="Primary"
             label="Save"
             disabled={this._disabled()}
             onClick={this._submit}

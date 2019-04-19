@@ -17,12 +17,13 @@ protocol audit {
         union { null, string } error;
         BoxAuditAttemptResult result;
         union { null, PerTeamKeyGeneration } generation;
+        boolean rotated;
 
         // we do not include the expected or actual summaries
     }
 
     boolean isInJail(int sessionID, TeamID teamID);
-    void boxAuditTeam(int sessionID, TeamID teamID);
+    union { null, BoxAuditAttempt } boxAuditTeam(int sessionID, TeamID teamID);
     BoxAuditAttempt attemptBoxAudit(int sessionID, TeamID teamID, boolean rotateBeforeAudit);
     array<TeamID> knownTeamIDs(int sessionID);
 }

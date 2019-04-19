@@ -119,7 +119,7 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 		}
 	}
 	if chatHelper := e.G().ChatHelper; chatHelper != nil {
-		e.status.TopReacjis = chatHelper.TopReacjis(m.Ctx(), e.status.Uid.ToBytes())
+		e.status.UserReacjis = chatHelper.UserReacjis(m.Ctx(), e.status.Uid.ToBytes())
 	}
 
 	e.lookupFullname(m, uv)

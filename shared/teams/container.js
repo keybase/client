@@ -47,7 +47,7 @@ const headerActions = dispatch => ({
 })
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   ...headerActions(dispatch),
-  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams({clearNavBadges: true})),
   onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onManageChat: (teamname: Teamname) =>
     dispatch(

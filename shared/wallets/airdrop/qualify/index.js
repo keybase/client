@@ -209,7 +209,7 @@ class Qualified extends React.PureComponent<Props, State> {
             <Kb.WaitingButton
               onClick={this.props.onSubmit}
               fullWidth={true}
-              type="PrimaryGreen"
+              type="Success"
               label="Become a lucky airdropee"
               disabled={loadingRows}
               waitingKey={Constants.airdropWaitingKey}

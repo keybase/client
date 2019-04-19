@@ -20,10 +20,15 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType   string
-	username     string
-	clientType   keybase1.ClientType
+	deviceType string
+	username   string
+	clientType keybase1.ClientType
+
 	doUserSwitch bool
+	PaperKey     string
+	DeviceName   string
+
+	resetPending bool
 }
 
 // NewLogin creates a Login engine.  username is optional.
@@ -125,17 +130,35 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		}
 	}()
 
+	resetPending, err := e.loginProvision(m)
+	if err != nil {
+		return err
+	}
+	if resetPending {
+		// We've just started a reset process
+		e.resetPending = true
+		return nil
+	}
+
+	e.perUserKeyUpgradeSoft(m)
+
+	m.Debug("Login provisioning success, sending login notification")
+	e.sendNotification(m)
+	return nil
+}
+
+func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
 	m.Debug("loading login user for %q", e.username)
 	ueng := newLoginLoadUser(m.G(), e.username)
 	if err := RunEngine2(m, ueng); err != nil {
-		return err
+		return false, err
 	}
 
 	if ueng.User().HasCurrentDeviceInCurrentInstall() {
 		// Somehow after loading a user we discovered that we are already
 		// provisioned. This should not happen.
 		m.Debug("loginProvisionedDevice after loginLoadUser (and user had current deivce in current install), failed to login [unexpected]")
-		return libkb.DeviceAlreadyProvisionedError{}
+		return false, libkb.DeviceAlreadyProvisionedError{}
 	}
 
 	m.Debug("attempting device provisioning")
@@ -144,17 +167,24 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		DeviceType: e.deviceType,
 		ClientType: e.clientType,
 		User:       ueng.User(),
+
+		PaperKey:   e.PaperKey,
+		DeviceName: e.DeviceName,
 	}
 	deng := newLoginProvision(m.G(), darg)
 	if err := RunEngine2(m, deng); err != nil {
-		return err
+		return false, err
 	}
 
-	e.perUserKeyUpgradeSoft(m)
+	// Skip notifications if we haven't provisioned
+	if deng.resetPending {
+		return true, nil
+	}
+	if deng.resetComplete {
+		return e.loginProvision(m)
+	}
 
-	m.Debug("Login provisioning success, sending login notification")
-	e.sendNotification(m)
-	return nil
+	return false, nil
 }
 
 // notProvisionedErr will return true if err signifies that login

@@ -54,6 +54,7 @@ export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
 export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
+export const overallSyncStatusChanged = 'fs:overallSyncStatusChanged'
 export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
@@ -123,7 +124,7 @@ type _KbfsDaemonOnlineStatusChangedPayload = $ReadOnly<{|online: boolean|}>
 type _KbfsDaemonRpcStatusChangedPayload = $ReadOnly<{|rpcStatus: Types.KbfsDaemonRpcStatus|}>
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
 type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path, refreshTag?: ?Types.RefreshTag|}>
-type _LoadTlfSyncConfigPayload = $ReadOnly<{|path: Types.Path|}>
+type _LoadTlfSyncConfigPayload = $ReadOnly<{|tlfPath: Types.Path|}>
 type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|address: string, token: string|}>
 type _MovePayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
@@ -135,6 +136,7 @@ type _OpenFilesFromWidgetPayload = $ReadOnly<{|path: Types.Path, type: Types.Pat
 type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|localPath: string|}>
 type _OpenPathInSystemFileManagerPayload = $ReadOnly<{|path: Types.Path|}>
 type _OpenSecurityPreferencesPayload = void
+type _OverallSyncStatusChangedPayload = $ReadOnly<{|progress: Types.SyncingFoldersProgress|}>
 type _PathItemLoadedPayload = $ReadOnly<{|path: Types.Path, pathItem: Types.PathItem|}>
 type _PickAndUploadPayload = $ReadOnly<{|type: Types.MobilePickType, parentPath: Types.Path|}>
 type _PlaceholderActionPayload = void
@@ -154,7 +156,7 @@ type _SetSendAttachmentToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.Conve
 type _SetSendAttachmentToChatFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetSendLinkToChatChannelsPayload = $ReadOnly<{|channels: I.Map<ChatTypes.ConversationIDKey, string>|}>
 type _SetSendLinkToChatConvIDPayload = $ReadOnly<{|convID: ChatTypes.ConversationIDKey|}>
-type _SetTlfSyncConfigPayload = $ReadOnly<{|enabled: boolean, path: Types.Path|}>
+type _SetTlfSyncConfigPayload = $ReadOnly<{|enabled: boolean, tlfPath: Types.Path|}>
 type _ShareNativePayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _ShowIncomingSharePayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
@@ -216,6 +218,7 @@ export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) 
 export const createOpenLocalPathInSystemFileManager = (payload: _OpenLocalPathInSystemFileManagerPayload) => ({payload, type: openLocalPathInSystemFileManager})
 export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({payload, type: openPathInSystemFileManager})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({payload, type: openSecurityPreferences})
+export const createOverallSyncStatusChanged = (payload: _OverallSyncStatusChangedPayload) => ({payload, type: overallSyncStatusChanged})
 export const createPathItemLoaded = (payload: _PathItemLoadedPayload) => ({payload, type: pathItemLoaded})
 export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({payload, type: pickAndUpload})
 export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => ({payload, type: placeholderAction})
@@ -297,6 +300,7 @@ export type OpenFilesFromWidgetPayload = {|+payload: _OpenFilesFromWidgetPayload
 export type OpenLocalPathInSystemFileManagerPayload = {|+payload: _OpenLocalPathInSystemFileManagerPayload, +type: 'fs:openLocalPathInSystemFileManager'|}
 export type OpenPathInSystemFileManagerPayload = {|+payload: _OpenPathInSystemFileManagerPayload, +type: 'fs:openPathInSystemFileManager'|}
 export type OpenSecurityPreferencesPayload = {|+payload: _OpenSecurityPreferencesPayload, +type: 'fs:openSecurityPreferences'|}
+export type OverallSyncStatusChangedPayload = {|+payload: _OverallSyncStatusChangedPayload, +type: 'fs:overallSyncStatusChanged'|}
 export type PathItemLoadedPayload = {|+payload: _PathItemLoadedPayload, +type: 'fs:pathItemLoaded'|}
 export type PickAndUploadPayload = {|+payload: _PickAndUploadPayload, +type: 'fs:pickAndUpload'|}
 export type PlaceholderActionPayload = {|+payload: _PlaceholderActionPayload, +type: 'fs:placeholderAction'|}
@@ -380,6 +384,7 @@ export type Actions =
   | OpenLocalPathInSystemFileManagerPayload
   | OpenPathInSystemFileManagerPayload
   | OpenSecurityPreferencesPayload
+  | OverallSyncStatusChangedPayload
   | PathItemLoadedPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload

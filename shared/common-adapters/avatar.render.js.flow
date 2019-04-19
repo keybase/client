@@ -13,6 +13,8 @@ export type Props = {|
   followIconType: ?IconType,
   followIconStyle: ?$PropertyType<IconProps, 'style'>,
   isTeam: boolean,
+  load: ?() => void,
+  name: string,
   loadingColor?: string,
   onClick?: ?() => void,
   onEditAvatarClick?: ?(e: SyntheticEvent<Element>) => void,

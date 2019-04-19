@@ -31,6 +31,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -86,8 +87,9 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// Each test is expected to check the cache for correctness at the
 	// end of the test.
 	config.SetBlockCache(data.NewBlockCacheStandard(100, 1<<30))
-	config.SetDirtyBlockCache(data.NewDirtyBlockCacheStandard(data.WallClock{},
-		config.MakeLogger(""), 5<<20, 10<<20, 5<<20))
+	log := config.MakeLogger("")
+	config.SetDirtyBlockCache(data.NewDirtyBlockCacheStandard(
+		data.WallClock{}, log, libkb.NewVDebugLog(log), 5<<20, 10<<20, 5<<20))
 	config.mockBcache = nil
 	config.mockDirtyBcache = nil
 
@@ -3883,6 +3885,39 @@ func TestKBFSOpsReadonlyNodes(t *testing.T) {
 	require.IsType(t, WriteToReadonlyNodeError{}, errors.Cause(err))
 }
 
+type fakeFileInfo struct {
+	et data.EntryType
+}
+
+var _ os.FileInfo = (*fakeFileInfo)(nil)
+
+func (fi *fakeFileInfo) Name() string {
+	return ""
+}
+
+func (fi *fakeFileInfo) Size() int64 {
+	return 0
+}
+
+func (fi *fakeFileInfo) Mode() os.FileMode {
+	if fi.et == data.Dir || fi.et == data.Exec {
+		return 0700
+	}
+	return 0600
+}
+
+func (fi *fakeFileInfo) ModTime() time.Time {
+	return time.Time{}
+}
+
+func (fi *fakeFileInfo) IsDir() bool {
+	return fi.et == data.Dir
+}
+
+func (fi *fakeFileInfo) Sys() interface{} {
+	return nil
+}
+
 type wrappedAutocreateNode struct {
 	Node
 	et      data.EntryType
@@ -3890,8 +3925,9 @@ type wrappedAutocreateNode struct {
 }
 
 func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
-	ctx context.Context, _ string) (bool, context.Context, data.EntryType, string) {
-	return true, ctx, wan.et, wan.sympath
+	ctx context.Context, _ string) (
+	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	return true, ctx, wan.et, &fakeFileInfo{wan.et}, wan.sympath
 }
 
 func testKBFSOpsAutocreateNodes(t *testing.T, et data.EntryType, sympath string) {
@@ -4136,9 +4172,9 @@ type testKBFSOpsRootNode struct {
 
 func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
 	ctx context.Context, name string) (
-	bool, context.Context, data.EntryType, string) {
+	bool, context.Context, data.EntryType, os.FileInfo, string) {
 	if name == "memfs" {
-		return true, ctx, data.FakeDir, ""
+		return true, ctx, data.FakeDir, nil, ""
 	}
 	return n.Node.ShouldCreateMissedLookup(ctx, name)
 }
@@ -4692,7 +4728,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
-	config.vdebugSetting = "vlog2"
+	config.SetVLogLevel(libkb.VLog2String)
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
@@ -4913,7 +4949,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
 	config.SetMode(modeTest{NewInitModeFromType(InitDefault)})
-	config.vdebugSetting = "vlog2"
+	config.SetVLogLevel(libkb.VLog2String)
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(

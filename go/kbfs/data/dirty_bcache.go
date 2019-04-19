@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
@@ -113,6 +114,7 @@ const (
 type DirtyBlockCacheStandard struct {
 	clock idutil.Clock
 	log   logger.Logger
+	vlog  *libkb.VDebugLog
 	reqWg sync.WaitGroup
 
 	// requestsChan is a queue for channels that should be closed when
@@ -159,11 +161,13 @@ type DirtyBlockCacheStandard struct {
 // range of how many bytes we'll try to sync in any one sync, and the
 // start size defines the initial buffer size.
 func NewDirtyBlockCacheStandard(
-	clock idutil.Clock, log logger.Logger, minSyncBufCap int64,
-	maxSyncBufCap int64, startSyncBufCap int64) *DirtyBlockCacheStandard {
+	clock idutil.Clock, log logger.Logger, vlog *libkb.VDebugLog,
+	minSyncBufCap int64, maxSyncBufCap int64,
+	startSyncBufCap int64) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
 		clock:              clock,
 		log:                log,
+		vlog:               vlog,
 		requestsChan:       make(chan dirtyReq, 1000),
 		bytesDecreasedChan: make(chan struct{}, 1),
 		shutdownChan:       make(chan struct{}),
@@ -629,9 +633,10 @@ func (d *DirtyBlockCacheStandard) SyncFinished(_ tlf.ID, size int64) {
 		}
 	}
 	d.signalDecreasedBytes()
-	d.log.CDebugf(context.TODO(), "Finished syncing %d bytes, syncBufferCap=%d, "+
-		"waitBuf=%d, ignored=%d", size, d.syncBufferCap, d.waitBufBytes,
-		ignore)
+	d.vlog.CLogf(
+		context.TODO(), libkb.VLog1,
+		"Finished syncing %d bytes, syncBufferCap=%d, waitBuf=%d, ignored=%d",
+		size, d.syncBufferCap, d.waitBufBytes, ignore)
 }
 
 // ShouldForceSync implements the DirtyBlockCache interface for

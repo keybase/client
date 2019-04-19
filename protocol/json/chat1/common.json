@@ -872,6 +872,13 @@
           "jsonkey": "u"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "replies"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -1407,6 +1414,16 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ReIndexingMode",
+      "symbols": [
+        "NONE_0",
+        "PRESEARCH_SYNC_1",
+        "POSTSEARCH_ASYNC_2",
+        "POSTSEARCH_SYNC_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "SearchOpts",
       "fields": [
@@ -1439,12 +1456,16 @@
           "name": "afterContext"
         },
         {
-          "type": "boolean",
-          "name": "forceReindex"
+          "type": "ReIndexingMode",
+          "name": "reindexMode"
         },
         {
           "type": "int",
-          "name": "maxConvs"
+          "name": "maxConvsSearched"
+        },
+        {
+          "type": "int",
+          "name": "maxConvsHit"
         },
         {
           "type": "int",
@@ -1577,8 +1598,20 @@
           "name": "convID"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": "string",
           "name": "convName"
+        },
+        {
+          "type": "string",
+          "name": "query"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
         },
         {
           "type": {

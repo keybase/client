@@ -418,7 +418,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
 	g.CtxFactory = chat.NewCtxFactory(g)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
+	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
@@ -1332,5 +1332,8 @@ func (d *Service) onDbNuke(ctx context.Context) {
 	d.avatarLoader.OnCacheCleared(mctx)
 	if srv := d.ChatG().AttachmentURLSrv; srv != nil {
 		srv.OnCacheCleared(mctx)
+	}
+	if idx := d.ChatG().Indexer; idx != nil {
+		idx.ClearCache()
 	}
 }

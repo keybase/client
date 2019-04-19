@@ -20,6 +20,7 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
+	os "os"
 	reflect "reflect"
 	time "time"
 )
@@ -3319,6 +3320,18 @@ func (mr *MockNodeMockRecorder) EntryType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EntryType", reflect.TypeOf((*MockNode)(nil).EntryType))
 }
 
+// FillCacheDuration mocks base method
+func (m *MockNode) FillCacheDuration(arg0 *time.Duration) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "FillCacheDuration", arg0)
+}
+
+// FillCacheDuration indicates an expected call of FillCacheDuration
+func (mr *MockNodeMockRecorder) FillCacheDuration(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FillCacheDuration", reflect.TypeOf((*MockNode)(nil).FillCacheDuration), arg0)
+}
+
 // GetBasename mocks base method
 func (m *MockNode) GetBasename() string {
 	m.ctrl.T.Helper()
@@ -3433,14 +3446,15 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, data.EntryType, string) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, data.EntryType, os.FileInfo, string) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(context.Context)
 	ret2, _ := ret[2].(data.EntryType)
-	ret3, _ := ret[3].(string)
-	return ret0, ret1, ret2, ret3
+	ret3, _ := ret[3].(os.FileInfo)
+	ret4, _ := ret[4].(string)
+	return ret0, ret1, ret2, ret3, ret4
 }
 
 // ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup

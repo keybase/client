@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -29,7 +30,7 @@ import (
 
 type logMaker interface {
 	MakeLogger(module string) logger.Logger
-	MakeVLogger(module string) *libkb.VDebugLog
+	MakeVLogger(logger.Logger) *libkb.VDebugLog
 }
 
 type blockCacher interface {
@@ -169,13 +170,17 @@ type Node interface {
 	// as a context to use for the creation, the type of the new entry
 	// and the symbolic link contents if the entry is a Sym; the
 	// caller should then create this entry.  Otherwise it should
-	// return false.  It may return the type `FakeDir` to indicate
-	// that the caller should pretend the entry exists, even if it
-	// really does not.  An implementation that wraps another `Node`
-	// (`inner`) must return `inner.ShouldCreateMissedLookup()` if it
-	// decides not to return `true` on its own.
+	// return false.  It may return the types `FakeDir` or `FakeFile`
+	// to indicate that the caller should pretend the entry exists,
+	// even if it really does not.  In the case of fake files, a
+	// non-nil `fi` can be returned and used by the caller to
+	// construct the dir entry for the file.  An implementation that
+	// wraps another `Node` (`inner`) must return
+	// `inner.ShouldCreateMissedLookup()` if it decides not to return
+	// `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name string) (
-		shouldCreate bool, newCtx context.Context, et data.EntryType, sympath string)
+		shouldCreate bool, newCtx context.Context, et data.EntryType,
+		fi os.FileInfo, sympath string)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -214,6 +219,9 @@ type Node interface {
 	EntryType() data.EntryType
 	// GetBlockID returns the block ID of the node.
 	GetBlockID() kbfsblock.ID
+	// FillCacheDuration sets `d` to the suggested cache time for this
+	// node, if desired.
+	FillCacheDuration(d *time.Duration)
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -1291,6 +1299,9 @@ type Prefetcher interface {
 	// Status returns the current status of the prefetch for the block
 	// tree rooted at the given pointer.
 	Status(ctx context.Context, ptr data.BlockPointer) (PrefetchProgress, error)
+	// OverallSyncStatus returns the current status of all sync
+	// prefetches.
+	OverallSyncStatus() PrefetchProgress
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(data.BlockPointer)
@@ -2029,6 +2040,11 @@ type Config interface {
 	// strings are hard-coded in go/libkb/vdebug.go, but include
 	// "mobile", "vlog1", "vlog2", etc.
 	SetVLogLevel(levelString string)
+
+	// VLogLevel gets the vdebug level for this config.  The possible
+	// strings are hard-coded in go/libkb/vdebug.go, but include
+	// "mobile", "vlog1", "vlog2", etc.
+	VLogLevel() string
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

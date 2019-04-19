@@ -46,7 +46,6 @@ const _AddPeople = (props: Props) => {
     <Box2 direction="horizontal" centerChildren={true}>
       {menu}
       <Button
-        type="Primary"
         onClick={directAction || props.toggleShowingMenu}
         label={directLabel || 'Add someone...'}
         ref={props.setAttachmentRef}
