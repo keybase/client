@@ -308,8 +308,8 @@ func (m LeveledMutex) AssertLocked(lockState *LockState) {
 	et := lockState.getExclusionType(m.level)
 	if et != writeExclusion {
 		panic(unexpectedExclusionTypeError{
-			levelToString: lockState.levelToString,
-			level:         m.level,
+			levelToString:         lockState.levelToString,
+			level:                 m.level,
 			expectedExclusionType: writeExclusion,
 			exclusionType:         et,
 		})
@@ -391,8 +391,8 @@ func (rw LeveledRWMutex) AssertLocked(lockState *LockState) {
 	et := lockState.getExclusionType(rw.level)
 	if et != writeExclusion {
 		panic(unexpectedExclusionTypeError{
-			levelToString: lockState.levelToString,
-			level:         rw.level,
+			levelToString:         lockState.levelToString,
+			level:                 rw.level,
 			expectedExclusionType: writeExclusion,
 			exclusionType:         et,
 		})
@@ -405,8 +405,8 @@ func (rw LeveledRWMutex) AssertRLocked(lockState *LockState) {
 	et := lockState.getExclusionType(rw.level)
 	if et != readExclusion {
 		panic(unexpectedExclusionTypeError{
-			levelToString: lockState.levelToString,
-			level:         rw.level,
+			levelToString:         lockState.levelToString,
+			level:                 rw.level,
 			expectedExclusionType: readExclusion,
 			exclusionType:         et,
 		})
