@@ -324,10 +324,10 @@ const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
 const getDisabledReasonsForRolePicker = (
   state: TypedState,
   teamname: Types.Teamname,
-  memberToModify: string
+  memberToModify: ?string
 ): Types.DisabledReasonsForRolePicker => {
   const members = getTeamMembers(state, teamname)
-  const member = members.get(memberToModify)
+  const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
   const you = members.get(state.config.username)
   // Fallback to the lowest role, although this shouldn't happen
