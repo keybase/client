@@ -13,8 +13,9 @@ import (
 // AccountReset is an engine.
 type AccountReset struct {
 	libkb.Contextified
-	usernameOrEmail string
-	completeReset   bool
+	usernameOrEmail    string
+	skipPasswordPrompt bool
+	completeReset      bool
 
 	resetPending  bool
 	resetComplete bool
@@ -88,38 +89,42 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	if mctx.LoginContext() == nil {
 		mctx = mctx.WithNewProvisionalLoginContext()
 	}
-	err = libkb.PassphraseLoginPromptWithArg(mctx, 3, arg)
-	switch err.(type) {
-	case nil:
-		self = true
-	case
-		// ignore these errors since we can verify the reset process from usernameOrEmail
-		libkb.NoUIError,
-		libkb.PassphraseError,
-		libkb.RetryExhaustedError,
-		libkb.InputCanceledError,
-		libkb.SkipSecretPromptError:
-		mctx.Debug("unable to authenticate a session: %v, charging forward without it", err)
-		if len(e.usernameOrEmail) == 0 {
-			return libkb.NewResetMissingParamsError("Unable to start autoreset process, unable to establish session, no username or email provided")
-		}
 
-		if libkb.CheckEmail.F(e.usernameOrEmail) {
-			email = e.usernameOrEmail
-		} else {
-			username = e.usernameOrEmail
-		}
-	default:
-		return err
-	}
-
-	if self {
-		status, err := e.loadResetStatus(mctx)
+	if e.skipPasswordPrompt {
+		// Parent engine requested a flow where we shouldn't ask for a password
+		username, email, err = e.processUsernameOrEmail()
 		if err != nil {
 			return err
 		}
-		if status.ResetID != nil {
-			return e.resetPrompt(mctx, status)
+	} else {
+		err = libkb.PassphraseLoginPromptWithArg(mctx, 3, arg)
+		switch err.(type) {
+		case nil:
+			self = true
+		case
+			// ignore these errors since we can verify the reset process from usernameOrEmail
+			libkb.NoUIError,
+			libkb.PassphraseError,
+			libkb.RetryExhaustedError,
+			libkb.InputCanceledError,
+			libkb.SkipSecretPromptError:
+			mctx.Debug("unable to authenticate a session: %v, charging forward without it", err)
+			username, email, err = e.processUsernameOrEmail()
+			if err != nil {
+				return err
+			}
+		default:
+			return err
+		}
+
+		if self {
+			status, err := e.loadResetStatus(mctx)
+			if err != nil {
+				return err
+			}
+			if status.ResetID != nil {
+				return e.resetPrompt(mctx, status)
+			}
 		}
 	}
 
@@ -140,6 +145,20 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	mctx.G().Log.Info("Your account has been added to the reset pipeline.")
 	e.resetPending = true
 	return nil
+}
+
+func (e *AccountReset) processUsernameOrEmail() (username string, email string, err error) {
+	if len(e.usernameOrEmail) == 0 {
+		err = libkb.NewResetMissingParamsError("Unable to start autoreset process, unable to establish session, no username or email provided")
+		return
+	}
+
+	if libkb.CheckEmail.F(e.usernameOrEmail) {
+		email = e.usernameOrEmail
+	} else {
+		username = e.usernameOrEmail
+	}
+	return
 }
 
 type accountResetStatusResponse struct {

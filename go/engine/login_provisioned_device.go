@@ -16,6 +16,7 @@ type LoginProvisionedDevice struct {
 	uid             keybase1.UID
 	deviceID        keybase1.DeviceID
 	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
+	resetPending    bool // if set to true, the login operation resulted in the user entering autoreset
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
@@ -50,12 +51,19 @@ func (e *LoginProvisionedDevice) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *LoginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
-	return nil
+	return []libkb.UIConsumer{
+		&AccountReset{},
+	}
 }
 
 func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	if err := e.run(m); err != nil {
 		return err
+	}
+
+	// User entered reset flow, so we haven't logged in.
+	if e.resetPending {
+		return nil
 	}
 
 	m.Debug("LoginProvisionedDevice success, sending login notification")
@@ -232,6 +240,10 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	m = m.WithNewProvisionalLoginContext()
 	err = e.tryPassphraseLogin(m)
 	if err != nil {
+		// Suggest autoreset if user failed to log in
+		if _, ok := err.(libkb.PassphraseError); ok {
+			return e.suggestRecovery(m)
+		}
 		return err
 	}
 
@@ -248,8 +260,35 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *LoginProvisionedDevice) connectivityWarning(m libkb.MetaContext) {
+func (e *LoginProvisionedDevice) suggestRecovery(mctx libkb.MetaContext) error {
+	// Whatever happens here won't result in a session, so we can mark this engine as a noop.
+	e.resetPending = true
 
+	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		Text: "If you have forgotten your password and either lost all of your devices, or if you " +
+			"uninstalled Keybase from all of them, you can reset your account. You will keep your username, " +
+			"but lose all your data. Would you like to request a reset of your account?",
+	})
+	if err != nil {
+		return err
+	}
+	if !enterReset {
+		// Cancel the engine as it successfully resulted in the user entering the reset pipeline.
+		return nil
+	}
+
+	// We are certain the user will not know their password, so we can disable that prompt.
+	eng := NewAccountReset(mctx.G(), e.username.String())
+	eng.skipPasswordPrompt = true
+	if err := eng.Run(mctx); err != nil {
+		return err
+	}
+
+	// We're ignoring eng.resetPending as we've disabled reset completion
+	return nil
+}
+
+func (e *LoginProvisionedDevice) connectivityWarning(m libkb.MetaContext) {
 	// CORE-5876 idea that lksec will be unusable if reachability state is NO
 	// and the user changed passphrase with a different device since it won't
 	// be able to sync the new server half.
