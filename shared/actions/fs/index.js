@@ -149,7 +149,7 @@ const getPrefetchStatusFromRPC = (
 
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
   lastModifiedTimestamp: d.time,
-  lastWriter: d.lastWriterUnverified,
+  lastWriter: d.lastWriterUnverified.username,
   name: d.name.split('/').pop(),
   prefetchStatus: getPrefetchStatusFromRPC(d.prefetchStatus, d.prefetchProgress),
   size: d.size,

@@ -136,7 +136,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 const mergeProps = (s, d, o) => ({
-  onUpdate: debounce(d._onUpdate, 250),
+  onUpdate: debounce(d._onUpdate, 100),
   path: o.path,
   style: o.style,
 })

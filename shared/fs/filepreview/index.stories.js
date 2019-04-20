@@ -18,7 +18,7 @@ export const filepreviewProvider = {
     onShare: () => {},
     onShowInSystemFileManager: () => {},
     pathItem: Constants.makeFile({
-      lastWriter: {uid: '', username: 'foo'},
+      lastWriter: 'foo',
       name: 'bar.jpg',
       size: 10240,
     }),
@@ -32,7 +32,7 @@ export const filepreviewProvider = {
     onShowInSystemFileManager: () => {},
     path,
     pathItem: Constants.makeFile({
-      lastWriter: {uid: '', username: 'foo'},
+      lastWriter: 'foo',
       name: 'bar.jpg',
       size: 10240,
     }),

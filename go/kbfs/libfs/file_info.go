@@ -114,18 +114,8 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
 	if err != nil {
 		return KBFSMetadataForSimpleFS{}, err
 	}
-	var prefetchStatus keybase1.PrefetchStatus
-	switch md.PrefetchStatus {
-	case libkbfs.NoPrefetch:
-		prefetchStatus = keybase1.PrefetchStatus_NOT_STARTED
-	case libkbfs.TriggeredPrefetch:
-		prefetchStatus = keybase1.PrefetchStatus_IN_PROGRESS
-	case libkbfs.FinishedPrefetch:
-		prefetchStatus = keybase1.PrefetchStatus_COMPLETE
-	default:
-		return KBFSMetadataForSimpleFS{}, ErrUnknownPrefetchStatus
-	}
 
+	prefetchStatus := md.PrefetchStatus.ToProtocolStatus()
 	status := KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}
 	if md.PrefetchProgress != nil {
 		status.PrefetchProgress = *md.PrefetchProgress

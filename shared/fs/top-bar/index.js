@@ -53,7 +53,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 export default TopBar
-export const asRows = (path: Types.Path): Array<RowTypes.RowItemWithKey> => [
+export const asRows = (path: Types.Path): Array<RowTypes.HeaderRowItem> => [
   {
     height,
     key: 'top-bar',

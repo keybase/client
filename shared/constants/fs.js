@@ -41,7 +41,7 @@ export const emptyFolder = makeNewFolder()
 
 export const prefetchNotStarted: Types.PrefetchNotStarted = I.Record({state: 'not-started'})()
 
-export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'completet'})()
+export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'complete'})()
 
 export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> = I.Record({
   bytesFetched: 0,
@@ -52,13 +52,11 @@ export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> 
 })
 
 const pathItemMetadataDefault = {
-  badgeCount: 0,
   lastModifiedTimestamp: 0,
-  lastWriter: {uid: '', username: ''},
+  lastWriter: '',
   name: 'unknown',
   prefetchStatus: prefetchNotStarted,
   size: 0,
-  tlfMeta: undefined,
   writable: false,
 }
 
@@ -111,7 +109,6 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   resetParticipants: I.List(),
   syncConfig: null,
   teamId: '',
-  tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
 })

@@ -69,7 +69,7 @@ export default ConnectedBanner
 export const asRows = (
   path: Types.Path,
   resetBannerType: Types.ResetBannerType
-): Array<RowTypes.RowItemWithKey> =>
+): Array<RowTypes.HeaderRowItem> =>
   typeof resetBannerType === 'number'
     ? [
         {
