@@ -1178,7 +1178,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Handle replyTo param
-	arg.Msg.MessageBody = h.handleReplyTo(ctx, arg.Msg.MessageBody, arg.ReplyTo)
+	arg.Msg = h.handleReplyTo(ctx, arg.Msg, arg.ReplyTo)
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil)
@@ -1453,24 +1453,30 @@ func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err 
 	return storage.NewOutboxID()
 }
 
-func (h *Server) handleReplyTo(ctx context.Context, body chat1.MessageBody, replyTo *chat1.MessageID) chat1.MessageBody {
+func (h *Server) handleReplyTo(ctx context.Context, msg chat1.MessagePlaintext, replyTo *chat1.MessageID) chat1.MessagePlaintext {
 	if replyTo == nil {
-		return body
+		return msg
 	}
-	typ, err := body.MessageType()
+	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		h.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
-		return body
+		return msg
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
-		return chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:     body.Text().Body,
-			Payments: body.Text().Payments,
-			ReplyTo:  replyTo,
-		})
+		header := msg.ClientHeader
+		header.Supersedes = *replyTo
+		return chat1.MessagePlaintext{
+			ClientHeader: header,
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body:     msg.MessageBody.Text().Body,
+				Payments: msg.MessageBody.Text().Payments,
+				ReplyTo:  replyTo,
+			}),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
 	}
-	return body
+	return msg
 }
 
 func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
@@ -1505,7 +1511,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Handle replyTo param
-	arg.Msg.MessageBody = h.handleReplyTo(ctx, arg.Msg.MessageBody, arg.ReplyTo)
+	arg.Msg = h.handleReplyTo(ctx, arg.Msg, arg.ReplyTo)
 
 	// Create non block sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
