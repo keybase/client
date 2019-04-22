@@ -12,6 +12,7 @@ import {
   ButtonBar,
 } from '../../common-adapters'
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'
+import flags from '../../util/feature-flags'
 
 type Props = {
   children: React.Node,
@@ -30,9 +31,13 @@ export const Wrapper = (props: Props) => (
     >
       {props.children}
     </Box2>
-    <Box style={styles.header}>
+    {flags.useNewRouter ? (
+      <Box style={styles.header}>
+        <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
+      </Box>
+    ) : (
       <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-    </Box>
+    )}
   </Box2>
 )
 
