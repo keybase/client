@@ -575,6 +575,9 @@ func (md *RootMetadata) LatestKeyGeneration() kbfsmd.KeyGen {
 
 // TlfID wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) TlfID() tlf.ID {
+	if md == nil || md.bareMd == nil {
+		return tlf.NullID
+	}
 	return md.bareMd.TlfID()
 }
 
