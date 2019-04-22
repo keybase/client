@@ -1350,6 +1350,40 @@ func (o MessageBody) DeepCopy() MessageBody {
 	}
 }
 
+type SenderPrepareOptions struct {
+	SkipTopicNameState bool `codec:"skipTopicNameState" json:"skipTopicNameState"`
+}
+
+func (o SenderPrepareOptions) DeepCopy() SenderPrepareOptions {
+	return SenderPrepareOptions{
+		SkipTopicNameState: o.SkipTopicNameState,
+	}
+}
+
+type SenderSendOptions struct {
+	JoinMentionsAs *ConversationMemberStatus `codec:"joinMentionsAs,omitempty" json:"joinMentionsAs,omitempty"`
+	ReplyTo        *MessageID                `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+}
+
+func (o SenderSendOptions) DeepCopy() SenderSendOptions {
+	return SenderSendOptions{
+		JoinMentionsAs: (func(x *ConversationMemberStatus) *ConversationMemberStatus {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.JoinMentionsAs),
+		ReplyTo: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
+	}
+}
+
 type OutboxStateType int
 
 const (
@@ -1518,6 +1552,8 @@ type OutboxRecord struct {
 	Ctime            gregor1.Time                 `codec:"ctime" json:"ctime"`
 	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	PrepareOpts      *SenderPrepareOptions        `codec:"prepareOpts,omitempty" json:"prepareOpts,omitempty"`
+	SendOpts         *SenderSendOptions           `codec:"sendOpts,omitempty" json:"sendOpts,omitempty"`
 	Ordinal          int                          `codec:"ordinal" json:"ordinal"`
 	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 }
@@ -1530,7 +1566,21 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 		Ctime:            o.Ctime.DeepCopy(),
 		Msg:              o.Msg.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
-		Ordinal:          o.Ordinal,
+		PrepareOpts: (func(x *SenderPrepareOptions) *SenderPrepareOptions {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PrepareOpts),
+		SendOpts: (func(x *SenderSendOptions) *SenderSendOptions {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SendOpts),
+		Ordinal: o.Ordinal,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

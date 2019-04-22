@@ -111,7 +111,7 @@ func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sen
 		return outboxID, msgID, err
 	}
 	s.Debug(ctx, "PostFileAttachmentMessage: generated message with outbox ID: %s", outboxID)
-	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID, nil)
+	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID, nil, nil)
 	if err != nil {
 		return outboxID, msgID, err
 	}
@@ -158,7 +158,7 @@ func (s *Sender) PostFileAttachment(ctx context.Context, sender types.Sender, ui
 	msg.MessageBody = chat1.NewMessageBodyWithAttachment(attachment)
 
 	s.Debug(ctx, "PostFileAttachment: attachment assets uploaded, posting attachment message")
-	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID, nil)
+	_, boxed, err := sender.Send(ctx, convID, msg, clientPrev, &outboxID, nil, nil)
 	if err != nil {
 		return outboxID, msgID, err
 	}

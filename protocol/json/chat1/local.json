@@ -701,6 +701,36 @@
       ]
     },
     {
+      "type": "record",
+      "name": "SenderPrepareOptions",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "skipTopicNameState"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SenderSendOptions",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationMemberStatus"
+          ],
+          "name": "joinMentionsAs"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "replyTo"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "OutboxStateType",
       "symbols": [
@@ -789,6 +819,20 @@
         {
           "type": "keybase1.TLFIdentifyBehavior",
           "name": "identifyBehavior"
+        },
+        {
+          "type": [
+            null,
+            "SenderPrepareOptions"
+          ],
+          "name": "prepareOpts"
+        },
+        {
+          "type": [
+            null,
+            "SenderSendOptions"
+          ],
+          "name": "sendOpts"
         },
         {
           "type": "int",

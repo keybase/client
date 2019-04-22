@@ -484,15 +484,42 @@ func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UI
 	return errors.New("failed to find message to edit")
 }
 
+func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePlaintext,
+	replyTo *chat1.MessageID) chat1.MessagePlaintext {
+	if replyTo == nil {
+		return msg
+	}
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		s.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
+		return msg
+	}
+	switch typ {
+	case chat1.MessageType_TEXT:
+		header := msg.ClientHeader
+		header.Supersedes = *replyTo
+		return chat1.MessagePlaintext{
+			ClientHeader: header,
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body:     msg.MessageBody.Text().Body,
+				Payments: msg.MessageBody.Text().Payments,
+				ReplyTo:  replyTo,
+			}),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
+	}
+	return msg
+}
+
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, inopts *types.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, inopts *chat1.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
 		return res, fmt.Errorf("cannot send message without type")
 	}
 	// set default options unless some are given to us
-	var opts types.SenderPrepareOptions
+	var opts chat1.SenderPrepareOptions
 	if inopts != nil {
 		opts = *inopts
 	}
@@ -717,7 +744,7 @@ func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID,
-	outboxID *chat1.OutboxID, joinMentionsAs *chat1.ConversationMemberStatus) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
+	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
@@ -789,7 +816,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv, nil); err != nil {
+		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv, prepareOpts); err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
 			return nil, nil, err
 		}
@@ -818,7 +845,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			AtMentions:     prepareRes.AtMentions,
 			ChannelMention: prepareRes.ChannelMention,
 			TopicNameState: prepareRes.TopicNameState,
-			JoinMentionsAs: joinMentionsAs,
+			JoinMentionsAs: sendOpts.GetJoinMentionsAs(),
 		}
 		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
@@ -1063,11 +1090,11 @@ func (s *Deliverer) IsDelivering() bool {
 }
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-	outboxID *chat1.OutboxID,
+	outboxID *chat1.OutboxID, sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Queue")()
 	// Push onto outbox and immediately return
-	obr, err = s.outbox.PushMessage(ctx, convID, msg, outboxID, identifyBehavior)
+	obr, err = s.outbox.PushMessage(ctx, convID, msg, outboxID, sendOpts, prepareOpts, identifyBehavior)
 	if err != nil {
 		return obr, err
 	}
@@ -1475,7 +1502,8 @@ func (s *Deliverer) deliverLoop() {
 					continue
 				}
 				if err == nil {
-					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil, nil)
+					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil, obr.SendOpts,
+						obr.PrepareOpts)
 				}
 			}
 			if err != nil {
@@ -1534,16 +1562,13 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts *types.SenderPrepareOptions) (types.SenderPrepareResult, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts *chat1.SenderPrepareOptions) (types.SenderPrepareResult, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv, opts)
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID,
-	joinMentionsAs *chat1.ConversationMemberStatus) (chat1.OutboxID, *chat1.MessageBoxed, error) {
-	if joinMentionsAs != nil { // joinMentionsAs is not stored in the outbox, only supported by the BlockingSender
-		return nil, nil, fmt.Errorf("Unable to post joinMentionsAs with a nonblock message")
-	}
+	sendOpts *chat1.SenderSendOptions, prepareOpts *chat1.SenderPrepareOptions) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	if clientPrev == 0 {
 		uid, err := utils.AssertLoggedInUID(ctx, s.G())
 		if err != nil {
@@ -1564,7 +1589,8 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
 	identifyBehavior, _, _ := globals.CtxIdentifyMode(ctx)
-	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, outboxID, identifyBehavior)
+	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, outboxID, sendOpts, prepareOpts,
+		identifyBehavior)
 	if err != nil {
 		return obr.OutboxID, nil, err
 	}
@@ -1573,6 +1599,6 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 
 func (s *NonblockingSender) SendUnfurlNonblock(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID chat1.OutboxID) (chat1.OutboxID, error) {
-	res, _, err := s.Send(ctx, convID, msg, clientPrev, &outboxID, nil)
+	res, _, err := s.Send(ctx, convID, msg, clientPrev, &outboxID, nil, nil)
 	return res, err
 }

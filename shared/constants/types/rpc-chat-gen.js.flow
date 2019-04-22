@@ -1148,7 +1148,7 @@ export type OutboxErrorType =
 
 export type OutboxID = Bytes
 export type OutboxInfo = $ReadOnly<{prev: MessageID, composeTime: Gregor1.Time}>
-export type OutboxRecord = $ReadOnly<{state: OutboxState, outboxID: OutboxID, convID: ConversationID, ctime: Gregor1.Time, Msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, ordinal: Int, preview?: ?MakePreviewRes}>
+export type OutboxRecord = $ReadOnly<{state: OutboxState, outboxID: OutboxID, convID: ConversationID, ctime: Gregor1.Time, Msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, prepareOpts?: ?SenderPrepareOptions, sendOpts?: ?SenderSendOptions, ordinal: Int, preview?: ?MakePreviewRes}>
 export type OutboxState = {state: 0, sending: ?Int} | {state: 1, error: ?OutboxStateError}
 export type OutboxStateError = $ReadOnly<{message: String, typ: OutboxErrorType}>
 export type OutboxStateType =
@@ -1198,6 +1198,8 @@ export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type SearchInboxRes = $ReadOnly<{res?: ?ChatSearchInboxResults, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type SearchOpts = $ReadOnly<{sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, reindexMode: ReIndexingMode, maxConvsSearched: Int, maxConvsHit: Int, maxNameConvs: Int}>
 export type SearchRegexpRes = $ReadOnly<{hits?: ?Array<ChatSearchHit>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type SenderPrepareOptions = $ReadOnly<{skipTopicNameState: Boolean}>
+export type SenderSendOptions = $ReadOnly<{joinMentionsAs?: ?ConversationMemberStatus, replyTo?: ?MessageID}>
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 export type ServerNowRes = $ReadOnly<{rateLimit?: ?RateLimit, now: Gregor1.Time}>
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>

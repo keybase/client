@@ -1177,11 +1177,10 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
-	// Handle replyTo param
-	arg.Msg = h.handleReplyTo(ctx, arg.Msg, arg.ReplyTo)
-
+	var sendOpts chat1.SenderSendOptions
+	sendOpts.ReplyTo = arg.ReplyTo
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil)
+	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, &sendOpts, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return res, err
@@ -1453,32 +1452,6 @@ func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err 
 	return storage.NewOutboxID()
 }
 
-func (h *Server) handleReplyTo(ctx context.Context, msg chat1.MessagePlaintext, replyTo *chat1.MessageID) chat1.MessagePlaintext {
-	if replyTo == nil {
-		return msg
-	}
-	typ, err := msg.MessageBody.MessageType()
-	if err != nil {
-		h.Debug(ctx, "handleReplyTo: failed to get body type: %s", err)
-		return msg
-	}
-	switch typ {
-	case chat1.MessageType_TEXT:
-		header := msg.ClientHeader
-		header.Supersedes = *replyTo
-		return chat1.MessagePlaintext{
-			ClientHeader: header,
-			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body:     msg.MessageBody.Text().Body,
-				Payments: msg.MessageBody.Text().Payments,
-				ReplyTo:  replyTo,
-			}),
-			SupersedesOutboxID: msg.SupersedesOutboxID,
-		}
-	}
-	return msg
-}
-
 func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1510,14 +1483,13 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, err
 	}
 
-	// Handle replyTo param
-	arg.Msg = h.handleReplyTo(ctx, arg.Msg, arg.ReplyTo)
-
 	// Create non block sender
+	var sendOpts chat1.SenderSendOptions
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
-
-	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID, nil)
+	sendOpts.ReplyTo = arg.ReplyTo
+	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
+		&sendOpts, nil)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
@@ -2759,7 +2731,9 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 		MessageBody: body,
 	}
 	status := chat1.ConversationMemberStatus_ACTIVE
-	_, _, err = sender.Send(ctx, arg.ConvID, msg, 0, nil, &status)
+	_, _, err = sender.Send(ctx, arg.ConvID, msg, 0, nil, &chat1.SenderSendOptions{
+		JoinMentionsAs: &status,
+	}, nil)
 	return err
 }
 

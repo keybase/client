@@ -196,6 +196,15 @@ protocol local {
     case FLIP: MessageFlip;
   }
 
+  record SenderPrepareOptions {
+    boolean skipTopicNameState;
+  }
+
+  record SenderSendOptions {
+     union { null, ConversationMemberStatus } joinMentionsAs;
+     union { null, MessageID } replyTo;
+  }
+
   enum OutboxStateType {
     SENDING_0,
     ERROR_1
@@ -231,6 +240,8 @@ protocol local {
     @lint("ignore")
     MessagePlaintext Msg;
     keybase1.TLFIdentifyBehavior identifyBehavior;
+    union { null, SenderPrepareOptions } prepareOpts;
+    union { null, SenderSendOptions } sendOpts;
     int ordinal; // the position of this outbox record behind the clientPrev in Msg
     union { null, MakePreviewRes } preview;
   }
