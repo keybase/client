@@ -155,4 +155,12 @@ protocol common {
     AssetCode assetCode;
     AccountID issuer;
   }
+
+  record PaymentPath {
+    string sourceAmount;
+    Asset sourceAsset;
+    array<Asset> path;
+    string destinationAmount;
+    Asset destinationAsset;
+  }
 }

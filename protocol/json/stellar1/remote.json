@@ -832,6 +832,31 @@
           "name": "pendingPayments"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentPathQuery",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "to"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "sourceAsset"
+        },
+        {
+          "type": "Asset",
+          "name": "destinationAsset"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1172,6 +1197,19 @@
         }
       ],
       "response": null
+    },
+    "findPaymentPath": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "query",
+          "type": "PaymentPathQuery"
+        }
+      ],
+      "response": "PaymentPath"
     }
   },
   "namespace": "stellar.1"

@@ -2133,3 +2133,13 @@ func AirdropStatus(mctx libkb.MetaContext) (stellar1.AirdropStatus, error) {
 	}
 	return TransformToAirdropStatus(apiStatus), nil
 }
+
+func FindPaymentPath(mctx libkb.MetaContext, remoter remote.Remoter, to stellarnet.AddressStr, sourceAsset *stellar1.Asset, destinationAsset stellar1.Asset, amount string) (stellar1.PaymentPath, error) {
+	query := stellar1.PaymentPathQuery{
+		To:               stellar1.AccountID(to.String()),
+		SourceAsset:      sourceAsset,
+		DestinationAsset: destinationAsset,
+		Amount:           amount,
+	}
+	return remoter.FindPaymentPath(mctx, query)
+}

@@ -133,3 +133,7 @@ func (r *RemoteNet) DetailsPlusPayments(ctx context.Context, accountID stellar1.
 func (r *RemoteNet) ChangeTrustline(ctx context.Context, signedTx string) error {
 	return ChangeTrustline(ctx, r.G(), signedTx)
 }
+
+func (r *RemoteNet) FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error) {
+	return FindPaymentPath(mctx, query)
+}

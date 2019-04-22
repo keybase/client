@@ -1342,6 +1342,13 @@ type BatchLocalArg struct {
 	UseMulti    bool              `codec:"useMulti" json:"useMulti"`
 }
 
+type FindPaymentPathLocalArg struct {
+	To               string `codec:"to" json:"to"`
+	SourceAsset      *Asset `codec:"sourceAsset,omitempty" json:"sourceAsset,omitempty"`
+	DestinationAsset Asset  `codec:"destinationAsset" json:"destinationAsset"`
+	Amount           string `codec:"amount" json:"amount"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1408,6 +1415,7 @@ type LocalInterface interface {
 	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
 	LookupCLILocal(context.Context, string) (LookupResultCLILocal, error)
 	BatchLocal(context.Context, BatchLocalArg) (BatchResultLocal, error)
+	FindPaymentPathLocal(context.Context, FindPaymentPathLocalArg) (PaymentPath, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2369,6 +2377,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"findPaymentPathLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]FindPaymentPathLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FindPaymentPathLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FindPaymentPathLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.FindPaymentPathLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2714,5 +2737,10 @@ func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res Looku
 
 func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res BatchResultLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) FindPaymentPathLocal(ctx context.Context, __arg FindPaymentPathLocalArg) (res PaymentPath, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.findPaymentPathLocal", []interface{}{__arg}, &res)
 	return
 }

@@ -299,4 +299,13 @@ protocol remote {
   array<Asset> assetSearch(string assetCode, string issuerAccountID);
 
   void changeTrustline(keybase1.UserVersion caller, string signedTransaction);
+
+  record PaymentPathQuery {
+    AccountID to;
+    union{null, Asset} sourceAsset;
+    Asset destinationAsset;
+    string amount;
+  }
+
+  PaymentPath findPaymentPath(keybase1.UserVersion caller, PaymentPathQuery query);
 }

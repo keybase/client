@@ -2217,6 +2217,30 @@
         }
       ],
       "response": "BatchResultLocal"
+    },
+    "findPaymentPathLocal": {
+      "request": [
+        {
+          "name": "to",
+          "type": "string"
+        },
+        {
+          "name": "sourceAsset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "destinationAsset",
+          "type": "Asset"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "response": "PaymentPath"
     }
   },
   "namespace": "stellar.1"
