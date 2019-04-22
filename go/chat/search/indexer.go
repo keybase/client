@@ -826,7 +826,9 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 				convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ctx, conv.Conv, uid,
 					convIdx, indexUICh, totalPercentIndexed, len(convList))
 				if err != nil {
-					return nil, err
+					idx.Debug(ctx, "Search: postSync: error reindexing: convID: %s err: %s",
+						conv.GetConvID(), err)
+					continue
 				}
 
 				if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
