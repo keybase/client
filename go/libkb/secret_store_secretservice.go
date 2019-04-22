@@ -38,7 +38,7 @@ func (s *SecretStoreRevokableSecretService) makeAttributes(mctx MetaContext, use
 	serviceAttributes["username"] = string(username)
 	serviceAttributes["identifier"] = hex.EncodeToString(instanceIdentifier)
 	serviceAttributes["note"] = "https://keybase.io/docs/crypto/local-key-security"
-	serviceAttributes["note2"] = "Do not delete this entry. Instead, run `keybase logout` to remove it."
+	serviceAttributes["info"] = "Do not delete this entry. Instead, log out or uncheck 'remember passphrase' in the app."
 	return serviceAttributes
 }
 

@@ -185,15 +185,12 @@ func (e *LoginProvisionedDevice) tryPassphraseLogin(m libkb.MetaContext) (err er
 		return err
 	}
 
-	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
-	// A failure here is just a warning, since we still can use the app for this
-	// session. But it will undoubtedly cause pain.
-	w := libkb.StoreSecretAfterLoginWithOptions(m, e.username, e.uid, e.deviceID, &options)
-	if w != nil {
-		m.Warning("Secret store failed: %s", w.Error())
-	}
-
 	return nil
+}
+
+func (e *LoginProvisionedDevice) tryStoreSecret(mctx libkb.MetaContext) error {
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(mctx)
+	return libkb.StoreSecretAfterLoginWithOptions(mctx, e.username, e.uid, e.deviceID, &options)
 }
 
 func (e *LoginProvisionedDevice) runBug3964Repairman(m libkb.MetaContext) (err error) {
@@ -273,6 +270,15 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	}
 	if !success {
 		return libkb.NewLoginRequiredError("login failed after passphrase verified")
+	}
+
+	// We store the secret after we've switched to the active device so we can
+	// load advisory store options that may be protected by Lockdown Mode.
+	w := e.tryStoreSecret(m)
+	// A failure here is just a warning, since we still can use the app for this
+	// session. But it will undoubtedly cause pain.
+	if w != nil {
+		m.Warning("Secret store failed: %s", w.Error())
 	}
 
 	return nil
