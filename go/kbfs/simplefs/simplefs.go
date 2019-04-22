@@ -2398,6 +2398,19 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 			res.Folders[j].Folder.ToString()
 	})
 
+	if len(tlfIDs) > 0 {
+		p := k.config.BlockOps().Prefetcher().OverallSyncStatus()
+		res.OverallStatus.PrefetchProgress =
+			k.prefetchProgressFromByteStatus(p)
+		if p.SubtreeBytesTotal == p.SubtreeBytesFetched ||
+			p.SubtreeBytesTotal == 0 {
+			res.OverallStatus.PrefetchStatus = keybase1.PrefetchStatus_COMPLETE
+		} else {
+			res.OverallStatus.PrefetchStatus =
+				keybase1.PrefetchStatus_IN_PROGRESS
+		}
+	}
+
 	res.OverallStatus.LocalDiskBytesAvailable = bytesAvail
 	res.OverallStatus.LocalDiskBytesTotal = bytesTotal
 
