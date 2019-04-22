@@ -5,6 +5,7 @@ package phonenumbers
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -55,6 +56,18 @@ func makeEmailComponent(label string, email string) keybase1.ContactComponent {
 	}
 }
 
+func stringifyResults(res []keybase1.ResolvedContact) (ret []string) {
+	ret = make([]string, len(res))
+	for i, r := range res {
+		uidOrNothing := ""
+		if r.Uid != nil {
+			uidOrNothing = fmt.Sprintf("%s ", r.Uid)
+		}
+		ret[i] = fmt.Sprintf("%s%s %s", uidOrNothing, r.Name, r.Component.Label)
+	}
+	return ret
+}
+
 func TestLookupContacts(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
 	defer tc.Cleanup()
@@ -77,6 +90,9 @@ func TestLookupContacts(t *testing.T) {
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 3)
+	for _, r := range res {
+		require.Nil(t, r.Uid)
+	}
 
 	// At least one of the components resolves the user, return just that one
 	// contact.
@@ -95,9 +111,14 @@ func TestLookupContacts(t *testing.T) {
 	require.EqualValues(t, "1", *res[0].Uid)
 
 	// More than one components resolve, still return only the first resolution.
-	// TODO: What if they resolve to different users?
 	provider.phoneNumbers["+199123"] = keybase1.UID("1")
 	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 1)
+
+	// Suddenly this number resolves to someone else, despite being in same contact.
+	provider.phoneNumbers["+199123"] = keybase1.UID("2")
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Len(t, res, 2)
 }

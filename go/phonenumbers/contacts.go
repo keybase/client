@@ -66,6 +66,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	// contactIndex -> true for all contacts that have at least one compoonent resolved.
 	contactsFound := make(map[int]bool)
+	usersFound := make(map[keybase1.UID]bool)
 
 	if len(phoneNumbers) > 0 {
 		phoneRes, err := provider.LookupPhoneNumbers(mctx, phoneNumbers, regionCode)
@@ -79,13 +80,17 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			}
 
 			toContact := phoneComps[i]
-			if _, found := contactsFound[toContact.contactIndex]; found {
-				// This contact was already resolved by resolving another component.
+			contactsFound[toContact.contactIndex] = true
+
+			if _, found := usersFound[k.UID]; found {
+				// This user was already resolved by looking up another
+				// component or another contact.
 				continue
 			}
 			contact := contacts[toContact.contactIndex]
 			component := contact.Components[toContact.componentIndex]
-			contactsFound[toContact.contactIndex] = true
+
+			usersFound[k.UID] = true
 
 			uid := k.UID
 			res = append(res, keybase1.ResolvedContact{
