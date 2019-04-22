@@ -446,6 +446,7 @@ export const Transaction = (props: Props) => {
                   </Text>
                   <WaitingButton
                     type="Danger"
+                    mode="Secondary"
                     label="Cancel"
                     small={true}
                     style={styles.cancelButton}

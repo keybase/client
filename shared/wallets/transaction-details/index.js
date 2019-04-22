@@ -96,8 +96,8 @@ const Counterparty = (props: CounterpartyProps) => {
             underline={true}
           />
           <Kb.Button
-            type="Dim"
             label="Chat"
+            mode="Secondary"
             small={true}
             style={styles.chatButton}
             onClick={() => props.onChat(props.counterparty)}
@@ -404,6 +404,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.WaitingButton
               waitingKey={props.onCancelPaymentWaitingKey}
               type="Danger"
+              mode="Secondary"
               label="Cancel transaction"
               onClick={props.onCancelPayment}
               small={true}
