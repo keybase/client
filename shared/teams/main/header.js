@@ -73,7 +73,7 @@ const HeaderRightActions = (props: Props) => (
     })}
   >
     <Button label="Create a team" onClick={props.onCreateTeam} small={true} />
-    <Button label="Join a team" onClick={props.onJoinTeam} small={true} type="Dim" />
+    <Button label="Join a team" onClick={props.onJoinTeam} small={true} type="Default" mode="Secondary" />
   </Box2>
 )
 

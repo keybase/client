@@ -102,7 +102,8 @@ const _TeamHeader = (props: Props) => (
         )}
         {props.canManageMembers && (
           <Kb.Button
-            type="Dim"
+            type="Default"
+            mode="Secondary"
             label={'Add people...'}
             ref={Styles.isMobile ? undefined : props.setAttachmentRef}
             onClick={props.toggleShowingMenu}

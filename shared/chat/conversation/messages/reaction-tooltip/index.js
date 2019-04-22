@@ -65,24 +65,15 @@ export const ReactionTooltip = (props: Props) => {
           renderSectionHeader={renderSectionHeader}
         />
         {Styles.isMobile && (
-          <Kb.ClickableBox onClick={props.onAddReaction}>
-            <Kb.Box2
-              centerChildren={true}
-              direction="horizontal"
-              gap="xtiny"
-              style={styles.addReactionButton}
-            >
+          <Kb.ButtonBar style={styles.addReactionButtonBar}>
+            <Kb.Button mode="Secondary" fullWidth={true} onClick={props.onAddReaction} label="Add a reaction">
               <Kb.Icon
                 type="iconfont-reacji"
-                color={Styles.globalColors.black_50}
-                fontSize={22}
+                color={Styles.globalColors.blue}
                 style={Kb.iconCastPlatformStyles(styles.addReactionButtonIcon)}
               />
-              <Kb.Text type="BodySemibold" style={styles.addReactionButtonText}>
-                Add a reaction
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.ClickableBox>
+            </Kb.Button>
+          </Kb.ButtonBar>
         )}
       </Kb.Box2>
     </Kb.Overlay>
@@ -135,18 +126,11 @@ const renderSectionHeader = ({
 )
 
 const styles = Styles.styleSheetCreate({
-  addReactionButton: {
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 2,
-    height: 40,
-    marginBottom: Styles.globalMargins.large,
-    marginLeft: Styles.globalMargins.large,
-    marginRight: Styles.globalMargins.large,
-    marginTop: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.large,
-    paddingRight: Styles.globalMargins.large,
+  addReactionButtonBar: {
+    paddingBottom: Styles.globalMargins.medium,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
   addReactionButtonIcon: {
     marginRight: Styles.globalMargins.tiny,

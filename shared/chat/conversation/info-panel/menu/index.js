@@ -195,16 +195,13 @@ class InfoPanelMenu extends React.Component<Props> {
       onClick: () => this.props.onMuteConv(!convProps.muted),
       title,
       view: (
-        <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+        <Kb.Box style={styles.muteAction}>
           <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
             {title}
           </Kb.Text>
-          {!convProps.muted && <Kb.Icon
-            color={Styles.globalColors.black_20}
-            fontSize={Styles.isMobile ? 18 : undefined}
-            style={styles.icon}
-            type="iconfont-shh"
-          />}
+          {!convProps.muted && (
+            <Kb.Icon color={Styles.globalColors.black_20} style={styles.icon} type="iconfont-shh" />
+          )}
         </Kb.Box>
       ),
     }
@@ -247,6 +244,10 @@ const styles = Styles.styleSheetCreate({
   }),
   icon: {
     marginLeft: Styles.globalMargins.tiny,
+  },
+  muteAction: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
   },
   noTopborder: {
     borderTopWidth: 0,
