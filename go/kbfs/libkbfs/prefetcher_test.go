@@ -740,10 +740,12 @@ func testPrefetcherForSyncedTLF(
 	}
 	select {
 	case overallStatus := <-statusCh:
-		// The root block _does_ count in the overall total.
+		// The root block _does_ count in the overall total, and has
+		// already been fetched.
 		require.Equal(
 			t, uint64(4*testFakeBlockSize), overallStatus.SubtreeBytesTotal)
-		require.Equal(t, uint64(0), overallStatus.SubtreeBytesFetched)
+		require.Equal(
+			t, uint64(1*testFakeBlockSize), overallStatus.SubtreeBytesFetched)
 		require.Equal(t, config.Clock().Now(), overallStatus.Start)
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
