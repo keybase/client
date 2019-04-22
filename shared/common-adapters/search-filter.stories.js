@@ -33,6 +33,18 @@ const load = () => {
             waiting={true}
           />
         </Box2>
+        <Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
+          <Text type="Body">with onClick</Text>
+          <SearchFilter
+            hotkey="k"
+            icon="iconfont-search"
+            placeholderText="Search in the universe"
+            onChange={Sb.action('onChange')}
+            onClick={Sb.action('onClick')}
+            type="Full-width"
+            waiting={true}
+          />
+        </Box2>
         <SearchFilter
           hotkey="k"
           icon="iconfont-search"

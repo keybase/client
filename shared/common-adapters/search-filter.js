@@ -24,16 +24,22 @@ const Kb = {
 }
 
 type Props = {|
-  hotkey?: ?('f' | 'k'),
   icon?: ?IconType,
   negative?: ?boolean,
   onChange: (text: string) => void,
-  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
-  onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   placeholderText: string,
   style?: ?Styles.StylesCrossPlatform,
   type: 'Small' | 'Full-width' | 'Mobile',
   waiting?: ?boolean,
+
+  // If onClick is provided, this component won't focus on click. User is
+  // expected to handle actual filter/search in a separate component, perhaps
+  // in a popup.
+  onClick?: ?() => void,
+  // following props are ignored when onClick is provided
+  hotkey?: ?('f' | 'k'),
+  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 |}
 
 type State = {|
@@ -101,9 +107,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
     }
     const iconColor = this.props.negative ? Styles.globalColors.white_75 : Styles.globalColors.black_50
     const iconSizeType = this.props.type === 'Full-width' ? 'Default' : 'Small'
-    const hotkeyText = this.props.hotkey
-      ? ` (${Platforms.shortcutSymbol}+${this.props.hotkey.toUpperCase()})`
-      : ''
+    const hotkeyText =
+      this.props.hotkey && !this.props.onClick
+        ? ` (${Platforms.shortcutSymbol}+${this.props.hotkey.toUpperCase()})`
+        : ''
     const content = (
       <Kb.ClickableBox
         style={Styles.collapseStyles([
@@ -117,11 +124,11 @@ class SearchFilter extends React.PureComponent<Props, State> {
         ])}
         onMouseOver={this._mouseOver}
         onMouseLeave={this._mouseLeave}
-        onClick={this._focus}
+        onClick={this.props.onClick || this._focus}
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        {this.props.hotkey && (
+        {this.props.hotkey && !this.props.onClick && (
           <KeyHandler
             onHotkey={this._onHotkey}
             hotkeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
