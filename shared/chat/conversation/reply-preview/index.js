@@ -13,15 +13,17 @@ export type Props = {|
 const ReplyPreview = (props: Props) => {
   return (
     <Kb.Box style={styles.outerContainer}>
-      <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny">
+      <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="horizontal" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodyTiny">Replying to...</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.replyContainer}>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-              <Kb.Avatar username={props.username} size={24} />
-              <Kb.Text type="Body">{props.username}</Kb.Text>
+              <Kb.Avatar username={props.username} size={32} />
+              <Kb.Text type="Body" style={styles.username}>
+                {props.username}
+              </Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Text type="BodySmall" style={styles.text}>
@@ -46,13 +48,16 @@ const styles = Styles.styleSheetCreate({
       border: `1px solid ${Styles.globalColors.black_20}`,
       borderRadius: Styles.borderRadius,
     },
+    isMobile: {},
   }),
-  outerContainer: {
-    marginBottom: Styles.globalMargins.xtiny,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-    position: 'relative',
-  },
+  outerContainer: Styles.platformStyles({
+    isElectron: {
+      marginBottom: Styles.globalMargins.xtiny,
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+      position: 'relative',
+    },
+  }),
   replyContainer: {
     padding: Styles.globalMargins.tiny,
   },
@@ -76,6 +81,9 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
     paddingTop: Styles.globalMargins.tiny,
+  },
+  username: {
+    alignSelf: 'center',
   },
 })
 
