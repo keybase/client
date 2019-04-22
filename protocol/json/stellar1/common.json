@@ -79,6 +79,14 @@
         {
           "type": "string",
           "name": "issuerName"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": "string",
+          "name": "infoUrl"
         }
       ]
     },
