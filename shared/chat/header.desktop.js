@@ -39,7 +39,7 @@ const Header = (p: Props) => (
       <Kb.Box2 direction="vertical" style={styles.grow}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           {p.channel ? (
-            <Kb.Text selectable={true} type="Header">
+            <Kb.Text selectable={true} type="Header" lineClamp={1}>
               {p.channel}
             </Kb.Text>
           ) : p.participants ? (
@@ -65,7 +65,7 @@ const Header = (p: Props) => (
           )}
         </Kb.Box2>
         {!!p.desc && (
-          <Kb.Text selectable={true} type="BodyTiny" style={styles.desc}>
+          <Kb.Text selectable={true} type="BodyTiny" style={styles.desc} lineClamp={1}>
             {p.desc}
           </Kb.Text>
         )}
