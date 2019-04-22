@@ -538,9 +538,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	}
 	// Update the action if needed.
 	brq.vlog.CLogf(
-		ctx, libkb.VLog2, "Combining actions %d and %d", action, br.action)
+		ctx, libkb.VLog2, "Combining actions %s and %s", action, br.action)
 	br.action = action.Combine(br.action)
-	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %d", br.action)
+	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %s", br.action)
 	return ch
 }
 
