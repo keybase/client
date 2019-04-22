@@ -853,11 +853,6 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 				hitMap[convIDStr] = *convHits
 			}
 		}
-		if totalPercentIndexed >= 95 && opts.ReindexMode == chat1.ReIndexingMode_POSTSEARCH_SYNC {
-			indexUICh <- chat1.ChatSearchIndexStatus{
-				PercentIndexed: 100,
-			}
-		}
 	}
 
 	hits := make([]chat1.ChatSearchInboxHit, len(hitMap))
