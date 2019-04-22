@@ -192,7 +192,7 @@ const styles = Styles.styleSheetCreate({
   },
   listContainer: Styles.platformStyles({
     isElectron: {
-      maxHeight: 525 - 48,
+      maxHeight: 560 - 48,
     },
     isMobile: {
       flex: 1,

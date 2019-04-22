@@ -106,7 +106,7 @@ const Counterparty = (props: CounterpartyProps) => {
       )
     case 'stellarPublicKey':
       return (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
           <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
           <Kb.Text
             type="BodySemibold"
@@ -338,7 +338,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           >
             <Kb.Icon
               color={colorForStatus(props.status)}
-              fontSize={16}
+              sizeType="Small"
               style={Kb.iconCastPlatformStyles(styles.statusIcon)}
               type={
                 ['error', 'canceled'].includes(props.status)
@@ -520,8 +520,9 @@ const styles = Styles.styleSheetCreate({
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   warningBannerContainer: {
     backgroundColor: Styles.backgroundModeToColor.Information,
-    marginTop: Styles.globalMargins.xsmall,
-    padding: Styles.globalMargins.xsmall,
+    borderRadius: Styles.borderRadius,
+    marginTop: Styles.globalMargins.xtiny,
+    padding: Styles.globalMargins.tiny,
   },
   warningBannerText: {
     color: Styles.globalColors.brown_75,

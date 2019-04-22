@@ -63,6 +63,7 @@ type CounterpartyTextProps = {|
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
   textType: 'Body' | 'BodySmall',
+  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold',
   textTypeItalic: 'BodyItalic' | 'BodySmallItalic',
 |}
 
@@ -75,7 +76,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={props.textType}
+          type={props.textTypeSemibold}
           underline={true}
           usernames={[props.counterparty]}
         />
@@ -116,6 +117,7 @@ type DetailProps = {|
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
+  const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
@@ -160,6 +162,7 @@ const Detail = (props: DetailProps) => {
       counterpartyType={props.counterpartyType}
       onShowProfile={props.onShowProfile}
       textType={textType}
+      textTypeSemibold={textTypeSemibold}
       textTypeItalic={textTypeItalic}
     />
   )
