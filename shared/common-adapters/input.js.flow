@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {type StylesCrossPlatform} from '../styles'
 import {type TextType} from './text'
+import {type TextContentType} from './plain-input'
 
 /**
  * DEPRECATED
@@ -79,6 +80,8 @@ export type Props = {
   // If keyboardType is set, it overrides type.
   keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
+  // iOS only
+  textContentType?: TextContentType,
 }
 
 export type Selection = {start: number, end: number}

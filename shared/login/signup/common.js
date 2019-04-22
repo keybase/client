@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/signup'
 import {
+  Box,
   Box2,
   HeaderHocHeader,
   Avatar,
@@ -29,7 +30,9 @@ export const Wrapper = (props: Props) => (
     >
       {props.children}
     </Box2>
-    <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
+    <Box style={styles.header}>
+      <HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
+    </Box>
   </Box2>
 )
 
