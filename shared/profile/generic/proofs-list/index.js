@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/tracker2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
+import {makeInsertMatcher} from '../../../util/string'
 
 export type IdentityProvider = {|
   name: string,
@@ -33,8 +34,10 @@ type ProvidersProps = {|
 |}
 class Providers extends React.Component<ProvidersProps> {
   render() {
+    const filterRegexp = makeInsertMatcher(this.props.filter)
+
     return this.props.providers
-      .filter(p => filterProvider(p, this.props.filter))
+      .filter(p => filterProvider(p, filterRegexp))
       .map(provider => (
         <React.Fragment key={provider.name}>
           <Kb.Divider />
@@ -68,8 +71,8 @@ class Providers extends React.Component<ProvidersProps> {
 const normalizeForFiltering = (input) => input.toLowerCase().replace(/[\.\s]/g, '')
 
 const filterProvider = (p, filter) => {
-  const f = normalizeForFiltering(filter)
-  return normalizeForFiltering(p.name).includes(f) || normalizeForFiltering(p.desc).includes(f)
+  return normalizeForFiltering(p.name).match(filter) ||
+    normalizeForFiltering(p.desc).match(filter)
 }
 
 type State = {
@@ -110,7 +113,6 @@ class _ProofsList extends React.Component<Props, State> {
               <Providers {...this.props} filter={this.state.filter} />
               <Kb.Divider />
             </Kb.ScrollView>
-            {/*<Kb.Text type="BodySmall">{JSON.stringify(this.props.providers, null, 2)}</Kb.Text>*/}
           </Kb.Box2>
           <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
             <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
