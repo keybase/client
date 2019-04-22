@@ -41,6 +41,7 @@ class UsernameAndEmail extends React.Component<Props, State> {
           errorText={this.props.email === this.state.email ? this.props.emailError : ''}
           onEnterKeyDown={this._onSubmit}
           onChangeText={email => this.setState({email})}
+          keyboardType="email-address"
           textContentType="emailAddress"
         />
         <ContinueButton disabled={!this.state.email || !this.state.username} onClick={this._onSubmit} />
