@@ -67,8 +67,6 @@ func (n *nullTeamLoader) ForceRepollUntil(ctx context.Context, t gregor.TimeOrOf
 	return nil
 }
 
-func (n nullTeamLoader) OnLogout() {}
-
 func (n nullTeamLoader) ClearMem() {}
 
 type nullFastTeamLoader struct{}
@@ -91,8 +89,6 @@ func (n nullFastTeamLoader) ForceRepollUntil(_ MetaContext, _ gregor.TimeOrOffse
 	return nil
 }
 
-func (n nullFastTeamLoader) OnLogout() {}
-
 func newNullFastTeamLoader() nullFastTeamLoader { return nullFastTeamLoader{} }
 
 type nullTeamAuditor struct{}
@@ -102,8 +98,6 @@ var _ TeamAuditor = nullTeamAuditor{}
 func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
 	return fmt.Errorf("null team auditor")
 }
-
-func (n nullTeamAuditor) OnLogout(m MetaContext) {}
 
 func newNullTeamAuditor() nullTeamAuditor { return nullTeamAuditor{} }
 
@@ -121,6 +115,11 @@ type nullTeamBoxAuditor struct{}
 
 var errNullBoxAuditor = fmt.Errorf("No team box auditor configured.")
 
+func attemptNullBoxAuditor() *keybase1.BoxAuditAttempt {
+	msg := errNullBoxAuditor.Error()
+	return &keybase1.BoxAuditAttempt{Error: &msg}
+}
+
 var _ TeamBoxAuditor = nullTeamBoxAuditor{}
 
 func (n nullTeamBoxAuditor) AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (bool, error) {
@@ -130,18 +129,16 @@ func (n nullTeamBoxAuditor) AssertUnjailedOrReaudit(m MetaContext, id keybase1.T
 func (n nullTeamBoxAuditor) IsInJail(m MetaContext, id keybase1.TeamID) (bool, error) {
 	return false, errNullBoxAuditor
 }
-func (n nullTeamBoxAuditor) RetryNextBoxAudit(m MetaContext) (err error) {
-	return errNullBoxAuditor
+func (n nullTeamBoxAuditor) RetryNextBoxAudit(m MetaContext) (*keybase1.BoxAuditAttempt, error) {
+	return attemptNullBoxAuditor(), errNullBoxAuditor
 }
-func (n nullTeamBoxAuditor) BoxAuditRandomTeam(m MetaContext) (err error) {
-	return errNullBoxAuditor
+func (n nullTeamBoxAuditor) BoxAuditRandomTeam(m MetaContext) (*keybase1.BoxAuditAttempt, error) {
+	return attemptNullBoxAuditor(), errNullBoxAuditor
 }
-func (n nullTeamBoxAuditor) BoxAuditTeam(m MetaContext, id keybase1.TeamID) (err error) {
-	return errNullBoxAuditor
+func (n nullTeamBoxAuditor) BoxAuditTeam(m MetaContext, id keybase1.TeamID) (*keybase1.BoxAuditAttempt, error) {
+	return attemptNullBoxAuditor(), errNullBoxAuditor
 }
 func (n nullTeamBoxAuditor) Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt {
-	msg := errNullBoxAuditor.Error()
-	return keybase1.BoxAuditAttempt{Error: &msg}
+	return *attemptNullBoxAuditor()
 }
-func (n nullTeamBoxAuditor) OnLogout(m MetaContext) {}
-func newNullTeamBoxAuditor() nullTeamBoxAuditor     { return nullTeamBoxAuditor{} }
+func newNullTeamBoxAuditor() nullTeamBoxAuditor { return nullTeamBoxAuditor{} }

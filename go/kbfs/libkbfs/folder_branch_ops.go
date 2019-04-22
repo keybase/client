@@ -842,6 +842,9 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 	})
 }
 
+var errNeedMDForPartialSyncConfig = errors.New(
+	"needs MD for partial sync config")
+
 func (fbo *folderBranchOps) getProtocolSyncConfig(
 	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata) (
 	ret keybase1.FolderSyncConfig, tlfPath string, err error) {
@@ -851,6 +854,10 @@ func (fbo *folderBranchOps) getProtocolSyncConfig(
 	ret.Mode = config.Mode
 	if ret.Mode != keybase1.FolderSyncMode_PARTIAL {
 		return ret, config.TlfPath, nil
+	}
+
+	if kmd.TlfID() == tlf.NullID {
+		return keybase1.FolderSyncConfig{}, "", errNeedMDForPartialSyncConfig
 	}
 
 	var block *data.FileBlock
@@ -3057,19 +3064,10 @@ func (fbo *folderBranchOps) makeFakeDirEntry(
 }
 
 func (fbo *folderBranchOps) makeFakeFileEntry(
-	ctx context.Context, dir Node, name string) (de data.DirEntry, err error) {
+	ctx context.Context, dir Node, name string, fi os.FileInfo,
+	sympath string) (de data.DirEntry, err error) {
 	fbo.vlog.CLogf(ctx, libkb.VLog1, "Faking file entry for %s", name)
 	id, err := fbo.makeFakeEntryID(ctx, dir, name)
-	if err != nil {
-		return data.DirEntry{}, err
-	}
-
-	fs := dir.GetFS(ctx)
-	if fs == nil {
-		return data.DirEntry{}, errors.New("No FS")
-	}
-
-	fi, err := fs.Lstat(name)
 	if err != nil {
 		return data.DirEntry{}, err
 	}
@@ -3084,11 +3082,7 @@ func (fbo *folderBranchOps) makeFakeFileEntry(
 		EntryInfo: data.EntryInfoFromFileInfo(fi),
 	}
 	if de.Type == data.Sym {
-		target, err := fs.Readlink(name)
-		if err != nil {
-			return data.DirEntry{}, err
-		}
-		de.SymPath = target
+		de.SymPath = sympath
 	}
 	return de, nil
 }
@@ -3097,7 +3091,7 @@ func (fbo *folderBranchOps) processMissedLookup(
 	ctx context.Context, lState *kbfssync.LockState, dir Node, name string,
 	missErr error) (node Node, ei data.EntryInfo, err error) {
 	// Check if the directory node wants to autocreate this.
-	autocreate, ctx, et, sympath := dir.ShouldCreateMissedLookup(ctx, name)
+	autocreate, ctx, et, fi, sympath := dir.ShouldCreateMissedLookup(ctx, name)
 	if !autocreate {
 		return nil, data.EntryInfo{}, missErr
 	}
@@ -3113,7 +3107,7 @@ func (fbo *folderBranchOps) processMissedLookup(
 		}
 		return node, de.EntryInfo, nil
 	} else if et == data.FakeFile {
-		de, err := fbo.makeFakeFileEntry(ctx, dir, name)
+		de, err := fbo.makeFakeFileEntry(ctx, dir, name, fi, sympath)
 		if err != nil {
 			return nil, data.EntryInfo{}, missErr
 		}
@@ -3155,13 +3149,21 @@ func (fbo *folderBranchOps) statUsingFS(
 	}
 
 	// First check if this is needs to be a faked-out node.
-	autocreate, _, et, _ := node.ShouldCreateMissedLookup(ctx, name)
-	if autocreate && et == data.FakeDir {
-		de, err := fbo.makeFakeDirEntry(ctx, node, name)
-		if err != nil {
-			return data.DirEntry{}, false, err
+	autocreate, _, et, fi, sympath := node.ShouldCreateMissedLookup(ctx, name)
+	if autocreate {
+		if et == data.FakeDir {
+			de, err := fbo.makeFakeDirEntry(ctx, node, name)
+			if err != nil {
+				return data.DirEntry{}, false, err
+			}
+			return de, true, nil
+		} else if et == data.FakeFile {
+			de, err = fbo.makeFakeFileEntry(ctx, node, name, fi, sympath)
+			if err != nil {
+				return data.DirEntry{}, false, err
+			}
+			return de, true, nil
 		}
-		return de, true, nil
 	}
 
 	fs := node.GetFS(ctx)
@@ -3171,7 +3173,19 @@ func (fbo *folderBranchOps) statUsingFS(
 
 	fbo.vlog.CLogf(ctx, libkb.VLog1, "Using an FS to satisfy stat of %s", name)
 
-	de, err = fbo.makeFakeFileEntry(ctx, node, name)
+	fi, err = fs.Lstat(name)
+	if err != nil {
+		return data.DirEntry{}, false, err
+	}
+
+	if fi.Mode()&os.ModeSymlink != 0 {
+		sympath, err = fs.Readlink(name)
+		if err != nil {
+			return data.DirEntry{}, false, err
+		}
+	}
+
+	de, err = fbo.makeFakeFileEntry(ctx, node, name, fi, sympath)
 	if err != nil {
 		return data.DirEntry{}, false, err
 	}
@@ -8497,6 +8511,27 @@ func (fbo *folderBranchOps) GetSyncConfig(
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	config, tlfPath, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, md)
+	if errors.Cause(err) == errNeedMDForPartialSyncConfig {
+		// This is a partially-synced TLF, so it should be initialized
+		// automatically by KBFSOps; we just need to wait for the MD.
+		var once sync.Once
+		for md == (ImmutableRootMetadata{}) {
+			once.Do(func() {
+				fbo.log.CDebugf(
+					ctx, "Waiting for head to be populated while getting "+
+						"sync config")
+			})
+			t := time.After(100 * time.Millisecond)
+			select {
+			case <-t:
+			case <-ctx.Done():
+				return keybase1.FolderSyncConfig{}, errors.WithStack(ctx.Err())
+			}
+			md, _ = fbo.getHead(ctx, lState, mdNoCommit)
+		}
+		config, tlfPath, err = fbo.getProtocolSyncConfigUnlocked(
+			ctx, lState, md)
+	}
 	if err != nil {
 		return keybase1.FolderSyncConfig{}, err
 	}

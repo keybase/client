@@ -51,6 +51,10 @@ type prefetchRequest struct {
 	// obseleted is a channel that can be used to cancel this request while
 	// it is waiting in the queue if the prefetch is no longer necessary.
 	obseleted <-chan struct{}
+
+	// countedInOverall is true if the bytes of this block are counted
+	// in the overall sync status byte total currently.
+	countedInOverall bool
 }
 
 type ctxPrefetcherTagKey int
@@ -191,9 +195,8 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	return p
 }
 
-func (p *blockPrefetcher) updateOverallSyncTotalBytes(
-	bytes uint64, req *prefetchRequest) {
-	if !req.action.Sync() {
+func (p *blockPrefetcher) incOverallSyncTotalBytes(req *prefetchRequest) {
+	if !req.action.Sync() || req.countedInOverall {
 		return
 	}
 
@@ -206,26 +209,47 @@ func (p *blockPrefetcher) updateOverallSyncTotalBytes(
 		p.overallSyncStatus.Start = p.config.Clock().Now()
 	}
 
-	p.overallSyncStatus.SubtreeBytesTotal += bytes
+	p.overallSyncStatus.SubtreeBytesTotal += uint64(req.encodedSize)
+	req.countedInOverall = true
 }
 
-func (p *blockPrefetcher) updateOverallSyncFetchedBytes(
-	bytes uint64, req *prefetchRequest) {
-	if !req.action.Sync() {
+func (p *blockPrefetcher) decOverallSyncTotalBytes(req *prefetchRequest) {
+	if !req.action.Sync() || !req.countedInOverall {
 		return
 	}
 
 	p.overallSyncStatusLock.Lock()
 	defer p.overallSyncStatusLock.Unlock()
-	p.overallSyncStatus.SubtreeBytesFetched += bytes
+	if p.overallSyncStatus.SubtreeBytesTotal < uint64(req.encodedSize) {
+		// Both log and panic so that we get the PFID in the log.
+		p.log.CErrorf(nil, "panic: decOverallSyncTotalBytes overstepped "+
+			"its bounds (bytes=%d, fetched=%d, total=%d)", req.encodedSize,
+			p.overallSyncStatus.SubtreeBytesFetched,
+			p.overallSyncStatus.SubtreeBytesTotal)
+		panic("decOverallSyncTotalBytes overstepped its bounds")
+	}
+
+	p.overallSyncStatus.SubtreeBytesTotal -= uint64(req.encodedSize)
+	req.countedInOverall = false
+}
+
+func (p *blockPrefetcher) incOverallSyncFetchedBytes(req *prefetchRequest) {
+	if !req.action.Sync() || !req.countedInOverall {
+		return
+	}
+
+	p.overallSyncStatusLock.Lock()
+	defer p.overallSyncStatusLock.Unlock()
+	p.overallSyncStatus.SubtreeBytesFetched += uint64(req.encodedSize)
+	req.countedInOverall = false
 	if p.overallSyncStatus.SubtreeBytesFetched >
 		p.overallSyncStatus.SubtreeBytesTotal {
 		// Both log and panic so that we get the PFID in the log.
-		p.log.CErrorf(nil, "panic: updateOverallSyncFetchedBytes overstepped "+
+		p.log.CErrorf(nil, "panic: incOverallSyncFetchedBytes overstepped "+
 			"its bounds (fetched=%d, total=%d)",
 			p.overallSyncStatus.SubtreeBytesFetched,
 			p.overallSyncStatus.SubtreeBytesTotal)
-		panic("updateOverallSyncFetchedBytes overstepped its bounds")
+		panic("incOverallSyncFetchedBytes overstepped its bounds")
 	}
 }
 
@@ -235,7 +259,7 @@ func (p *blockPrefetcher) newPrefetch(
 	ctx, cancel := context.WithTimeout(p.ctx, prefetchTimeout)
 	ctx = CtxWithRandomIDReplayable(
 		ctx, ctxPrefetchIDKey, ctxPrefetchID, p.log)
-	p.updateOverallSyncTotalBytes(bytes, req)
+	p.incOverallSyncTotalBytes(req)
 	return &prefetch{
 		subtreeBlockCount: count,
 		subtreeTriggered:  triggered,
@@ -482,6 +506,7 @@ func (p *blockPrefetcher) cancelPrefetch(ptr data.BlockPointer, pp *prefetch) {
 	if len(pp.parents) > 0 {
 		return
 	}
+	p.decOverallSyncTotalBytes(pp.req)
 	delete(p.prefetches, ptr.ID)
 	pp.Close()
 	p.clearRescheduleState(ptr.ID)
@@ -543,7 +568,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		obseleted := make(chan struct{})
 		req := &prefetchRequest{
 			ptr, info.EncodedSize, block.NewEmptier(), kmd, priority,
-			lifetime, NoPrefetch, action, nil, obseleted}
+			lifetime, NoPrefetch, action, nil, obseleted, false}
 		pre = p.newPrefetch(1, uint64(info.EncodedSize), false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -989,8 +1014,8 @@ func (p *blockPrefetcher) run(
 				req.action.Sync() {
 				// This request turned into a syncing request, so
 				// update the overall sync status.
-				p.updateOverallSyncFetchedBytes(pre.SubtreeBytesFetched, req)
-				p.updateOverallSyncTotalBytes(pre.SubtreeBytesTotal, req)
+				p.incOverallSyncTotalBytes(req)
+				p.incOverallSyncFetchedBytes(req)
 			}
 
 			// If the request is finished (i.e., if it's marked as
@@ -1011,7 +1036,7 @@ func (p *blockPrefetcher) run(
 					// guaranteed that `pre` will be removed from the
 					// prefetcher.
 					numBytes := pre.SubtreeBytesTotal - pre.SubtreeBytesFetched
-					p.updateOverallSyncFetchedBytes(numBytes, req)
+					p.incOverallSyncFetchedBytes(req)
 					p.applyToParentsRecursive(
 						p.completePrefetch(pre.subtreeBlockCount, numBytes),
 						req.ptr.ID, pre)
@@ -1111,7 +1136,7 @@ func (p *blockPrefetcher) run(
 					p.applyToParentsRecursive(
 						p.decrementPrefetch, req.ptr.ID, pre)
 					bytes := uint64(b.GetEncodedSize())
-					p.updateOverallSyncFetchedBytes(bytes, req)
+					p.incOverallSyncFetchedBytes(req)
 					p.applyToParentsRecursive(
 						p.addFetchedBytes(bytes), req.ptr.ID, pre)
 					pre.subtreeTriggered = true
@@ -1283,7 +1308,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	action BlockRequestAction) {
 	req := &prefetchRequest{
 		ptr, block.GetEncodedSize(), block.NewEmptier(), kmd, priority,
-		lifetime, prefetchStatus, action, nil, nil}
+		lifetime, prefetchStatus, action, nil, nil, false}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
@@ -1316,7 +1341,8 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 	waitCh <-chan struct{}, err error) {
 	c := make(chan (<-chan struct{}), 1)
 	req := &prefetchRequest{
-		ptr, 0, nil, nil, 0, data.TransientEntry, 0, BlockRequestSolo, c, nil}
+		ptr, 0, nil, nil, 0, data.TransientEntry, 0, BlockRequestSolo, c, nil,
+		false}
 
 	select {
 	case p.prefetchRequestCh.In() <- req:

@@ -64,6 +64,8 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 func NewFastTeamLoaderAndInstall(g *libkb.GlobalContext) *FastTeamChainLoader {
 	l := NewFastTeamLoader(g)
 	g.SetFastTeamLoader(l)
+	g.AddLogoutHook(l, "fastTeamLoader")
+	g.AddDbNukeHook(l, "fastTeamLoader")
 	return l
 }
 
@@ -107,7 +109,7 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 		}
 	}
 
-	if m.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureBoxAuditor) {
+	if ShouldRunBoxAudit(m) {
 		newM, shouldReload := VerifyBoxAudit(m, res.Name.ToTeamID(arg.Public))
 		if shouldReload {
 			return f.Load(newM, originalArg)
@@ -1254,10 +1256,18 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 	return f.toResult(m, arg, state)
 }
 
-// OnLogout is called when the user logs out, which pruges the LRU.
-func (f *FastTeamChainLoader) OnLogout() {
+// OnLogout is called when the user logs out, which purges the LRU.
+func (f *FastTeamChainLoader) OnLogout(mctx libkb.MetaContext) error {
 	f.storage.clearMem()
 	f.featureFlagGate.Clear()
+	return nil
+}
+
+// OnDbNuke is called when the disk cache is cleared, which purges the LRU.
+func (f *FastTeamChainLoader) OnDbNuke(mctx libkb.MetaContext) error {
+	f.storage.clearMem()
+	f.featureFlagGate.Clear()
+	return nil
 }
 
 func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {

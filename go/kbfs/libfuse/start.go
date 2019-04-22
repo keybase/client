@@ -140,6 +140,8 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	}
 	defer libkbfs.Shutdown()
 
+	libfs.AddRootWrapper(config)
+
 	if options.KbfsParams.Debug {
 		fuseLog := config.MakeLogger("FUSE").CloneWithAddedDepth(1)
 		fuse.Debug = MakeFuseVDebugFn(

@@ -76,7 +76,9 @@ const ReceiveModal = (props: Props) => {
         </Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
           <Addresses federatedAddress={props.federatedAddress} stellarAddress={props.stellarAddress} />
-          {!Styles.isMobile && <Kb.Button label="Close" onClick={props.onClose} type="Dim" />}
+          {!Styles.isMobile && (
+            <Kb.Button label="Close" onClick={props.onClose} type="Dim" style={styles.closeButton} />
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </WalletPopup>
@@ -115,6 +117,9 @@ const QrImage = ({address}) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  closeButton: {
+    alignSelf: 'center',
+  },
   container: Styles.platformStyles({
     common: {
       paddingLeft: 0,

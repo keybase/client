@@ -679,7 +679,6 @@ type TeamLoader interface {
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
-	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
 }
@@ -690,22 +689,19 @@ type FastTeamLoader interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
-	OnLogout()
 }
 
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
-	OnLogout(m MetaContext)
 }
 
 type TeamBoxAuditor interface {
 	AssertUnjailedOrReaudit(m MetaContext, id keybase1.TeamID) (didReaudit bool, err error)
 	IsInJail(m MetaContext, id keybase1.TeamID) (bool, error)
-	RetryNextBoxAudit(m MetaContext) (err error)
-	BoxAuditRandomTeam(m MetaContext) (err error)
-	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (err error)
+	RetryNextBoxAudit(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditRandomTeam(m MetaContext) (attempt *keybase1.BoxAuditAttempt, err error)
+	BoxAuditTeam(m MetaContext, id keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error)
 	Attempt(m MetaContext, id keybase1.TeamID, rotateBeforeAudit bool) keybase1.BoxAuditAttempt
-	OnLogout(m MetaContext)
 }
 
 // MiniChatPayment is the argument for sending an in-chat payment.
@@ -740,7 +736,6 @@ type MiniChatPaymentSummary struct {
 }
 
 type Stellar interface {
-	OnLogout()
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
@@ -828,11 +823,15 @@ type LRUKeyer interface {
 type LRUer interface {
 	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type MemLRUer interface {
 	Get(key interface{}) (interface{}, bool)
 	Put(key, value interface{}) bool
+	OnLogout(mctx MetaContext) error
+	OnDbNuke(mctx MetaContext) error
 }
 
 type ClockContext interface {

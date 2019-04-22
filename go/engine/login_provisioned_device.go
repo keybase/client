@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -199,12 +200,40 @@ func (e *LoginProvisionedDevice) runBug3964Repairman(m libkb.MetaContext) (err e
 	return libkb.RunBug3964Repairman(m)
 }
 
+func (e *LoginProvisionedDevice) passiveLoginWithUsername(m libkb.MetaContext) (ok bool, uid keybase1.UID) {
+
+	m.Debug("LoginProvisionedDevice#passiveLoginWithUsername %s", e.username)
+
+	cr := m.G().Env.GetConfig()
+	if cr == nil {
+		m.Debug("no config file reader")
+		return false, uid
+	}
+	uid = cr.GetUIDForUsername(e.username)
+	if uid.IsNil() {
+		m.Debug("No UID found locally for username %s", e.username)
+		return false, uid
+	}
+	if isLoggedInAs(m, uid) {
+		return true, uid
+	}
+	return false, keybase1.UID("")
+}
+
+func (e *LoginProvisionedDevice) passiveLogin(m libkb.MetaContext) (ok bool, uid keybase1.UID) {
+	defer m.CTraceString("LoginProvisionedDevice#passiveLogin", func() string { return fmt.Sprintf("<%v,%s>", ok, uid) })()
+	if len(e.username) > 0 {
+		return e.passiveLoginWithUsername(m)
+	}
+	return isLoggedIn(m)
+}
+
 func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	defer m.Trace("LoginProvisionedDevice#run", func() error { return err })()
 
-	// already logged in?
-	in, loggedInUID := isLoggedIn(m)
-	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(loggedInUID).Eq(e.username)) {
+	in, loggedInUID := e.passiveLogin(m)
+
+	if in {
 		m.Debug("user %s already logged in; short-circuting", loggedInUID)
 		return nil
 	}

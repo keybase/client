@@ -673,6 +673,41 @@
           "name": "status"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfigAndStatusWithFolder",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "FolderSyncConfig",
+          "name": "config"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SyncConfigAndStatusRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FolderSyncConfigAndStatusWithFolder"
+          },
+          "name": "folders"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "overallStatus"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1126,6 +1161,10 @@
         }
       ],
       "response": null
+    },
+    "simpleFSSyncConfigAndStatus": {
+      "request": [],
+      "response": "SyncConfigAndStatusRes"
     },
     "simpleFSAreWeConnectedToMDServer": {
       "request": [],

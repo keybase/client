@@ -79,7 +79,9 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
     />
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" alignItems="flex-end" gap="xtiny" style={styles.alignSelfFlexStart}>
-        <Kb.Text type="Header">{props.teamname}</Kb.Text>
+        <Kb.Text type="Header" lineClamp={1}>
+          {props.teamname}
+        </Kb.Text>
         {!!props.onRename && <Kb.Icon type="iconfont-edit" onClick={props.onRename} />}
       </Kb.Box2>
       <Kb.Text type="BodySmall">
@@ -88,7 +90,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       </Kb.Text>
       <Kb.Text
         type={props.onEditDescription && !props.description ? 'BodySmallItalic' : 'BodySmall'}
-        lineClamp={1}
+        lineClamp={3}
         onClick={props.onEditDescription}
         className={Styles.classNames({'hover-underline': !!props.onEditDescription})}
         style={styles.clickable}
