@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
 })
 
-export default compose(
+const Connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
@@ -28,3 +28,12 @@ export default compose(
     },
   })
 )(DeviceName)
+
+// $FlowIssue lets fix this
+Connected.navigationOptions = {
+  header: undefined,
+  headerHideBorder: true,
+  headerTransparent: true,
+}
+
+export default Connected

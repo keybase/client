@@ -1,7 +1,7 @@
 // @flow
 import * as SignupGen from '../../actions/signup-gen'
 import {compose, connect, withStateHandlers, withHandlers} from '../../util/container'
-import UsernameEmail from '.'
+import Username from '.'
 
 type OwnProps = {||}
 
@@ -18,7 +18,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createRestartSignup()),
 })
 
-export default compose(
+const Connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
@@ -30,4 +30,13 @@ export default compose(
       _onSubmit(username)
     },
   })
-)(UsernameEmail)
+)(Username)
+
+// $FlowIssue lets fix this
+Connected.navigationOptions = {
+  header: undefined,
+  headerHideBorder: true,
+  headerTransparent: true,
+}
+
+export default Connected

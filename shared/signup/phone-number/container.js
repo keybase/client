@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Email, {type Props} from '.'
 import {compose, connect, withStateHandlers, withHandlers} from '../../util/container'
@@ -10,7 +9,7 @@ import {compose, connect, withStateHandlers, withHandlers} from '../../util/cont
 type OwnProps = {||}
 
 const mapStateToProps = state => ({
-  _emails: state.settings.email.emails,
+  _emails: state.settings.email,
   error: state.signup.emailError,
 })
 
@@ -23,8 +22,7 @@ const mapDispatchToProps = dispatch => ({
       })
     ),
   _onSkip: () => dispatch(ConfigGen.createLoggedIn({causedByStartup: false})),
-  _onSubmit: (searchable: boolean, email: string) =>
-    dispatch(SettingsGen.createAddEmail({email, searchable})),
+  _onSubmit: (allowSearch: boolean, email: string) => dispatch(SignupGen.createCheckEmail({email})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

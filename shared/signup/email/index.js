@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 
-type Props = {|
+export type Props = {|
   allowSearch: boolean,
   onChangeAllowSearch: boolean => void,
   onChangeEmail: string => void,
