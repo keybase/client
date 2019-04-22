@@ -1390,7 +1390,7 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	defer func() {
-		c.MakeLogger("").CDebugf(nil, "Loading synced TLFs: %+v", err)
+		c.MakeLogger("").CDebugf(nil, "Loaded synced TLFs: %+v", err)
 	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	syncedTlfPaths := make(map[string]bool)
