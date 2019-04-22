@@ -339,6 +339,7 @@ type ParamProofServiceConfig struct {
 	CheckUrl       string                   `codec:"checkUrl" json:"check_url"`
 	CheckPath      []SelectorEntry          `codec:"checkPath" json:"check_path"`
 	AvatarPath     []SelectorEntry          `codec:"avatarPath" json:"avatar_path"`
+	LogoKey        string                   `codec:"logoKey" json:"logo_key"`
 }
 
 func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
@@ -381,6 +382,7 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 			}
 			return ret
 		})(o.AvatarPath),
+		LogoKey: o.LogoKey,
 	}
 }
 

@@ -65,9 +65,11 @@ class Providers extends React.Component<ProvidersProps> {
   }
 }
 
+const normalizeForFiltering = (input) => input.toLowerCase().replace(/[\.\s]/g, '')
+
 const filterProvider = (p, filter) => {
-  const f = filter.toLowerCase()
-  return p.name.toLowerCase().includes(f) || p.desc.toLowerCase().includes(f)
+  const f = normalizeForFiltering(filter)
+  return normalizeForFiltering(p.name).includes(f) || normalizeForFiltering(p.desc).includes(f)
 }
 
 type State = {
@@ -108,6 +110,7 @@ class _ProofsList extends React.Component<Props, State> {
               <Providers {...this.props} filter={this.state.filter} />
               <Kb.Divider />
             </Kb.ScrollView>
+            {/*<Kb.Text type="BodySmall">{JSON.stringify(this.props.providers, null, 2)}</Kb.Text>*/}
           </Kb.Box2>
           <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
             <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
@@ -191,11 +194,11 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
   },
   listContainer: Styles.platformStyles({
+    common: {
+      flex: 1,
+    },
     isElectron: {
       maxHeight: 525 - 48,
-    },
-    isMobile: {
-      flex: 1,
     },
   }),
   mobileFlex: Styles.platformStyles({

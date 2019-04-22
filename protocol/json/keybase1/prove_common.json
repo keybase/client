@@ -234,6 +234,11 @@
           },
           "name": "avatarPath",
           "jsonkey": "avatar_path"
+        },
+        {
+          "type": "string",
+          "name": "logoKey",
+          "jsonkey": "logo_key"
         }
       ]
     },
