@@ -8747,7 +8747,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	if config.Mode == keybase1.FolderSyncMode_PARTIAL &&
 		len(config.Paths) == 0 {
 		fbo.log.CDebugf(ctx,
-			"Converting partial config with no paths into a disable config")
+			"Converting partial config with no paths into a disabled config")
 		config.Mode = keybase1.FolderSyncMode_DISABLED
 	}
 
