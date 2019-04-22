@@ -22,6 +22,7 @@ const mapStateToProps = state => {
     calculating: !!state.wallets.building.amount,
     disabled: !isReady || currencyWaiting || sendDisabledDueToMobileOnly,
     isRequest,
+    sendDisabledDueToMobileOnly,
     waitingKey: state.wallets.building.isRequest
       ? Constants.requestPaymentWaitingKey
       : Constants.buildPaymentWaitingKey,
@@ -55,6 +56,7 @@ const mergeProps = (s, d, o) => ({
   disabled: s.disabled,
   onClickRequest: s.isRequest ? d.onClickRequest : undefined,
   onClickSend: s.isRequest ? undefined : d.onClickSend,
+  sendDisabledDueToMobileOnly: s.sendDisabledDueToMobileOnly,
   waitingKey: s.waitingKey,
   worthDescription: s.worthDescription,
 })
