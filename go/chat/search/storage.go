@@ -64,10 +64,13 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 	defer func() {
 		// return a blank index
 		if err == nil && ret == nil {
-			ret = &chat1.ConversationIndex{}
-			ret.Index = map[string]map[chat1.MessageID]chat1.EmptyStruct{}
-			ret.Alias = map[string]map[string]chat1.EmptyStruct{}
-			ret.Metadata.SeenIDs = map[chat1.MessageID]chat1.EmptyStruct{}
+			ret = &chat1.ConversationIndex{
+				Index: make(map[string]map[chat1.MessageID]chat1.EmptyStruct),
+				Alias: make(map[string]map[string]chat1.EmptyStruct),
+				Metadata: chat1.ConversationIndexMetadata{
+					SeenIDs: make(map[chat1.MessageID]chat1.EmptyStruct),
+				},
+			}
 		}
 		if err != nil {
 			if derr := s.deleteLocked(ctx, convID, uid); derr != nil {
