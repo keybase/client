@@ -256,6 +256,13 @@ func (dbcr *DiskBlockCacheRemote) GetTlfSize(
 	panic("GetTlfSize() not implemented in DiskBlockCacheRemote")
 }
 
+// GetTlfIDs implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetTlfIDs(
+	_ context.Context, _ DiskBlockCacheType) ([]tlf.ID, error) {
+	panic("GetTlfIDs() not implemented in DiskBlockCacheRemote")
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
 	dbcr.conn.Close()
