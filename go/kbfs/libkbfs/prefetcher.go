@@ -1093,6 +1093,9 @@ func (p *blockPrefetcher) run(
 			}
 
 			if isPrefetchWaiting {
+				if req.priority > pre.req.priority {
+					pre.req.priority = req.priority
+				}
 				newAction := pre.req.action.Combine(req.action)
 				if pre.subtreeTriggered {
 					p.vlog.CLogf(

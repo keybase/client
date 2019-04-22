@@ -978,57 +978,6 @@ func TestRepackObjects(t *testing.T) {
 	checkFile("foo4", "hello4")
 }
 
-func TestRunnerWithKBFSReset(t *testing.T) {
-	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	defer os.RemoveAll(tempdir)
-
-	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
-	require.NoError(t, err)
-	defer os.RemoveAll(git1)
-
-	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
-
-	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), config, "user1", tlf.Private)
-	require.NoError(t, err)
-	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
-	require.NoError(t, err)
-
-	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
-
-	// Reset using worktree.
-	repoFS, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
-	require.NoError(t, err)
-	rootFS, err := libfs.NewFS(ctx, config, h, data.MasterBranch, "", "", 0)
-	require.NoError(t, err)
-	err = rootFS.MkdirAll("test-checkout", 0600)
-	require.NoError(t, err)
-	wtFS, err := rootFS.Chroot("test-checkout")
-	require.NoError(t, err)
-	err = libgit.Reset(ctx, repoFS, wtFS.(*libfs.FS), "refs/heads/master")
-	require.NoError(t, err)
-
-	f, err := wtFS.Open("foo")
-	require.NoError(t, err)
-	defer f.Close()
-	buf, err := ioutil.ReadAll(f)
-	require.NoError(t, err)
-	require.Equal(t, "hello", string(buf))
-
-	// Sync data and flush journal.
-	err = rootFS.SyncAll()
-	require.NoError(t, err)
-	jManager, err := libkbfs.GetJournalManager(config)
-	require.NoError(t, err)
-	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, data.MasterBranch)
-	require.NoError(t, err)
-	err = jManager.FinishSingleOp(ctx,
-		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
-	require.NoError(t, err)
-}
-
 func testHandlePushBatch(t *testing.T, ctx context.Context,
 	config libkbfs.Config, git, refspec, tlfName string) libgit.RefDataByName {
 	var input bytes.Buffer
