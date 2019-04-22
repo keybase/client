@@ -6,7 +6,7 @@ import GlobalError from '../app/global-errors/container'
 import TabBar from './tab-bar/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
-import {createStackNavigator} from 'react-navigation-stack'
+import {createStackNavigator, StackViewTransitionConfigs} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
@@ -42,6 +42,18 @@ const defaultNavigationOptions = {
 }
 const headerMode = 'float'
 
+const dynamicTransition = (transitionProps, prevTransitionProps) => {
+  // if it's a tab and we're increasing the stack ignore the animation
+  if (
+    prevTransitionProps &&
+    transitionProps.index > prevTransitionProps.index &&
+    transitionProps.scene.route.routeName.startsWith('tabs.')
+  ) {
+    return StackViewTransitionConfigs.NoAnimation
+  }
+  return StackViewTransitionConfigs.defaultTransitionConfig(transitionProps, prevTransitionProps)
+}
+
 // Where the main app stuff happens. You're logged in and have a tab bar etc
 const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
   defaultNavigationOptions: p => ({
@@ -50,6 +62,7 @@ const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
   headerMode,
   initialRouteName: 'tabs.peopleTab',
   initialRouteParams: undefined,
+  transitionConfig: dynamicTransition,
 })
 class MainStackNavigator extends React.PureComponent<any> {
   static router = MainStackNavigatorPlain.router
