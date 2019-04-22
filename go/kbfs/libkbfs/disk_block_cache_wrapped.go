@@ -563,6 +563,30 @@ func (cache *diskBlockCacheWrapped) GetTlfIDs(
 	return tlfIDs, nil
 }
 
+// WaitUntilStarted implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) WaitUntilStarted(
+	cacheType DiskBlockCacheType) (err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		err = cache.syncCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		err = cache.workingSetCache.WaitUntilStarted()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Shutdown(ctx context.Context) {
 	cache.mtx.Lock()
