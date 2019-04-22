@@ -392,6 +392,12 @@ func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 	return checkContext(ctx)
 }
 
+// NotifyOverallSyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyOverallSyncStatus(
+	ctx context.Context, _ keybase1.FolderSyncStatus) error {
+	return checkContext(ctx)
+}
+
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
