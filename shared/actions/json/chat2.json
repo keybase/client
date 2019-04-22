@@ -251,7 +251,8 @@
     // Send a text message
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "text": "HiddenString",
+      "replyTo?": "Types.MessageID"
     },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",

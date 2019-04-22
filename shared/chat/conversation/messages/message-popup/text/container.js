@@ -123,7 +123,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
     onHidden: () => ownProps.onHidden(),
-    onReply: message.type === 'text' && !yourMessage ? () => dispatchProps._onReply(message) : null,
+    onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : null,
     onReplyPrivately:
       message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
         ? () => dispatchProps._onReplyPrivately(message)

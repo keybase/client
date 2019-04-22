@@ -100,6 +100,15 @@ func (f *ReplyFiller) getReplyTo(msg chat1.MessageUnboxed) *chat1.MessageID {
 	return nil
 }
 
+func (f *ReplyFiller) FillSingle(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo,
+	msg chat1.MessageUnboxed) (res chat1.MessageUnboxed) {
+	msgs := f.Fill(ctx, uid, conv, []chat1.MessageUnboxed{msg})
+	if len(msgs) == 0 {
+		return msg
+	}
+	return msgs[0]
+}
+
 func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.UnboxConversationInfo,
 	msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 

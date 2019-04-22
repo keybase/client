@@ -464,12 +464,10 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, 
 
 func (g *PushHandler) getReplyMessage(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
 	msg chat1.MessageUnboxed) chat1.MessageUnboxed {
-	msgs := NewReplyFiller(g.G()).Fill(ctx, uid, conv, []chat1.MessageUnboxed{msg})
-	if len(msgs) == 0 {
-		g.Debug(ctx, "getReplyMessage: no message return from reply filler")
+	if conv == nil {
 		return msg
 	}
-	return msgs[0]
+	return NewReplyFiller(g.G()).FillSingle(ctx, uid, conv, msg)
 }
 
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {

@@ -13,19 +13,24 @@ export type Props = {|
 const ReplyPreview = (props: Props) => {
   return (
     <Kb.Box style={styles.outerContainer}>
-      <Kb.Box2 direction="horizontal" style={styles.container} gap="small" fullWidth={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-            <Kb.Avatar username={props.username} size={24} />
-            <Kb.Text type="Body">{props.username}</Kb.Text>
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-            <Kb.Text type="BodySmall" style={styles.text}>
-              {props.text}
-            </Kb.Text>
-          </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny">
+        <Kb.Box2 direction="horizontal" style={styles.title} fullWidth={true}>
+          <Kb.Text type="BodyTiny">Replying to...</Kb.Text>
         </Kb.Box2>
-        <Kb.Icon onClick={props.onCancel} type="iconfont-remove" boxStyle={styles.close} />
+        <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.replyContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+              <Kb.Avatar username={props.username} size={24} />
+              <Kb.Text type="Body">{props.username}</Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+              <Kb.Text type="BodySmall" style={styles.text}>
+                {props.text}
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+          <Kb.Icon onClick={props.onCancel} type="iconfont-remove" boxStyle={styles.close} />
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box>
   )
@@ -40,7 +45,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.boxShadow,
       border: `1px solid ${Styles.globalColors.black_20}`,
       borderRadius: Styles.borderRadius,
-      padding: Styles.globalMargins.tiny,
     },
   }),
   outerContainer: {
@@ -48,6 +52,9 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
     position: 'relative',
+  },
+  replyContainer: {
+    padding: Styles.globalMargins.tiny,
   },
   text: Styles.platformStyles({
     isElectron: {
@@ -60,6 +67,16 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
+  title: {
+    backgroundColor: Styles.globalColors.black_05,
+    borderBottomWidth: 1,
+    borderColor: Styles.globalColors.black_10,
+    borderStyle: 'solid',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.tiny,
+  },
 })
 
 export default ReplyPreview

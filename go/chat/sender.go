@@ -914,6 +914,10 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
+		if convLocal != nil {
+			unboxedMsg = NewReplyFiller(s.G()).FillSingle(ctx, boxed.ClientHeader.Sender, *convLocal,
+				unboxedMsg)
+		}
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender,
 				convID),

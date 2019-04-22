@@ -456,7 +456,9 @@ const rootReducer = (
       return state.set('flipStatusMap', fm)
     }
     case Chat2Gen.messageSend:
-      return state.deleteIn(['commandMarkdownMap', action.payload.conversationIDKey])
+      return state
+        .deleteIn(['commandMarkdownMap', action.payload.conversationIDKey])
+        .deleteIn(['replyToMap', action.payload.conversationIDKey])
     case Chat2Gen.setCommandMarkdown: {
       const {conversationIDKey, md} = action.payload
       return md
