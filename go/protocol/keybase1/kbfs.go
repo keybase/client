@@ -40,6 +40,10 @@ type FSSyncEventArg struct {
 	Event FSPathSyncStatus `codec:"event" json:"event"`
 }
 
+type FSOverallSyncEventArg struct {
+	Status FolderSyncStatus `codec:"status" json:"status"`
+}
+
 type FSOnlineStatusChangedEventArg struct {
 	Online bool `codec:"online" json:"online"`
 }
@@ -89,7 +93,10 @@ type KbfsInterface interface {
 	// FSSyncEvent is called by KBFS when the sync status of an individual path
 	// changes.
 	FSSyncEvent(context.Context, FSPathSyncStatus) error
-	// FSSyncEvent is called by KBFS when the online status changes.
+	// FSOverallSyncEvent is called by KBFS when the overall sync status
+	// changes.
+	FSOverallSyncEvent(context.Context, FolderSyncStatus) error
+	// FSOnlineStatusChangedEvent is called by KBFS when the online status changes.
 	FSOnlineStatusChangedEvent(context.Context, bool) error
 	// createTLF is called by KBFS to associate the tlfID with the given teamID,
 	// using the v2 Team-based system.
@@ -180,6 +187,21 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 						return
 					}
 					err = i.FSSyncEvent(ctx, typedArgs[0].Event)
+					return
+				},
+			},
+			"FSOverallSyncEvent": {
+				MakeArg: func() interface{} {
+					var ret [1]FSOverallSyncEventArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FSOverallSyncEventArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FSOverallSyncEventArg)(nil), args)
+						return
+					}
+					err = i.FSOverallSyncEvent(ctx, typedArgs[0].Status)
 					return
 				},
 			},
@@ -325,7 +347,15 @@ func (c KbfsClient) FSSyncEvent(ctx context.Context, event FSPathSyncStatus) (er
 	return
 }
 
-// FSSyncEvent is called by KBFS when the online status changes.
+// FSOverallSyncEvent is called by KBFS when the overall sync status
+// changes.
+func (c KbfsClient) FSOverallSyncEvent(ctx context.Context, status FolderSyncStatus) (err error) {
+	__arg := FSOverallSyncEventArg{Status: status}
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSOverallSyncEvent", []interface{}{__arg}, nil)
+	return
+}
+
+// FSOnlineStatusChangedEvent is called by KBFS when the online status changes.
 func (c KbfsClient) FSOnlineStatusChangedEvent(ctx context.Context, online bool) (err error) {
 	__arg := FSOnlineStatusChangedEventArg{Online: online}
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSOnlineStatusChangedEvent", []interface{}{__arg}, nil)
