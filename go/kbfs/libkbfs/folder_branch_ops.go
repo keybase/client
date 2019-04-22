@@ -1469,7 +1469,7 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 			continue
 		case _, ok := <-trigger:
 			if !ok {
-				fbo.log.CDebugf(ctx, "Mark-and-sweep is shutting down.")
+				fbo.log.CDebugf(ctx, "Mark-and-sweep is shutting down")
 				return
 			}
 			fbo.vlog.CLogf(ctx, libkb.VLog1, "New mark-and-sweep triggered")
@@ -8742,6 +8742,14 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 	fbo.log.CDebugf(ctx, "Setting sync config for %s, mode=%s",
 		tlfID, config.Mode)
+
+	if config.Mode == keybase1.FolderSyncMode_PARTIAL &&
+		len(config.Paths) == 0 {
+		fbo.log.CDebugf(ctx,
+			"Converting partial config with no paths into a disable config")
+		config.Mode = keybase1.FolderSyncMode_DISABLED
+	}
+
 	newConfig := FolderSyncConfig{
 		Mode:    config.Mode,
 		TlfPath: md.GetTlfHandle().GetCanonicalPath(),
