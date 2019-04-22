@@ -2265,9 +2265,7 @@ func TestPrefetcherCancelTlfPrefetches(t *testing.T) {
 	}
 
 	t.Log("Cancel the first TLF's prefetches")
-	go func() {
-		notifySyncCh(t, prefetchSyncCh)
-	}()
+	go notifySyncCh(t, prefetchSyncCh)
 	err = q.Prefetcher().CancelTlfPrefetches(ctx, kmd1.TlfID())
 	require.NoError(t, err)
 
