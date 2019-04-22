@@ -27,6 +27,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   signupError: new HiddenString(''),
   username: '',
   usernameError: '',
+  usernameTaken: false,
 })
 
 export const waitingKey = 'signup:waiting'

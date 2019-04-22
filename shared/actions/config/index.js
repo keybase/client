@@ -33,7 +33,15 @@ const onLoggedIn = (state, action) => {
   logger.info('keybase.1.NotifySession.loggedIn')
   // only send this if we think we're not logged in
   if (!state.config.loggedIn) {
-    return ConfigGen.createLoggedIn({causedByStartup: false})
+    // In the new sign up flow, we log in before we've finished in the loginRouteTree.
+    const routeName = Router2.getVisibleScreen()?.routeName
+    console.warn('routeName is', routeName)
+    if (!flags.newSignup && Router2.getVisibleScreen()?.routeName !== 'signupDeviceName') {
+      console.warn('no match')
+      return ConfigGen.createLoggedIn({causedByStartup: false})
+    } else {
+      console.warn('match, not doing it')
+    }
   }
 }
 

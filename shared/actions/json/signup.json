@@ -5,9 +5,10 @@
     "requestAutoInvite": {},
     "requestedAutoInvite": {
       "inviteCode": "string",
-      "canError": { }
+      "canError": {}
     },
-    "checkInviteCode": { "inviteCode": "string" },
+    "checkEmail": {"email": "string"},
+    "checkInviteCode": {"inviteCode": "string"},
     "checkedInviteCode": {
       "inviteCode": "string",
       "canError": {
@@ -19,9 +20,27 @@
       "pass1": "HiddenString",
       "pass2": "HiddenString"
     },
+    "checkUsername": {
+      "username": "string"
+    },
     "checkUsernameEmail": {
       "username": "string",
       "email": "string"
+    },
+    "checkedEmail": {
+      "email": "string",
+      "canError": {
+        "emailError": "string",
+        "email": "string"
+      }
+    },
+    "checkedUsername": {
+      "username": "string",
+      "canError": {
+        "username": "string",
+        "usernameError": "string",
+        "usernameTaken": "boolean"
+      }
     },
     "checkedUsernameEmail": {
       "username": "string",

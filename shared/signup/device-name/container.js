@@ -1,7 +1,7 @@
 // @flow
 import * as SignupGen from '../../actions/signup-gen'
 import DeviceName from '.'
-import {connect} from '../../util/container'
+import {compose, connect, withStateHandlers, withHandlers} from '../../util/container'
 
 type OwnProps = {||}
 
@@ -11,12 +11,20 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  _onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-  onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })
 
-export default connect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+export default compose(
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
+  withStateHandlers({deviceName: ''}, {onChangeDevicename: () => deviceName => ({deviceName})}),
+  withHandlers({
+    onContinue: ({_onSubmit, deviceName}) => () => {
+      _onSubmit(deviceName)
+    },
+  })
 )(DeviceName)

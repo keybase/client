@@ -32,6 +32,21 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       return action.payload.inviteCode === state.inviteCode
         ? state.merge({inviteCodeError: (action.error && action.payload.error) || ''})
         : state
+    case SignupGen.checkEmail:
+      const {email} = action.payload
+      const emailError = isValidEmail(email)
+      return state.merge({email, emailError})
+    case SignupGen.checkUsername:
+      const {username} = action.payload
+      const usernameError = isValidUsername(username)
+      return state.merge({username, usernameError})
+    case SignupGen.checkedUsername:
+      return action.payload.username === state.username
+        ? state.merge({
+            usernameError: action.error && action.payload.usernameError,
+            usernameTaken: action.error && action.payload.usernameTaken,
+          })
+        : state
     case SignupGen.checkUsernameEmail: {
       const {email, username} = action.payload
       const emailError = isValidEmail(email)

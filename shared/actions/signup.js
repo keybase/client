@@ -51,8 +51,17 @@ const showInviteSuccessOnNoErrors = (state: TypedState) =>
 
 const goToLoginRoot = () => RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
 
-const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
+const showDeviceScreenOnNoErrors = (state: TypedState) => {
+  console.warn('in show on no', state.signup.toJS())
+  return (
+    noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
+  )
+}
+
+const showEmailOnNoErrors = (state: TypedState) => {
+  console.warn('in show email')
+  return noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEmail']})
+}
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
@@ -96,6 +105,22 @@ const requestInvite = (state: TypedState) =>
       })
     )
 
+const checkUsername = (state: TypedState) =>
+  noErrors(state) &&
+  RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
+    .then(r =>
+      SignupGen.createCheckedUsername({
+        username: state.signup.username,
+      })
+    )
+    .catch(err =>
+      SignupGen.createCheckedUsernameError({
+        username: state.signup.username,
+        usernameError: `Sorry, there was a problem: ${err.desc}`,
+        usernameTaken: err.code === RPCTypes.constantsStatusCode.scbadsignupusernametaken,
+      })
+    )
+
 const checkUsernameEmail = (state: TypedState) =>
   noErrors(state) &&
   RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
@@ -105,14 +130,15 @@ const checkUsernameEmail = (state: TypedState) =>
         username: state.signup.username,
       })
     )
-    .catch(err =>
-      SignupGen.createCheckedUsernameEmailError({
+    .catch(err => {
+      console.warn('caught err', err)
+      return SignupGen.createCheckedUsernameEmailError({
         email: state.signup.email,
         emailError: '',
         username: state.signup.username,
         usernameError: `Sorry, there was a problem: ${err.desc}`,
       })
-    )
+    })
 
 const checkDevicename = (state: TypedState) =>
   noErrors(state) &&
@@ -134,14 +160,8 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
 
   const {email, username, inviteCode, devicename} = state.signup
 
-  if (!email || !username || !inviteCode || !devicename) {
-    logger.warn(
-      'Missing data during signup phase',
-      email,
-      username,
-      inviteCode,
-      devicename,
-    )
+  if (!username || !inviteCode || !devicename) {
+    logger.warn('Missing data during signup phase', email, username, inviteCode, devicename)
     throw new Error('Missing data for signup')
   }
 
@@ -185,6 +205,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     SignupGen.checkUsernameEmail,
     checkUsernameEmail
   )
+  yield* Saga.chainAction<SignupGen.CheckUsernamePayload>(SignupGen.checkUsername, checkUsername)
   yield* Saga.chainAction<SignupGen.RequestAutoInvitePayload>(SignupGen.requestAutoInvite, requestAutoInvite)
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload | SignupGen.CheckInviteCodePayload>(
     [SignupGen.requestedAutoInvite, SignupGen.checkInviteCode],
@@ -193,13 +214,21 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SignupGen.CheckDevicenamePayload>(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield* Saga.chainAction<SignupGen.RestartSignupPayload>(SignupGen.restartSignup, goToLoginRoot)
+  if (flags.newSignup) {
+    yield* Saga.chainAction<SignupGen.RestartSignupPayload>(SignupGen.restartSignup, showEmailOnNoErrors)
+  } else {
+    yield* Saga.chainAction<SignupGen.RestartSignupPayload>(SignupGen.restartSignup, goToLoginRoot)
+  }
   yield* Saga.chainAction<SignupGen.RequestedInvitePayload>(
     SignupGen.requestedInvite,
     showInviteSuccessOnNoErrors
   )
   yield* Saga.chainAction<SignupGen.CheckedUsernameEmailPayload>(
     SignupGen.checkedUsernameEmail,
+    showDeviceScreenOnNoErrors
+  )
+  yield* Saga.chainAction<SignupGen.CheckedUsernamePayload>(
+    SignupGen.checkedUsername,
     showDeviceScreenOnNoErrors
   )
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload>(
@@ -228,6 +257,7 @@ export default signupSaga
 export const _testing = {
   checkDevicename,
   checkInviteCode,
+  checkUsername,
   checkUsernameEmail,
   goBackAndClearErrors,
   reallySignupOnNoErrors,

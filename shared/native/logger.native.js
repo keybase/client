@@ -14,6 +14,9 @@ const actuallyLog = debounce(() => {
 
 let toSend = []
 
+const log = () => {}
+const dump = () => {}
+/*
 const log = (tagPrefix: string, toLog: string) => {
   toSend.push([tagPrefix, toLog])
   actuallyLog()
@@ -25,5 +28,5 @@ const dump: NativeLogDump = __STORYBOOK__
       return p
     }
   : NativeModules.KBNativeLogger.dump
-
+*/
 export {log, dump}
