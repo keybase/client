@@ -141,7 +141,7 @@
     "iced-runtime": "1.0.3",
     "immutable": "4.0.0-rc.12",
     "lodash-es": "4.17.11",
-    "lottie-react-native": "2.5.10",
+    "lottie-react-native": "2.6.1",
     "lottie-react-web": "2.1.4",
     "memoize-one": "5.0.0",
     "menubar": "5.2.3",
