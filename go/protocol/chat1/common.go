@@ -2076,6 +2076,106 @@ func (o ConversationIndex) DeepCopy() ConversationIndex {
 	}
 }
 
+type ConversationIndexMetadataDisk struct {
+	SeenIDs []MessageID `codec:"s" json:"s"`
+	Version int         `codec:"v" json:"v"`
+}
+
+func (o ConversationIndexMetadataDisk) DeepCopy() ConversationIndexMetadataDisk {
+	return ConversationIndexMetadataDisk{
+		SeenIDs: (func(x []MessageID) []MessageID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MessageID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SeenIDs),
+		Version: o.Version,
+	}
+}
+
+type TokenTuple struct {
+	Token  string      `codec:"t" json:"t"`
+	MsgIDs []MessageID `codec:"m" json:"m"`
+}
+
+func (o TokenTuple) DeepCopy() TokenTuple {
+	return TokenTuple{
+		Token: o.Token,
+		MsgIDs: (func(x []MessageID) []MessageID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MessageID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.MsgIDs),
+	}
+}
+
+type AliasTuple struct {
+	Alias  string   `codec:"a" json:"a"`
+	Tokens []string `codec:"t" json:"t"`
+}
+
+func (o AliasTuple) DeepCopy() AliasTuple {
+	return AliasTuple{
+		Alias: o.Alias,
+		Tokens: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Tokens),
+	}
+}
+
+type ConversationIndexDisk struct {
+	Index    []TokenTuple                  `codec:"i" json:"i"`
+	Alias    []AliasTuple                  `codec:"a" json:"a"`
+	Metadata ConversationIndexMetadataDisk `codec:"metadata" json:"metadata"`
+}
+
+func (o ConversationIndexDisk) DeepCopy() ConversationIndexDisk {
+	return ConversationIndexDisk{
+		Index: (func(x []TokenTuple) []TokenTuple {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TokenTuple, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Index),
+		Alias: (func(x []AliasTuple) []AliasTuple {
+			if x == nil {
+				return nil
+			}
+			ret := make([]AliasTuple, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Alias),
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
 type ChatSearchMatch struct {
 	StartIndex int    `codec:"startIndex" json:"startIndex"`
 	EndIndex   int    `codec:"endIndex" json:"endIndex"`
