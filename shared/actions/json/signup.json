@@ -7,7 +7,7 @@
       "inviteCode": "string",
       "canError": {}
     },
-    "checkEmail": {"email": "string"},
+    "checkAndSubmitEmail": {"email": "string"},
     "checkInviteCode": {"inviteCode": "string"},
     "checkedInviteCode": {
       "inviteCode": "string",

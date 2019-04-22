@@ -11,9 +11,13 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addEmail = 'settings:addEmail'
+export const addPhoneNumber = 'settings:addPhoneNumber'
 export const checkPassword = 'settings:checkPassword'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
+export const deleteEmail = 'settings:deleteEmail'
+export const deletePhoneNumber = 'settings:deletePhoneNumber'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
 export const invitesReclaimed = 'settings:invitesReclaimed'
@@ -21,13 +25,17 @@ export const invitesRefresh = 'settings:invitesRefresh'
 export const invitesRefreshed = 'settings:invitesRefreshed'
 export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
+export const loadEmails = 'settings:loadEmails'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
+export const loadPhoneNumbers = 'settings:loadPhoneNumbers'
 export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
 export const loadedCheckPassword = 'settings:loadedCheckPassword'
+export const loadedEmails = 'settings:loadedEmails'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
+export const loadedPhoneNumbers = 'settings:loadedPhoneNumbers'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const notificationsRefresh = 'settings:notificationsRefresh'
@@ -47,18 +55,25 @@ export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
+export const sendVerificationEmail = 'settings:sendVerificationEmail'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const setPrimaryEmail = 'settings:setPrimaryEmail'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _AddEmailPayload = $ReadOnly<{|email: string, searchable: boolean|}>
+type _AddPhoneNumberPayload = $ReadOnly<{|phoneNumber: string, searchable: boolean|}>
 type _CheckPasswordPayload = $ReadOnly<{|password: HiddenString|}>
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
+type _DeleteEmailPayload = $ReadOnly<{|email: string|}>
+type _DeletePhoneNumberPayload = $ReadOnly<{|phoneNumber: string|}>
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = $ReadOnly<{|inviteId: string|}>
 type _InvitesReclaimedPayload = void
@@ -68,13 +83,17 @@ type _InvitesRefreshedPayload = $ReadOnly<{|invites: Types._InvitesState|}>
 type _InvitesSendPayload = $ReadOnly<{|email: string, message: ?string|}>
 type _InvitesSentPayload = void
 type _InvitesSentPayloadError = $ReadOnly<{|error: Error|}>
+type _LoadEmailsPayload = void
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
+type _LoadPhoneNumbersPayload = void
 type _LoadRememberPasswordPayload = void
 type _LoadSettingsPayload = void
 type _LoadedCheckPasswordPayload = $ReadOnly<{|checkPasswordIsCorrect: ?boolean|}>
+type _LoadedEmailsPayload = $ReadOnly<{|emails: ?I.List<Types.EmailRow>|}>
 type _LoadedHasRandomPwPayload = $ReadOnly<{|randomPW: boolean|}>
 type _LoadedLockdownModePayload = $ReadOnly<{|status: ?boolean|}>
+type _LoadedPhoneNumbersPayload = $ReadOnly<{|phoneNumbers: ?I.List<Types.PhoneNumberRow>|}>
 type _LoadedRememberPasswordPayload = $ReadOnly<{|remember: boolean|}>
 type _LoadedSettingsPayload = $ReadOnly<{|emails: ?I.List<Types.EmailRow>|}>
 type _NotificationsRefreshPayload = void
@@ -94,12 +113,15 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = $ReadOnly<{|error: Error|}>
 type _OnUpdatedPGPSettingsPayload = $ReadOnly<{|hasKeys: boolean|}>
 type _ProcessorProfilePayload = $ReadOnly<{|durationSeconds: number|}>
+type _SendVerificationEmailPayload = $ReadOnly<{|email: string|}>
 type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
+type _SetPrimaryEmailPayload = $ReadOnly<{|email: string|}>
 type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
 type _UnfurlSettingsErrorPayload = $ReadOnly<{|error: string|}>
 type _UnfurlSettingsRefreshPayload = void
 type _UnfurlSettingsRefreshedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: I.List<string>|}>
 type _UnfurlSettingsSavedPayload = $ReadOnly<{|mode: RPCChatTypes.UnfurlMode, whitelist: I.List<string>|}>
+type _VerifyPhoneNumberPayload = $ReadOnly<{|code: string, phoneNumber: string|}>
 type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
@@ -119,9 +141,13 @@ export const createUnfurlSettingsRefreshed = (payload: _UnfurlSettingsRefreshedP
  * Update unfurl settings from settings screen
  */
 export const createUnfurlSettingsSaved = (payload: _UnfurlSettingsSavedPayload) => ({payload, type: unfurlSettingsSaved})
+export const createAddEmail = (payload: _AddEmailPayload) => ({payload, type: addEmail})
+export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload) => ({payload, type: addPhoneNumber})
 export const createCheckPassword = (payload: _CheckPasswordPayload) => ({payload, type: checkPassword})
 export const createDbNuke = (payload: _DbNukePayload) => ({payload, type: dbNuke})
 export const createDeleteAccountForever = (payload: _DeleteAccountForeverPayload) => ({payload, type: deleteAccountForever})
+export const createDeleteEmail = (payload: _DeleteEmailPayload) => ({payload, type: deleteEmail})
+export const createDeletePhoneNumber = (payload: _DeletePhoneNumberPayload) => ({payload, type: deletePhoneNumber})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload) => ({payload, type: invitesClearError})
 export const createInvitesReclaim = (payload: _InvitesReclaimPayload) => ({payload, type: invitesReclaim})
 export const createInvitesReclaimed = (payload: _InvitesReclaimedPayload) => ({payload, type: invitesReclaimed})
@@ -131,13 +157,17 @@ export const createInvitesRefreshed = (payload: _InvitesRefreshedPayload) => ({p
 export const createInvitesSend = (payload: _InvitesSendPayload) => ({payload, type: invitesSend})
 export const createInvitesSent = (payload: _InvitesSentPayload) => ({payload, type: invitesSent})
 export const createInvitesSentError = (payload: _InvitesSentPayloadError) => ({error: true, payload, type: invitesSent})
+export const createLoadEmails = (payload: _LoadEmailsPayload) => ({payload, type: loadEmails})
 export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload) => ({payload, type: loadHasRandomPw})
 export const createLoadLockdownMode = (payload: _LoadLockdownModePayload) => ({payload, type: loadLockdownMode})
+export const createLoadPhoneNumbers = (payload: _LoadPhoneNumbersPayload) => ({payload, type: loadPhoneNumbers})
 export const createLoadRememberPassword = (payload: _LoadRememberPasswordPayload) => ({payload, type: loadRememberPassword})
 export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
 export const createLoadedCheckPassword = (payload: _LoadedCheckPasswordPayload) => ({payload, type: loadedCheckPassword})
+export const createLoadedEmails = (payload: _LoadedEmailsPayload) => ({payload, type: loadedEmails})
 export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload) => ({payload, type: loadedHasRandomPw})
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload) => ({payload, type: loadedLockdownMode})
+export const createLoadedPhoneNumbers = (payload: _LoadedPhoneNumbersPayload) => ({payload, type: loadedPhoneNumbers})
 export const createLoadedRememberPassword = (payload: _LoadedRememberPasswordPayload) => ({payload, type: loadedRememberPassword})
 export const createLoadedSettings = (payload: _LoadedSettingsPayload) => ({payload, type: loadedSettings})
 export const createNotificationsRefresh = (payload: _NotificationsRefreshPayload) => ({payload, type: notificationsRefresh})
@@ -157,14 +187,21 @@ export const createOnUpdatePGPSettings = (payload: _OnUpdatePGPSettingsPayload) 
 export const createOnUpdatePasswordError = (payload: _OnUpdatePasswordErrorPayload) => ({payload, type: onUpdatePasswordError})
 export const createOnUpdatedPGPSettings = (payload: _OnUpdatedPGPSettingsPayload) => ({payload, type: onUpdatedPGPSettings})
 export const createProcessorProfile = (payload: _ProcessorProfilePayload) => ({payload, type: processorProfile})
+export const createSendVerificationEmail = (payload: _SendVerificationEmailPayload) => ({payload, type: sendVerificationEmail})
 export const createSetAllowDeleteAccount = (payload: _SetAllowDeleteAccountPayload) => ({payload, type: setAllowDeleteAccount})
+export const createSetPrimaryEmail = (payload: _SetPrimaryEmailPayload) => ({payload, type: setPrimaryEmail})
 export const createTrace = (payload: _TracePayload) => ({payload, type: trace})
+export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload) => ({payload, type: verifyPhoneNumber})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({payload, type: waitingForResponse})
 
 // Action Payloads
+export type AddEmailPayload = {|+payload: _AddEmailPayload, +type: 'settings:addEmail'|}
+export type AddPhoneNumberPayload = {|+payload: _AddPhoneNumberPayload, +type: 'settings:addPhoneNumber'|}
 export type CheckPasswordPayload = {|+payload: _CheckPasswordPayload, +type: 'settings:checkPassword'|}
 export type DbNukePayload = {|+payload: _DbNukePayload, +type: 'settings:dbNuke'|}
 export type DeleteAccountForeverPayload = {|+payload: _DeleteAccountForeverPayload, +type: 'settings:deleteAccountForever'|}
+export type DeleteEmailPayload = {|+payload: _DeleteEmailPayload, +type: 'settings:deleteEmail'|}
+export type DeletePhoneNumberPayload = {|+payload: _DeletePhoneNumberPayload, +type: 'settings:deletePhoneNumber'|}
 export type InvitesClearErrorPayload = {|+payload: _InvitesClearErrorPayload, +type: 'settings:invitesClearError'|}
 export type InvitesReclaimPayload = {|+payload: _InvitesReclaimPayload, +type: 'settings:invitesReclaim'|}
 export type InvitesReclaimedPayload = {|+payload: _InvitesReclaimedPayload, +type: 'settings:invitesReclaimed'|}
@@ -174,13 +211,17 @@ export type InvitesRefreshedPayload = {|+payload: _InvitesRefreshedPayload, +typ
 export type InvitesSendPayload = {|+payload: _InvitesSendPayload, +type: 'settings:invitesSend'|}
 export type InvitesSentPayload = {|+payload: _InvitesSentPayload, +type: 'settings:invitesSent'|}
 export type InvitesSentPayloadError = {|+error: true, +payload: _InvitesSentPayloadError, +type: 'settings:invitesSent'|}
+export type LoadEmailsPayload = {|+payload: _LoadEmailsPayload, +type: 'settings:loadEmails'|}
 export type LoadHasRandomPwPayload = {|+payload: _LoadHasRandomPwPayload, +type: 'settings:loadHasRandomPw'|}
 export type LoadLockdownModePayload = {|+payload: _LoadLockdownModePayload, +type: 'settings:loadLockdownMode'|}
+export type LoadPhoneNumbersPayload = {|+payload: _LoadPhoneNumbersPayload, +type: 'settings:loadPhoneNumbers'|}
 export type LoadRememberPasswordPayload = {|+payload: _LoadRememberPasswordPayload, +type: 'settings:loadRememberPassword'|}
 export type LoadSettingsPayload = {|+payload: _LoadSettingsPayload, +type: 'settings:loadSettings'|}
 export type LoadedCheckPasswordPayload = {|+payload: _LoadedCheckPasswordPayload, +type: 'settings:loadedCheckPassword'|}
+export type LoadedEmailsPayload = {|+payload: _LoadedEmailsPayload, +type: 'settings:loadedEmails'|}
 export type LoadedHasRandomPwPayload = {|+payload: _LoadedHasRandomPwPayload, +type: 'settings:loadedHasRandomPw'|}
 export type LoadedLockdownModePayload = {|+payload: _LoadedLockdownModePayload, +type: 'settings:loadedLockdownMode'|}
+export type LoadedPhoneNumbersPayload = {|+payload: _LoadedPhoneNumbersPayload, +type: 'settings:loadedPhoneNumbers'|}
 export type LoadedRememberPasswordPayload = {|+payload: _LoadedRememberPasswordPayload, +type: 'settings:loadedRememberPassword'|}
 export type LoadedSettingsPayload = {|+payload: _LoadedSettingsPayload, +type: 'settings:loadedSettings'|}
 export type NotificationsRefreshPayload = {|+payload: _NotificationsRefreshPayload, +type: 'settings:notificationsRefresh'|}
@@ -200,20 +241,27 @@ export type OnUpdatePGPSettingsPayload = {|+payload: _OnUpdatePGPSettingsPayload
 export type OnUpdatePasswordErrorPayload = {|+payload: _OnUpdatePasswordErrorPayload, +type: 'settings:onUpdatePasswordError'|}
 export type OnUpdatedPGPSettingsPayload = {|+payload: _OnUpdatedPGPSettingsPayload, +type: 'settings:onUpdatedPGPSettings'|}
 export type ProcessorProfilePayload = {|+payload: _ProcessorProfilePayload, +type: 'settings:processorProfile'|}
+export type SendVerificationEmailPayload = {|+payload: _SendVerificationEmailPayload, +type: 'settings:sendVerificationEmail'|}
 export type SetAllowDeleteAccountPayload = {|+payload: _SetAllowDeleteAccountPayload, +type: 'settings:setAllowDeleteAccount'|}
+export type SetPrimaryEmailPayload = {|+payload: _SetPrimaryEmailPayload, +type: 'settings:setPrimaryEmail'|}
 export type TracePayload = {|+payload: _TracePayload, +type: 'settings:trace'|}
 export type UnfurlSettingsErrorPayload = {|+payload: _UnfurlSettingsErrorPayload, +type: 'settings:unfurlSettingsError'|}
 export type UnfurlSettingsRefreshPayload = {|+payload: _UnfurlSettingsRefreshPayload, +type: 'settings:unfurlSettingsRefresh'|}
 export type UnfurlSettingsRefreshedPayload = {|+payload: _UnfurlSettingsRefreshedPayload, +type: 'settings:unfurlSettingsRefreshed'|}
 export type UnfurlSettingsSavedPayload = {|+payload: _UnfurlSettingsSavedPayload, +type: 'settings:unfurlSettingsSaved'|}
+export type VerifyPhoneNumberPayload = {|+payload: _VerifyPhoneNumberPayload, +type: 'settings:verifyPhoneNumber'|}
 export type WaitingForResponsePayload = {|+payload: _WaitingForResponsePayload, +type: 'settings:waitingForResponse'|}
 
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddEmailPayload
+  | AddPhoneNumberPayload
   | CheckPasswordPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
+  | DeleteEmailPayload
+  | DeletePhoneNumberPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
   | InvitesReclaimedPayload
@@ -223,13 +271,17 @@ export type Actions =
   | InvitesSendPayload
   | InvitesSentPayload
   | InvitesSentPayloadError
+  | LoadEmailsPayload
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
+  | LoadPhoneNumbersPayload
   | LoadRememberPasswordPayload
   | LoadSettingsPayload
   | LoadedCheckPasswordPayload
+  | LoadedEmailsPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
+  | LoadedPhoneNumbersPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | NotificationsRefreshPayload
@@ -249,11 +301,14 @@ export type Actions =
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
+  | SendVerificationEmailPayload
   | SetAllowDeleteAccountPayload
+  | SetPrimaryEmailPayload
   | TracePayload
   | UnfurlSettingsErrorPayload
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | VerifyPhoneNumberPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: null}

@@ -97,6 +97,9 @@ export type _ChatState = {
 }
 export type ChatState = I.RecordOf<_ChatState>
 
+export type _PhoneNumberRow = {...$Exact<RPCTypes.UserPhoneNumber>}
+export type PhoneNumberRow = I.RecordOf<_PhoneNumberRow>
+
 export type _State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
@@ -104,6 +107,7 @@ export type _State = {
   notifications: NotificationsState,
   email: EmailState,
   password: PasswordState,
+  phoneNumbers: ?I.List<PhoneNumberRow>,
   lockdownModeEnabled: ?boolean,
   chat: ChatState,
   checkPasswordIsCorrect: ?boolean,

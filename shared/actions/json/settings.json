@@ -5,8 +5,22 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "addEmail": {
+      "email": "string",
+      "searchable": "boolean"
+    },
+    "addPhoneNumber": {
+      "phoneNumber": "string",
+      "searchable": "boolean"
+    },
     "dbNuke": {},
     "deleteAccountForever": {},
+    "deleteEmail": {
+      "email": "string"
+    },
+    "deletePhoneNumber": {
+      "phoneNumber": "string"
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"
@@ -28,6 +42,14 @@
       "canError": {
         "error": "Error"
       }
+    },
+    "loadEmails": {},
+    "loadedEmails": {
+      "emails": "?I.List<Types.EmailRow>"
+    },
+    "loadPhoneNumbers": {},
+    "loadedPhoneNumbers": {
+      "phoneNumbers": "?I.List<Types.PhoneNumberRow>"
     },
     "loadRememberPassword": {},
     "loadedRememberPassword": {
@@ -80,8 +102,14 @@
     "onUpdatedPGPSettings": {
       "hasKeys": "boolean"
     },
+    "sendVerificationEmail": {
+      "email": "string"
+    },
     "setAllowDeleteAccount": {
       "allow": "boolean"
+    },
+    "setPrimaryEmail": {
+      "email": "string"
     },
     "trace": {
       "durationSeconds": "number"
@@ -108,6 +136,10 @@
     "unfurlSettingsError": {
       "_description": "An error occurred on the unfurl settings screen",
       "error": "string"
+    },
+    "verifyPhoneNumber": {
+      "code": "string",
+      "phoneNumber": "string"
     },
     "loadHasRandomPw": {},
     "loadedHasRandomPw": {

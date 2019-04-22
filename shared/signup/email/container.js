@@ -1,4 +1,5 @@
 // @flow
+import * as ConfigGen from '../../actions/config-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import DeviceName from '.'
 import {compose, connect, withStateHandlers, withHandlers} from '../../util/container'
@@ -11,8 +12,9 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onSubmit: (email: string) => dispatch(SignupGen.createCheckEmail({email})),
+  _onSubmit: (allowSearch: boolean, email: string) => dispatch(SignupGen.createCheckEmail({email})),
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
+  onSkip: () => dispatch(ConfigGen.createLoggedIn({causedByStartup: false})),
 })
 
 export default compose(
@@ -26,7 +28,7 @@ export default compose(
     {onChangeAllowSearch: () => allowSearch => ({allowSearch}), onChangeEmail: () => email => ({email})}
   ),
   withHandlers({
-    onContinue: ({_onSubmit, allowSearch, email}) => () => {
+    onFinish: ({_onSubmit, allowSearch, email}) => () => {
       _onSubmit(allowSearch, email)
     },
   })
