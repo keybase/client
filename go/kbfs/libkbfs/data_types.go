@@ -607,3 +607,33 @@ func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
 func (bra BlockRequestAction) StopIfFull() bool {
 	return bra&blockRequestStopIfFull > 0
 }
+
+// PrefetchProgress tracks the number of bytes fetched for the block
+// tree rooted at a given block, along with the known total number of
+// bytes in that tree, and the start time of the prefetch.  Note that
+// the total can change over time as more blocks are downloaded.
+type PrefetchProgress struct {
+	SubtreeBytesFetched uint64
+	SubtreeBytesTotal   uint64
+	Start               time.Time
+}
+
+// ToProtocolProgress creates a progress suitable of being sent over
+// the keybase1 protocol to the service.
+func (p PrefetchProgress) ToProtocolProgress(clock Clock) (
+	out keybase1.PrefetchProgress) {
+	out.BytesFetched = int64(p.SubtreeBytesFetched)
+	out.BytesTotal = int64(p.SubtreeBytesTotal)
+	out.Start = keybase1.ToTime(p.Start)
+
+	if out.BytesTotal == 0 || out.Start == 0 {
+		return out
+	}
+
+	timeRunning := clock.Now().Sub(p.Start)
+	fracDone := float64(out.BytesFetched) / float64(out.BytesTotal)
+	totalTimeEstimate := time.Duration(float64(timeRunning) / fracDone)
+	endEstimate := p.Start.Add(totalTimeEstimate)
+	out.EndEstimate = keybase1.ToTime(endEstimate)
+	return out
+}

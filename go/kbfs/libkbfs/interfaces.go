@@ -1302,16 +1302,6 @@ type MDOps interface {
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error)
 }
 
-// PrefetchProgress tracks the number of bytes fetched for the block
-// tree rooted at a given block, along with the known total number of
-// bytes in that tree, and the start time of the prefetch.  Note that
-// the total can change over time as more blocks are downloaded.
-type PrefetchProgress struct {
-	SubtreeBytesFetched uint64
-	SubtreeBytesTotal   uint64
-	Start               time.Time
-}
-
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
 	// ProcessBlockForPrefetch potentially triggers and monitors a prefetch.
