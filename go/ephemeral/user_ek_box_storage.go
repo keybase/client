@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -250,7 +249,7 @@ func (s *UserEKBoxStorage) unbox(mctx libkb.MetaContext, userEKGeneration keybas
 	if err != nil {
 		mctx.Debug("unable to get from deviceEKStorage %v", err)
 		switch err.(type) {
-		case erasablekv.UnboxError:
+		case libkb.UnboxError:
 			return userEK, newEKUnboxErr(mctx, UserEKStr, userEKGeneration, DeviceEKStr,
 				userEKBoxed.DeviceEkGeneration, contentCtime)
 		}

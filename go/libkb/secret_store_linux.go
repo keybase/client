@@ -9,7 +9,7 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	g := mctx.G()
 	sfile := NewSecretStoreFile(g.Env.GetDataDir())
 	sfile.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(g, name) }
-	ssecretservice := NewSecretStoreSecretService()
+	ssecretservice := NewSecretStoreRevokableSecretService()
 
 	if mctx.G().Env.GetForceLinuxKeyring() {
 		return ssecretservice

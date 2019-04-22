@@ -251,7 +251,8 @@ func (e *SelfProvisionEngine) syncSecretStore(m libkb.MetaContext) error {
 		return err
 	}
 
-	return libkb.StoreSecretAfterLoginWithLKS(m, e.User.GetNormalizedName(), e.lks)
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
+	return libkb.StoreSecretAfterLoginWithLKSWithOptions(m, e.User.GetNormalizedName(), e.lks, &options)
 }
 
 func (e *SelfProvisionEngine) clearCaches(mctx libkb.MetaContext) {
