@@ -572,8 +572,7 @@ export const commonNotificationKind = {
 export const commonReIndexingMode = {
   none: 0,
   presearchSync: 1,
-  postsearchAsync: 2,
-  postsearchSync: 3,
+  postsearchSync: 2,
 }
 
 export const commonRetentionPolicyType = {
@@ -1171,8 +1170,7 @@ export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowRese
 export type ReIndexingMode =
   | 0 // NONE_0
   | 1 // PRESEARCH_SYNC_1
-  | 2 // POSTSEARCH_ASYNC_2
-  | 3 // POSTSEARCH_SYNC_3
+  | 2 // POSTSEARCH_SYNC_2
 
 export type Reaction = $ReadOnly<{ctime: Gregor1.Time, reactionMsgID: MessageID}>
 export type ReactionMap = $ReadOnly<{reactions: {[key: string]: {[key: string]: Reaction}}}>

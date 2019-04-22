@@ -797,8 +797,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	}
 
 	switch opts.ReindexMode {
-	case chat1.ReIndexingMode_POSTSEARCH_ASYNC,
-		chat1.ReIndexingMode_POSTSEARCH_SYNC:
+	case chat1.ReIndexingMode_POSTSEARCH_SYNC:
 		for _, conv := range convList {
 			select {
 			case <-ctx.Done():
@@ -808,49 +807,38 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			convIDStr := conv.GetConvID().String()
 			convIdx := convIdxMap[convIDStr]
 
-			switch opts.ReindexMode {
-			// kick this off in the background after we have our results so there is no
-			// lock contention during the search
-			case chat1.ReIndexingMode_POSTSEARCH_ASYNC:
-				_, _, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: false})
-				if err != nil {
-					return nil, err
-				}
-			// reindex all of the conversations and research to populate any new results
-			case chat1.ReIndexingMode_POSTSEARCH_SYNC:
-				// ignore any fully indexed convs since we respect
-				// opts.MaxConvsSearched
-				if convIdx.FullyIndexed(conv.Conv) {
-					continue
-				}
-				convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ctx, conv.Conv, uid,
-					convIdx, indexUICh, totalPercentIndexed, len(convList))
-				if err != nil {
-					idx.Debug(ctx, "Search: postSync: error reindexing: convID: %s err: %s",
-						conv.GetConvID(), err)
-					continue
-				}
-
-				if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
-					idx.Debug(ctx, "Search: postSync: max search convs reached, reindexing without sending more search results")
-					continue
-				}
-				if opts.MaxConvsHit > 0 && len(hitMap) >= opts.MaxConvsHit {
-					idx.Debug(ctx, "Search: postSync: max hit convs reached, reindexing without sending more search results")
-					continue
-				}
-
-				numConvsSearched++
-				convHits, err := idx.convHits(ctx, conv, convIdx, uid,
-					tokens, queryRe, query, hitUICh, opts)
-				if err != nil {
-					return nil, err
-				}
-				if convHits == nil {
-					continue
-				}
-				hitMap[convIDStr] = *convHits
+			// ignore any fully indexed convs since we respect
+			// opts.MaxConvsSearched
+			if convIdx.FullyIndexed(conv.Conv) {
+				continue
 			}
+			convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ctx, conv.Conv, uid,
+				convIdx, indexUICh, totalPercentIndexed, len(convList))
+			if err != nil {
+				idx.Debug(ctx, "Search: postSync: error reindexing: convID: %s err: %s",
+					conv.GetConvID(), err)
+				continue
+			}
+
+			if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
+				idx.Debug(ctx, "Search: postSync: max search convs reached, reindexing without sending more search results")
+				continue
+			}
+			if opts.MaxConvsHit > 0 && len(hitMap) >= opts.MaxConvsHit {
+				idx.Debug(ctx, "Search: postSync: max hit convs reached, reindexing without sending more search results")
+				continue
+			}
+
+			numConvsSearched++
+			convHits, err := idx.convHits(ctx, conv, convIdx, uid,
+				tokens, queryRe, query, hitUICh, opts)
+			if err != nil {
+				return nil, err
+			}
+			if convHits == nil {
+				continue
+			}
+			hitMap[convIDStr] = *convHits
 		}
 	}
 
