@@ -160,6 +160,7 @@ protocol user {
   // A proof the user doesn't have.
   record ProofSuggestion {
     string key;
+    string logoKey; // Logo to use, "mastodon"
     boolean belowFold;
     string profileText; // "Prove your Twitter", "Add a PGP key"
     array<SizedImage> profileIcon;

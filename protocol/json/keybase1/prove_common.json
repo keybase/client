@@ -234,11 +234,6 @@
           },
           "name": "avatarPath",
           "jsonkey": "avatar_path"
-        },
-        {
-          "type": "string",
-          "name": "logoKey",
-          "jsonkey": "logo_key"
         }
       ]
     },
@@ -269,6 +264,11 @@
         {
           "type": "boolean",
           "name": "new"
+        },
+        {
+          "type": "string",
+          "name": "logoKey",
+          "jsonkey": "logo_key"
         }
       ]
     },

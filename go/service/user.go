@@ -394,6 +394,7 @@ type ProofSuggestion struct {
 
 var pgpProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "pgp",
+	LogoKey:       "pgp",
 	ProfileText:   "Add a PGP key",
 	PickerText:    "PGP key",
 	PickerSubtext: "",
@@ -401,6 +402,7 @@ var pgpProofSuggestion = keybase1.ProofSuggestion{
 
 var webProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "web",
+	LogoKey:       "web",
 	ProfileText:   "Prove your website",
 	PickerText:    "Your own website",
 	PickerSubtext: "",
@@ -408,6 +410,7 @@ var webProofSuggestion = keybase1.ProofSuggestion{
 
 var bitcoinProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "btc",
+	LogoKey:       "btc",
 	ProfileText:   "Set a Bitcoin address",
 	PickerText:    "Bitcoin address",
 	PickerSubtext: "",
@@ -415,6 +418,7 @@ var bitcoinProofSuggestion = keybase1.ProofSuggestion{
 
 var zcashProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "zcash",
+	LogoKey:       "zcash",
 	ProfileText:   "Set a Zcash address",
 	PickerText:    "Zcash address",
 	PickerSubtext: "",
@@ -457,6 +461,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		}
 		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           service,
+			LogoKey:       serviceType.GetLogoKey(),
 			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
 			PickerText:    serviceType.DisplayName(),
 			PickerSubtext: subtext,
@@ -479,8 +484,8 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	// Attach icon urls
 	for i := range suggestions {
 		suggestion := &suggestions[i]
-		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_black", 16)
-		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_full", 32)
+		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_black", 16)
+		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_full", 32)
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.

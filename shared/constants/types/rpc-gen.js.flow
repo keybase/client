@@ -2500,7 +2500,7 @@ export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binary
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
 export type ParamProofJSON = $ReadOnly<{sigHash: SigID, kbUsername: String}>
 export type ParamProofLogoConfig = $ReadOnly<{svgBlack: String, svgFull: String}>
-export type ParamProofServiceConfig = $ReadOnly<{version: Int, domain: String, displayName: String, logo?: ?ParamProofLogoConfig, description: String, usernameConfig: ParamProofUsernameConfig, brandColor: String, prefillUrl: String, profileUrl: String, checkUrl: String, checkPath?: ?Array<SelectorEntry>, avatarPath?: ?Array<SelectorEntry>, logoKey: String}>
+export type ParamProofServiceConfig = $ReadOnly<{version: Int, domain: String, displayName: String, logo?: ?ParamProofLogoConfig, description: String, usernameConfig: ParamProofUsernameConfig, brandColor: String, prefillUrl: String, profileUrl: String, checkUrl: String, checkPath?: ?Array<SelectorEntry>, avatarPath?: ?Array<SelectorEntry>}>
 export type ParamProofUsernameConfig = $ReadOnly<{re: String, min: Int, max: Int}>
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 export type PassphraseType =
@@ -2610,7 +2610,7 @@ export type ProofStatus =
   | 307 // BAD_HINT_TEXT_307
   | 308 // INVALID_PVL_308
 
-export type ProofSuggestion = $ReadOnly<{key: String, belowFold: Boolean, profileText: String, profileIcon?: ?Array<SizedImage>, pickerText: String, pickerSubtext: String, pickerIcon?: ?Array<SizedImage>, metas?: ?Array<Identify3RowMeta>}>
+export type ProofSuggestion = $ReadOnly<{key: String, logoKey: String, belowFold: Boolean, profileText: String, profileIcon?: ?Array<SizedImage>, pickerText: String, pickerSubtext: String, pickerIcon?: ?Array<SizedImage>, metas?: ?Array<Identify3RowMeta>}>
 export type ProofSuggestionsRes = $ReadOnly<{suggestions?: ?Array<ProofSuggestion>, showMore: Boolean}>
 export type ProofType =
   | 0 // NONE_0
@@ -2745,7 +2745,7 @@ export type SeqType =
   | 3 // SEMIPRIVATE_3
 
 export type Seqno = Int64
-export type ServiceDisplayConfig = $ReadOnly<{creationDisabled: Boolean, priority: Int, key: String, group?: ?String, new: Boolean}>
+export type ServiceDisplayConfig = $ReadOnly<{creationDisabled: Boolean, priority: Int, key: String, group?: ?String, new: Boolean, logoKey: String}>
 export type ServiceStatus = $ReadOnly<{version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status}>
 export type ServicesStatus = $ReadOnly<{service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>}>
 export type Session = $ReadOnly<{uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID}>

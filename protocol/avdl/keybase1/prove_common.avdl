@@ -139,8 +139,6 @@ protocol proveCommon {
     array<SelectorEntry> checkPath;
     @jsonkey("avatar_path")
     array<SelectorEntry> avatarPath;
-    @jsonkey("logo_key")
-    string logoKey;
   }
 
   record ServiceDisplayConfig {
@@ -150,6 +148,8 @@ protocol proveCommon {
     string key;
     union { null, string } group;
     boolean new;
+    @jsonkey("logo_key")
+    string logoKey;
   }
 
   record ExternalServiceConfig {
