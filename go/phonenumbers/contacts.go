@@ -11,8 +11,9 @@ import (
 )
 
 type ContactLookupResult struct {
-	Found bool
-	UID   keybase1.UID
+	Found    bool
+	UID      keybase1.UID
+	Username string
 }
 
 type ContactsProvider interface {
@@ -92,11 +93,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 			usersFound[k.UID] = true
 
-			uid := k.UID
 			res = append(res, keybase1.ResolvedContact{
-				Name:      contact.Name,
+				Name:      k.Username, // if found, return username
 				Component: component,
-				Uid:       &uid,
+				Resolved:  true,
+				Uid:       k.UID,
+				Username:  k.Username,
 			})
 		}
 	}
@@ -110,9 +112,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 		for _, component := range c.Components {
 			res = append(res, keybase1.ResolvedContact{
-				Name:      c.Name,
+				Name:      c.Name, // contact not resolved, return name from contact list
 				Component: component,
-				Uid:       nil,
+				Resolved:  false,
 			})
 		}
 	}

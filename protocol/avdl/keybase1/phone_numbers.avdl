@@ -74,7 +74,11 @@ protocol phoneNumbers {
 
         // Outputs:
         union { null, string } err;
-        union { null, UID } uid;
+        boolean resolved;
+        // If resolved:
+        UID uid; // uid
+        string username; // keybase username
+        string fullName; // keybase full name
     }
 
     // lookupContactList transforms contact list (where every contact may have

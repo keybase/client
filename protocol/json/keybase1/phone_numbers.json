@@ -166,11 +166,20 @@
           "name": "err"
         },
         {
-          "type": [
-            null,
-            "UID"
-          ],
+          "type": "boolean",
+          "name": "resolved"
+        },
+        {
+          "type": "UID",
           "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
         }
       ]
     }

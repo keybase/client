@@ -141,7 +141,10 @@ type ResolvedContact struct {
 	Name      string           `codec:"name" json:"name"`
 	Component ContactComponent `codec:"component" json:"component"`
 	Err       *string          `codec:"err,omitempty" json:"err,omitempty"`
-	Uid       *UID             `codec:"uid,omitempty" json:"uid,omitempty"`
+	Resolved  bool             `codec:"resolved" json:"resolved"`
+	Uid       UID              `codec:"uid" json:"uid"`
+	Username  string           `codec:"username" json:"username"`
+	FullName  string           `codec:"fullName" json:"fullName"`
 }
 
 func (o ResolvedContact) DeepCopy() ResolvedContact {
@@ -155,13 +158,10 @@ func (o ResolvedContact) DeepCopy() ResolvedContact {
 			tmp := (*x)
 			return &tmp
 		})(o.Err),
-		Uid: (func(x *UID) *UID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Uid),
+		Resolved: o.Resolved,
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		FullName: o.FullName,
 	}
 }
 
