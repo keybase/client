@@ -831,6 +831,13 @@
           "name": "flipGameID"
         },
         {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "replyTo"
+        },
+        {
           "type": "string",
           "name": "filename"
         },

@@ -844,6 +844,13 @@
             "MakePreviewRes"
           ],
           "name": "preview"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "replyTo"
         }
       ]
     },

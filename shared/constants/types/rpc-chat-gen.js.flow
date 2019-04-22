@@ -1148,7 +1148,7 @@ export type OutboxErrorType =
 
 export type OutboxID = Bytes
 export type OutboxInfo = $ReadOnly<{prev: MessageID, composeTime: Gregor1.Time}>
-export type OutboxRecord = $ReadOnly<{state: OutboxState, outboxID: OutboxID, convID: ConversationID, ctime: Gregor1.Time, Msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, prepareOpts?: ?SenderPrepareOptions, sendOpts?: ?SenderSendOptions, ordinal: Int, preview?: ?MakePreviewRes}>
+export type OutboxRecord = $ReadOnly<{state: OutboxState, outboxID: OutboxID, convID: ConversationID, ctime: Gregor1.Time, Msg: MessagePlaintext, identifyBehavior: Keybase1.TLFIdentifyBehavior, prepareOpts?: ?SenderPrepareOptions, sendOpts?: ?SenderSendOptions, ordinal: Int, preview?: ?MakePreviewRes, replyTo?: ?MessageUnboxed}>
 export type OutboxState = {state: 0, sending: ?Int} | {state: 1, error: ?OutboxStateError}
 export type OutboxStateError = $ReadOnly<{message: String, typ: OutboxErrorType}>
 export type OutboxStateType =
@@ -1311,7 +1311,7 @@ export type UICoinFlipResultTyp =
 export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, commitmentVisualization: String, revealVisualization: String, participants?: ?Array<UICoinFlipParticipant>, errorInfo?: ?UICoinFlipError, resultInfo?: ?UICoinFlipResult}>
 export type UICommandMarkdown = $ReadOnly<{body: String, title?: ?String}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, flipGameID?: ?String, filename: String, title: String, preview?: ?MakePreviewRes}>
+export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, flipGameID?: ?String, replyTo?: ?UIMessage, filename: String, title: String, preview?: ?MakePreviewRes}>
 export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay, isCollapsed: Boolean}>
 export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, bodySummary: String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>, isCollapsed: Boolean, flipGameID?: ?String, isDeleteable: Boolean, isEditable: Boolean, replyTo?: ?UIMessage}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>

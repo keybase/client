@@ -84,7 +84,7 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
+	superXform supersedesTransform, replyFiller *ReplyFiller, checkPrev bool, patchPagination bool) (err error) {
 	if q != nil && q.DisablePostProcessThread {
 		return nil
 	}
@@ -142,6 +142,11 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
+	// Set reply to messages
+	if replyFiller == nil {
+		replyFiller = NewReplyFiller(s.G())
+	}
+	thread.Messages = replyFiller.Fill(ctx, uid, conv, thread.Messages)
 
 	return nil
 }
@@ -297,7 +302,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, true, false); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, nil, true, false); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -579,7 +584,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				s.Debug(ctx, "Pull: skipping mark as read call")
 			}
 			// Run post process stuff
-			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, true); err != nil {
+			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true); err != nil {
 				return thread, err
 			}
 			return thread, nil
@@ -620,7 +625,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Run post process stuff
-	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, true, true); err != nil {
+	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, nil, true, true); err != nil {
 		return thread, err
 	}
 	return thread, nil
@@ -695,10 +700,11 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 				}
 				return res, nil
 			})
+			replyFiller := NewReplyFiller(s.G(), LocalOnlyReplyFill(true))
 			// Form a fake version of a conversation so we don't need to hit the network ever here
 			var conv chat1.Conversation
 			conv.Metadata.ConversationID = convID
-			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, false, true)
+			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, replyFiller, false, true)
 		}
 	}()
 

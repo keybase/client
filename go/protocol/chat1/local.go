@@ -1556,6 +1556,7 @@ type OutboxRecord struct {
 	SendOpts         *SenderSendOptions           `codec:"sendOpts,omitempty" json:"sendOpts,omitempty"`
 	Ordinal          int                          `codec:"ordinal" json:"ordinal"`
 	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
+	ReplyTo          *MessageUnboxed              `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o OutboxRecord) DeepCopy() OutboxRecord {
@@ -1588,6 +1589,13 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Preview),
+		ReplyTo: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 

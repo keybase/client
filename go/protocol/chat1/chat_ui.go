@@ -709,6 +709,7 @@ type UIMessageOutbox struct {
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
 	FlipGameID        *string         `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -737,6 +738,13 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x)
 			return &tmp
 		})(o.FlipGameID),
+		ReplyTo: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 		Filename: o.Filename,
 		Title:    o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {

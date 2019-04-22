@@ -244,6 +244,7 @@ protocol local {
     union { null, SenderSendOptions } sendOpts;
     int ordinal; // the position of this outbox record behind the clientPrev in Msg
     union { null, MakePreviewRes } preview;
+    union { null, MessageUnboxed } replyTo; // only used for display
   }
 
   enum HeaderPlaintextVersion {

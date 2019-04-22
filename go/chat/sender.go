@@ -1015,6 +1015,17 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 		storage.NewMessageNotifier(func(ctx context.Context, obr chat1.OutboxRecord) {
 			uid := obr.Msg.ClientHeader.Sender
 			convID := obr.ConvID
+			vis := keybase1.TLFVisibility_PRIVATE
+			if obr.Msg.ClientHeader.TlfPublic {
+				vis = keybase1.TLFVisibility_PUBLIC
+			}
+			conv := newBasicUnboxConversationInfo(convID, chat1.ConversationMembersType_IMPTEAMNATIVE, nil,
+				vis)
+			msgs := NewReplyFiller(s.G()).Fill(ctx, uid, conv,
+				[]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)})
+			if len(msgs) > 0 {
+				obr.ReplyTo = &msgs[0]
+			}
 			act := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 				Message: utils.PresentMessageUnboxed(ctx, s.G(), chat1.NewMessageUnboxedWithOutbox(obr),
 					uid, convID),
