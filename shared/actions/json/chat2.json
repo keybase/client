@@ -620,7 +620,7 @@
     "toggleReplyToMessage": {
       "_description": "Reply to a message publicly",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID?": "Types.MessageID"
+      "ordinal?": "Types.Ordinal"
     },
     "setThreadSearchQuery": {
       "_description": "Set thread search query (used from inbox search to initialize it)",

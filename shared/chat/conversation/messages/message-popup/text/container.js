@@ -84,7 +84,7 @@ const mapDispatchToProps = dispatch => ({
       dispatch(
         Chat2Gen.createToggleReplyToMessage({
           conversationIDKey: message.conversationIDKey,
-          messageID: message.id,
+          ordinal: message.ordinal,
         })
       )
     }

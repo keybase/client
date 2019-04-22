@@ -136,7 +136,7 @@ export type _State = {
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>,
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>,
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
-  replyToMap: I.Map<Common.ConversationIDKey, Message.MessageID>,
+  replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>
