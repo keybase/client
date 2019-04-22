@@ -73,8 +73,8 @@ const DefaultView = (props: DefaultViewProps) => (
         ) : (
           <Kb.Button
             key="download"
-            type="Dim"
-            label="Download a copy"
+            mode="Secondary"
+            label="Download"
             style={{marginTop: Styles.globalMargins.small}}
             onClick={props.download}
           />
