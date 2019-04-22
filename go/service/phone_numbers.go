@@ -108,7 +108,8 @@ func (h *PhoneNumbersHandler) LookupContactList(ctx context.Context, arg keybase
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("PhoneNumbersHandler#LookupContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
-	return phonenumbers.ResolveContacts(mctx, arg.Contacts, arg.UserRegionCode)
+	provider := &phonenumbers.CachedContactsProvider{}
+	return phonenumbers.ResolveContacts(mctx, provider, arg.Contacts, arg.UserRegionCode)
 }
 
 const phoneNumbersGregorHandlerName = "phoneHandler"
