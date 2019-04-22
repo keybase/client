@@ -21,6 +21,7 @@ const routeTree = () => {
   const ReallyRemoveMember = require('./team/really-remove-member/container').default
   const Team = require('./team/container').default
   const RetentionWarning = require('./team/settings-tab/retention/warning/container').default
+  const RenameTeam = require('./rename-team/container').default
   const makeManageChannels = {
     chatCreateChannel: {
       children: {},
@@ -113,6 +114,10 @@ const routeTree = () => {
       teamNewTeamDialog,
       teamReallyLeaveTeam,
       teamReallyRemoveMember,
+      teamRename: {
+        component: RenameTeam,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
       teamRolePicker,
     },
     component: Team,
@@ -162,7 +167,6 @@ export const newModalRoutes = {
     upgraded: true,
   },
   teamRename: {
-    // TODO add to nav1 routes too
     getScreen: () => require('./rename-team/container').default,
     upgraded: true,
   },

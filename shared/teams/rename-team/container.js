@@ -5,6 +5,7 @@ import * as WaitingGen from '../../actions/waiting-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import RenameTeam from '.'
+import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{|teamname: string|}, {||}>
 
@@ -26,6 +27,10 @@ const mapDispatchToProps = dispatch => ({
     // team ID instead of name. Since it's keyed on name, we replace the parent
     // route with one with the newly changed teamname
     dispatch(RouteTreeGen.createNavigateUp())
+    if (!flags.useNewRouter) {
+      // old router doesn't support replace, nav up twice as a workaround
+      dispatch(RouteTreeGen.createNavigateUp())
+    }
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {teamname: teamname.toLowerCase()}, selected: 'team'}],

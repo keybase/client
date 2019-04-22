@@ -74,7 +74,7 @@ class RenameTeam extends React.Component<Props, {|error: string, newName: string
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} gap="medium" gapStart={true}>
           <Kb.Avatar teamname={this.props.teamname} size={Styles.isMobile ? 64 : 48} />
-          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny">
+          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.teamnameHeader}>
             {!Styles.isMobile && (
               <Kb.Text type="Header" center={true}>
                 Rename {this.props.teamname}
@@ -112,9 +112,17 @@ class RenameTeam extends React.Component<Props, {|error: string, newName: string
               placeholder={this._originalName}
             />
           </Kb.Box2>
-          {(this.state.error || this.props.error) && (
+          {(!!this.state.error || !!this.props.error) && (
             <Kb.Text type="BodySmall" style={styles.error}>
               {this.state.error || this.props.error}
+            </Kb.Text>
+          )}
+          {!!this.state.newName && (
+            <Kb.Text type="BodySmall">
+              This team will be named{' '}
+              <Kb.Text type="BodySmallSemibold">
+                {this._prefix}.{this.state.newName.toLowerCase()}
+              </Kb.Text>
             </Kb.Text>
           )}
         </Kb.Box2>
@@ -174,6 +182,11 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       position: 'relative',
       top: 1,
+    },
+  }),
+  teamnameHeader: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-word',
     },
   }),
 })
