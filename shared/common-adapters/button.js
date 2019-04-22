@@ -87,15 +87,20 @@ class Button extends React.Component<Props> {
 
     containerStyle = collapseStyles([containerStyle, this.props.style])
 
-    const onClick = (!unclickable && !this.props.waiting && this.props.onClick) || null
+    const onClick = (!unclickable && this.props.onClick) || null
     const whiteSpinner =
       (this.props.mode === 'Primary' && !(this.props.backgroundColor || this.props.type === 'Dim')) ||
       (this.props.mode === 'Secondary' && !!this.props.backgroundColor)
 
     // Hover border colors
     let classNames = []
-    if (this.props.mode === 'Secondary' && !this.props.backgroundColor && !unclickable) {
-      classNames.push('button__border', `button__border_${typeToColorName[this.props.type]}`)
+    if (this.props.mode === 'Secondary' && !this.props.backgroundColor) {
+      // base grey border
+      classNames.push('button__border')
+      if (!unclickable) {
+        // hover effect
+        classNames.push(`button__border_${typeToColorName[this.props.type]}`)
+      }
     }
 
     // Hover background colors
