@@ -80,14 +80,15 @@ var noErrorNames = map[string]bool{
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config             Config
-	log                logger.Logger
-	vlog               *libkb.VDebugLog
-	notifyBuffer       chan *keybase1.FSNotification
-	onlineStatusBuffer chan bool
-	notifyPathBuffer   chan string
-	notifySyncBuffer   chan *keybase1.FSPathSyncStatus
-	canceler           func()
+	config                  Config
+	log                     logger.Logger
+	vlog                    *libkb.VDebugLog
+	notifyBuffer            chan *keybase1.FSNotification
+	onlineStatusBuffer      chan bool
+	notifyPathBuffer        chan string
+	notifySyncBuffer        chan *keybase1.FSPathSyncStatus
+	notifyOverallSyncBuffer chan keybase1.FolderSyncStatus
+	canceler                func()
 
 	lastNotifyPathLock sync.Mutex
 	lastNotifyPath     string
@@ -97,14 +98,15 @@ type ReporterKBPKI struct {
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	log := config.MakeLogger("")
 	r := &ReporterKBPKI{
-		ReporterSimple:     NewReporterSimple(config.Clock(), maxErrors),
-		config:             config,
-		log:                log,
-		vlog:               config.MakeVLogger(log),
-		notifyBuffer:       make(chan *keybase1.FSNotification, bufSize),
-		onlineStatusBuffer: make(chan bool, bufSize),
-		notifyPathBuffer:   make(chan string, 1),
-		notifySyncBuffer:   make(chan *keybase1.FSPathSyncStatus, 1),
+		ReporterSimple:          NewReporterSimple(config.Clock(), maxErrors),
+		config:                  config,
+		log:                     log,
+		vlog:                    config.MakeVLogger(log),
+		notifyBuffer:            make(chan *keybase1.FSNotification, bufSize),
+		onlineStatusBuffer:      make(chan bool, bufSize),
+		notifyPathBuffer:        make(chan string, 1),
+		notifySyncBuffer:        make(chan *keybase1.FSPathSyncStatus, 1),
+		notifyOverallSyncBuffer: make(chan keybase1.FolderSyncStatus, 1),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -271,12 +273,33 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	}
 }
 
+// NotifyOverallSyncStatus implements the Reporter interface for ReporterKBPKI.
+func (r *ReporterKBPKI) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) {
+	select {
+	case r.notifyOverallSyncBuffer <- status:
+	default:
+		// If this represents a "complete" status, we can't drop it.
+		// Instead launch a goroutine to make sure it gets sent
+		// eventually.
+		if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
+			go func() { r.notifyOverallSyncBuffer <- status }()
+		} else {
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"ReporterKBPKI: notify overall sync buffer dropping %+v",
+				status)
+		}
+	}
+}
+
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
 	close(r.notifyBuffer)
 	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
+	close(r.notifyOverallSyncBuffer)
 }
 
 const reporterSendInterval = time.Second
@@ -341,6 +364,19 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 					status); err != nil {
 					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 						"sync status: %s", err)
+				}
+			default:
+			}
+
+			select {
+			case status, ok := <-r.notifyOverallSyncBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyOverallSyncStatus(
+					ctx, status); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"overall sync status: %s", err)
 				}
 			default:
 			}
