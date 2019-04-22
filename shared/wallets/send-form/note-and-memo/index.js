@@ -122,7 +122,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsCenter}>
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>
               {!!this.state.secretNote && (
-                <Kb.Text type="BodySmall">
+                <Kb.Text type="BodyTiny">
                   {secretNoteMaxLength - Buffer.byteLength(this.state.secretNote)} characters left
                 </Kb.Text>
               )}
@@ -173,7 +173,7 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             maxBytes={publicMemoMaxLength}
           />
           {!!this.state.publicMemo && (
-            <Kb.Text type="BodySmall">
+            <Kb.Text type="BodyTiny">
               {publicMemoMaxLength - Buffer.byteLength(this.state.publicMemo)} characters left
             </Kb.Text>
           )}

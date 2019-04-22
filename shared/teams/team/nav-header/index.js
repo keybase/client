@@ -14,7 +14,8 @@ const _AddPeopleButton = (props: {teamname: string} & Kb.OverlayParentProps) => 
       onClick={props.toggleShowingMenu}
       ref={props.setAttachmentRef}
       small={true}
-      type="Dim"
+      type="Default"
+      mode="Secondary"
     />
     <AddPeopleHow
       attachTo={props.getAttachmentRef}
@@ -77,14 +78,16 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
       ])}
     />
     <Kb.Box2 direction="vertical">
-      <Kb.Text type="Header">{props.teamname}</Kb.Text>
+      <Kb.Text type="Header" lineClamp={1}>
+        {props.teamname}
+      </Kb.Text>
       <Kb.Text type="BodySmall">
         TEAM · {props.members} {pluralize('member', props.members)}
         {!!props.role && ` · ${props.role === 'none' ? 'Not a member' : capitalize(props.role)}`}
       </Kb.Text>
       <Kb.Text
         type={props.onEditDescription && !props.description ? 'BodySmallItalic' : 'BodySmall'}
-        lineClamp={1}
+        lineClamp={3}
         onClick={props.onEditDescription}
         className={Styles.classNames({'hover-underline': !!props.onEditDescription})}
         style={styles.clickable}

@@ -154,7 +154,7 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.blue4,
+      backgroundColor: Styles.globalColors.blueGrey,
       borderRadius: Styles.borderRadius,
       flexGrow: 1,
       position: 'relative',

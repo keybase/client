@@ -99,7 +99,13 @@ const Header = (props: Props) => {
             disabled={!props.walletName}
           />
         )}
-        <Kb.Button type="Dim" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
+        <Kb.Button
+          type="Wallet"
+          mode="Secondary"
+          onClick={props.onReceive}
+          label="Receive"
+          disabled={!props.walletName}
+        />
         <DropdownButton
           onSettings={props.onSettings}
           onShowSecretKey={props.onShowSecretKey}
@@ -183,12 +189,14 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
         ref={this.props.setAttachmentRef}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Kb.Button onClick={null} type="Dim" style={styles.dropdownButton} disabled={this.props.disabled}>
-            <Kb.Icon
-              fontSize={Styles.isMobile ? 22 : 16}
-              type="iconfont-ellipsis"
-              color={Styles.globalColors.black}
-            />
+          <Kb.Button
+            onClick={null}
+            type="Wallet"
+            mode="Secondary"
+            style={styles.dropdownButton}
+            disabled={this.props.disabled}
+          >
+            <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.purple} />
           </Kb.Button>
         </Kb.Box2>
         <Kb.FloatingMenu

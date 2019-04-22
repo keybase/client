@@ -45,12 +45,7 @@ const Actions = (p: Props) => {
 
   if (p.onEditProfile) {
     buttons = [
-      <Kb.Button
-        key="Edit profile"
-        type={Styles.isMobile ? 'Default' : 'Dim'}
-        label="Edit profile"
-        onClick={p.onEditProfile}
-      />,
+      <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={p.onEditProfile} />,
     ]
   } else if (p.followThem) {
     if (p.state === 'valid') {
@@ -128,12 +123,8 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={null} type="Dim" style={styles.dropdownButton}>
-          <Kb.Icon
-            color={Styles.globalColors.black}
-            fontSize={Styles.isMobile ? 21 : 16}
-            type="iconfont-ellipsis"
-          />
+        <Kb.Button onClick={null} mode="Secondary" style={styles.dropdownButton}>
+          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       <Kb.FloatingMenu
