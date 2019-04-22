@@ -252,7 +252,6 @@ func (o ProofSuggestionsRes) DeepCopy() ProofSuggestionsRes {
 
 type ProofSuggestion struct {
 	Key           string             `codec:"key" json:"key"`
-	LogoKey       string             `codec:"logoKey" json:"logoKey"`
 	BelowFold     bool               `codec:"belowFold" json:"belowFold"`
 	ProfileText   string             `codec:"profileText" json:"profileText"`
 	ProfileIcon   []SizedImage       `codec:"profileIcon" json:"profileIcon"`
@@ -265,7 +264,6 @@ type ProofSuggestion struct {
 func (o ProofSuggestion) DeepCopy() ProofSuggestion {
 	return ProofSuggestion{
 		Key:         o.Key,
-		LogoKey:     o.LogoKey,
 		BelowFold:   o.BelowFold,
 		ProfileText: o.ProfileText,
 		ProfileIcon: (func(x []SizedImage) []SizedImage {

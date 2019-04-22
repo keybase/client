@@ -265,10 +265,6 @@
           "name": "key"
         },
         {
-          "type": "string",
-          "name": "logoKey"
-        },
-        {
           "type": "boolean",
           "name": "belowFold"
         },
