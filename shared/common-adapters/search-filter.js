@@ -226,16 +226,21 @@ class SearchFilter extends React.PureComponent<Props, State> {
 export default SearchFilter
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.globalStyles.flexGrow,
-    alignItems: 'center',
-    borderRadius: Styles.borderRadius,
-    flexShrink: 1,
-    justifyContent: 'center',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexGrow,
+      alignItems: 'center',
+      borderRadius: Styles.borderRadius,
+      flexShrink: 1,
+      justifyContent: 'center',
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+    isElectron: {
+      cursor: 'text',
+    },
+  }),
   containerMobile: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
