@@ -437,23 +437,12 @@ type reindexOpts struct {
 func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 	convIdx *chat1.ConversationIndex, opts reindexOpts) (completedJobs int, newIdx *chat1.ConversationIndex, err error) {
 
-	// find the min and max missing ids so we can page between them to fill the gaps.
-	minConvMsgID := conv.GetMaxDeletedUpTo()
-	maxConvMsgID := conv.GetMaxMessageID()
-	missingIDs := convIdx.MissingIDs(minConvMsgID, maxConvMsgID)
+	missingIDs := convIdx.MissingIDForConv(conv)
 	if len(missingIDs) == 0 {
 		return 0, convIdx, nil
 	}
-	minIdxID := maxConvMsgID
-	maxIdxID := minConvMsgID
-	for _, msgID := range missingIDs {
-		if msgID < minIdxID {
-			minIdxID = msgID
-		}
-		if msgID > maxIdxID {
-			maxIdxID = msgID
-		}
-	}
+	minIdxID := missingIDs[0]
+	maxIdxID := missingIDs[len(missingIDs)-1]
 
 	convID := conv.GetConvID()
 	defer idx.Trace(ctx, func() error { return err },
@@ -615,7 +604,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 	return convMap, nil
 }
 
-func (idx *Indexer) flattenConvMap(ctx context.Context, uid gregor1.UID,
+func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 	convMap map[string]types.RemoteConversation) (res []types.RemoteConversation) {
 	res = make([]types.RemoteConversation, len(convMap))
 	index := 0
@@ -625,7 +614,7 @@ func (idx *Indexer) flattenConvMap(ctx context.Context, uid gregor1.UID,
 	}
 	_, ib, err := storage.NewInbox(idx.G()).ReadAll(ctx, uid, true)
 	if err != nil {
-		idx.Debug(ctx, "flattenConvMap: failed to read inbox: %s", err)
+		idx.Debug(ctx, "convsByMTime: failed to read inbox: %s", err)
 		return res
 	}
 	sortMap := make(map[string]gregor1.Time)
@@ -683,7 +672,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	if err != nil || len(convMap) == 0 {
 		return nil, err
 	}
-	convList := idx.flattenConvMap(ctx, uid, convMap)
+	convList := idx.convsByMTime(ctx, uid, convMap)
 
 	var totalPercentIndexed int
 	var convLock sync.Mutex
@@ -831,13 +820,15 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			case chat1.ReIndexingMode_POSTSEARCH_SYNC:
 				// ignore any fully indexed convs since we respect
 				// opts.MaxConvsSearched
-				if convIdx.PercentIndexed(conv.Conv) == 100 {
+				if convIdx.FullyIndexed(conv.Conv) {
 					continue
 				}
 				convIdx, totalPercentIndexed, err = idx.reindexConvWithUIUpdate(ctx, conv.Conv, uid,
 					convIdx, indexUICh, totalPercentIndexed, len(convList))
 				if err != nil {
-					return nil, err
+					idx.Debug(ctx, "Search: postSync: error reindexing: convID: %s err: %s",
+						conv.GetConvID(), err)
+					continue
 				}
 
 				if opts.MaxConvsSearched > 0 && numConvsSearched >= opts.MaxConvsSearched {
@@ -877,12 +868,6 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 	return res, nil
 }
 
-type convIdxWithPercent struct {
-	convID         chat1.ConversationID
-	idx            *chat1.ConversationIndex
-	percentIndexed int
-}
-
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
@@ -894,36 +879,30 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 		idx.Debug(ctx, "SelectiveSync: Unable to get convs: %v", err)
 		return
 	}
-	convIdxs := []convIdxWithPercent{}
-	for _, conv := range convMap {
+
+	// make sure the most recently modified convs are fully indexed
+	convs := idx.convsByMTime(ctx, uid, convMap)
+	maxJobs := idx.maxSyncConvs
+	var totalCompletedJobs, fullyIndexedConvs int
+	for _, conv := range convs {
 		convID := conv.GetConvID()
 		convIdx, err := idx.GetConvIndex(ctx, convID, uid)
 		if err != nil {
 			idx.Debug(ctx, "SelectiveSync: Unable to get idx for conv: %v, %v", convID, err)
 			continue
 		}
-		convIdxs = append(convIdxs, convIdxWithPercent{
-			convID:         convID,
-			idx:            convIdx,
-			percentIndexed: convIdx.PercentIndexed(conv.Conv),
-		})
-	}
-	// Pick the conversations that have the least percent indexed
-	sort.Slice(convIdxs, func(i, j int) bool {
-		return convIdxs[i].percentIndexed < convIdxs[j].percentIndexed
-	})
+		if convIdx.FullyIndexed(conv.Conv) {
+			fullyIndexedConvs++
+			continue
+		}
 
-	maxJobs := idx.maxSyncConvs
-	var totalCompletedJobs, fullyIndexedConvs int
-	for _, idxInfo := range convIdxs {
-		conv := convMap[idxInfo.convID.String()].Conv
-		completedJobs, _, err := idx.reindexConv(ctx, conv, uid, idxInfo.idx, reindexOpts{
+		completedJobs, _, err := idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{
 			forceReindex: forceReindex, // only true in tests
 			limitMaxJobs: true,
 			maxJobs:      maxJobs - totalCompletedJobs,
 		})
 		if err != nil {
-			idx.Debug(ctx, "Unable to reindex conv: %v, %v", idxInfo.convID, err)
+			idx.Debug(ctx, "Unable to reindex conv: %v, %v", convID, err)
 			continue
 		} else if completedJobs == 0 {
 			fullyIndexedConvs++
@@ -935,8 +914,8 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 			break
 		}
 	}
-	idx.Debug(ctx, "SelectiveSync: Complete, %d/%d convs fully indexed",
-		fullyIndexedConvs, len(convIdxs))
+	idx.Debug(ctx, "SelectiveSync: Complete, %d/%d convs already fully indexed",
+		fullyIndexedConvs, len(convs))
 }
 
 // IndexInbox is only exposed in devel for debugging/profiling the indexing
