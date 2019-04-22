@@ -17,6 +17,8 @@ protocol common {
     string issuer;
     string verifiedDomain; // 'stronghold.co' or empty if XLM or unverified
     string issuerName;     // 'Stronghold' or empty if it didn't exist, XLM, or unverified
+    string desc; // 'Worthwhile token' or empty
+    string infoUrl; // 'https://...' or empty
   }
 
   record Balance {
