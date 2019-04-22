@@ -853,22 +853,8 @@ func TestChatSearchInbox(t *testing.T) {
 		runSearch(query, opts, false /* expectedReindex*/)
 		verifySearchDone(1)
 
-		// Verify background syncing
-		g1.LocalChatDb.Nuke()
-		indexer1.ClearCache()
-		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
-		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)
-		opts.ReindexMode = chat1.ReIndexingMode_POSTSEARCH_ASYNC
-		res = runSearch(query, opts, true /* expectedReindex*/)
-		require.Equal(t, 1, len(res.Hits))
-		convHit = res.Hits[0]
-		require.Equal(t, convID, convHit.ConvID)
-		require.Equal(t, 1, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{msgID3, msgID7}, msgID8, nil, []chat1.ChatSearchMatch{searchMatch}, convHit.Hits[0])
-		verifySearchDone(1)
-		verifyIndex(expectedIndex)
-
 		// Verify POSTSEARCH_SYNC
+		ictx := globals.CtxAddIdentifyMode(ctx, keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
 		g1.LocalChatDb.Nuke()
 		indexer1.ClearCache()
 		indexer1.SelectiveSync(ictx, uid1, true /* forceReindex */)

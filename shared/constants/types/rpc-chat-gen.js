@@ -156,8 +156,7 @@ export const commonNotificationKind = {
 export const commonReIndexingMode = {
   none: 0,
   presearchSync: 1,
-  postsearchAsync: 2,
-  postsearchSync: 3,
+  postsearchSync: 2,
 }
 
 export const commonRetentionPolicyType = {

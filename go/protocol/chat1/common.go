@@ -1922,26 +1922,23 @@ func (e GetThreadReason) String() string {
 type ReIndexingMode int
 
 const (
-	ReIndexingMode_NONE             ReIndexingMode = 0
-	ReIndexingMode_PRESEARCH_SYNC   ReIndexingMode = 1
-	ReIndexingMode_POSTSEARCH_ASYNC ReIndexingMode = 2
-	ReIndexingMode_POSTSEARCH_SYNC  ReIndexingMode = 3
+	ReIndexingMode_NONE            ReIndexingMode = 0
+	ReIndexingMode_PRESEARCH_SYNC  ReIndexingMode = 1
+	ReIndexingMode_POSTSEARCH_SYNC ReIndexingMode = 2
 )
 
 func (o ReIndexingMode) DeepCopy() ReIndexingMode { return o }
 
 var ReIndexingModeMap = map[string]ReIndexingMode{
-	"NONE":             0,
-	"PRESEARCH_SYNC":   1,
-	"POSTSEARCH_ASYNC": 2,
-	"POSTSEARCH_SYNC":  3,
+	"NONE":            0,
+	"PRESEARCH_SYNC":  1,
+	"POSTSEARCH_SYNC": 2,
 }
 
 var ReIndexingModeRevMap = map[ReIndexingMode]string{
 	0: "NONE",
 	1: "PRESEARCH_SYNC",
-	2: "POSTSEARCH_ASYNC",
-	3: "POSTSEARCH_SYNC",
+	2: "POSTSEARCH_SYNC",
 }
 
 func (e ReIndexingMode) String() string {
