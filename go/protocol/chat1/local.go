@@ -1351,18 +1351,25 @@ func (o MessageBody) DeepCopy() MessageBody {
 }
 
 type SenderPrepareOptions struct {
-	SkipTopicNameState bool `codec:"skipTopicNameState" json:"skipTopicNameState"`
+	SkipTopicNameState bool       `codec:"skipTopicNameState" json:"skipTopicNameState"`
+	ReplyTo            *MessageID `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o SenderPrepareOptions) DeepCopy() SenderPrepareOptions {
 	return SenderPrepareOptions{
 		SkipTopicNameState: o.SkipTopicNameState,
+		ReplyTo: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReplyTo),
 	}
 }
 
 type SenderSendOptions struct {
 	JoinMentionsAs *ConversationMemberStatus `codec:"joinMentionsAs,omitempty" json:"joinMentionsAs,omitempty"`
-	ReplyTo        *MessageID                `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 }
 
 func (o SenderSendOptions) DeepCopy() SenderSendOptions {
@@ -1374,13 +1381,6 @@ func (o SenderSendOptions) DeepCopy() SenderSendOptions {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.JoinMentionsAs),
-		ReplyTo: (func(x *MessageID) *MessageID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.ReplyTo),
 	}
 }
 

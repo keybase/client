@@ -1177,10 +1177,10 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
-	var sendOpts chat1.SenderSendOptions
-	sendOpts.ReplyTo = arg.ReplyTo
+	var prepareOpts chat1.SenderPrepareOptions
+	prepareOpts.ReplyTo = arg.ReplyTo
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, &sendOpts, nil)
+	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil, &prepareOpts)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return res, err
@@ -1484,12 +1484,12 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Create non block sender
-	var sendOpts chat1.SenderSendOptions
+	var prepareOpts chat1.SenderPrepareOptions
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
-	sendOpts.ReplyTo = arg.ReplyTo
+	prepareOpts.ReplyTo = arg.ReplyTo
 	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
-		&sendOpts, nil)
+		nil, &prepareOpts)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}

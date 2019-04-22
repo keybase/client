@@ -707,6 +707,13 @@
         {
           "type": "boolean",
           "name": "skipTopicNameState"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "replyTo"
         }
       ]
     },
@@ -720,13 +727,6 @@
             "ConversationMemberStatus"
           ],
           "name": "joinMentionsAs"
-        },
-        {
-          "type": [
-            null,
-            "MessageID"
-          ],
-          "name": "replyTo"
         }
       ]
     },

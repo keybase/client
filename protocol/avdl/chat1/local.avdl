@@ -198,11 +198,11 @@ protocol local {
 
   record SenderPrepareOptions {
     boolean skipTopicNameState;
+     union { null, MessageID } replyTo;
   }
 
   record SenderSendOptions {
      union { null, ConversationMemberStatus } joinMentionsAs;
-     union { null, MessageID } replyTo;
   }
 
   enum OutboxStateType {
