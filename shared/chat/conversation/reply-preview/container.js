@@ -10,8 +10,8 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, {conversationIDKey}) => {
-  const messageID = Constants.getReplyTo(state, conversationIDKey)
-  const message = Constants.getMessage(state, conversationIDKey, Types.numberToOrdinal(messageID || 0))
+  const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
+  const message = ordinal ? Constants.getMessage(state, conversationIDKey, ordinal) : null
   const text = message && message.type === 'text' ? message.text.stringValue() : ''
   return {
     text,

@@ -43,7 +43,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
-  const _replyTo = Constants.getReplyTo(state, conversationIDKey)
+  const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   return {
     _containsLatestMessage,

@@ -93,7 +93,7 @@ func (f *ReplyFiller) getReplyTo(msg chat1.MessageUnboxed) *chat1.MessageID {
 			return msg.Valid().MessageBody.Text().ReplyTo
 		}
 	case chat1.MessageUnboxedState_OUTBOX:
-		if f.validReplyTo(msg.Outbox().PrepareOpts.ReplyTo) {
+		if msg.Outbox().PrepareOpts != nil && f.validReplyTo(msg.Outbox().PrepareOpts.ReplyTo) {
 			return msg.Outbox().PrepareOpts.ReplyTo
 		}
 	}
