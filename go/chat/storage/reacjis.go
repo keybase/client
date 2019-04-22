@@ -151,8 +151,8 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 		// drop the history if our format changed
 		if err = s.encryptedDB.Delete(ctx, dbKey); err != nil {
 			s.Debug(ctx, "unable to delete cache entry: %v", err)
-			return data
 		}
+		return data
 	}
 	data = &entry.Data
 	return data
