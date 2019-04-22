@@ -23,13 +23,14 @@ export const ChatPreview = ({onViewAll, onSelectConversation, convRows}: ChatPre
       return <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
     })}
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
-      <Kb.Button label="View all" onClick={onViewAll} small={true} type="Dim" />
+      <Kb.Button label="Open inbox" onClick={onViewAll} small={true} mode="Secondary" />
     </Kb.Box2>
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
   buttonContainer: {
+    marginBottom: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,
   },
   chatContainer: {
