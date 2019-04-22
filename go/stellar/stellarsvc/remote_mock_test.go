@@ -389,7 +389,7 @@ func (a *FakeAccount) availableBalance() string {
 
 func (a *FakeAccount) AdjustAssetBalance(amount int64, asset stellar1.Asset) {
 	for i, v := range a.otherBalances {
-		if v.Asset.Eq(asset) {
+		if v.Asset.SameAsset(asset) {
 			b, err := stellarnet.ParseStellarAmount(v.Amount)
 			require.NoError(a.T, err)
 			b += amount

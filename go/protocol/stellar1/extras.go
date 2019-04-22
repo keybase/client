@@ -201,11 +201,8 @@ func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 	return BundleEntry{}, errors.New("stellar account not found")
 }
 
-// Eq compares assets strictly.
-// Assets are not Eq if their type is different
-//   even if they have the same code and issuer.
-func (a Asset) Eq(b Asset) bool {
-	return a == b
+func (a Asset) SameAsset(b Asset) bool {
+	return a.Type == b.Type && a.Code == b.Code && a.Issuer == b.Issuer
 }
 
 func (a *Asset) IsNativeXLM() bool {
