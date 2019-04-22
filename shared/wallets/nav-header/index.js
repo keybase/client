@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
 import {SmallAccountID} from '../common'
+import AddAccount from './add-account'
 
 type HeaderTitleProps = {|
   accountID: Types.AccountID,
@@ -15,16 +16,7 @@ type HeaderTitleProps = {|
 export const HeaderTitle = (props: HeaderTitleProps) => (
   <Kb.Box2 direction="horizontal">
     <Kb.Box2 direction="horizontal" style={styles.left}>
-      <Kb.Button
-        type="Wallet"
-        mode="Secondary"
-        label="Add an account"
-        onClick={() => {
-          /* TODO */
-        }}
-        small={true}
-        fullWidth={true}
-      />
+      <AddAccount />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" style={styles.accountNameContainer}>

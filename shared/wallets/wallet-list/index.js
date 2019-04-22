@@ -135,8 +135,10 @@ class WalletList extends React.Component<Props> {
 
     const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
 
-    const addWallet = 'add wallet'
-    rows.push({key: addWallet, type: addWallet})
+    if (!flags.useNewRouter) {
+      const addWallet = 'add wallet'
+      rows.push({key: addWallet, type: addWallet})
+    }
     if (flags.airdrop) {
       const joinAirdrop = 'join airdrop'
       rows.push({key: joinAirdrop, type: joinAirdrop})
