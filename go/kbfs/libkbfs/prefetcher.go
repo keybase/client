@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -19,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -528,16 +528,20 @@ func (p *blockPrefetcher) markQueuedPrefetchDone(ptr data.BlockPointer) {
 	}
 }
 
+func (p *blockPrefetcher) doCancel(id kbfsblock.ID, pp *prefetch) {
+	p.decOverallSyncTotalBytes(pp.req)
+	delete(p.prefetches, id)
+	pp.Close()
+	p.clearRescheduleState(id)
+	delete(p.rescheduled, id)
+}
+
 func (p *blockPrefetcher) cancelPrefetch(ptr data.BlockPointer, pp *prefetch) {
 	delete(pp.parents, ptr.RefNonce)
 	if len(pp.parents) > 0 {
 		return
 	}
-	p.decOverallSyncTotalBytes(pp.req)
-	delete(p.prefetches, ptr.ID)
-	pp.Close()
-	p.clearRescheduleState(ptr.ID)
-	delete(p.rescheduled, ptr.ID)
+	p.doCancel(ptr.ID, pp)
 }
 
 // shutdownLoop tracks in-flight requests
@@ -607,7 +611,12 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		// previous, non-deeply-synced request, and trigger a new
 		// request in case the previous request has already been
 		// handled.
+		oldAction := pre.req.action
 		pre.req.action = newAction
+		if !oldAction.Sync() && newAction.Sync() {
+			p.incOverallSyncTotalBytes(pre.req)
+		}
+
 		ch := p.retriever.Request(
 			pre.ctx, priority, kmd, ptr, block.NewEmpty(), lifetime, action)
 		p.inFlightFetches.In() <- ch
@@ -897,6 +906,316 @@ type prefetchStatusRequest struct {
 	ch  chan<- PrefetchProgress
 }
 
+func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
+	pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
+	if isPrefetchWaiting && pre.req == nil {
+		// If this prefetch already appeared in the tree, ensure it
+		// has a req associated with it.
+		pre.req = req
+	}
+
+	p.clearRescheduleState(req.ptr.ID)
+
+	// If this request is just asking for the wait channel,
+	// send it now.  (This is processed in the same queue as
+	// the prefetch requests, to guarantee an initial prefetch
+	// request has always been processed before the wait
+	// channel request is processed.)
+	if req.sendCh != nil {
+		if !isPrefetchWaiting {
+			req.sendCh <- p.closedCh
+		} else {
+			req.sendCh <- pre.waitCh
+		}
+		return
+	}
+
+	select {
+	case <-req.obseleted:
+		// This request was cancelled while it was waiting.
+		p.vlog.CLogf(context.Background(), libkb.VLog2,
+			"Request not processing because it was canceled already"+
+				": id=%v action=%v", req.ptr.ID, req.action)
+		return
+	default:
+		p.markQueuedPrefetchDone(req.ptr)
+	}
+
+	if isPrefetchWaiting {
+		select {
+		case <-pre.ctx.Done():
+			p.vlog.CLogf(context.Background(), libkb.VLog2,
+				"Request not processing because it was canceled "+
+					"already: id=%v action=%v", req.ptr.ID, req.action)
+			return
+		default:
+		}
+	}
+
+	ctx := context.TODO()
+	if isPrefetchWaiting {
+		ctx = pre.ctx
+	}
+	p.vlog.CLogf(ctx, libkb.VLog2, "Handling request for %v, action=%s",
+		req.ptr, req.action)
+
+	// Ensure the block is in the right cache.
+	b, err := p.getBlockSynchronously(ctx, req, req.action.SoloAction())
+	if err != nil {
+		p.log.CWarningf(ctx, "error requesting for block %s: "+
+			"%+v", req.ptr.ID, err)
+		// There's nothing for us to do when there's an error.
+		return
+	}
+
+	// Update the priority and action of any existing
+	// prefetch, and count it in the overall sync status if
+	// needed.
+	newAction := req.action
+	oldAction := newAction
+	if isPrefetchWaiting {
+		if req.priority > pre.req.priority {
+			pre.req.priority = req.priority
+		}
+
+		oldAction = pre.req.action
+		newAction = oldAction.Combine(newAction)
+		if newAction != pre.req.action {
+			// This can happen for example if the prefetcher
+			// doesn't know about a deep sync but now one has
+			// been created.
+			pre.req.action = newAction
+		}
+
+		if !oldAction.Sync() && newAction.Sync() {
+			// This request turned into a syncing request, so
+			// update the overall sync status.
+			p.incOverallSyncTotalBytes(pre.req)
+		}
+	}
+
+	defer func() {
+		if pre != nil {
+			// We definitely have the block, so update the total
+			// fetched bytes as needed.
+			p.incOverallSyncFetchedBytes(pre.req)
+		}
+	}()
+
+	// If the request is finished (i.e., if it's marked as
+	// finished or if it has no child blocks to fetch), then
+	// complete the prefetch.
+	if req.prefetchStatus == FinishedPrefetch || b.IsTail() {
+		// First we handle finished prefetches.
+		if isPrefetchWaiting {
+			if pre.subtreeBlockCount < 0 {
+				// Both log and panic so that we get the PFID in the
+				// log.
+				p.log.CErrorf(ctx, "the subtreeBlockCount for a "+
+					"block should never be < 0")
+				panic("the subtreeBlockCount for a block should " +
+					"never be < 0")
+			}
+			// Since we decrement by `pre.subtreeBlockCount`, we're
+			// guaranteed that `pre` will be removed from the
+			// prefetcher.
+			numBytes := pre.SubtreeBytesTotal - pre.SubtreeBytesFetched
+			p.applyToParentsRecursive(
+				p.completePrefetch(pre.subtreeBlockCount, numBytes),
+				req.ptr.ID, pre)
+		} else {
+			p.vlog.CLogf(ctx, libkb.VLog2,
+				"skipping prefetch for finished block %s", req.ptr.ID)
+			if req.prefetchStatus != FinishedPrefetch {
+				// Mark this block as finished in the cache.
+				err = p.retriever.PutInCaches(
+					ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
+					FinishedPrefetch, req.action.CacheType())
+				if err != nil {
+					p.vlog.CLogf(ctx, libkb.VLog2,
+						"Couldn't put finished block %s in cache: %+v",
+						req.ptr, err)
+				}
+			}
+		}
+		// Always short circuit a finished prefetch.
+		return
+	}
+	if !req.action.Prefetch(b) {
+		p.vlog.CLogf(ctx, libkb.VLog2,
+			"skipping prefetch for block %s, action %s",
+			req.ptr.ID, req.action)
+		if isPrefetchWaiting && !pre.req.action.Prefetch(b) {
+			// Cancel this prefetch if we're skipping it and
+			// there's not already another prefetch in
+			// progress.  It's not a tail block since that
+			// case is caught above, so we are definitely
+			// giving up here without fetching its children.
+			p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
+		}
+		return
+	}
+	if req.prefetchStatus == TriggeredPrefetch &&
+		!newAction.DeepSync() &&
+		(isPrefetchWaiting &&
+			newAction.Sync() == oldAction.Sync() &&
+			newAction.StopIfFull() == oldAction.StopIfFull()) {
+		p.vlog.CLogf(ctx, libkb.VLog2,
+			"prefetch already triggered for block ID %s", req.ptr.ID)
+		return
+	}
+
+	// Bail out early if we know the cache is already full, to
+	// avoid enqueuing the child blocks when they aren't able
+	// to be cached.
+	if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
+		if doCancel && isPrefetchWaiting {
+			p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
+		}
+		return
+	}
+
+	if isPrefetchWaiting {
+		if pre.subtreeTriggered {
+			p.vlog.CLogf(
+				ctx, libkb.VLog2, "prefetch subtree already triggered "+
+					"for block ID %s", req.ptr.ID)
+			// Redundant prefetch request.
+			// We've already seen _this_ block, and already triggered
+			// prefetches for its children. No use doing it again!
+			if pre.subtreeBlockCount == 0 {
+				// Only this block is left, and we didn't prefetch on a
+				// previous prefetch through to the tail. So we cancel
+				// up the tree. This still allows upgrades from an
+				// unsynced block to a synced block, since p.prefetches
+				// should be ephemeral.
+				p.applyToPtrParentsRecursive(
+					p.cancelPrefetch, req.ptr, pre)
+			}
+			if newAction == oldAction {
+				// Short circuit prefetches if the subtree was
+				// already triggered, unless we've changed the
+				// prefetch action.
+				return
+			}
+		} else {
+			// This block was in the tree and thus was counted, but now
+			// it has been successfully fetched. We need to percolate
+			// that information up the tree.
+			if pre.subtreeBlockCount == 0 {
+				// Both log and panic so that we get the PFID in the
+				// log.
+				p.log.CErrorf(ctx, "prefetch was in the tree, "+
+					"wasn't triggered, but had a block count of 0")
+				panic("prefetch was in the tree, wasn't triggered, " +
+					"but had a block count of 0")
+			}
+			p.applyToParentsRecursive(
+				p.decrementPrefetch, req.ptr.ID, pre)
+			bytes := uint64(b.GetEncodedSize())
+			p.applyToParentsRecursive(
+				p.addFetchedBytes(bytes), req.ptr.ID, pre)
+			pre.subtreeTriggered = true
+		}
+	} else {
+		// Ensure we have a prefetch to work with.
+		// If the prefetch is to be tracked, then the 0
+		// `subtreeBlockCount` will be incremented by `numBlocks`
+		// below, once we've ensured that `numBlocks` is not 0.
+		pre = p.newPrefetch(0, 0, true, req)
+		p.prefetches[req.ptr.ID] = pre
+		ctx = pre.ctx
+		p.vlog.CLogf(ctx, libkb.VLog2,
+			"created new prefetch for block %s", req.ptr.ID)
+	}
+
+	// TODO: There is a potential optimization here that we can
+	// consider: Currently every time a prefetch is triggered, we
+	// iterate through all the block's child pointers. This is short
+	// circuited in `TriggerPrefetch` and here in various conditions.
+	// However, for synced trees we ignore that and prefetch anyway. So
+	// here we would need to figure out a heuristic to avoid that
+	// iteration.
+	//
+	// `numBlocks` now represents only the number of blocks to add
+	// to the tree from `pre` to its roots, inclusive.
+	numBlocks, numBytesFetched, numBytesTotal, isTail, err :=
+		p.handlePrefetch(pre, !isPrefetchWaiting, req.action, b)
+	if err != nil {
+		p.log.CWarningf(ctx, "error handling prefetch for block %s: "+
+			"%+v", req.ptr.ID, err)
+		// There's nothing for us to do when there's an error.
+		return
+	}
+	if isTail {
+		p.vlog.CLogf(ctx, libkb.VLog2,
+			"completed prefetch for tail block %s ", req.ptr.ID)
+		// This is a tail block with no children.  Parent blocks are
+		// potentially waiting for this prefetch, so we percolate the
+		// information up the tree that this prefetch is done.
+		//
+		// Note that only a tail block or cached block with
+		// `FinishedPrefetch` can trigger a completed prefetch.
+		//
+		// We use 0 as our completion number because we've already
+		// decremented above as appropriate. This just walks up the
+		// tree removing blocks with a 0 subtree. We couldn't do that
+		// above because `handlePrefetch` potentially adds blocks.
+		// TODO: think about whether a refactor can be cleanly done to
+		// only walk up the tree once. We'd track a `numBlocks` and
+		// complete or decrement as appropriate.
+		p.applyToParentsRecursive(
+			p.completePrefetch(0, 0), req.ptr.ID, pre)
+		return
+	}
+	// This is not a tail block.
+	if numBlocks == 0 {
+		p.vlog.CLogf(ctx, libkb.VLog2,
+			"no blocks to prefetch for block %s", req.ptr.ID)
+		// All the blocks to be triggered have already done so. Do
+		// nothing.  This is simply an optimization to avoid crawling
+		// the tree.
+		return
+	}
+	if !isPrefetchWaiting {
+		p.vlog.CLogf(ctx, libkb.VLog2,
+			"adding block %s to the prefetch tree", req.ptr.ID)
+		// This block doesn't appear in the prefetch tree, so it's the
+		// root of a new prefetch tree. Add it to the tree.
+		p.prefetches[req.ptr.ID] = pre
+		// One might think that since this block wasn't in the tree, we
+		// need to `numBlocks++`. But since we're in this flow, the
+		// block has already been fetched and is thus done.  So it
+		// shouldn't block anything above it in the tree from
+		// completing.
+	}
+	p.vlog.CLogf(ctx, libkb.VLog2,
+		"prefetching %d block(s) with parent block %s "+
+			"[bytesFetched=%d, bytesTotal=%d]",
+		numBlocks, req.ptr.ID, numBytesFetched, numBytesTotal)
+	// Walk up the block tree and add numBlocks to every parent,
+	// starting with this block.
+	p.applyToParentsRecursive(func(blockID kbfsblock.ID, pp *prefetch) {
+		pp.subtreeBlockCount += numBlocks
+		pp.SubtreeBytesFetched += numBytesFetched
+		pp.SubtreeBytesTotal += numBytesTotal
+	}, req.ptr.ID, pre)
+	// Ensure this block's status is marked as triggered.  If
+	// it was rescheduled due to a previously-full cache, it
+	// might not yet be set.
+	dbc := p.config.DiskBlockCache()
+	if dbc != nil {
+		err := dbc.UpdateMetadata(
+			pre.ctx, req.kmd.TlfID(), req.ptr.ID, TriggeredPrefetch,
+			req.action.CacheType())
+		if err != nil {
+			p.log.CDebugf(pre.ctx,
+				"Couldn't update metadata for block %s, action=%s",
+				req.ptr.ID, pre.req.action)
+		}
+	}
+}
+
 // run prefetches blocks.
 // E.g. a synced prefetch:
 // a -> {b -> {c, d}, e -> {f, g}}:
@@ -992,7 +1311,7 @@ func (p *blockPrefetcher) run(
 			req := reqInt.(cancelTlfPrefetch)
 			p.log.CDebugf(nil, "Canceling all prefetches for TLF %s", req.tlfID)
 			// Cancel all prefetches for this TLF.
-			for _, pre := range p.prefetches {
+			for id, pre := range p.prefetches {
 				if pre.req.kmd.TlfID() != req.tlfID {
 					continue
 				}
@@ -1000,7 +1319,7 @@ func (p *blockPrefetcher) run(
 				p.vlog.CLogf(
 					pre.ctx, libkb.VLog2, "TLF-canceling prefetch for %s",
 					pre.req.ptr)
-				pre.Close()
+				p.doCancel(id, pre)
 			}
 			close(req.channel)
 		case reqInt := <-p.prefetchRescheduleCh.Out():
@@ -1021,299 +1340,7 @@ func (p *blockPrefetcher) run(
 			p.applyToParentsRecursive(p.rescheduleTopBlock, blockID, pre)
 		case reqInt := <-p.prefetchRequestCh.Out():
 			req := reqInt.(*prefetchRequest)
-			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
-			if isPrefetchWaiting && pre.req == nil {
-				// If this prefetch already appeared in the tree, ensure it
-				// has a req associated with it.
-				pre.req = req
-			}
-
-			p.clearRescheduleState(req.ptr.ID)
-
-			// If this request is just asking for the wait channel,
-			// send it now.  (This is processed in the same queue as
-			// the prefetch requests, to guarantee an initial prefetch
-			// request has always been processed before the wait
-			// channel request is processed.)
-			if req.sendCh != nil {
-				if !isPrefetchWaiting {
-					req.sendCh <- p.closedCh
-				} else {
-					req.sendCh <- pre.waitCh
-				}
-				continue
-			}
-
-			select {
-			case <-req.obseleted:
-				// This request was cancelled while it was waiting.
-				p.vlog.CLogf(context.Background(), libkb.VLog2,
-					"Request not processing because it was canceled already"+
-						": id=%v action=%v", req.ptr.ID, req.action)
-				continue
-			default:
-				p.markQueuedPrefetchDone(req.ptr)
-			}
-
-			if isPrefetchWaiting {
-				select {
-				case <-pre.ctx.Done():
-					p.vlog.CLogf(context.Background(), libkb.VLog2,
-						"Request not processing because it was canceled "+
-							"already: id=%v action=%v", req.ptr.ID, req.action)
-					continue
-				default:
-				}
-			}
-
-			ctx := context.TODO()
-			if isPrefetchWaiting {
-				ctx = pre.ctx
-			}
-			p.vlog.CLogf(ctx, libkb.VLog2, "Handling request for %v, action=%s",
-				req.ptr, req.action)
-
-			// Ensure the block is in the right cache.
-			b, err := p.getBlockSynchronously(ctx, req, req.action.SoloAction())
-			if err != nil {
-				p.log.CWarningf(ctx, "error requesting for block %s: "+
-					"%+v", req.ptr.ID, err)
-				// There's nothing for us to do when there's an error.
-				continue
-			}
-
-			if isPrefetchWaiting && !pre.req.action.Sync() &&
-				req.action.Sync() {
-				// This request turned into a syncing request, so
-				// update the overall sync status.
-				p.incOverallSyncTotalBytes(req)
-				p.incOverallSyncFetchedBytes(req)
-			}
-
-			// If the request is finished (i.e., if it's marked as
-			// finished or if it has no child blocks to fetch), then
-			// complete the prefetch.
-			if req.prefetchStatus == FinishedPrefetch || b.IsTail() {
-				// First we handle finished prefetches.
-				if isPrefetchWaiting {
-					if pre.subtreeBlockCount < 0 {
-						// Both log and panic so that we get the PFID in the
-						// log.
-						p.log.CErrorf(ctx, "the subtreeBlockCount for a "+
-							"block should never be < 0")
-						panic("the subtreeBlockCount for a block should " +
-							"never be < 0")
-					}
-					// Since we decrement by `pre.subtreeBlockCount`, we're
-					// guaranteed that `pre` will be removed from the
-					// prefetcher.
-					numBytes := pre.SubtreeBytesTotal - pre.SubtreeBytesFetched
-					p.incOverallSyncFetchedBytes(req)
-					p.applyToParentsRecursive(
-						p.completePrefetch(pre.subtreeBlockCount, numBytes),
-						req.ptr.ID, pre)
-				} else {
-					p.vlog.CLogf(ctx, libkb.VLog2,
-						"skipping prefetch for finished block %s", req.ptr.ID)
-					if req.prefetchStatus != FinishedPrefetch {
-						// Mark this block as finished in the cache.
-						err = p.retriever.PutInCaches(
-							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
-							FinishedPrefetch, req.action.CacheType())
-						if err != nil {
-							p.vlog.CLogf(ctx, libkb.VLog2,
-								"Couldn't put finished block %s in cache: %+v",
-								req.ptr, err)
-						}
-					}
-				}
-				// Always short circuit a finished prefetch.
-				continue
-			}
-			if !req.action.Prefetch(b) {
-				p.vlog.CLogf(ctx, libkb.VLog2,
-					"skipping prefetch for block %s, action %s",
-					req.ptr.ID, req.action)
-				if isPrefetchWaiting && !pre.req.action.Prefetch(b) {
-					// Cancel this prefetch if we're skipping it and
-					// there's not already another prefetch in
-					// progress.  It's not a tail block since that
-					// case is caught above, so we are definitely
-					// giving up here without fetching its children.
-					p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
-				}
-				continue
-			}
-			if req.prefetchStatus == TriggeredPrefetch &&
-				!req.action.DeepSync() &&
-				(isPrefetchWaiting &&
-					req.action.Sync() == pre.req.action.Sync() &&
-					req.action.StopIfFull() == pre.req.action.StopIfFull()) {
-				p.vlog.CLogf(ctx, libkb.VLog2,
-					"prefetch already triggered for block ID %s", req.ptr.ID)
-				continue
-			}
-
-			// Bail out early if we know the cache is already full, to
-			// avoid enqueuing the child blocks when they aren't able
-			// to be cached.
-			if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
-				if doCancel && isPrefetchWaiting {
-					p.applyToPtrParentsRecursive(p.cancelPrefetch, req.ptr, pre)
-				}
-				continue
-			}
-
-			if isPrefetchWaiting {
-				if req.priority > pre.req.priority {
-					pre.req.priority = req.priority
-				}
-				newAction := pre.req.action.Combine(req.action)
-				if pre.subtreeTriggered {
-					p.vlog.CLogf(
-						ctx, libkb.VLog2, "prefetch subtree already triggered "+
-							"for block ID %s", req.ptr.ID)
-					// Redundant prefetch request.
-					// We've already seen _this_ block, and already triggered
-					// prefetches for its children. No use doing it again!
-					if pre.subtreeBlockCount == 0 {
-						// Only this block is left, and we didn't prefetch on a
-						// previous prefetch through to the tail. So we cancel
-						// up the tree. This still allows upgrades from an
-						// unsynced block to a synced block, since p.prefetches
-						// should be ephemeral.
-						p.applyToPtrParentsRecursive(
-							p.cancelPrefetch, req.ptr, pre)
-					}
-					if newAction != pre.req.action {
-						// This can happen for example if the
-						// prefetcher doesn't know about a deep sync
-						// but now one has been created.
-						pre.req.action = newAction
-					} else {
-						// Short circuit prefetches if the subtree was already
-						// triggered, unless, as in the above case, we've
-						// changed from a regular prefetch to a deep sync.
-						continue
-					}
-				} else {
-					// This block was in the tree and thus was counted, but now
-					// it has been successfully fetched. We need to percolate
-					// that information up the tree.
-					if pre.subtreeBlockCount == 0 {
-						// Both log and panic so that we get the PFID in the
-						// log.
-						p.log.CErrorf(ctx, "prefetch was in the tree, "+
-							"wasn't triggered, but had a block count of 0")
-						panic("prefetch was in the tree, wasn't triggered, " +
-							"but had a block count of 0")
-					}
-					p.applyToParentsRecursive(
-						p.decrementPrefetch, req.ptr.ID, pre)
-					bytes := uint64(b.GetEncodedSize())
-					p.incOverallSyncFetchedBytes(req)
-					p.applyToParentsRecursive(
-						p.addFetchedBytes(bytes), req.ptr.ID, pre)
-					pre.subtreeTriggered = true
-					pre.req.action = newAction
-				}
-			} else {
-				// Ensure we have a prefetch to work with.
-				// If the prefetch is to be tracked, then the 0
-				// `subtreeBlockCount` will be incremented by `numBlocks`
-				// below, once we've ensured that `numBlocks` is not 0.
-				pre = p.newPrefetch(0, 0, true, req)
-				p.prefetches[req.ptr.ID] = pre
-				ctx = pre.ctx
-				p.vlog.CLogf(ctx, libkb.VLog2,
-					"created new prefetch for block %s", req.ptr.ID)
-			}
-
-			// TODO: There is a potential optimization here that we can
-			// consider: Currently every time a prefetch is triggered, we
-			// iterate through all the block's child pointers. This is short
-			// circuited in `TriggerPrefetch` and here in various conditions.
-			// However, for synced trees we ignore that and prefetch anyway. So
-			// here we would need to figure out a heuristic to avoid that
-			// iteration.
-			//
-			// `numBlocks` now represents only the number of blocks to add
-			// to the tree from `pre` to its roots, inclusive.
-			numBlocks, numBytesFetched, numBytesTotal, isTail, err :=
-				p.handlePrefetch(pre, !isPrefetchWaiting, req.action, b)
-			if err != nil {
-				p.log.CWarningf(ctx, "error handling prefetch for block %s: "+
-					"%+v", req.ptr.ID, err)
-				// There's nothing for us to do when there's an error.
-				continue
-			}
-			if isTail {
-				p.vlog.CLogf(ctx, libkb.VLog2,
-					"completed prefetch for tail block %s ", req.ptr.ID)
-				// This is a tail block with no children.  Parent blocks are
-				// potentially waiting for this prefetch, so we percolate the
-				// information up the tree that this prefetch is done.
-				//
-				// Note that only a tail block or cached block with
-				// `FinishedPrefetch` can trigger a completed prefetch.
-				//
-				// We use 0 as our completion number because we've already
-				// decremented above as appropriate. This just walks up the
-				// tree removing blocks with a 0 subtree. We couldn't do that
-				// above because `handlePrefetch` potentially adds blocks.
-				// TODO: think about whether a refactor can be cleanly done to
-				// only walk up the tree once. We'd track a `numBlocks` and
-				// complete or decrement as appropriate.
-				p.applyToParentsRecursive(
-					p.completePrefetch(0, 0), req.ptr.ID, pre)
-				continue
-			}
-			// This is not a tail block.
-			if numBlocks == 0 {
-				p.vlog.CLogf(ctx, libkb.VLog2,
-					"no blocks to prefetch for block %s", req.ptr.ID)
-				// All the blocks to be triggered have already done so. Do
-				// nothing.  This is simply an optimization to avoid crawling
-				// the tree.
-				continue
-			}
-			if !isPrefetchWaiting {
-				p.vlog.CLogf(ctx, libkb.VLog2,
-					"adding block %s to the prefetch tree", req.ptr.ID)
-				// This block doesn't appear in the prefetch tree, so it's the
-				// root of a new prefetch tree. Add it to the tree.
-				p.prefetches[req.ptr.ID] = pre
-				// One might think that since this block wasn't in the tree, we
-				// need to `numBlocks++`. But since we're in this flow, the
-				// block has already been fetched and is thus done.  So it
-				// shouldn't block anything above it in the tree from
-				// completing.
-			}
-			p.vlog.CLogf(ctx, libkb.VLog2,
-				"prefetching %d block(s) with parent block %s "+
-					"[bytesFetched=%d, bytesTotal=%d]",
-				numBlocks, req.ptr.ID, numBytesFetched, numBytesTotal)
-			// Walk up the block tree and add numBlocks to every parent,
-			// starting with this block.
-			p.applyToParentsRecursive(func(blockID kbfsblock.ID, pp *prefetch) {
-				pp.subtreeBlockCount += numBlocks
-				pp.SubtreeBytesFetched += numBytesFetched
-				pp.SubtreeBytesTotal += numBytesTotal
-			}, req.ptr.ID, pre)
-			// Ensure this block's status is marked as triggered.  If
-			// it was rescheduled due to a previously-full cache, it
-			// might not yet be set.
-			dbc := p.config.DiskBlockCache()
-			if dbc != nil {
-				err := dbc.UpdateMetadata(
-					pre.ctx, req.kmd.TlfID(), req.ptr.ID, TriggeredPrefetch,
-					req.action.CacheType())
-				if err != nil {
-					p.log.CDebugf(pre.ctx,
-						"Couldn't update metadata for block %s, action=%s",
-						req.ptr.ID, pre.req.action)
-				}
-			}
+			p.handlePrefetchRequest(req)
 		case <-p.almostDoneCh:
 			p.log.CDebugf(p.ctx, "starting shutdown")
 			isShuttingDown = true
