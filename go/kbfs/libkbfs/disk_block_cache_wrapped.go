@@ -521,6 +521,48 @@ func (cache *diskBlockCacheWrapped) GetTlfSize(
 	return size, nil
 }
 
+// GetTlfSize implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetTlfIDs(
+	ctx context.Context, cacheType DiskBlockCacheType) (
+	tlfIDs []tlf.ID, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	if cacheType != DiskBlockWorkingSetCache {
+		tlfIDs, err = cache.syncCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if cacheType != DiskBlockSyncCache {
+		wsTlfIDs, err := cache.workingSetCache.GetTlfIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Uniquify them if needed.
+		if len(tlfIDs) == 0 {
+			tlfIDs = wsTlfIDs
+		} else {
+			s := make(map[tlf.ID]bool, len(tlfIDs)+len(wsTlfIDs))
+			for _, id := range tlfIDs {
+				s[id] = true
+			}
+			for _, id := range wsTlfIDs {
+				s[id] = true
+			}
+			tlfIDs = make([]tlf.ID, 0, len(s))
+			for id := range s {
+				tlfIDs = append(tlfIDs, id)
+			}
+		}
+	}
+
+	return tlfIDs, nil
+}
+
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Shutdown(ctx context.Context) {
 	cache.mtx.Lock()
