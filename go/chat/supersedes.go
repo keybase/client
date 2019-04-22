@@ -156,6 +156,7 @@ func (t *basicSupersedesTransform) replyTo(ctx context.Context, newMsg *chat1.Me
 	mvalid := newMsg.Valid()
 	mvalid.ReplyTo = &superMsg
 	res := chat1.NewMessageUnboxedWithValid(mvalid)
+	t.Debug(ctx, "replyTo: set replyTo on %v to %v", newMsg.GetMessageID(), superMsg.GetMessageID())
 	return &res
 }
 
@@ -172,7 +173,6 @@ func (t *basicSupersedesTransform) doSupersedes(ctx context.Context, msg chat1.M
 		case transformSupersedes:
 			newMsg = t.transform(ctx, newMsg, superMsg.msg)
 		case replyToSupersedes:
-			t.Debug(ctx, "doSupersedes: xforming: %v with %v", newMsg.GetMessageID(), superMsg.msg.GetMessageID())
 			newMsg = t.replyTo(ctx, newMsg, superMsg.msg)
 		default:
 			t.Debug(ctx, "doSupersedes: unknown supersedes type: %v", superMsg.typ)

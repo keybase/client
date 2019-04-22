@@ -462,6 +462,26 @@ func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, 
 	return nil
 }
 
+func (g *PushHandler) getReplyMessage(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
+	msg chat1.MessageUnboxed) chat1.MessageUnboxed {
+	if !msg.IsValid() || conv == nil {
+		return msg
+	}
+	superXform := newBasicSupersedesTransform(g.G(), basicSupersedesTransformOpts{
+		UseDeletePlaceholders: true,
+	})
+	msgs, err := superXform.Run(ctx, *conv, uid, []chat1.MessageUnboxed{msg})
+	if err != nil {
+		g.Debug(ctx, "getReplyMessage: failed to get reply: %s", err)
+		return msg
+	}
+	if len(msgs) == 0 {
+		g.Debug(ctx, "getReplyMessage: no message return from supersedes")
+		return msg
+	}
+	return msgs[0]
+}
+
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -541,10 +561,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				nm.Message, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
-			// Check to see if this is a coin flip message
 
 			// If we have no error on this message, then notify the frontend
 			if pushErr == nil {
+				// Add on reply information if we have it
+				decmsg = g.getReplyMessage(ctx, uid, conv, decmsg)
 				// Make a pagination object so client can use it in GetThreadLocal
 				pmsgs := []pager.Message{nm.Message}
 				pager := pager.NewThreadPager()

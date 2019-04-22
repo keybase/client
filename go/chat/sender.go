@@ -559,7 +559,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		msg.MessageBody = body
 
 		// Handle reply to
-		msg = s.handleReplyTo(ctx, msg, inopts.ReplyTo)
+		msg = s.handleReplyTo(ctx, msg, opts.ReplyTo)
 
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
