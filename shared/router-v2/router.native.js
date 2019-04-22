@@ -6,6 +6,7 @@ import GlobalError from '../app/global-errors/container'
 import TabBar from './tab-bar/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -43,33 +44,58 @@ const defaultNavigationOptions = {
 const headerMode = 'float'
 
 // Where the main app stuff happens. You're logged in and have a tab bar etc
-const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
-  defaultNavigationOptions: p => ({
-    ...defaultNavigationOptions,
-  }),
+// const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
+// defaultNavigationOptions,
+// headerMode,
+// initialRouteName: 'tabs.peopleTab',
+// initialRouteParams: undefined,
+// })
+// class MainStackNavigator extends React.PureComponent<any> {
+// static router = MainStackNavigatorPlain.router
+
+// render() {
+// const routeName = this.props.navigation.state.routes[this.props.navigation.state.index].routeName
+// return (
+// <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+// <MainStackNavigatorPlain navigation={this.props.navigation} />
+// <TabBar selectedTab={nameToTab[routeName]} />
+// <GlobalError />
+// <OutOfDate />
+// </Kb.Box2>
+// )
+// }
+// }
+
+const routesForTab = tab =>
+  Object.keys(routes).reduce((map, name) => {
+    if (nameToTab[name] === tab) {
+      map[name] = routes[name]
+    }
+    return map
+  }, {})
+
+const PeopleStack = createStackNavigator(Shim.shim(routesForTab('tabs.peopleTab')), {
+  defaultNavigationOptions,
   headerMode,
   initialRouteName: 'tabs.peopleTab',
   initialRouteParams: undefined,
 })
-class MainStackNavigator extends React.PureComponent<any> {
-  static router = MainStackNavigatorPlain.router
+const ChatStack = createStackNavigator(Shim.shim(routesForTab('tabs.chatTab')), {
+  defaultNavigationOptions,
+  headerMode,
+  initialRouteName: 'tabs.chatTab',
+  initialRouteParams: undefined,
+})
 
-  render() {
-    const routeName = this.props.navigation.state.routes[this.props.navigation.state.index].routeName
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <MainStackNavigatorPlain navigation={this.props.navigation} />
-        <TabBar selectedTab={nameToTab[routeName]} />
-        <GlobalError />
-        <OutOfDate />
-      </Kb.Box2>
-    )
-  }
-}
+const TabNavigator = createBottomTabNavigator({
+  People: PeopleStack,
+  Chat: ChatStack,
+})
 
 const LoggedInStackNavigator = createStackNavigator(
   {
-    Main: {screen: MainStackNavigator},
+    // Main: {screen: MainStackNavigator},
+    Main: TabNavigator,
     ...Shim.shim(modalRoutes),
   },
   {
@@ -81,9 +107,7 @@ const LoggedInStackNavigator = createStackNavigator(
 const LoggedOutStackNavigator = createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
-    defaultNavigationOptions: p => ({
-      ...defaultNavigationOptions,
-    }),
+    defaultNavigationOptions,
     headerMode,
     initialRouteName: 'login',
     initialRouteParams: undefined,
@@ -170,7 +194,13 @@ class RNApp extends React.PureComponent<any, any> {
   getNavState = () => this._nav?.state?.nav
 
   render() {
-    return <AppContainer ref={nav => (this._nav = nav)} />
+    return (
+      <>
+        <AppContainer ref={nav => (this._nav = nav)} />
+        <GlobalError />
+        <OutOfDate />
+      </>
+    )
   }
 }
 
