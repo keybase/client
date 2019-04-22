@@ -1010,6 +1010,10 @@ type DiskBlockCache interface {
 	// TLF IDs across all caches.
 	GetTlfIDs(
 		ctx context.Context, cacheType DiskBlockCacheType) ([]tlf.ID, error)
+	// WaitUntilStarted waits until the block cache of the given type
+	// has finished starting. If `DiskBlockAnyCache` is specified, it
+	// waits for all caches to start.
+	WaitUntilStarted(cacheType DiskBlockCacheType) error
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }

@@ -1449,8 +1449,8 @@ func (cache *DiskBlockCacheLocal) GetTlfSize(
 // the cache.
 func (cache *DiskBlockCacheLocal) GetTlfIDs(
 	_ context.Context) (tlfIDs []tlf.ID, err error) {
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
 	tlfIDs = make([]tlf.ID, 0, len(cache.tlfSizes))
 	for id := range cache.tlfSizes {
 		tlfIDs = append(tlfIDs, id)

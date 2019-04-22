@@ -263,6 +263,13 @@ func (dbcr *DiskBlockCacheRemote) GetTlfIDs(
 	panic("GetTlfIDs() not implemented in DiskBlockCacheRemote")
 }
 
+// WaitUntilStarted implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) WaitUntilStarted(
+	_ DiskBlockCacheType) error {
+	panic("WaitUntilStarted() not implemented in DiskBlockCacheRemote")
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
 	dbcr.conn.Close()
