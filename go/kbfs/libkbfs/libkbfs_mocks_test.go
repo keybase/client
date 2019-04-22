@@ -2295,6 +2295,20 @@ func (mr *MockKeybaseServiceMockRecorder) NotifyOnlineStatusChanged(arg0, arg1 i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOnlineStatusChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOnlineStatusChanged), arg0, arg1)
 }
 
+// NotifyOverallSyncStatus mocks base method
+func (m *MockKeybaseService) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockKeybaseServiceMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOverallSyncStatus), arg0, arg1)
+}
+
 // NotifyPathUpdated mocks base method
 func (m *MockKeybaseService) NotifyPathUpdated(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()

@@ -78,6 +78,12 @@ func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncSt
 	return nil
 }
 
+func (h *KBFSHandler) FSOverallSyncEvent(
+	ctx context.Context, arg keybase1.FolderSyncStatus) (err error) {
+	h.G().NotifyRouter.HandleFSOverallSyncStautsChanged(ctx, arg)
+	return nil
+}
+
 // checkConversationRekey looks for rekey finished notifications and tries to
 // find any conversations associated with the rekeyed TLF.  If it finds any,
 // it will send ChatThreadsStale notifications for them.

@@ -576,6 +576,11 @@ type KeybaseService interface {
 	NotifySyncStatus(ctx context.Context,
 		status *keybase1.FSPathSyncStatus) error
 
+	// NotifyOverallSyncStatus sends an overall sync status
+	// notification.
+	NotifyOverallSyncStatus(
+		ctx context.Context, status keybase1.FolderSyncStatus) error
+
 	// FlushUserFromLocalCache instructs this layer to clear any
 	// KBFS-side, locally-cached information about the given user.
 	// This does NOT involve communication with the daemon, this is
