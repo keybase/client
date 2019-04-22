@@ -850,6 +850,10 @@ type Reporter interface {
 	NotifyPathUpdated(ctx context.Context, path string)
 	// NotifySyncStatus sends the given path sync status to any sink.
 	NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus)
+	// NotifyOverallSyncStatus sends the given path overall sync
+	// status to any sink.
+	NotifyOverallSyncStatus(
+		ctx context.Context, status keybase1.FolderSyncStatus)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }

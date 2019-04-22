@@ -3924,6 +3924,18 @@ func (mr *MockReporterMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockReporter)(nil).Notify), arg0, arg1)
 }
 
+// NotifyOverallSyncStatus mocks base method
+func (m *MockReporter) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockReporterMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockReporter)(nil).NotifyOverallSyncStatus), arg0, arg1)
+}
+
 // NotifyPathUpdated mocks base method
 func (m *MockReporter) NotifyPathUpdated(arg0 context.Context, arg1 string) {
 	m.ctrl.T.Helper()
