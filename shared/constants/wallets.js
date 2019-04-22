@@ -532,6 +532,9 @@ export const getAccounts = (state: TypedState) => state.wallets.accountMap.value
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
+export const getSelectedAccountData = (state: TypedState) =>
+  state.wallets.accountMap.get(getSelectedAccount(state), makeAccount())
+
 export const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
 export const getPayments = (state: TypedState, accountID: Types.AccountID) =>
