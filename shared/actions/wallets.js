@@ -124,7 +124,15 @@ const createNewAccount = (state, action) => {
     })
 }
 
-const emptyAsset = {code: '', issuer: '', issuerName: '', type: 'native', verifiedDomain: ''}
+const emptyAsset = {
+  code: '',
+  desc: '',
+  infoUrl: '',
+  issuer: '',
+  issuerName: '',
+  type: 'native',
+  verifiedDomain: '',
+}
 
 const sendPayment = state => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
