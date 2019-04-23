@@ -279,6 +279,8 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexGrow,
     backgroundColor: Styles.globalColors.transparent,
     flexShrink: 1,
+    paddingLeft: 0,
+    paddingRight: 0,
     width: undefined,
   },
   inputNoGrow: {
