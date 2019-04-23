@@ -778,7 +778,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		// Prompt the user whether they'd like to enter the reset flow.
 		// We will ask them for a password in AccountReset.
 		enterReset, err := m.UIs().LoginUI.PromptResetAccount(m.Ctx(), keybase1.PromptResetAccountArg{
-			Kind: keybase1.ResetPromptType_ENTER_PROVISION,
+			Kind: keybase1.ResetPromptType_ENTER_NO_DEVICES,
 		})
 		if err != nil {
 			return err

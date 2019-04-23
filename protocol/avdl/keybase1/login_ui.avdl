@@ -9,9 +9,9 @@ protocol loginUi {
   void displayPrimaryPaperKey(int sessionID, string phrase);
 
   enum ResetPromptType {
-    COMPLETE_0,        // reset completion if the countdown is done
-    ENTER_PROVISION_1, // no devices available in provisioning, suggest entering
-    ENTER_FORGOT_PW_2  // forgot the password, suggest entering the pipeline w/o pw
+    COMPLETE_0,         // reset completion if the countdown is done
+    ENTER_NO_DEVICES_1, // no devices available in provisioning, suggest entering
+    ENTER_FORGOT_PW_2   // forgot the password, suggest entering the pipeline w/o pw
   }
   /**
    Called during login / provisioning flows to ask the user whether they

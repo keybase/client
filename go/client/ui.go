@@ -823,15 +823,18 @@ func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptRese
 	switch arg.Kind {
 	case keybase1.ResetPromptType_COMPLETE:
 		msg = "Would you like to complete the reset of your account?"
-	case keybase1.ResetPromptType_ENTER_PROVISION:
-		msg = "The only way to provision this device is with access to one of your existing " +
-			"devices. You can try again later, or if you have lost access to all your " +
-			"existing devices you can reset your account and start fresh. Would you " +
-			"like to request a reset of your account?"
+	case keybase1.ResetPromptType_ENTER_NO_DEVICES:
+		msg = `The only way to provision this device is with access to one of your existing
+devices. You can try again later, or if you have lost access to all your
+existing devices you can reset your account and start fresh.
+
+Would you like to request a reset of your account?`
 	case keybase1.ResetPromptType_ENTER_FORGOT_PW:
-		msg = "If you have forgotten your password and either lost all of your devices, or if you " +
-			"uninstalled Keybase from all of them, you can reset your account. You will keep your username, " +
-			"but lose all your data. Would you like to request a reset of your account?"
+		msg = `If you have forgotten your password and either lost all of your devices, or if you
+uninstalled Keybase from all of them, you can reset your account. You will keep your username,
+but lose all your data.
+
+Would you like to request a reset of your account?`
 	default:
 		return false, fmt.Errorf("Unknown prompt type - got %v", arg.Kind)
 	}

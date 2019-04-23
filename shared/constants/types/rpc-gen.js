@@ -539,7 +539,7 @@ export const kbfsCommonFSStatusCode = {
 
 export const loginUiResetPromptType = {
   complete: 0,
-  enterProvision: 1,
+  enterNoDevices: 1,
   enterForgotPw: 2,
 }
 

@@ -11,22 +11,22 @@ import (
 type ResetPromptType int
 
 const (
-	ResetPromptType_COMPLETE        ResetPromptType = 0
-	ResetPromptType_ENTER_PROVISION ResetPromptType = 1
-	ResetPromptType_ENTER_FORGOT_PW ResetPromptType = 2
+	ResetPromptType_COMPLETE         ResetPromptType = 0
+	ResetPromptType_ENTER_NO_DEVICES ResetPromptType = 1
+	ResetPromptType_ENTER_FORGOT_PW  ResetPromptType = 2
 )
 
 func (o ResetPromptType) DeepCopy() ResetPromptType { return o }
 
 var ResetPromptTypeMap = map[string]ResetPromptType{
-	"COMPLETE":        0,
-	"ENTER_PROVISION": 1,
-	"ENTER_FORGOT_PW": 2,
+	"COMPLETE":         0,
+	"ENTER_NO_DEVICES": 1,
+	"ENTER_FORGOT_PW":  2,
 }
 
 var ResetPromptTypeRevMap = map[ResetPromptType]string{
 	0: "COMPLETE",
-	1: "ENTER_PROVISION",
+	1: "ENTER_NO_DEVICES",
 	2: "ENTER_FORGOT_PW",
 }
 

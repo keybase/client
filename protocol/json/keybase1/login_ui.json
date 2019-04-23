@@ -12,7 +12,7 @@
       "name": "ResetPromptType",
       "symbols": [
         "COMPLETE_0",
-        "ENTER_PROVISION_1",
+        "ENTER_NO_DEVICES_1",
         "ENTER_FORGOT_PW_2"
       ]
     }

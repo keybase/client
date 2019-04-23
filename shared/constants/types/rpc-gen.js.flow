@@ -1627,7 +1627,7 @@ export const kbfsCommonFSStatusCode = {
 
 export const loginUiResetPromptType = {
   complete: 0,
-  enterProvision: 1,
+  enterNoDevices: 1,
   enterForgotPw: 2,
 }
 
@@ -2686,7 +2686,7 @@ export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
 export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, lastSeqno: Seqno, reset: SHA512}>
 export type ResetPromptType =
   | 0 // COMPLETE_0
-  | 1 // ENTER_PROVISION_1
+  | 1 // ENTER_NO_DEVICES_1
   | 2 // ENTER_FORGOT_PW_2
 
 export type ResetState = $ReadOnly<{endTime: Time, active: Boolean}>
