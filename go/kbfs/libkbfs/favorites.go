@@ -370,7 +370,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			if err == context.DeadlineExceeded {
 				newCtx, _ := context.WithTimeout(context.Background(),
 					favoritesBackgroundRefreshTimeout)
-				go f.RefreshCache(newCtx, true)
+				go f.RefreshCache(newCtx, FavoritesRefreshModeBlocking)
 			}
 			f.log.CDebugf(req.ctx,
 				"Serving possibly stale favorites; new data could not be"+
@@ -652,9 +652,23 @@ func (f *Favorites) Delete(ctx context.Context, fav favorites.Folder) error {
 	})
 }
 
+type FavoritesRefreshMode int
+
+const (
+	FavoritesRefreshModeInMainFavoritesLoop = iota
+	FavoritesRefreshModeBlocking
+)
+
 // RefreshCache refreshes the cached list of favorites. If async is true, then
 // this request is processed outside of the normal Favorites queue order.
-func (f *Favorites) RefreshCache(ctx context.Context, async bool) {
+//
+// In FavoritesRefreshModeBlocking, request the favorites in this thread,
+// then send them off to the main thread to be processed.
+// In FavoritesRefreshModeInMainFavoritesLoop, this just sets up a request and
+// sends it to the main thread to process it - this is useful if e.g.
+// the favorites cache has not been initialized at all and cannot serve any
+// requests until this refresh is completed.
+func (f *Favorites) RefreshCache(ctx context.Context, mode FavoritesRefreshMode) {
 	if f.disabled || f.hasShutdown() {
 		return
 	}
@@ -668,7 +682,9 @@ func (f *Favorites) RefreshCache(ctx context.Context, async bool) {
 		return
 	}
 	// This request is non-blocking, so use a throw-away done channel
-	// and context.
+	// and context. Note that in the `blocking` mode, this context will only
+	// be relevant for the brief moment the main loop processes the results
+	// generated in the below network request.
 	req := &favReq{
 		refresh: true,
 		done:    make(chan struct{}),
@@ -676,7 +692,7 @@ func (f *Favorites) RefreshCache(ctx context.Context, async bool) {
 	}
 	f.wg.Add(1)
 
-	if async {
+	if mode == FavoritesRefreshModeBlocking {
 		favResult, err := f.config.KBPKI().FavoriteList(ctx)
 		if err != nil {
 			f.log.CDebugf(ctx, "Failed to refresh cached Favorites: %+v", err)
