@@ -6,7 +6,7 @@ import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 import * as Constants from '../../constants/teams'
 import {type TeamRoleType, type DisabledReasonsForRolePicker} from '../../constants/types/teams'
-import {FloatingRolePicker} from '../role-picker-2'
+import {FloatingRolePicker} from '../role-picker'
 import flags from '../../util/feature-flags'
 
 const MaybePopup = Styles.isMobile

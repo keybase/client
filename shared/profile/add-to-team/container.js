@@ -9,7 +9,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as WaitingConstants from '../../constants/waiting'
 import {HeaderOnMobile} from '../../common-adapters'
-import {sendNotificationFooter} from '../../teams/role-picker-2'
+import {sendNotificationFooter} from '../../teams/role-picker'
 import type {TeamRoleType, MaybeTeamRoleType, Teamname} from '../../constants/types/teams'
 
 type OwnProps = Container.RouteProps<{username: string}, {}>

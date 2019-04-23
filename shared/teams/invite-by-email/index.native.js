@@ -13,7 +13,7 @@ import {
   Text,
   NativeImage,
 } from '../../common-adapters/mobile.native'
-import {FloatingRolePicker} from '../role-picker-2'
+import {FloatingRolePicker} from '../role-picker'
 import {globalStyles, globalMargins, globalColors, hairlineWidth} from '../../styles'
 import type {MobileProps, ContactRowProps} from './index'
 import {pluralize} from '../../util/string'

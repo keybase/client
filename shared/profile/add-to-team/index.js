@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
-import {FloatingRolePicker} from '../../teams/role-picker-2'
+import {FloatingRolePicker} from '../../teams/role-picker'
 import * as Types from '../../constants/types/teams'
 
 type RowProps = {

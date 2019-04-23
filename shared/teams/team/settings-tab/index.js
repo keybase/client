@@ -5,7 +5,7 @@ import type {RetentionPolicy} from '../../../constants/types/retention-policy'
 import {Box2, Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, styleSheetCreate, platformStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
-import {FloatingRolePicker} from '../../role-picker-2'
+import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
