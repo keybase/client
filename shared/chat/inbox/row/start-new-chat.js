@@ -1,6 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Button, iconCastPlatformStyles, Icon, Box, Box2, ClickableBox, Text} from '../../../common-adapters'
+import {
+  BackButton,
+  Button,
+  iconCastPlatformStyles,
+  Icon,
+  Box,
+  Box2,
+  ClickableBox,
+  Text,
+} from '../../../common-adapters'
 import {
   styleSheetCreate,
   platformStyles,
@@ -12,6 +21,7 @@ import {
 import flags from '../../../util/feature-flags'
 
 type Props = {
+  onBack: () => void,
   onNewChat: () => void,
 }
 
@@ -29,6 +39,7 @@ const StartNewChat = (props: Props) => {
             Start a new chat
           </Text>
         </ClickableBox>
+        {flags.useNewRouter && isMobile && <BackButton onClick={props.onBack} style={styles.backButton} />}
       </Box>
     )
   }
@@ -42,6 +53,11 @@ const StartNewChat = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
+  backButton: {
+    left: 0,
+    position: 'absolute',
+    top: globalMargins.xxtiny,
+  },
   button: {
     flexGrow: 1,
     marginLeft: globalMargins.small,
