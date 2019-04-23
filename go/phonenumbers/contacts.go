@@ -53,11 +53,20 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	}
 	var phoneNumbers []keybase1.RawPhoneNumber
 	var phoneComps []phoneToContact
+	var emails []keybase1.EmailAddress
+	var emailComps []phoneToContact
 	for contactI, k := range contacts {
 		for compI, component := range k.Components {
 			if component.PhoneNumber != nil {
 				phoneNumbers = append(phoneNumbers, *component.PhoneNumber)
 				phoneComps = append(phoneComps, phoneToContact{
+					contactIndex:   contactI,
+					componentIndex: compI,
+				})
+			}
+			if component.Email != nil {
+				emails = append(emails, *component.Email)
+				emailComps = append(emailComps, phoneToContact{
 					contactIndex:   contactI,
 					componentIndex: compI,
 				})
@@ -68,6 +77,29 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	// contactIndex -> true for all contacts that have at least one compoonent resolved.
 	contactsFound := make(map[int]bool)
 	usersFound := make(map[keybase1.UID]bool)
+
+	insertResult := func(lookupRes ContactLookupResult, toContact phoneToContact) {
+		contactsFound[toContact.contactIndex] = true
+
+		if _, found := usersFound[lookupRes.UID]; found {
+			// This user was already resolved by looking up another
+			// component or another contact.
+			return
+		}
+		contact := contacts[toContact.contactIndex]
+		component := contact.Components[toContact.componentIndex]
+
+		usersFound[lookupRes.UID] = true
+
+		res = append(res, keybase1.ResolvedContact{
+			Name:         lookupRes.Username, // if found, return username
+			ContactIndex: toContact.contactIndex,
+			Component:    component,
+			Resolved:     true,
+			Uid:          lookupRes.UID,
+			Username:     lookupRes.Username,
+		})
+	}
 
 	if len(phoneNumbers) > 0 {
 		phoneRes, err := provider.LookupPhoneNumbers(mctx, phoneNumbers, regionCode)
@@ -80,26 +112,22 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				continue
 			}
 
-			toContact := phoneComps[i]
-			contactsFound[toContact.contactIndex] = true
+			insertResult(k, phoneComps[i])
+		}
+	}
 
-			if _, found := usersFound[k.UID]; found {
-				// This user was already resolved by looking up another
-				// component or another contact.
+	if len(emails) > 0 {
+		emailRes, err := provider.LookupEmails(mctx, emails)
+		if err != nil {
+			return res, err
+		}
+
+		for i, k := range emailRes {
+			if !k.Found {
 				continue
 			}
-			contact := contacts[toContact.contactIndex]
-			component := contact.Components[toContact.componentIndex]
 
-			usersFound[k.UID] = true
-
-			res = append(res, keybase1.ResolvedContact{
-				Name:      k.Username, // if found, return username
-				Component: component,
-				Resolved:  true,
-				Uid:       k.UID,
-				Username:  k.Username,
-			})
+			insertResult(k, emailComps[i])
 		}
 	}
 

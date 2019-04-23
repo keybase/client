@@ -155,6 +155,10 @@
           "name": "name"
         },
         {
+          "type": "int",
+          "name": "contactIndex"
+        },
+        {
           "type": "ContactComponent",
           "name": "component"
         },

@@ -138,19 +138,21 @@ func (o Contact) DeepCopy() Contact {
 }
 
 type ResolvedContact struct {
-	Name      string           `codec:"name" json:"name"`
-	Component ContactComponent `codec:"component" json:"component"`
-	Err       *string          `codec:"err,omitempty" json:"err,omitempty"`
-	Resolved  bool             `codec:"resolved" json:"resolved"`
-	Uid       UID              `codec:"uid" json:"uid"`
-	Username  string           `codec:"username" json:"username"`
-	FullName  string           `codec:"fullName" json:"fullName"`
+	Name         string           `codec:"name" json:"name"`
+	ContactIndex int              `codec:"contactIndex" json:"contactIndex"`
+	Component    ContactComponent `codec:"component" json:"component"`
+	Err          *string          `codec:"err,omitempty" json:"err,omitempty"`
+	Resolved     bool             `codec:"resolved" json:"resolved"`
+	Uid          UID              `codec:"uid" json:"uid"`
+	Username     string           `codec:"username" json:"username"`
+	FullName     string           `codec:"fullName" json:"fullName"`
 }
 
 func (o ResolvedContact) DeepCopy() ResolvedContact {
 	return ResolvedContact{
-		Name:      o.Name,
-		Component: o.Component.DeepCopy(),
+		Name:         o.Name,
+		ContactIndex: o.ContactIndex,
+		Component:    o.Component.DeepCopy(),
 		Err: (func(x *string) *string {
 			if x == nil {
 				return nil

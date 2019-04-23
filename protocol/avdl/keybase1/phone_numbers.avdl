@@ -70,6 +70,7 @@ protocol phoneNumbers {
     }
     record ResolvedContact {
         string name; // "Bob Goodman"
+        int contactIndex; // to associate the resolution to input contact entry
         ContactComponent component;
 
         // Outputs:

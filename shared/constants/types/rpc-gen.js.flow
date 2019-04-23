@@ -2708,7 +2708,7 @@ export type ResetType =
   | 2 // DELETE_2
 
 export type ResolveIdentifyImplicitTeamRes = $ReadOnly<{displayName: String, teamID: TeamID, writers?: ?Array<UserVersion>, trackBreaks: {[key: string]: IdentifyTrackBreaks}, folderID: TLFID}>
-export type ResolvedContact = $ReadOnly<{name: String, component: ContactComponent, err?: ?String, resolved: Boolean, uid: UID, username: String, fullName: String}>
+export type ResolvedContact = $ReadOnly<{name: String, contactIndex: Int, component: ContactComponent, err?: ?String, resolved: Boolean, uid: UID, username: String, fullName: String}>
 export type RevisionSpanType =
   | 0 // DEFAULT_0
   | 1 // LAST_FIVE_1
