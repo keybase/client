@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
+import * as I from 'immutable'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
-import {ROLE_PICKER_ZINDEX} from '../../constants/profile'
+import {FloatingRolePicker} from '../../teams/role-picker-2'
 import * as Types from '../../constants/types/teams'
 
 type RowProps = {
@@ -12,39 +13,46 @@ type RowProps = {
   disabledReason: string,
   name: Types.Teamname,
   isOpen: boolean,
-  onCheck: () => void,
+  onCheck: (selected: boolean) => void,
   them: string,
 }
 
-type Props = {
+type RolePickerProps = {|
+  footerComponent: React.Node,
+  isRolePickerOpen: boolean,
+  onCancelRolePicker: () => void,
+  onConfirmRolePicker: (role: Types.TeamRoleType) => void,
+  onOpenRolePicker: () => void,
+  onSelectRole: (role: Types.TeamRoleType) => void,
+  selectedRole: Types.TeamRoleType,
+  disabledReasonsForRolePicker: {[key: Types.TeamRoleType]: string},
+|}
+
+// This state is handled by the state wrapper in the container
+export type ComponentState = {|
+  selectedTeams: I.Set<string>,
+  onSave: () => void,
+  onToggle: (teamName: string, selected: boolean) => void,
+|}
+
+export type AddToTeamProps = {|
+  title: string,
   addUserToTeamsResults: string,
   addUserToTeamsState: Types.AddUserToTeamsState,
   customComponent?: ?React.Node,
   headerStyle?: Styles.StylesCrossPlatform,
-  loaded: {[string]: boolean},
   loadTeamList: () => void,
   onBack: () => void,
   onCancel?: () => void,
-  onOpenRolePicker: (
-    role: string,
-    selectedRole: (Types.TeamRoleType) => void,
-    selectedTeams: {[string]: boolean},
-    styleCover?: Object
-  ) => void,
-  onRoleChange: string => void,
-  onSave: (role: string, selectedTeams: {[string]: boolean}) => void,
-  onToggle: string => void,
-  role: Types.TeamRoleType,
-  selectedTeams: {[string]: boolean},
-  setSelectedTeams: ({[string]: boolean}) => void,
   teamProfileAddList: Array<Types.TeamProfileAddList>,
-  teamnames: Array<Types.Teamname>,
   them: string,
   waiting: boolean,
-}
+|}
+
+type Props = {|...AddToTeamProps, ...RolePickerProps, ...ComponentState|}
 
 const TeamRow = (props: RowProps) => (
-  <Kb.ClickableBox onClick={props.canAddThem ? props.onCheck : null}>
+  <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : null}>
     <Kb.Box2 direction="horizontal" style={styles.teamRow}>
       <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
       <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
@@ -103,7 +111,7 @@ class AddToTeam extends React.Component<Props> {
   }
 
   render() {
-    const selectedTeamCount = Object.values(this.props.selectedTeams).filter(b => b).length
+    const selectedTeamCount = this.props.selectedTeams.size
     return (
       <Kb.Box2 direction="vertical" style={styles.container}>
         {this.props.addUserToTeamsState === 'failed' && (
@@ -138,12 +146,12 @@ class AddToTeam extends React.Component<Props> {
                 this.props.teamProfileAddList.map(team => (
                   <TeamRow
                     canAddThem={!team.disabledReason}
-                    checked={this.props.selectedTeams[team.teamName]}
+                    checked={this.props.selectedTeams.has(team.teamName)}
                     disabledReason={team.disabledReason}
                     key={team.teamName}
                     name={team.teamName}
                     isOpen={team.open}
-                    onCheck={() => this.props.onToggle(team.teamName)}
+                    onCheck={selected => this.props.onToggle(team.teamName, selected)}
                     them={this.props.them}
                   />
                 ))
@@ -168,17 +176,23 @@ class AddToTeam extends React.Component<Props> {
           <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {this.props.them} will be added as a
           </Kb.Text>
-          <Kb.DropdownButton
-            toggleOpen={() =>
-              this.props.onOpenRolePicker(
-                this.props.role,
-                selectedRole => this.props.onRoleChange(selectedRole),
-                this.props.selectedTeams
-              )
-            }
-            selected={DropdownItem(this.props.role)}
-            style={{width: Styles.isMobile ? '100%' : 100}}
-          />
+          <FloatingRolePicker
+            selectedRole={this.props.selectedRole}
+            onSelectRole={this.props.onSelectRole}
+            floatingContainerStyle={styles.floatingRolePicker}
+            footerComponent={this.props.footerComponent}
+            onConfirm={this.props.onConfirmRolePicker}
+            onCancel={this.props.onCancelRolePicker}
+            position={'top center'}
+            open={this.props.isRolePickerOpen}
+            disabledRoles={this.props.disabledReasonsForRolePicker}
+          >
+            <Kb.DropdownButton
+              toggleOpen={this.props.onOpenRolePicker}
+              selected={DropdownItem(this.props.selectedRole)}
+              style={{width: Styles.isMobile ? '100%' : 100}}
+            />
+          </FloatingRolePicker>
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
           {!Styles.isMobile && <Kb.Button type="Secondary" onClick={this.props.onBack} label="Cancel" />}
@@ -187,7 +201,7 @@ class AddToTeam extends React.Component<Props> {
             fullWidth={Styles.isMobile}
             style={styles.addButton}
             type="Primary"
-            onClick={() => this.props.onSave(this.props.role, this.props.selectedTeams)}
+            onClick={() => this.props.onSave()}
             label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
             waitingKey={Constants.addUserToTeamsWaitingKey(this.props.them)}
           />
@@ -256,6 +270,12 @@ const styles = Styles.styleSheetCreate({
   divider: {
     marginLeft: 69,
   },
+  floatingRolePicker: Styles.platformStyles({
+    isElectron: {
+      bottom: -32,
+      position: 'relative',
+    },
+  }),
   meta: {
     alignSelf: 'center',
     marginLeft: Styles.globalMargins.xtiny,
@@ -281,7 +301,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 const PopupWrapped = (props: Props) => (
-  <Kb.PopupDialog styleCover={{zIndex: ROLE_PICKER_ZINDEX}} onClose={props.onBack}>
+  <Kb.PopupDialog onClose={props.onBack}>
     <AddToTeam {...props} />
   </Kb.PopupDialog>
 )

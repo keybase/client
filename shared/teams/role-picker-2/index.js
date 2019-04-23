@@ -305,9 +305,9 @@ const styles = Styles.styleSheetCreate({
   },
   footer: {
     flexGrow: 2,
+    justifyContent: 'flex-end',
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
-    justifyContent: 'flex-end',
   },
   headerText: {
     alignSelf: 'center',
@@ -375,5 +375,20 @@ export class FloatingRolePicker extends React.Component<FloatingProps, S> {
     )
   }
 }
+
+// Helper since it's common for some users to want this
+export const sendNotificationFooter = (checked: boolean, onCheck: (nextVal: boolean) => void) => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    centerChildren={true}
+    style={{
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    }}
+  >
+    <Kb.Checkbox checked={checked} onCheck={onCheck} label="Send chat notification" />
+  </Kb.Box2>
+)
 
 export default RolePicker
