@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 
 type Props = {|
   following?: boolean,
+  followsYou?: boolean,
   waitingKey: string,
   style?: Object,
   onFollow?: () => void,
@@ -25,7 +26,7 @@ class FollowButton extends React.Component<Props, State> {
   }
 
   render() {
-    const {following, onFollow, onUnfollow, style, waitingKey, ...otherProps} = this.props
+    const {following, followsYou, onFollow, onUnfollow, style, waitingKey, ...otherProps} = this.props
 
     if (following) {
       return (
@@ -45,7 +46,7 @@ class FollowButton extends React.Component<Props, State> {
       return (
         <WaitingButton
           type="Success"
-          label="Follow"
+          label={followsYou ? 'Follow back' : 'Follow'}
           onClick={onFollow}
           waitingKey={waitingKey}
           style={{...styleButton, ...style}}
