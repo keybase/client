@@ -40,7 +40,7 @@ type Client struct {
 
 	incomingClient func() gregor1.IncomingInterface
 	outboxSendCh   chan struct{}
-	stopCh         chan struct{}
+	stopCh         chan chan struct{}
 	createSm       func() gregor.StateMachine
 
 	// testing events
@@ -57,7 +57,7 @@ func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.S
 		Log:            log,
 		clock:          clock,
 		outboxSendCh:   make(chan struct{}, 100),
-		stopCh:         make(chan struct{}),
+		stopCh:         make(chan chan struct{}),
 		incomingClient: incomingClient,
 		createSm:       createSm,
 	}
@@ -159,8 +159,10 @@ func (c *Client) Restore(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) Stop() {
-	close(c.stopCh)
+func (c *Client) Stop() chan struct{} {
+	ch := make(chan struct{})
+	c.stopCh <- ch
+	return ch
 }
 
 type ErrHashMismatch struct{}
@@ -455,7 +457,6 @@ func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset,
 }
 
 func (c *Client) outboxSend() {
-	c.Log.Debug("outboxSend: running")
 	ctx := context.Background()
 	msgs, err := c.Sm.Outbox(ctx, c.User)
 	if err != nil {
@@ -507,7 +508,8 @@ func (c *Client) outboxSendLoop() {
 			c.outboxSend()
 		case <-c.outboxSendCh:
 			c.outboxSend()
-		case <-c.stopCh:
+		case ch := <-c.stopCh:
+			close(ch)
 			return
 		}
 		deadline = now.Add(time.Minute)
