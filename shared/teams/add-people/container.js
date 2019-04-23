@@ -3,14 +3,13 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as SearchConstants from '../../constants/search'
-import * as Kb from '../../common-adapters'
+import {sendNotificationFooter} from '../role-picker-2'
 import * as Types from '../../constants/types/teams'
 import {getRole, getDisabledReasonsForRolePicker} from '../../constants/teams'
 import {upperFirst} from 'lodash-es'
 import AddPeople, {type AddPeopleProps} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
@@ -150,23 +149,9 @@ class AddPeopleStateWrapper extends React.Component<AddPeopleProps & ExtraProps,
             ? `Add as ${this.state.selectedRole}${this.props.numberOfUsersSelected > 1 ? 's' : ''}`
             : undefined
         }
-        footerComponent={
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            centerChildren={true}
-            style={{
-              paddingBottom: Styles.globalMargins.tiny,
-              paddingTop: Styles.globalMargins.tiny,
-            }}
-          >
-            <Kb.Checkbox
-              checked={this.state.sendNotification}
-              onCheck={nextVal => this.setState({sendNotification: nextVal})}
-              label="Send chat notification"
-            />
-          </Kb.Box2>
-        }
+        footerComponent={sendNotificationFooter(this.state.sendNotification, nextVal =>
+          this.setState({sendNotification: nextVal})
+        )}
         onSelectRole={selectedRole => this.setState({selectedRole})}
         selectedRole={this.state.selectedRole}
       />

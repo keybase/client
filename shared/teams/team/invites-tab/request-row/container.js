@@ -4,10 +4,9 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Types from '../../../../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../../../../constants/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Kb from '../../../../common-adapters'
+import {sendNotificationFooter} from '../../../role-picker-2'
 import {TeamRequestRow, type RowProps} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Styles from '../../../../styles'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {connect} from '../../../../util/container'
 
@@ -88,23 +87,9 @@ class RequestRowStateWrapper extends React.Component<RowProps & LetIn, State> {
         isRolePickerOpen={this.state.rolePickerOpen}
         onCancelRolePicker={() => this.setState({rolePickerOpen: false})}
         onEditMembership={() => this.setState({rolePickerOpen: true})}
-        footerComponent={
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            centerChildren={true}
-            style={{
-              paddingBottom: Styles.globalMargins.tiny,
-              paddingTop: Styles.globalMargins.tiny,
-            }}
-          >
-            <Kb.Checkbox
-              checked={this.state.sendNotification}
-              onCheck={nextVal => this.setState({sendNotification: nextVal})}
-              label="Send chat notification"
-            />
-          </Kb.Box2>
-        }
+        footerComponent={sendNotificationFooter(this.state.sendNotification, nextVal =>
+          this.setState({sendNotification: nextVal})
+        )}
         onConfirmRolePicker={role => {
           this.setState({rolePickerOpen: false})
           letIn(this.state.sendNotification, role)
