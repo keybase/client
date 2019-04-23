@@ -2,30 +2,34 @@ package stellar
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/stellarnet"
 )
 
+const trustlineMaxLimit = "922337203685.4775807"
+
 func AddTrustlineLocal(mctx libkb.MetaContext, arg stellar1.AddTrustlineLocalArg) (err error) {
 	defer mctx.TraceTimed(
 		fmt.Sprintf("Stellar.AddTrustlineLocal(%s,%s)", arg.AccountID, arg.Trustline.AssetCode),
 		func() error { return err })()
 
-	var limitAmount int64
+	var limitAmount string
 	if arg.Limit != "" {
-		limitAmount, err = stellarnet.ParseStellarAmount(arg.Limit)
+		// Parse to ensure the format and the number is correct.
+		intLimit, err := stellarnet.ParseStellarAmount(arg.Limit)
 		if err != nil {
 			return err
 		}
 
-		if limitAmount <= 0 {
-			return fmt.Errorf("trustline limit has to be higher than 0 in AddTrustlineLocal, got %d", limitAmount)
+		if intLimit <= 0 {
+			return fmt.Errorf("trustline limit has to be higher than 0 in AddTrustlineLocal, got %s", arg.Limit)
 		}
+
+		limitAmount = arg.Limit
 	} else {
-		limitAmount = math.MaxInt64
+		limitAmount = trustlineMaxLimit
 	}
 
 	walletState := getGlobal(mctx.G()).walletState
@@ -163,13 +167,13 @@ func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustl
 
 	walletState := getGlobal(mctx.G()).walletState
 
-	limitAmount, err := stellarnet.ParseStellarAmount(arg.Limit)
+	intLimit, err := stellarnet.ParseStellarAmount(arg.Limit)
 	if err != nil {
 		return fmt.Errorf("while parsing `limit` number: %s", err.Error())
 	}
 
-	if limitAmount <= 0 {
-		return fmt.Errorf("trustline limit has to be higher than 0, got %d", limitAmount)
+	if intLimit <= 0 {
+		return fmt.Errorf("trustline limit has to be higher than 0, got %s", arg.Limit)
 	}
 
 	senderEntry, senderAccountBundle, err := LookupSender(mctx, arg.AccountID)
@@ -189,7 +193,7 @@ func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustl
 			if err != nil {
 				return err
 			}
-			if limitAmount < currentAmount {
+			if intLimit < currentAmount {
 				return fmt.Errorf("limit cannot be set to less what the current balance is: %s", bal.Amount)
 			}
 			found = true
@@ -223,7 +227,7 @@ func ChangeTrustlineLimitLocal(mctx libkb.MetaContext, arg stellar1.ChangeTrustl
 
 	baseFee := walletState.BaseFee(mctx)
 	sig, err := stellarnet.CreateTrustlineTransaction(senderSeed2, arg.Trustline.AssetCode.String(),
-		assetIssuerAddr, limitAmount, sp, tb, baseFee)
+		assetIssuerAddr, arg.Limit, sp, tb, baseFee)
 	if err != nil {
 		return err
 	}

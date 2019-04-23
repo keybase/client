@@ -10,6 +10,7 @@ import (
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/price"
 	"github.com/stellar/go/xdr"
 )
 
@@ -72,6 +73,69 @@ func (t *Tx) AddPaymentOp(to AddressStr, amt string) {
 	t.addOp(xdr.OperationTypePayment, op)
 }
 
+// AddAssetPaymentOp adds a payment operation for a custom asset to the transaction.
+func (t *Tx) AddAssetPaymentOp(to AddressStr, asset xdr.Asset, amt string) {
+	if t.skipAddOp() {
+		return
+	}
+
+	var op xdr.PaymentOp
+	op.Amount, t.err = amount.Parse(amt)
+	if t.err != nil {
+		return
+	}
+	op.Destination, t.err = to.AccountID()
+	if t.err != nil {
+		return
+	}
+	op.Asset = asset
+
+	t.addOp(xdr.OperationTypePayment, op)
+}
+
+// AddPathPaymentOp adds a path payment operation to the transaction.
+func (t *Tx) AddPathPaymentOp(to AddressStr, sendAsset xdr.Asset, sendAmountMax string, destAsset xdr.Asset, destAmount string, path []PathAsset) {
+	if t.skipAddOp() {
+		return
+	}
+
+	op := xdr.PathPaymentOp{
+		SendAsset: sendAsset,
+		DestAsset: destAsset,
+	}
+
+	op.SendMax, t.err = amount.Parse(sendAmountMax)
+	if t.err != nil {
+		return
+	}
+	op.Destination, t.err = to.AccountID()
+	if t.err != nil {
+		return
+	}
+	op.DestAmount, t.err = amount.Parse(destAmount)
+	if t.err != nil {
+		return
+	}
+
+	xdrPath := make([]xdr.Asset, len(path))
+	for i, p := range path {
+		issuer, err := NewAddressStr(p.AssetIssuer)
+		if err != nil {
+			t.err = err
+			return
+		}
+		a, err := makeXDRAsset(p.AssetCode, issuer)
+		if err != nil {
+			t.err = err
+			return
+		}
+		xdrPath[i] = a
+	}
+	op.Path = xdrPath
+
+	t.addOp(xdr.OperationTypePathPayment, op)
+}
+
 // AddCreateAccountOp adds a create_account operation to the transaction.
 func (t *Tx) AddCreateAccountOp(to AddressStr, amt string) {
 	if t.skipAddOp() {
@@ -123,15 +187,57 @@ func (t *Tx) AddInflationDestinationOp(to AddressStr) {
 	t.addOp(xdr.OperationTypeSetOptions, op)
 }
 
-// AddCreateTrustlineOp adds a change_trust operation that will establish
-// a trustline.
-func (t *Tx) AddCreateTrustlineOp(assetCode string, assetIssuer AddressStr, limit int64) {
+// AddHomeDomainOp adds a set_options operation for setting the
+// home domain for an account.
+func (t *Tx) AddHomeDomainOp(domain string) {
 	if t.skipAddOp() {
 		return
 	}
 
-	if limit <= 0 {
-		t.err = errors.New("limit must be greater than zero to create a trustline")
+	if len(domain) > 32 {
+		t.err = errors.New("domain must be less than 32 characters long")
+		return
+	}
+
+	d32 := xdr.String32(domain)
+	op := xdr.SetOptionsOp{HomeDomain: &d32}
+
+	t.addOp(xdr.OperationTypeSetOptions, op)
+}
+
+// AddOfferOp adds a new manage_offer operation to the transaction.
+func (t *Tx) AddOfferOp(selling, buying xdr.Asset, amountToSell, priceIn string) {
+	if t.skipAddOp() {
+		return
+	}
+
+	priceXDR, err := price.Parse(priceIn)
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	amountXDR, err := amount.Parse(amountToSell)
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	op := xdr.ManageOfferOp{
+		Selling: selling,
+		Buying:  buying,
+		Amount:  amountXDR,
+		Price:   priceXDR,
+		OfferId: 0, // for a new offer
+	}
+
+	t.addOp(xdr.OperationTypeManageOffer, op)
+}
+
+// AddCreateTrustlineOp adds a change_trust operation that will establish
+// a trustline.
+func (t *Tx) AddCreateTrustlineOp(assetCode string, assetIssuer AddressStr, limit string) {
+	if t.skipAddOp() {
 		return
 	}
 
@@ -141,9 +247,20 @@ func (t *Tx) AddCreateTrustlineOp(assetCode string, assetIssuer AddressStr, limi
 		return
 	}
 
+	limitAmount, err := amount.Parse(limit)
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	if limitAmount <= 0 {
+		t.err = errors.New("limit must be greater than zero to create a trustline")
+		return
+	}
+
 	op := xdr.ChangeTrustOp{
 		Line:  asset,
-		Limit: xdr.Int64(limit),
+		Limit: limitAmount,
 	}
 
 	t.addOp(xdr.OperationTypeChangeTrust, op)

@@ -59,24 +59,52 @@ func Asset(assetCode string, issuerID AddressStr) (*AssetSummary, error) {
 	return &summary, nil
 }
 
-// AssetsWithCode returns all assets that use assetCode (e.g. 'USD').
+// AssetsWithCode returns all assets that use assetCode (e.g. 'USD')
+// and throws an error if there are none.
 func AssetsWithCode(assetCode string) ([]AssetSummary, error) {
+	searchArg := AssetSearchArg{
+		AssetCode: assetCode,
+		IssuerID:  "",
+	}
+	res, err := AssetSearch(searchArg)
+	if len(res) == 0 {
+		return nil, ErrAssetNotFound
+	}
+	return res, err
+}
+
+// AssetSearchArg is the argument for passing to AssetSearch
+type AssetSearchArg struct {
+	AssetCode string // this is case sensitive
+	IssuerID  string
+}
+
+// AssetSearch returns assets from horizon that match either an
+// asset code or an issuerID or both. It will not throw an error
+// if there are no valid matches.
+func AssetSearch(arg AssetSearchArg) (res []AssetSummary, err error) {
+	if arg.AssetCode == "" && arg.IssuerID == "" {
+		// bail on an empty search
+		return res, nil
+	}
+
 	u, err := url.Parse(Client().URL + "/assets")
 	if err != nil {
 		return nil, errMap(err)
 	}
 	q := u.Query()
-	q.Set("asset_code", assetCode)
+	if len(arg.AssetCode) > 0 {
+		q.Set("asset_code", arg.AssetCode)
+	}
+	if len(arg.IssuerID) > 0 {
+		q.Set("asset_issuer", arg.IssuerID)
+	}
 	u.RawQuery = q.Encode()
 
 	var page AssetsPage
 	err = getDecodeJSONStrict(u.String(), Client().HTTP.Get, &page)
 	if err != nil {
 		return nil, errMap(err)
-	}
-
-	if len(page.Embedded.Records) == 0 {
-		return nil, ErrAssetNotFound
 	}
 
 	summaries := make([]AssetSummary, len(page.Embedded.Records))
@@ -95,6 +123,10 @@ func AssetsWithCode(assetCode string) ([]AssetSummary, error) {
 }
 
 func makeXDRAsset(assetCode string, issuerID AddressStr) (xdr.Asset, error) {
+	if len(assetCode) == 0 && len(issuerID) == 0 {
+		return xdr.NewAsset(xdr.AssetTypeAssetTypeNative, nil)
+	}
+
 	issuer, err := issuerID.AccountID()
 	if err != nil {
 		return xdr.Asset{}, err
@@ -111,5 +143,17 @@ func makeXDRAsset(assetCode string, issuerID AddressStr) (xdr.Asset, error) {
 		return xdr.NewAsset(xdr.AssetTypeAssetTypeCreditAlphanum12, asset)
 	default:
 		return xdr.Asset{}, errors.New("invalid assetCode length")
+	}
+}
+
+func assetCodeToType(code string) (string, error) {
+	x := len(code)
+	switch {
+	case x >= 1 && x <= 4:
+		return "credit_alphanum4", nil
+	case x >= 5 && x <= 12:
+		return "credit_alphanum12", nil
+	default:
+		return "", errors.New("invalid assetCode length")
 	}
 }
