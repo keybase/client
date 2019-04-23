@@ -104,7 +104,6 @@ func NewSrv(log logger.Logger, listenerSource ListenerSource) *Srv {
 	return &Srv{
 		log:            log,
 		listenerSource: listenerSource,
-		doneCh:         make(chan struct{}),
 	}
 }
 
@@ -127,6 +126,7 @@ func (h *Srv) Start() (err error) {
 		Addr:    address,
 		Handler: h.ServeMux,
 	}
+	h.doneCh = make(chan struct{})
 	go func(server *http.Server) {
 		h.log.Debug("kbhttp.Srv: server starting on: %s", address)
 		if err := server.Serve(listener); err != nil {
