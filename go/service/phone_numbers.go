@@ -104,14 +104,6 @@ func (h *PhoneNumbersHandler) BulkLookupPhoneNumbers(ctx context.Context, arg ke
 	return phonenumbers.BulkLookupPhoneNumbers(mctx, arg.PhoneNumberContacts, arg.RegionCodes, arg.UserRegionCode)
 }
 
-func (h *PhoneNumbersHandler) LookupContactList(ctx context.Context, arg keybase1.LookupContactListArg) (res []keybase1.ResolvedContact, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("PhoneNumbersHandler#LookupContactList(len=%d)", len(arg.Contacts)),
-		func() error { return err })()
-	provider := &phonenumbers.CachedContactsProvider{}
-	return phonenumbers.ResolveContacts(mctx, provider, arg.Contacts, arg.UserRegionCode)
-}
-
 const phoneNumbersGregorHandlerName = "phoneHandler"
 
 type phoneNumbersGregorHandler struct {

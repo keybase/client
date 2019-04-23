@@ -1,0 +1,44 @@
+@namespace("keybase.1")
+protocol contacts {
+    import idl "common.avdl";
+
+    // Contact syncing / resolving
+    // ---------------------------
+
+    record ContactComponent {
+        // One of:
+        union { null, RawPhoneNumber } phoneNumber;
+        union { null, EmailAddress } email;
+        string label; // "", "Home", "Work"
+    }
+    record Contact {
+        string name; // "Bob Goodman"
+        array<ContactComponent> components;
+    }
+    record ResolvedContact {
+        string name; // "Bob Goodman"
+        int contactIndex; // to associate the resolution to input contact entry
+        ContactComponent component;
+
+        // Outputs:
+        union { null, string } err;
+        boolean resolved;
+        // If resolved:
+        UID uid; // uid
+        string username; // keybase username
+        string fullName; // keybase full name
+    }
+
+    // lookupContactList transforms contact list (where every contact may have
+    // multiple `components`, like phone numbers or email addresses) to a list
+    // of (un)resolved contacts.
+    //
+    // If a contact finds a keybase resolution for any of its ContactComponents,
+    // one ResolvedContact is returned with the contact name, ContactComponent
+    // granting its resolution, and Keybase data.
+    //
+    // If a contact cannot be resolved for any of its component, each
+    // ContactComponent is transformed into ResolvedContact and returned. They are
+    // separate because each one can be used in the UI to allow for SBS chat.
+    array<ResolvedContact> lookupContactList(int sessionID, array<Contact> contacts, RegionCode userRegionCode);
+}

@@ -104,88 +104,6 @@
           "jsonkey": "phone"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "ContactComponent",
-      "fields": [
-        {
-          "type": [
-            null,
-            "RawPhoneNumber"
-          ],
-          "name": "phoneNumber"
-        },
-        {
-          "type": [
-            null,
-            "EmailAddress"
-          ],
-          "name": "email"
-        },
-        {
-          "type": "string",
-          "name": "label"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Contact",
-      "fields": [
-        {
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ContactComponent"
-          },
-          "name": "components"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ResolvedContact",
-      "fields": [
-        {
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "type": "int",
-          "name": "contactIndex"
-        },
-        {
-          "type": "ContactComponent",
-          "name": "component"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "err"
-        },
-        {
-          "type": "boolean",
-          "name": "resolved"
-        },
-        {
-          "type": "UID",
-          "name": "uid"
-        },
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "string",
-          "name": "fullName"
-        }
-      ]
     }
   ],
   "messages": {
@@ -330,29 +248,6 @@
       "response": {
         "type": "array",
         "items": "PhoneNumberLookupResult"
-      }
-    },
-    "lookupContactList": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "contacts",
-          "type": {
-            "type": "array",
-            "items": "Contact"
-          }
-        },
-        {
-          "name": "userRegionCode",
-          "type": "RegionCode"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "ResolvedContact"
       }
     }
   },
