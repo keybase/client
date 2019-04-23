@@ -11,7 +11,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
+  _onSubmit: (devicename: string) => dispatch(SignupGen.createRestartSignup()), // dispatch(SignupGen.createCheckDevicename({devicename})),
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
 })
 

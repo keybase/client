@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
-import Email, {type Props} from '.'
+import Phone, {type Props} from '.'
 import {compose, connect, withStateHandlers, withHandlers} from '../../util/container'
 
 type OwnProps = {||}
@@ -26,21 +26,21 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  emailAdded: stateProps._emails && stateProps._emails.count() > 0,
   error: stateProps.error,
   onBack: dispatchProps._onBack,
   onNextScreen: dispatchProps._onNextScreen,
   onSkip: dispatchProps._onSkip,
 })
 
-class EmailContainer extends React.Component<Props> {
+class PhoneContainer extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
     if (!prevProps.emailAdded && this.props.emailAdded) {
       this.props.onNextScreen()
     }
   }
+
   render() {
-    return <Email {...this.props} />
+    return <Phone {...this.props} />
   }
 }
 
@@ -51,15 +51,22 @@ const Connected = compose(
     mergeProps
   ),
   withStateHandlers(
-    {allowSearch: false, email: ''},
-    {onChangeAllowSearch: () => allowSearch => ({allowSearch}), onChangeEmail: () => email => ({email})}
+    {allowSearch: false, email: '', numberValid: false},
+    {
+      onChangeAllowSearch: () => allowSearch => ({allowSearch}),
+      onChangePhoneNumber: () => phoneNumber => ({phoneNumber}),
+      onChangeValidity: () => numberValid => {
+        console.warn('in onChangeValidity with', numberValid)
+        return {numberValid}
+      },
+    }
   ),
   withHandlers({
-    onFinish: ({_onSubmit, allowSearch, email}) => () => {
-      _onSubmit(allowSearch, email)
+    onFinish: ({_onSubmit, allowSearch, phoneNumber}) => () => {
+      _onSubmit()
     },
   })
-)(EmailContainer)
+)(PhoneContainer)
 
 // $FlowIssue lets fix this
 Connected.navigationOptions = {

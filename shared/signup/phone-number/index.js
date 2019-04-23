@@ -29,7 +29,7 @@ const EnterPhoneNumber = (props: Props) => (
         style={styles.input}
         onChangeNumber={props.onChangePhoneNumber}
         onChangeValidity={props.onChangeValidity}
-        error=""
+        error={props.numberValid}
       />
       <Kb.Checkbox
         label="Allow friends to find you by this phone number"

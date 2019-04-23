@@ -60,7 +60,7 @@ const showDeviceScreenOnNoErrors = (state: TypedState) => {
 
 const showEmailOnNoErrors = (state: TypedState) => {
   console.warn('in show email')
-  return noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEmail']})
+  return noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupPhone']})
 }
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
