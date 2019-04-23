@@ -1453,6 +1453,15 @@ const gregorPushState = (_, action) => {
   return actions
 }
 
+const renameTeam = (_, action) => {
+  const {newName: _newName, oldName} = action.payload
+  const prevName = {parts: oldName.split('.')}
+  const newName = {parts: _newName.split('.')}
+  return RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, Constants.teamRenameWaitingKey).catch(
+    () => {} // err displayed from waiting store in component
+  )
+}
+
 const clearNavBadges = () =>
   RPCTypes.gregorDismissCategoryRpcPromise({
     category: 'team.newly_added_to_team',
@@ -1542,6 +1551,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     TeamsGen.addTeamWithChosenChannels,
     addTeamWithChosenChannels
   )
+  yield* Saga.chainAction<TeamsGen.RenameTeamPayload>(TeamsGen.renameTeam, renameTeam)
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
     NotificationsGen.receivedBadgeState,
     receivedBadgeState
