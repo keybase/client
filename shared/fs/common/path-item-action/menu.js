@@ -55,6 +55,7 @@ const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: ()
 }
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => [
+  'Divider',
   ...(props.showInSystemFileManager
     ? [
         {
