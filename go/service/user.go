@@ -389,35 +389,48 @@ func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret 
 
 type ProofSuggestion struct {
 	keybase1.ProofSuggestion
+	LogoKey  string
 	Priority int
 }
 
-var pgpProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "pgp",
-	ProfileText:   "Add a PGP key",
-	PickerText:    "PGP key",
-	PickerSubtext: "",
+var pgpProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "pgp",
+		ProfileText:   "Add a PGP key",
+		PickerText:    "PGP key",
+		PickerSubtext: "",
+	},
+	LogoKey: "pgp",
 }
 
-var webProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "web",
-	ProfileText:   "Prove your website",
-	PickerText:    "Your own website",
-	PickerSubtext: "",
+var webProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "web",
+		ProfileText:   "Prove your website",
+		PickerText:    "Your own website",
+		PickerSubtext: "",
+	},
+	LogoKey: "web",
 }
 
-var bitcoinProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "btc",
-	ProfileText:   "Set a Bitcoin address",
-	PickerText:    "Bitcoin address",
-	PickerSubtext: "",
+var bitcoinProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "btc",
+		ProfileText:   "Set a Bitcoin address",
+		PickerText:    "Bitcoin address",
+		PickerSubtext: "",
+	},
+	LogoKey: "btc",
 }
 
-var zcashProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "zcash",
-	ProfileText:   "Set a Zcash address",
-	PickerText:    "Zcash address",
-	PickerSubtext: "",
+var zcashProofSuggestion = ProofSuggestion{
+	ProofSuggestion: keybase1.ProofSuggestion{
+		Key:           "zcash",
+		ProfileText:   "Set a Zcash address",
+		PickerText:    "Zcash address",
+		PickerSubtext: "",
+	},
+	LogoKey: "zcash",
 }
 
 func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
@@ -455,32 +468,34 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		if serviceType.IsNew(mctx) {
 			metas = []keybase1.Identify3RowMeta{{Label: "new", Color: keybase1.Identify3RowColor_BLUE}}
 		}
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
-			Key:           service,
-			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
-			PickerText:    serviceType.DisplayName(),
-			PickerSubtext: subtext,
-			Metas:         metas,
-		}})
+		suggestions = append(suggestions, ProofSuggestion{
+			LogoKey: serviceType.GetLogoKey(),
+			ProofSuggestion: keybase1.ProofSuggestion{
+				Key:           service,
+				ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
+				PickerText:    serviceType.DisplayName(),
+				PickerSubtext: subtext,
+				Metas:         metas,
+			}})
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
 	if !hasPGP {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: pgpProofSuggestion})
+		suggestions = append(suggestions, pgpProofSuggestion)
 	}
 	// Always show the option to create a new web proof.
-	suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: webProofSuggestion})
+	suggestions = append(suggestions, webProofSuggestion)
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyBitcoin) {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: bitcoinProofSuggestion})
+		suggestions = append(suggestions, bitcoinProofSuggestion)
 	}
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyZCash) {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: zcashProofSuggestion})
+		suggestions = append(suggestions, zcashProofSuggestion)
 	}
 
 	// Attach icon urls
 	for i := range suggestions {
 		suggestion := &suggestions[i]
-		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_black", 16)
-		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_full", 32)
+		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_black", 16)
+		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_full", 32)
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
