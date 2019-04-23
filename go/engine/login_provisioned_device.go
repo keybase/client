@@ -265,9 +265,7 @@ func (e *LoginProvisionedDevice) suggestRecovery(mctx libkb.MetaContext) error {
 	e.resetPending = true
 
 	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-		Text: "If you have forgotten your password and either lost all of your devices, or if you " +
-			"uninstalled Keybase from all of them, you can reset your account. You will keep your username, " +
-			"but lose all your data. Would you like to request a reset of your account?",
+		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
 	})
 	if err != nil {
 		return err

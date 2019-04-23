@@ -199,7 +199,7 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 	if status.EventType == libkb.AutoresetEventReady && e.completeReset {
 		// Ask the user if they'd like to reset if we're in login + it's ready
 		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-			Text: "Would you like to complete the reset of your account?",
+			Kind: keybase1.ResetPromptType_COMPLETE,
 		})
 		if err != nil {
 			return err

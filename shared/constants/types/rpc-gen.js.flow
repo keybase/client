@@ -693,7 +693,7 @@ export type MessageTypes = {|
     outParam: String,
   |},
   'keybase.1.loginUi.promptResetAccount': {|
-    inParam: $ReadOnly<{|text: String|}>,
+    inParam: $ReadOnly<{|kind: ResetPromptType|}>,
     outParam: Boolean,
   |},
   'keybase.1.loginUi.promptRevokePaperKeys': {|
@@ -1623,6 +1623,12 @@ export const kbfsCommonFSStatusCode = {
   start: 0,
   finish: 1,
   error: 2,
+}
+
+export const loginUiResetPromptType = {
+  complete: 0,
+  enterProvision: 1,
+  enterForgotPw: 2,
 }
 
 export const notifyTeamAvatarUpdateType = {
@@ -2678,6 +2684,11 @@ export type RepoID = String
 export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, prev: ResetPrev, resetSeqno: Seqno, type: ResetType, uid: UID}>
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
 export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, lastSeqno: Seqno, reset: SHA512}>
+export type ResetPromptType =
+  | 0 // COMPLETE_0
+  | 1 // ENTER_PROVISION_1
+  | 2 // ENTER_FORGOT_PW_2
+
 export type ResetState = $ReadOnly<{endTime: Time, active: Boolean}>
 export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, eldestSeqno: Seqno, type: ResetType}>
 export type ResetType =
