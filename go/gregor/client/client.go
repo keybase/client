@@ -57,7 +57,7 @@ func NewClient(user gregor.UID, device gregor.DeviceID, createSm func() gregor.S
 		Log:            log,
 		clock:          clock,
 		outboxSendCh:   make(chan struct{}, 100),
-		stopCh:         make(chan chan struct{}),
+		stopCh:         make(chan chan struct{}, 10),
 		incomingClient: incomingClient,
 		createSm:       createSm,
 	}
