@@ -43,6 +43,7 @@ export type Props = {|
   authorIsAdmin: ?boolean,
   authorIsOwner: ?boolean,
   centeredOrdinal: boolean,
+  centeredOrdinalHighlightMode: Types.CenterOrdinalHighlightMode,
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
@@ -68,11 +69,32 @@ export type Props = {|
 |}
 
 type State = {
+  showCenteredHighlight: boolean,
   showingPicker: boolean,
   showMenuButton: boolean,
 }
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
-  state = {showMenuButton: false, showingPicker: false}
+  _mounted = false
+  state = {
+    showCenteredHighlight: this.props.centeredOrdinalHighlightMode !== 'none',
+    showMenuButton: false,
+    showingPicker: false,
+  }
+
+  componentDidMount() {
+    this._mounted = true
+    if (this.props.centeredOrdinalHighlightMode === 'flash') {
+      setTimeout(() => {
+        if (this._mounted) {
+          this.setState({showCenteredHighlight: false})
+        }
+      }, 2000)
+    }
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
+  }
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
@@ -264,7 +286,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
-          this.props.centeredOrdinal && styles.centeredOrdinal,
+          this.props.centeredOrdinal && this.state.showCenteredHighlight && styles.centeredOrdinal,
         ]),
       }
       return this.props.decorate
@@ -280,7 +302,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         className: Styles.classNames(
           {
             'WrapperMessage-author': this.props.showUsername,
-            'WrapperMessage-centered': this.props.centeredOrdinal,
+            'WrapperMessage-centered': this.props.centeredOrdinal && this.state.showCenteredHighlight,
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             'WrapperMessage-noOverflow': this.props.isPendingPayment,

@@ -29,7 +29,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, {message}: OwnProps) => ({
   _onReplyClick: messageID =>
     dispatch(
-      Chat2Gen.createLoadMessagesFromSearchHit({conversationIDKey: message.conversationIDKey, messageID})
+      Chat2Gen.createLoadMessagesCentered({
+        conversationIDKey: message.conversationIDKey,
+        highlightMode: 'flash',
+        messageID,
+      })
     ),
 })
 

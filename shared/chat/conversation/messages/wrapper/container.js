@@ -29,8 +29,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     message.type === 'text'
       ? state.chat2.unfurlPromptMap.getIn([message.conversationIDKey, message.id])
       : null
-  const centeredOrdinal =
-    state.chat2.messageCenterOrdinals.get(message.conversationIDKey, 0) === ownProps.ordinal
+  const centeredOrdinalInfo = state.chat2.messageCenterOrdinals.get(message.conversationIDKey)
+  const centeredOrdinal = centeredOrdinalInfo?.ordinal === ownProps.ordinal
+  const centeredOrdinalHighlightMode = centeredOrdinalInfo ? centeredOrdinalInfo.highlightMode : 'none'
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const teamname = meta.teamname
   const authorIsAdmin = teamname
@@ -44,6 +45,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     authorIsAdmin,
     authorIsOwner,
     centeredOrdinal,
+    centeredOrdinalHighlightMode,
     conversationIDKey: ownProps.conversationIDKey,
     hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
     isLastInThread:
@@ -159,6 +161,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     authorIsAdmin: stateProps.authorIsAdmin,
     authorIsOwner: stateProps.authorIsOwner,
     centeredOrdinal: stateProps.centeredOrdinal,
+    centeredOrdinalHighlightMode: stateProps.centeredOrdinalHighlightMode,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,

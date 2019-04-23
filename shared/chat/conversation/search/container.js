@@ -28,7 +28,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   _loadSearchHit: messageID =>
-    dispatch(Chat2Gen.createLoadMessagesFromSearchHit({conversationIDKey, messageID})),
+    dispatch(Chat2Gen.createLoadMessagesCentered({conversationIDKey, highlightMode: 'always', messageID})),
   clearInitialText: () =>
     dispatch(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query: new HiddenString('')})),
   onCancel: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),

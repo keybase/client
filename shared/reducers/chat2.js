@@ -783,7 +783,10 @@ const rootReducer = (
         if (!ordinal) {
           ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
         }
-        messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, ordinal)
+        messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, {
+          highlightMode: cm.highlightMode,
+          ordinal,
+        })
       })
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
@@ -1290,7 +1293,7 @@ const rootReducer = (
     case Chat2Gen.toggleMessageCollapse:
     case Chat2Gen.toggleInfoPanel:
     case Chat2Gen.addUsersToChannel:
-    case Chat2Gen.loadMessagesFromSearchHit:
+    case Chat2Gen.loadMessagesCentered:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

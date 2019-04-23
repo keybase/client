@@ -963,9 +963,9 @@ function* loadMoreMessages(state, action) {
       key = action.payload.conversationIDKey
       reason = 'scroll forward'
       break
-    case Chat2Gen.loadMessagesFromSearchHit:
+    case Chat2Gen.loadMessagesCentered:
       key = action.payload.conversationIDKey
-      reason = 'search hit'
+      reason = 'centered'
       messageIDControl = {
         mode: RPCChatTypes.localMessageIDControlMode.centered,
         num: Constants.numMessagesOnInitialLoad,
@@ -973,7 +973,11 @@ function* loadMoreMessages(state, action) {
       }
       forceClear = true
       forceContainsLatestCalc = true
-      centeredMessageIDs.push({conversationIDKey: key, messageID: action.payload.messageID})
+      centeredMessageIDs.push({
+        conversationIDKey: key,
+        highlightMode: action.payload.highlightMode,
+        messageID: action.payload.messageID,
+      })
       break
     case Chat2Gen.jumpToRecent:
       key = action.payload.conversationIDKey
@@ -3067,7 +3071,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
-    | Chat2Gen.LoadMessagesFromSearchHitPayload
+    | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.SetPendingConversationUsersPayload
     | Chat2Gen.MarkConversationsStalePayload
     | Chat2Gen.MetasReceivedPayload
@@ -3079,7 +3083,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.jumpToRecent,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.loadNewerMessagesDueToScroll,
-      Chat2Gen.loadMessagesFromSearchHit,
+      Chat2Gen.loadMessagesCentered,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
       Chat2Gen.metasReceived,

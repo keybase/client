@@ -712,9 +712,6 @@ const validUIMessagetoMessage = (
         default:
           rawText = ''
       }
-      if (m.replyTo) {
-        console.log('HIHIHI')
-      }
       return makeMessageText({
         ...common,
         ...explodable,

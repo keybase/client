@@ -53,7 +53,6 @@ const styles = Styles.styleSheetCreate({
       border: `1px solid ${Styles.globalColors.black_20}`,
       borderRadius: Styles.borderRadius,
     },
-    isMobile: {},
   }),
   outerContainer: Styles.platformStyles({
     isElectron: {

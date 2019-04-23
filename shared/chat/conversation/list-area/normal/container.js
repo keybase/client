@@ -18,7 +18,7 @@ type OwnProps = {
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
-  const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)
+  const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
   const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   let lastMessageIsOurs = false
