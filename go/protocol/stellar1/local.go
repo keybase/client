@@ -1343,10 +1343,11 @@ type BatchLocalArg struct {
 }
 
 type FindPaymentPathLocalArg struct {
-	To               string `codec:"to" json:"to"`
-	SourceAsset      Asset  `codec:"sourceAsset" json:"sourceAsset"`
-	DestinationAsset Asset  `codec:"destinationAsset" json:"destinationAsset"`
-	Amount           string `codec:"amount" json:"amount"`
+	From             AccountID `codec:"from" json:"from"`
+	To               string    `codec:"to" json:"to"`
+	SourceAsset      Asset     `codec:"sourceAsset" json:"sourceAsset"`
+	DestinationAsset Asset     `codec:"destinationAsset" json:"destinationAsset"`
+	Amount           string    `codec:"amount" json:"amount"`
 }
 
 type LocalInterface interface {

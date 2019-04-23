@@ -1100,19 +1100,6 @@ func (s *Server) AddTrustlineLocal(ctx context.Context, arg stellar1.AddTrustlin
 	return stellar.AddTrustlineLocal(mctx, arg)
 }
 
-func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (res stellar1.PaymentPath, err error) {
-	mctx, fin, err := s.Preamble(ctx, preambleArg{
-		RPCName:       "FindPaymentPathLocal",
-		Err:           &err,
-		RequireWallet: true,
-	})
-	defer fin()
-	if err != nil {
-		return err
-	}
-	return stellar.AddTrustlineLocal(mctx, arg)
-}
-
 func (s *Server) DeleteTrustlineLocal(ctx context.Context, arg stellar1.DeleteTrustlineLocalArg) (err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "AddTrustline",
@@ -1159,7 +1146,16 @@ func (s *Server) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustli
 		}
 	}
 	return ret, nil
-=======
+}
+
+func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (res stellar1.PaymentPath, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "FindPaymentPathLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
 		return stellar1.PaymentPath{}, err
 	}
 
@@ -1171,6 +1167,5 @@ func (s *Server) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustli
 		return stellar1.PaymentPath{}, errors.New("cannot send a path payment to a user without a stellar account")
 	}
 
-	return stellar.FindPaymentPath(mctx, s.remoter, *recipient.AccountID, arg.SourceAsset, arg.DestinationAsset, arg.Amount)
->>>>>>> 78e5a59355... Add protocol for FindPaymentPath local and remote
+	return stellar.FindPaymentPath(mctx, s.remoter, arg.From, *recipient.AccountID, arg.SourceAsset, arg.DestinationAsset, arg.Amount)
 }

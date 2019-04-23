@@ -805,7 +805,8 @@ func (o DetailsPlusPayments) DeepCopy() DetailsPlusPayments {
 }
 
 type PaymentPathQuery struct {
-	To               AccountID `codec:"to" json:"to"`
+	Source           AccountID `codec:"source" json:"source"`
+	Destination      AccountID `codec:"destination" json:"destination"`
 	SourceAsset      Asset     `codec:"sourceAsset" json:"sourceAsset"`
 	DestinationAsset Asset     `codec:"destinationAsset" json:"destinationAsset"`
 	Amount           string    `codec:"amount" json:"amount"`
@@ -813,7 +814,8 @@ type PaymentPathQuery struct {
 
 func (o PaymentPathQuery) DeepCopy() PaymentPathQuery {
 	return PaymentPathQuery{
-		To:               o.To.DeepCopy(),
+		Source:           o.Source.DeepCopy(),
+		Destination:      o.Destination.DeepCopy(),
 		SourceAsset:      o.SourceAsset.DeepCopy(),
 		DestinationAsset: o.DestinationAsset.DeepCopy(),
 		Amount:           o.Amount,

@@ -839,7 +839,11 @@
       "fields": [
         {
           "type": "AccountID",
-          "name": "to"
+          "name": "source"
+        },
+        {
+          "type": "AccountID",
+          "name": "destination"
         },
         {
           "type": "Asset",

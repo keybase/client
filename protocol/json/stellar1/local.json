@@ -2221,6 +2221,10 @@
     "findPaymentPathLocal": {
       "request": [
         {
+          "name": "from",
+          "type": "AccountID"
+        },
+        {
           "name": "to",
           "type": "string"
         },
