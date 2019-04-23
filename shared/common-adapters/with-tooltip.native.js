@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Dimensions} from 'react-native'
+import {Dimensions, View} from 'react-native'
 import FloatingBox from './floating-box'
 import hOCTimers, {type PropsWithTimer} from './hoc-timers'
-import Box from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Animated from './animated'
@@ -18,7 +17,6 @@ import {type Props} from './with-tooltip'
 
 const Kb = {
   Animated,
-  Box,
   ClickableBox,
   FloatingBox,
   Text,
@@ -38,8 +36,8 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
     top: 0,
     visible: false,
   }
-  _clickableRef = React.createRef()
-  _tooltipRef = React.createRef()
+  _clickableRef = React.createRef<View>()
+  _tooltipRef = React.createRef<View>()
   _onClick = () => {
     if (!this._clickableRef.current || !this._tooltipRef.current || this.state.visible) {
       return
@@ -90,34 +88,24 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
 
   render() {
     if (!this.props.showOnPressMobile) {
-      return <Kb.Box style={this.props.containerStyle}>{this.props.children}</Kb.Box>
+      return <View style={this.props.containerStyle}>{this.props.children}</View>
     }
 
     return (
       <>
-        <Kb.Box
-          style={this.props.containerStyle}
-          ref={
-            // $FlowIssue
-            this._clickableRef
-          }
-          className={this.props.className}
-        >
+        <View style={this.props.containerStyle} ref={this._clickableRef} className={this.props.className}>
           <Kb.ClickableBox onClick={this._onClick}>{this.props.children}</Kb.ClickableBox>
-        </Kb.Box>
+        </View>
         <Kb.Animated from={{}} to={{opacity: this.state.visible ? 1 : 0}}>
           {animatedStyle => (
             <Kb.FloatingBox>
-              <Kb.Box
+              <View
                 pointerEvents="none"
                 style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top: this.state.top}])}
               >
-                <Kb.Box
+                <View
                   style={Styles.collapseStyles([animatedStyle, styles.container, {left: this.state.left}])}
-                  ref={
-                    // $FlowIssue
-                    this._tooltipRef
-                  }
+                  ref={this._tooltipRef}
                 >
                   <Kb.Text
                     center={!this.props.multiline}
@@ -127,8 +115,8 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
                   >
                     {this.props.text}
                   </Kb.Text>
-                </Kb.Box>
-              </Kb.Box>
+                </View>
+              </View>
             </Kb.FloatingBox>
           )}
         </Kb.Animated>
