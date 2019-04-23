@@ -56,7 +56,6 @@ export type MobileProps = {
   onInviteEmail: (invitee: string) => void,
   onInvitePhone: (invitee: string) => void,
   onUninvite: (invitee: string) => void,
-  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   onRoleChange: (role: TeamRoleType) => void,
   addInvitee: (contact: ContactDisplayProps) => void,
   removeInvitee: (contact: ContactDisplayProps) => void,

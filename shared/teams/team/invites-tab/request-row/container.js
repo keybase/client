@@ -6,7 +6,6 @@ import {getDisabledReasonsForRolePicker} from '../../../../constants/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {sendNotificationFooter} from '../../../role-picker-2'
 import {TeamRequestRow, type RowProps} from '.'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {connect} from '../../../../util/container'
 
@@ -30,17 +29,6 @@ const mapDispatchToProps = (dispatch, {username, teamname}) => ({
       })
     )
   },
-  onAccept: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {teamname, username},
-            selected: 'teamRolePicker',
-          },
-        ],
-      })
-    ),
   onChat: () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
   },

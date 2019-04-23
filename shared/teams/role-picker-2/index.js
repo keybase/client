@@ -393,4 +393,11 @@ export const sendNotificationFooter = (checked: boolean, onCheck: (nextVal: bool
   </Kb.Box2>
 )
 
+export const roleIconMap = {
+  admin: 'iconfont-crown-admin',
+  owner: 'iconfont-crown-owner',
+  reader: '',
+  writer: '',
+}
+
 export default RolePicker
