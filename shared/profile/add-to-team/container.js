@@ -30,30 +30,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
   },
-  _onOpenRolePicker: (
-    role: TeamRoleType,
-    onComplete: (string, boolean) => void,
-    ownerDisabledExp: string,
-    styleCover?: Object
-  ) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              onComplete,
-              ownerDisabledExp,
-              selectedRole: role,
-              sendNotificationChecked: true,
-              showNotificationCheckbox: false,
-              styleCover,
-            },
-            selected: 'teamControlledRolePicker',
-          },
-        ],
-      })
-    )
-  },
   clearAddUserToTeamsResults: () => dispatch(TeamsGen.createClearAddUserToTeamsResults()),
   loadTeamList: () =>
     dispatch(TeamsGen.createGetTeamProfileAddList({username: Container.getRouteProps(ownProps, 'username')})),

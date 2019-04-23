@@ -65,31 +65,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
     dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
   },
-  onOpenRolePicker: (
-    role: string,
-    sendNotification: boolean,
-    allowOwner: boolean,
-    onComplete: (string, boolean) => void
-  ) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              addButtonLabel: 'Add',
-              allowOwner,
-              headerTitle: 'Add them as:',
-              onComplete,
-              selectedRole: role,
-              sendNotificationChecked: true,
-              showNotificationCheckbox: false,
-            },
-            selected: 'teamControlledRolePicker',
-          },
-        ],
-      })
-    )
-  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
