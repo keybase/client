@@ -17,8 +17,10 @@ const Reply = (props: ReplyProps) => {
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
         <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-            <Kb.Avatar username={props.username} size={24} />
-            <Kb.Text type="Body">{props.username}</Kb.Text>
+            <Kb.Avatar username={props.username} size={32} />
+            <Kb.Text type="Body" style={styles.replyUsername}>
+              {props.username}
+            </Kb.Text>
           </Kb.Box2>
           <Kb.Text type="BodySmall">{props.text}</Kb.Text>
         </Kb.Box2>
@@ -112,6 +114,9 @@ const styles = Styles.styleSheetCreate({
   },
   replyContainer: {
     paddingTop: Styles.globalMargins.xtiny,
+  },
+  replyUsername: {
+    alignSelf: 'center',
   },
   sent,
   sentEditing,

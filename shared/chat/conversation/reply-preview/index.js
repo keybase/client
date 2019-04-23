@@ -17,21 +17,26 @@ const ReplyPreview = (props: Props) => {
         <Kb.Box2 direction="horizontal" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodyTiny">Replying to...</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.replyContainer}>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.replyContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
               <Kb.Text type="Body" style={styles.username}>
                 {props.username}
               </Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-              <Kb.Text type="BodySmall" style={styles.text}>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
                 {props.text}
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Icon onClick={props.onCancel} type="iconfont-remove" boxStyle={styles.close} />
+          <Kb.Icon
+            onClick={props.onCancel}
+            type="iconfont-remove"
+            style={Kb.iconCastPlatformStyles(styles.close)}
+            boxStyle={styles.close}
+          />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box>
@@ -59,6 +64,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   replyContainer: {
+    justifyContent: 'space-between',
     padding: Styles.globalMargins.tiny,
   },
   text: Styles.platformStyles({
@@ -70,6 +76,9 @@ const styles = Styles.styleSheetCreate({
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
+    },
+    isMobile: {
+      maxWidth: '95%',
     },
   }),
   title: {
