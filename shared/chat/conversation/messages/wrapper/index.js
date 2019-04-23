@@ -69,27 +69,21 @@ export type Props = {|
 |}
 
 type State = {
-  showCenteredHighlight: boolean,
+  disableCenteredHighlight: boolean,
   showingPicker: boolean,
   showMenuButton: boolean,
 }
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
   _mounted = false
   state = {
-    showCenteredHighlight: this.props.centeredOrdinalHighlightMode !== 'none',
+    disableCenteredHighlight: false,
     showMenuButton: false,
     showingPicker: false,
   }
 
   componentDidMount() {
     this._mounted = true
-    if (this.props.centeredOrdinalHighlightMode === 'flash') {
-      setTimeout(() => {
-        if (this._mounted) {
-          this.setState({showCenteredHighlight: false})
-        }
-      }, 2000)
-    }
+    this._updateHighlightMode()
   }
 
   componentWillUnmount() {
@@ -97,6 +91,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   componentDidUpdate(prevProps: Props) {
+    if (this.props.centeredOrdinal && !prevProps.centeredOrdinal) {
+      this._updateHighlightMode()
+    }
     if (this.props.measure) {
       const changed =
         this.props.orangeLineAbove !== prevProps.orangeLineAbove || this.props.message !== prevProps.message
@@ -105,6 +102,27 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         this.props.measure()
       }
     }
+  }
+  _updateHighlightMode = () => {
+    switch (this.props.centeredOrdinalHighlightMode) {
+      case 'flash':
+        this.setState({disableCenteredHighlight: false})
+        setTimeout(() => {
+          if (this._mounted) {
+            this.setState({disableCenteredHighlight: true})
+          }
+        }, 2000)
+        break
+      case 'always':
+        this.setState({disableCenteredHighlight: false})
+        break
+    }
+  }
+  _showCenteredHighlight = () => {
+    return (
+      !this.state.disableCenteredHighlight &&
+      (this.props.centeredOrdinal && this.props.centeredOrdinal !== 'none')
+    )
   }
   _onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   _setShowingPicker = (showingPicker: boolean) =>
@@ -286,7 +304,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
-          this.props.centeredOrdinal && this.state.showCenteredHighlight && styles.centeredOrdinal,
+          this._showCenteredHighlight() && styles.centeredOrdinal,
         ]),
       }
       return this.props.decorate
@@ -302,7 +320,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         className: Styles.classNames(
           {
             'WrapperMessage-author': this.props.showUsername,
-            'WrapperMessage-centered': this.props.centeredOrdinal && this.state.showCenteredHighlight,
+            'WrapperMessage-centered': this._showCenteredHighlight(),
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             'WrapperMessage-noOverflow': this.props.isPendingPayment,

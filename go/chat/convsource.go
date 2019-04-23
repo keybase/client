@@ -905,28 +905,29 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	}
 }
 
-func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
+func (s *HybridConversationSource) notifyUpdated(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	if len(msgs) == 0 {
-		s.Debug(ctx, "notifyUnfurls: nothing to do")
+		s.Debug(ctx, "notifyUpdated: nothing to do")
 		return
 	}
-	s.Debug(ctx, "notifyUnfurls: notifying %d messages", len(msgs))
+	s.Debug(ctx, "notifyUpdated: notifying %d messages", len(msgs))
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
+		s.Debug(ctx, "notifyUpdated: failed to get conv: %s", err)
 		return
 	}
-	unfurledMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs)
+	updatedMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs)
 	if err != nil {
-		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
+		s.Debug(ctx, "notifyUpdated: failed to transform supersedes: %s", err)
 		return
 	}
-	s.Debug(ctx, "notifyUnfurls: %d messages after transform", len(unfurledMsgs))
+	s.Debug(ctx, "notifyUpdated: %d messages after transform", len(updatedMsgs))
+	updatedMsgs = NewReplyFiller(s.G()).Fill(ctx, uid, conv.Conv, updatedMsgs)
 	notif := chat1.MessagesUpdated{
 		ConvID: convID,
 	}
-	for _, msg := range unfurledMsgs {
+	for _, msg := range updatedMsgs {
 		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
 	}
 	act := chat1.NewChatActivityWithMessagesUpdated(notif)
@@ -1033,7 +1034,8 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
-	s.notifyUnfurls(ctx, uid, convID, mergeRes.UnfurlTargets)
+	s.notifyUpdated(ctx, uid, convID, mergeRes.UnfurlTargets)
+	s.notifyUpdated(ctx, uid, convID, mergeRes.RepliesAffected)
 	return nil
 }
 

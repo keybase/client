@@ -147,8 +147,17 @@ func (f *ReplyFiller) Fill(ctx context.Context, uid gregor1.UID, conv types.Unbo
 		remoteMsgs = nil
 		f.Debug(ctx, "Fill: failed to get remote messages: %s", err)
 	}
+	origMsgs := append(localMsgs, remoteMsgs...)
+	transform := newBasicSupersedesTransform(f.G(), basicSupersedesTransformOpts{
+		UseDeletePlaceholders: true,
+	})
+	allMsgs, err := transform.Run(ctx, conv, uid, origMsgs)
+	if err != nil {
+		f.Debug(ctx, "Fill: failed to supersede replies: %s", err)
+		allMsgs = origMsgs
+	}
 	replyMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
-	for _, msg := range append(localMsgs, remoteMsgs...) {
+	for _, msg := range allMsgs {
 		replyMap[msg.GetMessageID()] = msg
 	}
 
