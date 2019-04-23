@@ -842,10 +842,7 @@
           "name": "to"
         },
         {
-          "type": [
-            null,
-            "Asset"
-          ],
+          "type": "Asset",
           "name": "sourceAsset"
         },
         {
