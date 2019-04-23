@@ -243,8 +243,6 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
       flexShrink: 1,
       justifyContent: 'center',
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
     },
     isElectron: {
       cursor: 'text',
@@ -258,11 +256,15 @@ const styles = Styles.styleSheetCreate({
   },
   containerNonSmall: {
     height: 32,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
   containerSmall: {
     height: 28,
     maxWidth: 280,
     minWidth: 80,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
   dark: {
     backgroundColor: Styles.globalColors.black_10,

@@ -19,7 +19,6 @@ const FolderViewFilter = (props: Props) =>
   Types.getPathLevel(props.path) > 1 && (
     <Kb.SearchFilter
       hotkey="f"
-      icon="iconfont-filter"
       onChange={props.onUpdate}
       placeholderText="Filter"
       type="Small"
