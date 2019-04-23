@@ -827,10 +827,15 @@ func CreateCustomAsset(source SeedStr, assetCode, limit, homeDomain string, xlmP
 		return "", "", err
 	}
 
-	return createCustomAssetWithKPs(source, issuerPair, distPair, assetCode, limit, homeDomain, xlmPrice, baseFee)
+	return CreateCustomAssetWithKPs(source, issuerPair, distPair, assetCode, limit, homeDomain, xlmPrice, baseFee)
 }
 
-func createCustomAssetWithKPs(source SeedStr, issuerPair, distPair *keypair.Full, assetCode, limit, homeDomain string, xlmPrice string, baseFee uint64) (issuer, distributor SeedStr, err error) {
+// CreateCustomAssetWithKPs will create a new asset on the network using the specified
+// issuerPair as the issuing account and distPair as the distribution account.
+//
+// You should probably use CreateCustomAsset as it will make new issuer, dist for you,
+// but this one can be handy in tests where you want to specify the issuer, dist keys.
+func CreateCustomAssetWithKPs(source SeedStr, issuerPair, distPair *keypair.Full, assetCode, limit, homeDomain string, xlmPrice string, baseFee uint64) (issuer, distributor SeedStr, err error) {
 	// 1. create issuer
 	issuer, err = NewSeedStr(issuerPair.Seed())
 	if err != nil {

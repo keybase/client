@@ -824,6 +824,32 @@
     },
     {
       "type": "record",
+      "name": "PaymentPathLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "sourceDisplay"
+        },
+        {
+          "type": "string",
+          "name": "sourceMaxDisplay"
+        },
+        {
+          "type": "string",
+          "name": "destinationDisplay"
+        },
+        {
+          "type": "AccountID",
+          "name": "destinationAccount"
+        },
+        {
+          "type": "PaymentPath",
+          "name": "fullPath"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -1160,28 +1186,6 @@
         {
           "type": "string",
           "name": "message"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PaymentPathLocal",
-      "fields": [
-        {
-          "type": "string",
-          "name": "sourceDisplay"
-        },
-        {
-          "type": "string",
-          "name": "sourceMaxDisplay"
-        },
-        {
-          "type": "string",
-          "name": "destinationDisplay"
-        },
-        {
-          "type": "PaymentPath",
-          "name": "fullPath"
         }
       ]
     }
@@ -1990,6 +1994,31 @@
         "items": "Balance"
       }
     },
+    "findPaymentPathLocal": {
+      "request": [
+        {
+          "name": "from",
+          "type": "AccountID"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        },
+        {
+          "name": "sourceAsset",
+          "type": "Asset"
+        },
+        {
+          "name": "destinationAsset",
+          "type": "Asset"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ],
+      "response": "PaymentPathLocal"
+    },
     "balancesLocal": {
       "request": [
         {
@@ -2039,6 +2068,31 @@
         {
           "name": "fromAccountID",
           "type": "AccountID"
+        }
+      ],
+      "response": "SendResultCLILocal"
+    },
+    "sendPathCLILocal": {
+      "request": [
+        {
+          "name": "source",
+          "type": "AccountID"
+        },
+        {
+          "name": "destination",
+          "type": "AccountID"
+        },
+        {
+          "name": "path",
+          "type": "PaymentPath"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        },
+        {
+          "name": "publicNote",
+          "type": "string"
         }
       ],
       "response": "SendResultCLILocal"
@@ -2239,31 +2293,6 @@
         }
       ],
       "response": "BatchResultLocal"
-    },
-    "findPaymentPathLocal": {
-      "request": [
-        {
-          "name": "from",
-          "type": "AccountID"
-        },
-        {
-          "name": "to",
-          "type": "string"
-        },
-        {
-          "name": "sourceAsset",
-          "type": "Asset"
-        },
-        {
-          "name": "destinationAsset",
-          "type": "Asset"
-        },
-        {
-          "name": "amount",
-          "type": "string"
-        }
-      ],
-      "response": "PaymentPathLocal"
     }
   },
   "namespace": "stellar.1"

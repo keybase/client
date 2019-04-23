@@ -696,6 +696,52 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	}, nil
 }
 
+type SendPathPaymentArg struct {
+	From        stellar1.AccountID
+	To          stellar1.AccountID
+	Path        stellar1.PaymentPath
+	SecretNote  string
+	PublicMemo  string
+	QuickReturn bool
+}
+
+// SendPathPaymentCLI sends a path payment from CLI.
+func SendPathPaymentCLI(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
+	// look up sender account
+	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
+	if err != nil {
+		return res, err
+	}
+	senderSeed := senderAccountBundle.Signers[0]
+	senderAccountID := senderEntry.AccountID
+
+	baseFee := walletState.BaseFee(mctx)
+
+	to, err := stellarnet.NewAddressStr(sendArg.To.String())
+	if err != nil {
+		return res, err
+	}
+	sourceIssuer, err := stellarnet.NewAddressStr(sendArg.SourceAsset.Issuer)
+	if err != nil {
+		return res, err
+	}
+	destinationIssuer, err := stellarnet.NewAddressStr(sendArg.DestinationAsset.Issuer)
+	if err != nil {
+		return res, err
+	}
+
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
+	defer unlock()
+
+	sig, err := stellarnet.PathPaymentTransaction(senderSeed, to, sendArg.Path.SourceAsset.Code, sourceIssuer, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset.Code, destinationIssuer, sendArg.Path.DestinationAmount, sendArg.Path.Path, sendArg.PublicMemo, sp, nil, baseFee)
+	if err != nil {
+		return res, err
+	}
+	_ = sig
+
+	return res, errors.New("not yet implemented")
+}
+
 type indexedSpec struct {
 	spec             libkb.MiniChatPaymentSpec
 	index            int

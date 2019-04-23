@@ -215,6 +215,39 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}, nil
 }
 
+func (s *Server) SendPathCLILocal(ctx context.Context, arg stellar1.SendPathCLILocalArg) (res stellar1.SendResultCLILocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "SendPathCLILocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	uis := libkb.UIs{
+		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
+	}
+	mctx = mctx.WithUIs(uis)
+
+	sendRes, err := stellar.SendPathPaymentCLI(mctx, s.walletState, stellar.SendPathPaymentArg{
+		From:        arg.Source,
+		To:          arg.Destination,
+		Path:        arg.Path,
+		SecretNote:  arg.Note,
+		PublicMemo:  arg.PublicNote,
+		QuickReturn: false,
+	})
+	if err != nil {
+		return res, err
+	}
+	return stellar1.SendResultCLILocal{
+		KbTxID: sendRes.KbTxID,
+		TxID:   sendRes.TxID,
+	}, nil
+}
+
 func (s *Server) ClaimCLILocal(ctx context.Context, arg stellar1.ClaimCLILocalArg) (res stellar1.RelayClaimResult, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ClaimCLILocal",
