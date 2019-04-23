@@ -12,7 +12,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
   <Kb.Box2 direction="vertical" style={styles.headerTitle}>
     <Kb.Text type="Header">Devices</Kb.Text>
     <Kb.Text type="BodySmall">
-      {props.numActive} Active &middot; {props.numRevoked} Revoked
+      {props.numActive} Active • {props.numRevoked} Revoked
     </Kb.Text>
   </Kb.Box2>
 )
