@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
+import flags from '../util/feature-flags'
 
 type Item =
   | {key: string, id: Types.DeviceID, type: 'device'}
@@ -75,7 +76,9 @@ class Devices extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
+        {(!flags.useNewRouter || Styles.isMobile) && (
+          <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
+        )}
         {this.props.showPaperKeyNudge && (
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
