@@ -5,6 +5,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type ReplyProps = {
+  edited: boolean,
   onClick: () => void,
   text: string,
   username: string,
@@ -23,6 +24,11 @@ const Reply = (props: ReplyProps) => {
             </Kb.Text>
           </Kb.Box2>
           <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+          {props.edited && (
+            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+              EDITED
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -114,6 +120,9 @@ const styles = Styles.styleSheetCreate({
   },
   replyContainer: {
     paddingTop: Styles.globalMargins.xtiny,
+  },
+  replyEdited: {
+    color: Styles.globalColors.black_20,
   },
   replyUsername: {
     alignSelf: 'center',

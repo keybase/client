@@ -14,6 +14,7 @@ const getReplyProps = (replyTo, onReplyClick) => {
     return undefined
   }
   return {
+    edited: replyTo.hasBeenEdited,
     onClick: () => onReplyClick(replyTo.id),
     text: replyTo.text.stringValue(),
     username: replyTo.author,
