@@ -158,15 +158,12 @@ func (h *Srv) Addr() (string, error) {
 func (h *Srv) Stop() <-chan struct{} {
 	h.Lock()
 	defer h.Unlock()
-	var doneCh chan struct{}
 	if h.server != nil {
 		h.server.Close()
 		h.server = nil
-		doneCh = h.doneCh
-		h.doneCh = nil
-	} else {
-		doneCh = make(chan struct{})
-		close(doneCh)
+		return h.doneCh
 	}
+	doneCh := make(chan struct{})
+	close(doneCh)
 	return doneCh
 }
