@@ -68,11 +68,10 @@ class Providers extends React.Component<ProvidersProps> {
   }
 }
 
-const normalizeForFiltering = (input) => input.toLowerCase().replace(/[\.\s]/g, '')
+const normalizeForFiltering = input => input.toLowerCase().replace(/[.\s]/g, '')
 
 const filterProvider = (p, filter) => {
-  return normalizeForFiltering(p.name).match(filter) ||
-    normalizeForFiltering(p.desc).match(filter)
+  return normalizeForFiltering(p.name).match(filter) || normalizeForFiltering(p.desc).match(filter)
 }
 
 type State = {
