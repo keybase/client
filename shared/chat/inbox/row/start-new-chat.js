@@ -1,23 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  BackButton,
-  Button,
-  iconCastPlatformStyles,
-  Icon,
-  Box,
-  Box2,
-  ClickableBox,
-  Text,
-} from '../../../common-adapters'
-import {
-  styleSheetCreate,
-  platformStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import flags from '../../../util/feature-flags'
 
 type Props = {
@@ -26,70 +10,72 @@ type Props = {
 }
 
 const StartNewChat = (props: Props) => {
-  if (!flags.useNewRouter || isMobile) {
+  if (!flags.useNewRouter || Styles.isMobile) {
     return (
-      <Box style={styles.container}>
-        <ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
-          <Icon
+      <Kb.Box style={styles.container}>
+        <Kb.ClickableBox style={styles.clickableBox} onClick={props.onNewChat}>
+          <Kb.Icon
             type="iconfont-compose"
-            style={iconCastPlatformStyles(styles.iconCompose)}
+            style={Kb.iconCastPlatformStyles(styles.iconCompose)}
             hoverColor="inital"
           />
-          <Text type="BodyBigLink" style={{margin: globalMargins.tiny}}>
+          <Kb.Text type="BodyBigLink" style={{margin: Styles.globalMargins.tiny}}>
             Start a new chat
-          </Text>
-        </ClickableBox>
-        {flags.useNewRouter && isMobile && <BackButton onClick={props.onBack} style={styles.backButton} />}
-      </Box>
+          </Kb.Text>
+        </Kb.ClickableBox>
+        {flags.useNewRouter && Styles.isMobile && (
+          <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+        )}
+      </Kb.Box>
     )
   }
   return (
-    <Box2 direction="horizontal" fullWidth={true}>
-      <Button label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true}>
-        <Icon type="iconfont-compose" color={globalColors.white} style={styles.buttonIcon} />
-      </Button>
-    </Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Button label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true}>
+        <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.buttonIcon} />
+      </Kb.Button>
+    </Kb.Box2>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   backButton: {
     left: 0,
     position: 'absolute',
-    top: globalMargins.xxtiny,
+    top: Styles.globalMargins.xxtiny,
   },
   button: {
     flexGrow: 1,
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
   },
   buttonIcon: {
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   clickableBox: {
     alignItems: 'center',
     flexDirection: 'row',
   },
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blueGrey,
+    backgroundColor: Styles.isMobile ? Styles.globalColors.fastBlank : Styles.globalColors.blueGrey,
     justifyContent: 'center',
     minHeight: 48,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     position: 'relative',
   },
-  iconCompose: platformStyles({
+  iconCompose: Styles.platformStyles({
     common: {
-      color: globalColors.blue,
+      color: Styles.globalColors.blue,
     },
     isElectron: {
       fontSize: 16,
     },
     isMobile: {
       fontSize: 20,
-      padding: globalMargins.xtiny,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
 })
