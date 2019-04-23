@@ -41,7 +41,6 @@ export type DesktopProps = {
   onClearInviteError: () => void,
   onClose: () => void,
   onInvite: (invitees: string, role: TeamRoleType) => void,
-  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   waitingKey: string,
 }
 
