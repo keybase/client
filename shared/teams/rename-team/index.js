@@ -117,13 +117,15 @@ class RenameTeam extends React.Component<Props, {|error: string, newName: string
               {this.state.error || this.props.error}
             </Kb.Text>
           )}
-          {!!this.state.newName && (
+          {this.state.newName ? (
             <Kb.Text type="BodySmall">
               This team will be named{' '}
               <Kb.Text type="BodySmallSemibold">
                 {this._prefix}.{this.state.newName.toLowerCase()}
               </Kb.Text>
             </Kb.Text>
+          ) : (
+            <Kb.Text type="BodySmall">Write a name to see a preview.</Kb.Text>
           )}
         </Kb.Box2>
         <Kb.ButtonBar direction="row" style={styles.buttonBar}>
