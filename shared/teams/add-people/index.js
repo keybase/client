@@ -102,7 +102,7 @@ const AddPeople = (props: Props) => (
           keyboardDismissMode="on-drag"
         />
       </Kb.Box>
-      {!Styles.isMobile && (
+      {!Styles.isMobile ? (
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
           <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
             <FloatingRolePicker
@@ -126,6 +126,19 @@ const AddPeople = (props: Props) => (
             </FloatingRolePicker>
           </Kb.Box>
         </Kb.Box>
+      ) : (
+        <FloatingRolePicker
+          confirmLabel={props.confirmLabel}
+          selectedRole={props.selectedRole}
+          onSelectRole={props.onSelectRole}
+          floatingContainerStyle={styles.floatingRolePicker}
+          footerComponent={props.footerComponent}
+          onConfirm={props.onConfirmRolePicker}
+          onCancel={props.onCancelRolePicker}
+          position={'top center'}
+          open={props.isRolePickerOpen}
+          disabledRoles={props.disabledReasonsForRolePicker}
+        />
       )}
     </Kb.Box>
   </MaybePopup>

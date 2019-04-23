@@ -347,7 +347,7 @@ const styles = Styles.styleSheetCreate({
 // Helper to use this as a floating box
 export type FloatingProps = {|
   position?: Position,
-  children: React.ChildrenArray<any>,
+  children?: React.ChildrenArray<any>,
   floatingContainerStyle?: StylesCrossPlatform,
   open: boolean,
   ...Props,
