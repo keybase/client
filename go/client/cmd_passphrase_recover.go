@@ -47,11 +47,32 @@ func (c *CmdPassphraseRecover) Run() error {
 		return err
 	}
 
-	// Check that there is a UID.
-	// This a proxy for whether this device has been provisioned for the recoverer.
-	uid := c.G().GetMyUID()
-	if !uid.Exists() {
-		return c.errNoUID()
+	if c.Username != "" {
+		// Check the username in the user configs
+		normalized := libkb.NewNormalizedUsername(c.Username)
+
+		// Fetch usernames from user configs
+		currentUsername, otherUsernames, err := c.G().GetAllUserNames()
+		if err != nil {
+			return err
+		}
+		usernamesMap := map[libkb.NormalizedUsername]struct{}{
+			currentUsername: struct{}{},
+		}
+		for _, username := range otherUsernames {
+			usernamesMap[username] = struct{}{}
+		}
+
+		// Check if the passed username is in the map
+		if _, ok := usernamesMap[normalized]; !ok {
+			return c.errNotProvisioned()
+		}
+	} else {
+		// Check the current UID - by proxy checks if the device has been provisioned
+		uid := c.G().GetMyUID()
+		if !uid.Exists() {
+			return c.errNotProvisioned()
+		}
 	}
 
 	// Login with unlocked keys or a prompted paper key.
@@ -136,8 +157,8 @@ func (c *CmdPassphraseRecover) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdPassphraseRecover) errNoUID() error {
-	return errors.New(`Can't recover without a UID.
+func (c *CmdPassphraseRecover) errNotProvisioned() error {
+	return errors.New(`Can't recover without device keys.
 
 If you have not provisioned this device before but do have
 your paper key, try running: keybase login

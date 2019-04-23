@@ -155,6 +155,43 @@ func TestLoginWithPaperKeyByUsername(t *testing.T) {
 	AssertDeviceKeysLock(&tc, true)
 }
 
+// full flow, fail to login due to an invalid username
+func TestLoginWithInvalidUsername(t *testing.T) {
+	tc := SetupEngineTest(t, "loginwithpaperkey")
+	defer tc.Cleanup()
+
+	// We're creating the user to make sure that we have _some_ keys
+	// and differentiate from the no-username-passed flow
+	_, paperkey := CreateAndSignupLPK(tc, "login")
+
+	t.Logf("logging out")
+	Logout(tc)
+
+	t.Logf("checking logged in status [before]")
+	AssertLoggedInLPK(&tc, false)
+	t.Logf("checking unlocked status [before]")
+	AssertDeviceKeysLock(&tc, false)
+
+	t.Logf("running LoginWithPaperKey")
+	uis := libkb.UIs{
+		LogUI: tc.G.UI.GetLogUI(),
+		SecretUI: &TestSecretUIPaperKey{
+			T:                         t,
+			Paperkey:                  paperkey,
+			AllowedGetPassphraseCalls: 1,
+		},
+	}
+	eng := NewLoginWithPaperKey(tc.G, "doesnotexist")
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	require.Equal(t, libkb.NotFoundError{}, err)
+
+	t.Logf("checking logged in status [after]")
+	AssertLoggedInLPK(&tc, false)
+	t.Logf("checking unlocked status [after]")
+	AssertDeviceKeysLock(&tc, false)
+}
+
 // Returns the user and paper key.
 func CreateAndSignupLPK(tc libkb.TestContext, prefix string) (*FakeUser, string) {
 	u := CreateAndSignupFakeUser(tc, prefix)
