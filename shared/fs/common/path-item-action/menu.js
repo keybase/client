@@ -22,8 +22,10 @@ type Props = {|
   download?: ?() => void,
   ignoreTlf?: ?() => void,
   moveOrCopy?: ?() => void,
+  newFolder?: ?() => void,
+  openChatNonTeam?: ?() => void,
+  openChatTeam?: ?() => void,
   pathItemType: Types.PathType,
-  position?: 'header' | 'row',
   saveMedia?: ?ActionOrInProgress,
   showInSystemFileManager?: ?() => void,
   // share menu items
@@ -57,6 +59,30 @@ const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: ()
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => [
   'Divider',
+  ...(props.newFolder
+    ? [
+        {
+          onClick: hideMenuOnClick(props.newFolder, hideMenu),
+          title: 'New folder',
+        },
+      ]
+    : []),
+  ...(props.openChatTeam
+    ? [
+        {
+          onClick: hideMenuOnClick(props.openChatTeam, hideMenu),
+          title: 'Chat with users in this team',
+        },
+      ]
+    : []),
+  ...(props.openChatNonTeam
+    ? [
+        {
+          onClick: hideMenuOnClick(props.openChatNonTeam, hideMenu),
+          title: 'Chat with users in this folder',
+        },
+      ]
+    : []),
   ...(props.showInSystemFileManager
     ? [
         {

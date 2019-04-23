@@ -189,16 +189,21 @@ const mapStateToProps = (state, {path}) => ({
 const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (s, d, o: OwnProps) => {
-  const normalRowItems = filterRowItems(getNormalRowItemsFromStateProps(s, o.path), s._filter)
+  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path)
+  const filteredRowItems = filterRowItems(normalRowItems, s._filter)
   return {
     destinationPickerIndex: o.destinationPickerIndex,
-    isEmpty: !normalRowItems.size,
+    emptyMode: !normalRowItems.size
+      ? 'empty'
+      : !filteredRowItems.size
+      ? 'not-empty-but-no-match'
+      : 'not-empty',
     items: I.List([
       ...(o.headerRows || []),
       // don't show top bar in destinationPicker.
       ...(typeof o.destinationPickerIndex === 'number' ? [] : topBarAsRow(o.path)),
     ])
-      .concat(normalRowItems)
+      .concat(filteredRowItems)
       .concat(
         // If we are in the destination picker, inject two empty rows so when
         // user scrolls to the bottom nothing is blocked by the

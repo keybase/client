@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as FsGen from '../../../actions/fs-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import {namedConnect} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
@@ -13,12 +14,16 @@ import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {fsTab} from '../../../constants/tabs'
+import * as Util from '../../../util/kbfs'
 
 type OwnProps = {|
   floatingMenuProps: FloatingMenuProps,
   path: Types.Path,
-  position?: 'row' | 'header',
+  mode: 'row' | 'screen',
   routePath: I.List<string>,
+  // 'row' means this is an itme on a row where there are more than one
+  // PathItem on the screen and this is just one of them. 'screen' means this
+  // is for the PathItem that this screen is associated with, e.g., in header.
 |}
 
 const mapStateToProps = (state, {path}) => ({
@@ -30,7 +35,7 @@ const mapStateToProps = (state, {path}) => ({
   _view: state.fs.pathItemActionMenu.view,
 })
 
-const mapDispatchToProps = (dispatch, {path, position, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path, mode, routePath}: OwnProps) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
   _confirmSaveMedia: (toCancel: ?string) =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-save-media'})),
@@ -41,7 +46,7 @@ const mapDispatchToProps = (dispatch, {path, position, routePath}: OwnProps) => 
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [fsTab],
-        path: [{props: {path, position}, selected: 'reallyDelete'}],
+        path: [{props: {path, mode}, selected: 'reallyDelete'}],
       })
     )
   },
@@ -55,6 +60,21 @@ const mapDispatchToProps = (dispatch, {path, position, routePath}: OwnProps) => 
       })
     )
   },
+  _newFolder: () =>
+    dispatch(
+      FsGen.createNewFolderRow({
+        parentPath: path,
+      })
+    ),
+  _openChat: () =>
+    dispatch(
+      Chat2Gen.createPreviewConversation({
+        reason: 'files',
+        // tlfToParticipantsOrTeamname will route both public and private
+        // folders to a private chat, which is exactly what we want.
+        ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
+      })
+    ),
   _saveMedia: () => {
     const key = Constants.makeDownloadKey(path)
     dispatch(FsGen.createSaveMedia({key, path}))
@@ -135,11 +155,12 @@ const getSaveMedia = (stateProps, dispatchProps, c) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const getLayout = stateProps._view === 'share' ? getShareLayout : getRootLayout
-  const layout = getLayout(ownProps.path, stateProps._pathItem, stateProps._username)
+  const {mode, ...rest} = ownProps
+  const layout = getLayout(mode, ownProps.path, stateProps._pathItem, stateProps._username)
   const c = action =>
     isMobile ? addCancelIfNeeded(action, dispatchProps._cancel, stateProps._downloadKey) : action
   return {
-    ...ownProps,
+    ...rest,
     shouldHideMenu: shouldHideMenu(stateProps),
     // menu items
     // eslint-disable-next-line sort-keys
@@ -148,8 +169,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
+    newFolder: layout.newFolder ? c(dispatchProps._newFolder) : null,
+    openChatNonTeam: layout.openChatNonTeam ? c(dispatchProps._openChat) : null,
+    openChatTeam: layout.openChatTeam ? c(dispatchProps._openChat) : null,
     pathItemType: stateProps._pathItem.type,
-    position: ownProps.position,
     saveMedia: layout.saveMedia ? getSaveMedia(stateProps, dispatchProps, c) : null,
     showInSystemFileManager:
       layout.showInSystemFileManager && stateProps._sfmiEnabled

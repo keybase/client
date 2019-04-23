@@ -6,19 +6,21 @@ import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 
 type Props = {|
+  onTriggerFilterMobile: () => void,
   path: Types.Path,
 |}
 
 const FsNavHeaderRightActions = (props: Props) => (
   <Kb.Box style={styles.outerContainer}>
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
-      <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
       <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
-      <Kbfs.NewFolder path={props.path} />
-      <Kbfs.SendInAppAction path={props.path} />
+      {Styles.isMobile ? (
+        <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
+      ) : (
+        <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
+      )}
       <Kbfs.OpenInSystemFileManager path={props.path} />
-      <Kbfs.OpenChat path={props.path} />
-      <Kbfs.PathItemAction path={props.path} clickable={{type: 'icon'}} initView="root" />
+      <Kbfs.PathItemAction path={props.path} clickable={{type: 'icon'}} initView="root" mode="screen" />
     </Kb.Box2>
   </Kb.Box>
 )
@@ -35,7 +37,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   folderViewFilter: {
-    marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
     width: 140,
   },

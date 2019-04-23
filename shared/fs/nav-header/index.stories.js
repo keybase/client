@@ -46,7 +46,7 @@ const TestWrapper = ({path, offline}: {path: Types.Path, offline?: ?boolean}) =>
       onPop={Sb.action('onPop')}
       options={{
         headerBanner: <DesktopBanner />,
-        headerRightActions: () => <Actions path={path} />,
+        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
       }}
     />
