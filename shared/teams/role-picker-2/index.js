@@ -196,13 +196,12 @@ const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
           alignSelf: 'flex-end',
           marginRight: Styles.globalMargins.tiny,
         }}
-        type="Secondary"
+        type="Dim"
         label="Cancel"
         onClick={onCancel}
       />
     )}
     <Kb.Button
-      type="Primary"
       style={{
         alignSelf: 'flex-end',
       }}
@@ -298,6 +297,9 @@ const styles = Styles.styleSheetCreate({
       boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20_on_white}`,
       minHeight: 350,
       width: 310,
+    },
+    isMobile: {
+      paddingTop: Styles.globalMargins.medium,
     },
   }),
   disabledRow: {

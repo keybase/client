@@ -105,7 +105,7 @@ export const TeamMember = (props: Props) => {
         </Kb.Text>
       </Kb.Box>
       <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'}>
-        <Kb.Button label="Chat" type="Primary" onClick={props.onChat}>
+        <Kb.Button label="Chat" onClick={props.onChat}>
           <Kb.Icon
             type="iconfont-chat"
             style={{
@@ -126,7 +126,7 @@ export const TeamMember = (props: Props) => {
             open={props.isRolePickerOpen}
             disabledRoles={props.disabledReasonsForRolePicker}
           >
-            <Kb.Button type="Secondary" label="Edit role" onClick={props.onEditMembership} />
+            <Kb.Button type="Dim" label="Edit role" onClick={props.onEditMembership} />
           </FloatingRolePicker>
         )}
         {props.admin && (

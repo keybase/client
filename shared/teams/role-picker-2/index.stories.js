@@ -100,12 +100,7 @@ const load = () => {
             ...state,
           })}
         >
-          <Kb.Button
-            onClick={() => setState({opened: true})}
-            disabled={state.opened}
-            type="Primary"
-            label="Add"
-          />
+          <Kb.Button onClick={() => setState({opened: true})} disabled={state.opened} label="Add" />
         </FloatingRolePicker>
       </Kb.Box2>
     ))

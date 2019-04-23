@@ -190,7 +190,7 @@ class AddToTeam extends React.Component<Props> {
             <Kb.DropdownButton
               toggleOpen={this.props.onOpenRolePicker}
               selected={DropdownItem(this.props.selectedRole)}
-              style={{width: Styles.isMobile ? '100%' : 100}}
+              style={styles.rolePickerButton}
             />
           </FloatingRolePicker>
         </Kb.Box2>
@@ -280,6 +280,16 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
     marginTop: 2,
   },
+  rolePickerButton: Styles.platformStyles({
+    isElectron: {
+      width: 100,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+  }),
   teamRow: Styles.platformStyles({
     common: {
       alignItems: 'center',
