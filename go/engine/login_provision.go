@@ -31,7 +31,7 @@ type loginProvision struct {
 	hasDevice      bool
 	perUserKeyring *libkb.PerUserKeyring
 
-	resetPending  bool
+	skippedLogin  bool
 	resetComplete bool
 }
 
@@ -123,7 +123,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 		return err
 	}
-	if e.resetPending || e.resetComplete {
+	if e.skippedLogin || e.resetComplete {
 		return nil
 	}
 
@@ -785,9 +785,9 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		}
 
 		if !enterReset {
-			// Although we didn't enter the pipeline, we don't want the flow to try logging in,
-			// so we mark it as if we have just joined the pipeline.
-			e.resetPending = true
+			// User had to explicitly decline entering the pipeline so in order to prevent
+			// confusion prevent further prompts by completing a noop login flow.
+			e.skippedLogin = true
 			return nil
 		}
 
@@ -798,8 +798,8 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 			return err
 		}
 
-		e.resetPending = eng.resetPending
-		e.resetComplete = eng.resetComplete
+		e.skippedLogin = eng.ResetPending()
+		e.resetComplete = eng.ResetComplete()
 		return nil
 	}
 
@@ -1191,6 +1191,13 @@ func (e *loginProvision) cleanup(m libkb.MetaContext) {
 	// the best way to cleanup is to logout...
 	m.Debug("an error occurred during provisioning, logging out")
 	m.G().Logout(m.Ctx())
+}
+
+func (e *loginProvision) LoggedIn() bool {
+	return !e.skippedLogin
+}
+func (e *loginProvision) AccountReset() bool {
+	return e.resetComplete
 }
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}

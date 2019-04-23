@@ -16,7 +16,8 @@ type LoginProvisionedDevice struct {
 	uid             keybase1.UID
 	deviceID        keybase1.DeviceID
 	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
-	resetPending    bool // if set to true, the login operation resulted in the user entering autoreset
+
+	skippedLogin bool // if set to true, the login operation resulted in the user entering autoreset
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
@@ -62,7 +63,7 @@ func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	}
 
 	// User entered reset flow, so we haven't logged in.
-	if e.resetPending {
+	if e.skippedLogin {
 		return nil
 	}
 
@@ -262,7 +263,7 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 
 func (e *LoginProvisionedDevice) suggestRecovery(mctx libkb.MetaContext) error {
 	// Whatever happens here won't result in a session, so we can mark this engine as a noop.
-	e.resetPending = true
+	e.skippedLogin = true
 
 	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
 		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
@@ -282,7 +283,7 @@ func (e *LoginProvisionedDevice) suggestRecovery(mctx libkb.MetaContext) error {
 		return err
 	}
 
-	// We're ignoring eng.resetPending as we've disabled reset completion
+	// We're ignoring eng.ResetPending() as we've disabled reset completion
 	return nil
 }
 

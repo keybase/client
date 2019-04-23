@@ -253,3 +253,10 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 	e.resetPending = true
 	return nil
 }
+
+func (e *AccountReset) ResetPending() bool {
+	return e.resetPending
+}
+func (e *AccountReset) ResetComplete() bool {
+	return e.resetComplete
+}
