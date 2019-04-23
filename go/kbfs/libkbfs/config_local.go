@@ -1567,7 +1567,7 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 func (c *ConfigLocal) SetTlfSyncState(
 	ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, error) {
-	if config.Mode != keybase1.FolderSyncMode_DISABLED {
+	if !c.IsTestMode() && config.Mode != keybase1.FolderSyncMode_ENABLED {
 		// If we're disabling, or just changing the partial sync
 		// config (which may be removing paths), we should cancel all
 		// the previous prefetches for this TLF.  For partial syncs, a

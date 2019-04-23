@@ -1038,6 +1038,17 @@ func (p *blockPrefetcher) run(
 				p.markQueuedPrefetchDone(req.ptr)
 			}
 
+			if isPrefetchWaiting {
+				select {
+				case <-pre.ctx.Done():
+					p.vlog.CLogf(context.Background(), libkb.VLog2,
+						"Request not processing because it was canceled "+
+							"already: id=%v action=%v", req.ptr.ID, req.action)
+					continue
+				default:
+				}
+			}
+
 			ctx := context.TODO()
 			if isPrefetchWaiting {
 				ctx = pre.ctx
