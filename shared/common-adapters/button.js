@@ -5,17 +5,7 @@ import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
-import {
-  type StylesCrossPlatform,
-  borderRadius,
-  collapseStyles,
-  globalColors,
-  globalStyles,
-  globalMargins,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../styles'
+import * as Styles from '../styles'
 
 const Kb = {
   Box,
@@ -31,9 +21,9 @@ export type Props = {|
   onMouseEnter?: Function,
   onMouseLeave?: Function,
   label?: string,
-  style?: StylesCrossPlatform,
-  labelContainerStyle?: StylesCrossPlatform,
-  labelStyle?: StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
+  labelContainerStyle?: Styles.StylesCrossPlatform,
+  labelStyle?: Styles.StylesCrossPlatform,
   type: 'Default' | 'Success' | 'Danger' | 'Wallet' | 'Dim',
   backgroundColor?: 'blue' | 'red' | 'green' | 'purple' | 'black',
   mode: 'Primary' | 'Secondary',
@@ -69,23 +59,23 @@ class Button extends React.Component<Props> {
       : labelStyles[this.props.mode + this.props.type]
 
     if (this.props.fullWidth) {
-      containerStyle = collapseStyles([containerStyle, styles.fullWidth])
+      containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
     }
 
     if (this.props.small) {
-      containerStyle = collapseStyles([containerStyle, styles.small])
+      containerStyle = Styles.collapseStyles([containerStyle, styles.small])
     }
 
     const unclickable = this.props.disabled || this.props.waiting
     if (unclickable) {
-      containerStyle = collapseStyles([containerStyle, styles.opacity30])
+      containerStyle = Styles.collapseStyles([containerStyle, styles.opacity30])
     }
 
     if (this.props.waiting) {
-      labelStyle = collapseStyles([labelStyle, styles.opacity0])
+      labelStyle = Styles.collapseStyles([labelStyle, styles.opacity0])
     }
 
-    containerStyle = collapseStyles([containerStyle, this.props.style])
+    containerStyle = Styles.collapseStyles([containerStyle, this.props.style])
 
     const onClick = (!unclickable && this.props.onClick) || null
     const whiteSpinner =
@@ -122,7 +112,9 @@ class Button extends React.Component<Props> {
       )
     }
     const underlay =
-      !isMobile && underlayClassNames.length ? <Kb.Box className={underlayClassNames.join(' ')} /> : null
+      !Styles.isMobile && underlayClassNames.length ? (
+        <Kb.Box className={underlayClassNames.join(' ')} />
+      ) : null
 
     return (
       <Kb.ClickableBox
@@ -131,20 +123,20 @@ class Button extends React.Component<Props> {
         onClick={onClick}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}
-        hoverColor={globalColors.transparent}
+        hoverColor={Styles.globalColors.transparent}
       >
         {underlay}
         <Kb.Box
-          style={collapseStyles([
-            globalStyles.flexBoxRow,
-            globalStyles.flexBoxCenter,
+          style={Styles.collapseStyles([
+            Styles.globalStyles.flexBoxRow,
+            Styles.globalStyles.flexBoxCenter,
             styles.labelContainer,
             this.props.labelContainerStyle,
           ])}
         >
           {!this.props.waiting && this.props.children}
           {!!this.props.label && (
-            <Kb.Text type="BodySemibold" style={collapseStyles([labelStyle, this.props.labelStyle])}>
+            <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, this.props.labelStyle])}>
               {this.props.label}
             </Kb.Text>
           )}
@@ -163,14 +155,14 @@ const typeToColorName = {
   Dim: 'black',
 }
 
-const smallHeight = isMobile ? 32 : 28
-const regularHeight = isMobile ? 40 : 32
+const smallHeight = Styles.isMobile ? 32 : 28
+const regularHeight = Styles.isMobile ? 40 : 32
 
-const common = platformStyles({
+const common = Styles.platformStyles({
   common: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
-    borderRadius,
+    borderRadius: Styles.borderRadius,
     height: regularHeight,
     justifyContent: 'center',
   },
@@ -178,68 +170,68 @@ const common = platformStyles({
     display: 'inline-block',
     lineHeight: 'inherit',
     minWidth: '100px',
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
   },
   isMobile: {
     minWidth: 120,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
 })
 
-const commonSecondaryWhiteBg = platformStyles({
+const commonSecondaryWhiteBg = Styles.platformStyles({
   common,
   isElectron: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
     transition: 'border 0.3s ease-out',
   },
   isMobile: {
-    backgroundColor: globalColors.white,
-    borderColor: globalColors.black_20,
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.black_20,
     borderStyle: 'solid',
     borderWidth: 1,
   },
 })
 
-const commonLabel = platformStyles({
+const commonLabel = Styles.platformStyles({
   common: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     textAlign: 'center',
   },
   isElectron: {whiteSpace: 'pre'},
   isMobile: {lineHeight: undefined},
 })
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   fullWidth: {
     flexGrow: 1,
     width: '100%',
   },
-  labelContainer: platformStyles({
+  labelContainer: Styles.platformStyles({
     common: {height: '100%', position: 'relative'},
     isElectron: {pointerEvents: 'none'}, // need hover etc. to go through to underlay
   }),
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
-  progressContainer: {...globalStyles.fillAbsolute, ...globalStyles.flexBoxCenter},
-  progressNormal: {height: isMobile ? 32 : 24, width: isMobile ? 32 : 24},
-  progressSmall: {height: isMobile ? 28 : 20, width: isMobile ? 28 : 20},
+  progressContainer: {...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxCenter},
+  progressNormal: {height: Styles.isMobile ? 32 : 24, width: Styles.isMobile ? 32 : 24},
+  progressSmall: {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile ? 28 : 20},
   small: {
-    borderRadius,
+    borderRadius: Styles.borderRadius,
     height: smallHeight,
     minWidth: undefined,
-    paddingLeft: isMobile ? globalMargins.small : globalMargins.xsmall,
-    paddingRight: isMobile ? globalMargins.small : globalMargins.xsmall,
+    paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
+    paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
   },
 })
 
-const containerStyles = styleSheetCreate({
-  PrimaryDefault: {...common, backgroundColor: globalColors.blue},
-  PrimarySuccess: {...common, backgroundColor: globalColors.green},
-  PrimaryDanger: {...common, backgroundColor: globalColors.red},
-  PrimaryWallet: {...common, backgroundColor: globalColors.purple2},
-  PrimaryDim: {...common, backgroundColor: globalColors.lightGrey2},
+const containerStyles = Styles.styleSheetCreate({
+  PrimaryDefault: {...common, backgroundColor: Styles.globalColors.blue},
+  PrimarySuccess: {...common, backgroundColor: Styles.globalColors.green},
+  PrimaryDanger: {...common, backgroundColor: Styles.globalColors.red},
+  PrimaryWallet: {...common, backgroundColor: Styles.globalColors.purple2},
+  PrimaryDim: {...common, backgroundColor: Styles.globalColors.lightGrey2},
   SecondaryDefault: commonSecondaryWhiteBg,
   SecondarySuccess: commonSecondaryWhiteBg,
   SecondaryDanger: commonSecondaryWhiteBg,
@@ -249,37 +241,37 @@ const containerStyles = styleSheetCreate({
 
 const primaryWhiteBgLabel = {
   ...commonLabel,
-  color: globalColors.white,
+  color: Styles.globalColors.white,
 }
-const labelStyles = styleSheetCreate({
+const labelStyles = Styles.styleSheetCreate({
   PrimaryDefault: primaryWhiteBgLabel,
   PrimarySuccess: primaryWhiteBgLabel,
   PrimaryDanger: primaryWhiteBgLabel,
   PrimaryWallet: primaryWhiteBgLabel,
-  PrimaryDim: {...primaryWhiteBgLabel, color: globalColors.black},
-  SecondaryDefault: {...commonLabel, color: globalColors.blue},
-  SecondarySuccess: {...commonLabel, color: globalColors.green},
-  SecondaryDanger: {...commonLabel, color: globalColors.red},
-  SecondaryWallet: {...commonLabel, color: globalColors.purple},
-  SecondaryDim: {...commonLabel, color: globalColors.black_50},
+  PrimaryDim: {...primaryWhiteBgLabel, color: Styles.globalColors.black},
+  SecondaryDefault: {...commonLabel, color: Styles.globalColors.blue},
+  SecondarySuccess: {...commonLabel, color: Styles.globalColors.green},
+  SecondaryDanger: {...commonLabel, color: Styles.globalColors.red},
+  SecondaryWallet: {...commonLabel, color: Styles.globalColors.purple},
+  SecondaryDim: {...commonLabel, color: Styles.globalColors.black_50},
 })
 
 // With backgroundColor styles
-const backgroundColorContainerStyles = styleSheetCreate({
-  Primary: {...common, backgroundColor: globalColors.white},
-  Secondary: platformStyles({
-    common: {...common, backgroundColor: globalColors.black_20},
+const backgroundColorContainerStyles = Styles.styleSheetCreate({
+  Primary: {...common, backgroundColor: Styles.globalColors.white},
+  Secondary: Styles.platformStyles({
+    common: {...common, backgroundColor: Styles.globalColors.black_20},
     isElectron: {transition: 'background-color 0.2s ease-out, border 0.2s ease-out'},
   }),
 })
 
-const backgroundColorLabelStyles = styleSheetCreate({
-  Primaryblue: {...commonLabel, color: globalColors.blue},
-  Primaryred: {...commonLabel, color: globalColors.red},
-  Primarygreen: {...commonLabel, color: globalColors.green},
-  Primarypurple: {...commonLabel, color: globalColors.purple},
-  Primaryblack: {...commonLabel, color: globalColors.black},
-  Secondary: {...commonLabel, color: globalColors.white},
+const backgroundColorLabelStyles = Styles.styleSheetCreate({
+  Primaryblue: {...commonLabel, color: Styles.globalColors.blue},
+  Primaryred: {...commonLabel, color: Styles.globalColors.red},
+  Primarygreen: {...commonLabel, color: Styles.globalColors.green},
+  Primarypurple: {...commonLabel, color: Styles.globalColors.purple},
+  Primaryblack: {...commonLabel, color: Styles.globalColors.black},
+  Secondary: {...commonLabel, color: Styles.globalColors.white},
 })
 
 export default Button
