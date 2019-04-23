@@ -25,6 +25,7 @@ const Kb = {
 
 type Props = {|
   icon?: ?IconType,
+  focusOnMount?: ?boolean,
   negative?: ?boolean,
   onChange: (text: string) => void,
   placeholderText: string,
@@ -32,12 +33,13 @@ type Props = {|
   type: 'Small' | 'Full-width' | 'Mobile',
   waiting?: ?boolean,
 
+  onBlur?: ?() => void,
   // If onClick is provided, this component won't focus on click. User is
   // expected to handle actual filter/search in a separate component, perhaps
   // in a popup.
   onClick?: ?() => void,
   // following props are ignored when onClick is provided
-  hotkey?: ?('f' | 'k'),
+  hotkey?: ?('f' | 'k'), // desktop only
   onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
 |}
@@ -56,7 +58,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
 
   _input = React.createRef()
-  _onBlur = () => this.setState({focused: false})
+  _onBlur = () => {
+    this.setState({focused: false})
+    this.props.onBlur && this.props.onBlur()
+  }
   _onFocus = () => {
     this.setState({focused: true})
   }
@@ -94,6 +99,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
   _typing = () => this.state.focused || !!this.state.text
+
+  componentDidMount() {
+    this.props.focusOnMount && this._focus()
+  }
   render() {
     if (
       (this.props.type === 'Mobile' && !Styles.isMobile) ||
@@ -108,7 +117,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     const iconColor = this.props.negative ? Styles.globalColors.white_75 : Styles.globalColors.black_50
     const iconSizeType = this.props.type === 'Full-width' ? 'Default' : 'Small'
     const hotkeyText =
-      this.props.hotkey && !this.props.onClick
+      this.props.hotkey && !this.props.onClick && !Styles.isMobile
         ? ` (${Platforms.shortcutSymbol}+${this.props.hotkey.toUpperCase()})`
         : ''
     const content = (
@@ -120,7 +129,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           !this.props.negative && (this.state.focused || this.state.hover ? styles.light : styles.dark),
           this.props.negative &&
             (this.state.focused || this.state.hover ? styles.lightNegative : styles.darkNegative),
-          this.props.style,
+          !Styles.isMobile && this.props.style,
         ])}
         onMouseOver={this._mouseOver}
         onMouseLeave={this._mouseLeave}
@@ -128,7 +137,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        {this.props.hotkey && !this.props.onClick && (
+        {!Styles.isMobile && this.props.hotkey && !this.props.onClick && (
           <KeyHandler
             onHotkey={this._onHotkey}
             hotkeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
@@ -202,7 +211,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        style={styles.containerMobile}
+        style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
         alignItems="center"
         gap="xsmall"
       >
