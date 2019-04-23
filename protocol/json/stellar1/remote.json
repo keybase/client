@@ -145,6 +145,42 @@
     },
     {
       "type": "record",
+      "name": "PathPaymentPost",
+      "fields": [
+        {
+          "type": "keybase1.DeviceID",
+          "name": "fromDeviceID"
+        },
+        {
+          "type": [
+            null,
+            "keybase1.UserVersion"
+          ],
+          "name": "to"
+        },
+        {
+          "type": "string",
+          "name": "noteB64"
+        },
+        {
+          "type": "string",
+          "name": "signedTransaction"
+        },
+        {
+          "type": "boolean",
+          "name": "quickReturn"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DirectOp",
       "fields": [
         {
@@ -1031,6 +1067,19 @@
         }
       ],
       "response": "RelayClaimResult"
+    },
+    "submitPathPayment": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "payment",
+          "type": "PathPaymentPost"
+        }
+      ],
+      "response": "PaymentResult"
     },
     "submitMultiPayment": {
       "request": [

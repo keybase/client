@@ -1148,7 +1148,7 @@ func (s *Server) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustli
 	return ret, nil
 }
 
-func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (res stellar1.PaymentPath, err error) {
+func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (res stellar1.PaymentPathLocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "FindPaymentPathLocal",
 		Err:           &err,
@@ -1156,16 +1156,25 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 	})
 	defer fin()
 	if err != nil {
-		return stellar1.PaymentPath{}, err
+		return stellar1.PaymentPathLocal{}, err
 	}
 
 	recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
 	if err != nil {
-		return stellar1.PaymentPath{}, err
+		return stellar1.PaymentPathLocal{}, err
 	}
 	if recipient.AccountID == nil {
-		return stellar1.PaymentPath{}, errors.New("cannot send a path payment to a user without a stellar account")
+		return stellar1.PaymentPathLocal{}, errors.New("cannot send a path payment to a user without a stellar account")
 	}
 
-	return stellar.FindPaymentPath(mctx, s.remoter, arg.From, *recipient.AccountID, arg.SourceAsset, arg.DestinationAsset, arg.Amount)
+	path, err := stellar.FindPaymentPath(mctx, s.remoter, arg.From, *recipient.AccountID, arg.SourceAsset, arg.DestinationAsset, arg.Amount)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+
+	res.FullPath = path
+
+	// XXX need sourceDisplay, sourceMaxDisplay, destinationDisplay (waiting on design)
+
+	return res, nil
 }

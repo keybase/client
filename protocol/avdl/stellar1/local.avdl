@@ -670,5 +670,12 @@ protocol local {
   // if false, it will send them in individual transactions.
   BatchResultLocal batchLocal(string batchID, int timeoutSecs, array<BatchPaymentArg> payments, boolean useMulti);
 
-  PaymentPath findPaymentPathLocal(AccountID from, string to, Asset sourceAsset, Asset destinationAsset, string amount);
+  record PaymentPathLocal {
+    string sourceDisplay;               // for display purposes 
+    string sourceMaxDisplay;
+    string destinationDisplay;
+    PaymentPath fullPath;   // pass this back when submitting the payment
+  }
+
+  PaymentPathLocal findPaymentPathLocal(AccountID from, string to, Asset sourceAsset, Asset destinationAsset, string amount);
 }

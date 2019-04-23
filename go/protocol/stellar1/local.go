@@ -983,6 +983,22 @@ func (o BatchPaymentArg) DeepCopy() BatchPaymentArg {
 	}
 }
 
+type PaymentPathLocal struct {
+	SourceDisplay      string      `codec:"sourceDisplay" json:"sourceDisplay"`
+	SourceMaxDisplay   string      `codec:"sourceMaxDisplay" json:"sourceMaxDisplay"`
+	DestinationDisplay string      `codec:"destinationDisplay" json:"destinationDisplay"`
+	FullPath           PaymentPath `codec:"fullPath" json:"fullPath"`
+}
+
+func (o PaymentPathLocal) DeepCopy() PaymentPathLocal {
+	return PaymentPathLocal{
+		SourceDisplay:      o.SourceDisplay,
+		SourceMaxDisplay:   o.SourceMaxDisplay,
+		DestinationDisplay: o.DestinationDisplay,
+		FullPath:           o.FullPath.DeepCopy(),
+	}
+}
+
 type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1416,7 +1432,7 @@ type LocalInterface interface {
 	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
 	LookupCLILocal(context.Context, string) (LookupResultCLILocal, error)
 	BatchLocal(context.Context, BatchLocalArg) (BatchResultLocal, error)
-	FindPaymentPathLocal(context.Context, FindPaymentPathLocalArg) (PaymentPath, error)
+	FindPaymentPathLocal(context.Context, FindPaymentPathLocalArg) (PaymentPathLocal, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2741,7 +2757,7 @@ func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res B
 	return
 }
 
-func (c LocalClient) FindPaymentPathLocal(ctx context.Context, __arg FindPaymentPathLocalArg) (res PaymentPath, err error) {
+func (c LocalClient) FindPaymentPathLocal(ctx context.Context, __arg FindPaymentPathLocalArg) (res PaymentPathLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.findPaymentPathLocal", []interface{}{__arg}, &res)
 	return
 }

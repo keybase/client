@@ -1162,6 +1162,28 @@
           "name": "message"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentPathLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "sourceDisplay"
+        },
+        {
+          "type": "string",
+          "name": "sourceMaxDisplay"
+        },
+        {
+          "type": "string",
+          "name": "destinationDisplay"
+        },
+        {
+          "type": "PaymentPath",
+          "name": "fullPath"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2241,7 +2263,7 @@
           "type": "string"
         }
       ],
-      "response": "PaymentPath"
+      "response": "PaymentPathLocal"
     }
   },
   "namespace": "stellar.1"

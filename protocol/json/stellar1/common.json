@@ -415,6 +415,10 @@
           "name": "sourceAmount"
         },
         {
+          "type": "string",
+          "name": "sourceAmountMax"
+        },
+        {
           "type": "Asset",
           "name": "sourceAsset"
         },
