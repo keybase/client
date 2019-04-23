@@ -11,7 +11,7 @@ const peopleRoute = () => {
 }
 
 export const newRoutes = {
-  'tabs.peopleTab': {
+  peopleRoot: {
     getScreen: () => require('./container').default,
     upgraded: true,
   },

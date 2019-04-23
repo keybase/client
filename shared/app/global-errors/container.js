@@ -11,7 +11,7 @@ type OwnProps = {||}
 const mapStateToProps = state => ({
   _loggedIn: state.config.loggedIn,
   daemonError: state.config.daemonError,
-  error: {message: 'aaa'}, // state.config.globalError,
+  error: state.config.globalError,
 })
 
 const mapDispatchToProps = dispatch => ({

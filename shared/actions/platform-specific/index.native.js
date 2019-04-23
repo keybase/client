@@ -178,16 +178,15 @@ const updateChangedFocus = (_, action) => {
 
 const getStartupDetailsFromShare = (): Promise<null | {|localPath: FsTypes.LocalPath|} | {|text: string|}> =>
   isAndroid
-    ? NativeModules.IntentHandler.getShareData()
-        .then(p => {
-          if (!p) return null
-          if (p.localPath) {
-            return {localPath: FsTypes.stringToLocalPath(p.localPath)}
-          }
-          if (p.text) {
-            return {text: p.text}
-          }
-        })
+    ? NativeModules.IntentHandler.getShareData().then(p => {
+        if (!p) return null
+        if (p.localPath) {
+          return {localPath: FsTypes.stringToLocalPath(p.localPath)}
+        }
+        if (p.text) {
+          return {text: p.text}
+        }
+      })
     : Promise.resolve(null)
 
 function* clearRouteState() {
@@ -215,7 +214,7 @@ function* persistRoute(state, action) {
       return
     }
   } else if (top.routeName === 'chatConversation') {
-    routeName = top.routeName
+    routeName = 'tabs.chatTab'
     param = {selectedConversationIDKey: state.chat2.selectedConversation}
   } else {
     return // don't write, keep the last

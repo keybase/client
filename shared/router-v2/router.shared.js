@@ -49,20 +49,22 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         return
       }
       // don't allow pushing a dupe
-      const path = Constants._getVisiblePathForNavigator(navigation.state)
-      const visible = path[path.length - 1]
-      if (visible) {
-        if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
-          console.log('Skipping append dupe')
-          return
-        }
-      }
+      // const path = Constants._getVisiblePathForNavigator(navigation.state)
+      // const visible = path[path.length - 1]
+      // if (visible) {
+      // if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
+      // console.log('Skipping append dupe')
+      // return
+      // }
+      // }
 
       if (action.payload.replace) {
+        // TODO figure out what this is
         return [StackActions.replace({params, routeName})]
       }
 
-      return [StackActions.push({params, routeName})]
+      // return [StackActions.push({params, routeName})]
+      return [NavigationActions.navigate({params, routeName})]
     }
     case RouteTreeGen.switchRouteDef: {
       // used to tell if its the login one or app one. this will all change when we deprecate the old routing
@@ -76,7 +78,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       // When we restore state we want the following stacks
       // [People, TheLastTabYouWereOn, MaybeAConversationIfTheLastTabYouWereOnIsChat]
-      let sa = [StackActions.push({params: undefined, routeName: 'tabs.peopleTab'})]
+      let sa = [NavigationActions.navigate({params: undefined, routeName: 'tabs.peopleTab'})]
 
       if (action.payload.path) {
         const p = action.payload.path.last
@@ -85,31 +87,35 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
         // a chat, we want people/inbox/chat
         if (p === 'chatConversation') {
-          sa.push(StackActions.push({params: undefined, routeName: 'tabs.chatTab'}))
-          sa.push(StackActions.push({params: undefined, routeName: 'chatConversation'}))
+          sa.push(NavigationActions.navigate({params: undefined, routeName: 'tabs.chatTab'}))
+          sa.push(NavigationActions.navigate({params: undefined, routeName: 'chatConversation'}))
         } else if (p !== 'tabs.peopleTab') {
-          sa.push(StackActions.push({params: undefined, routeName: p}))
+          sa.push(NavigationActions.navigate({params: undefined, routeName: p}))
         }
       }
 
+      // TODO make this better, just to get this to build
+      const tabs = ['tabs.chatTab', 'tabs.peopleTab', 'tabs.loginTab']
+
       // validate sa
-      if (!sa.every(a => routes[a.routeName])) {
+      if (!sa.every(a => routes[a.routeName] || tabs.includes(a.routeName))) {
         logger.error('Invalid route found, bailing on push', sa)
         sa = []
       }
 
       // switch the switch and do a reset of the stack
       // MUST pass undefined as key in reset else it won't work correctly
-      return sa.length
-        ? [switchStack, StackActions.reset({actions: sa, index: sa.length - 1, key: undefined})]
-        : [switchStack]
+      // return sa.length
+      // ? [switchStack, StackActions.reset({actions: sa, index: sa.length - 1, key: undefined})]
+      // : [switchStack]
+      return sa
     }
     case RouteTreeGen.clearModals: {
       const numModals = getNumModals(navigation)
       return numModals ? [StackActions.pop({n: numModals})] : []
     }
     case RouteTreeGen.navigateUp:
-      return [StackActions.pop()]
+      return [NavigationActions.goBack()]
     case RouteTreeGen.navUpToScreen: {
       const fullPath = Constants._getFullRouteForNavigator(navigation.state)
       const popActions = []

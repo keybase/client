@@ -24,6 +24,7 @@ useScreens()
 // Options used by default on all navigators
 // For info on what is passed to what see here: https://github.com/react-navigation/react-navigation-stack/blob/master/src/views/Header/Header.js
 const defaultNavigationOptions = {
+  backBehavior: 'none',
   header: null,
   headerLeft: hp => {
     return (
@@ -77,20 +78,26 @@ const routesForTab = tab =>
 const PeopleStack = createStackNavigator(Shim.shim(routesForTab('tabs.peopleTab')), {
   defaultNavigationOptions,
   headerMode,
-  initialRouteName: 'tabs.peopleTab',
+  initialRouteName: 'peopleRoot',
   initialRouteParams: undefined,
 })
 const ChatStack = createStackNavigator(Shim.shim(routesForTab('tabs.chatTab')), {
   defaultNavigationOptions,
   headerMode,
-  initialRouteName: 'tabs.chatTab',
+  initialRouteName: 'chatRoot',
   initialRouteParams: undefined,
 })
 
-const TabNavigator = createBottomTabNavigator({
-  People: PeopleStack,
-  Chat: ChatStack,
-})
+const TabNavigator = createBottomTabNavigator(
+  {
+    'tabs.chatTab': ChatStack,
+    'tabs.peopleTab': PeopleStack,
+  },
+  {
+    backBehavior: 'order',
+    order: ['tabs.peopleTab', 'tabs.chatTab'],
+  }
+)
 
 const LoggedInStackNavigator = createStackNavigator(
   {
@@ -135,6 +142,7 @@ class RNApp extends React.PureComponent<any, any> {
 
     const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
     try {
+      console.log('aaa nav actions', actions)
       actions.forEach(a => nav.dispatch(a))
     } catch (e) {
       logger.error('Nav error', e)
