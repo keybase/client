@@ -500,7 +500,15 @@ func (s *searchSession) initRun(ctx context.Context) (shouldRun bool, err error)
 	return true, nil
 }
 
-func (s *searchSession) run(ctx context.Context) (*chat1.ChatSearchInboxResults, error) {
+func (s *searchSession) run(ctx context.Context) (res *chat1.ChatSearchInboxResults, err error) {
+	defer func() {
+		if err != nil {
+			s.Lock()
+			s.indexer.Debug(ctx, "search aborts,%v %d hits, %d percentIndexed, %d convs searched, opts: %+v",
+				err, len(s.hitMap), s.percentIndexed(), s.numConvsSearched, s.opts)
+			s.Unlock()
+		}
+	}()
 	if shouldRun, err := s.initRun(ctx); !shouldRun || err != nil {
 		return nil, err
 	}
@@ -522,9 +530,11 @@ func (s *searchSession) run(ctx context.Context) (*chat1.ChatSearchInboxResults,
 		index++
 	}
 	percentIndexed := s.totalPercentIndexed / len(s.convList)
-	res := &chat1.ChatSearchInboxResults{
+	res = &chat1.ChatSearchInboxResults{
 		Hits:           hits,
 		PercentIndexed: percentIndexed,
 	}
+	s.indexer.Debug(ctx, "search complete, %d hits, %d percentIndexed, %d convs searched, opts: %+v",
+		len(hits), percentIndexed, s.numConvsSearched, s.opts)
 	return res, nil
 }
