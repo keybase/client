@@ -37,6 +37,14 @@ func NewCmdSimpleFSSyncShow(
 	}
 }
 
+func calcPercent(parts, whole int64) float64 {
+	// 0/0 etc, avoid NaNs.
+	if whole == 0 {
+		return 0
+	}
+	return 100 * float64(parts) / float64(whole)
+}
+
 func printPrefetchStatus(
 	ui libkb.TerminalUI, status keybase1.PrefetchStatus,
 	progress keybase1.PrefetchProgress, tab string) {
@@ -49,8 +57,7 @@ func printPrefetchStatus(
 			ui.Printf("%s%s/%s (%.2f%%)\n",
 				tab, humanizeBytes(progress.BytesFetched, false),
 				humanizeBytes(progress.BytesTotal, false),
-				100*float64(progress.BytesFetched)/
-					float64(progress.BytesTotal))
+				calcPercent(progress.BytesFetched, progress.BytesTotal))
 		}
 		if progress.EndEstimate > 0 {
 			timeRemaining := time.Until(keybase1.FromTime(progress.EndEstimate))
@@ -74,7 +81,7 @@ func printLocalStats(
 	a := status.LocalDiskBytesAvailable
 	t := status.LocalDiskBytesTotal
 	ui.Printf("%s (%.2f%%) of the local disk is available for caching.\n",
-		humanizeBytes(a, false), float64(a)/float64(t)*100)
+		humanizeBytes(a, false), calcPercent(a, t))
 }
 
 func printFolderStatus(
