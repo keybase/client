@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -336,7 +335,7 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 
 	deviceEK, err := s.Get(mctx, 0)
 	require.Error(t, err)
-	_, ok := err.(erasablekv.UnboxError)
+	_, ok := err.(libkb.UnboxError)
 	require.True(t, ok)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
@@ -377,13 +376,13 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	case <-ch:
 		deviceEK, err := s.Get(mctx, 0)
 		require.Error(t, err)
-		_, ok = err.(erasablekv.UnboxError)
+		_, ok = err.(libkb.UnboxError)
 		require.True(t, ok)
 		require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 	}
 	err = ekLib.keygenIfNeeded(mctx, libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
-	_, ok = err.(erasablekv.UnboxError)
+	_, ok = err.(libkb.UnboxError)
 	require.False(t, ok)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 }

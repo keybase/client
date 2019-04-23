@@ -544,8 +544,7 @@
   enum ReIndexingMode {
     NONE_0,
     PRESEARCH_SYNC_1,
-    POSTSEARCH_ASYNC_2,
-    POSTSEARCH_SYNC_3
+    POSTSEARCH_SYNC_2
   }
 
   record SearchOpts {

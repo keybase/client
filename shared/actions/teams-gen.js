@@ -47,6 +47,7 @@ export const leftTeam = 'teams:leftTeam'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const removeParticipant = 'teams:removeParticipant'
+export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
@@ -116,6 +117,7 @@ type _LeftTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'|
 type _ReAddToTeamPayload = $ReadOnly<{|teamname: string, username: string|}>
 type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|email: string, teamname: string, username: string, inviteID: string|}>
 type _RemoveParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
+type _RenameTeamPayload = $ReadOnly<{|oldName: string, newName: string|}>
 type _SaveChannelMembershipPayload = $ReadOnly<{|teamname: string, oldChannelState: Types.ChannelMembershipState, newChannelState: Types.ChannelMembershipState, you: string|}>
 type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string, policy: RetentionPolicy|}>
 type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|error: boolean, results: string|}>
@@ -161,6 +163,10 @@ export const createGetChannels = (payload: _GetChannelsPayload) => ({payload, ty
  * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
  */
 export const createGetTeamRetentionPolicy = (payload: _GetTeamRetentionPolicyPayload) => ({payload, type: getTeamRetentionPolicy})
+/**
+ * Rename a subteam
+ */
+export const createRenameTeam = (payload: _RenameTeamPayload) => ({payload, type: renameTeam})
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
@@ -269,6 +275,7 @@ export type LeftTeamPayload = {|+payload: _LeftTeamPayload, +type: 'teams:leftTe
 export type ReAddToTeamPayload = {|+payload: _ReAddToTeamPayload, +type: 'teams:reAddToTeam'|}
 export type RemoveMemberOrPendingInvitePayload = {|+payload: _RemoveMemberOrPendingInvitePayload, +type: 'teams:removeMemberOrPendingInvite'|}
 export type RemoveParticipantPayload = {|+payload: _RemoveParticipantPayload, +type: 'teams:removeParticipant'|}
+export type RenameTeamPayload = {|+payload: _RenameTeamPayload, +type: 'teams:renameTeam'|}
 export type SaveChannelMembershipPayload = {|+payload: _SaveChannelMembershipPayload, +type: 'teams:saveChannelMembership'|}
 export type SaveTeamRetentionPolicyPayload = {|+payload: _SaveTeamRetentionPolicyPayload, +type: 'teams:saveTeamRetentionPolicy'|}
 export type SetAddUserToTeamsResultsPayload = {|+payload: _SetAddUserToTeamsResultsPayload, +type: 'teams:setAddUserToTeamsResults'|}
@@ -340,6 +347,7 @@ export type Actions =
   | ReAddToTeamPayload
   | RemoveMemberOrPendingInvitePayload
   | RemoveParticipantPayload
+  | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
   | SetAddUserToTeamsResultsPayload

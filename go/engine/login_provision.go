@@ -150,8 +150,9 @@ func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) error {
 
 func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) (err error) {
 	nun := e.arg.User.GetNormalizedName()
-	defer m.Trace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
-	return libkb.StoreSecretAfterLoginWithLKS(m, nun, lks)
+	defer m.Trace(fmt.Sprintf("loginProvision.saveToSecretStoreWithLKS(%s)", nun), func() error { return err })()
+	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
+	return libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
 }
 
 // deviceWithType provisions this device with an existing device using the

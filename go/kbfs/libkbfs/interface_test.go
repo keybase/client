@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
@@ -99,7 +100,8 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlfPath(tlfPath string) bool {
 	return false
 }
 
-func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
+func (t *testSyncedTlfGetterSetter) SetTlfSyncState(
+	_ context.Context, tlfID tlf.ID,
 	config FolderSyncConfig) (<-chan error, error) {
 	t.syncedTlfs[tlfID] = config
 	return nil, nil

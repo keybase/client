@@ -1389,6 +1389,9 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 }
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
+	defer func() {
+		c.MakeLogger("").CDebugf(nil, "Loaded synced TLFs: %+v", err)
+	}()
 	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	syncedTlfPaths := make(map[string]bool)
 	if c.mode.IsTestMode() {
@@ -1483,32 +1486,32 @@ func (c *ConfigLocal) OfflineAvailabilityForID(
 }
 
 func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
-	<-chan error, BlockOps, error) {
+	<-chan error, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 	if !ok {
-		return nil, nil, errors.Errorf(
+		return nil, errors.Errorf(
 			"invalid disk cache type to set TLF sync state: %T",
 			c.diskBlockCache)
 	}
 	if !diskCacheWrapped.IsSyncCacheEnabled() {
-		return nil, nil, errors.New("sync block cache is not enabled")
+		return nil, errors.New("sync block cache is not enabled")
 	}
 
 	if !c.mode.IsTestMode() {
 		if c.storageRoot == "" {
-			return nil, nil, errors.New(
+			return nil, errors.New(
 				"empty storageRoot specified for non-test run")
 		}
 		ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		defer ldb.Close()
 		tlfBytes, err := tlfID.MarshalText()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		if config.Mode == keybase1.FolderSyncMode_DISABLED {
 			err = ldb.Delete(tlfBytes, nil)
@@ -1519,12 +1522,12 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 			var buf []byte
 			buf, err = c.codec.Encode(&config)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			err = ldb.Put(tlfBytes, buf, nil)
 		}
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
 
@@ -1556,18 +1559,25 @@ func (c *ConfigLocal) setTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	if config.TlfPath != "" {
 		c.syncedTlfPaths[config.TlfPath] = true
 	}
-	return ch, c.bops, nil
+	return ch, nil
 }
 
 // SetTlfSyncState implements the syncedTlfGetterSetter interface for
 // ConfigLocal.
-func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
+func (c *ConfigLocal) SetTlfSyncState(
+	ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, error) {
-	ch, bops, err := c.setTlfSyncState(tlfID, config)
-	// Toggle the prefetcher outside of holding the lock, since the
-	// previous prefetcher might depend on accessing the config.
-	<-bops.TogglePrefetcher(true)
-	return ch, err
+	if config.Mode != keybase1.FolderSyncMode_DISABLED {
+		// If we're disabling, or just changing the partial sync
+		// config (which may be removing paths), we should cancel all
+		// the previous prefetches for this TLF.  For partial syncs, a
+		// new sync will be started.
+		err := c.BlockOps().Prefetcher().CancelTlfPrefetches(ctx, tlfID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return c.setTlfSyncState(tlfID, config)
 }
 
 // GetAllSyncedTlfs implements the syncedTlfGetterSetter interface for

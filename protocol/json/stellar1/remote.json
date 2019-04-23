@@ -1143,6 +1143,22 @@
         }
       ],
       "response": "DetailsPlusPayments"
+    },
+    "assetSearch": {
+      "request": [
+        {
+          "name": "assetCode",
+          "type": "string"
+        },
+        {
+          "name": "issuerAccountID",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
     }
   },
   "namespace": "stellar.1"

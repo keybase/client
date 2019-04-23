@@ -141,7 +141,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: hideMenuOnClick(props.download, hideMenu),
-          title: 'Download a copy',
+          title: 'Download',
         },
       ]
     : []),

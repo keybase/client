@@ -123,7 +123,9 @@ type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
 	IsSyncedTlfPath(tlfPath string) bool
 	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
-	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
+	SetTlfSyncState(
+		ctx context.Context, tlfID tlf.ID, config FolderSyncConfig) (
+		<-chan error, error)
 	GetAllSyncedTlfs() []tlf.ID
 
 	idutil.OfflineStatusGetter
@@ -997,6 +999,12 @@ type DiskBlockCache interface {
 	// ClearHomeTLFs should be called on logout so that the old user's TLFs
 	// are not still marked as home.
 	ClearHomeTLFs(ctx context.Context) error
+	// GetTlfSize returns the number of bytes stored for the given TLF
+	// in the cache of the given type.  If `DiskBlockAnyCache` is
+	// specified, it returns the total sum of bytes across all caches.
+	GetTlfSize(
+		ctx context.Context, tlfID tlf.ID, cacheType DiskBlockCacheType) (
+		uint64, error)
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
@@ -1309,6 +1317,9 @@ type Prefetcher interface {
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(data.BlockPointer)
+	// CancelTlfPrefetches notifies the prefetcher that all prefetches
+	// for a given TLF should be canceled.
+	CancelTlfPrefetches(context.Context, tlf.ID) error
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are

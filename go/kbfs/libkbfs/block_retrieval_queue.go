@@ -607,6 +607,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 				retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
 				retrieval.cacheLifetime, NoPrefetch, retrieval.action)
 		} else {
+			brq.log.CDebugf(
+				retrieval.ctx, "Couldn't get block %s: %+v", retrieval.blockPtr, retrievalErr)
 			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr)
 		}
 	} else if retrievalErr == nil {

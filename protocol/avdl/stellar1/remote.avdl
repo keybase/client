@@ -18,7 +18,7 @@ protocol remote {
     boolean quickReturn;
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
-    union { null, ChatConversationID } chatConversationID; 
+    union { null, ChatConversationID } chatConversationID;
   }
 
   record PaymentRelayPost {
@@ -34,7 +34,7 @@ protocol remote {
     boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
-    union { null, ChatConversationID } chatConversationID; 
+    union { null, ChatConversationID } chatConversationID;
   }
 
   record RelayClaimPost {
@@ -284,7 +284,7 @@ protocol remote {
   }
 
   record NetworkOptions {
-    uint64 baseFee; 
+    uint64 baseFee;
   }
   NetworkOptions networkOptions(keybase1.UserVersion caller);
 
@@ -294,4 +294,7 @@ protocol remote {
     array<PaymentSummary> pendingPayments;
   }
   DetailsPlusPayments detailsPlusPayments(keybase1.UserVersion caller, AccountID accountID);
+
+  // search by either an assetCode or an issuerAccountID (or both) to get back matches from stellard/horizon
+  array<Asset> assetSearch(string assetCode, string issuerAccountID);
 }

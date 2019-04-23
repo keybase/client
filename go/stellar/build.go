@@ -968,7 +968,7 @@ func (b *buildPaymentData) CheckReadyToSend(arg stellar1.SendPaymentLocalArg) er
 	if arg.Amount != b.Frozen.Amount {
 		return fmt.Errorf("mismatched amount: %v != %v", arg.Amount, b.Frozen.Amount)
 	}
-	if !arg.Asset.Eq(b.Frozen.Asset) {
+	if !arg.Asset.SameAsset(b.Frozen.Asset) {
 		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, b.Frozen.Asset)
 	}
 	return nil

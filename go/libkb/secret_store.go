@@ -83,10 +83,16 @@ func (s *SecretStoreImp) StoreSecret(m MetaContext, secret LKSecFullSecret) erro
 }
 
 func (s *SecretStoreImp) GetOptions(mctx MetaContext) *SecretStoreOptions {
-	return s.store.GetOptions(mctx)
+	if s.store != nil {
+		return s.store.GetOptions(mctx)
+	}
+	return nil
+
 }
 func (s *SecretStoreImp) SetOptions(mctx MetaContext, options *SecretStoreOptions) {
-	s.store.SetOptions(mctx, options)
+	if s.store != nil {
+		s.store.SetOptions(mctx, options)
+	}
 }
 
 // NewSecretStore returns a SecretStore interface that is only used for
@@ -291,10 +297,15 @@ func (s *SecretStoreLocked) IsPersistent() bool {
 }
 
 func (s *SecretStoreLocked) GetOptions(mctx MetaContext) *SecretStoreOptions {
-	return s.disk.GetOptions(mctx)
+	if s.disk != nil {
+		return s.disk.GetOptions(mctx)
+	}
+	return nil
 }
 func (s *SecretStoreLocked) SetOptions(mctx MetaContext, options *SecretStoreOptions) {
-	s.disk.SetOptions(mctx, options)
+	if s.disk != nil {
+		s.disk.SetOptions(mctx, options)
+	}
 }
 
 // PrimeSecretStore runs a test with current platform's secret store, trying to
