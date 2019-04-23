@@ -79,8 +79,8 @@ func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncSt
 }
 
 func (h *KBFSHandler) FSOverallSyncEvent(
-	ctx context.Context, arg keybase1.FolderSyncStatus) (err error) {
-	h.G().NotifyRouter.HandleFSOverallSyncStautsChanged(ctx, arg)
+	_ context.Context, arg keybase1.FolderSyncStatus) (err error) {
+	h.G().NotifyRouter.HandleFSOverallSyncStatusChanged(arg)
 	return nil
 }
 
