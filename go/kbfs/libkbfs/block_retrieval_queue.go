@@ -45,6 +45,7 @@ type blockRetrievalPartialConfig interface {
 	syncedTlfGetterSetter
 	initModeGetter
 	clockGetter
+	reporterGetter
 }
 
 type blockRetrievalConfig interface {

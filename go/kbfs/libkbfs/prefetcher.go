@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -26,6 +27,7 @@ const (
 	updatePointerPrefetchPriority int           = 1
 	prefetchTimeout               time.Duration = 24 * time.Hour
 	maxNumPrefetches              int           = 10000
+	overallSyncStatusInterval     time.Duration = 1 * time.Second
 )
 
 type prefetcherConfig interface {
@@ -35,6 +37,7 @@ type prefetcherConfig interface {
 	blockCacher
 	diskBlockCacheGetter
 	clockGetter
+	reporterGetter
 }
 
 type prefetchRequest struct {
@@ -154,8 +157,9 @@ type blockPrefetcher struct {
 	// Tracks the overall bytes currently being prefetched to the sync
 	// cache.  The total outstanding bytes resets on the first new
 	// prefetch after a completion happens.
-	overallSyncStatusLock sync.RWMutex
-	overallSyncStatus     PrefetchProgress
+	overallSyncStatusLock     sync.RWMutex
+	overallSyncStatus         PrefetchProgress
+	lastOverallSyncStatusSent time.Time
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -208,6 +212,34 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	return p
 }
 
+func (p *blockPrefetcher) sendOverallSyncStatusLocked() {
+	// Don't send a new status notification if we aren't complete, and
+	// if we have sent one within the last interval.
+	if p.overallSyncStatus.SubtreeBytesFetched !=
+		p.overallSyncStatus.SubtreeBytesTotal &&
+		p.config.Clock().Now().Before(
+			p.lastOverallSyncStatusSent.Add(overallSyncStatusInterval)) {
+		return
+	}
+
+	var status keybase1.FolderSyncStatus
+	status.PrefetchProgress = p.overallSyncStatus.ToProtocolProgress(
+		p.config.Clock())
+	if p.overallSyncStatus.SubtreeBytesTotal ==
+		p.overallSyncStatus.SubtreeBytesFetched ||
+		p.overallSyncStatus.SubtreeBytesTotal == 0 {
+		status.PrefetchStatus = keybase1.PrefetchStatus_COMPLETE
+	} else {
+		status.PrefetchStatus = keybase1.PrefetchStatus_IN_PROGRESS
+	}
+
+	// Don't fill in the local disk stats for now; add this later if
+	// needed.
+
+	p.config.Reporter().NotifyOverallSyncStatus(context.Background(), status)
+	p.lastOverallSyncStatusSent = p.config.Clock().Now()
+}
+
 func (p *blockPrefetcher) incOverallSyncTotalBytes(req *prefetchRequest) {
 	if !req.action.Sync() || req.countedInOverall {
 		return
@@ -224,6 +256,7 @@ func (p *blockPrefetcher) incOverallSyncTotalBytes(req *prefetchRequest) {
 
 	p.overallSyncStatus.SubtreeBytesTotal += uint64(req.encodedSize)
 	req.countedInOverall = true
+	p.sendOverallSyncStatusLocked()
 }
 
 func (p *blockPrefetcher) decOverallSyncTotalBytes(req *prefetchRequest) {
@@ -244,6 +277,7 @@ func (p *blockPrefetcher) decOverallSyncTotalBytes(req *prefetchRequest) {
 
 	p.overallSyncStatus.SubtreeBytesTotal -= uint64(req.encodedSize)
 	req.countedInOverall = false
+	p.sendOverallSyncStatusLocked()
 }
 
 func (p *blockPrefetcher) incOverallSyncFetchedBytes(req *prefetchRequest) {
@@ -255,6 +289,7 @@ func (p *blockPrefetcher) incOverallSyncFetchedBytes(req *prefetchRequest) {
 	defer p.overallSyncStatusLock.Unlock()
 	p.overallSyncStatus.SubtreeBytesFetched += uint64(req.encodedSize)
 	req.countedInOverall = false
+	p.sendOverallSyncStatusLocked()
 	if p.overallSyncStatus.SubtreeBytesFetched >
 		p.overallSyncStatus.SubtreeBytesTotal {
 		// Both log and panic so that we get the PFID in the log.
