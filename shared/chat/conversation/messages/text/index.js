@@ -14,12 +14,18 @@ type ReplyProps = {
 const Reply = (props: ReplyProps) => {
   return (
     <Kb.ClickableBox onClick={props.onClick}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.replyContainer}>
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        fullWidth={true}
+        style={styles.replyContainer}
+        className={Styles.classNames('ReplyBox')}
+      >
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
         <Kb.Box2 direction="vertical">
           <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
             <Kb.Avatar username={props.username} size={32} />
-            <Kb.Text type="Body" style={styles.replyUsername}>
+            <Kb.Text type="BodySemibold" style={styles.replyUsername}>
               {props.username}
             </Kb.Text>
           </Kb.Box2>
