@@ -113,12 +113,12 @@ class Button extends React.Component<Props> {
     }
     const underlay =
       !Styles.isMobile && underlayClassNames.length ? (
-        <Kb.Box className={underlayClassNames.join(' ')} />
+        <Kb.Box className={Styles.classNames(underlayClassNames)} />
       ) : null
 
     return (
       <Kb.ClickableBox
-        className={classNames.join(' ')}
+        className={Styles.classNames(classNames)}
         style={containerStyle}
         onClick={onClick}
         onMouseEnter={this.props.onMouseEnter}
