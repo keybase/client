@@ -2,9 +2,10 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import type {RetentionPolicy} from '../../../constants/types/retention-policy'
-import {Box, Button, Checkbox, Text} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {Box2, Box, Button, Checkbox, Text} from '../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, styleSheetCreate, platformStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {FloatingRolePicker} from '../../role-picker-2'
 import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
@@ -18,13 +19,19 @@ type Props = {|
   openTeam: boolean,
   openTeamRole: Types.TeamRoleType,
   savePublicity: (Types.PublicitySettings, boolean, ?RetentionPolicy) => void,
-  setOpenTeamRole: (
-    newOpenTeamRole: Types.TeamRoleType,
-    setNewOpenTeamRole: (Types.TeamRoleType) => void
-  ) => void,
   teamname: Types.Teamname,
   yourOperations: Types.TeamOperations,
   waitingForSavePublicity: boolean,
+|}
+
+type RolePickerProps = {|
+  isRolePickerOpen: boolean,
+  onCancelRolePicker: () => void,
+  onConfirmRolePicker: (role: Types.TeamRoleType) => void,
+  onOpenRolePicker: () => void,
+  onSelectRole: (role: Types.TeamRoleType) => void,
+  newOpenTeamRole: Types.TeamRoleType,
+  disabledReasonsForRolePicker: {[key: Types.TeamRoleType]: string},
 |}
 
 type NewSettings = {|
@@ -43,13 +50,13 @@ type State = {|
   publicitySettingsChanged: boolean,
   retentionPolicyChanged: boolean,
   retentionPolicyDecreased: boolean,
+  isRolePickerOpen: boolean,
 |}
 
 type SettingProps = {|
   ...Props,
   ...State,
   setBoolSettings: (key: any) => (newSetting: boolean) => void,
-  onSetOpenTeamRole?: () => void,
 |}
 
 const SetMemberShowcase = (props: SettingProps) => (
@@ -121,40 +128,56 @@ const PublicityTeam = (props: SettingProps) =>
     </Box>
   )
 
-const OpenTeam = (props: SettingProps) => {
+const OpenTeam = (props: {|...SettingProps, ...RolePickerProps|}) => {
   if (!props.yourOperations.changeOpenTeam) {
     return null
   }
 
-  const _onSetOpenTeamRole = props.onSetOpenTeamRole
+  const onOpenRolePicker = (e: SyntheticEvent<>) => {
+    e.stopPropagation()
+    props.onOpenRolePicker()
+  }
 
-  const onSetOpenTeamRole = _onSetOpenTeamRole
-    ? (e: SyntheticEvent<>) => {
-        e.stopPropagation()
-        _onSetOpenTeamRole()
-      }
-    : undefined
-
+  // <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}>
   return (
     <Box style={stylesPublicitySettingsBox}>
       <Checkbox
         checked={props.newOpenTeam}
         labelComponent={
-          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              flexShrink: 1,
+              paddingRight: globalMargins.small,
+              whiteSpace: 'pre',
+            }}
+          >
             <Text type="Body">Make this an open team</Text>
-            <Text type="BodySmall">
-              Anyone will be able to join immediately. Users will join as{' '}
-              <Text
-                type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
-                onClick={props.newOpenTeam ? onSetOpenTeamRole : undefined}
+            <Box2 direction="horizontal" centerChildren={true}>
+              <Text type="BodySmall">Anyone will be able to join immediately. Users will join as </Text>
+              <FloatingRolePicker
+                confirmLabel={`Let in as ${pluralize(props.newOpenTeamRole)}`}
+                selectedRole={props.newOpenTeamRole}
+                onSelectRole={props.onSelectRole}
+                floatingContainerStyle={styles.floatingRolePicker}
+                onConfirm={props.onConfirmRolePicker}
+                onCancel={props.onCancelRolePicker}
+                position={'bottom center'}
+                open={props.isRolePickerOpen}
+                disabledRoles={props.disabledReasonsForRolePicker}
               >
-                {pluralize(props.newOpenTeamRole)}
-              </Text>
-              .
-            </Text>
+                <Text
+                  type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
+                  onClick={props.newOpenTeam ? onOpenRolePicker : undefined}
+                >
+                  {pluralize(props.newOpenTeamRole)}
+                </Text>
+              </FloatingRolePicker>
+              <Text type="BodySmall">.</Text>
+            </Box2>
           </Box>
         }
-        onCheck={props.setBoolSettings('newOpenTeam')}
+        onCheck={props.isRolePickerOpen ? undefined : props.setBoolSettings('newOpenTeam')}
       />
     </Box>
   )
@@ -177,6 +200,24 @@ const IgnoreAccessRequests = (props: SettingProps) =>
     </Box>
   )
 
+const toRolePickerPropsHelper = (state: State, setState) => ({
+  disabledReasonsForRolePicker: {
+    admin: `Open teams cannot let users in as admins`,
+    owner: `Open teams cannot let users in as owners`,
+  },
+  isRolePickerOpen: state.isRolePickerOpen,
+  newOpenTeamRole: state.newOpenTeamRole,
+  onCancelRolePicker: () => setState({isRolePickerOpen: false}),
+  onConfirmRolePicker: (role: Types.TeamRoleType) => {
+    setState({isRolePickerOpen: false})
+  },
+  onOpenRolePicker: () => setState({isRolePickerOpen: true}),
+  onSelectRole: (role: Types.TeamRoleType) =>
+    setState({
+      newOpenTeamRole: role,
+    }),
+})
+
 export class Settings extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
@@ -185,6 +226,7 @@ export class Settings extends React.Component<Props, State> {
 
   _getNewStateObject = (p: Props) => {
     return {
+      isRolePickerOpen: false,
       newIgnoreAccessRequests: p.ignoreAccessRequests,
       newOpenTeam: p.openTeam,
       newOpenTeamRole: p.openTeamRole,
@@ -246,12 +288,6 @@ export class Settings extends React.Component<Props, State> {
     )
   }
 
-  onSetOpenTeamRole = () => {
-    this.props.setOpenTeamRole(this.state.newOpenTeamRole, newOpenTeamRole =>
-      this.setState({newOpenTeamRole})
-    )
-  }
-
   _onSelectRetentionPolicy = (
     newRetentionPolicy: RetentionPolicy,
     retentionPolicyChanged: boolean,
@@ -261,6 +297,7 @@ export class Settings extends React.Component<Props, State> {
   }
 
   render() {
+    const rolePickerProps = toRolePickerPropsHelper(this.state, s => this.setState(s))
     return (
       <Box
         style={{
@@ -284,8 +321,8 @@ export class Settings extends React.Component<Props, State> {
             <OpenTeam
               {...this.props}
               {...this.state}
+              {...rolePickerProps}
               setBoolSettings={this.setBoolSettings}
-              onSetOpenTeamRole={this.onSetOpenTeamRole}
             />
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
           </React.Fragment>
@@ -327,3 +364,12 @@ const stylesPublicitySettingsBox = {
   paddingRight: globalMargins.small,
   paddingTop: globalMargins.small,
 }
+
+const styles = styleSheetCreate({
+  floatingRolePicker: platformStyles({
+    isElectron: {
+      position: 'relative',
+      top: -20,
+    },
+  }),
+})
