@@ -40,12 +40,7 @@ const TeamInfo = p => (
             size="small"
             teamname={p.name}
             title={p.name}
-            metaOne={
-              <Kb.Box2 direction="horizontal" gap="tiny">
-                <Kb.Text type="BodySmall">TEAM</Kb.Text>
-                <OpenMeta isOpen={p.isOpen} />
-              </Kb.Box2>
-            }
+            metaOne={<OpenMeta isOpen={p.isOpen} />}
             metaTwo={
               <Kb.Text type="BodySmall">
                 {p.membersCount} member{p.membersCount > 1 ? 's' : ''}
@@ -57,24 +52,27 @@ const TeamInfo = p => (
           </Kb.Text>
           {!p.inTeam && (
             <Kb.WaitingButton
+              fullWidth={true}
               waitingKey={Constants.waitingKey}
               label="Request to join"
               onClick={() => p.onJoinTeam(p.name)}
             />
           )}
-          <Kb.Text center={true} type="BodySmall">
-            Public admins:{' '}
-            {
-              <Kb.ConnectedUsernames
-                type="BodySmallSemibold"
-                colorFollowing={true}
-                colorBroken={true}
-                onUsernameClicked="profile"
-                usernames={p.publicAdmins}
-                containerStyle={styles.publicAdmins}
-              />
-            }
-          </Kb.Text>
+          {!!p.publicAdmins.length && (
+            <Kb.Text center={true} type="BodySmall">
+              Public admins:{' '}
+              {
+                <Kb.ConnectedUsernames
+                  type="BodySmallSemibold"
+                  colorFollowing={true}
+                  colorBroken={true}
+                  onUsernameClicked="profile"
+                  usernames={p.publicAdmins}
+                  containerStyle={styles.publicAdmins}
+                />
+              }
+            </Kb.Text>
+          )}
         </Kb.Box2>
       ),
     }}
